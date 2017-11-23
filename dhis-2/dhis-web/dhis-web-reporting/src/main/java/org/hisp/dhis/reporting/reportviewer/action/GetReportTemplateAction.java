@@ -1,5 +1,6 @@
 package org.hisp.dhis.reporting.reportviewer.action;
 
+import java.nio.charset.StandardCharsets;
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -73,7 +74,7 @@ public class GetReportTemplateAction
             
             ContextUtils.configureResponse( response, contentType, false, template, true );
             
-            String content = IOUtils.toString( new ClassPathResource( template ).getInputStream() );
+            String content = IOUtils.toString( new ClassPathResource( template ).getInputStream(), StandardCharsets.UTF_8 );
             
             IOUtils.write( content, response.getWriter() );
         }

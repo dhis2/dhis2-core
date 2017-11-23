@@ -43,6 +43,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Lars Helge Overland
@@ -229,7 +230,7 @@ public class AddReportAction
 
         if ( file != null )
         {
-            report.setDesignContent( FileUtils.readFileToString( file ) );
+            report.setDesignContent( FileUtils.readFileToString( file, StandardCharsets.UTF_8 ) );
         }
 
         // ---------------------------------------------------------------------

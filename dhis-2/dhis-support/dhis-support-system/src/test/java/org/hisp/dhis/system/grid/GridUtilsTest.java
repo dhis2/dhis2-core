@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.grid;
 
+import java.nio.charset.StandardCharsets;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -46,7 +48,7 @@ public class GridUtilsTest
     public void testFromHtml()
         throws Exception
     {
-        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream() );
+        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(), StandardCharsets.UTF_8 );
         
         List<Grid> grids = GridUtils.fromHtml( html, "TitleA" );
         

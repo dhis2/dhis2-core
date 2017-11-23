@@ -216,7 +216,7 @@ public class DefaultMessageService
             .append( "Message: " + t.getMessage() + LN + LN )
             .append( "Cause: " + DebugUtils.getStackTrace( t.getCause() ) ).toString();
 
-        return sendMessage( createSystemMessage( subject, text).build() );
+        return sendMessage( createSystemMessage( subject, text ).build() );
     }
 
     @Override

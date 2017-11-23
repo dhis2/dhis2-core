@@ -1035,6 +1035,13 @@ public class TableAlteror
         executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
 
+        // Scheduler fixes for 2.29
+        executeSql( "delete from systemsetting where name='keyScheduledTasks'" );
+        executeSql( "delete from systemsetting where name='keyDataMartTask'" );
+
+        executeSql( "delete from systemsetting where name='dataSyncCron'" );
+        executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
+
         log.info( "Tables updated" );
     }
 

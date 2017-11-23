@@ -81,8 +81,6 @@ public class DefaultSMSCommandService
 
         if ( command != null )
         {
-            command.getCodes().clear();
-
             command.getCodes().addAll( codes);
 
             smsCommandStore.update( command );
@@ -114,8 +112,6 @@ public class DefaultSMSCommandService
 
         if ( command != null )
         {
-            command.getSpecialCharacters().clear();
-
             command.getSpecialCharacters().addAll( specialCharacters );
 
             smsCommandStore.update( command );
@@ -143,7 +139,7 @@ public class DefaultSMSCommandService
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
-        command.getSpecialCharacters().retainAll( specialCharacters );
+        command.getSpecialCharacters().removeAll( specialCharacters );
 
         smsCommandStore.update( command );
     }

@@ -36,7 +36,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -78,10 +78,10 @@ public class MetadataImportController
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setObjects( renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON ) );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
             startAsync( params );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.METADATA_IMPORT );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.METADATA_IMPORT );
             response.setStatus( HttpServletResponse.SC_ACCEPTED );
         }
         else
@@ -98,10 +98,10 @@ public class MetadataImportController
         Metadata metadata = renderService.fromXml( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), Metadata.class );
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
             startAsync( params );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.METADATA_IMPORT );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.METADATA_IMPORT );
             response.setStatus( HttpServletResponse.SC_ACCEPTED );
         }
         else

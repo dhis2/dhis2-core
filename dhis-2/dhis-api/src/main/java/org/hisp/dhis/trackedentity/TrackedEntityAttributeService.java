@@ -130,13 +130,6 @@ public interface TrackedEntityAttributeService
      *
      * @return List of attributes
      */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutProgram();
-
-    /**
-     * Get attributes which are displayed in visit schedule
-     *
-     * @return List of attributes
-     */
     List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList();
 
     /**

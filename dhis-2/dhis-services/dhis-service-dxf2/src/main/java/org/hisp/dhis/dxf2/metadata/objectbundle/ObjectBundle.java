@@ -36,7 +36,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
@@ -108,9 +108,9 @@ public class ObjectBundle
     private final boolean skipValidation;
 
     /**
-     * Task id to use for threaded imports.
+     * Job id to use for threaded imports.
      */
-    private TaskId taskId;
+    private JobId jobId;
 
     /**
      * Current status of object bundle.
@@ -149,7 +149,7 @@ public class ObjectBundle
         this.flushMode = params.getFlushMode();
         this.skipSharing = params.isSkipSharing();
         this.skipValidation = params.isSkipValidation();
-        this.taskId = params.getTaskId();
+        this.jobId = params.getJobId();
         this.preheat = preheat;
 
         addObject( objectMap );
@@ -210,14 +210,14 @@ public class ObjectBundle
         return skipValidation;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
-    public boolean hasTaskId()
+    public boolean hasJobId()
     {
-        return taskId != null;
+        return jobId != null;
     }
 
     public ObjectBundleStatus getObjectBundleStatus()
