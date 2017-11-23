@@ -90,11 +90,15 @@ public class DefaultDataQueryService
     // -------------------------------------------------------------------------
 
     @Override
-    public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
-        String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
-        boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
+    public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams,
+        AggregationType aggregationType,
+        String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta,
+        boolean skipData, boolean skipRounding,
+        boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows,
+        boolean hideEmptyColumns, boolean showHierarchy,
         boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
-        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion )
+        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit,
+        boolean allowAllPeriods, DhisApiVersion apiVersion, boolean includeOrgUnitNames )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         

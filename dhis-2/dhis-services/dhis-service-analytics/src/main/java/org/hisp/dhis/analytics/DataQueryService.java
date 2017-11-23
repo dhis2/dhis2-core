@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,6 +46,7 @@ public interface DataQueryService
     /**
      * Creates a data query parameter object from the given URL.
      *
+     * @param format the i18n format.
      * @param dimensionParams the dimension URL parameters.
      * @param filterParams the filter URL parameters.
      * @param aggregationType the aggregation type.
@@ -81,13 +81,18 @@ public interface DataQueryService
      * @param allowAllPeriods whether to allow all period items, meaning specifying the
      *        period dimension with no period items.
      * @param apiVersion the API version used for the request.
-     * @param format the i18n format.
+     * @param includeOrgUnitNames
      * @return a data query parameter object created based on the given URL info.
      */
-    DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
-        String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
-        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty,
-        IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion );
+    DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
+        String measureCriteria,
+        String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData,
+        boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
+        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
+        boolean includeNumDen, DisplayProperty displayProperty,
+        IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel,
+        Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion,
+        boolean includeOrgUnitNames );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.
