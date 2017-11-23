@@ -348,7 +348,7 @@ public class DefaultAclService implements AclService
     @Override
     public <T extends IdentifiableObject> Access getAccess( T object, User user )
     {
-        if ( user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
             return new Access( true );
         }
