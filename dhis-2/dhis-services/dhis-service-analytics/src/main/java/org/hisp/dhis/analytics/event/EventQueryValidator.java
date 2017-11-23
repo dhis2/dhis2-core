@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.event;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,21 +28,29 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MaintenanceModeException;
 
 /**
- * Manager for queries for retrieval of raw analytics data.
- * 
  * @author Lars Helge Overland
  */
-public interface RawAnalyticsManager
+public interface EventQueryValidator
 {
     /**
-     * Adds raw analytics data to the given grid based on the given query.
+     * Validates the given query. Throws an IllegalQueryException if the query
+     * is not valid with a descriptive message. Returns normally if the query is
+     * valid.
      * 
-     * @param params the query.
-     * @param grid the grid.
-     * @return a grid with data.
+     * @param params the event query parameters.
+     * @throws IllegalQueryException if the query is invalid.
      */
-    Grid getRawDataValues( DataQueryParams params, Grid grid );    
+    void validate( EventQueryParams params )
+        throws IllegalQueryException, MaintenanceModeException;
+
+    /**
+     * Returns the max number of records to return. A value of 0 indicates no limit.
+     * 
+     * @return the max number of recrods to return.
+     */
+    int getMaxLimit();
 }

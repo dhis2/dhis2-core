@@ -40,15 +40,30 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public class AnalyticsTableUpdateParams
-{    
+{
+    /**
+     * Number of last years for which to update tables.
+     */
     private Integer lastYears;
     
+    /**
+     * Indicates whether to skip update of the master analytics table.
+     */
     private boolean skipMasterTable;
     
+    /**
+     * Indicates whether to skip update of resource tables.
+     */
     boolean skipResourceTables;
     
+    /**
+     * Analytics table types to skip.
+     */
     private Set<AnalyticsTableType> skipTableTypes;
     
+    /**
+     * Job ID.
+     */
     private JobId jobId;
     
     // -------------------------------------------------------------------------

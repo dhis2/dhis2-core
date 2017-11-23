@@ -28,21 +28,48 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+import java.util.List;
+
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MaintenanceModeException;
 
 /**
- * Manager for queries for retrieval of raw analytics data.
+ * Service interface which provides methods for validation analytics queries.
  * 
- * @author Lars Helge Overland
- */
-public interface RawAnalyticsManager
+* @author Lars Helge Overland
+*/
+public interface QueryValidator
 {
     /**
-     * Adds raw analytics data to the given grid based on the given query.
+     * Validates the given query. Throws an IllegalQueryException if the query
+     * is not valid with a descriptive message. Returns normally if the query is
+     * valid.
      * 
-     * @param params the query.
-     * @param grid the grid.
-     * @return a grid with data.
+     * @param params the data query parameters.
+     * @throws IllegalQueryException if the query is invalid.
      */
-    Grid getRawDataValues( DataQueryParams params, Grid grid );    
+    void validate( DataQueryParams params )
+        throws IllegalQueryException;
+    
+    /**
+     * Validates whether the given table layout is valid for the given query. 
+     * Throws an IllegalQueryException if the query is not valid with a 
+     * descriptive message. Returns normally if the query is valid.
+     * 
+     * @param params the data query parameters.
+     * @param columns the column dimension identifiers.
+     * @param rows the row dimension identifiers.
+     * @throws IllegalQueryException if the query is invalid.
+     */
+    void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
+        throws IllegalQueryException;
+    
+    /**
+     * Checks whether the analytics engine is in maintenance mode.
+     * 
+     * @throws MaintenanceModeException if analytics engine is in maintenance mode.
+     */
+    void validateMaintenanceMode()
+        throws MaintenanceModeException;
+    
 }

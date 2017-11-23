@@ -39,14 +39,29 @@ import org.hisp.dhis.analytics.table.PartitionUtils;
  */
 public class AnalyticsTablePartition
 {
+    /**
+     * The master analytics table for this partition.
+     */
     private AnalyticsTable masterTable;
     
+    /**
+     * The year for which this partition may contain data.
+     */
     private Integer year;
     
+    /**
+     * The start date for which this partition may contain data, inclusive.
+     */
     private Date startDate;
     
+    /**
+     * The end date for which this partition may contain data, exclusive.
+     */
     private Date endDate;
     
+    /**
+     * Indicates whether data approval applies to this partition.
+     */
     private boolean dataApproval;
 
     public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate, boolean dataApproval )

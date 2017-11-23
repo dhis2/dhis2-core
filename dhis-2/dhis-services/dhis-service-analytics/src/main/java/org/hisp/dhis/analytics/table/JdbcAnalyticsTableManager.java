@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -77,6 +78,9 @@ public class JdbcAnalyticsTableManager
 {
     @Autowired
     private SystemSettingManager systemSettingManager;
+    
+    @Autowired
+    private PartitionManager partitionManager;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -135,7 +139,8 @@ public class JdbcAnalyticsTableManager
     {
         return Lists.newArrayList(
             "yearly = '" + partition.getYear() + "'",
-            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" );
+            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
+            "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
     @Override
@@ -222,7 +227,7 @@ public class JdbcAnalyticsTableManager
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
             "and pe.startdate >= '" + start + "' " +
-            "and pe.startdate <= '" + end + "' " +
+            "and pe.startdate < '" + end + "' " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -338,7 +343,7 @@ public class JdbcAnalyticsTableManager
         for ( PeriodType periodType : periodTypes )
         {
             String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, "character varying(15)", "ps." + column ) );
+            columns.add( new AnalyticsTableColumn( column, "text", "ps." + column ) );
         }
 
         String approvalCol = isApprovalEnabled( year ) ?
@@ -350,7 +355,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), "timestamp", "pe.startdate" ) );
         columns.add( new AnalyticsTableColumn( quote( "peenddate" ),"timestamp", "pe.enddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" ) );
+        columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" ) );
         columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", approvalCol ) );
