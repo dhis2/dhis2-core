@@ -29,44 +29,44 @@ package org.hisp.dhis.analytics;
  */
 
 /**
+ * Enumeration of analytics aggregation types. Should be kept up to date with
+ * {@link AggregationType}.
+ * 
  * @author Lars Helge Overland
  */
-public enum AggregationType
+public enum AnalyticsAggregationType
 {
-    SUM( "sum", false, true ),
-    AVERAGE( "avg", false, true ),
-    AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", false, true ),
-    LAST_SUM_ORG_UNIT( "last_sum_org_unit", false, true ),
-    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", false, true ),
-    COUNT( "count", false, true ),
-    STDDEV( "stddev", false, true ),
-    VARIANCE( "variance", false, true ),
-    MIN( "min", false, true ),
-    MAX( "max", false, true ),
-    NONE( "none", false, true ), // Text only
-    CUSTOM( "custom", false, false ),
-    DEFAULT( "default", true, false ),
-    AVERAGE_SUM_INT( "avg_sum_int", true, true ), // Sum in organisation unit hierarchy
-    AVERAGE_SUM_INT_DISAGGREGATION( "avg_sum_int_disaggregation", true, true ), // Sum in organisation unit hierarchy
-    AVERAGE_INT( "avg_int", true, true ),
-    AVERAGE_INT_DISAGGREGATION( "avg_int_disaggregation", true, true ),
-    AVERAGE_BOOL( "avg_bool", true, true );
+    SUM( "sum", true ),
+    AVERAGE( "avg", true ),
+    AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
+    AVERAGE_SUM_INT( "avg_sum_int",  true ), // Sum in organisation unit hierarchy
+    AVERAGE_SUM_INT_DISAGGREGATION( "avg_sum_int_disaggregation", true ), // Sum in organisation unit hierarchy
+    AVERAGE_INT( "avg_int", true ),
+    AVERAGE_INT_DISAGGREGATION( "avg_int_disaggregation", true ),
+    AVERAGE_BOOL( "avg_bool", true ),
+    LAST_SUM_ORG_UNIT( "last_sum_org_unit", true ),
+    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
+    COUNT( "count", true ),
+    STDDEV( "stddev", true ),
+    VARIANCE( "variance", true ),
+    MIN( "min", true ),
+    MAX( "max", true ),
+    NONE( "none", true ), // Text only
+    CUSTOM( "custom", false ),
+    DEFAULT( "default", false );
 
     private final String value;
     
-    private boolean internal;
-
     private boolean aggregateable;
     
-    AggregationType( String value )
+    AnalyticsAggregationType( String value )
     {
         this.value = value;
     }
 
-    AggregationType( String value, boolean internal, boolean aggregateable )
+    AnalyticsAggregationType( String value, boolean aggregateable )
     {
         this.value = value;
-        this.internal = internal;
         this.aggregateable = aggregateable;
     }
 
@@ -84,20 +84,20 @@ public enum AggregationType
     {
         return this == LAST_SUM_ORG_UNIT || this == LAST_AVERAGE_ORG_UNIT;
     }
-
-    public boolean isInternal()
-    {
-        return internal;
-    }
     
     public boolean isAggregateable()
     {
         return aggregateable;
     }
 
-    public static AggregationType fromValue( String value )
+    public static AnalyticsAggregationType fromAggregationType( AggregationType aggregationType )
     {
-        for ( AggregationType type : AggregationType.values() )
+        return fromValue( aggregationType.name() );
+    }
+    
+    public static AnalyticsAggregationType fromValue( String value )
+    {
+        for ( AnalyticsAggregationType type : AnalyticsAggregationType.values() )
         {
             if ( type.value.equalsIgnoreCase( value ) )
             {
