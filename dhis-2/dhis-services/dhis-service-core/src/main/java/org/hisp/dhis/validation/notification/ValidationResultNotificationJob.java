@@ -29,7 +29,7 @@ package org.hisp.dhis.validation.notification;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Stian Sandvold
  */
 public class ValidationResultNotificationJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private ValidationNotificationService notificationService;

@@ -67,6 +67,13 @@ public interface SchedulingManager
 
     /**
      * Set up default behavior for a finished job.
+     *
+     * A special case is if a job is disabled when running, but the job does not stop. The job wil run normally one last time and
+     * try to set finished status. Since the job is disabled we manually set these parameters in this method so that the
+     * job is not automatically rescheduled.
+     *
+     * Also we dont want to update a job configuration of the job is deleted.
+     *
      * @param jobConfiguration the job which started
      */
     void jobConfigurationFinished( JobConfiguration jobConfiguration );

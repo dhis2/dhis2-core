@@ -32,8 +32,8 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Henning Håkonsen
@@ -47,7 +47,7 @@ public class AnalyticsJobParameters
     private Integer lastYears = null;
 
     @Property
-    private Set<String> skipTableTypes = new HashSet<>( );
+    private List<String> skipTableTypes = new ArrayList<>( );
 
     @Property
     private boolean skipResourceTables = false;
@@ -56,7 +56,7 @@ public class AnalyticsJobParameters
     {
     }
 
-    public AnalyticsJobParameters( Integer lastYears, Set<String> skipTableTypes, boolean skipResourceTables )
+    public AnalyticsJobParameters( Integer lastYears, List<String> skipTableTypes, boolean skipResourceTables )
     {
         this.lastYears = lastYears;
         this.skipTableTypes = skipTableTypes;
@@ -68,7 +68,7 @@ public class AnalyticsJobParameters
         return lastYears;
     }
 
-    public Set<String> getSkipTableTypes()
+    public List<String> getSkipTableTypes()
     {
         return skipTableTypes;
     }

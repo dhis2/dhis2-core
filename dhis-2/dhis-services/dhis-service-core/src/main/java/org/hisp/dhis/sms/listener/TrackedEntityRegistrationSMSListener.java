@@ -108,7 +108,7 @@ public class TrackedEntityRegistrationSMSListener
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
-            smsSender.sendMessage( null, StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), sms.getOriginator() );
+            sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), senderPhoneNumber, WARNING );
 
             throw new SMSParserException( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ) );
         }
@@ -120,15 +120,13 @@ public class TrackedEntityRegistrationSMSListener
         trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntity().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
-        for ( SMSCode code : smsCommand.getCodes() )
-        {
-            if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
+        smsCommand.getCodes().stream()
+            .filter( code -> parsedMessage.containsKey( code.getCode() ) )
+            .forEach( code ->
             {
-                TrackedEntityAttributeValue trackedEntityAttributeValue = this
-                    .createTrackedEntityAttributeValue( parsedMessage, code, smsCommand, trackedEntityInstance );
+                TrackedEntityAttributeValue trackedEntityAttributeValue = this.createTrackedEntityAttributeValue( parsedMessage, code, trackedEntityInstance) ;
                 patientAttributeValues.add( trackedEntityAttributeValue );
-            }
-        }
+            });
 
         int trackedEntityInstanceId = 0;
         if ( patientAttributeValues.size() > 0 )
@@ -136,12 +134,16 @@ public class TrackedEntityRegistrationSMSListener
             trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance,
                 null, null, patientAttributeValues );
         }
+        else
+        {
+            sendFeedback( "No TrackedEntityAttribute found", senderPhoneNumber, WARNING );
+        }
 
         programInstanceService.enrollTrackedEntityInstance(
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
             new Date(), date, orgUnit );
-        
-        smsSender.sendMessage( null, "Tracked Entity Registered Successfully", senderPhoneNumber );
+
+        sendFeedback( "Tracked Entity Registered Successfully", senderPhoneNumber, INFO );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
@@ -163,9 +165,9 @@ public class TrackedEntityRegistrationSMSListener
     }
 
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
-        SMSCode code, SMSCommand smsCommand, TrackedEntityInstance trackedEntityInstance )
+        SMSCode code, TrackedEntityInstance trackedEntityInstance )
     {
-        String value = parsedMessage.get( code.getCode().toUpperCase() );
+        String value = parsedMessage.get( code.getCode() );
         TrackedEntityAttribute trackedEntityAttribute = code.getTrackedEntityAttribute();
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
