@@ -29,8 +29,10 @@ package org.hisp.dhis.sms.scheduling;
  */
 
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;
@@ -46,12 +48,9 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 /**
  * @author Chau Thu Tran
- * 
- * @version SendScheduledMessageTask.java 12:57:53 PM Sep 10, 2012 $
  */
-
 public class SendScheduledMessageJob
-    implements Job
+    extends AbstractJob
 {
     private OutboundSmsService outboundSmsService;
 
@@ -99,6 +98,17 @@ public class SendScheduledMessageJob
 
         clock.logTime( "Sending messages in outbound completed" );
         notifier.notify( jobConfiguration.getJobId(), INFO, "Sending messages in outbound completed", true );
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        if ( !smsSender.isConfigured() )
+        {
+            return new ErrorReport( SendScheduledMessageJob.class, ErrorCode.E7010, "SMS gateway configuration does not exist" );
+        }
+
+        return super.validate();
     }
 
     // -------------------------------------------------------------------------

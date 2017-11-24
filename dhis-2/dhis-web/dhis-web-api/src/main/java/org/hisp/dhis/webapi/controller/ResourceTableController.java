@@ -135,7 +135,6 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        // HH verify
         JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(),
             false, true );
 

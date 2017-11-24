@@ -107,16 +107,21 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
     }
 
+    /**
+     * Only set next execution time if the job is not continuous.
+     */
     public void setNextExecutionTime( Date nextExecutionTime )
     {
+        if ( cronExpression == null || cronExpression.equals( "" ) || cronExpression.equals( "* * * * * ?" ) )
+        {
+            return;
+        }
+
         if ( nextExecutionTime != null )
             this.nextExecutionTime = nextExecutionTime;
         else
         {
-            if ( !isContinuousExecution() )
-            {
-                this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
-            }
+            this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
         }
     }
 
@@ -232,6 +237,7 @@ public class JobConfiguration
             "\nType: " + jobType +
             "\nStatus: " + jobStatus +
             "\nConfigurable: " + configurable +
+            "\nContinuous: " + continuousExecution +
             "\nCron expression: " + cronExpression +
             "\nNext execution time: " + nextExecutionTime;
     }

@@ -1,6 +1,6 @@
 package org.hisp.dhis.startup;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
@@ -144,8 +144,7 @@ public class SchedulerUpgrade
                 (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
 
             JobConfiguration analytics = new JobConfiguration( "Analytics", ANALYTICS_TABLE, null,
-                new AnalyticsJobParameters( null, Sets
-                    .newHashSet(), false ), false, true );
+                new AnalyticsJobParameters( null, Lists.newArrayList(), false ), false, true );
             analytics.setLastExecuted(
                 (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulAnalyticsTablesUpdate" ) );
 
