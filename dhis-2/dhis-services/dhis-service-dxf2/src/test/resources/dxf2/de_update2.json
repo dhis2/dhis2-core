@@ -1,3 +1,4 @@
+
 {
   "dataElements": [
     {
@@ -13,9 +14,6 @@
       "description": "DEDA",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "categoryCombo": {
-        "id": "hmqVMxvDKUD"
-      },
       "userGroupAccesses": [
         {
           "userGroup": {
@@ -25,8 +23,8 @@
           "access": "r-------"
         }
       ],
-      "attributeValues": [],
-      "aggregationLevels": []
+      "attributeValues": [ ],
+      "aggregationLevels": [ ]
     },
     {
       "code": "DataElementCodeB",
@@ -41,12 +39,9 @@
       "description": "DEDB",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "categoryCombo": {
-        "id": "hmqVMxvDKUD"
-      },
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "aggregationLevels": []
+      "userGroupAccesses": [ ],
+      "attributeValues": [ ],
+      "aggregationLevels": [ ]
     },
     {
       "code": "DataElementCodeC",
@@ -61,9 +56,6 @@
       "description": "DEDC",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "categoryCombo": {
-        "id": "hmqVMxvDKUD"
-      },
       "userGroupAccesses": [
         {
           "userGroup": {
@@ -73,8 +65,8 @@
           "access": "r-------"
         }
       ],
-      "attributeValues": [],
-      "aggregationLevels": []
+      "attributeValues": [ ],
+      "aggregationLevels": [ ]
     },
     {
       "code": "DataElementCodeD",
@@ -89,12 +81,9 @@
       "description": "DEDD",
       "zeroIsSignificant": false,
       "valueType": "INTEGER",
-      "categoryCombo": {
-        "id": "hmqVMxvDKUD"
-      },
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "aggregationLevels": []
+      "userGroupAccesses": [ ],
+      "attributeValues": [ ],
+      "aggregationLevels": [ ]
     }
   ]
 }

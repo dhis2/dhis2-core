@@ -335,7 +335,7 @@ public class Preheat
     {
         for ( T object : objects )
         {
-            if ( Preheat.isDefault( object ) ) continue;
+            if ( isDefault( object ) ) continue;
             put( identifier, object );
         }
 
@@ -482,12 +482,22 @@ public class Preheat
 
     public static boolean isDefaultClass( Class<?> klass )
     {
+        klass = getRealClass( klass );
+
         return DataElementCategory.class.isAssignableFrom( klass ) || DataElementCategoryOption.class.isAssignableFrom( klass )
             || DataElementCategoryCombo.class.isAssignableFrom( klass ) || DataElementCategoryOptionCombo.class.isAssignableFrom( klass );
     }
 
-    public static boolean isDefault( IdentifiableObject object )
+    public boolean isDefault( IdentifiableObject object )
     {
-        return isDefaultClass( object ) && "default".equals( object.getName() );
+        if ( !isDefaultClass( object ) )
+        {
+            return false;
+        }
+
+        Class<?> klass = getRealClass( object.getClass() );
+        IdentifiableObject defaultObject = getDefaults().get( klass );
+
+        return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
 }

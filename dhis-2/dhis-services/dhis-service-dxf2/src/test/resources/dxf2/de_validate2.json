@@ -1,47 +1,42 @@
+
 {
   "dataElements": [
     {
       "lastUpdated": "2016-01-15T15:44:11.475+0000",
-      "aggregationLevels": [],
+      "aggregationLevels": [ ],
       "name": "Birth certificate",
       "created": "2016-01-15T11:13:32.416+0000",
       "shortName": "Birth certificate",
       "aggregationType": "SUM",
       "id": "uf3svrmp8Oj",
-      "userGroupAccesses": [],
+      "userGroupAccesses": [ ],
       "publicAccess": "rw------",
       "user": {
         "id": "GOLswS44mh8"
       },
       "zeroIsSignificant": false,
-      "categoryCombo": {
-        "id": "p0KPaWEg3cf"
-      },
-      "attributeValues": []
+      "attributeValues": [ ]
     },
     {
       "aggregationType": "SUM",
       "publicAccess": "rw------",
-      "userGroupAccesses": [],
+      "userGroupAccesses": [ ],
       "id": "ulD2zW0TIy2",
-      "attributeValues": [],
-      "categoryCombo": {
-        "id": "p0KPaWEg3cf"
-      },
+      "attributeValues": [ ],
       "user": {
         "id": "GOLswS44mh8"
       },
       "zeroIsSignificant": false,
       "name": "Documentation",
       "lastUpdated": "2016-01-15T15:44:11.475+0000",
-      "aggregationLevels": [],
+      "aggregationLevels": [ ],
       "created": "2016-01-15T11:13:00.541+0000",
       "shortName": "Documentation",
       "domainType": "TRACKER"
     },
     {
       "id": "cNkTt6mJQyO",
-      "userGroupAccesses": [],
+      "userGroupAccesses": [ ],
       "user": {
         "id": "GOLswS44mh8"
       },
@@ -66,13 +61,10 @@
       "valueType": "NUMBER",
       "publicAccess": "rw------",
       "formName": "Yebo",
-      "categoryCombo": {
-        "id": "p0KPaWEg3cf"
-      },
       "code": "Yebo",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
-      "aggregationLevels": [],
+      "aggregationLevels": [ ],
       "name": "Yebo"
     }
   ]

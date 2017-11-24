@@ -42,14 +42,13 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
@@ -217,8 +216,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         {
             IdentifiableObject object = objects.get( idx );
 
-            if ( Preheat.isDefault( object ) ) continue;
-
             ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
@@ -273,8 +270,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         {
             IdentifiableObject object = objects.get( idx );
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-
-            if ( Preheat.isDefault( object ) ) continue;
 
             ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );

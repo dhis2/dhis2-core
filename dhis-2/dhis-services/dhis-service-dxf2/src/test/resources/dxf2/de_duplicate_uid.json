@@ -1,3 +1,4 @@
+
 {
   "dataElements": [
     {
@@ -7,9 +8,6 @@
       "aggregationType": "SUM",
       "created": "2016-02-17T06:15:06.079+0000",
       "shortName": "DataElementShortB",
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
       "aggregationLevels": [ ],
       "id": "CCwk5Yx440o",
       "domainType": "AGGREGATE",
@@ -29,9 +27,6 @@
       "aggregationType": "SUM",
       "shortName": "DataElementShortA",
       "created": "2016-02-17T06:15:49.487+0000",
-      "categoryCombo": {
-        "id": "zU1OZFVxnw7"
-      },
       "id": "CCwk5Yx440o",
       "aggregationLevels": [ ],
       "domainType": "AGGREGATE",
