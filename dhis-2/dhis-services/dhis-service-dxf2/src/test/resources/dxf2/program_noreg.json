@@ -1,34 +1,5 @@
+
 {
-  "categoryOptions": [
-    {
-      "publicAccess": "--------",
-      "organisationUnits": [ ],
-      "created": "2016-03-10T04:59:27.872+0000",
-      "attributeValues": [ ],
-      "shortName": "default",
-      "userGroupAccesses": [ ],
-      "name": "default",
-      "lastUpdated": "2016-03-10T04:59:27.887+0000",
-      "id": "SCLqnaPwVHY"
-    }
-  ],
-  "categories": [
-    {
-      "name": "default",
-      "lastUpdated": "2016-03-10T07:21:09.711+0000",
-      "categoryOptions": [
-        {
-          "id": "SCLqnaPwVHY"
-        }
-      ],
-      "id": "f66ygHaFS1v",
-      "publicAccess": "--------",
-      "dataDimensionType": "DISAGGREGATION",
-      "dataDimension": true,
-      "created": "2016-03-10T04:59:27.881+0000",
-      "userGroupAccesses": [ ]
-    }
-  ],
   "organisationUnitLevels": [
     {
       "created": "2016-03-10T05:01:14.581+0000",
@@ -62,9 +33,6 @@
       "displayIncidentDate": false,
       "userGroupAccesses": [ ],
       "created": "2016-03-10T07:27:15.681+0000",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "programTrackedEntityAttributes": [ ],
       "publicAccess": "rw------",
       "selectEnrollmentDatesInFuture": false,
@@ -114,40 +82,6 @@
       "name": "ValidationRuleA"
     }
   ],
-  "categoryOptionCombos": [
-    {
-      "lastUpdated": "2016-03-10T04:59:27.884+0000",
-      "name": "default",
-      "id": "NQigT2ThzgD",
-      "categoryOptions": [
-        {
-          "id": "SCLqnaPwVHY"
-        }
-      ],
-      "created": "2016-03-10T04:59:27.884+0000",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
-      "ignoreApproval": false
-    }
-  ],
-  "categoryCombos": [
-    {
-      "userGroupAccesses": [ ],
-      "dataDimensionType": "DISAGGREGATION",
-      "created": "2016-03-10T04:59:27.883+0000",
-      "publicAccess": "--------",
-      "id": "SI0XITt9Oh4",
-      "lastUpdated": "2016-03-10T04:59:27.886+0000",
-      "skipTotal": false,
-      "name": "default",
-      "categories": [
-        {
-          "id": "f66ygHaFS1v"
-        }
-      ]
-    }
-  ],
   "dataElements": [
     {
       "description": "DataElementDescriptionA",
@@ -166,9 +100,6 @@
       "zeroIsSignificant": false,
       "userGroupAccesses": [ ],
       "valueType": "NUMBER",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "created": "2016-03-10T05:02:18.868+0000",
       "domainType": "AGGREGATE"
     },
@@ -186,9 +117,6 @@
       "publicAccess": "rw------",
       "domainType": "AGGREGATE",
       "created": "2016-03-10T05:02:47.023+0000",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "valueType": "NUMBER",
       "userGroupAccesses": [ ],
       "description": "DataElementDescriptionB",
@@ -210,9 +138,6 @@
       "valueType": "NUMBER",
       "userGroupAccesses": [ ],
       "domainType": "AGGREGATE",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "created": "2016-03-10T05:04:44.329+0000",
       "description": "DataElementDescriptionC",
       "shortName": "DataElementShortC",
@@ -233,18 +158,12 @@
       "valueType": "NUMBER",
       "userGroupAccesses": [ ],
       "domainType": "TRACKER",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "created": "2016-03-10T07:23:43.925+0000",
       "publicAccess": "rw------",
       "zeroIsSignificant": false
     },
     {
       "domainType": "TRACKER",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "created": "2016-03-10T07:24:06.159+0000",
       "valueType": "NUMBER",
       "userGroupAccesses": [ ],
@@ -273,9 +192,6 @@
       },
       "lastUpdated": "2016-03-10T07:24:23.660+0000",
       "domainType": "TRACKER",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "created": "2016-03-10T07:24:23.658+0000",
       "valueType": "NUMBER",
       "userGroupAccesses": [ ],
@@ -483,9 +399,6 @@
   "dataSets": [
     {
       "created": "2016-03-10T05:05:10.398+0000",
-      "categoryCombo": {
-        "id": "SI0XITt9Oh4"
-      },
       "dataElementDecoration": false,
       "userGroupAccesses": [ ],
       "mobile": false,

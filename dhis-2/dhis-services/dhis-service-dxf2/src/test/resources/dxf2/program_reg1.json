@@ -1,3 +1,4 @@
+
 {
   "programStages": [
     {
@@ -133,9 +134,6 @@
       "created": "2016-03-11T06:58:21.302+0000",
       "attributeValues": [ ],
       "userGroupAccesses": [ ],
-      "categoryCombo": {
-        "id": "BIjQHJRpTV0"
-      },
       "id": "XzGnBlUcB87",
       "aggregationLevels": [ ],
       "valueType": "NUMBER",
@@ -162,9 +160,6 @@
       "created": "2016-03-11T06:58:40.961+0000",
       "userGroupAccesses": [ ],
       "id": "qS4lxayqVRv",
-      "categoryCombo": {
-        "id": "BIjQHJRpTV0"
-      },
       "aggregationLevels": [ ],
       "valueType": "NUMBER"
     },
@@ -180,9 +175,6 @@
       "userGroupAccesses": [ ],
       "attributeValues": [ ],
       "created": "2016-03-11T06:58:59.839+0000",
-      "categoryCombo": {
-        "id": "BIjQHJRpTV0"
-      },
       "id": "FAa7f8OxYmu",
       "name": "DataElementC",
       "user": {
@@ -203,31 +195,11 @@
       "shortName": "DataElementShortD",
       "name": "DataElementD",
       "id": "OmOMKxMZca9",
-      "categoryCombo": {
-        "id": "BIjQHJRpTV0"
-      },
       "attributeValues": [ ],
       "created": "2016-03-11T06:59:19.041+0000",
       "userGroupAccesses": [ ],
       "aggregationLevels": [ ],
       "valueType": "NUMBER"
-    }
-  ],
-  "categoryOptionCombos": [
-    {
-      "created": "2016-03-11T06:51:31.397+0000",
-      "lastUpdated": "2016-03-11T06:51:31.397+0000",
-      "categoryOptions": [
-        {
-          "id": "IDZYg5rw3Sw"
-        }
-      ],
-      "categoryCombo": {
-        "id": "BIjQHJRpTV0"
-      },
-      "id": "bKtGCINdmbt",
-      "name": "default",
-      "ignoreApproval": false
     }
   ],
   "trackedEntities": [
@@ -238,19 +210,6 @@
       "id": "vmZxWXOw5CD",
       "lastUpdated": "2016-03-11T06:56:14.000+0000",
       "name": "Person"
-    }
-  ],
-  "categoryOptions": [
-    {
-      "name": "default",
-      "shortName": "default",
-      "publicAccess": "--------",
-      "attributeValues": [ ],
-      "created": "2016-03-11T06:51:31.361+0000",
-      "userGroupAccesses": [ ],
-      "id": "IDZYg5rw3Sw",
-      "lastUpdated": "2016-03-11T06:51:31.405+0000",
-      "organisationUnits": [ ]
     }
   ],
   "programs": [
@@ -313,9 +272,6 @@
       "shortName": "ProgramShortA",
       "programType": "WITH_REGISTRATION",
       "name": "ProgramA",
-      "categoryCombo": {
-        "id": "BIjQHJRpTV0"
-      },
       "id": "lVYxQwbXaj7",
       "attributeValues": [ ],
       "created": "2016-03-11T07:00:28.954+0000",
@@ -323,23 +279,6 @@
       "version": 1,
       "enrollmentDateLabel": "Enrollment Date",
       "displayIncidentDate": true
-    }
-  ],
-  "categoryCombos": [
-    {
-      "name": "default",
-      "dataDimensionType": "DISAGGREGATION",
-      "userGroupAccesses": [ ],
-      "skipTotal": false,
-      "created": "2016-03-11T06:51:31.395+0000",
-      "publicAccess": "--------",
-      "lastUpdated": "2016-03-11T06:51:31.401+0000",
-      "categories": [
-        {
-          "id": "nVvZX1PE3wS"
-        }
-      ],
-      "id": "BIjQHJRpTV0"
     }
   ],
   "trackedEntityAttributes": [
@@ -361,7 +300,6 @@
       "userGroupAccesses": [ ],
       "attributeValues": [ ],
       "created": "2016-03-11T06:59:40.865+0000",
-      "searchScope": "SEARCH_ORG_UNITS",
       "orgunitScope": false,
       "programScope": false,
       "valueType": "TEXT",
@@ -369,7 +307,6 @@
     },
     {
       "orgunitScope": false,
-      "searchScope": "SEARCH_ORG_UNITS",
       "programScope": false,
       "valueType": "TEXT",
       "aggregationType": "NONE",
@@ -515,23 +452,6 @@
     }
   ],
   "date": "2016-03-11T07:01:59.096+0000",
-  "categories": [
-    {
-      "dataDimension": true,
-      "publicAccess": "--------",
-      "userGroupAccesses": [ ],
-      "created": "2016-03-11T06:51:31.390+0000",
-      "id": "nVvZX1PE3wS",
-      "categoryOptions": [
-        {
-          "id": "IDZYg5rw3Sw"
-        }
-      ],
-      "lastUpdated": "2016-03-11T06:56:14.686+0000",
-      "name": "default",
-      "dataDimensionType": "DISAGGREGATION"
-    }
-  ],
   "organisationUnitLevels": [
     {
       "created": "2016-03-11T06:57:33.954+0000",
