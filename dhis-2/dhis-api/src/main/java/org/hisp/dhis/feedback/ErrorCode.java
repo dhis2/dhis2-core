@@ -66,14 +66,18 @@ public enum ErrorCode
     E4011( "Attribute `{0}` is required, but no value was found." ),
     E4012( "Attribute `{0}` contains elements of different period type than the data set it was added to" ),
     E4013( "Invalid Closing date `{0}`, must be after Opening date `{1}`"),
+    E4014( "Invalid UID `{0}` for property `{1}`"),
 
     /* Scheduling errors */
-    E7000( "Failed to add new job configuration. Another job of the same job type is already scheduled with this cron expression" ),
-    E7001( "Failed to add new job configuration. Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
-    E7002( "Failed to update job configuration - Uid does not exist" ),
+    E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
+    E7001( "Failed to add/update job configuration - Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
+    E7002( "Failed to add/update job configuration - Uid does not exist" ),
     E7003( "Failed to add/update job configuration - Given job type '{0}' is not configurable" ),
     E7004( "Failed to add/update job configuration - Cron Expression must not be null " ),
     E7005( "Failed to add/update job configuration - Failed to validate cron expression: {0} " ),
+
+    /* Job specific scheduling errors */
+    E7010( "Failed to validate job runtime - {0}" ),
 
     /* Preheat Errors */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

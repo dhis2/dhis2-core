@@ -4,7 +4,7 @@ package org.hisp.dhis.scheduling;
  * @author Henning Håkonsen
  */
 public class MockJob
-    implements Job
+    extends AbstractJob
 {
     @Override
     public JobType getJobType()

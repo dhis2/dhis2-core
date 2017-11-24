@@ -29,7 +29,7 @@ package org.hisp.dhis.dataset.notifications;
  */
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -45,7 +45,7 @@ import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
  * Created by zubair@dhis2.org on 21.07.17.
  */
 public class DataSetNotificationJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private DataSetNotificationService dataSetNotificationService;

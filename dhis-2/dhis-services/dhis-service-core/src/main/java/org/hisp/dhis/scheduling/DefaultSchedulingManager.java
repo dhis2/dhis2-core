@@ -37,6 +37,8 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
  * identifying the scheduled jobs.
@@ -105,7 +107,20 @@ public class DefaultSchedulingManager
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
     {
         runningJobConfigurations.remove( jobConfiguration );
-        jobConfigurationService.updateJobConfiguration( jobConfiguration );
+
+        JobConfiguration tempJobConfiguration = jobConfigurationService
+            .getJobConfigurationByUid( jobConfiguration.getUid() );
+
+        if ( tempJobConfiguration != null )
+        {
+            if ( tempJobConfiguration.getJobStatus() == DISABLED )
+            {
+                jobConfiguration.setJobStatus( DISABLED );
+                jobConfiguration.setEnabled( false );
+            }
+
+            jobConfigurationService.updateJobConfiguration( jobConfiguration );
+        }
     }
 
     // -------------------------------------------------------------------------

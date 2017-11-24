@@ -28,7 +28,7 @@ package org.hisp.dhis.pushanalysis.scheduling;
  */
 
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Stian Sandvold
  */
 public class PushAnalysisJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private PushAnalysisService pushAnalysisService;
