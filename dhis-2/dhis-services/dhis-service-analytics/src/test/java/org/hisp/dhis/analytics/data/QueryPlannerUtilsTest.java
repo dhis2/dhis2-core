@@ -37,6 +37,8 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Test;
 
+import org.hisp.dhis.analytics.AggregationType;
+
 import static org.junit.Assert.*;
 
 /**
@@ -66,5 +68,12 @@ public class QueryPlannerUtilsTest
         
         assertFalse( QueryPlannerUtils.isDisaggregation( new YearlyPeriodType(), new QuarterlyPeriodType() ) );        
         assertFalse( QueryPlannerUtils.isDisaggregation( new YearlyPeriodType(), new YearlyPeriodType() ) );
+    }
+    
+    @Test
+    public void testFromAggregationType()
+    {
+        assertEquals( AnalyticsAggregationType.SUM, AnalyticsAggregationType.fromAggregationType( AggregationType.SUM ) );
+        assertEquals( AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT, AnalyticsAggregationType.fromAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ) );
     }
 }

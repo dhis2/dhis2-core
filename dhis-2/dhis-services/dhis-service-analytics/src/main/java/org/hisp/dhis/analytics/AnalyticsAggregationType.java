@@ -92,14 +92,14 @@ public enum AnalyticsAggregationType
 
     public static AnalyticsAggregationType fromAggregationType( AggregationType aggregationType )
     {
-        return aggregationType != null ? fromValue( aggregationType.name() ) : null;
+        return aggregationType != null ? fromName( aggregationType.name() ) : null;
     }
-    
-    public static AnalyticsAggregationType fromValue( String value )
+
+    public static AnalyticsAggregationType fromName( String name )
     {
         for ( AnalyticsAggregationType type : AnalyticsAggregationType.values() )
         {
-            if ( type.value.equalsIgnoreCase( value ) )
+            if ( type.name().equalsIgnoreCase( name ) )
             {
                 return type;
             }
