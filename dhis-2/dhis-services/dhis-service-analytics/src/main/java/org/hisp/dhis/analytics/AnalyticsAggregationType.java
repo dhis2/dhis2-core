@@ -92,7 +92,7 @@ public enum AnalyticsAggregationType
 
     public static AnalyticsAggregationType fromAggregationType( AggregationType aggregationType )
     {
-        return fromValue( aggregationType.name() );
+        return aggregationType != null ? fromValue( aggregationType.name() ) : null;
     }
     
     public static AnalyticsAggregationType fromValue( String value )

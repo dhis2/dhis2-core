@@ -28,7 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
@@ -47,12 +47,12 @@ public class QueryPlannerUtilsTest
     @Test
     public void testGetAggregationType()
     {
-        assertEquals( AggregationType.AVERAGE_SUM_INT_DISAGGREGATION, 
-            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, 
+        assertEquals( AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION, 
+            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT, 
                 new QuarterlyPeriodType(), new YearlyPeriodType() ) );
         
-        assertEquals( AggregationType.AVERAGE_INT_DISAGGREGATION, 
-            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AggregationType.AVERAGE, 
+        assertEquals( AnalyticsAggregationType.AVERAGE_INT_DISAGGREGATION, 
+            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AnalyticsAggregationType.AVERAGE, 
                 new QuarterlyPeriodType(), new YearlyPeriodType() ) );
     }
     
