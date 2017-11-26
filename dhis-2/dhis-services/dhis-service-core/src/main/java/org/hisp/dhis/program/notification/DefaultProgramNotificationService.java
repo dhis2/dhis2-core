@@ -40,6 +40,7 @@ import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -47,7 +48,6 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -311,6 +311,10 @@ public class DefaultProgramNotificationService
                 programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
 
             recipients.addAll( organisationUnit.getUsers() );
+        }
+        else if ( recipientType == ProgramNotificationRecipient.PARENT_ORGANISATION_UNIT_OF_USER_GROUP )
+        {
+            template.getRecipientUserGroup().getMembers().forEach( user -> recipients.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
         }
 
         return recipients;

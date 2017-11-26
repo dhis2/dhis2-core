@@ -368,22 +368,29 @@ public class DefaultValidationNotificationService
 
         final boolean limitToHierarchy = template.getNotifyUsersInHierarchyOnly();
 
+        final boolean parentOrgUnitOnly = template.getNotifyParentOrganisationUnitOnly();
+
         Set<OrganisationUnit> orgUnitsToInclude = Sets.newHashSet();
+
+        Set<User> recipients = template.getRecipientUserGroups().stream()
+            .flatMap( ug -> ug.getMembers().stream() ).collect( Collectors.toSet());
 
         if ( limitToHierarchy )
         {
             orgUnitsToInclude.add( validationResult.getOrganisationUnit() ); // Include self
             orgUnitsToInclude.addAll( validationResult.getOrganisationUnit().getAncestors() );
+
+            recipients.stream().filter( user -> orgUnitsToInclude.contains( user.getOrganisationUnit() ) );
+        }
+        else if ( parentOrgUnitOnly )
+        {
+            Set<User> parents = Sets.newHashSet();
+            recipients.forEach( user -> parents.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
+
+            return parents;
         }
 
-        // Get all distinct users in configured user groups
-        // Limit (only if configured) to the pre-computed set of ancestors
-
-        return template.getRecipientUserGroups().stream()
-            .flatMap( ug -> ug.getMembers().stream() )
-            .distinct()
-            .filter( user -> !limitToHierarchy || orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
-            .collect( Collectors.toSet() );
+        return recipients;
     }
 
     private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
