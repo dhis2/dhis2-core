@@ -304,6 +304,60 @@ public class ValidationNotificationServiceTest
     }
 
     @Test
+    public void testNotifyParentOfUserInGroup()
+    {
+        OrganisationUnit root = createOrganisationUnit( 'R' ),
+            lvlOneLeft = createOrganisationUnit( '1' ),
+            lvlOneRight = createOrganisationUnit( '2' ),
+            lvlTwoLeftLeft = createOrganisationUnit( '3' ),
+            lvlTwoLeftRight = createOrganisationUnit( '4' );
+
+        configureHierarchy( root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight );
+
+        // Users
+        User uA = createUser( 'A' ),
+            uB = createUser( 'B' ),
+            uC = createUser( 'C' ),
+            uD = createUser( 'D' ),
+            uE = createUser( 'E' ),
+            uF = createUser( 'F' ),
+            uG = createUser( 'G' );
+
+        UserGroup groupA = createUserGroup( 'A', Sets.newHashSet() );
+        groupA.addUser( uD );
+        groupA.addUser( uE );
+
+        lvlOneLeft.addUser( uB );
+        lvlOneRight.addUser( uC );
+        lvlTwoLeftLeft.addUser( uD );
+        lvlTwoLeftRight.addUser( uE );
+
+        ValidationRule rule = createValidationRule(
+            'V',
+            Operator.equal_to,
+            createExpression2( 'A', "X" ),
+            createExpression2( 'B', "Y" ),
+            PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME )
+        );
+
+        ValidationNotificationTemplate template = createValidationNotificationTemplate( "My fancy template" );
+        template.setNotifyParentOrganisationUnitOnly( true );
+
+        template.addValidationRule( rule );
+        template.setRecipientUserGroups( Sets.newHashSet( groupA ) );
+
+        final ValidationResult validationResult = createValidationResult( lvlOneLeft, rule );
+
+        service.sendNotifications( Sets.newHashSet( validationResult ) );
+
+        assertEquals( 1, sentMessages.size() );
+
+        Set<User> rcpt = sentMessages.iterator().next().users;
+
+        assertEquals( 1, rcpt.size() );
+    }
+
+    @Test
     public void testNotifyUsersInHierarchyLimitsRecipients()
         throws Exception
     {

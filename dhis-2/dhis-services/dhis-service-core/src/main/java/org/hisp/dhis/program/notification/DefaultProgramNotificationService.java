@@ -312,7 +312,7 @@ public class DefaultProgramNotificationService
 
             recipients.addAll( organisationUnit.getUsers() );
         }
-        else if ( recipientType == ProgramNotificationRecipient.PARENT_ORGANISATION_UNIT_OF_USER_GROUP )
+        else if ( recipientType == ProgramNotificationRecipient.PARENT_ORGANISATION_UNIT_OF_USERS_IN_GROUP )
         {
             template.getRecipientUserGroup().getMembers().forEach( user -> recipients.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
         }

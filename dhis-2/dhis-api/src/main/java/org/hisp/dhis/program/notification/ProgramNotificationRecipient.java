@@ -42,7 +42,7 @@ public enum ProgramNotificationRecipient
     USER_GROUP( false ),
     PROGRAM_ATTRIBUTE( true ),
     DATA_ELEMENT( true ),
-    PARENT_ORGANISATION_UNIT_OF_USER_GROUP( false );
+    PARENT_ORGANISATION_UNIT_OF_USERS_IN_GROUP( false );
 
     private boolean external;
 
