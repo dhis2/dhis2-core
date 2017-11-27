@@ -508,7 +508,6 @@ public class JdbcAnalyticsManager
             Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
 
             sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
-
         }
 
         sql += ") as " + params.getTableName();
