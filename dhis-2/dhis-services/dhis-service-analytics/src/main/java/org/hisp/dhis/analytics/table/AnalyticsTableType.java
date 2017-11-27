@@ -42,7 +42,7 @@ public enum AnalyticsTableType
     EVENT( "analytics_event" ),
     ENROLLMENT( "analytics_enrollment" ),
     VALIDATION_RESULT( "analytics_validationresult" );
-
+    
     private String tableName;
     
     AnalyticsTableType( String tableName )
