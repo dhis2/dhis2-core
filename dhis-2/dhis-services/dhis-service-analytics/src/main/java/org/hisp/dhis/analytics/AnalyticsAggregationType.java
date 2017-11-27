@@ -109,12 +109,7 @@ public class AnalyticsAggregationType
     {
         return new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
     }
-        
-    public boolean isNone()
-    {
-        return AggregationType.NONE == aggregationType || AggregationType.NONE == periodAggregationType;
-    }
-    
+
     public boolean isAggregationType( AggregationType type )
     {
         return this.aggregationType == type;
