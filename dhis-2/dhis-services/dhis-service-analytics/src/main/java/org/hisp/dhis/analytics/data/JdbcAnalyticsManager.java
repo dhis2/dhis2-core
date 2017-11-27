@@ -473,7 +473,7 @@ public class JdbcAnalyticsManager
      */
     private String getLastValueSubquerySql( DataQueryParams params )
     {
-        String sql = "select ";
+        String sql = "(select ";
         
         for ( String col : getLastValueSubqueryColumns( params ) )
         {
@@ -484,10 +484,12 @@ public class JdbcAnalyticsManager
             "rank() over (" + 
                 "partition by dx, ou, co, ao " + 
                 "order by pestartdate desc, peenddate desc) as pe_rank " + 
-            "from analytics ";
-        
-        //TODO implement
-        
+            "from analytics " +
+            "where pestartdate >= " + //TODO
+            "and peenddate <= " + //TODO
+            "and yearly in ()" + //TODO 
+            ") as analytics_last_value";
+                
         return sql;
     }
     
