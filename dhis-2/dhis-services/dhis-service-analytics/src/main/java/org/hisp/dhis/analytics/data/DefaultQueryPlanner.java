@@ -481,10 +481,11 @@ public class DefaultQueryPlanner
         
         AnalyticsAggregationType type = params.getAggregationType();
         
-        boolean avgSumNumeric = AggregationType.SUM == type.getAggregationType() && 
-            AggregationType.AVERAGE == type.getPeriodAggregationType() && AnalyticsDataType.NUMERIC == type.getDataType();
+        boolean sumAvgNumeric = AggregationType.SUM == type.getAggregationType() && 
+            AggregationType.AVERAGE == type.getPeriodAggregationType() && 
+            AnalyticsDataType.NUMERIC == type.getDataType();
 
-        if ( params.getPeriods().isEmpty() || !avgSumNumeric )
+        if ( params.getPeriods().isEmpty() || !sumAvgNumeric )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
             return queries;

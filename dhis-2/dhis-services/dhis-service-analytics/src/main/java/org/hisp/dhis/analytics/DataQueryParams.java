@@ -1016,7 +1016,7 @@ public class DataQueryParams
      */
     public boolean isAggregation()
     {
-        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT.equals( dataType ) );
+        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
     }
     
     /**
