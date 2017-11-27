@@ -438,7 +438,14 @@ public class JdbcAnalyticsManager
             
             // TODO analytics org unit levels
         }
-        
+
+        for ( DimensionalObject dimension : params.getDimensions() )
+        {
+            //TODO replace period col
+            
+            cols.add( dimension.getDimensionName() );
+        }
+
         return cols;
     }
 
@@ -468,11 +475,6 @@ public class JdbcAnalyticsManager
     {
         List<String> cols = getLastValueSubqueryColumns( params );
         
-        for ( DimensionalObject dimension : params.getDimensions() )
-        {
-            cols.add( dimension.getDimensionName() );
-        }
-
         String sql = "";
         
         //TODO implement
