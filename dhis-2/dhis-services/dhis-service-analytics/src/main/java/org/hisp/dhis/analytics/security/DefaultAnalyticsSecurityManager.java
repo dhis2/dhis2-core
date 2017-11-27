@@ -132,7 +132,8 @@ public class DefaultAnalyticsSecurityManager
 
         boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
         
-        boolean canViewUnapprovedData = user != null ? user.getUserCredentials().isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA ) : true;
+        boolean canViewUnapprovedData =
+            user == null || user.getUserCredentials().isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA );
         
         if ( hideUnapprovedData && user != null )
         {

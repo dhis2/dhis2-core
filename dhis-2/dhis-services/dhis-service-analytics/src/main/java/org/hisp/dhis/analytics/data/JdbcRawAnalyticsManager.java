@@ -28,16 +28,6 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,6 +44,15 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 
 /**
  * Class responsible for retrieving raw data from the
@@ -82,22 +81,27 @@ public class JdbcRawAnalyticsManager
     public Grid getRawDataValues( DataQueryParams params, Grid grid )
     {        
         List<DimensionalObject> dimensions = params.getDimensions();
-        
+
         String sql = getStatement( params );
-        
+
         log.debug( "Get raw data SQL: " + sql );
-        
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-        
+
         while ( rowSet.next() )
         {
             grid.addRow();
-            
+
             for ( DimensionalObject dim : dimensions )
             {
                 grid.addValue( rowSet.getString( dim.getDimensionName() ) );
             }
-            
+
+            if ( params.isIncludeOrgUnitNames() )
+            {
+                grid.addValue( rowSet.getString( "ouname" ) );
+            }
+
             grid.addValue( rowSet.getDouble( "value" ) );
         }
         
@@ -113,6 +117,11 @@ public class JdbcRawAnalyticsManager
         List<String> dimensionColumns = params.getDimensions()            
             .stream().map( d -> statementBuilder.columnQuote( d.getDimensionName() ) )
             .collect( Collectors.toList() );
+
+        if ( params.isIncludeOrgUnitNames() )
+        {
+            dimensionColumns.add( statementBuilder.columnQuote( "ouname" ) );
+        }
         
         setOrgUnitSelect( params, dimensionColumns );
         

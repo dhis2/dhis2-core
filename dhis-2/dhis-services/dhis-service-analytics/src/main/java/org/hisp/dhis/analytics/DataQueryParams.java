@@ -274,6 +274,11 @@ public class DataQueryParams
     protected transient String tableName;
 
     /**
+     * Include organisation unit names in request.
+     */
+    protected boolean includeOrgUnitNames;
+
+    /**
      * The data type for this query.
      */
     protected transient DataType dataType;
@@ -322,7 +327,7 @@ public class DataQueryParams
      * Hints for the aggregation process.
      */
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -385,6 +390,7 @@ public class DataQueryParams
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
         params.includeNumDen = this.includeNumDen;
+        params.includeOrgUnitNames = this.includeOrgUnitNames;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
         params.outputFormat = this.outputFormat;
@@ -1152,6 +1158,7 @@ public class DataQueryParams
         
         return this;
     }
+
     
     /**
      * Adds the given dimension to the dimensions of this query. The dimensions will 
@@ -1659,7 +1666,12 @@ public class DataQueryParams
     {
         return showHierarchy;
     }
-    
+
+    public boolean isIncludeOrgUnitNames()
+    {
+        return includeOrgUnitNames;
+    }
+
     public boolean isIncludeNumDen()
     {
         return includeNumDen;
@@ -2318,7 +2330,13 @@ public class DataQueryParams
             this.params.showHierarchy = showHierarchy;
             return this;
         }
-        
+
+        public Builder withIncludeOrgUnitNames( boolean includeOrgUnitNames )
+        {
+            this.params.includeOrgUnitNames = includeOrgUnitNames;
+            return this;
+        }
+
         public Builder withIncludeNumDen( boolean includeNumDen )
         {
             this.params.includeNumDen = includeNumDen;

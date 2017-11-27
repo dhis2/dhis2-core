@@ -95,12 +95,12 @@ public class DefaultQueryPlanner
         final List<DataQueryParams> queries = Lists.newArrayList( params );
         
         List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>()
-            .add( q -> groupByOrgUnitLevel( q ) )
-            .add( q -> groupByPeriodType( q ) )
-            .add( q -> groupByDataType( q ) )
-            .add( q -> groupByAggregationType( q ) )
-            .add( q -> groupByDaysInPeriod( q ) )
-            .add( q -> groupByDataPeriodType( q ) )
+            .add( this::groupByOrgUnitLevel )
+            .add( this::groupByPeriodType )
+            .add( this::groupByDataType )
+            .add( this::groupByAggregationType )
+            .add( this::groupByDaysInPeriod )
+            .add( this::groupByDataPeriodType )
             .addAll( plannerParams.getQueryGroupers() )
             .build();
         

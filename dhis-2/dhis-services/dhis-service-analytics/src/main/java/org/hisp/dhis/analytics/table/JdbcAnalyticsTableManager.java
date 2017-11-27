@@ -78,7 +78,7 @@ public class JdbcAnalyticsTableManager
 {
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Autowired
     private PartitionManager partitionManager;
 
@@ -142,7 +142,7 @@ public class JdbcAnalyticsTableManager
             "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
-    
+
     @Override
     protected void populateTable( AnalyticsTablePartition partition )
     {
@@ -194,7 +194,7 @@ public class JdbcAnalyticsTableManager
         {
             sql += col.getName() + ",";
         }
-        
+
         sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
@@ -252,7 +252,7 @@ public class JdbcAnalyticsTableManager
      * Returns sub-query for approval level. First looks for approval level in
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
-     * 
+     *
      * @param year the data year.
      */
     private String getApprovalJoinClause( Integer year )
@@ -276,7 +276,7 @@ public class JdbcAnalyticsTableManager
 
         return StringUtils.EMPTY;
     }
-    
+
     private List<AnalyticsTableColumn> getDimensionColumns( Integer year )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -349,7 +349,7 @@ public class JdbcAnalyticsTableManager
         String approvalCol = isApprovalEnabled( year ) ?
             "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel " :
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
-        
+
         columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
@@ -358,6 +358,7 @@ public class JdbcAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "pe" ), "text not null", "ps.iso" ) );
         columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", approvalCol ) );
 
         return filterDimensionColumns( columns );

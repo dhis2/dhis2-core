@@ -1146,7 +1146,7 @@ public class DefaultAnalyticsService
                 .withTableName( AnalyticsTableType.DATA_VALUE.getTableName() ).build();
             
             params = queryPlanner.withTableNameAndPartitions( params, plannerParams );
-            
+
             rawAnalyticsManager.getRawDataValues( params, grid );
         }
     }

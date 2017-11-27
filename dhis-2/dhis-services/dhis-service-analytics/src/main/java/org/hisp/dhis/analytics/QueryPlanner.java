@@ -28,9 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IllegalQueryException;
+
+import java.util.List;
 
 /**
  * Service interface which provides methods for validating and planning 
