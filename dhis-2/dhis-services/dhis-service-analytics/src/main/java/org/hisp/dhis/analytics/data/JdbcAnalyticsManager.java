@@ -274,7 +274,7 @@ public class JdbcAnalyticsManager
         {
             sql = "value";
         }
-        else // SUM and null
+        else // SUM and no value
         {
             sql = "sum(value)";
         }
