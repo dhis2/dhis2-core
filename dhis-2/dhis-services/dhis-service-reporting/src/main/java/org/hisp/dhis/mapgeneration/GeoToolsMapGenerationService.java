@@ -39,9 +39,12 @@ import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.OrganisationUnitWithCoordinatesFilter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import java.awt.*;
@@ -85,6 +88,9 @@ public class GeoToolsMapGenerationService
     {
         this.currentUserService = currentUserService;
     }
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     private I18nManager i18nManager;
 
@@ -228,7 +234,8 @@ public class GeoToolsMapGenerationService
         }
         else if ( mapView.getRelatives() != null )
         {
-            period = mapView.getRelatives().getRelativePeriods( date, null, false ).get( 0 );
+            String financialYearStart = (String) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            period = mapView.getRelatives().getRelativePeriods( date, null, false, financialYearStart ).get( 0 );
         }
 
         Integer radiusLow = mapView.getRadiusLow() != null ? mapView.getRadiusLow() : DEFAULT_RADIUS_LOW;

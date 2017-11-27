@@ -51,9 +51,12 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -136,6 +139,9 @@ public class DefaultReportService
         this.dataSource = dataSource;
     }
 
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     // -------------------------------------------------------------------------
     // ReportService implementation
     // -------------------------------------------------------------------------
@@ -191,7 +197,9 @@ public class DefaultReportService
             {
                 if ( report.hasRelativePeriods() )
                 {
-                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false );
+                    String financialYearStart = (String) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
+                        financialYearStart );
 
                     String periodString = getCommaDelimitedString( getIdentifiers( periodService.reloadPeriods( relativePeriods ) ) );
                     String isoPeriodString = getCommaDelimitedString( IdentifiableObjectUtils.getUids( relativePeriods ) );
@@ -266,16 +274,20 @@ public class DefaultReportService
 
         if ( report != null && report.hasRelativePeriods() )
         {
+            String financialYearStart = (String) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+
             if ( calendar.isIso8601() )
             {
-                for ( Period period : report.getRelatives().getRelativePeriods( date, format, true ) )
+                for ( Period period : report.getRelatives().getRelativePeriods( date, format, true,
+                    financialYearStart ) )
                 {
                     periods.add( period.getIsoDate() );
                 }
             }
             else
             {
-                periods = IdentifiableObjectUtils.getLocalPeriodIdentifiers( report.getRelatives().getRelativePeriods( date, format, true ), calendar );
+                periods = IdentifiableObjectUtils.getLocalPeriodIdentifiers( report.getRelatives().getRelativePeriods( date, format, true,
+                    financialYearStart ), calendar );
             }
         }
 

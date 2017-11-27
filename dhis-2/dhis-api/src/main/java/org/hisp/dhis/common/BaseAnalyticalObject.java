@@ -380,7 +380,7 @@ public abstract class BaseAnalyticalObject
 
             if ( hasRelativePeriods() )
             {
-                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames ) );
+                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames, "FINANCIAL_PERIOD_OCTOBER" ) );
             }
 
             type = DimensionType.PERIOD;

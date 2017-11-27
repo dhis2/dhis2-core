@@ -48,7 +48,10 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -319,20 +322,9 @@ public class DefaultDataQueryService
                 {
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
-                    if ( isoPeriod.contains( "FINANCIAL" ) )
-                    {
-                        FinancialPeriodType financialPeriodType = AnalyticsFinancialYearStartKey.valueOf(
-                            (String) systemSettingManager
-                                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ).getFinancialPeriodType();
-
-                        periods.addAll( RelativePeriods
-                            .getRelativePeriodsFromFinancialTypeEnum( relativePeriod, financialPeriodType, format, true ) );
-                    }
-                    else
-                    {
-                        List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true );
-                        periods.addAll( relativePeriods );
-                    }
+                    String financialYearStart = (String) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+                    List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
+                    periods.addAll( relativePeriods );
                 }
                 else
                 {

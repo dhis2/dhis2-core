@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang.ArrayUtils;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.joda.time.DateTime;
@@ -476,7 +477,7 @@ public class RelativePeriods
 
         Date rewindedDate = periodType.getRewindedDate( date, rewindedPeriods );
 
-        return getRelativePeriods( rewindedDate, format, dynamicNames );
+        return getRelativePeriods( rewindedDate, format, dynamicNames, "FINANCIAL_PERIOD_OCTOBER" );
     }
 
     /**
@@ -484,7 +485,7 @@ public class RelativePeriods
      */
     public List<Period> getRelativePeriods()
     {
-        return getRelativePeriods( null, null, false );
+        return getRelativePeriods( null, null, false, "FINANCIAL_PERIOD_OCTOBER" );
     }
 
     /**
@@ -496,22 +497,32 @@ public class RelativePeriods
      */
     public List<Period> getRelativePeriods( I18nFormat format, boolean dynamicNames )
     {
-        return getRelativePeriods( null, format, dynamicNames );
+        return getRelativePeriods( null, format, dynamicNames, "FINANCIAL_PERIOD_OCTOBER" );
     }
 
     /**
      * Gets a list of Periods based on the given input and the state of this
      * RelativePeriods.
      *
-     * @param date the date representing now. If null the current date will be used.
-     * @param format the i18n format.
+     * @param date               the date representing now. If null the current date will be used.
+     * @param format             the i18n format.
+     * @param financialYearStart the start of a financial year. Configurable through system settings
+     *                           and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
      * @return a list of relative Periods.
      */
-    public List<Period> getRelativePeriods( Date date, I18nFormat format, boolean dynamicNames )
+    public List<Period> getRelativePeriods( Date date, I18nFormat format, boolean dynamicNames,
+        String financialYearStart )
     {
         date = ( date != null ) ? date : new Date();
 
         List<Period> periods = new ArrayList<>();
+
+        if ( isThisFinancialPeriod() )
+        {
+            FinancialPeriodType financialPeriodType = AnalyticsFinancialYearStartKey.valueOf( financialYearStart ).getFinancialPeriodType();
+
+            periods.addAll( getRelativeFinancialPeriods( financialPeriodType, format, dynamicNames ) );
+        }
 
         if ( isThisDay() )
         {
@@ -691,7 +702,8 @@ public class RelativePeriods
      * @param format the i18n format.
      * @return a list of relative Periods.
      */
-    public List<Period> getRelativeFinancialPeriods( FinancialPeriodType financialPeriodType, I18nFormat format, boolean dynamicNames )
+    private List<Period> getRelativeFinancialPeriods( FinancialPeriodType financialPeriodType, I18nFormat format,
+        boolean dynamicNames )
     {
         Date date = new Date();
         List<Period> periods = new ArrayList<>();
@@ -833,10 +845,13 @@ public class RelativePeriods
     /**
      * Returns a RelativePeriods instance based on the given list of RelativePeriodsEnum.
      *
-     * @param relativePeriod a list of RelativePeriodsEnum.
+     * @param relativePeriod     a list of RelativePeriodsEnum.
+     * @param financialYearStart the start of a financial year. Configurable through system settings
+     *                           and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
      * @return a RelativePeriods instance.
      */
-    public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date, I18nFormat format, boolean dynamicNames )
+    public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date,
+        I18nFormat format, boolean dynamicNames, String financialYearStart )
     {
         Map<RelativePeriodEnum, RelativePeriods> map = new HashMap<>();
 
@@ -877,24 +892,8 @@ public class RelativePeriods
         map.put( RelativePeriodEnum.LAST_12_WEEKS, new RelativePeriods().setLast12Weeks( true ) );
         map.put( RelativePeriodEnum.LAST_52_WEEKS, new RelativePeriods().setLast52Weeks( true ) );
 
-        return map.containsKey( relativePeriod ) ? map.get( relativePeriod ).getRelativePeriods( date, format, dynamicNames ) : new ArrayList<>();
-    }
-
-    /**
-     * Returns a RelativePeriods instance based on the given list of RelativePeriodsEnum for financial periods.
-     *
-     * @param relativePeriod a list of RelativePeriodsEnum.
-     * @return a RelativePeriods instance.
-     */
-    public static List<Period> getRelativePeriodsFromFinancialTypeEnum( RelativePeriodEnum relativePeriod, FinancialPeriodType financialPeriodType, I18nFormat format, boolean dynamicNames )
-    {
-        Map<RelativePeriodEnum, RelativePeriods> map = new HashMap<>();
-
-        map.put( RelativePeriodEnum.THIS_FINANCIAL_YEAR, new RelativePeriods().setThisFinancialYear( true ) );
-        map.put( RelativePeriodEnum.LAST_FINANCIAL_YEAR, new RelativePeriods().setLastFinancialYear( true ) );
-        map.put( RelativePeriodEnum.LAST_5_FINANCIAL_YEARS, new RelativePeriods().setLast5FinancialYears( true ) );
-
-        return map.containsKey( relativePeriod ) ? map.get( relativePeriod ).getRelativeFinancialPeriods( financialPeriodType, format, dynamicNames ) : new ArrayList<>();
+        return map.containsKey( relativePeriod ) ? map.get( relativePeriod ).getRelativePeriods( date, format, dynamicNames,
+            financialYearStart ) : new ArrayList<>();
     }
 
     /**
@@ -1479,6 +1478,12 @@ public class RelativePeriods
     {
         this.last52Weeks = last52Weeks;
         return this;
+    }
+
+    public boolean isThisFinancialPeriod()
+    {
+        return isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears();
+
     }
 
     // -------------------------------------------------------------------------
