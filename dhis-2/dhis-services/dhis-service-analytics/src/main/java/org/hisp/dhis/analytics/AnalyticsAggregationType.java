@@ -35,9 +35,6 @@ import org.hisp.dhis.util.ObjectUtils;
 import com.google.common.base.MoreObjects;
 
 /**
- * Enumeration of analytics aggregation types. Should be kept up to date with
- * {@link AggregationType}.
- * 
  * @author Lars Helge Overland
  */
 public class AnalyticsAggregationType
@@ -102,17 +99,17 @@ public class AnalyticsAggregationType
     
     public static AnalyticsAggregationType sum()
     {
-        return new AnalyticsAggregationType( AggregationType.SUM );
+        return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
     }
     
     public static AnalyticsAggregationType average()
     {
-        return new AnalyticsAggregationType( AggregationType.AVERAGE );
+        return new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
     }
 
     public static AnalyticsAggregationType count()
     {
-        return new AnalyticsAggregationType( AggregationType.COUNT );
+        return new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
     }
         
     public boolean isNone()
