@@ -32,6 +32,8 @@ import java.util.Objects;
 
 import org.hisp.dhis.util.ObjectUtils;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Enumeration of analytics aggregation types. Should be kept up to date with
  * {@link AggregationType}.
@@ -169,7 +171,11 @@ public class AnalyticsAggregationType
     @Override
     public String toString()
     {
-        return "[Aggregation type: " + aggregationType + ", org unit dimension aggregation type: " + periodAggregationType + "]";
+        return MoreObjects.toStringHelper( this )
+            .add( "aggregation type", aggregationType )
+            .add( "period dim aggregation type", periodAggregationType )
+            .add( "data type", dataType )
+            .add( "disaggregation", disaggregation ).toString();
     }
     
     @Override
@@ -179,13 +185,13 @@ public class AnalyticsAggregationType
         {
             return true;
         }
-        
-        if ( object == null || getClass() != object.getClass() )
+
+        if ( object == null )
         {
             return false;
         }
-        
-        if ( !super.equals( object ) )
+
+        if ( !getClass().isAssignableFrom( object.getClass() ) )
         {
             return false;
         }
