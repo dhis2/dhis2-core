@@ -1076,11 +1076,19 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this object has a program stage.
+     * Indicates whether this query has a program stage.
      */
     public boolean hasProgramStage()
     {
         return programStage != null;
+    }
+    
+    /**
+     * Indicates whether this query has any pre-aggregate measure criteria defined.
+     */
+    public boolean hasPreAggregateMeasureCriteria()
+    {
+        return preAggregateMeasureCriteria != null && !preAggregateMeasureCriteria.isEmpty();
     }
     
     /**

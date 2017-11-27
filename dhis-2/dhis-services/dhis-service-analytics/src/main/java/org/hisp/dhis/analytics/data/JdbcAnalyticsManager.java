@@ -295,7 +295,7 @@ public class JdbcAnalyticsManager
     {
         String sql = "from ";
         
-        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
+        if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
             sql += getPreMeasureCriteriaSql( params );
         }
