@@ -28,14 +28,27 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -51,17 +64,26 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.Assert;
 
-import javax.annotation.Resource;
-import java.util.*;
-import java.util.concurrent.Future;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
-import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_BOOL;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_INT;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_INT_DISAGGREGATION;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_SUM_INT;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.COUNT;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.MAX;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.MIN;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.NONE;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.STDDEV;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.VARIANCE;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
@@ -119,8 +141,6 @@ public class JdbcAnalyticsManager
 
             sql += getGroupByClause( params );
 
-            // Needs to use "having" to utilize aggregate functions, and needs to come after group by
-
             if ( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
             {
                 sql += getMeasureCriteriaSql( params );
@@ -137,7 +157,7 @@ public class JdbcAnalyticsManager
             catch ( BadSqlGrammarException ex )
             {
                 log.info( "Query failed, likely because the requested analytics table does not exist", ex );
-                return new AsyncResult<>( new HashMap<String, Object>() );
+                return new AsyncResult<>( Maps.newHashMap() );
             }
 
             replaceDataPeriodsWithAggregationPeriods( map, params, dataPeriodAggregationPeriodMap );
@@ -147,7 +167,6 @@ public class JdbcAnalyticsManager
         catch ( RuntimeException ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-
             throw ex;
         }
     }
@@ -439,7 +458,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a HAVING clause restricting the result based on the measure criteria
+     * Returns a HAVING clause restricting the result based on the measure criteria.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {

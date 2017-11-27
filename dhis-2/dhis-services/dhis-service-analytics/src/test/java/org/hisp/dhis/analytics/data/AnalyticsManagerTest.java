@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -65,7 +65,7 @@ public class AnalyticsManagerTest
             .withPeriods( getList( y2012 ) )
             .withOrganisationUnits( getList( createOrganisationUnit( 'A' ) ) )
             .withDataPeriodType( new YearlyPeriodType() )
-            .withAggregationType( AggregationType.AVERAGE_SUM_INT_DISAGGREGATION ).build();
+            .withAggregationType( AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION ).build();
         
         Map<String, Object> dataValueMap = new HashMap<>();
         dataValueMap.put( BASE_UID + "A-2012-" + BASE_UID + "A", 1d );
