@@ -524,6 +524,7 @@ public class DefaultQueryPlanner
         if ( params.getDataElements().isEmpty() || !params.isDisaggregation() )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
+            
             return queries;
         }
 
@@ -593,5 +594,5 @@ public class DefaultQueryPlanner
         {
             log.debug( String.format( "Split on '%s': %d", splitCriteria, queries.size() ) );
         }
-    }    
+    }
 }

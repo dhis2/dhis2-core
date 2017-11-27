@@ -113,6 +113,8 @@ public class JdbcAnalyticsManager
     @Async
     public Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, int maxLimit )
     {
+        assertQuery( params );
+        
         try
         {
             ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = 
@@ -561,5 +563,16 @@ public class JdbcAnalyticsManager
         }
 
         return builder.toString();
+    }
+
+    /**
+     * Makes assertions on the query.
+     * 
+     * @param params the data query parameters.
+     */
+    private void assertQuery( DataQueryParams params )
+    {
+        Assert.notNull( params.getDataType(), "Data type must be present" );
+        Assert.notNull( params.getAggregationType(), "Aggregation type must be present" );
     }
 }
