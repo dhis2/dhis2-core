@@ -488,7 +488,7 @@ public class JdbcAnalyticsManager
             "where pestartdate >= " + //TODO
             "and peenddate <= " + //TODO
             "and yearly in ()" + //TODO 
-            ") as analytics_last_value";
+            ") as " + params.getTableName();
                 
         return sql;
     }
