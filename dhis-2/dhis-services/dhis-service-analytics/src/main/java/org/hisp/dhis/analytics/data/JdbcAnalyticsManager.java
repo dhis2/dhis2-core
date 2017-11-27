@@ -295,9 +295,9 @@ public class JdbcAnalyticsManager
     {
         String sql = "from ";
         
-        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
+        if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
-            sql += getPreMeasureCriteriaSql( params );
+            sql += getPreMeasureCriteriaSubquerySql( params );
         }
         else
         {
@@ -433,12 +433,12 @@ public class JdbcAnalyticsManager
 
         return sql;
     }
-
+    
     /**
      * Generates a query which provides a filtered view of the data according 
      * to the criteria. If not, returns the full view of the partition.
      */
-    private String getPreMeasureCriteriaSql( DataQueryParams params )
+    private String getPreMeasureCriteriaSubquerySql( DataQueryParams params )
     {
         SqlHelper sqlHelper = new SqlHelper();
 
