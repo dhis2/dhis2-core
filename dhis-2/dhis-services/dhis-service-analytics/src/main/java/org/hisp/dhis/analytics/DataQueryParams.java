@@ -51,8 +51,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_INT_DISAGGREGATION;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
 import static org.hisp.dhis.common.DimensionType.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
@@ -123,7 +123,7 @@ public class DataQueryParams
     /**
      * The aggregation type.
      */
-    protected AggregationType aggregationType;
+    protected AnalyticsAggregationType aggregationType;
 
     /**
      * The measure criteria, which is measure filters and corresponding values.
@@ -631,7 +631,7 @@ public class DataQueryParams
     /**
      * Indicates whether this object is of the given aggregation type.
      */
-    public boolean isAggregationType( AggregationType aggregationType )
+    public boolean isAggregationType( AnalyticsAggregationType aggregationType )
     {
         return this.aggregationType != null && this.aggregationType.equals( aggregationType );
     }
@@ -1025,7 +1025,7 @@ public class DataQueryParams
      */
     public boolean isAggregation()
     {
-        return !( AggregationType.NONE.equals( aggregationType ) || DataType.TEXT.equals( dataType ) );
+        return !( AnalyticsAggregationType.NONE.equals( aggregationType ) || DataType.TEXT.equals( dataType ) );
     }
         
     /**
@@ -1595,7 +1595,7 @@ public class DataQueryParams
         return ImmutableList.copyOf( filters );
     }
 
-    public AggregationType getAggregationType()
+    public AnalyticsAggregationType getAggregationType()
     {
         return aggregationType;
     }
@@ -2253,7 +2253,7 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withAggregationType( AggregationType aggregationType )
+        public Builder withAggregationType( AnalyticsAggregationType aggregationType )
         {
             this.params.aggregationType = aggregationType;
             return this;

@@ -29,6 +29,7 @@ package org.hisp.dhis.startup;
  */
 
 import com.google.common.collect.Sets;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
@@ -155,8 +156,10 @@ public class SchedulerUpgrade
             addAndScheduleJob( dataSetNotification );
         }
 
+        @SuppressWarnings("unchecked")
         ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager
             .getSystemSetting( "keySchedTasks" );
+        
         if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) )
         {
             log.info( "Scheduler ported" );

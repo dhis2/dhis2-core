@@ -29,13 +29,23 @@ package org.hisp.dhis.analytics;
  */
 
 /**
+ * Enumeration of analytics aggregation types. Should be kept up to date with
+ * {@link AggregationType}.
+ * 
  * @author Lars Helge Overland
  */
-public enum AggregationType
+public enum AnalyticsAggregationType
 {
     SUM( "sum", true ),
     AVERAGE( "avg", true ),
     AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
+    AVERAGE_SUM_INT( "avg_sum_int",  true ), // Sum in organisation unit hierarchy
+    AVERAGE_SUM_INT_DISAGGREGATION( "avg_sum_int_disaggregation", true ), // Sum in organisation unit hierarchy
+    AVERAGE_INT( "avg_int", true ),
+    AVERAGE_INT_DISAGGREGATION( "avg_int_disaggregation", true ),
+    AVERAGE_BOOL( "avg_bool", true ),
+    LAST_SUM_ORG_UNIT( "last_sum_org_unit", true ),
+    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
     COUNT( "count", true ),
     STDDEV( "stddev", true ),
     VARIANCE( "variance", true ),
@@ -46,15 +56,15 @@ public enum AggregationType
     DEFAULT( "default", false );
 
     private final String value;
-
+    
     private boolean aggregateable;
     
-    AggregationType( String value )
+    AnalyticsAggregationType( String value )
     {
         this.value = value;
     }
 
-    AggregationType( String value, boolean aggregateable )
+    AnalyticsAggregationType( String value, boolean aggregateable )
     {
         this.value = value;
         this.aggregateable = aggregateable;
@@ -70,16 +80,26 @@ public enum AggregationType
         return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
     }
     
+    public boolean isLast()
+    {
+        return this == LAST_SUM_ORG_UNIT || this == LAST_AVERAGE_ORG_UNIT;
+    }
+    
     public boolean isAggregateable()
     {
         return aggregateable;
     }
 
-    public static AggregationType fromValue( String value )
+    public static AnalyticsAggregationType fromAggregationType( AggregationType aggregationType )
     {
-        for ( AggregationType type : AggregationType.values() )
+        return aggregationType != null ? fromName( aggregationType.name() ) : null;
+    }
+
+    public static AnalyticsAggregationType fromName( String name )
+    {
+        for ( AnalyticsAggregationType type : AnalyticsAggregationType.values() )
         {
-            if ( type.value.equalsIgnoreCase( value ) )
+            if ( type.name().equalsIgnoreCase( name ) )
             {
                 return type;
             }
