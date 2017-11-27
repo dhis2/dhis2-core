@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.data;
  */
 
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -160,7 +159,7 @@ public class QueryPlannerUtils
     public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType, ValueType valueType, 
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
-        AnalyticsDataType dataType = AnalyticsDataType.fromValueType( valueType );
+        DataType dataType = DataType.fromValueType( valueType );
 
         boolean disaggregation = isDisaggregation( aggregationPeriodType, dataPeriodType );
 

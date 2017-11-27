@@ -133,7 +133,7 @@ public class JdbcAnalyticsManager
 
             sql += getGroupByClause( params );
 
-            if ( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
+            if ( params.hasMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
             {
                 sql += getMeasureCriteriaSql( params );
             }

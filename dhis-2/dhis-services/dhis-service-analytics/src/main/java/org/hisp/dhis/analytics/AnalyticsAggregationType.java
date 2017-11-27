@@ -50,7 +50,7 @@ public class AnalyticsAggregationType
     /**
      * Analytics data type.
      */
-    private AnalyticsDataType dataType;
+    private DataType dataType;
     
     /**
      * Indicates whether to perform data disaggregation.
@@ -72,7 +72,7 @@ public class AnalyticsAggregationType
         this.periodAggregationType = periodAggregationType;
     }
     
-    public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType, AnalyticsDataType dataType, boolean disaggregation )
+    public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType, DataType dataType, boolean disaggregation )
     {
         this( aggregationType, periodAggregationType );
         this.dataType = dataType;
@@ -109,12 +109,7 @@ public class AnalyticsAggregationType
     {
         return new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
     }
-        
-    public boolean isNone()
-    {
-        return AggregationType.NONE == aggregationType || AggregationType.NONE == periodAggregationType;
-    }
-    
+
     public boolean isAggregationType( AggregationType type )
     {
         return this.aggregationType == type;
@@ -127,12 +122,12 @@ public class AnalyticsAggregationType
     
     public boolean isNumericDataType()
     {
-        return this.dataType == AnalyticsDataType.NUMERIC;
+        return this.dataType == DataType.NUMERIC;
     }
     
     public boolean isBooleanDataType()
     {
-        return this.dataType == AnalyticsDataType.BOOLEAN;
+        return this.dataType == DataType.BOOLEAN;
     }
 
     // -------------------------------------------------------------------------
@@ -149,7 +144,7 @@ public class AnalyticsAggregationType
         return ObjectUtils.firstNonNull( periodAggregationType, aggregationType );
     }
 
-    public AnalyticsDataType getDataType()
+    public DataType getDataType()
     {
         return dataType;
     }

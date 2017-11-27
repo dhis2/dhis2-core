@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.data;
  */
 
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsDataType;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
@@ -50,8 +50,8 @@ public class QueryPlannerUtilsTest
     @Test
     public void testGetAggregationType()
     {
-        AnalyticsAggregationType typeA = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE, AnalyticsDataType.NUMERIC, true );
-        AnalyticsAggregationType typeB = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE, AnalyticsDataType.NUMERIC, true );
+        AnalyticsAggregationType typeA = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
+        AnalyticsAggregationType typeB = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.NUMERIC, true );
         
         assertEquals( typeA, 
             QueryPlannerUtils.getAggregationType( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), ValueType.INTEGER, 
