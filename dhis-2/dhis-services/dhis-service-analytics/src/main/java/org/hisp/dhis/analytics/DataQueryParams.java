@@ -621,7 +621,7 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether this object is of the given data type.
+     * Indicates whether this query is of the given data type.
      */
     public boolean isDataType( DataType dataType )
     {
@@ -629,11 +629,19 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether this object is of the given aggregation type.
+     * Indicates whether this query is of the given aggregation type.
      */
     public boolean isAggregationType( AnalyticsAggregationType aggregationType )
     {
         return this.aggregationType != null && this.aggregationType.equals( aggregationType );
+    }
+
+    /**
+     * Indicates whether this query is of a last value aggregation type.
+     */
+    public boolean isLastAggregationType()
+    {
+        return this.aggregationType != null && this.aggregationType.isLast();
     }
     
     /**

@@ -142,8 +142,21 @@ public class DefaultQueryPlanner
         return queryGroups;
     }
 
+    @Override
+    public DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams )
+    {
+        Partitions partitions = params.hasStartEndDate() ?
+            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
+            PartitionUtils.getPartitions( params.getAllPeriods() );
+
+        return DataQueryParams.newBuilder( params )
+            .withTableName( plannerParams.getTableName() )
+            .withPartitions( partitions )
+            .build();
+    }
+    
     // -------------------------------------------------------------------------
-    // Supportive methods
+    // Supportive split methods
     // -------------------------------------------------------------------------
 
     /**
@@ -185,24 +198,11 @@ public class DefaultQueryPlanner
 
         return DataQueryGroups.newBuilder().withQueries( subQueries ).build();
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive - group by methods
-    // -------------------------------------------------------------------------
-
-    @Override
-    public DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams )
-    {
-        Partitions partitions = params.hasStartEndDate() ?
-            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
-            PartitionUtils.getPartitions( params.getAllPeriods() );
-
-        return DataQueryParams.newBuilder( params )
-            .withTableName( plannerParams.getTableName() )
-            .withPartitions( partitions )
-            .build();
-    }
     
+    // -------------------------------------------------------------------------
+    // Supportive group by methods
+    // -------------------------------------------------------------------------
+
     /**
      * If periods appear as dimensions in the given query; groups the query into
      * sub queries based on the period type of the periods. Sets the period type
@@ -256,10 +256,7 @@ public class DefaultQueryPlanner
             return queries;
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on period type: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "period type" );
 
         return queries;
     }
@@ -306,10 +303,7 @@ public class DefaultQueryPlanner
             return queries;
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on org unit level: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "organisation unit level" );
 
         return queries;
     }
@@ -352,10 +346,7 @@ public class DefaultQueryPlanner
             throw new IllegalQueryException( "Query does not contain any period dimension items" );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on period: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "period start and end date" );
         
         return queries;
     }
@@ -392,10 +383,7 @@ public class DefaultQueryPlanner
             queries.add( query );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on data type: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "data type" );
 
         return queries;
     }
@@ -471,16 +459,13 @@ public class DefaultQueryPlanner
             queries.add( query );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on aggregation type: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "aggregation type" );
 
         return queries;
     }
 
     /**
-     * Groups the given query into sub queries based on the number of days in the
+     * Groups the given query in sub queries based on the number of days in the
      * aggregation period. This only applies if the aggregation type is
      * {@link AggregationType#AVERAGE_SUM_INT} and the query has at least one period as 
      * dimension option. This is necessary since the number of days in the aggregation 
@@ -512,10 +497,7 @@ public class DefaultQueryPlanner
             queries.add( query );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on days in period: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "days in period" );
 
         return queries;
     }
@@ -549,12 +531,27 @@ public class DefaultQueryPlanner
             
             queries.add( query );
         }
-
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on data period type: %d", queries.size() ) );
-        }
+        
+        logQuerySplit( queries, "data period type" );
 
         return queries;
     }
+    
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Log query split operation.
+     * 
+     * @param queries the list of queries.
+     * @param splitCriteria the name of the query split criteria.
+     */
+    private void logQuerySplit( List<DataQueryParams> queries, String splitCriteria )
+    {
+        if ( queries.size() > 1 )
+        {
+            log.debug( String.format( "Split on '%s': %d", splitCriteria, queries.size() ) );
+        }
+    }    
 }
