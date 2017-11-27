@@ -100,25 +100,27 @@ public class DataQueryGroupsTest
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.SUM ).build();
+            .withAggregationType( AnalyticsAggregationType.sum() ).build();
 
         DataQueryParams paramsB = DataQueryParams.newBuilder()
             .withDataElements( getList( deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.SUM ).build();
+            .withAggregationType( AnalyticsAggregationType.sum() ).build();
 
         DataQueryParams paramsC = DataQueryParams.newBuilder()
             .withDataElements( getList( deE ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.SUM ).build();
+            .withAggregationType( AnalyticsAggregationType.sum() ).build();
 
         DataQueryParams paramsD = DataQueryParams.newBuilder()
             .withDataElements( getList( deF, deG ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE_SUM_INT ).build();
+            .withAggregationType( AnalyticsAggregationType.average() ).build();
+        
+        //TODO AnalyticsAggregationType.AVERAGE_SUM_INT
 
         List<DataQueryParams> queries = new ArrayList<>();
         queries.add( paramsA );

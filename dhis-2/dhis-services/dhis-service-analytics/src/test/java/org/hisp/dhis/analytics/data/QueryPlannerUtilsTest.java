@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  */
 
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
@@ -49,12 +50,15 @@ public class QueryPlannerUtilsTest
     @Test
     public void testGetAggregationType()
     {
-        assertEquals( AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION, 
-            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT, 
+        AnalyticsAggregationType typeA = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE, AnalyticsDataType.NUMERIC, true );
+        AnalyticsAggregationType typeB = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE, AnalyticsDataType.NUMERIC, true );
+        
+        assertEquals( typeA, 
+            QueryPlannerUtils.getAggregationType( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), ValueType.INTEGER, 
                 new QuarterlyPeriodType(), new YearlyPeriodType() ) );
         
-        assertEquals( AnalyticsAggregationType.AVERAGE_INT_DISAGGREGATION, 
-            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AnalyticsAggregationType.AVERAGE, 
+        assertEquals( typeB, 
+            QueryPlannerUtils.getAggregationType( new AnalyticsAggregationType( AggregationType.AVERAGE ), ValueType.INTEGER, 
                 new QuarterlyPeriodType(), new YearlyPeriodType() ) );
     }
     
@@ -73,7 +77,7 @@ public class QueryPlannerUtilsTest
     @Test
     public void testFromAggregationType()
     {
-        assertEquals( AnalyticsAggregationType.SUM, AnalyticsAggregationType.fromAggregationType( AggregationType.SUM ) );
-        assertEquals( AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT, AnalyticsAggregationType.fromAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ) );
+        assertEquals( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM ), AnalyticsAggregationType.fromAggregationType( AggregationType.SUM ) );
+        assertEquals( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), AnalyticsAggregationType.fromAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ) );
     }
 }

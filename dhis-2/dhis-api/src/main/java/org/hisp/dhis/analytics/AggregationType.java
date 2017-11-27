@@ -41,7 +41,7 @@ public enum AggregationType
     VARIANCE( "variance", true ),
     MIN( "min", true ),
     MAX( "max", true ),
-    NONE( "none", true ), // Text only
+    NONE( "none", true ), // Aggregatable for text only
     CUSTOM( "custom", false ),
     DEFAULT( "default", false );
 

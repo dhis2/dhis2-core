@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -471,7 +472,7 @@ public class EventQueryParams
             return AnalyticsAggregationType.fromAggregationType( value.getAggregationType() );
         }
 
-        return AnalyticsAggregationType.AVERAGE;
+        return AnalyticsAggregationType.average();
     }
 
     /**
@@ -479,11 +480,11 @@ public class EventQueryParams
      * {@link getAggregationTypeFallback}.
      */
     @Override
-    public boolean isAggregationType( AnalyticsAggregationType aggregationType )
+    public boolean isAggregationType( AggregationType type )
     {
-        AnalyticsAggregationType type = getAggregationTypeFallback();
+        AnalyticsAggregationType typeFallback = getAggregationTypeFallback();
 
-        return type != null && type.equals( aggregationType );
+        return typeFallback != null && type.equals( typeFallback.getAggregationType() );
     }
 
     /**
