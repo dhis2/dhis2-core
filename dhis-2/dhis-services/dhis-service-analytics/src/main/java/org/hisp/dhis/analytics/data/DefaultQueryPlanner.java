@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.data;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
@@ -60,7 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.hisp.dhis.analytics.AggregationType.SUM;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.SUM;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -428,10 +429,10 @@ public class DefaultQueryPlanner
 
         if ( !params.getDataElements().isEmpty() )
         {
-            ListMap<AggregationType, DimensionalItemObject> aggregationTypeDataElementMap = 
+            ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = 
                 QueryPlannerUtils.getAggregationTypeDataElementMap( params );
 
-            for ( AggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
+            for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
                 DataQueryParams query = DataQueryParams.newBuilder( params )
                     .withDataElements( aggregationTypeDataElementMap.get( aggregationType ) )
@@ -445,12 +446,14 @@ public class DefaultQueryPlanner
             DimensionalObject degs = params.getDataElementGroupSets().get( 0 );
             DataElementGroup deg = (DataElementGroup) (degs.hasItems() ? degs.getItems().get( 0 ) : null);
             
-            AggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), SUM );
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), SUM );
 
             if ( deg != null && !deg.getMembers().isEmpty() )
             {
                 PeriodType periodType = PeriodType.getPeriodTypeByName( params.getPeriodType() );
-                aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), deg.getAggregationType() );
+                AnalyticsAggregationType degAggType = AnalyticsAggregationType.fromAggregationType( deg.getAggregationType() );
+                
+                aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), degAggType );
                 aggregationType = QueryPlannerUtils.getAggregationType( 
                     deg.getValueType(), aggregationType, periodType, deg.getPeriodType() );
             }
@@ -490,7 +493,7 @@ public class DefaultQueryPlanner
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
-        if ( params.getPeriods().isEmpty() || !params.isAggregationType( AggregationType.AVERAGE_SUM_INT ) )
+        if ( params.getPeriods().isEmpty() || !params.isAggregationType( AnalyticsAggregationType.AVERAGE_SUM_INT ) )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
             return queries;

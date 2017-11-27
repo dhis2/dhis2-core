@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.AnalyticsType;
@@ -206,7 +207,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getItems().size() );
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
-        assertEquals( AggregationType.AVERAGE, params.getAggregationType() );
+        assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
     @Test
