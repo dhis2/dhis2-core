@@ -238,52 +238,43 @@ public class JdbcAnalyticsManager
 
         AnalyticsAggregationType aggType = params.getAggregationType();
         
-        //if ( params.isAggregationType( AVERAGE_SUM_INT ) ) TODO
         if ( aggType.isPeriodAggregationType( AVERAGE ) && aggType.isAggregationType( SUM ) && aggType.isNumericDataType() )
         {
             sql = "sum(daysxvalue) / " + params.getDaysForAvgSumIntAggregation();
         }
-        //else if ( params.isAggregationType( AVERAGE_INT ) || params.isAggregationType( AVERAGE_INT_DISAGGREGATION ) )
         else if ( aggType.isAggregationType( AVERAGE ) && aggType.isNumericDataType() )
         {
             sql = "avg(value)";
         }
-        //else if ( params.isAggregationType( AVERAGE_BOOL ) )
         else if ( aggType.isAggregationType( AVERAGE ) && aggType.isBooleanDataType() )
         {
             sql = "sum(daysxvalue) / sum(daysno) * 100";
         }
-        //else if ( params.isAggregationType( COUNT ) )
         else if ( aggType.isAggregationType( COUNT ) )
         {
             sql = "count(value)";
         }
-        //else if ( params.isAggregationType( STDDEV ) )
         else if ( aggType.isAggregationType( STDDEV ) )
         {
             sql = "stddev(value)";
         }
-        //else if ( params.isAggregationType( VARIANCE ) )
         else if ( aggType.isAggregationType( VARIANCE ) )
         {
             sql = "variance(value)";
         }
-        //else if ( params.isAggregationType( MIN ) )
         else if ( aggType.isAggregationType( MIN ) )
         {
             sql = "min(value)";
         }
-        //else if ( params.isAggregationType( MAX ) )
         else if ( aggType.isAggregationType( MAX ) )
         {
             sql = "max(value)";
         }
-        //else if ( params.isAggregationType( NONE ) )
         else if ( aggType.isAggregationType( NONE ) )
         {
             sql = "value";
         }
-        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and null
+        else // SUM and null
         {
             sql = "sum(value)";
         }

@@ -166,39 +166,6 @@ public class QueryPlannerUtils
 
         return new AnalyticsAggregationType( aggregationType.getAggregationType(), 
             aggregationType.getPeriodAggregationType(), dataType, disaggregation );
-
-        /*
-        AnalyticsAggregationType type;
-        
-        boolean number = valueType.isNumeric();
-
-        if ( aggregationType.isAverage() && ValueType.BOOLEAN == valueType )
-        {
-            type = AnalyticsAggregationType.AVERAGE_BOOL;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType && number && disaggregation )
-        {
-            type = AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType && number )
-        {
-            type = AnalyticsAggregationType.AVERAGE_SUM_INT;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE == aggregationType && number && disaggregation )
-        {
-            type = AnalyticsAggregationType.AVERAGE_INT_DISAGGREGATION;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE == aggregationType && number )
-        {
-            type = AnalyticsAggregationType.AVERAGE_INT;
-        }
-        else
-        {
-            type = aggregationType;
-        }
-
-        return type;
-        */
     }
 
     /**
