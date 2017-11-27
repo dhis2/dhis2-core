@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import java.util.Objects;
-
 import org.hisp.dhis.util.ObjectUtils;
-
 import com.google.common.base.MoreObjects;
 
 /**
