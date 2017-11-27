@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics;
 
+import org.hisp.dhis.common.ValueType;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -33,5 +35,21 @@ package org.hisp.dhis.analytics;
  */
 public enum DataType
 {
-    NUMERIC, TEXT
+    NUMERIC, BOOLEAN, TEXT;
+    
+    public static DataType fromValueType( ValueType valueType )
+    {
+        if ( ValueType.NUMERIC_TYPES.contains( valueType ) )
+        {
+            return DataType.NUMERIC;
+        }
+        else if ( ValueType.BOOLEAN_TYPES.contains( valueType ) )
+        {
+            return DataType.BOOLEAN;
+        }
+        else
+        {        
+            return DataType.TEXT;
+        }
+    }
 }
