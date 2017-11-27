@@ -40,6 +40,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -423,12 +424,13 @@ public class JdbcAnalyticsManager
     
     /**
      * Returns names of all non-dimensional columns of the aggregate data 
-     * analytics table. It is assumed that last value aggregation type only
+     * analytics table. It is assumed that {@link AggregationType#LAST} type only
      * applies to aggregate data analytics.
      */
     private List<String> getLastValueSubqueryColumns( DataQueryParams params )
     {
-        List<String> cols = Lists.newArrayList( "yearly", "pestartdate", "peenddate", "daysxvalue", "daysno", "value", "textvalue" );
+        List<String> cols = Lists.newArrayList( "yearly", "dx", "co", "ao", "ou", 
+            "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
         
         if ( params.isDataApproval() )
         {
@@ -464,9 +466,16 @@ public class JdbcAnalyticsManager
      */
     private String getLastValueSubquerySql( DataQueryParams params )
     {
+        List<String> cols = getLastValueSubqueryColumns( params );
+        
+        for ( DimensionalObject dimension : params.getDimensions() )
+        {
+            cols.add( dimension.getDimensionName() );
+        }
+
         String sql = "";
         
-        
+        //TODO implement
         
         return sql;
     }
