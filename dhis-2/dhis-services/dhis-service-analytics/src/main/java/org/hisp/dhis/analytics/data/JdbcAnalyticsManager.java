@@ -473,9 +473,18 @@ public class JdbcAnalyticsManager
      */
     private String getLastValueSubquerySql( DataQueryParams params )
     {
-        List<String> cols = getLastValueSubqueryColumns( params );
+        String sql = "select ";
         
-        String sql = "";
+        for ( String col : getLastValueSubqueryColumns( params ) )
+        {
+            sql += statementBuilder.columnQuote( col ) + ",";
+        }
+        
+        sql += 
+            "rank() over (" + 
+                "partition by dx, ou, co, ao " + 
+                "order by pestartdate desc, peenddate desc) as pe_rank " + 
+            "from analytics ";
         
         //TODO implement
         
