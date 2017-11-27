@@ -66,6 +66,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import static org.hisp.dhis.analytics.AggregationType.*;
@@ -371,7 +372,8 @@ public class JdbcAnalyticsManager
                 String ouCol = LEVEL_PREFIX + unit.getLevel();
                 Integer level = params.getDataApprovalLevels().get( unit );
 
-                sql += "(" + ouCol + " = '" + unit.getUid() + "' and " + COL_APPROVALLEVEL + " <= " + level + ") or ";
+                sql += "(" + ouCol + " = '" + unit.getUid() + "' and " + 
+                    statementBuilder.columnQuote( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
             }
 
             sql = removeLastOr( sql ) + ") ";
@@ -384,7 +386,7 @@ public class JdbcAnalyticsManager
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDate() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(" + statementBuilder.columnQuote( "ouopeningdate") + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "ouopeningdate" ) + " is null) and " +
+                "(" + statementBuilder.columnQuote( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDate() ) + "' or " + statementBuilder.columnQuote( "ouopeningdate" ) + " is null) and " +
                 "(" + statementBuilder.columnQuote( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDate() ) + "' or " + statementBuilder.columnQuote( "oucloseddate" ) + " is null)) ";
         }
         
@@ -403,7 +405,7 @@ public class JdbcAnalyticsManager
 
         if ( params.isTimely() )
         {
-            sql += sqlHelper.whereAnd() + " timely is true ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "timely" ) + " is true ";
         }
 
         // ---------------------------------------------------------------------
@@ -417,6 +419,25 @@ public class JdbcAnalyticsManager
         }
         
         return sql;
+    }
+    
+    /**
+     * Returns names of all non-dimensional columns of the aggregate data 
+     * analytics table. It is assumed that last value aggregation type only
+     * applies to aggregate data analytics.
+     */
+    private List<String> getLastValueSubqueryColumns( DataQueryParams params )
+    {
+        List<String> cols = Lists.newArrayList( "yearly", "pestartdate", "peenddate", "daysxvalue", "daysno", "value", "textvalue" );
+        
+        if ( params.isDataApproval() )
+        {
+            cols.add( COL_APPROVALLEVEL );
+            
+            // TODO analytics org unit levels
+        }
+        
+        return cols;
     }
 
     /**
@@ -445,7 +466,7 @@ public class JdbcAnalyticsManager
     {
         String sql = "";
         
-        //TODO
+        
         
         return sql;
     }
@@ -574,5 +595,7 @@ public class JdbcAnalyticsManager
     {
         Assert.notNull( params.getDataType(), "Data type must be present" );
         Assert.notNull( params.getAggregationType(), "Aggregation type must be present" );
+        Assert.isTrue( !( params.getAggregationType().isLastPeriodAggregationType() && params.getPeriods().size() > 1 ), 
+            "Max one period can be present per query for last period aggregation" );
     }
 }
