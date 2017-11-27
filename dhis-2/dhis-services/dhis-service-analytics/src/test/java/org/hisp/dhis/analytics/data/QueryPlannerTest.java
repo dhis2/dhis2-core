@@ -31,9 +31,9 @@ package org.hisp.dhis.analytics.data;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
@@ -955,7 +955,7 @@ public class QueryPlannerTest
         {
             assertNotNull( query.getAggregationType() );
             assertEquals( AggregationType.AVERAGE, query.getAggregationType().getAggregationType() );
-            assertEquals( AnalyticsDataType.NUMERIC, query.getAggregationType().getDataType() );
+            assertEquals( DataType.NUMERIC, query.getAggregationType().getDataType() );
         }
     }
 
@@ -987,7 +987,7 @@ public class QueryPlannerTest
         {
             assertNotNull( query.getAggregationType() );
             assertEquals( AggregationType.AVERAGE, query.getAggregationType().getAggregationType() );
-            assertEquals( AnalyticsDataType.BOOLEAN, query.getAggregationType().getDataType() );
+            assertEquals( DataType.BOOLEAN, query.getAggregationType().getDataType() );
         }
     }
     

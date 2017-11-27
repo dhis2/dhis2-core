@@ -38,9 +38,9 @@ import java.util.Map;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
@@ -63,7 +63,7 @@ public class AnalyticsManagerTest
         Period y2012 = createPeriod( "2012" );
         
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType( 
-            AggregationType.SUM, AggregationType.AVERAGE, AnalyticsDataType.NUMERIC, true );
+            AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
                 
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( createDataElement( 'A' ), createDataElement( 'B' ) ) )

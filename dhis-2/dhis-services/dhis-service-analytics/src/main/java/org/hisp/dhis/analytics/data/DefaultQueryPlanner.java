@@ -32,7 +32,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
@@ -483,7 +482,7 @@ public class DefaultQueryPlanner
         
         boolean sumAvgNumeric = AggregationType.SUM == type.getAggregationType() && 
             AggregationType.AVERAGE == type.getPeriodAggregationType() && 
-            AnalyticsDataType.NUMERIC == type.getDataType();
+            DataType.NUMERIC == type.getDataType();
 
         if ( params.getPeriods().isEmpty() || !sumAvgNumeric )
         {

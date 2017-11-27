@@ -1080,6 +1080,14 @@ public class DataQueryParams
     {
         return programStage != null;
     }
+
+    /**
+     * Indicates whether this query has any measure criteria defined.
+     */
+    public boolean hasMeasureCriteria()
+    {
+        return measureCriteria != null && !measureCriteria.isEmpty();
+    }
     
     /**
      * Indicates whether this query has any pre-aggregate measure criteria defined.
