@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
@@ -61,7 +62,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.hisp.dhis.analytics.AnalyticsAggregationType.SUM;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -434,7 +434,7 @@ public class DefaultQueryPlanner
             DimensionalObject degs = params.getDataElementGroupSets().get( 0 );
             DataElementGroup deg = (DataElementGroup) (degs.hasItems() ? degs.getItems().get( 0 ) : null);
             
-            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), SUM );
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.sum() );
 
             if ( deg != null && !deg.getMembers().isEmpty() )
             {
@@ -442,8 +442,8 @@ public class DefaultQueryPlanner
                 AnalyticsAggregationType degAggType = AnalyticsAggregationType.fromAggregationType( deg.getAggregationType() );
                 
                 aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), degAggType );
-                aggregationType = QueryPlannerUtils.getAggregationType( 
-                    deg.getValueType(), aggregationType, periodType, deg.getPeriodType() );
+                aggregationType = QueryPlannerUtils.getAggregationType( aggregationType,
+                    deg.getValueType(), periodType, deg.getPeriodType() );
             }
             
             DataQueryParams query = DataQueryParams.newBuilder( params )
@@ -454,7 +454,7 @@ public class DefaultQueryPlanner
         else
         {
             DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), SUM ) ).build();
+                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.sum() ) ).build();
             
             queries.add( query );
         }
@@ -466,10 +466,11 @@ public class DefaultQueryPlanner
 
     /**
      * Groups the given query in sub queries based on the number of days in the
-     * aggregation period. This only applies if the aggregation type is
-     * {@link AggregationType#AVERAGE_SUM_INT} and the query has at least one period as 
-     * dimension option. This is necessary since the number of days in the aggregation 
-     * period is part of the expression for aggregating the value.
+     * aggregation period. This only applies if the aggregation type is SUM, the
+     * period dimension aggregation type is AVERAGE, the data type is NUMERIC
+     * and the query has at least one period as dimension option. This is necessary 
+     * since the number of days in the aggregation period is part of the expression 
+     * for aggregating the value.
      * 
      * @param params the data query parameters.
      * @return a list of {@link DataQueryParams}.
@@ -477,8 +478,14 @@ public class DefaultQueryPlanner
     private List<DataQueryParams> groupByDaysInPeriod( DataQueryParams params )
     {
         List<DataQueryParams> queries = new ArrayList<>();
+        
+        AnalyticsAggregationType type = params.getAggregationType();
+        
+        boolean sumAvgNumeric = AggregationType.SUM == type.getAggregationType() && 
+            AggregationType.AVERAGE == type.getPeriodAggregationType() && 
+            AnalyticsDataType.NUMERIC == type.getDataType();
 
-        if ( params.getPeriods().isEmpty() || !params.isAggregationType( AnalyticsAggregationType.AVERAGE_SUM_INT ) )
+        if ( params.getPeriods().isEmpty() || !sumAvgNumeric )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
             return queries;

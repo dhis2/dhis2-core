@@ -36,7 +36,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -59,13 +61,16 @@ public class AnalyticsManagerTest
     public void testReplaceDataPeriodsWithAggregationPeriods()
     {
         Period y2012 = createPeriod( "2012" );
+        
+        AnalyticsAggregationType aggregationType = new AnalyticsAggregationType( 
+            AggregationType.SUM, AggregationType.AVERAGE, AnalyticsDataType.NUMERIC, true );
                 
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( createDataElement( 'A' ), createDataElement( 'B' ) ) )
             .withPeriods( getList( y2012 ) )
             .withOrganisationUnits( getList( createOrganisationUnit( 'A' ) ) )
             .withDataPeriodType( new YearlyPeriodType() )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION ).build();
+            .withAggregationType( aggregationType ).build();
         
         Map<String, Object> dataValueMap = new HashMap<>();
         dataValueMap.put( BASE_UID + "A-2012-" + BASE_UID + "A", 1d );
