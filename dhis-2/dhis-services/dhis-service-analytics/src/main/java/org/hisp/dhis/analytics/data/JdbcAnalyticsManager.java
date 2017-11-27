@@ -293,7 +293,7 @@ public class JdbcAnalyticsManager
         {
             sql += getLastValueSubquerySql( params );
         }
-        if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
+        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
             sql += getPreMeasureCriteriaSubquerySql( params );
         }

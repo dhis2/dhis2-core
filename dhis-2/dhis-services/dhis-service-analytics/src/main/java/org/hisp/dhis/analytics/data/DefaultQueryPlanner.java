@@ -546,9 +546,9 @@ public class DefaultQueryPlanner
 
     /**
      * Groups the given query in sub queries for each dimension period. This only applies
-     * if the aggregation type is {@link AnalyticsAggregationType#LAST_SUM_ORG_UNIT}
-     * or {@link AnalyticsAggregationType#LAST_AVERAGE_ORG_UNIT}. In this case each
-     * period must be aggregated individually.
+     * if the aggregation type is {@link AggregationType#LAST} or 
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be 
+     * aggregated individually.
      * 
      * @param params the data query parameters.
      * @return a list of {@link DataQueryParams}.
@@ -572,10 +572,7 @@ public class DefaultQueryPlanner
             queries.add( params );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on period: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "period" );
 
         return queries;
     }
