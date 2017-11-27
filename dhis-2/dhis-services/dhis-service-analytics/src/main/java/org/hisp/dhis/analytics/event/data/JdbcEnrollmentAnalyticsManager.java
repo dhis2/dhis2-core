@@ -113,7 +113,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Criteria
         // ---------------------------------------------------------------------
 
-        sql += getFromWhereClause( params, Lists.newArrayList( "psi" ) );
+        sql += getFromWhereClause( params );
 
         // ---------------------------------------------------------------------
         // Group by
@@ -327,13 +327,10 @@ public class JdbcEnrollmentAnalyticsManager
      * Returns a from and where SQL clause.
      * 
      * @param params the event query parameters.
-     * @param fixedColumns the list of fixed column names to include.
      */
-    private String getFromWhereClause( EventQueryParams params, List<String> fixedColumns )
-    {
-        String partition = params.getPartitions().getSinglePartition();
-        
-        String sql = "from " + partition + " ";
+    private String getFromWhereClause( EventQueryParams params )
+    {        
+        String sql = "from " + params.getTableName() + " ";
 
         //Join the program stages (used in this expression).
         if( params.hasProgramIndicatorDimension() ) 
@@ -498,6 +495,8 @@ public class JdbcEnrollmentAnalyticsManager
         {
             sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
+        
+        //TODO partition table and add partition restriction
         
         return sql;
     }

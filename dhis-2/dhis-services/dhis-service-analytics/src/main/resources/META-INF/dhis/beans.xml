@@ -68,6 +68,8 @@
   <bean id="org.hisp.dhis.analytics.AnalyticsService" class="org.hisp.dhis.analytics.data.DefaultAnalyticsService" />
   
   <bean id="org.hisp.dhis.analytics.QueryPlanner" class="org.hisp.dhis.analytics.data.DefaultQueryPlanner" />
+  
+  <bean id="org.hisp.dhis.analytics.QueryValidator" class="org.hisp.dhis.analytics.data.DefaultQueryValidator" />
 
   <bean id="org.hisp.dhis.analytics.AnalyticsSecurityManager" class="org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager" />
 
@@ -82,6 +84,8 @@
   <bean id="org.hisp.dhis.analytics.event.EventAnalyticsService" class="org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService" />
 
   <bean id="org.hisp.dhis.analytics.event.EventQueryPlanner" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryPlanner" />
+  
+  <bean id="org.hisp.dhis.analytics.event.EventQueryValidator" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryValidator" />
 
   <!-- Scheduled jobs -->
   

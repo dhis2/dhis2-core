@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.scheduling.parameters;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,21 +28,47 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.schema.annotation.Property;
 
 /**
- * Manager for queries for retrieval of raw analytics data.
- * 
- * @author Lars Helge Overland
+ * @author Henning Håkonsen
  */
-public interface RawAnalyticsManager
+public class MockJobParameters
+    implements JobParameters
 {
-    /**
-     * Adds raw analytics data to the given grid based on the given query.
-     * 
-     * @param params the query.
-     * @param grid the grid.
-     * @return a grid with data.
-     */
-    Grid getRawDataValues( DataQueryParams params, Grid grid );    
+    private static final long serialVersionUID = 3600315605964091689L;
+
+    @Property
+    private String message;
+
+    public MockJobParameters()
+    {
+    }
+
+    public MockJobParameters( String message )
+    {
+        this.message = message;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getMessage()
+    {
+        return message;
+    }
+
+    public void setMessage( String message )
+    {
+        this.message = message;
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        return null;
+    }
 }

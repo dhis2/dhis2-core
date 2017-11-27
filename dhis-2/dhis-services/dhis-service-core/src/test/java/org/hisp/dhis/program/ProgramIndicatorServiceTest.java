@@ -404,7 +404,7 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testGetAnalyticsSQl()
     {
-        String expected = "coalesce(\"" + deA.getUid() + "\",0) + coalesce(\"" + atA.getUid() + "\",0) > 10";
+        String expected = "coalesce(\"" + deA.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid() + "\"::numeric,0) > 10";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( indicatorE.getFilter(), AnalyticsType.EVENT, new Date(), new Date() ) );
     }
@@ -422,7 +422,7 @@ public class ProgramIndicatorServiceTest
     {
         String expected = 
             "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + " +
-            "coalesce(\"GCyeKSqlpdk\",0) + " +
+            "coalesce(\"GCyeKSqlpdk\"::numeric,0) + " +
             "nullif(cast((case when \"EZq9VbPWgML\" >= 0 then 1 else 0 end + case when \"GCyeKSqlpdk\" >= 0 then 1 else 0 end) as double),0)";
         
         String expression = 
@@ -558,7 +558,7 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testGetAnalyticsSqlWithVariables()
     {
-        String expected = "coalesce(\"EZq9VbPWgML\",0) + (executiondate - enrollmentdate)";
+        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (executiondate - enrollmentdate)";
         String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (V{execution_date} - V{enrollment_date})";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
@@ -576,7 +576,7 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testIsZeroFilter()
     {
-        String expected = "coalesce(\"OXXcwl6aPCQ_EZq9VbPWgML\",0) == 0 ";
+        String expected = "coalesce(\"OXXcwl6aPCQ_EZq9VbPWgML\"::numeric,0) == 0 ";
         String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == 0";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.ENROLLMENT, new Date(), new Date() ) );        
@@ -585,9 +585,9 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testIsZeroOrEmptyFilter()
     {
-        String expected = "coalesce(\"OXXcwl6aPCQ_GCyeKSqlpdk\",0) == 1 or " + 
+        String expected = "coalesce(\"OXXcwl6aPCQ_GCyeKSqlpdk\"::numeric,0) == 1 or " +
             "(coalesce(\"OXXcwl6aPCQ_GCyeKSqlpdk\",'') == '' and " +
-            "coalesce(\"kts5J79K9gA\",0) == 0 )";
+            "coalesce(\"kts5J79K9gA\"::numeric,0) == 0 )";
         
         String filter = "#{OXXcwl6aPCQ.GCyeKSqlpdk} == 1 or " + 
         "(#{OXXcwl6aPCQ.GCyeKSqlpdk}  == ''   and A{kts5J79K9gA}== 0)";

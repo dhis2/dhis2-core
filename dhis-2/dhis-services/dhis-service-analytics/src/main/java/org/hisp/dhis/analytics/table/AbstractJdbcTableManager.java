@@ -97,10 +97,10 @@ public abstract class AbstractJdbcTableManager
     protected ResourceTableService resourceTableService;
     
     @Autowired
-    protected PartitionManager partitionManager;
-   
-    @Autowired
     protected StatementBuilder statementBuilder;
+    
+    @Autowired
+    protected PartitionManager partitionManager;
     
     @Autowired
     protected DatabaseInfo databaseInfo;

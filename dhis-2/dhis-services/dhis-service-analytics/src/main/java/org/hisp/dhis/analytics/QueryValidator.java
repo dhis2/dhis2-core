@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,47 +28,48 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
+import java.util.List;
+
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MaintenanceModeException;
 
 /**
- * @author Henning Håkonsen
- */
-public class TestJobParameters
-    implements JobParameters
+ * Service interface which provides methods for validation analytics queries.
+ * 
+* @author Lars Helge Overland
+*/
+public interface QueryValidator
 {
-    private static final long serialVersionUID = 3600315605964091689L;
-
-    @Property
-    private String message;
-
-    public TestJobParameters()
-    {
-    }
-
-    public TestJobParameters( String message )
-    {
-        this.message = message;
-    }
-
-    @JacksonXmlProperty
-    @JsonProperty
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return null;
-    }
+    /**
+     * Validates the given query. Throws an IllegalQueryException if the query
+     * is not valid with a descriptive message. Returns normally if the query is
+     * valid.
+     * 
+     * @param params the data query parameters.
+     * @throws IllegalQueryException if the query is invalid.
+     */
+    void validate( DataQueryParams params )
+        throws IllegalQueryException;
+    
+    /**
+     * Validates whether the given table layout is valid for the given query. 
+     * Throws an IllegalQueryException if the query is not valid with a 
+     * descriptive message. Returns normally if the query is valid.
+     * 
+     * @param params the data query parameters.
+     * @param columns the column dimension identifiers.
+     * @param rows the row dimension identifiers.
+     * @throws IllegalQueryException if the query is invalid.
+     */
+    void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
+        throws IllegalQueryException;
+    
+    /**
+     * Checks whether the analytics engine is in maintenance mode.
+     * 
+     * @throws MaintenanceModeException if analytics engine is in maintenance mode.
+     */
+    void validateMaintenanceMode()
+        throws MaintenanceModeException;
+    
 }
