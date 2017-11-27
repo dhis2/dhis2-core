@@ -207,7 +207,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getItems().size() );
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
-        assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
+        assertEquals( AnalyticsAggregationType.average(), params.getAggregationType() );
     }
 
     @Test

@@ -28,63 +28,32 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.ValueType;
+
 /**
- * @author Lars Helge Overland
- */
-public enum AggregationType
+ * Enumeration for data types related to analytics aggregation types.
+ * 
+* @author Lars Helge Overland
+*/
+public enum AnalyticsDataType
 {
-    SUM( "sum", true ),
-    AVERAGE( "avg", true ),
-    AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
-    COUNT( "count", true ),
-    STDDEV( "stddev", true ),
-    VARIANCE( "variance", true ),
-    MIN( "min", true ),
-    MAX( "max", true ),
-    NONE( "none", true ), // Aggregatable for text only
-    CUSTOM( "custom", false ),
-    DEFAULT( "default", false );
-
-    private final String value;
-
-    private boolean aggregateable;
+    NUMERIC, 
+    BOOLEAN,
+    TEXT;
     
-    AggregationType( String value )
+    public static AnalyticsDataType fromValueType( ValueType valueType )
     {
-        this.value = value;
-    }
-
-    AggregationType( String value, boolean aggregateable )
-    {
-        this.value = value;
-        this.aggregateable = aggregateable;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
-    public boolean isAverage()
-    {
-        return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
-    }
-    
-    public boolean isAggregateable()
-    {
-        return aggregateable;
-    }
-
-    public static AggregationType fromValue( String value )
-    {
-        for ( AggregationType type : AggregationType.values() )
+        if ( ValueType.NUMERIC_TYPES.contains( valueType ) )
         {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
+            return AnalyticsDataType.NUMERIC;
         }
-
-        return null;
+        else if ( ValueType.BOOLEAN_TYPES.contains( valueType ) )
+        {
+            return AnalyticsDataType.BOOLEAN;
+        }
+        else
+        {        
+            return AnalyticsDataType.TEXT;
+        }
     }
 }

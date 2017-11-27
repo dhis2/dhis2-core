@@ -51,8 +51,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_INT_DISAGGREGATION;
-import static org.hisp.dhis.analytics.AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
 import static org.hisp.dhis.common.DimensionType.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
@@ -629,22 +627,6 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether this query is of the given aggregation type.
-     */
-    public boolean isAggregationType( AnalyticsAggregationType aggregationType )
-    {
-        return this.aggregationType != null && this.aggregationType.equals( aggregationType );
-    }
-
-    /**
-     * Indicates whether this query is of a last value aggregation type.
-     */
-    public boolean isLastAggregationType()
-    {
-        return this.aggregationType != null && this.aggregationType.isLast();
-    }
-    
-    /**
      * Indicates whether an aggregation type is specified.
      */
     public boolean hasAggregationType()
@@ -686,7 +668,7 @@ public class DataQueryParams
      */
     public boolean isDisaggregation()
     {
-        return isAggregationType( AVERAGE_SUM_INT_DISAGGREGATION ) || isAggregationType( AVERAGE_INT_DISAGGREGATION );
+        return aggregationType != null && aggregationType.isDisaggregation();
     }
     
     /**
@@ -1033,7 +1015,15 @@ public class DataQueryParams
      */
     public boolean isAggregation()
     {
-        return !( AnalyticsAggregationType.NONE.equals( aggregationType ) || DataType.TEXT.equals( dataType ) );
+        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
+    }
+    
+    /**
+     * Indicates whether this query has the given aggregation type.
+     */
+    public boolean isAggregationType( AggregationType type )
+    {
+        return aggregationType != null && type == aggregationType.getAggregationType();
     }
         
     /**

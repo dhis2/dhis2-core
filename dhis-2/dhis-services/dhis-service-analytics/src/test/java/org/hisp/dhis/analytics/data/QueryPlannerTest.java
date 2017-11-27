@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.data;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsDataType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
@@ -941,7 +942,7 @@ public class QueryPlannerTest
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA ) )
             .withPeriods( getList( createPeriod( "200101" ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+            .withAggregationType( AnalyticsAggregationType.average() ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
@@ -953,7 +954,8 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertNotNull( query.getAggregationType() );
-            assertEquals( AnalyticsAggregationType.AVERAGE_INT, query.getAggregationType() );
+            assertEquals( AggregationType.AVERAGE, query.getAggregationType().getAggregationType() );
+            assertEquals( AnalyticsDataType.NUMERIC, query.getAggregationType().getDataType() );
         }
     }
 
@@ -972,7 +974,7 @@ public class QueryPlannerTest
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA ) )
             .withPeriods( getList( createPeriod( "200101" ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+            .withAggregationType( AnalyticsAggregationType.average() ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
@@ -984,7 +986,8 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queryGroups.getAllQueries() )
         {
             assertNotNull( query.getAggregationType() );
-            assertEquals( AnalyticsAggregationType.AVERAGE_BOOL, query.getAggregationType() );
+            assertEquals( AggregationType.AVERAGE, query.getAggregationType().getAggregationType() );
+            assertEquals( AnalyticsDataType.BOOLEAN, query.getAggregationType().getDataType() );
         }
     }
     
