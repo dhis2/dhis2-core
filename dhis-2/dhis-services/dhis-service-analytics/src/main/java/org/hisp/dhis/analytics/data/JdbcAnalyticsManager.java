@@ -289,6 +289,10 @@ public class JdbcAnalyticsManager
     {
         String sql = "from ";
         
+        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        {
+            sql += getLastValueSubquerySql( params );
+        }
         if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
             sql += getPreMeasureCriteriaSubquerySql( params );
@@ -429,7 +433,23 @@ public class JdbcAnalyticsManager
     }
     
     /**
-     * Generates a query which provides a filtered view of the data according 
+     * Generates a sub query which provides a view of the data where each row is
+     * ranked by the start date, then end date of the data value period, latest first.
+     * The data is partitioned by data element, org unit, category option combo and 
+     * attribute option combo. Only data for the last 10 years relative to the period
+     * end date is included.
+     */
+    private String getLastValueSubquerySql( DataQueryParams params )
+    {
+        String sql = "";
+        
+        //TODO
+        
+        return sql;
+    }
+    
+    /**
+     * Generates a sub query which provides a filtered view of the data according 
      * to the criteria. If not, returns the full view of the partition.
      */
     private String getPreMeasureCriteriaSubquerySql( DataQueryParams params )

@@ -633,6 +633,31 @@ public class DataQueryParams
     {
         return this.aggregationType != null;
     }
+
+    /**
+     * Indicates whether the aggregation type is of type disaggregation.
+     */
+    public boolean isDisaggregation()
+    {
+        return aggregationType != null && aggregationType.isDisaggregation();
+    }
+
+    /**
+     * Indicates whether this query requires aggregation of data. No aggregation
+     * takes place if aggregation type is none or if data type is text.
+     */
+    public boolean isAggregation()
+    {
+        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
+    }
+    
+    /**
+     * Indicates whether this query has the given aggregation type.
+     */
+    public boolean isAggregationType( AggregationType type )
+    {
+        return aggregationType != null && aggregationType.isAggregationType( type );
+    }
     
     /**
      * Indicates whether the this parameters has the given output format specified.
@@ -661,14 +686,6 @@ public class DataQueryParams
         }
         
         return map;
-    }
-    
-    /**
-     * Indicates whether the aggregation type is of type disaggregation.
-     */
-    public boolean isDisaggregation()
-    {
-        return aggregationType != null && aggregationType.isDisaggregation();
     }
     
     /**
@@ -1008,24 +1025,7 @@ public class DataQueryParams
     {
         return approvalLevel != null;
     }
-        
-    /**
-     * Indicates whether this query requires aggregation of data. No aggregation
-     * takes place if aggregation type is none or if data type is text.
-     */
-    public boolean isAggregation()
-    {
-        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
-    }
-    
-    /**
-     * Indicates whether this query has the given aggregation type.
-     */
-    public boolean isAggregationType( AggregationType type )
-    {
-        return aggregationType != null && type == aggregationType.getAggregationType();
-    }
-        
+
     /**
      * Returns all dimension items.
      */
