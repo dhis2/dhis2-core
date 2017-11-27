@@ -161,9 +161,9 @@ public class QueryPlannerUtils
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         AnalyticsDataType dataType = AnalyticsDataType.fromValueType( valueType );
-        
+
         boolean disaggregation = isDisaggregation( aggregationPeriodType, dataPeriodType );
-        
+
         return new AnalyticsAggregationType( aggregationType.getAggregationType(), 
             aggregationType.getPeriodAggregationType(), dataType, disaggregation );
 

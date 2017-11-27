@@ -669,7 +669,6 @@ public class DataQueryParams
     public boolean isDisaggregation()
     {
         return aggregationType != null && aggregationType.isDisaggregation();
-        //TODO return isAggregationType( AVERAGE_SUM_INT_DISAGGREGATION ) || isAggregationType( AVERAGE_INT_DISAGGREGATION );
     }
     
     /**
