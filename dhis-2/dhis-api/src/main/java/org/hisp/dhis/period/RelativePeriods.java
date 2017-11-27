@@ -613,11 +613,6 @@ public class RelativePeriods
             periods.add( getRelativePeriod( new YearlyPeriodType(), THIS_YEAR, date, dynamicNames, format ) );
         }
 
-        if ( isThisFinancialYear() )
-        {
-            periods.add( getRelativePeriod( new FinancialOctoberPeriodType(), THIS_FINANCIAL_YEAR, date, dynamicNames, format ) );
-        }
-
         if ( isLast3Months() )
         {
             periods.addAll( getRollingRelativePeriodList( new MonthlyPeriodType(), MONTHS_LAST_12, new DateTime( date ).minusMonths( 1 ).toDate(), dynamicNames, format ).subList( 9, 12 ) );
@@ -680,19 +675,42 @@ public class RelativePeriods
             periods.add( getRelativePeriod( new YearlyPeriodType(), LAST_YEAR, date, dynamicNames, format ) );
         }
 
-        if ( isLastFinancialYear() )
-        {
-            periods.add( getRelativePeriod( new FinancialOctoberPeriodType(), LAST_FINANCIAL_YEAR, date, dynamicNames, format ) );
-        }
-
         if ( isLast5Years() )
         {
             periods.addAll( getRollingRelativePeriodList( new YearlyPeriodType(), LAST_5_YEARS, date, dynamicNames, format ) );
         }
 
+        return periods;
+    }
+
+    /**
+     * Gets a list of financial periods based on the given input and the state of this
+     * RelativePeriods.
+     *
+     * @param financialPeriodType   The financial period type to get
+     * @param format the i18n format.
+     * @return a list of relative Periods.
+     */
+    public List<Period> getRelativeFinancialPeriods( FinancialPeriodType financialPeriodType, I18nFormat format, boolean dynamicNames )
+    {
+        Date date = new Date();
+        List<Period> periods = new ArrayList<>();
+
+        if ( isThisFinancialYear() )
+        {
+            periods.add( getRelativePeriod( financialPeriodType, THIS_FINANCIAL_YEAR, date, dynamicNames, format ) );
+        }
+
+        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate(); // Rewind one year
+
+        if ( isLastFinancialYear() )
+        {
+            periods.add( getRelativePeriod( financialPeriodType, LAST_FINANCIAL_YEAR, date, dynamicNames, format ) );
+        }
+
         if ( isLast5FinancialYears() )
         {
-            periods.addAll( getRollingRelativePeriodList( new FinancialOctoberPeriodType(), LAST_5_FINANCIAL_YEARS, date, dynamicNames, format ) );
+            periods.addAll( getRollingRelativePeriodList( financialPeriodType, LAST_5_FINANCIAL_YEARS, date, dynamicNames, format ) );
         }
 
         return periods;
@@ -860,6 +878,23 @@ public class RelativePeriods
         map.put( RelativePeriodEnum.LAST_52_WEEKS, new RelativePeriods().setLast52Weeks( true ) );
 
         return map.containsKey( relativePeriod ) ? map.get( relativePeriod ).getRelativePeriods( date, format, dynamicNames ) : new ArrayList<>();
+    }
+
+    /**
+     * Returns a RelativePeriods instance based on the given list of RelativePeriodsEnum for financial periods.
+     *
+     * @param relativePeriod a list of RelativePeriodsEnum.
+     * @return a RelativePeriods instance.
+     */
+    public static List<Period> getRelativePeriodsFromFinancialTypeEnum( RelativePeriodEnum relativePeriod, FinancialPeriodType financialPeriodType, I18nFormat format, boolean dynamicNames )
+    {
+        Map<RelativePeriodEnum, RelativePeriods> map = new HashMap<>();
+
+        map.put( RelativePeriodEnum.THIS_FINANCIAL_YEAR, new RelativePeriods().setThisFinancialYear( true ) );
+        map.put( RelativePeriodEnum.LAST_FINANCIAL_YEAR, new RelativePeriods().setLastFinancialYear( true ) );
+        map.put( RelativePeriodEnum.LAST_5_FINANCIAL_YEARS, new RelativePeriods().setLast5FinancialYears( true ) );
+
+        return map.containsKey( relativePeriod ) ? map.get( relativePeriod ).getRelativeFinancialPeriods( financialPeriodType, format, dynamicNames ) : new ArrayList<>();
     }
 
     /**

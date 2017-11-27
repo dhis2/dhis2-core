@@ -39,10 +39,9 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -76,6 +75,9 @@ public class DefaultDataQueryService
 
     @Autowired
     private AnalyticsSecurityManager securityManager;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     @Autowired
     private I18nManager i18nManager;
@@ -316,8 +318,21 @@ public class DefaultDataQueryService
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
-                    List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true );
-                    periods.addAll( relativePeriods );
+
+                    if ( isoPeriod.contains( "FINANCIAL" ) )
+                    {
+                        FinancialPeriodType financialPeriodType = AnalyticsFinancialYearStartKey.valueOf(
+                            (String) systemSettingManager
+                                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ).getFinancialPeriodType();
+
+                        periods.addAll( RelativePeriods
+                            .getRelativePeriodsFromFinancialTypeEnum( relativePeriod, financialPeriodType, format, true ) );
+                    }
+                    else
+                    {
+                        List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true );
+                        periods.addAll( relativePeriods );
+                    }
                 }
                 else
                 {

@@ -3,6 +3,7 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
+import org.hisp.dhis.period.FinancialPeriodType;
 
 /**
  * Created by henninghakonsen on 15/05/2017.
@@ -10,18 +11,18 @@ import org.hisp.dhis.period.FinancialOctoberPeriodType;
  */
 public enum AnalyticsFinancialYearStartKey
 {
-    FINANCIAL_PERIOD_APRIL("FinancialPeriodApril", FinancialAprilPeriodType.class),
-    FINANCIAL_PERIOD_JULY("FinancialPeriodJuly", FinancialJulyPeriodType.class),
-    FINANCIAL_PERIOD_OCTOBER("FinancialPeriodOctober", FinancialOctoberPeriodType.class);
+    FINANCIAL_PERIOD_APRIL( "FINANCIAL_PERIOD_APRIL", new FinancialAprilPeriodType() ),
+    FINANCIAL_PERIOD_JULY( "FINANCIAL_PERIOD_JULY", new FinancialJulyPeriodType() ),
+    FINANCIAL_PERIOD_OCTOBER( "FINANCIAL_PERIOD_OCTOBER", new FinancialOctoberPeriodType() );
 
     private final String name;
 
-    private final Class<?> clazz;
+    private final FinancialPeriodType financialPeriodType;
 
-    AnalyticsFinancialYearStartKey( String name, Class<?>  clazz )
+    AnalyticsFinancialYearStartKey( String name, FinancialPeriodType financialPeriodType )
     {
         this.name = name;
-        this.clazz = clazz;
+        this.financialPeriodType = financialPeriodType;
     }
 
     public String getName()
@@ -29,8 +30,8 @@ public enum AnalyticsFinancialYearStartKey
         return name;
     }
 
-    public Class<?> getClazz()
+    public FinancialPeriodType getFinancialPeriodType()
     {
-        return clazz;
+        return financialPeriodType;
     }
 }
