@@ -219,7 +219,7 @@ public class JdbcAnalyticsManager
         {
             sql += "textvalue";
         }
-        else // NUMERIC
+        else // NUMERIC and BOOLEAN
         {
             sql += getNumericValueColumn( params );
         }
@@ -238,7 +238,7 @@ public class JdbcAnalyticsManager
 
         AnalyticsAggregationType aggType = params.getAggregationType();
         
-        if ( aggType.isPeriodAggregationType( AVERAGE ) && aggType.isAggregationType( SUM ) && aggType.isNumericDataType() )
+        if ( aggType.isAggregationType( SUM ) && aggType.isPeriodAggregationType( AVERAGE ) && aggType.isNumericDataType() )
         {
             sql = "sum(daysxvalue) / " + params.getDaysForAvgSumIntAggregation();
         }
