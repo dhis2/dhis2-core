@@ -38,7 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -58,7 +58,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
  */
 @Transactional
 public class MonitoringJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private ValidationService validationService;

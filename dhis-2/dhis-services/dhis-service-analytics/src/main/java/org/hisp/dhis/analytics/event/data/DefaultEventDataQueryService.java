@@ -32,6 +32,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
@@ -108,9 +109,15 @@ public class DefaultEventDataQueryService
             skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, 
             relativePeriodDate, userOrgUnit, null, null, null, apiVersion );
 
-        EventQueryParams params = new EventQueryParams.Builder( query )
+        EventQueryParams.Builder params = new EventQueryParams.Builder( query );
+        
+        if ( aggregationType != null )
+        {
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
+        }
+        
+        return params
             .withValue( getValueDimension( value ) )
-            .withAggregationType( aggregationType )
             .withSkipRounding( skipRounding )
             .withShowHierarchy( showHierarchy )
             .withSortOrder( sortOrder )
@@ -120,8 +127,6 @@ public class DefaultEventDataQueryService
             .withAggregateData( aggregateData )
             .withProgramStatus( programStatus )
             .build();
-
-        return params;
     }
 
     @Override

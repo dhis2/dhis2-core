@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Partitions;
@@ -460,7 +461,7 @@ public class EventQueryParams
      * aggregation type of the query, second by looking at the aggregation type
      * of the value dimension, third by returning AVERAGE;
      */
-    public AggregationType getAggregationTypeFallback()
+    public AnalyticsAggregationType getAggregationTypeFallback()
     {
         if ( hasAggregationType() )
         {
@@ -468,10 +469,10 @@ public class EventQueryParams
         }
         else if ( hasValueDimension() && value.getAggregationType() != null )
         {
-            return value.getAggregationType();
+            return AnalyticsAggregationType.fromAggregationType( value.getAggregationType() );
         }
 
-        return AggregationType.AVERAGE;
+        return AnalyticsAggregationType.average();
     }
 
     /**
@@ -479,11 +480,11 @@ public class EventQueryParams
      * {@link getAggregationTypeFallback}.
      */
     @Override
-    public boolean isAggregationType( AggregationType aggregationType )
+    public boolean isAggregationType( AggregationType type )
     {
-        AggregationType type = getAggregationTypeFallback();
+        AnalyticsAggregationType typeFallback = getAggregationTypeFallback();
 
-        return type != null && type.equals( aggregationType );
+        return typeFallback != null && type.equals( typeFallback.getAggregationType() );
     }
 
     /**
@@ -951,7 +952,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withAggregationType( AggregationType aggregationType )
+        public Builder withAggregationType( AnalyticsAggregationType aggregationType )
         {
             this.params.aggregationType = aggregationType;
             return this;

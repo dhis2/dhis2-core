@@ -228,7 +228,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.hasValueDimension() ) // && isNumeric
         {
-            String function = params.getAggregationTypeFallback().getValue();
+            String function = params.getAggregationTypeFallback().getAggregationType().getValue();
             
             String expression = statementBuilder.columnQuote( params.getValue().getUid() );
             

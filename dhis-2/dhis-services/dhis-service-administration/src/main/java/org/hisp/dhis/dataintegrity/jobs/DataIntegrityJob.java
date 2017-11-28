@@ -32,7 +32,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -42,7 +42,7 @@ import org.hisp.dhis.system.notification.Notifier;
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 public class DataIntegrityJob
-    implements Job
+    extends AbstractJob
 {
     // -------------------------------------------------------------------------
     // Dependencies

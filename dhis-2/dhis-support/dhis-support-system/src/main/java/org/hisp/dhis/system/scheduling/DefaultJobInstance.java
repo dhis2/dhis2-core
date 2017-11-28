@@ -20,7 +20,10 @@ public class DefaultJobInstance implements JobInstance
 
     private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
     {
-        jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
+        if ( !jobConfiguration.isContinuousExecution() )
+        {
+            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
+        }
         jobConfiguration.setNextExecutionTime( null );
         jobConfiguration.setLastExecuted( new Date() );
         jobConfiguration.setLastRuntimeExecution( clock.time() );
@@ -37,8 +40,8 @@ public class DefaultJobInstance implements JobInstance
         if ( !schedulingManager.isJobConfigurationRunning( jobConfiguration ) )
         {
             jobConfiguration.setJobStatus( JobStatus.RUNNING );
-            jobConfiguration.setNextExecutionTime( null );
             schedulingManager.jobConfigurationStarted( jobConfiguration );
+            jobConfiguration.setNextExecutionTime( null );
 
             try
             {
@@ -71,8 +74,6 @@ public class DefaultJobInstance implements JobInstance
                     "' is already running [" + clock.time() + "]",
                 new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
             jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
-
-            schedulingManager.executeJob( jobConfiguration );
         }
 
         setFinishingStatus( clock, schedulingManager, jobConfiguration );
