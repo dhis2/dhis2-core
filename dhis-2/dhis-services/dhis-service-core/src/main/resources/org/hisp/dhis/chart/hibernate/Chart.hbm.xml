@@ -196,6 +196,8 @@
         <param name="type">12</param>
       </type>
     </property>
+    
+    <many-to-one name="colorSet" class="org.hisp.dhis.color.ColorSet" column="colorsetid" foreign-key="fk_chart_colorsetid" />
 
     <property name="sortOrder" />
 
