@@ -60,8 +60,6 @@ public class DefaultQueryParser implements QueryParser
         Schema schema = schemaService.getDynamicSchema( klass );
         Query query = Query.from( schema, rootJunction );
 
-        Junction junction = query.getRootJunction();
-
         for ( String filter : filters )
         {
             String[] split = filter.split( ":" );
@@ -74,11 +72,11 @@ public class DefaultQueryParser implements QueryParser
             if ( split.length >= 3 )
             {
                 int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-                junction.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
+                query.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
             }
             else
             {
-                junction.add( getRestriction( schema, split[0], split[1], null ) );
+                query.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
 
