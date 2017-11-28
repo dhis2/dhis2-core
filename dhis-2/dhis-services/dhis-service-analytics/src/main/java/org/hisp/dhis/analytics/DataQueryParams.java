@@ -51,8 +51,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
 import static org.hisp.dhis.common.DimensionType.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
@@ -123,7 +121,7 @@ public class DataQueryParams
     /**
      * The aggregation type.
      */
-    protected AggregationType aggregationType;
+    protected AnalyticsAggregationType aggregationType;
 
     /**
      * The measure criteria, which is measure filters and corresponding values.
@@ -621,19 +619,11 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether this object is of the given data type.
+     * Indicates whether this query is of the given data type.
      */
     public boolean isDataType( DataType dataType )
     {
         return this.dataType != null && this.dataType.equals( dataType );
-    }
-    
-    /**
-     * Indicates whether this object is of the given aggregation type.
-     */
-    public boolean isAggregationType( AggregationType aggregationType )
-    {
-        return this.aggregationType != null && this.aggregationType.equals( aggregationType );
     }
     
     /**
@@ -678,7 +668,7 @@ public class DataQueryParams
      */
     public boolean isDisaggregation()
     {
-        return isAggregationType( AVERAGE_SUM_INT_DISAGGREGATION ) || isAggregationType( AVERAGE_INT_DISAGGREGATION );
+        return aggregationType != null && aggregationType.isDisaggregation();
     }
     
     /**
@@ -1025,7 +1015,15 @@ public class DataQueryParams
      */
     public boolean isAggregation()
     {
-        return !( AggregationType.NONE.equals( aggregationType ) || DataType.TEXT.equals( dataType ) );
+        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
+    }
+    
+    /**
+     * Indicates whether this query has the given aggregation type.
+     */
+    public boolean isAggregationType( AggregationType type )
+    {
+        return aggregationType != null && type == aggregationType.getAggregationType();
     }
         
     /**
@@ -1076,11 +1074,27 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this object has a program stage.
+     * Indicates whether this query has a program stage.
      */
     public boolean hasProgramStage()
     {
         return programStage != null;
+    }
+
+    /**
+     * Indicates whether this query has any measure criteria defined.
+     */
+    public boolean hasMeasureCriteria()
+    {
+        return measureCriteria != null && !measureCriteria.isEmpty();
+    }
+    
+    /**
+     * Indicates whether this query has any pre-aggregate measure criteria defined.
+     */
+    public boolean hasPreAggregateMeasureCriteria()
+    {
+        return preAggregateMeasureCriteria != null && !preAggregateMeasureCriteria.isEmpty();
     }
     
     /**
@@ -1595,7 +1609,7 @@ public class DataQueryParams
         return ImmutableList.copyOf( filters );
     }
 
-    public AggregationType getAggregationType()
+    public AnalyticsAggregationType getAggregationType()
     {
         return aggregationType;
     }
@@ -2253,7 +2267,7 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withAggregationType( AggregationType aggregationType )
+        public Builder withAggregationType( AnalyticsAggregationType aggregationType )
         {
             this.params.aggregationType = aggregationType;
             return this;

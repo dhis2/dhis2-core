@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.table.scheduling;
  */
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 public class ResourceTableJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;

@@ -28,14 +28,28 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -51,9 +65,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.Assert;
 
-import javax.annotation.Resource;
-import java.util.*;
-import java.util.concurrent.Future;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import static org.hisp.dhis.analytics.AggregationType.*;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
@@ -61,7 +74,8 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
@@ -119,9 +133,7 @@ public class JdbcAnalyticsManager
 
             sql += getGroupByClause( params );
 
-            // Needs to use "having" to utilize aggregate functions, and needs to come after group by
-
-            if ( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
+            if ( params.hasMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
             {
                 sql += getMeasureCriteriaSql( params );
             }
@@ -137,7 +149,7 @@ public class JdbcAnalyticsManager
             catch ( BadSqlGrammarException ex )
             {
                 log.info( "Query failed, likely because the requested analytics table does not exist", ex );
-                return new AsyncResult<>( new HashMap<String, Object>() );
+                return new AsyncResult<>( Maps.newHashMap() );
             }
 
             replaceDataPeriodsWithAggregationPeriods( map, params, dataPeriodAggregationPeriodMap );
@@ -147,7 +159,6 @@ public class JdbcAnalyticsManager
         catch ( RuntimeException ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-
             throw ex;
         }
     }
@@ -225,43 +236,45 @@ public class JdbcAnalyticsManager
     {
         String sql = "";
 
-        if ( params.isAggregationType( AVERAGE_SUM_INT ) )
+        AnalyticsAggregationType aggType = params.getAggregationType();
+        
+        if ( aggType.isPeriodAggregationType( AVERAGE ) && aggType.isAggregationType( SUM ) && aggType.isNumericDataType() )
         {
             sql = "sum(daysxvalue) / " + params.getDaysForAvgSumIntAggregation();
         }
-        else if ( params.isAggregationType( AVERAGE_INT ) || params.isAggregationType( AVERAGE_INT_DISAGGREGATION ) )
+        else if ( aggType.isAggregationType( AVERAGE ) && aggType.isNumericDataType() )
         {
             sql = "avg(value)";
         }
-        else if ( params.isAggregationType( AVERAGE_BOOL ) )
+        else if ( aggType.isAggregationType( AVERAGE ) && aggType.isBooleanDataType() )
         {
             sql = "sum(daysxvalue) / sum(daysno) * 100";
         }
-        else if ( params.isAggregationType( COUNT ) )
+        else if ( aggType.isAggregationType( COUNT ) )
         {
             sql = "count(value)";
         }
-        else if ( params.isAggregationType( STDDEV ) )
+        else if ( aggType.isAggregationType( STDDEV ) )
         {
             sql = "stddev(value)";
         }
-        else if ( params.isAggregationType( VARIANCE ) )
+        else if ( aggType.isAggregationType( VARIANCE ) )
         {
             sql = "variance(value)";
         }
-        else if ( params.isAggregationType( MIN ) )
+        else if ( aggType.isAggregationType( MIN ) )
         {
             sql = "min(value)";
         }
-        else if ( params.isAggregationType( MAX ) )
+        else if ( aggType.isAggregationType( MAX ) )
         {
             sql = "max(value)";
         }
-        else if ( params.isAggregationType( NONE ) )
+        else if ( aggType.isAggregationType( NONE ) )
         {
             sql = "value";
         }
-        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and null
+        else // SUM and null
         {
             sql = "sum(value)";
         }
@@ -276,9 +289,9 @@ public class JdbcAnalyticsManager
     {
         String sql = "from ";
         
-        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
+        if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
-            sql += getPreMeasureCriteriaSql( params );
+            sql += getPreMeasureCriteriaSubquerySql( params );
         }
         else
         {
@@ -414,12 +427,12 @@ public class JdbcAnalyticsManager
 
         return sql;
     }
-
+    
     /**
      * Generates a query which provides a filtered view of the data according 
      * to the criteria. If not, returns the full view of the partition.
      */
-    private String getPreMeasureCriteriaSql( DataQueryParams params )
+    private String getPreMeasureCriteriaSubquerySql( DataQueryParams params )
     {
         SqlHelper sqlHelper = new SqlHelper();
 
@@ -439,7 +452,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a HAVING clause restricting the result based on the measure criteria
+     * Returns a HAVING clause restricting the result based on the measure criteria.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {

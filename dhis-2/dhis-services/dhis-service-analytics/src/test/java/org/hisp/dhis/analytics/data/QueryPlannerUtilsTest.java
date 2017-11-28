@@ -28,7 +28,8 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
@@ -36,6 +37,8 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Test;
+
+import org.hisp.dhis.analytics.AggregationType;
 
 import static org.junit.Assert.*;
 
@@ -47,12 +50,15 @@ public class QueryPlannerUtilsTest
     @Test
     public void testGetAggregationType()
     {
-        assertEquals( AggregationType.AVERAGE_SUM_INT_DISAGGREGATION, 
-            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, 
+        AnalyticsAggregationType typeA = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
+        AnalyticsAggregationType typeB = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.NUMERIC, true );
+        
+        assertEquals( typeA, 
+            QueryPlannerUtils.getAggregationType( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), ValueType.INTEGER, 
                 new QuarterlyPeriodType(), new YearlyPeriodType() ) );
         
-        assertEquals( AggregationType.AVERAGE_INT_DISAGGREGATION, 
-            QueryPlannerUtils.getAggregationType( ValueType.INTEGER, AggregationType.AVERAGE, 
+        assertEquals( typeB, 
+            QueryPlannerUtils.getAggregationType( new AnalyticsAggregationType( AggregationType.AVERAGE ), ValueType.INTEGER, 
                 new QuarterlyPeriodType(), new YearlyPeriodType() ) );
     }
     
@@ -66,5 +72,12 @@ public class QueryPlannerUtilsTest
         
         assertFalse( QueryPlannerUtils.isDisaggregation( new YearlyPeriodType(), new QuarterlyPeriodType() ) );        
         assertFalse( QueryPlannerUtils.isDisaggregation( new YearlyPeriodType(), new YearlyPeriodType() ) );
+    }
+    
+    @Test
+    public void testFromAggregationType()
+    {
+        assertEquals( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM ), AnalyticsAggregationType.fromAggregationType( AggregationType.SUM ) );
+        assertEquals( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), AnalyticsAggregationType.fromAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ) );
     }
 }

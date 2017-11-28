@@ -1105,7 +1105,6 @@
 
   <bean id="jobConfigurationService" class="org.hisp.dhis.scheduling.DefaultJobConfigurationService">
     <property name="jobConfigurationStore" ref="org.hisp.dhis.scheduling.JobConfigurationStore" />
-    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
   </bean>
 
   <bean id="mockJob" class="org.hisp.dhis.scheduling.MockJob" />
@@ -1213,12 +1212,15 @@
         <value>lesotho</value>
         <value>liberia</value>
         <value>malawi</value>
+        <value>maldives</value>
         <value>mongolia</value>
         <value>mozambique</value>
         <value>myanmar</value>
         <value>mali</value>
+        <value>mhrp</value>
         <value>msf</value>
         <value>msh</value>
+        <value>msh_white</value>
         <value>msi</value>
         <value>namibia</value>
         <value>nicaragua</value>
@@ -1641,6 +1643,13 @@
     <property name="skipInTests" value="true" />
   </bean>
 
+  <bean id="schedulerStart" class="org.hisp.dhis.startup.SchedulerStart">
+    <property name="jobConfigurationService" ref="jobConfigurationService" />
+    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
+    <property name="runlevel" value="14" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
     class="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
@@ -1956,12 +1965,6 @@
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler"
     class="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler">
     <property name="programRuleVariableService" ref="org.hisp.dhis.programrule.ProgramRuleVariableService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler"
-    class="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler">
-    <property name="programRuleActionService" ref="org.hisp.dhis.programrule.ProgramRuleActionService" />
-    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"

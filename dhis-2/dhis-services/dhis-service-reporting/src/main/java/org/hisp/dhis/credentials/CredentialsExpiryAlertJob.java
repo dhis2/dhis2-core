@@ -30,8 +30,10 @@ package org.hisp.dhis.credentials;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -52,7 +54,7 @@ import java.util.Map;
  * Created by zubair on 29.03.17.
  */
 public class CredentialsExpiryAlertJob
-    implements Job
+    extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( CredentialsExpiryAlertJob.class );
 
@@ -115,6 +117,17 @@ public class CredentialsExpiryAlertJob
         log.info( String.format( "Users added for alert: %d", content.size() ) );
 
         sendExpiryAlert( content );
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        if ( !emailMessageSender.isConfigured() )
+        {
+            return new ErrorReport( CredentialsExpiryAlertJob.class, ErrorCode.E7010, "EMAIL gateway configuration does not exist" );
+        }
+
+        return super.validate();
     }
 
     private void sendExpiryAlert( Map<String,String> content )
