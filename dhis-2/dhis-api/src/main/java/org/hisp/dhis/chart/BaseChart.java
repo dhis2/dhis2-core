@@ -30,11 +30,13 @@ package org.hisp.dhis.chart;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -44,6 +46,8 @@ import org.hisp.dhis.common.HideEmptyItemStrategy;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.legend.LegendDisplayStrategy;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -96,6 +100,10 @@ public abstract class BaseChart
     protected Integer rangeAxisSteps; // Minimum 1
 
     protected Integer rangeAxisDecimals;
+    
+    protected LegendSet legendSet;
+    
+    protected LegendDisplayStrategy legendDisplayStrategy;
     
     // -------------------------------------------------------------------------
     // Dimensional properties
@@ -296,6 +304,18 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isNoSpaceBetweenColumns()
+    {
+        return noSpaceBetweenColumns;
+    }
+
+    public void setNoSpaceBetweenColumns( boolean noSpaceBetweenColumns )
+    {
+        this.noSpaceBetweenColumns = noSpaceBetweenColumns;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public RegressionType getRegressionType()
     {
         return regressionType;
@@ -452,15 +472,28 @@ public abstract class BaseChart
     }
 
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isNoSpaceBetweenColumns()
+    public LegendSet getLegendSet()
     {
-        return noSpaceBetweenColumns;
+        return legendSet;
     }
 
-    public void setNoSpaceBetweenColumns( boolean noSpaceBetweenColumns )
+    public void setLegendSet( LegendSet legendSet )
     {
-        this.noSpaceBetweenColumns = noSpaceBetweenColumns;
+        this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendDisplayStrategy getLegendDisplayStrategy()
+    {
+        return legendDisplayStrategy;
+    }
+
+    public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
+    {
+        this.legendDisplayStrategy = legendDisplayStrategy;
     }
 
     @JsonProperty
