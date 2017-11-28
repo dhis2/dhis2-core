@@ -141,7 +141,7 @@ public class DefaultQueryPlanner implements QueryPlanner
      */
     private Query getQuery( Query query, boolean persistedOnly )
     {
-        Query pQuery = Query.from( query.getSchema(), query.getRootJunction().getType() );
+        Query pQuery = Query.from( query.getSchema(), query.getRootJunctionType() );
         Iterator<Criterion> iterator = query.getCriterions().iterator();
 
         while ( iterator.hasNext() )
