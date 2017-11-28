@@ -153,7 +153,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
     private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
     {
-        org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunction() );
+        org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunctionType() );
         detachedCriteria.add( junction );
 
         for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
@@ -236,9 +236,9 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         }
     }
 
-    private org.hibernate.criterion.Junction getHibernateJunction( Junction junction )
+    private org.hibernate.criterion.Junction getHibernateJunction( Junction.Type type )
     {
-        switch ( junction.type )
+        switch ( type )
         {
             case AND:
                 return Restrictions.conjunction();
