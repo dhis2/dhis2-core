@@ -53,6 +53,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -131,6 +132,13 @@ public class DefaultProgramNotificationService
     public void setProgramRuleEngine( ProgramRuleEngine programRuleEngine )
     {
         this.programRuleEngine = programRuleEngine;
+    }
+
+    private ProgramNotificationTemplateStore programNotificationTemplateStore;
+
+    public void setProgramNotificationTemplateStore( ProgramNotificationTemplateStore programNotificationTemplateStore )
+    {
+        this.programNotificationTemplateStore = programNotificationTemplateStore;
     }
 
     // -------------------------------------------------------------------------
@@ -251,7 +259,12 @@ public class DefaultProgramNotificationService
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
 
-        //TODO look for RuleActionSendMessage and send PNT
+        ruleActions.stream().filter( a -> a instanceof RuleActionSendMessage ).forEach( action ->
+        {
+            MessageBatch batch = createProgramStageInstanceMessageBatch( getNotificationTemplate( action ), Collections.singletonList( programStageInstance ) );
+            sendAll( batch );
+
+        } );
     }
 
     private void triggerRuleEngineForEnrollment( ProgramInstance programInstance )
@@ -260,7 +273,19 @@ public class DefaultProgramNotificationService
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
 
-        //TODO look for RuleActionSendMessage and send PNT
+        ruleActions.stream().filter( a -> a instanceof RuleActionSendMessage ).forEach( action ->
+        {
+            MessageBatch batch = createProgramInstanceMessageBatch( getNotificationTemplate( action ), Collections.singletonList( programInstance ) );
+            sendAll( batch );
+
+        } );
+    }
+
+    private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
+    {
+        RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
+
+        return programNotificationTemplateStore.getByUid( sendMessage.notification() );
     }
 
     private Map<NotificationTrigger, Set<ProgramNotificationTemplate>> segregateTemplates( Set<ProgramNotificationTemplate> programNotificationTemplates )

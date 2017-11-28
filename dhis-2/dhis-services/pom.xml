@@ -43,9 +43,9 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
     </dependency>
-  <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>core-rules</artifactId>
+    <dependency>
+      <groupId>org.hisp.dhis.rules</groupId>
+      <artifactId>rule-engine</artifactId>
     </dependency>
     <dependency>
       <groupId>com.cronutils</groupId>

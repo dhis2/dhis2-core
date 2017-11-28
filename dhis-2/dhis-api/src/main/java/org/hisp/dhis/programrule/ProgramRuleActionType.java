@@ -44,7 +44,8 @@ public enum ProgramRuleActionType
     SHOWERROR( "showerror" ),
     ERRORONCOMPLETE( "erroroncomplete" ),
     CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" );
+    SETMANDATORYFIELD( "setmandatoryfield" ),
+    SENDMESSAGE( "sendmessage" );
 
     final String value;
 

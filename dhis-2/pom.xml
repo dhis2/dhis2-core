@@ -403,9 +403,9 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>core-rules</artifactId>
-        <version>0.3.1-SNAPSHOT</version>
+        <groupId>org.hisp.dhis.rules</groupId>
+        <artifactId>rule-engine</artifactId>
+        <version>1.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Spring -->

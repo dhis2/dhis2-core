@@ -403,6 +403,7 @@ public class DefaultProgramInstanceService
         // -----------------------------------------------------------------
 
         programNotificationService.sendEnrollmentNotifications( programInstance );
+        programNotificationService.sendProgramRuleTriggeredNotifications( programInstance );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI

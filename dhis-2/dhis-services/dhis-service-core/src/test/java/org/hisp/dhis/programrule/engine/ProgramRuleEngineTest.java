@@ -28,17 +28,21 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -53,6 +57,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -76,6 +81,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramStage programStageC;
 
+    private ProgramStage programStageE;
+
     private ProgramRule programRuleA;
 
     private ProgramRuleAction programRuleActionForDisplayTextA;
@@ -98,6 +105,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramRuleAction programRuleActionForWarningOnComplete;
 
+    private ProgramRuleAction programRuleActionForSendMessage;
+
     private ProgramRuleAction programRuleActionForDisplayTextForEnrollment;
 
     private ProgramRuleVariable programRuleVariableA;
@@ -110,11 +119,15 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramRuleVariable programRuleVariableE;
 
+    private ProgramRuleVariable programRuleVariableF;
+
     private ProgramRule programRuleB;
 
     private ProgramRule programRuleC;
 
     private ProgramRule programRuleD;
+
+    private ProgramRule programRuleE;
 
     private OrganisationUnit organisationUnitA;
 
@@ -123,6 +136,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramInstance programInstanceA;
 
     private ProgramInstance programInstanceB;
+
+    private ProgramInstance programInstanceC;
 
     private ProgramStageInstance programStageInstanceA;
 
@@ -133,6 +148,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramStageInstance programStageInstanceC;
 
     private TrackedEntityInstance entityInstanceA;
+
+    private TrackedEntityInstance entityInstanceB;
 
     private DataElement dataElementA;
 
@@ -177,6 +194,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private String expressionC = "#{ProgramRuleVariableC} < #{ProgramRuleVariableD}";
 
     private String expressionE = "A{ProgramRuleVariableE}=='test'";
+
+    private String expressionF = "A{ProgramRuleVariableF}=='xmen'";
 
     private String location = "feedback";
 
@@ -237,6 +256,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Autowired
     private ProgramTrackedEntityAttributeStore programTrackedEntityAttributeStore;
 
+    @Autowired
+    private ProgramNotificationTemplateStore programNotificationTemplateStore;
+
     @Override
     public void setUpTest()
     {
@@ -268,6 +290,26 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
 
         assertEquals( 1, ruleEffects.size() );
+    }
+
+    @Test
+    public void testSendMessageForEnrollment() throws Exception
+    {
+        setUpSendMessageForEnrollment();
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P3" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionSendMessage );
+
+        RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
+
+        assertEquals( "PNT-1", ruleActionSendMessage.notification() );
     }
 
     @Test
@@ -424,12 +466,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         assertEquals( "STATIC-TEXT", ruleActionWarningOnCompletion.content() );
     }
 
-    @Test
-    public void testSendMessage() throws Exception
-    {
-        //TODO For RuleActionSendMessage
-    }
-
     private void setupEvents()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
@@ -444,34 +480,41 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programB = createProgram( 'B', new HashSet<>(), organisationUnitB );
+        programC = createProgram( 'C', new HashSet<>(), organisationUnitB );
 
         programService.addProgram( programA );
         programService.addProgram( programB );
+        programService.addProgram( programC );
 
         ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( 'A' );
         attribute.setUid( "ATTR-UID" );
         attribute.setAttribute( attributeB );
         attribute.setProgram( programA );
         attribute.setProgram( programB );
+        attribute.setProgram( programC );
 
         programTrackedEntityAttributeStore.save( attribute );
 
         programA.setProgramAttributes( Arrays.asList( attribute ) );
         programB.setProgramAttributes( Arrays.asList( attribute ) );
+        programC.setProgramAttributes( Arrays.asList( attribute ) );
 
         programService.updateProgram( programA );
         programService.updateProgram( programB );
+        programService.updateProgram( programC );
 
         programStageA = createProgramStage( 'A', programA );
-        programStageB1 = createProgramStage( 'I', programB );
-
         programStageB = createProgramStage( 'B', programA );
         programStageC = createProgramStage( 'C', programA );
+
+        programStageB1 = createProgramStage( 'I', programB );
+        programStageE = createProgramStage( 'I', programC );
 
         programStageService.saveProgramStage( programStageA );
         programStageService.saveProgramStage( programStageB );
         programStageService.saveProgramStage( programStageC );
         programStageService.saveProgramStage( programStageB1 );
+        programStageService.saveProgramStage( programStageE );
 
         programStageDataElementA = createProgramStageDataElement( programStageA, dataElementA, 1 );
         programStageDataElementB = createProgramStageDataElement( programStageB, dataElementB, 2 );
@@ -489,30 +532,46 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programStageB.setSortOrder( 2 );
         programStageC.setSortOrder( 3 );
         programStageB1.setSortOrder( 1 );
+        programStageE.setSortOrder( 1 );
 
         programStageA.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA, programStageDataElementB ) );
         programStageB.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA, programStageDataElementB ) );
         programStageC.setProgramStageDataElements( Sets.newHashSet( programStageDataElementC, programStageDataElementD ) );
         programStageB1.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB1 ) );
+        programStageE.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
 
         programStageService.updateProgramStage( programStageA );
         programStageService.updateProgramStage( programStageB );
         programStageService.updateProgramStage( programStageC );
         programStageService.updateProgramStage( programStageB1 );
+        programStageService.updateProgramStage( programStageE );
 
         programA.setProgramStages( Sets.newHashSet( programStageA, programStageB, programStageC ) );
         programB.setProgramStages( Sets.newHashSet( programStageB1 ) );
+        programC.setProgramStages( Sets.newHashSet( programStageE ) );
+
         programService.updateProgram( programA );
         programService.updateProgram( programB );
+        programService.updateProgram( programC );
 
         entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
+        entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeB, entityInstanceA, "test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
 
+        TrackedEntityAttributeValue attributeValueB = new TrackedEntityAttributeValue( attributeB, entityInstanceB, "xmen" );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueB );
+
         entityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValue ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
+
+        entityInstanceB.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueB ) );
+        entityInstanceService.updateTrackedEntityInstance( entityInstanceB );
+
 
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -530,6 +589,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programInstanceB = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB, enrollmentDate, incidenDate, organisationUnitB );
         programInstanceB.setUid("UID-P2");
         programInstanceService.updateProgramInstance( programInstanceB );
+
+        programInstanceC = programInstanceService.enrollTrackedEntityInstance( entityInstanceB, programC, enrollmentDate, incidenDate, organisationUnitB );
+        programInstanceC.setUid("UID-P3");
+        programInstanceService.updateProgramInstance( programInstanceC );
 
         programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
         programStageInstanceA.setDueDate( enrollmentDate );
@@ -609,6 +672,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleD.setCondition( expressionE );
         programRuleService.addProgramRule( programRuleD );
 
+        programRuleE = createProgramRule( 'E', programC );
+        programRuleE.setCondition( expressionF );
+        programRuleService.addProgramRule( programRuleE );
+
         programRuleVariableA = createProgramRuleVariable( 'A', programA );
         programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariableA.setDataElement( dataElementA );
@@ -633,6 +700,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleVariableE.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableE.setAttribute( attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableE );
+
+        programRuleVariableF = createProgramRuleVariable( 'F', programC );
+        programRuleVariableF.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariableF.setAttribute( attributeB );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableF );
     }
 
     private void setUpEnrollmentTest()
@@ -771,6 +843,29 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleActionService.addProgramRuleAction( programRuleActionForWarningOnComplete );
 
         programRuleC.setProgramRuleActions( Sets.newHashSet( programRuleActionForWarningOnComplete ) );
+        programRuleService.updateProgramRule( programRuleC );
+    }
+
+    private void setUpSendMessageForEnrollment()
+    {
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-1" );
+
+        programNotificationTemplateStore.save( pnt );
+
+        programRuleActionForSendMessage = createProgramRuleAction( 'K', programRuleE );
+        programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionForSendMessage.setProgramNotificationTemplate(  pnt );
+        programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
+        programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
+
+        programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleC );
     }
 }

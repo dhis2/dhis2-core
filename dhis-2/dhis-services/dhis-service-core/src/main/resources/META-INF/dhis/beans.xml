@@ -1433,6 +1433,7 @@
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
     <property name="programRuleEngine" ref="org.hisp.dhis.programrule.engine.ProgramRuleEngine"/>
+    <property name="programNotificationTemplateStore" ref="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore"/>
   </bean>
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
