@@ -73,7 +73,7 @@ public class Query extends Criteria
 
     public static Query from( Query query )
     {
-        Query clone = Query.from( query.getSchema(), query.getRootJunction().getType() );
+        Query clone = Query.from( query.getSchema(), query.getRootJunctionType() );
         clone.setUser( query.getUser() );
         clone.setLocale( query.getLocale() );
         clone.addOrders( query.getOrders() );
@@ -188,17 +188,9 @@ public class Query extends Criteria
         return this;
     }
 
-    public Junction getRootJunction()
+    public Junction.Type getRootJunctionType()
     {
-        switch ( rootJunctionType )
-        {
-            case AND:
-                return addConjunction();
-            case OR:
-                return addDisjunction();
-        }
-
-        throw new QueryException( "Unhandled junction type: " + rootJunctionType );
+        return rootJunctionType;
     }
 
     public boolean isPlannedQuery()
