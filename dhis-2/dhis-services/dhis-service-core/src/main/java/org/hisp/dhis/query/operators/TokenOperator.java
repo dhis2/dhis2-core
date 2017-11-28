@@ -10,8 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by henninghakonsen on 24/10/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public class TokenOperator extends Operator{
     private final boolean caseSensitive;
