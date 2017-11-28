@@ -89,6 +89,8 @@ public class Enrollment
     private Coordinate coordinate;
 
     private Boolean deleted;
+    
+    private String storedBy;
 
     public Enrollment()
     {
@@ -347,5 +349,17 @@ public class Enrollment
     public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 }
