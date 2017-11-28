@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.color.ColorService;
+import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -57,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class ChartServiceTest
     extends DhisSpringTest
@@ -76,6 +77,9 @@ public class ChartServiceTest
     
     @Autowired
     private LegendSetService legendSetService;
+    
+    @Autowired
+    private ColorService colorService;
 
     private Indicator indicatorA;
     private Indicator indicatorB;
@@ -89,6 +93,7 @@ public class ChartServiceTest
     private OrganisationUnit unitB;
     
     private LegendSet lsA;
+    private ColorSet csA;
 
     private Chart chartA;
     private Chart chartB;
@@ -163,10 +168,15 @@ public class ChartServiceTest
 
         legendSetService.addLegendSet( lsA );
         
+        csA = createColorSet( 'A', "#4286f4", "#3f4f68" );
+        
+        colorService.addColorSet( csA );
+
         chartA = createChart( 'A', indicators, periods, units );
         chartA.setType( ChartType.BAR );
         chartA.setLegendSet( lsA );
         chartA.setLegendDisplayStrategy( LegendDisplayStrategy.FIXED );
+        chartA.setColorSet( csA );
 
         chartB = createChart( 'B', indicators, periods, units );
         chartB.setType( ChartType.BAR );
@@ -206,6 +216,7 @@ public class ChartServiceTest
         
         assertEquals( lsA, chartService.getChart( idA ).getLegendSet() );
         assertEquals( LegendDisplayStrategy.FIXED, chartService.getChart( idA ).getLegendDisplayStrategy() );
+        assertEquals( csA, chartService.getChart( idA ).getColorSet() );
     }
 
     @Test
