@@ -427,13 +427,17 @@ public abstract class AbstractEventService
             List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
 
             if ( programInstances == null || programInstances.isEmpty() )
-            {
+            {            	
                 // Create PI if it doesn't exist (should only be one)
+            	
+            	String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy() : user.getUsername();            	            	
+            	
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
                 pi.setIncidentDate( new Date() );
                 pi.setProgram( program );
                 pi.setStatus( ProgramStatus.ACTIVE );
+                pi.setStoredBy( storedBy );
 
                 programInstanceService.addProgramInstance( pi );
 
