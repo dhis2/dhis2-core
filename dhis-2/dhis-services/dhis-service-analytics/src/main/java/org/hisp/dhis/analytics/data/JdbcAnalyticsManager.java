@@ -94,7 +94,7 @@ public class JdbcAnalyticsManager
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
-    private static final int YEARS_OFFSET_LAST_VALUE = -10;
+    private static final int LAST_VALUE_YEARS_OFFSET = -10;
 
     private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String>builder()
         .put( MeasureFilter.EQ, "=" )
@@ -477,11 +477,12 @@ public class JdbcAnalyticsManager
     private String getLastValueSubquerySql( DataQueryParams params )
     {
         Date latest = params.getLatestEndDate();
-        Date earliest = addYears( latest, YEARS_OFFSET_LAST_VALUE );
+        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );        
+        List<String> columns = getLastValueSubqueryColumns( params );
         
         String sql = "(select ";
         
-        for ( String col : getLastValueSubqueryColumns( params ) )
+        for ( String col : columns )
         {
             sql += statementBuilder.columnQuote( col ) + ",";
         }
