@@ -103,6 +103,9 @@ public interface ProgramIndicatorService
      * values for data elements and attributes.
      * 
      * @param expression the expression.
+     * @param analyticsType the {@link AnalyticsType}.
+     * @param startDate the start date.
+     * @param endDate the end date.
      * @return the SQL string.
      */
     String getAnalyticsSQl( String expression, AnalyticsType aalyticsType, Date startDate, Date endDate );
@@ -111,7 +114,10 @@ public interface ProgramIndicatorService
      * Get the expression as an analytics SQL clause.
      * 
      * @param expression the expression.
-     * @param whether to ignore missing values for data elements and attributes.
+     * @param analyticsType the {@link AnalyticsType}.
+     * @param ignoreMissingValues whether to ignore missing values for data elements and attributes.
+     * @param startDate the start date.
+     * @param endDate the end date.
      * @return the SQL string.
      */
     String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate );
