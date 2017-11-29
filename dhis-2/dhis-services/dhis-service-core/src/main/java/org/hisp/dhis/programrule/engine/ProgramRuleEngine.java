@@ -28,8 +28,6 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
@@ -45,8 +43,6 @@ import java.util.*;
  */
 public class ProgramRuleEngine
 {
-    private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
-
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -84,7 +80,7 @@ public class ProgramRuleEngine
         }
         catch ( Exception e)
         {
-            log.error( e.getMessage() );
+            e.printStackTrace();
         }
 
         return ruleEffects;
@@ -117,7 +113,7 @@ public class ProgramRuleEngine
         }
         catch ( Exception e )
         {
-            log.error( e.getMessage() );
+            e.printStackTrace();
         }
 
         return ruleEffects;
