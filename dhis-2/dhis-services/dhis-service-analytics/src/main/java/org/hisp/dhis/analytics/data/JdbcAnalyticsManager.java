@@ -423,6 +423,21 @@ public class JdbcAnalyticsManager
     }
     
     /**
+     * Generates the group by clause of the query SQL.
+     */
+    private String getGroupByClause( DataQueryParams params )
+    {
+        String sql = "";
+
+        if ( params.isAggregation() )
+        {
+            sql = "group by " + getCommaDelimitedQuotedColumns( params.getDimensions() );
+        }
+
+        return sql;
+    }
+
+    /**
      * Returns names of all non-dimensional columns of the aggregate data 
      * analytics table. It is assumed that {@link AggregationType#LAST} type only
      * applies to aggregate data analytics.
@@ -449,21 +464,6 @@ public class JdbcAnalyticsManager
         return cols;
     }
 
-    /**
-     * Generates the group by clause of the query SQL.
-     */
-    private String getGroupByClause( DataQueryParams params )
-    {
-        String sql = "";
-
-        if ( params.isAggregation() )
-        {
-            sql = "group by " + getCommaDelimitedQuotedColumns( params.getDimensions() );
-        }
-
-        return sql;
-    }
-    
     /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the start date, then end date of the data value period, latest first.
