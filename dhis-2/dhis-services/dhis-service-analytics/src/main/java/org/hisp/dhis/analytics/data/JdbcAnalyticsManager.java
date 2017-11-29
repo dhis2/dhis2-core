@@ -482,7 +482,7 @@ public class JdbcAnalyticsManager
                 String alias = statementBuilder.columnQuote( dim.getDimensionName() );
                 String col = "'" + period.getDimensionItem() + "' as " + alias;
                 
-                cols.remove( alias ); // Remove column "yearly" if already present
+                cols.remove( alias ); // Remove column if already present, i.e. "yearly"
                 cols.add( col );
             }
             else
