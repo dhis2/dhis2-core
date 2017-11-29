@@ -1,4 +1,4 @@
-package org.hisp.dhis.color;
+package org.hisp.dhis.dataset.notifications;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,12 +28,22 @@ package org.hisp.dhis.color;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
+
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 29.11.17.
  */
-public interface ColorService
+public enum DataSetNotificationTrigger
 {
-    int addColorSet( ColorSet colorSet );
-    
-    ColorSet getColorSet( String uid );
+    COMPLETION, SCHEDULED;
+
+    private static final Set<DataSetNotificationTrigger> SCHEDULED_TRIGGERS =
+        new ImmutableSet.Builder<DataSetNotificationTrigger>().add( SCHEDULED ).build();
+
+    public boolean isScheduled()
+    {
+        return SCHEDULED_TRIGGERS.contains( this );
+    }
 }

@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -104,6 +106,8 @@ public abstract class BaseChart
     protected LegendSet legendSet;
     
     protected LegendDisplayStrategy legendDisplayStrategy;
+    
+    protected ColorSet colorSet;
     
     // -------------------------------------------------------------------------
     // Dimensional properties
@@ -494,6 +498,19 @@ public abstract class BaseChart
     public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
     {
         this.legendDisplayStrategy = legendDisplayStrategy;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ColorSet getColorSet()
+    {
+        return colorSet;
+    }
+
+    public void setColorSet( ColorSet colorSet )
+    {
+        this.colorSet = colorSet;
     }
 
     @JsonProperty

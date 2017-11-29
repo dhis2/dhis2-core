@@ -46,9 +46,15 @@ public class DefaultColorService
     }
 
     // -------------------------------------------------------------------------
-    // Dependencies
+    // ColorService implementation
     // -------------------------------------------------------------------------
 
+    public int addColorSet( ColorSet colorSet )
+    {
+        colorSetStore.save( colorSet );
+        return colorSet.getId();
+    }
+    
     public ColorSet getColorSet( String uid )
     {
         return colorSetStore.getByUid( uid );
