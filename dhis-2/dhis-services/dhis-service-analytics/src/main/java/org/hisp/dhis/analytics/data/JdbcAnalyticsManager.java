@@ -375,7 +375,7 @@ public class JdbcAnalyticsManager
 
             for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
             {
-                String ouCol = LEVEL_PREFIX + unit.getLevel();
+                String ouCol = statementBuilder.columnQuote( LEVEL_PREFIX + unit.getLevel() );
                 Integer level = params.getDataApprovalLevels().get( unit );
 
                 sql += "(" + ouCol + " = '" + unit.getUid() + "' and " + 
@@ -468,8 +468,11 @@ public class JdbcAnalyticsManager
         if ( params.isDataApproval() )
         {
             cols.add( statementBuilder.columnQuote( COL_APPROVALLEVEL ) );
-            
-            // TODO analytics org unit levels
+
+            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
+            {                
+                cols.add( statementBuilder.columnQuote( LEVEL_PREFIX + unit.getLevel() ) );
+            }
         }
 
         for ( DimensionalObject dim : params.getDimensions() )
