@@ -285,7 +285,7 @@ public class DefaultProgramIndicatorService
     {
         return getAnalyticsSQl( expression, analyticsType, true, startDate, endDate );
     }
-
+    
     @Override
     public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate )
     {

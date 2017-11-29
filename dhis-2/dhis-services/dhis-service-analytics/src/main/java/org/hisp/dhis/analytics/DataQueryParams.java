@@ -471,65 +471,49 @@ public class DataQueryParams
     }
 
     /**
-     * Finds the latest endDate associated with this DataQueryParams. checks endDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period dimensions and
+     * period filters.
      */
     public Date getLatestEndDate()
     {
-        // Set to minimum value
-        Date latestEndDate = new Date(Long.MIN_VALUE);
+        Date latestEndDate = new Date( Long.MIN_VALUE );
 
         if ( endDate != null && endDate.after( latestEndDate ) )
         {
             latestEndDate = endDate;
         }
 
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
-        }
-
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
+            latestEndDate = period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate;
         }
 
         return latestEndDate;
-
     }
     
     /**
-     * Finds the earliest startDate associated with this DataQueryParams. checks startDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Finds the earliest startDate associated with this DataQueryParams. Checks startDate, period dimensions and
+     * period filters.
      */
     public Date getEarliestStartDate()
     {
-        // Set to minimum value
-        Date earliestStartDate = new Date(Long.MAX_VALUE);
+        Date earliestStartDate = new Date( Long.MAX_VALUE );
 
-        if ( startDate != null && startDate.before( startDate ) )
+        if ( startDate != null && startDate.before( earliestStartDate ) )
         {
+            System.out.println( "1 " + earliestStartDate );
             earliestStartDate = startDate;
         }
-
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
-        }
+            earliestStartDate = period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate;
 
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
+            System.out.println( "2 " + earliestStartDate + " for period " + period );
         }
 
         return earliestStartDate;

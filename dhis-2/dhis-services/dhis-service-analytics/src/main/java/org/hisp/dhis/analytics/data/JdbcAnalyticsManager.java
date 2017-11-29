@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  */
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +80,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.apache.commons.lang.time.DateUtils.addYears;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
@@ -92,6 +94,7 @@ public class JdbcAnalyticsManager
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
+    private static final int YEARS_OFFSET_LAST_VALUE = -10;
 
     private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String>builder()
         .put( MeasureFilter.EQ, "=" )
@@ -473,6 +476,9 @@ public class JdbcAnalyticsManager
      */
     private String getLastValueSubquerySql( DataQueryParams params )
     {
+        Date latest = params.getLatestEndDate();
+        Date earliest = addYears( latest, YEARS_OFFSET_LAST_VALUE );
+        
         String sql = "(select ";
         
         for ( String col : getLastValueSubqueryColumns( params ) )
@@ -485,8 +491,8 @@ public class JdbcAnalyticsManager
                 "partition by dx, ou, co, ao " + 
                 "order by pestartdate desc, peenddate desc) as pe_rank " + 
             "from analytics " +
-            "where pestartdate >= " + //TODO
-            "and peenddate <= " + //TODO
+            "where pestartdate >= '" + getMediumDateString( earliest ) + "'" +
+            "and peenddate <= '" + getMediumDateString( latest ) + "'" +
             ") as " + params.getTableName();
         
         return sql;
