@@ -37,7 +37,7 @@ import java.util.List;
 public interface ProgramIndicatorService
 {
     /**
-     * Adds an {@link ProgramIndicator}
+     * Adds a {@link ProgramIndicator}
      *
      * @param programIndicator The to ProgramIndicator add.
      * @return A generated unique id of the added {@link ProgramIndicator}.
@@ -45,7 +45,7 @@ public interface ProgramIndicatorService
     int addProgramIndicator( ProgramIndicator programIndicator );
 
     /**
-     * Updates an {@link ProgramIndicator}.
+     * Updates a {@link ProgramIndicator}.
      *
      * @param programIndicator the ProgramIndicator to update.
      */
@@ -108,7 +108,7 @@ public interface ProgramIndicatorService
      * @param endDate the end date.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, AnalyticsType aalyticsType, Date startDate, Date endDate );
+    String getAnalyticsSQl( String expression, AnalyticsType analyticsType, Date startDate, Date endDate );
     
     /**
      * Get the expression as an analytics SQL clause.

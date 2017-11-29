@@ -341,6 +341,27 @@ public class DataQueryParamsTest
         assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
         assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );        
     }
+    
+    @Test
+    public void testGetLatestPeriod()
+    {
+        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
+        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .build();        
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( mar_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( jan_2016, feb_2016 ) )
+            .build();
+        
+        assertEquals( mar_2016, paramsA.getLatestPeriod() );
+        assertEquals( mar_2016, paramsB.getLatestPeriod() );
+    }
 
     @Test
     public void testGetLatestEndDate()
@@ -374,13 +395,13 @@ public class DataQueryParamsTest
     {
         Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
         Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
-        Period march_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
         Date dec_2015 = getDate( 2015, 12, 1 );
 
         DataQueryParams paramsA = DataQueryParams.newBuilder()
             .withStartDate( dec_2015 )
             .withPeriods( Lists.newArrayList( jan_2016 ) )
-            .withFilterPeriods( Lists.newArrayList( feb_2016, march_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
             .build();
 
         DataQueryParams paramsB = DataQueryParams.newBuilder()
@@ -388,7 +409,7 @@ public class DataQueryParamsTest
             .build();
 
         DataQueryParams paramsC = DataQueryParams.newBuilder()
-            .withFilterPeriods( Lists.newArrayList( feb_2016, march_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
             .withPeriods( Lists.newArrayList( jan_2016 ) )
             .build();
 
