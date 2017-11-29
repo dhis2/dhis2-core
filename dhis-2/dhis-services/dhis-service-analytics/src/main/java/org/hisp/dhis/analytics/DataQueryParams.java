@@ -1817,7 +1817,15 @@ public class DataQueryParams
     {
         return ListUtils.union( getAllProgramAttributes(), getAllProgramDataElements() );
     }
-    
+
+    /**
+     * Returns all periods part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllPeriods()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
+    }
+
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
