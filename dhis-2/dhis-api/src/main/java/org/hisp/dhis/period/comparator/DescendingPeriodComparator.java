@@ -52,7 +52,7 @@ public class DescendingPeriodComparator
         {
             return endDateCompared;
         }
-                
+
         return period2.getStartDate().compareTo( period1.getEndDate() );
     }
 }
