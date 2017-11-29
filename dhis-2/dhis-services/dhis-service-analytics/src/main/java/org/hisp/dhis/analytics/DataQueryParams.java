@@ -472,6 +472,18 @@ public class DataQueryParams
     }
 
     /**
+     * Returns the latest period based on the period end date.
+     */
+    public Period getLatestPeriod()
+    {        
+        Optional<Period> period = getAllPeriods().stream()
+            .map( obj -> (Period) obj )
+            .min( PeriodComparator.INSTANCE );
+        
+        return period.orElse( null );
+    }
+    
+    /**
      * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period dimensions and
      * period filters.
      */
