@@ -39,6 +39,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * @author Saptarshi
@@ -108,5 +109,12 @@ public class AppTest
         dhisActivity.setHref("ALL TEST");
         Assert.assertEquals( "ALL TEST", dhisActivity.getHref() );
     }
-    
+
+    @Test
+    public void testGetAuthorities()
+    {
+        List<String> authorities = app.getAuthorities();
+        Assert.assertNotNull( authorities );
+        Assert.assertEquals( 4, authorities.size() );
+    }
 }
