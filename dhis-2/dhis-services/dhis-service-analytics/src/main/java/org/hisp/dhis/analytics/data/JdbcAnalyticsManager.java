@@ -479,8 +479,10 @@ public class JdbcAnalyticsManager
         {            
             if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {
-                String col = "'" + period.getDimensionItem() + "' as " + statementBuilder.columnQuote( dim.getDimensionName() );
+                String alias = statementBuilder.columnQuote( dim.getDimensionName() );
+                String col = "'" + period.getDimensionItem() + "' as " + alias;
                 
+                cols.remove( alias ); // Remove column "yearly" if already present
                 cols.add( col );
             }
             else
