@@ -98,7 +98,7 @@ public class DataSetNotificationTemplateServiceTest
 
     private DataSetNotificationRecipient notificationRecipient;
 
-    private NotificationTrigger completion = NotificationTrigger.COMPLETION;
+    private DataSetNotificationTrigger completion = DataSetNotificationTrigger.COMPLETION;
 
     private DataSetNotificationTemplate templateA;
     private DataSetNotificationTemplate templateB;
