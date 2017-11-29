@@ -30,7 +30,6 @@ package org.hisp.dhis.program.notification;
 
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.programrule.ProgramRule;
 
 import java.util.List;
 

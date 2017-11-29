@@ -28,10 +28,7 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramNotificationTemplateDeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 
 /**

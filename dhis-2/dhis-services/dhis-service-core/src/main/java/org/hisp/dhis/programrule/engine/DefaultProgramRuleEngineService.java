@@ -29,13 +29,11 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.

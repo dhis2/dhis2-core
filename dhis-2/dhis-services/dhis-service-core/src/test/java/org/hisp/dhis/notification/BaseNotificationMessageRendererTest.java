@@ -35,7 +35,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
