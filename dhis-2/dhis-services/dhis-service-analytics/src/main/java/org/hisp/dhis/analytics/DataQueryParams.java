@@ -2187,6 +2187,13 @@ public class DataQueryParams
             this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );
             return this;
         }
+
+        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
+            this.params.periodType = periodType;
+            return this;
+        }
         
         public Builder withPeriod( DimensionalItemObject period )
         {

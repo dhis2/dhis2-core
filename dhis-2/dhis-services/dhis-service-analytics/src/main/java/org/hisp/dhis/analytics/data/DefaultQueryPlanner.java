@@ -565,8 +565,7 @@ public class DefaultQueryPlanner
                 String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
                 
                 DataQueryParams query = DataQueryParams.newBuilder( params )
-                    .addOrSetDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType, Lists.newArrayList( period ) )
-                    .withPeriodType( periodType ).build();
+                    .withPeriods( Lists.newArrayList( period ), periodType ).build();
                 
                 queries.add( query );
             }
