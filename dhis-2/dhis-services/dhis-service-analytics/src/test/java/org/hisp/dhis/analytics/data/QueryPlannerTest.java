@@ -872,6 +872,8 @@ public class QueryPlannerTest
         for ( DataQueryParams query : queries )
         {
             assertEquals( 1, query.getPeriods().size() );
+            assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
+            assertEquals( MonthlyPeriodType.NAME.toLowerCase(), query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
         }
     }
 

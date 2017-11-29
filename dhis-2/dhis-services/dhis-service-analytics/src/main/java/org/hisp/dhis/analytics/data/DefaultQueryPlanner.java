@@ -562,8 +562,11 @@ public class DefaultQueryPlanner
         {
             for ( DimensionalItemObject period : params.getPeriods() )
             {
+                String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+                
                 DataQueryParams query = DataQueryParams.newBuilder( params )
-                    .withPeriods( Lists.newArrayList( period ) ).build();
+                    .addOrSetDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType, Lists.newArrayList( period ) )
+                    .withPeriodType( periodType ).build();
                 
                 queries.add( query );
             }
