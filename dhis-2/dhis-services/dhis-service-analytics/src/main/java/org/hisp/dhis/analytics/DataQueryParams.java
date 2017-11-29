@@ -41,7 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.comparator.PeriodComparator;
+import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -476,11 +476,10 @@ public class DataQueryParams
      */
     public Period getLatestPeriod()
     {        
-        Optional<Period> period = getAllPeriods().stream()
+        return getAllPeriods().stream()
             .map( obj -> (Period) obj )
-            .min( PeriodComparator.INSTANCE );
-        
-        return period.orElse( null );
+            .min( DescendingPeriodComparator.INSTANCE )
+            .orElse( null );
     }
     
     /**

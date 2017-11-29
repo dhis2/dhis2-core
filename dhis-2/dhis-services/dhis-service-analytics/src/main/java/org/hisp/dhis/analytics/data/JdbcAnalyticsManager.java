@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -449,6 +450,8 @@ public class JdbcAnalyticsManager
     {
         List<String> cols = Lists.newArrayList( "yearly", "dx", "co", "ao", "ou", 
             "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
+
+        Period period = params.getLatestPeriod();
         
         if ( params.isDataApproval() )
         {
@@ -458,10 +461,10 @@ public class JdbcAnalyticsManager
         }
 
         for ( DimensionalObject dimension : params.getDimensions() )
-        {
-            //TODO replace period col
+        {            
+            boolean replacePeriod = DimensionType.PERIOD == dimension.getDimensionType() && period != null;
             
-            cols.add( dimension.getDimensionName() );
+            cols.add( replacePeriod ? period.getDimensionItem() : dimension.getDimensionName() );
         }
 
         return cols;
