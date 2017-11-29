@@ -512,7 +512,7 @@ public class JdbcAnalyticsManager
         sql += 
             "rank() over (" + 
                 "partition by dx, ou, co, ao " + 
-                "order by pestartdate desc, peenddate desc) as pe_rank " + 
+                "order by peenddate desc, pestartdate desc) as pe_rank " + 
             "from analytics " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
