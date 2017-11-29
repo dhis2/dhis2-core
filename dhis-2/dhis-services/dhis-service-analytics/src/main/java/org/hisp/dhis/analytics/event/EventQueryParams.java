@@ -472,7 +472,7 @@ public class EventQueryParams
             return AnalyticsAggregationType.fromAggregationType( value.getAggregationType() );
         }
 
-        return AnalyticsAggregationType.average();
+        return AnalyticsAggregationType.AVERAGE;
     }
 
     /**
