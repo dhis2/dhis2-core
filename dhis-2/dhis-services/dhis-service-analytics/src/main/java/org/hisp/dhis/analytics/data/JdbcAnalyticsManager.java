@@ -422,6 +422,15 @@ public class JdbcAnalyticsManager
             sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
+
+        // ---------------------------------------------------------------------
+        // Period rank restriction to get last value only
+        // ---------------------------------------------------------------------
+        
+        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        {
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
+        }
         
         return sql;
     }
@@ -444,7 +453,8 @@ public class JdbcAnalyticsManager
     /**
      * Returns names of all non-dimensional columns of the aggregate data 
      * analytics table. It is assumed that {@link AggregationType#LAST} type only
-     * applies to aggregate data analytics.
+     * applies to aggregate data analytics. The period dimension is replaced by
+     * the name of the single period in the given query.
      */
     private List<String> getLastValueSubqueryColumns( DataQueryParams params )
     {
@@ -474,8 +484,8 @@ public class JdbcAnalyticsManager
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the start date, then end date of the data value period, latest first.
      * The data is partitioned by data element, org unit, category option combo and 
-     * attribute option combo. Only data for the last 10 years relative to the period
-     * end date is included.
+     * attribute option combo. A column {@code pe_rank} defines the rank. Only data 
+     * for the last 10 years relative to the period end date is included. 
      */
     private String getLastValueSubquerySql( DataQueryParams params )
     {
