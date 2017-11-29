@@ -503,7 +503,6 @@ public class DataQueryParams
 
         if ( startDate != null && startDate.before( earliestStartDate ) )
         {
-            System.out.println( "1 " + earliestStartDate );
             earliestStartDate = startDate;
         }
         
@@ -512,8 +511,6 @@ public class DataQueryParams
             Period period = (Period) object;
 
             earliestStartDate = period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate;
-
-            System.out.println( "2 " + earliestStartDate + " for period " + period );
         }
 
         return earliestStartDate;

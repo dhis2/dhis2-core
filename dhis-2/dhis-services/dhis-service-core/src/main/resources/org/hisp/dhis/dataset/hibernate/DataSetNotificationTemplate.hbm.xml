@@ -32,9 +32,9 @@
         <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
                      column="usergroupid" foreign-key="fk_datasetnotification_usergroup" not-null="false" />
 
-        <property name="notificationTrigger" column="notificationtrigger">
+        <property name="dataSetNotificationTrigger" column="datasetnotificationtrigger">
             <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.program.notification.NotificationTrigger</param>
+                <param name="enumClass">org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger</param>
                 <param name="useNamed">true</param>
                 <param name="type">12</param>
             </type>

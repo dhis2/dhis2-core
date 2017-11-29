@@ -380,7 +380,7 @@ public class DefaultDataSetNotificationService
 
         ProgramMessageRecipients recipients;
 
-        if ( template.getNotificationTrigger().isScheduled() )
+        if ( template.getDataSetNotificationTrigger().isScheduled() )
         {
             recipients = resolveExternalRecipientsForSchedule( template, registration );
         }
