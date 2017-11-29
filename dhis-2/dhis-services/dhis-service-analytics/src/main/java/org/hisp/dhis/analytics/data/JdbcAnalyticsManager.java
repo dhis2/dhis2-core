@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -451,30 +452,39 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns names of all non-dimensional columns of the aggregate data 
+     * Returns quoted names of all non-dimensional columns of the aggregate data 
      * analytics table. It is assumed that {@link AggregationType#LAST} type only
      * applies to aggregate data analytics. The period dimension is replaced by
      * the name of the single period in the given query.
      */
-    private List<String> getLastValueSubqueryColumns( DataQueryParams params )
+    private List<String> getLastValueSubqueryQuotedColumns( DataQueryParams params )
     {
+        Period period = params.getLatestPeriod();
+        
         List<String> cols = Lists.newArrayList( "yearly", "dx", "co", "ao", "ou", 
             "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
 
-        Period period = params.getLatestPeriod();
-        
+        cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
+
         if ( params.isDataApproval() )
         {
-            cols.add( COL_APPROVALLEVEL );
+            cols.add( statementBuilder.columnQuote( COL_APPROVALLEVEL ) );
             
             // TODO analytics org unit levels
         }
 
-        for ( DimensionalObject dimension : params.getDimensions() )
+        for ( DimensionalObject dim : params.getDimensions() )
         {            
-            boolean replacePeriod = DimensionType.PERIOD == dimension.getDimensionType() && period != null;
-            
-            cols.add( replacePeriod ? period.getDimensionItem() : dimension.getDimensionName() );
+            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
+            {
+                String col = "'" + period.getDimensionItem() + "' as " + statementBuilder.columnQuote( dim.getDimensionName() );
+                
+                cols.add( col );
+            }
+            else
+            {
+                cols.add( statementBuilder.columnQuote( dim.getDimensionName() ) );
+            }
         }
 
         return cols;
@@ -491,13 +501,13 @@ public class JdbcAnalyticsManager
     {
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );        
-        List<String> columns = getLastValueSubqueryColumns( params );
+        List<String> columns = getLastValueSubqueryQuotedColumns( params );
         
         String sql = "(select ";
         
         for ( String col : columns )
         {
-            sql += statementBuilder.columnQuote( col ) + ",";
+            sql += col + ",";
         }
         
         sql += 
@@ -505,8 +515,8 @@ public class JdbcAnalyticsManager
                 "partition by dx, ou, co, ao " + 
                 "order by pestartdate desc, peenddate desc) as pe_rank " + 
             "from analytics " +
-            "where pestartdate >= '" + getMediumDateString( earliest ) + "'" +
-            "and peenddate <= '" + getMediumDateString( latest ) + "'" +
+            "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
+            "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
             ") as " + params.getTableName();
         
         return sql;
