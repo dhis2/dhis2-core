@@ -617,7 +617,7 @@ public class TrackedEntityInstanceQueryParams
             ", program: " + program + ", program status " + programStatus + ", follow up: " + followUp +
             ", program enrollemnt start date: " + programEnrollmentStartDate + ", program enrollment end date: " + programEnrollmentEndDate +
             ", program incident start date: " + programIncidentStartDate + ", program incident end date: " + programIncidentEndDate +
-            ", tracked entity: " + trackedEntityType + ", org unit mode: " + organisationUnitMode +
+            ", tracked entity type: " + trackedEntityType + ", org unit mode: " + organisationUnitMode +
             ", event start date: " + eventStartDate + ", event end date: " + eventEndDate +
             ", event status: " + eventStatus + "]";
     }
