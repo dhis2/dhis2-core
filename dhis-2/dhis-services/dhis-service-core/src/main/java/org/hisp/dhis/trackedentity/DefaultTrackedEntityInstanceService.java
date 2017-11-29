@@ -175,7 +175,7 @@ public class DefaultTrackedEntityInstanceService
         grid.addHeader( new GridHeader( LAST_UPDATED_ID, "Last updated" ) );
         grid.addHeader( new GridHeader( ORG_UNIT_ID, "Organisation unit" ) );
         grid.addHeader( new GridHeader( ORG_UNIT_NAME, "Organisation unit name" ) );
-        grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity" ) );
+        grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity type" ) );
         grid.addHeader( new GridHeader( INACTIVE_ID, "Inactive" ) );
 
         if ( params.isIncludeDeleted() )
