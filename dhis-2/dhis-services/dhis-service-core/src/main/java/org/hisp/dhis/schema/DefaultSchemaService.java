@@ -131,7 +131,7 @@ public class DefaultSchemaService
         add( new SqlViewSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
-        add( new TrackedEntitySchemaDescriptor() ).
+        add( new TrackedEntityTypeSchemaDescriptor() ).
         add( new TrackedEntityDataElementDimensionSchemaDescriptor() ).
         add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() ).
         add( new UserCredentialsSchemaDescriptor() ).

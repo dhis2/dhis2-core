@@ -44,57 +44,57 @@ public class DefaultTrackedEntityService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<TrackedEntity> trackedEntityStore;
+    private GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityStore;
 
-    public void setTrackedEntityStore( GenericIdentifiableObjectStore<TrackedEntity> trackedEntityStore )
+    public void setTrackedEntityStore( GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityStore )
     {
         this.trackedEntityStore = trackedEntityStore;
     }
 
     // -------------------------------------------------------------------------
-    // TrackedEntity
+    // TrackedEntityType
     // -------------------------------------------------------------------------
 
     @Override
-    public int addTrackedEntity( TrackedEntity trackedEntity )
+    public int addTrackedEntity( TrackedEntityType trackedEntityType )
     {
-        trackedEntityStore.save( trackedEntity );
+        trackedEntityStore.save( trackedEntityType );
 
-        return trackedEntity.getId();
+        return trackedEntityType.getId();
     }
 
     @Override
-    public void deleteTrackedEntity( TrackedEntity trackedEntity )
+    public void deleteTrackedEntity( TrackedEntityType trackedEntityType )
     {
-        trackedEntityStore.delete( trackedEntity );
+        trackedEntityStore.delete( trackedEntityType );
     }
 
     @Override
-    public void updateTrackedEntity( TrackedEntity trackedEntity )
+    public void updateTrackedEntity( TrackedEntityType trackedEntityType )
     {
-        trackedEntityStore.update( trackedEntity );
+        trackedEntityStore.update( trackedEntityType );
     }
 
     @Override
-    public TrackedEntity getTrackedEntity( int id )
+    public TrackedEntityType getTrackedEntityType( int id )
     {
         return trackedEntityStore.get( id );
     }
 
     @Override
-    public TrackedEntity getTrackedEntity( String uid )
+    public TrackedEntityType getTrackedEntityType( String uid )
     {
         return trackedEntityStore.getByUid( uid );
     }
 
     @Override
-    public TrackedEntity getTrackedEntityByName( String name )
+    public TrackedEntityType getTrackedEntityByName( String name )
     {
         return trackedEntityStore.getByName( name );
     }
 
     @Override
-    public List<TrackedEntity> getAllTrackedEntity()
+    public List<TrackedEntityType> getAllTrackedEntity()
     {
         return trackedEntityStore.getAll();
     }

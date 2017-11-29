@@ -111,7 +111,7 @@ public interface ProgramInstanceService
      * @param programStartDate      the start date for enrollment in the given
      *                              Program.
      * @param programEndDate        the end date for enrollment in the given Program.
-     * @param trackedEntity         the TrackedEntity uid.
+     * @param trackedEntityType         the TrackedEntityType uid.
      * @param trackedEntityInstance the TrackedEntityInstance uid.
      * @param followUp              indicates follow up status in the given Program.
      * @param page                  the page number.
@@ -121,7 +121,7 @@ public interface ProgramInstanceService
      * @return a ProgramInstanceQueryParams.
      */
     ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program,
-        ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntity, String trackedEntityInstance,
+        ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
         Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging );
 
     /**

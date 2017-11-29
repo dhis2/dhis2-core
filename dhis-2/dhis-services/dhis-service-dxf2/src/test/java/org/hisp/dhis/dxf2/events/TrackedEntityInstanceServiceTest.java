@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -85,18 +85,18 @@ public class TrackedEntityInstanceServiceTest
 
         organisationUnitB.setParent( organisationUnitA );
 
-        TrackedEntity trackedEntity = createTrackedEntity( 'A' );
-        trackedEntityService.addTrackedEntity( trackedEntity );
+        TrackedEntityType trackedEntityType = createTrackedEntity( 'A' );
+        trackedEntityService.addTrackedEntity( trackedEntityType );
 
         maleA = createTrackedEntityInstance( 'A', organisationUnitA );
         maleB = createTrackedEntityInstance( 'B', organisationUnitB );
         femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
         femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
 
-        maleA.setTrackedEntity( trackedEntity );
-        maleB.setTrackedEntity( trackedEntity );
-        femaleA.setTrackedEntity( trackedEntity );
-        femaleB.setTrackedEntity( trackedEntity );
+        maleA.setTrackedEntityType( trackedEntityType );
+        maleB.setTrackedEntityType( trackedEntityType );
+        femaleA.setTrackedEntityType( trackedEntityType );
+        femaleB.setTrackedEntityType( trackedEntityType );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         manager.save( organisationUnitA );

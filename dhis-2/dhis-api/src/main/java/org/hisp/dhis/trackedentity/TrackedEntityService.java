@@ -40,65 +40,65 @@ public interface TrackedEntityService
     String ID = TrackedEntityService.class.getName();
 
     /**
-     * Adds an {@link TrackedEntity}
+     * Adds an {@link TrackedEntityType}
      * 
-     * @param trackedEntity The to TrackedEntity
+     * @param trackedEntityType The to TrackedEntityType
      *        add.
      * 
      * @return A generated unique id of the added
-     *         {@link TrackedEntity}.
+     *         {@link TrackedEntityType}.
      */
-    int addTrackedEntity( TrackedEntity trackedEntity );
+    int addTrackedEntity( TrackedEntityType trackedEntityType );
 
     /**
-     * Deletes a {@link TrackedEntity}.
+     * Deletes a {@link TrackedEntityType}.
      * 
-     * @param trackedEntity the TrackedEntity to
+     * @param trackedEntityType the TrackedEntityType to
      *        delete.
      */
-    void deleteTrackedEntity( TrackedEntity trackedEntity );
+    void deleteTrackedEntity( TrackedEntityType trackedEntityType );
 
     /**
-     * Updates a {@link TrackedEntity}.
+     * Updates a {@link TrackedEntityType}.
      * 
-     * @param trackedEntity the TrackedEntity to
+     * @param trackedEntityType the TrackedEntityType to
      *        update.
      */
-    void updateTrackedEntity( TrackedEntity trackedEntity );
+    void updateTrackedEntity( TrackedEntityType trackedEntityType );
 
     /**
-     * Returns a {@link TrackedEntity}.
+     * Returns a {@link TrackedEntityType}.
      * 
-     * @param id the id of the TrackedEntity to return.
+     * @param id the id of the TrackedEntityType to return.
      * 
-     * @return the TrackedEntity with the given id
+     * @return the TrackedEntityType with the given id
      */
-    TrackedEntity getTrackedEntity( int id );
+    TrackedEntityType getTrackedEntityType( int id );
 
     /**
-     * Returns a {@link TrackedEntity}.
+     * Returns a {@link TrackedEntityType}.
      *
-     * @param id the id of the TrackedEntity to return.
+     * @param id the id of the TrackedEntityType to return.
      *
-     * @return the TrackedEntity with the given id
+     * @return the TrackedEntityType with the given id
      */
-    TrackedEntity getTrackedEntity( String uid );
+    TrackedEntityType getTrackedEntityType( String uid );
 
     /**
-     * Returns a {@link TrackedEntity} with a given name.
+     * Returns a {@link TrackedEntityType} with a given name.
      * 
-     * @param name the name of the TrackedEntity to return.
+     * @param name the name of the TrackedEntityType to return.
      * 
-     * @return the TrackedEntity with the given name, or null if
+     * @return the TrackedEntityType with the given name, or null if
      *         no match.
      */
-    TrackedEntity getTrackedEntityByName( String name );
+    TrackedEntityType getTrackedEntityByName( String name );
 
     /**
-     * Returns all {@link TrackedEntity}
+     * Returns all {@link TrackedEntityType}
      * 
-     * @return a List of all TrackedEntity, or an empty
+     * @return a List of all TrackedEntityType, or an empty
      *         List if there are no TrackedEntitys.
      */
-    List<TrackedEntity> getAllTrackedEntity();
+    List<TrackedEntityType> getAllTrackedEntity();
 }

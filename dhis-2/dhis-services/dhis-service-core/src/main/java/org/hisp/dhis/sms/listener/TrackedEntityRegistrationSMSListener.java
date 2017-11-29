@@ -117,7 +117,7 @@ public class TrackedEntityRegistrationSMSListener
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setOrganisationUnit( orgUnit );
-        trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntity().getName() ) );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntityType().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
         smsCommand.getCodes().stream()

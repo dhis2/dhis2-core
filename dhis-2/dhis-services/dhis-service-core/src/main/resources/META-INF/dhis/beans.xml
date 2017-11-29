@@ -743,7 +743,7 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityStore">
-    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntity" />
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityType" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -1679,7 +1679,7 @@
         <value>optionset</value>
         <value>optionvalue</value>
         <value>validationcriteria</value>
-        <value>trackedentity</value>
+        <value>trackedentitytype</value>
         <value>trackedentityinstance</value>
         <value>trackedentityattribute</value>
         <value>program</value>

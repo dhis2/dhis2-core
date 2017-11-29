@@ -33,23 +33,23 @@ import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntitySchemaDescriptor implements SchemaDescriptor
+public class TrackedEntityTypeSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "trackedEntity";
+    public static final String SINGULAR = "trackedEntityType";
 
-    public static final String PLURAL = "trackedEntities";
+    public static final String PLURAL = "trackedEntityTypes";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( TrackedEntity.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( TrackedEntityType.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1480 );
 

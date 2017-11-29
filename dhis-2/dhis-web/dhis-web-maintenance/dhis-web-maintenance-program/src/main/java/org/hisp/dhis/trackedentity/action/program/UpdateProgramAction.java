@@ -41,7 +41,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -418,12 +418,12 @@ public class UpdateProgramAction
 
         if ( trackedEntityId != null )
         {
-            TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity( trackedEntityId );
-            program.setTrackedEntity( trackedEntity );
+            TrackedEntityType trackedEntityType = trackedEntityService.getTrackedEntityType( trackedEntityId );
+            program.setTrackedEntityType( trackedEntityType );
         }
-        else if ( program.getTrackedEntity() != null )
+        else if ( program.getTrackedEntityType() != null )
         {
-            program.setTrackedEntity( null );
+            program.setTrackedEntityType( null );
         }
 
         if ( program.getProgramAttributes() != null )

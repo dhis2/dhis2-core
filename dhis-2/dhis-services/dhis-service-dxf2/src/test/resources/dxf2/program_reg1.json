@@ -213,7 +213,7 @@
   ],
   "programs": [
     {
-      "trackedEntity": {
+      "trackedEntityType": {
         "id": "vmZxWXOw5CD"
       },
       "notificationTemplates": [ ],

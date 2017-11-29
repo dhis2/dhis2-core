@@ -40,8 +40,8 @@
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet"
       column="optionsetid" foreign-key="fk_trackedentityattribute_optionsetid" />
 
-    <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
-      column="trackedentityid" foreign-key="fk_trackedentityattribute_trackedentityid" />
+    <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+      column="trackedentitytypeid" foreign-key="fk_trackedentityattribute_trackedentitytypeid" />
 
     <list name="legendSets" table="trackedentityattributelegendsets">
       <cache usage="read-write" />

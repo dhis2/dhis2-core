@@ -36,20 +36,20 @@ import org.hisp.dhis.common.MetadataObject;
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntity
+@JacksonXmlRootElement( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackedEntityType
     extends BaseNameableObject implements MetadataObject
 {
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
-    public TrackedEntity()
+    public TrackedEntityType()
     {
 
     }
 
-    public TrackedEntity( String name, String description )
+    public TrackedEntityType( String name, String description )
     {
         this.name = name;
         this.description = description;

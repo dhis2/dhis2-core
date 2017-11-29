@@ -58,7 +58,7 @@ public class TrackedEntityAttribute
 
     private OptionSet optionSet;
 
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     private String expression;
 
@@ -367,14 +367,14 @@ public class TrackedEntityAttribute
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty

@@ -309,6 +309,34 @@ public class TableAlteror
 
         executeSql( "update programstageinstance set createdatclient=created where createdatclient is null" );
         executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+        
+        /*executeSql( "INSERT INTO trackedentitytype SELECT trackedentityid, uid, code, created, lastupdated, lastupdatedby, name, description FROM trackedentity" );
+        
+        executeSql( "ALTER TABLE program RENAME trackedentityid to trackedentitytypeid" );
+        executeSql( "ALTER TABLE program DROP CONSTRAINT fk_program_trackedentityid" );
+        
+        executeSql( "ALTER TABLE trackedentityinstance RENAME trackedentityid to trackedentitytypeid" );
+        executeSql( "ALTER TABLE trackedentityinstance DROP CONSTRAINT fk_trackedentityinstance_trackedentityid" );
+        
+        executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
+        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );
+        
+        executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
+        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );        
+        
+        executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
+        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );
+        
+        executeSql( "ALTER TABLE trackedentitytranslations RENAME trackedentityid to trackedentitytypeid" );            
+        executeSql( "ALTER TABLE trackedentitytranslations DROP CONSTRAINT fk_objecttranslation_trackedentityid" );
+        
+        executeSql( "ALTER TABLE trackedentityattributevalues RENAME trackedentityid to trackedentitytypeid" );
+        executeSql( "ALTER TABLE trackedentityattributevalues DROP CONSTRAINT fk173583919108c5a" );
+        executeSql( "ALTER TABLE trackedentityattributevalues DROP CONSTRAINT fklbmw2ijdfkxonj516i8nqcoe" );
+        executeSql( "ALTER TABLE trackedentityattributevalues DROP CONSTRAINT fkmjrqc1t0r4q2uh6kuuxpem34g" );
+        
+        executeSql( "DROP TABLE trackedentity" );*/
+        
     }
 
     // -------------------------------------------------------------------------
@@ -350,7 +378,7 @@ public class TableAlteror
 
     private void createPersonTrackedEntity()
     {
-        int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentity where name='Person'",
+        int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentitytype where name='Person'",
             Integer.class );
 
         if ( exist == 0 )
@@ -360,14 +388,14 @@ public class TableAlteror
             String uid = "MCPQUTHX1Ze";
             String date = DateUtils.getSqlDateString( new Date() );
 
-            jdbcTemplate.execute( "INSERT INTO trackedentity(trackedentityid,uid, code, created, lastupdated,name, description) values("
+            jdbcTemplate.execute( "INSERT INTO trackedentitytype(trackedentitytypeid,uid, code, created, lastupdated,name, description) values("
                 + id + ",'" + uid + "','Person','" + date + "','" + date + "','Person','Person')" );
 
-            jdbcTemplate.execute( "UPDATE program SET trackedentityid="
-                + "  (SELECT trackedentityid FROM trackedentity where name='Person') where trackedentityid is null" );
+            jdbcTemplate.execute( "UPDATE program SET trackedentitytypeid="
+                + "  (SELECT trackedentitytypeid FROM trackedentitytype where name='Person') where trackedentitytypeid is null" );
 
-            jdbcTemplate.execute( "UPDATE trackedentityinstance SET trackedentityid="
-                + "  (SELECT trackedentityid FROM trackedentity where name='Person') where trackedentityid is null" );
+            jdbcTemplate.execute( "UPDATE trackedentityinstance SET trackedentitytypeid="
+                + "  (SELECT trackedentitytypeid FROM trackedentitytype where name='Person') where trackedentitytypeid is null" );
         }
     }
 

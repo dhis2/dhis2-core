@@ -31,6 +31,6 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.common.GenericNameableObjectStore;
 
 public interface TrackedEntityStore
-    extends GenericNameableObjectStore<TrackedEntity>
+    extends GenericNameableObjectStore<TrackedEntityType>
 {
 }
