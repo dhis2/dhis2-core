@@ -849,6 +849,28 @@ public class QueryPlannerTest
     }
 
     /**
+     * 
+     */
+    @Test
+    public void planQueryN()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( getList( deA ) )
+            .withOrganisationUnits( getList( ouA ) )
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) )
+            .withAggregationType( AnalyticsAggregationType.sum() ).build();
+
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+        
+        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+
+        List<DataQueryParams> queries = queryGroups.getAllQueries();
+        
+        //TODO
+    }
+
+    /**
      * Splits in 4 queries for each period to satisfy optimal for a total
      * of 4 queries, because all queries have different periods.
      */

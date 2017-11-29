@@ -117,7 +117,7 @@ public class AnalyticsAggregationType
     {
         return new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
     }
-
+    
     public boolean isAggregationType( AggregationType type )
     {
         return this.aggregationType == type;
