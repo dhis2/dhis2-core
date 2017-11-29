@@ -37,6 +37,10 @@ import com.google.common.base.MoreObjects;
  */
 public class AnalyticsAggregationType
 {
+    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
+    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
+    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
+    
     /**
      * General aggregation type.
      */
@@ -101,21 +105,6 @@ public class AnalyticsAggregationType
         {
             return new AnalyticsAggregationType( aggregationType, aggregationType );
         }
-    }
-    
-    public static AnalyticsAggregationType sum()
-    {
-        return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
-    }
-    
-    public static AnalyticsAggregationType average()
-    {
-        return new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
-    }
-
-    public static AnalyticsAggregationType count()
-    {
-        return new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
     }
     
     public boolean isAggregationType( AggregationType type )

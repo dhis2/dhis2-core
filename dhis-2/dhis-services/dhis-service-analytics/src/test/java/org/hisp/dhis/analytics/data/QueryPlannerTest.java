@@ -964,7 +964,7 @@ public class QueryPlannerTest
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA ) )
             .withPeriods( getList( createPeriod( "200101" ) ) )
-            .withAggregationType( AnalyticsAggregationType.average() ).build();
+            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
@@ -996,7 +996,7 @@ public class QueryPlannerTest
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA ) )
             .withPeriods( getList( createPeriod( "200101" ) ) )
-            .withAggregationType( AnalyticsAggregationType.average() ).build();
+            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();

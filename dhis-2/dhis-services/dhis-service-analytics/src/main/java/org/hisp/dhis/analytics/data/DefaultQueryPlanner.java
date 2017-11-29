@@ -434,7 +434,7 @@ public class DefaultQueryPlanner
             DimensionalObject degs = params.getDataElementGroupSets().get( 0 );
             DataElementGroup deg = (DataElementGroup) (degs.hasItems() ? degs.getItems().get( 0 ) : null);
             
-            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.sum() );
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.SUM );
 
             if ( deg != null && !deg.getMembers().isEmpty() )
             {
@@ -454,7 +454,7 @@ public class DefaultQueryPlanner
         else
         {
             DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.sum() ) ).build();
+                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.SUM ) ).build();
             
             queries.add( query );
         }
