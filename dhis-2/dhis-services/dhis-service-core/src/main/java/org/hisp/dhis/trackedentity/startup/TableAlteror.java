@@ -185,6 +185,7 @@ public class TableAlteror
         executeSql( "update systemsetting set \"name\"='autoSavetTrackedEntityForm' where \"name\"='autoSavePatientRegistration'" );
 
         executeSql( "UPDATE trackedentityattribute SET uniquefield=false WHERE uniquefield is null" );
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN trackedentityid" );
 
         executeSql( "INSERT INTO trackedentityattribute "
             + "( trackedentityattributeid, uid, lastUpdated, name, description, valueType, mandatory, inherit, displayOnVisitSchedule, uniquefield, orgunitScope, programScope )"
@@ -321,7 +322,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
         executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );
         
-        executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN trackedentityid" );            
         executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );        
         
         executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
