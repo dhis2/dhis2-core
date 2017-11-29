@@ -63,7 +63,7 @@ public class DataSetNotificationTemplate
 
     private Integer relativeScheduledDays = 0;
 
-    private NotificationTrigger notificationTrigger;
+    private DataSetNotificationTrigger dataSetNotificationTrigger;
 
     private DataSetNotificationRecipient notificationRecipient;
 
@@ -80,14 +80,14 @@ public class DataSetNotificationTemplate
     }
 
     public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels, String messageTemplate,
-        DataSetNotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate,
+        DataSetNotificationRecipient notificationRecipient, DataSetNotificationTrigger dataSetNotificationTrigger, String subjectTemplate,
             UserGroup userGroup, Integer relativeScheduledDays, SendStrategy sendStrategy )
     {
         this.dataSets = dataSets;
         this.deliveryChannels = deliveryChannels;
         this.messageTemplate = messageTemplate;
         this.notificationRecipient = notificationRecipient;
-        this.notificationTrigger = notificationTrigger;
+        this.dataSetNotificationTrigger = dataSetNotificationTrigger;
         this.subjectTemplate = subjectTemplate;
         this.recipientUserGroup = userGroup;
         this.relativeScheduledDays = relativeScheduledDays;
@@ -152,7 +152,7 @@ public class DataSetNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationRecipient getNotificationRecipient()
+    public DataSetNotificationRecipient getNotificationRecipient()
     {
         return notificationRecipient;
     }
@@ -164,14 +164,14 @@ public class DataSetNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationTrigger getNotificationTrigger()
+    public DataSetNotificationTrigger getDataSetNotificationTrigger()
     {
-        return notificationTrigger;
+        return dataSetNotificationTrigger;
     }
 
-    public void setNotificationTrigger( NotificationTrigger notificationTrigger )
+    public void setDataSetNotificationTrigger( DataSetNotificationTrigger dataSetNotificationTrigger )
     {
-        this.notificationTrigger = notificationTrigger;
+        this.dataSetNotificationTrigger = dataSetNotificationTrigger;
     }
 
     @JsonProperty
