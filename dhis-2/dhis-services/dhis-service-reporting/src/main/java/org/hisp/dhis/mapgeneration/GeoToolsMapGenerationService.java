@@ -29,6 +29,7 @@ package org.hisp.dhis.mapgeneration;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.Grid;
@@ -234,7 +235,8 @@ public class GeoToolsMapGenerationService
         }
         else if ( mapView.getRelatives() != null )
         {
-            String financialYearStart = (String) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf(
+                String.valueOf( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ) );
             period = mapView.getRelatives().getRelativePeriods( date, null, false, financialYearStart ).get( 0 );
         }
 

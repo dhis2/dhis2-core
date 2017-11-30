@@ -6,14 +6,13 @@ import org.hisp.dhis.period.FinancialOctoberPeriodType;
 import org.hisp.dhis.period.FinancialPeriodType;
 
 /**
- * Created by henninghakonsen on 15/05/2017.
- * Project: dhis-2.
+ * @author Henning Håkonsen
  */
 public enum AnalyticsFinancialYearStartKey
 {
-    FINANCIAL_PERIOD_APRIL( "FINANCIAL_PERIOD_APRIL", new FinancialAprilPeriodType() ),
-    FINANCIAL_PERIOD_JULY( "FINANCIAL_PERIOD_JULY", new FinancialJulyPeriodType() ),
-    FINANCIAL_PERIOD_OCTOBER( "FINANCIAL_PERIOD_OCTOBER", new FinancialOctoberPeriodType() );
+    FINANCIAL_YEAR_APRIL( "FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType() ),
+    FINANCIAL_YEAR_JULY( "FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType() ),
+    FINANCIAL_YEAR_OCTOBER( "FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType() );
 
     private final String name;
 

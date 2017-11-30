@@ -34,6 +34,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.Grid;
@@ -197,7 +198,7 @@ public class DefaultReportService
             {
                 if ( report.hasRelativePeriods() )
                 {
-                    String financialYearStart = (String) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+                    AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf( String.valueOf( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ) );
                     List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
                         financialYearStart );
 
@@ -274,8 +275,8 @@ public class DefaultReportService
 
         if ( report != null && report.hasRelativePeriods() )
         {
-            String financialYearStart = (String) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
-
+            AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf( String.valueOf( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ) );
+            
             if ( calendar.isIso8601() )
             {
                 for ( Period period : report.getRelatives().getRelativePeriods( date, format, true,

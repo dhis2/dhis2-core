@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+
 /**
  * @author Lars Helge Overland
  */
@@ -456,7 +458,7 @@ public class RelativePeriods
             return lowestFrequencyOrder;
         }
 
-        return periodType;
+        return null;
     }
 
     /**
@@ -477,7 +479,7 @@ public class RelativePeriods
 
         Date rewindedDate = periodType.getRewindedDate( date, rewindedPeriods );
 
-        return getRelativePeriods( rewindedDate, format, dynamicNames, "FINANCIAL_PERIOD_OCTOBER" );
+        return getRelativePeriods( rewindedDate, format, dynamicNames, FINANCIAL_YEAR_OCTOBER );
     }
 
     /**
@@ -485,7 +487,7 @@ public class RelativePeriods
      */
     public List<Period> getRelativePeriods()
     {
-        return getRelativePeriods( null, null, false, "FINANCIAL_PERIOD_OCTOBER" );
+        return getRelativePeriods( null, null, false, FINANCIAL_YEAR_OCTOBER );
     }
 
     /**
@@ -497,7 +499,7 @@ public class RelativePeriods
      */
     public List<Period> getRelativePeriods( I18nFormat format, boolean dynamicNames )
     {
-        return getRelativePeriods( null, format, dynamicNames, "FINANCIAL_PERIOD_OCTOBER" );
+        return getRelativePeriods( null, format, dynamicNames, FINANCIAL_YEAR_OCTOBER );
     }
 
     /**
@@ -511,7 +513,7 @@ public class RelativePeriods
      * @return a list of relative Periods.
      */
     public List<Period> getRelativePeriods( Date date, I18nFormat format, boolean dynamicNames,
-        String financialYearStart )
+        AnalyticsFinancialYearStartKey financialYearStart )
     {
         date = ( date != null ) ? date : new Date();
 
@@ -519,7 +521,7 @@ public class RelativePeriods
 
         if ( isThisFinancialPeriod() )
         {
-            FinancialPeriodType financialPeriodType = AnalyticsFinancialYearStartKey.valueOf( financialYearStart ).getFinancialPeriodType();
+            FinancialPeriodType financialPeriodType = financialYearStart.getFinancialPeriodType();
 
             periods.addAll( getRelativeFinancialPeriods( financialPeriodType, format, dynamicNames ) );
         }
@@ -851,7 +853,7 @@ public class RelativePeriods
      * @return a RelativePeriods instance.
      */
     public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date,
-        I18nFormat format, boolean dynamicNames, String financialYearStart )
+        I18nFormat format, boolean dynamicNames, AnalyticsFinancialYearStartKey financialYearStart )
     {
         Map<RelativePeriodEnum, RelativePeriods> map = new HashMap<>();
 
