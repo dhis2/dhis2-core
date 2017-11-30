@@ -382,7 +382,7 @@ public class DefaultAclService implements AclService
 
         if ( isDataShareable( object.getClass() ) )
         {
-            Data data = new Data(
+            AccessData data = new AccessData(
                 canDataRead( user, object ),
                 canDataWrite( user, object )
             );

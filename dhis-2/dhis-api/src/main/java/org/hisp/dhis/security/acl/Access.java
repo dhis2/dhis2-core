@@ -51,7 +51,7 @@ public class Access
 
     private boolean delete;
 
-    private Data data;
+    private AccessData data;
 
     public Access()
     {
@@ -141,12 +141,12 @@ public class Access
 
     @JsonProperty
     @JacksonXmlProperty( localName = "data", namespace = DxfNamespaces.DXF_2_0 )
-    public Data getData()
+    public AccessData getData()
     {
         return data;
     }
 
-    public void setData( Data data )
+    public void setData( AccessData data )
     {
         this.data = data;
     }

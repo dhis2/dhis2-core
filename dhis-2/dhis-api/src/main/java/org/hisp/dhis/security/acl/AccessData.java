@@ -9,17 +9,17 @@ import org.hisp.dhis.common.DxfNamespaces;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "data", namespace = DxfNamespaces.DXF_2_0 )
-public class Data
+public class AccessData
 {
     private boolean write;
 
     private boolean read;
 
-    public Data()
+    public AccessData()
     {
     }
 
-    public Data( boolean read, boolean write )
+    public AccessData( boolean read, boolean write )
     {
         this.read = read;
         this.write = write;
