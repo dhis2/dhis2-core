@@ -309,34 +309,7 @@ public class TableAlteror
         executeSql( "update programinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
 
         executeSql( "update programstageinstance set createdatclient=created where createdatclient is null" );
-        executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
-        
-        /*executeSql( "INSERT INTO trackedentitytype SELECT trackedentityid, uid, code, created, lastupdated, lastupdatedby, name, description FROM trackedentity" );
-        
-        executeSql( "ALTER TABLE program RENAME trackedentityid to trackedentitytypeid" );
-        executeSql( "ALTER TABLE program DROP CONSTRAINT fk_program_trackedentityid" );
-        
-        executeSql( "ALTER TABLE trackedentityinstance RENAME trackedentityid to trackedentitytypeid" );
-        executeSql( "ALTER TABLE trackedentityinstance DROP CONSTRAINT fk_trackedentityinstance_trackedentityid" );
-        
-        executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
-        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );
-        
-        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN trackedentityid" );            
-        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );        
-        
-        executeSql( "ALTER TABLE trackedentityattribute RENAME trackedentityid to trackedentitytypeid" );            
-        executeSql( "ALTER TABLE trackedentityattribute DROP CONSTRAINT fk_trackedentityattribute_trackedentityid" );
-        
-        executeSql( "ALTER TABLE trackedentitytranslations RENAME trackedentityid to trackedentitytypeid" );            
-        executeSql( "ALTER TABLE trackedentitytranslations DROP CONSTRAINT fk_objecttranslation_trackedentityid" );
-        
-        executeSql( "ALTER TABLE trackedentityattributevalues RENAME trackedentityid to trackedentitytypeid" );
-        executeSql( "ALTER TABLE trackedentityattributevalues DROP CONSTRAINT fk173583919108c5a" );
-        executeSql( "ALTER TABLE trackedentityattributevalues DROP CONSTRAINT fklbmw2ijdfkxonj516i8nqcoe" );
-        executeSql( "ALTER TABLE trackedentityattributevalues DROP CONSTRAINT fkmjrqc1t0r4q2uh6kuuxpem34g" );
-        
-        executeSql( "DROP TABLE trackedentity" );*/
+        executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );        
         
     }
 

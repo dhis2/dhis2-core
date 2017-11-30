@@ -417,7 +417,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE indicator ALTER COLUMN code TYPE varchar(50)" );
 
         // remove uuid
-
+                
         executeSql( "ALTER TABLE attribute DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categorycombo DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categoryoptioncombo DROP COLUMN uuid" );
