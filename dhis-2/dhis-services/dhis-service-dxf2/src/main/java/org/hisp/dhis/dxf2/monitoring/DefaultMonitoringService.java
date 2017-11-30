@@ -48,9 +48,8 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-
 import javax.annotation.PostConstruct;
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -80,7 +79,7 @@ public class DefaultMonitoringService
     {
         Date date = new DateTime().plus( PUSH_INITIAL_DELAY ).toDate();
         
-        scheduler.scheduleWithFixedDelay( () -> pushMonitoringInfo(), date, PUSH_INTERVAL );
+        scheduler.scheduleWithFixedDelay( this::pushMonitoringInfo, date, PUSH_INTERVAL );
         
         log.info( "Scheduled monitoring push service" );
     }

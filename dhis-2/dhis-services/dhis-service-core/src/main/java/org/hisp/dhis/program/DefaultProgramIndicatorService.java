@@ -668,7 +668,7 @@ public class DefaultProgramIndicatorService
 
     private String getNumericIgnoreNullSql( String column )
     {
-        return "coalesce(" + column + ",0)";
+        return "coalesce(" + column + "::numeric,0)";
     }
     
     private String getTextIgnoreNullSql( String column )

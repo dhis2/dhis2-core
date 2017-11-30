@@ -33,6 +33,7 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -46,16 +47,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -69,14 +61,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
@@ -282,7 +267,7 @@ public class EventValidationServiceTest
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
 
         // Generate analytics tables:
-        analyticsTableGenerator.generateTables( 2, null, null, false );
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build() );
     }
 
     @Override
@@ -410,8 +395,9 @@ public class EventValidationServiceTest
         Date endDate = getDate( testYear, 4, 30 );
         List<OrganisationUnit> orgUnits = Arrays.asList( orgUnitA );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( startDate, endDate,
-            orgUnits,false, null, null, false, null );
+        ValidationAnalysisParams params = validationService.newParamsBuilder( null, orgUnits, startDate, endDate ).build();
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( params );
 
         assertResultsEquals( reference, results );
     }

@@ -44,8 +44,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -53,7 +51,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
 
-import java.sql.Date;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -514,36 +511,27 @@ public class AnalyticsUtilsTest
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         int currentYear = calendar.get( Calendar.YEAR );
 
-        YearlyPeriodType pt = new YearlyPeriodType();
-
-        calendar.set( currentYear, 1, 1 );
-        Period thisYear = pt.createPeriod( Date.from( calendar.toInstant() ) );
-
-        calendar.set( currentYear-1, 1, 1 );
-        Period oneYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
-
-        calendar.set( currentYear-2, 1, 1 );
-        Period twoYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
-
-        calendar.set( currentYear-3, 1, 1 );
-        Period threeYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
+        Integer thisYear = currentYear;
+        Integer oneYearAgo = currentYear - 1;
+        Integer twoYearsAgo = currentYear - 2;
+        Integer threeYearsAgo = currentYear - 3;
 
         // maxYears = 0 should always return false
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 0 ) );
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 0 ) );
 
         // maxYears = 1 should only return true for years other than thisYear
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 1 ) );
         assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 1 ) );
-        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 1 ) );
-        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 1 ) );
 
         // maxYears = 4 should only return false for all three years defined
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 5 ) );
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 5 ) );
     }
 }

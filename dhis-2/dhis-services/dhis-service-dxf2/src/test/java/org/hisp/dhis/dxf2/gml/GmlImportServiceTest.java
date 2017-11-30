@@ -35,11 +35,10 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -64,7 +63,7 @@ public class GmlImportServiceTest
 
     private ImportOptions importOptions;
 
-    private TaskId taskId;
+    private JobId jobId;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -124,15 +123,16 @@ public class GmlImportServiceTest
 
         user = createAndInjectAdminUser();
 
-        taskId = new TaskId( TaskCategory.METADATA_IMPORT, user );
+        jobId = new JobId( JobType.METADATA_IMPORT, user.getUid() );
 
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
         importOptions.setPreheatCache( true );
     }
 
-    @After
-    public void after()
+    @Override
+    protected void tearDownTest()
+        throws Exception
     {
         IOUtils.closeQuietly( inputStream );
     }
@@ -146,7 +146,7 @@ public class GmlImportServiceTest
         throws Exception
     {
         MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setTaskId( taskId );
+        importParams.setJobId( jobId );
         importParams.setUser( user );
 
         gmlImportService.importGml( inputStream, importParams );

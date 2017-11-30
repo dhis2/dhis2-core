@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Partitions;
@@ -70,7 +71,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.MoreObjects;
 
 /**
  * Class representing query parameters for retrieving event data from the
@@ -234,6 +235,7 @@ public class EventQueryParams
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
+        params.tableName = this.tableName;
         params.periodType = this.periodType;
 
         params.program = this.program;
@@ -459,7 +461,7 @@ public class EventQueryParams
      * aggregation type of the query, second by looking at the aggregation type
      * of the value dimension, third by returning AVERAGE;
      */
-    public AggregationType getAggregationTypeFallback()
+    public AnalyticsAggregationType getAggregationTypeFallback()
     {
         if ( hasAggregationType() )
         {
@@ -467,10 +469,10 @@ public class EventQueryParams
         }
         else if ( hasValueDimension() && value.getAggregationType() != null )
         {
-            return value.getAggregationType();
+            return AnalyticsAggregationType.fromAggregationType( value.getAggregationType() );
         }
 
-        return AggregationType.AVERAGE;
+        return AnalyticsAggregationType.AVERAGE;
     }
 
     /**
@@ -478,11 +480,11 @@ public class EventQueryParams
      * {@link getAggregationTypeFallback}.
      */
     @Override
-    public boolean isAggregationType( AggregationType aggregationType )
+    public boolean isAggregationType( AggregationType type )
     {
-        AggregationType type = getAggregationTypeFallback();
+        AnalyticsAggregationType typeFallback = getAggregationTypeFallback();
 
-        return type != null && type.equals( aggregationType );
+        return typeFallback != null && type.equals( typeFallback.getAggregationType() );
     }
 
     /**
@@ -612,20 +614,20 @@ public class EventQueryParams
     @Override
     public String toString()
     {
-        return ImmutableMap.<String, Object>builder()
-            .put( "Program", program )
-            .put( "Stage", programStage )
-            .put( "Start date", startDate )
-            .put( "End date", endDate )
-            .put( "Items", items )
-            .put( "Item filters", itemFilters )
-            .put( "Value", value )
-            .put( "Item program indicators", itemProgramIndicators )
-            .put( "Program indicator", programIndicator )
-            .put( "Aggregation type", aggregationType )
-            .put( "Dimensions", dimensions )
-            .put( "Filters", filters )
-            .build().toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "Program", program )
+            .add( "Stage", programStage )
+            .add( "Start date", startDate )
+            .add( "End date", endDate )
+            .add( "Items", items )
+            .add( "Item filters", itemFilters )
+            .add( "Value", value )
+            .add( "Item program indicators", itemProgramIndicators )
+            .add( "Program indicator", programIndicator )
+            .add( "Aggregation type", aggregationType )
+            .add( "Dimensions", dimensions )
+            .add( "Filters", filters )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -931,6 +933,12 @@ public class EventQueryParams
             this.params.partitions = partitions;
             return this;
         }
+
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
+            return this;
+        }
         
         public Builder addAscSortItem( DimensionalItemObject sortItem )
         {
@@ -944,7 +952,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withAggregationType( AggregationType aggregationType )
+        public Builder withAggregationType( AnalyticsAggregationType aggregationType )
         {
             this.params.aggregationType = aggregationType;
             return this;

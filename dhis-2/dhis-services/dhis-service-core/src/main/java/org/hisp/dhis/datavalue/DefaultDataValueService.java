@@ -33,8 +33,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
@@ -327,12 +327,12 @@ public class DefaultDataValueService
     }
 
     @Override
-    public MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+    public Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
         Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        OrganisationUnit orgUnit )
+        Collection<OrganisationUnit> orgUnits )
     {
         return dataValueStore.getDataElementOperandValues( dataElementOperands,
-            periods, orgUnit );
+            periods, orgUnits );
     }
 
     @Override

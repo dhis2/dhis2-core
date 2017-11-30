@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.28-SNAPSHOT</version>
+    <version>2.29-SNAPSHOT</version>
   </parent>
   <artifactId>dhis-web</artifactId>
   <packaging>pom</packaging>
@@ -17,7 +17,9 @@
     <module>dhis-web-api-mobile</module>
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
+    <!-- 
     <module>dhis-web-ohie</module>
+    -->
     <module>dhis-web-uaa</module>
     <module>dhis-web-maintenance</module>
     <module>dhis-web-dataentry</module>

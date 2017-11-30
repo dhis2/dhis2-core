@@ -34,7 +34,7 @@ import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 import java.io.InputStream;
 
@@ -60,21 +60,21 @@ public class ImportDataValueTask
 
     private final ImportOptions importOptions;
 
-    private final TaskId taskId;
+    private final JobId jobId;
 
     private final String format;
 
     // TODO: Re-factor as bean to avoid injecting session factory / dependencies
     
     public ImportDataValueTask( DataValueSetService dataValueSetService, AdxDataService adxDataService, SessionFactory sessionFactory,
-        InputStream inputStream, ImportOptions importOptions, TaskId taskId, String format )
+        InputStream inputStream, ImportOptions importOptions, JobId jobId, String format )
     {
         this.dataValueSetService = dataValueSetService;
         this.adxDataService = adxDataService;
         this.sessionFactory = sessionFactory;
         this.inputStream = inputStream;
         this.importOptions = importOptions;
-        this.taskId = taskId;
+        this.jobId = jobId;
         this.format = format;
     }
 
@@ -83,23 +83,23 @@ public class ImportDataValueTask
     {
         if ( FORMAT_JSON.equals( format ) )
         {
-            dataValueSetService.saveDataValueSetJson( inputStream, importOptions, taskId );
+            dataValueSetService.saveDataValueSetJson( inputStream, importOptions, jobId );
         }
         else if ( FORMAT_CSV.equals( format ) )
         {
-            dataValueSetService.saveDataValueSetCsv( inputStream, importOptions, taskId );
+            dataValueSetService.saveDataValueSetCsv( inputStream, importOptions, jobId );
         }
         else if ( FORMAT_PDF.equals( format ) )
         {
-            dataValueSetService.saveDataValueSetPdf( inputStream, importOptions, taskId );
+            dataValueSetService.saveDataValueSetPdf( inputStream, importOptions, jobId );
         }
         else if ( FORMAT_ADX.equals( format ) )
         {
-            adxDataService.saveDataValueSet( inputStream, importOptions, taskId );
+            adxDataService.saveDataValueSet( inputStream, importOptions, jobId );
         }
         else // FORMAT_XML
         {
-            dataValueSetService.saveDataValueSet( inputStream, importOptions, taskId );
+            dataValueSetService.saveDataValueSet( inputStream, importOptions, jobId );
         }
     }
     

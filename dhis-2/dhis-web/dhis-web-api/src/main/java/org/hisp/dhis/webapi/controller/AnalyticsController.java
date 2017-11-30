@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
@@ -532,5 +533,11 @@ public class AnalyticsController
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + "/tableTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody AnalyticsTableType[] getTableTypes()
+    {
+        return AnalyticsTableType.values();
     }
 }

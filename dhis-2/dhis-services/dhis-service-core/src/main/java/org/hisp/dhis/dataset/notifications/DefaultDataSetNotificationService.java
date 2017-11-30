@@ -41,6 +41,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -379,7 +380,7 @@ public class DefaultDataSetNotificationService
 
         ProgramMessageRecipients recipients;
 
-        if ( template.getNotificationTrigger().isScheduled() )
+        if ( template.getDataSetNotificationTrigger().isScheduled() )
         {
             recipients = resolveExternalRecipientsForSchedule( template, registration );
         }
@@ -475,8 +476,10 @@ public class DefaultDataSetNotificationService
     private void sendInternalDhisMessages( List<DhisMessage> messages )
     {
         messages.forEach( m ->
-            internalMessageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
-                MessageType.SYSTEM, false )
+            internalMessageService.sendMessage(
+                new MessageConversationParams.Builder(m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
+                .build()
+            )
         );
     }
 

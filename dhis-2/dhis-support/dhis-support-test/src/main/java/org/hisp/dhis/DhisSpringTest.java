@@ -28,6 +28,7 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,14 +65,26 @@ public abstract class DhisSpringTest
         throws Exception
     {
         executeStartupRoutines();
-
         setUpTest();
+    }
+
+    @After
+    public final void after()
+        throws Exception
+    {
+        clearSecurityContext();
+        tearDownTest();
     }
 
     /**
      * Method to override.
      */
     protected void setUpTest()
+        throws Exception
+    {
+    }
+
+    protected void tearDownTest()
         throws Exception
     {
     }

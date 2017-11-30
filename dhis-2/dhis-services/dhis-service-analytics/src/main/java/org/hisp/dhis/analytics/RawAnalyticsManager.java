@@ -37,5 +37,12 @@ import org.hisp.dhis.common.Grid;
  */
 public interface RawAnalyticsManager
 {
+    /**
+     * Adds raw analytics data to the given grid based on the given query.
+     * 
+     * @param params the query.
+     * @param grid the grid.
+     * @return a grid with data.
+     */
     Grid getRawDataValues( DataQueryParams params, Grid grid );    
 }

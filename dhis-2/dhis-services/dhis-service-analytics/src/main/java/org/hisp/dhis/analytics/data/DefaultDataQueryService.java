@@ -121,9 +121,13 @@ public class DefaultDataQueryService
         {
             params.withPreAggregationMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( preAggregationMeasureCriteria) );
         }
+        
+        if ( aggregationType != null )
+        {
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
+        }
 
         return params
-            .withAggregationType( aggregationType )
             .withStartDate( startDate )
             .withEndDate( endDate )
             .withSkipMeta( skipMeta )

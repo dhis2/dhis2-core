@@ -1,6 +1,6 @@
 language: java
 sudo : false
-dist : precise
+dist : trusty
 jdk:
 - oraclejdk8
 addons:

@@ -28,18 +28,17 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.collection.TaskLocalList;
+import org.hisp.dhis.system.collection.TaskLocalMap;
+
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.system.collection.TaskLocalList;
-import org.hisp.dhis.system.collection.TaskLocalMap;
 
 /**
  * @author Lars Helge Overland
@@ -53,7 +52,7 @@ public class InMemoryNotifier
     
     private TaskLocalList<Notification> notifications;
     
-    private TaskLocalMap<TaskCategory, Object> taskSummaries;
+    private TaskLocalMap<JobType, Object> taskSummaries;
     
     @PostConstruct
     public void init()
@@ -67,19 +66,19 @@ public class InMemoryNotifier
     // -------------------------------------------------------------------------
 
     @Override
-    public Notifier notify( TaskId id, String message )
+    public Notifier notify( JobId id, String message )
     {
         return notify( id, NotificationLevel.INFO, message, false );
     }
     
     @Override
-    public Notifier notify( TaskId id, NotificationLevel level, String message )
+    public Notifier notify( JobId id, NotificationLevel level, String message )
     {
         return notify( id, level, message, false );
     }
 
     @Override
-    public Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed )
+    public Notifier notify( JobId id, NotificationLevel level, String message, boolean completed )
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
@@ -99,19 +98,19 @@ public class InMemoryNotifier
     }
 
     @Override
-    public Notifier update( TaskId id, String message )
+    public Notifier update( JobId id, String message )
     {
         return update( id, NotificationLevel.INFO, message, false );
     }
 
     @Override
-    public Notifier update( TaskId id, NotificationLevel level, String message )
+    public Notifier update( JobId id, NotificationLevel level, String message )
     {
         return update( id, level, message, false );
     }
 
     @Override
-    public Notifier update( TaskId id, NotificationLevel level, String message, boolean completed )
+    public Notifier update( JobId id, NotificationLevel level, String message, boolean completed )
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
@@ -127,7 +126,7 @@ public class InMemoryNotifier
     }
 
     @Override
-    public List<Notification> getNotifications( TaskId id, String lastUid )
+    public List<Notification> getNotifications( JobId id, String lastUid )
     {
         List<Notification> list = new ArrayList<>();
         
@@ -148,7 +147,7 @@ public class InMemoryNotifier
     }
     
     @Override
-    public Notifier clear( TaskId id )
+    public Notifier clear( JobId id )
     {
         if ( id != null )
         {
@@ -160,13 +159,13 @@ public class InMemoryNotifier
     }
     
     @Override
-    public Notifier addTaskSummary( TaskId id, Object taskSummary )
+    public Notifier addTaskSummary( JobId id, Object taskSummary )
     {
         return addTaskSummary( id, NotificationLevel.INFO, taskSummary );
     }
     
     @Override
-    public Notifier addTaskSummary( TaskId id, NotificationLevel level, Object taskSummary )
+    public Notifier addTaskSummary( JobId id, NotificationLevel level, Object taskSummary )
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
@@ -177,7 +176,7 @@ public class InMemoryNotifier
     }
 
     @Override
-    public Object getTaskSummary( TaskId id )
+    public Object getTaskSummary( JobId id )
     {
         if ( id != null )
         {

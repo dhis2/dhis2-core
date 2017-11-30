@@ -29,11 +29,14 @@ package org.hisp.dhis.predictor;
  */
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Jim Grace
  */
 public interface PredictionService
 {
+    int predictPredictors( List<String> predictors, Date startDate, Date endDate );
+
     int predict( Predictor predictor, Date startDate, Date endDate );
 }

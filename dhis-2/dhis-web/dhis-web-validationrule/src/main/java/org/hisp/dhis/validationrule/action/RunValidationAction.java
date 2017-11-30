@@ -37,10 +37,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.util.SessionUtils;
-import org.hisp.dhis.validation.ValidationResult;
-import org.hisp.dhis.validation.ValidationRuleGroup;
-import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.validation.ValidationService;
+import org.hisp.dhis.validation.*;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 
 import java.util.ArrayList;
@@ -71,7 +68,7 @@ public class RunValidationAction
     }
 
     private ValidationService validationService;
-    
+
     public void setValidationService( ValidationService validationService )
     {
         this.validationService = validationService;
@@ -206,8 +203,15 @@ public class RunValidationAction
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
-        validationResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis( format.parseDate( startDate ), format.parseDate( endDate ),
-                organisationUnits, persistResults, attributeOptionCombo, group, sendNotifications, format ) );
+
+        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnits, format.parseDate( startDate ), format.parseDate( endDate ) )
+            .withAttributeOptionCombo( attributeOptionCombo )
+            .withPersistResults( persistResults )
+            .withSendNotifications( sendNotifications )
+            .withMaxResults( ValidationService.MAX_INTERACTIVE_ALERTS )
+            .build();
+
+        validationResults = new ArrayList<>( validationService.validationAnalysis( params ));
 
         maxExceeded = validationResults.size() > ValidationService.MAX_INTERACTIVE_ALERTS;
 

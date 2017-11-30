@@ -53,6 +53,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.joda.time.DateTime;
 import org.springframework.util.Assert;
 
 import java.util.*;
@@ -690,7 +691,7 @@ public class AnalyticsUtils
      * 
      * @param dimensions the dimensions.
      * @param hierarchyMeta indicates whether to include meta data about the
-     *        organisation unit hierarchy.
+     *         organisation unit hierarchy.
      * @return a mapping between identifiers and display properties.
      */
     public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
@@ -728,18 +729,15 @@ public class AnalyticsUtils
      * @param maxYears amount of years back to check
      * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
      */
-    public static boolean periodIsOutsideApprovalMaxYears( Period period, Integer maxYears )
+    public static boolean periodIsOutsideApprovalMaxYears( Integer year, Integer maxYears )
     {
         if ( maxYears == 0 )
         {
             return false;
         }
 
-        java.util.Calendar periodDate = java.util.Calendar.getInstance();
-        java.util.Calendar now = java.util.Calendar.getInstance();
-
-        periodDate.setTime( period.getStartDate() );
-
-        return ( now.get( java.util.Calendar.YEAR ) - periodDate.get( java.util.Calendar.YEAR ) ) >= maxYears;
+        int currentYear = new DateTime().getYear();
+        
+        return ( currentYear - year ) >= maxYears;
     }
 }
