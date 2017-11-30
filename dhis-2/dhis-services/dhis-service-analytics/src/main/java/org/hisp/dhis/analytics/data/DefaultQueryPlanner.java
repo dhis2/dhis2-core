@@ -101,6 +101,7 @@ public class DefaultQueryPlanner
             .add( q -> groupByAggregationType( q ) )
             .add( q -> groupByDaysInPeriod( q ) )
             .add( q -> groupByDataPeriodType( q ) )
+            .add( q -> groupByPeriod( q ) )
             .addAll( plannerParams.getQueryGroupers() )
             .build();
         
@@ -433,7 +434,7 @@ public class DefaultQueryPlanner
             DimensionalObject degs = params.getDataElementGroupSets().get( 0 );
             DataElementGroup deg = (DataElementGroup) (degs.hasItems() ? degs.getItems().get( 0 ) : null);
             
-            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.sum() );
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.SUM );
 
             if ( deg != null && !deg.getMembers().isEmpty() )
             {
@@ -453,7 +454,7 @@ public class DefaultQueryPlanner
         else
         {
             DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.sum() ) ).build();
+                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.SUM ) ).build();
             
             queries.add( query );
         }
@@ -523,6 +524,7 @@ public class DefaultQueryPlanner
         if ( params.getDataElements().isEmpty() || !params.isDisaggregation() )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
+            
             return queries;
         }
 
@@ -539,6 +541,41 @@ public class DefaultQueryPlanner
         }
         
         logQuerySplit( queries, "data period type" );
+
+        return queries;
+    }
+
+    /**
+     * Groups the given query in sub queries for each dimension period. This only applies
+     * if the aggregation type is {@link AggregationType#LAST} or 
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be 
+     * aggregated individually.
+     * 
+     * @param params the data query parameters.
+     * @return a list of {@link DataQueryParams}.
+     */
+    private List<DataQueryParams> groupByPeriod( DataQueryParams params )
+    {
+        List<DataQueryParams> queries = new ArrayList<>();
+        
+        if ( params.getAggregationType().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        {
+            for ( DimensionalItemObject period : params.getPeriods() )
+            {
+                String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+                
+                DataQueryParams query = DataQueryParams.newBuilder( params )
+                    .withPeriods( Lists.newArrayList( period ), periodType ).build();
+                
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( params );
+        }
+
+        logQuerySplit( queries, "period" );
 
         return queries;
     }
@@ -559,5 +596,5 @@ public class DefaultQueryPlanner
         {
             log.debug( String.format( "Split on '%s': %d", splitCriteria, queries.size() ) );
         }
-    }    
+    }
 }

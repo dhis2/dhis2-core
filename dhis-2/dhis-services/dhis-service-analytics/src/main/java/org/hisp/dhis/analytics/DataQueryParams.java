@@ -41,6 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -471,65 +472,57 @@ public class DataQueryParams
     }
 
     /**
-     * Finds the latest endDate associated with this DataQueryParams. checks endDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Returns the latest period based on the period end date.
+     */
+    public Period getLatestPeriod()
+    {        
+        return getAllPeriods().stream()
+            .map( obj -> (Period) obj )
+            .min( DescendingPeriodComparator.INSTANCE )
+            .orElse( null );
+    }
+    
+    /**
+     * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period dimensions and
+     * period filters.
      */
     public Date getLatestEndDate()
     {
-        // Set to minimum value
-        Date latestEndDate = new Date(Long.MIN_VALUE);
+        Date latestEndDate = new Date( Long.MIN_VALUE );
 
         if ( endDate != null && endDate.after( latestEndDate ) )
         {
             latestEndDate = endDate;
         }
 
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
-        }
-
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
+            latestEndDate = period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate;
         }
 
         return latestEndDate;
-
     }
     
     /**
-     * Finds the earliest startDate associated with this DataQueryParams. checks startDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Finds the earliest startDate associated with this DataQueryParams. Checks startDate, period dimensions and
+     * period filters.
      */
     public Date getEarliestStartDate()
     {
-        // Set to minimum value
-        Date earliestStartDate = new Date(Long.MAX_VALUE);
+        Date earliestStartDate = new Date( Long.MAX_VALUE );
 
-        if ( startDate != null && startDate.before( startDate ) )
+        if ( startDate != null && startDate.before( earliestStartDate ) )
         {
             earliestStartDate = startDate;
         }
-
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
-        }
-
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
+            earliestStartDate = period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate;
         }
 
         return earliestStartDate;
@@ -633,6 +626,31 @@ public class DataQueryParams
     {
         return this.aggregationType != null;
     }
+
+    /**
+     * Indicates whether the aggregation type is of type disaggregation.
+     */
+    public boolean isDisaggregation()
+    {
+        return aggregationType != null && aggregationType.isDisaggregation();
+    }
+
+    /**
+     * Indicates whether this query requires aggregation of data. No aggregation
+     * takes place if aggregation type is none or if data type is text.
+     */
+    public boolean isAggregation()
+    {
+        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
+    }
+    
+    /**
+     * Indicates whether this query has the given aggregation type.
+     */
+    public boolean isAggregationType( AggregationType type )
+    {
+        return aggregationType != null && aggregationType.isAggregationType( type );
+    }
     
     /**
      * Indicates whether the this parameters has the given output format specified.
@@ -661,14 +679,6 @@ public class DataQueryParams
         }
         
         return map;
-    }
-    
-    /**
-     * Indicates whether the aggregation type is of type disaggregation.
-     */
-    public boolean isDisaggregation()
-    {
-        return aggregationType != null && aggregationType.isDisaggregation();
     }
     
     /**
@@ -1008,24 +1018,7 @@ public class DataQueryParams
     {
         return approvalLevel != null;
     }
-        
-    /**
-     * Indicates whether this query requires aggregation of data. No aggregation
-     * takes place if aggregation type is none or if data type is text.
-     */
-    public boolean isAggregation()
-    {
-        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
-    }
-    
-    /**
-     * Indicates whether this query has the given aggregation type.
-     */
-    public boolean isAggregationType( AggregationType type )
-    {
-        return aggregationType != null && type == aggregationType.getAggregationType();
-    }
-        
+
     /**
      * Returns all dimension items.
      */
@@ -2192,6 +2185,13 @@ public class DataQueryParams
         public Builder withPeriods( List<? extends DimensionalItemObject> periods )
         {
             this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );
+            return this;
+        }
+
+        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
+            this.params.periodType = periodType;
             return this;
         }
         
