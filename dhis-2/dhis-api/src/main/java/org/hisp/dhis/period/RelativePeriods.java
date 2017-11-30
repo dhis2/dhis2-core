@@ -1483,7 +1483,6 @@ public class RelativePeriods
     public boolean isThisFinancialPeriod()
     {
         return isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears();
-
     }
 
     // -------------------------------------------------------------------------
