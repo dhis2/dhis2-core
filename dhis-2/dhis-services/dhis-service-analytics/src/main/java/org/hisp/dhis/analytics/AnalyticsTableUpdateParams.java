@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
  */
 
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.scheduling.JobId;
 
 import java.util.Set;
