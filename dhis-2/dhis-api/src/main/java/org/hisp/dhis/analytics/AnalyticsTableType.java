@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.table;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,8 +28,6 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AnalyticsTableManager;
-
 /**
 * @author Lars Helge Overland
 */
@@ -53,10 +51,5 @@ public enum AnalyticsTableType
     public String getTableName()
     {
         return tableName;
-    }
-    
-    public String getTempTableName()
-    {
-        return tableName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
     }
 }
