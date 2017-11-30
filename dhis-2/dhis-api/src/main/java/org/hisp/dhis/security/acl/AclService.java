@@ -61,7 +61,7 @@ public interface AclService
      * @param klass Class to check
      * @return true if type is supported
      */
-    boolean isDataSupported( Class<?> klass );
+    boolean isDataShareable( Class<?> klass );
 
     /**
      * Is type supported for sharing?

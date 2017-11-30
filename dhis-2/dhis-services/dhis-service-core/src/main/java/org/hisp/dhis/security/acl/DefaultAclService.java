@@ -76,12 +76,6 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public boolean isDataSupported( Class<?> klass )
-    {
-        return true;
-    }
-
-    @Override
     public boolean isShareable( String type )
     {
         Schema schema = schemaService.getSchemaBySingularName( type );
@@ -93,6 +87,13 @@ public class DefaultAclService implements AclService
     {
         Schema schema = schemaService.getSchema( klass );
         return schema != null && schema.isShareable();
+    }
+
+    @Override
+    public boolean isDataShareable( Class<?> klass )
+    {
+        Schema schema = schemaService.getSchema( klass );
+        return schema != null && schema.isDataShareable();
     }
 
     @Override
@@ -379,7 +380,7 @@ public class DefaultAclService implements AclService
         access.setUpdate( canUpdate( user, object ) );
         access.setDelete( canDelete( user, object ) );
 
-        if ( isDataSupported( object.getClass() ) )
+        if ( isDataShareable( object.getClass() ) )
         {
             Data data = new Data(
                 canDataRead( user, object ),
