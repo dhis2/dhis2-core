@@ -29,6 +29,13 @@ package org.hisp.dhis.trackedentity;
  */
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -43,7 +50,9 @@ public class TrackedEntityType
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-
+    
+    private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
+    
     public TrackedEntityType()
     {
 
@@ -53,5 +62,18 @@ public class TrackedEntityType
     {
         this.name = name;
         this.description = description;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackedEntityTypeAttribute> getTrackedEntityTypeAttributes()
+    {
+        return trackedEntityTypeAttributes;
+    }
+
+    public void setTrackedEntityTypeAttributes( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes )
+    {
+        this.trackedEntityTypeAttributes = trackedEntityTypeAttributes;
     }
 }
