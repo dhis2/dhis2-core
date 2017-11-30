@@ -51,6 +51,8 @@ public class Access
 
     private boolean delete;
 
+    private Data data;
+
     public Access()
     {
     }
@@ -135,6 +137,18 @@ public class Access
     public void setDelete( boolean delete )
     {
         this.delete = delete;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "data", namespace = DxfNamespaces.DXF_2_0 )
+    public Data getData()
+    {
+        return data;
+    }
+
+    public void setData( Data data )
+    {
+        this.data = data;
     }
 
     @Override

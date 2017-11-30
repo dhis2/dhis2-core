@@ -76,6 +76,12 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean isDataSupported( Class<?> klass )
+    {
+        return true;
+    }
+
+    @Override
     public boolean isShareable( String type )
     {
         Schema schema = schemaService.getSchemaBySingularName( type );
@@ -121,6 +127,12 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean canDataRead( User user, IdentifiableObject object )
+    {
+        return true;
+    }
+
+    @Override
     public boolean canWrite( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )
@@ -162,6 +174,12 @@ public class DefaultAclService implements AclService
         }
 
         return false;
+    }
+
+    @Override
+    public boolean canDataWrite( User user, IdentifiableObject object )
+    {
+        return true;
     }
 
     @Override
@@ -360,6 +378,16 @@ public class DefaultAclService implements AclService
         access.setRead( canRead( user, object ) );
         access.setUpdate( canUpdate( user, object ) );
         access.setDelete( canDelete( user, object ) );
+
+        if ( isDataSupported( object.getClass() ) )
+        {
+            Data data = new Data(
+                canDataRead( user, object ),
+                canDataWrite( user, object )
+            );
+
+            access.setData( data );
+        }
 
         return access;
     }
