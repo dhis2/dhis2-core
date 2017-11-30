@@ -41,6 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -471,6 +472,17 @@ public class DataQueryParams
     }
 
     /**
+     * Returns the latest period based on the period end date.
+     */
+    public Period getLatestPeriod()
+    {        
+        return getAllPeriods().stream()
+            .map( obj -> (Period) obj )
+            .min( DescendingPeriodComparator.INSTANCE )
+            .orElse( null );
+    }
+    
+    /**
      * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period dimensions and
      * period filters.
      */
@@ -614,6 +626,31 @@ public class DataQueryParams
     {
         return this.aggregationType != null;
     }
+
+    /**
+     * Indicates whether the aggregation type is of type disaggregation.
+     */
+    public boolean isDisaggregation()
+    {
+        return aggregationType != null && aggregationType.isDisaggregation();
+    }
+
+    /**
+     * Indicates whether this query requires aggregation of data. No aggregation
+     * takes place if aggregation type is none or if data type is text.
+     */
+    public boolean isAggregation()
+    {
+        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
+    }
+    
+    /**
+     * Indicates whether this query has the given aggregation type.
+     */
+    public boolean isAggregationType( AggregationType type )
+    {
+        return aggregationType != null && aggregationType.isAggregationType( type );
+    }
     
     /**
      * Indicates whether the this parameters has the given output format specified.
@@ -642,14 +679,6 @@ public class DataQueryParams
         }
         
         return map;
-    }
-    
-    /**
-     * Indicates whether the aggregation type is of type disaggregation.
-     */
-    public boolean isDisaggregation()
-    {
-        return aggregationType != null && aggregationType.isDisaggregation();
     }
     
     /**
@@ -989,24 +1018,7 @@ public class DataQueryParams
     {
         return approvalLevel != null;
     }
-        
-    /**
-     * Indicates whether this query requires aggregation of data. No aggregation
-     * takes place if aggregation type is none or if data type is text.
-     */
-    public boolean isAggregation()
-    {
-        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
-    }
-    
-    /**
-     * Indicates whether this query has the given aggregation type.
-     */
-    public boolean isAggregationType( AggregationType type )
-    {
-        return aggregationType != null && type == aggregationType.getAggregationType();
-    }
-        
+
     /**
      * Returns all dimension items.
      */
@@ -2173,6 +2185,13 @@ public class DataQueryParams
         public Builder withPeriods( List<? extends DimensionalItemObject> periods )
         {
             this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );
+            return this;
+        }
+
+        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
+            this.params.periodType = periodType;
             return this;
         }
         

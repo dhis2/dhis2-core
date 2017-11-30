@@ -849,6 +849,35 @@ public class QueryPlannerTest
     }
 
     /**
+     * Splits in 4 queries for each period due to the LAST aggregation type.
+     */
+    @Test
+    public void planQueryN()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( getList( deA ) )
+            .withOrganisationUnits( getList( ouA ) )
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) )
+            .withAggregationType( AnalyticsAggregationType.LAST ).build();
+
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+        
+        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+
+        List<DataQueryParams> queries = queryGroups.getAllQueries();
+
+        assertEquals( 4, queries.size() );
+
+        for ( DataQueryParams query : queries )
+        {
+            assertEquals( 1, query.getPeriods().size() );
+            assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
+            assertEquals( MonthlyPeriodType.NAME.toLowerCase(), query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
+        }
+    }
+
+    /**
      * Splits in 4 queries for each period to satisfy optimal for a total
      * of 4 queries, because all queries have different periods.
      */
