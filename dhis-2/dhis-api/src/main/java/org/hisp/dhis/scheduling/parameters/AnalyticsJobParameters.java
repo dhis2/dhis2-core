@@ -28,6 +28,7 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
@@ -47,7 +48,7 @@ public class AnalyticsJobParameters
     private Integer lastYears = null;
 
     @Property
-    private Set<String> skipTableTypes = new HashSet<>( );
+    private Set<AnalyticsTableType> skipTableTypes = new HashSet<>( );
 
     @Property
     private boolean skipResourceTables = false;
@@ -56,7 +57,7 @@ public class AnalyticsJobParameters
     {
     }
 
-    public AnalyticsJobParameters( Integer lastYears, Set<String> skipTableTypes, boolean skipResourceTables )
+    public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables )
     {
         this.lastYears = lastYears;
         this.skipTableTypes = skipTableTypes;
@@ -68,7 +69,7 @@ public class AnalyticsJobParameters
         return lastYears;
     }
 
-    public Set<String> getSkipTableTypes()
+    public Set<AnalyticsTableType> getSkipTableTypes()
     {
         return skipTableTypes;
     }
