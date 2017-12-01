@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
