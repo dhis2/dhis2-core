@@ -53,7 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -117,7 +117,6 @@ public class GetHistoryAction
         this.userService = userService;
     }
 
-    @Autowired
     private FileResourceService fileResourceService;
 
     public void setFileResourceService( FileResourceService fileResourceService )
@@ -242,14 +241,9 @@ public class GetHistoryAction
         return commentOptionSet;
     }
 
-    public String getFileName( String uid )
-    {
-        return fileResourceService.getFileResource( uid ).getName();
-    }
+    private Map<String, String> fileNames;
 
-    public FileResourceService getFileResourceService() {
-        return fileResourceService;
-    }
+    public Map<String, String> getFileNames() { return fileNames; }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -290,6 +284,16 @@ public class GetHistoryAction
         {
             UserCredentials credentials = userService.getUserCredentialsByUsername( dataValue.getStoredBy() );
             storedBy = credentials != null ? credentials.getName() : dataValue.getStoredBy();
+        }
+
+        if ( dataElement.isFileType() )
+        {
+            fileNames = new HashMap<String, String>();
+            dataValueAudits.removeIf( audit -> fileResourceService.getFileResource( audit.getValue() ) == null );
+            dataValueAudits.stream()
+                .filter( audit -> audit != null )
+                .map( audit -> fileResourceService.getFileResource( audit.getValue() ) )
+                .forEach( fr -> fileNames.put( fr.getUid(), fr.getName() ) );
         }
 
         historyInvalid = dataElementHistory == null;

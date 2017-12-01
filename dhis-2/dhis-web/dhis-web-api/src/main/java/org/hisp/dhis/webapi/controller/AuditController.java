@@ -123,19 +123,15 @@ public class AuditController
     private FileResourceService fileResourceService;
 
     /**
-     * Returns a file associated with the externalFileResource resolved from the accessToken.
-     * <p>
-     * Only files contained in externalFileResources with a valid accessToken, expiration date null or in the future
-     * are files allowed to be served trough this endpoint.
+     * Returns the file with the given uid
      *
      * @param uid the unique id of the file resource
      * @param response
      * @throws WebMessageException
      */
     @RequestMapping( value = "/files/{uid}", method = RequestMethod.GET )
-    public void getExternalFileResource( @PathVariable String uid,
-                                         HttpServletResponse response )
-            throws WebMessageException
+    public void getFileAudit( @PathVariable String uid, HttpServletResponse response )
+        throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
 
@@ -148,10 +144,6 @@ public class AuditController
 
         if ( storageStatus != FileResourceStorageStatus.STORED )
         {
-            // Special case:
-            //  The FileResource exists and has been tied to this DataValue, however, the underlying file
-            //  content is still not stored to the (most likely external) file store provider.
-
             // HTTP 409, for lack of a more suitable status code
             WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
                     "The content requested is in transit to the file store and will be available at a later time." );
@@ -210,7 +202,6 @@ public class AuditController
         {
             IOUtils.closeQuietly( inputStream );
         }
-
     }
 
     @RequestMapping( value = "dataValue", method = RequestMethod.GET )

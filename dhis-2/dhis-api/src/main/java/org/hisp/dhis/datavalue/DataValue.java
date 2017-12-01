@@ -43,7 +43,7 @@ import org.hisp.dhis.period.Period;
  * @version $Id: DataValue.java 4638 2008-02-25 10:06:47Z larshelg $
  */
 public class DataValue
-    implements Serializable, Value
+    implements Serializable
 {
     /**
      * Determines if a de-serialized file is compatible with this class.

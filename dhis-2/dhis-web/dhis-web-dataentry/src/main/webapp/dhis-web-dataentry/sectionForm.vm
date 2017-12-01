@@ -148,9 +148,9 @@
                                                 </div>
                                             </div>
                                             <div class="upload-button-group">
-                                                <button class="upload-button"></button>
+                                                <button class="upload-button"></button><br />
+                                                <img class="commentlink" id="${dataEntryId}" style="display: block; margin: 0 auto">
                                             </div>
-                                            <img class="commentlink" id="${commentId}">
                                             <input type="file" style="display: none;">
                                         </div>
                                     </td>
@@ -173,7 +173,7 @@
                                 #set( $tabIndex = $tabIndex + 1 )
                             #end
                             #set( $needRowColumnTotal = false )
-                            #if($section.showRowTotals == "true" &&  $optionCombos.size() > 1 )
+                            #if( $section.showRowTotals == "true" &&  $optionCombos.size() > 1 )
                                 #set( $needRowColumnTotal = true )
                                 <td>
                                     <input class="total-cell" type="text" id="$rowTotalIds" disabled>
@@ -181,7 +181,7 @@
                             #end
                         </tr>
                     #end
-                    #if($section.showColumnTotals == "true" && $dataElements.size() > 1)
+                    #if( $section.showColumnTotals == "true" && $dataElements.size() > 1)
                         #if( $mark == 1 )
                             #set( $mark = 0 )
                         #else

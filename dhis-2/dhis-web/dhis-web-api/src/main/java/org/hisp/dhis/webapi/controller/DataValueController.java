@@ -42,18 +42,13 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.datavalue.Value;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -88,10 +83,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -118,9 +111,6 @@ public class DataValueController
 
     @Autowired
     private DataValueService dataValueService;
-
-    @Autowired
-    private DataValueAuditService dataValueAuditService;
 
     @Autowired
     private DataSetService dataSetService;
@@ -167,7 +157,7 @@ public class DataValueController
         boolean strictCategoryOptionCombos = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
         boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
         boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
-        boolean retainFileResource = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RETAIN_FILE_RESOURCE_DATA_VALUES );
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         // ---------------------------------------------------------------------
         // Input validation
@@ -296,7 +286,7 @@ public class DataValueController
                 fileResource = validateAndSetAssigned( value );
             }
 
-            if ( dataElement.isFileType() && !retainFileResource )
+            if ( dataElement.isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
             {
                 try
                 {
@@ -360,7 +350,7 @@ public class DataValueController
         throws WebMessageException
     {
 
-        boolean retainFileResource = true;//(Boolean) systemSettingManager.getSystemSetting( SettingKey.RETAIN_FILE_RESOURCE_DATA_VALUES );
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         // ---------------------------------------------------------------------
         // Input validation
@@ -401,7 +391,7 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "Data value cannot be deleted because it does not exist" ) );
         }
 
-        if ( dataValue.getDataElement().isFileType() && !retainFileResource)
+        if ( dataValue.getDataElement().isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
         {
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
@@ -467,7 +457,6 @@ public class DataValueController
         @RequestParam( required = false ) String co,
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) String cp,
-        @RequestParam( defaultValue = "0" ) int audit,
         @RequestParam String pe,
         @RequestParam String ou, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -495,20 +484,7 @@ public class DataValueController
         // Get data value
         // ---------------------------------------------------------------------
 
-        Value dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
-
-        if ( audit > 0 )
-        {
-            dataValue = dataValueAuditService.getDataValueAudits( Arrays.asList( dataElement ), Arrays.asList( period ), Arrays.asList( organisationUnit ), null, null, null ).stream().
-                    filter( valueAudit -> valueAudit.getId() == audit ).
-                    collect( Collectors.toList() ).
-                    get( 0 );
-        }
-
-        if ( dataValue == null && audit > 0)
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Audit does not exist" ) );
-        }
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
 
         if ( dataValue == null )
         {
@@ -784,7 +760,7 @@ public class DataValueController
     }
 
     private FileResource validateAndSetAssigned( String uid )
-            throws WebMessageException
+        throws WebMessageException
     {
         FileResource fileResource = null;
 
