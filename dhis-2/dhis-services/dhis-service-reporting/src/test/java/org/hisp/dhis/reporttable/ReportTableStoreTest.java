@@ -172,15 +172,15 @@ public class ReportTableStoreTest
         units.add( unitA );
         units.add( unitB );
 
-        relativesA = new RelativePeriods();
+        relativesA = new RelativePeriods();        
         relativesA.setLastMonth( true );
         relativesA.setThisYear( true );
 
-        relativesB = new RelativePeriods();
+        relativesB = new RelativePeriods();        
         relativesB.setLastMonth( true );
         relativesB.setThisYear( true );
 
-        relativesC = new RelativePeriods();
+        relativesC = new RelativePeriods();        
         relativesC.setLastMonth( true );
         relativesC.setThisYear( true );    
     }
