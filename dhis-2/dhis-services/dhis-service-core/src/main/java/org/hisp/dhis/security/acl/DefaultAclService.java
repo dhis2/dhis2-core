@@ -130,7 +130,28 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataRead( User user, IdentifiableObject object )
     {
-        return true;
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
+        {
+            if ( !schema.isDataShareable() || object.getUser() == null || object.getPublicAccess() == null || checkUser( user, object )
+                || checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -180,7 +201,35 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataWrite( User user, IdentifiableObject object )
     {
-        return true;
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
+
+        if ( canAccess( user, anyAuthorities ) )
+        {
+            if ( !schema.isDataShareable() )
+            {
+                return true;
+            }
+
+            if ( checkSharingAccess( user, object ) &&
+                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE )) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
