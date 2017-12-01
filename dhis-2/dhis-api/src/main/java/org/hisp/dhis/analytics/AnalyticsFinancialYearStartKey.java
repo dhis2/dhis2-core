@@ -3,25 +3,25 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
-import org.hisp.dhis.period.FinancialPeriodType;
 
 /**
- * @author Henning Håkonsen
+ * Created by henninghakonsen on 15/05/2017.
+ * Project: dhis-2.
  */
 public enum AnalyticsFinancialYearStartKey
 {
-    FINANCIAL_YEAR_APRIL( "FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType() ),
-    FINANCIAL_YEAR_JULY( "FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType() ),
-    FINANCIAL_YEAR_OCTOBER( "FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType() );
+    FINANCIAL_PERIOD_APRIL("FinancialPeriodApril", FinancialAprilPeriodType.class),
+    FINANCIAL_PERIOD_JULY("FinancialPeriodJuly", FinancialJulyPeriodType.class),
+    FINANCIAL_PERIOD_OCTOBER("FinancialPeriodOctober", FinancialOctoberPeriodType.class);
 
     private final String name;
 
-    private final FinancialPeriodType financialPeriodType;
+    private final Class<?> clazz;
 
-    AnalyticsFinancialYearStartKey( String name, FinancialPeriodType financialPeriodType )
+    AnalyticsFinancialYearStartKey( String name, Class<?>  clazz )
     {
         this.name = name;
-        this.financialPeriodType = financialPeriodType;
+        this.clazz = clazz;
     }
 
     public String getName()
@@ -29,8 +29,8 @@ public enum AnalyticsFinancialYearStartKey
         return name;
     }
 
-    public FinancialPeriodType getFinancialPeriodType()
+    public Class<?> getClazz()
     {
-        return financialPeriodType;
+        return clazz;
     }
 }
