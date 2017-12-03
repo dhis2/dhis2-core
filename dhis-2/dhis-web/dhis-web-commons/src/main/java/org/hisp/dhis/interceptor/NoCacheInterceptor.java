@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpMethod;
 
 import com.opensymphony.xwork2.ActionInvocation;
@@ -49,9 +48,7 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
  */
 public class NoCacheInterceptor
     implements Interceptor
-{
-    private static final String CACHE_HEADER = "Cache-Control";
-    
+{    
     @Override
     public String intercept( ActionInvocation invocation )
         throws Exception
@@ -59,7 +56,7 @@ public class NoCacheInterceptor
         HttpServletRequest request = ServletActionContext.getRequest();
         HttpServletResponse response = ServletActionContext.getResponse();
         
-        String header = response.getHeader( CACHE_HEADER );
+        String header = response.getHeader( ContextUtils.HEADER_CACHE_CONTROL );
         boolean headerSet = header != null && !header.trim().isEmpty();
         
         if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
