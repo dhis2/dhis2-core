@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpMethod;
 
@@ -63,7 +64,7 @@ public class NoCacheInterceptor
         
         if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {
-            response.setHeader( CACHE_HEADER, CacheControl.noStore().getHeaderValue() );
+            ContextUtils.setNoCache( response );
         }
                 
         return invocation.invoke();
