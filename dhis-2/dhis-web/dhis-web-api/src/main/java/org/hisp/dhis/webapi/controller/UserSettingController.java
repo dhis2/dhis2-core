@@ -43,8 +43,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,6 +55,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
@@ -171,7 +172,7 @@ public class UserSettingController
             throw new WebMessageException( WebMessageUtils.notFound( "User setting not found for key: " + key ) );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoCache( response );
         
         return String.valueOf( value );
     }
@@ -191,7 +192,7 @@ public class UserSettingController
             us = currentUserService.getCurrentUser();
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoCache( response );
         
         return userSettingService.getUserSettingsWithFallbackByUserAsMap( us, USER_SETTING_NAMES, useFallback );
     }
