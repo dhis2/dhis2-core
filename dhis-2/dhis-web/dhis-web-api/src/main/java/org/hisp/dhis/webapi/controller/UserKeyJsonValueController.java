@@ -124,8 +124,7 @@ public class UserKeyJsonValueController
     public @ResponseBody
     String getUserKeyJsonValue(
         @PathVariable String namespace,
-        @PathVariable String key,
-        HttpServletResponse response )
+        @PathVariable String key )
         throws IOException, WebMessageException
     {
         UserKeyJsonValue userKeyJsonValue = userKeyJsonValueService.getUserKeyJsonValue(
