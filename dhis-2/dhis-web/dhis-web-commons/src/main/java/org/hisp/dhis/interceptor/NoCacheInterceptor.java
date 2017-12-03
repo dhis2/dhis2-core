@@ -1,4 +1,4 @@
-package org.hisp.dhis.servlet.filter;
+package org.hisp.dhis.interceptor;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,55 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpMethod;
+
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
- * Filter which enforces no cache for HTML pages like
- * index pages to prevent stale versions being rendered
- * in clients.
- *
+ * Interceptor which sets HTTP headers which instructs clients not to
+ * cache the response. This is the default behavior for Struts-generated
+ * responses. Does not set the cache interceptor if already set, allowing
+ * other interceptors to set cache headers for special cases.
+ * 
  * @author Lars Helge Overland
  */
-public class HttpNoCacheFilter
-    extends HttpUrlPatternFilter
+public class NoCacheInterceptor
+    implements Interceptor
 {
+    private static final String CACHE_HEADER = "Cache-Control";
+    
     @Override
-    public final void doHttpFilter( HttpServletRequest request, HttpServletResponse response, FilterChain chain )
-        throws IOException, ServletException
+    public String intercept( ActionInvocation invocation )
+        throws Exception
     {
-        if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        
+        String header = response.getHeader( CACHE_HEADER );
+        boolean headerSet = header != null && !header.trim().isEmpty();
+        
+        if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {
             ContextUtils.setNoCache( response );
         }
+                
+        return invocation.invoke();
+    }
 
-        chain.doFilter( request, response );
+    @Override
+    public void destroy()
+    {        
+    }
+
+    @Override
+    public void init()
+    {        
     }
 }
