@@ -54,7 +54,7 @@ public class HttpNoCacheFilter
     {
         if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {
-            ContextUtils.setCacheControl( response, CacheControl.noStore().cachePrivate() );
+            ContextUtils.setCacheControl( response, CacheControl.noStore() );
         }
 
         chain.doFilter( request, response );

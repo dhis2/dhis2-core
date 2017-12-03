@@ -60,10 +60,10 @@ public class NoCacheInterceptor
         
         String header = response.getHeader( CACHE_HEADER );
         boolean headerSet = header != null && !header.trim().isEmpty();
-                
+        
         if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {
-            response.setHeader( CACHE_HEADER, CacheControl.noStore().mustRevalidate().cachePrivate().getHeaderValue() );
+            response.setHeader( CACHE_HEADER, CacheControl.noStore().getHeaderValue() );
         }
                 
         return invocation.invoke();

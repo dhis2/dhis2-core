@@ -186,7 +186,7 @@ public class ContextUtils
 
     public static HttpServletResponse setNoCache( HttpServletResponse response )
     {
-        response.setHeader( HEADER_CACHE_CONTROL, CacheControl.noStore().mustRevalidate().cachePrivate().getHeaderValue() );
+        response.setHeader( HEADER_CACHE_CONTROL, CacheControl.noStore().getHeaderValue() );
         return response;
     }
     
