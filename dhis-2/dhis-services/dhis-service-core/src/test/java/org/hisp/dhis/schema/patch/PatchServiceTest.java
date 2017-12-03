@@ -382,7 +382,7 @@ public class PatchServiceTest
         deB.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
 
-        Patch patch = patchService.diff( new PatchParams( deA, deB ) );
+        patchService.diff( new PatchParams( deA, deB ) );
     }
 
     @Test
@@ -453,7 +453,7 @@ public class PatchServiceTest
     public void testPatchFromJsonNode3()
     {
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/complex.json" );
-        Patch patch = patchService.diff( new PatchParams( jsonNode ) );
+        patchService.diff( new PatchParams( jsonNode ) );
     }
 
     private JsonNode loadJsonNodeFromFile( String path )
@@ -481,7 +481,7 @@ public class PatchServiceTest
             {
                 if ( Collection.class.isInstance( mutation.getValue() ) )
                 {
-                    count += ((Collection) mutation.getValue()).size();
+                    count += ((Collection<?>) mutation.getValue()).size();
                 }
                 else
                 {

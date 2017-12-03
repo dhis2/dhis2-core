@@ -30,7 +30,6 @@ package org.hisp.dhis.message;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
@@ -63,9 +62,6 @@ public class MessageConversationStoreTest
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     private User userB;
 
