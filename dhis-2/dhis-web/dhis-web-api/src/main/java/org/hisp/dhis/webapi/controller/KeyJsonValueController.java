@@ -50,6 +50,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Date;
@@ -82,6 +85,7 @@ public class KeyJsonValueController
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
         throws IOException
     {
+        setNoCache( response );
         return keyJsonValueService.getNamespaces();
     }
 
@@ -98,6 +102,7 @@ public class KeyJsonValueController
                 WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
         }
 
+        setNoCache( response );
         return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated );
     }
 
@@ -148,6 +153,7 @@ public class KeyJsonValueController
                 .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
         }
 
+        setNoCache( response );
         return keyJsonValue.getValue();
     }
 
@@ -177,6 +183,7 @@ public class KeyJsonValueController
         BeanUtils.copyProperties( metaDataValue, keyJsonValue );
         metaDataValue.setValue( null );
 
+        setNoCache( response );
         return metaDataValue;
     }
 

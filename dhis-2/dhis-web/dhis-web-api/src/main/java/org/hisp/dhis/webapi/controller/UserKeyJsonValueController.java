@@ -47,6 +47,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -79,6 +82,7 @@ public class UserKeyJsonValueController
     List<String> getNamespaces( HttpServletResponse response )
         throws IOException
     {
+        setNoCache( response );
         return userKeyJsonValueService.getNamespacesByUser( currentUserService.getCurrentUser() );
     }
 
@@ -97,6 +101,7 @@ public class UserKeyJsonValueController
                 WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
         }
 
+        setNoCache( response );
         return userKeyJsonValueService.getKeysByUserAndNamespace( currentUserService.getCurrentUser(), namespace );
     }
 
@@ -123,7 +128,8 @@ public class UserKeyJsonValueController
     public @ResponseBody
     String getUserKeyJsonValue(
         @PathVariable String namespace,
-        @PathVariable String key )
+        @PathVariable String key,
+        HttpServletResponse response )
         throws IOException, WebMessageException
     {
         UserKeyJsonValue userKeyJsonValue = userKeyJsonValueService.getUserKeyJsonValue(
@@ -135,6 +141,7 @@ public class UserKeyJsonValueController
                 .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
         }
 
+        setNoCache( response );
         return userKeyJsonValue.getValue();
     }
 

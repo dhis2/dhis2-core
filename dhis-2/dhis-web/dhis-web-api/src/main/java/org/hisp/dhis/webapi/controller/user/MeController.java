@@ -60,8 +60,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.user.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -81,6 +79,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,7 +150,7 @@ public class MeController
             new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoCache( response );
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
 
@@ -227,7 +227,7 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
@@ -244,7 +244,7 @@ public class MeController
         boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), hasAuthority );
     }
 
@@ -262,7 +262,7 @@ public class MeController
             currentUser, USER_SETTING_NAMES, true );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), userSettings );
     }
 
@@ -291,7 +291,7 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), value );
     }
 

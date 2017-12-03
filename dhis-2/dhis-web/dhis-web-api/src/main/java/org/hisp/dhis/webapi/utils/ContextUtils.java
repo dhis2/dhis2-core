@@ -178,11 +178,18 @@ public class ContextUtils
         }
     }
 
-    public static void setCacheControl( HttpServletResponse response, CacheControl value )
+    public static HttpServletResponse setCacheControl( HttpServletResponse response, CacheControl value )
     {
         response.setHeader( HEADER_CACHE_CONTROL, value.getHeaderValue() );
+        return response;
     }
 
+    public static HttpServletResponse setNoCache( HttpServletResponse response )
+    {
+        response.setHeader( HEADER_CACHE_CONTROL, CacheControl.noStore().mustRevalidate().cachePrivate().getHeaderValue() );
+        return response;
+    }
+    
     public static void okResponse( HttpServletResponse response, String message ) //TODO remove message
     {
         setResponse( response, HttpServletResponse.SC_OK, message );

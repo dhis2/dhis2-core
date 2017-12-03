@@ -54,6 +54,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.util.Date;
 import java.util.List;
 
@@ -94,18 +97,20 @@ public class DataStatisticsController
             throw new WebMessageException( WebMessageUtils.conflict( "Start date is after end date" ) );
         }
 
+        setNoCache( response );
         return dataStatisticsService.getReports( startDate, endDate, interval );
     }
 
     @GetMapping( "/favorites" )
     public @ResponseBody List<FavoriteStatistics> getTopFavorites( @RequestParam DataStatisticsEventType eventType,
         @RequestParam( required = false ) Integer pageSize, @RequestParam( required = false ) SortOrder sortOrder,
-        @RequestParam( required = false ) String username )
+        @RequestParam( required = false ) String username, HttpServletResponse response )
         throws WebMessageException
     {
         pageSize = ObjectUtils.firstNonNull( pageSize, 20 );
         sortOrder = ObjectUtils.firstNonNull( sortOrder, SortOrder.DESC );
 
+        setNoCache( response );
         return dataStatisticsService.getTopFavorites( eventType, pageSize, sortOrder, username );
     }
 
