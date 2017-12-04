@@ -272,7 +272,8 @@ public class DefaultReportService
 
         if ( report != null && report.hasRelativePeriods() )
         {
-            AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf( String.valueOf( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ) );
+            AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf(
+                systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ).toString() );
             
             if ( calendar.isIso8601() )
             {
