@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.startup;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,55 +28,52 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Iterator;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import java.util.Date;
+
+import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 
 /**
- * @author markusbekken
+ *
+ * Reschedule old jobs and execute jobs which were scheduled when the server was not running.
+ *
+ * @author Henning Håkonsen
  */
-public class ProgramRuleActionDeletionHandler
-    extends DeletionHandler 
+public class SchedulerStart
+    extends AbstractStartupRoutine
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private JobConfigurationService jobConfigurationService;
 
-    private ProgramRuleActionService programRuleActionService;
-
-    public void setProgramRuleActionService( ProgramRuleActionService programRuleActionService )
+    public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
     {
-        this.programRuleActionService = programRuleActionService;
+        this.jobConfigurationService = jobConfigurationService;
     }
-    
-    private ProgramRuleService programRuleService;
 
-    public void setProgramRuleService( ProgramRuleService programRuleService )
+    private SchedulingManager schedulingManager;
+
+    public void setSchedulingManager( SchedulingManager schedulingManager )
     {
-        this.programRuleService = programRuleService;
+        this.schedulingManager = schedulingManager;
     }
-    
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-    
+
     @Override
-    protected String getClassName()
+    public void execute( )
+        throws Exception
     {
-        return ProgramRuleAction.class.getSimpleName();
-    }
-    
-    @Override
-    public void deleteProgramRule( ProgramRule programRule )
-    {
-        Iterator<ProgramRuleAction> actionIterator = programRuleActionService.getProgramRuleAction( programRule ).iterator();
-        
-        programRule.setProgramRuleActions( null );
-        programRuleService.updateProgramRule( programRule );
-        
-        while ( actionIterator.hasNext() )
-        {   
-            programRuleActionService.deleteProgramRuleAction( actionIterator.next() );
-        }
+        Date now = new Date();
+        jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
+            jobConfig.setNextExecutionTime( null );
+            jobConfigurationService.updateJobConfiguration( jobConfig );
+
+            if ( jobConfig.getLastExecutedStatus() == FAILED ||
+                ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
+            {
+                schedulingManager.executeJob( jobConfig );
+            }
+            schedulingManager.scheduleJob( jobConfig );
+        }) );
     }
 }

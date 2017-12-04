@@ -30,13 +30,7 @@ package org.hisp.dhis.analytics.table;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.AnalyticsTableService;
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -108,7 +102,7 @@ public class DefaultAnalyticsTableService
         
         String tableType = tableManager.getAnalyticsTableType().getTableName();
 
-        Date earliest = PartitionUtils.getEarliestDate( params.getLastYears() );
+        Date earliest = PartitionUtils.getStartDate( params.getLastYears() );
         
         Clock clock = new Clock( log )
             .startClock()

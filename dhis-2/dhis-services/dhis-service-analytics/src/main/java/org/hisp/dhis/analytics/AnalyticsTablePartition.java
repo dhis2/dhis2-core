@@ -50,12 +50,12 @@ public class AnalyticsTablePartition
     private Integer year;
     
     /**
-     * The start date for which this partition may contain data.
+     * The start date for which this partition may contain data, inclusive.
      */
     private Date startDate;
     
     /**
-     * The end date for which this partition may contain data.
+     * The end date for which this partition may contain data, exclusive.
      */
     private Date endDate;
     

@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -128,7 +129,7 @@ public class JdbcValidationResultTableManager
             "inner join period pe on cdr.periodid=pe.periodid " +
             "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
             "where pe.startdate >= '" + start + "' " +
-            "and pe.startdate <= '" + end + "' " +
+            "and pe.startdate < '" + end + "' " +
             "and cdr.created is not null";
 
         final String sql = insert + select;

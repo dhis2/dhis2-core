@@ -28,7 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -65,10 +65,8 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject orgUnit : orgUnits )
         {
             OrganisationUnit ou = (OrganisationUnit) orgUnit;
-
-            int level = ou.getLevel();
-
-            map.putValue( level, orgUnit );
+            
+            map.putValue( ou.getLevel(), orgUnit );
         }
 
         return map;
@@ -106,23 +104,24 @@ public class QueryPlannerUtils
      * 
      * @param params the data query parameters.
      */
-    public static ListMap<AggregationType, DimensionalItemObject> getAggregationTypeDataElementMap( DataQueryParams params )
+    public static ListMap<AnalyticsAggregationType, DimensionalItemObject> getAggregationTypeDataElementMap( DataQueryParams params )
     {
         List<DimensionalItemObject> dataElements = params.getDataElements();
         PeriodType aggregationPeriodType = PeriodType.getPeriodTypeByName( params.getPeriodType() );
         
-        ListMap<AggregationType, DimensionalItemObject> map = new ListMap<>();
+        ListMap<AnalyticsAggregationType, DimensionalItemObject> map = new ListMap<>();
 
         for ( DimensionalItemObject element : dataElements )
         {
             DataElement de = (DataElement) element;
             
-            AggregationType type = ObjectUtils.firstNonNull( params.getAggregationType(), de.getAggregationType() );
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), 
+                AnalyticsAggregationType.fromAggregationType( de.getAggregationType() ) );
 
-            AggregationType aggregationType = getAggregationType( de.getValueType(), 
-                type, aggregationPeriodType, de.getPeriodType() );
+            AnalyticsAggregationType analyticsAggregationType = getAggregationType( aggregationType, de.getValueType(), 
+                aggregationPeriodType, de.getPeriodType() );
 
-            map.putValue( aggregationType, de );
+            map.putValue( analyticsAggregationType, de );
         }
 
         return map;
@@ -141,10 +140,8 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject period : periods )
         {
             Period pe = (Period) period;
-
-            int days = pe.getDaysInPeriod();
-
-            map.putValue( days, pe );
+            
+            map.putValue( pe.getDaysInPeriod(), pe );
         }
 
         return map;
@@ -154,45 +151,20 @@ public class QueryPlannerUtils
      * Puts the given element into the map according to the value type, aggregation
      * operator, aggregation period type and data period type.
      * 
-     * @param valueType the value type.
      * @param aggregationType the aggregation operator.
+     * @param valueType the value type.
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static AggregationType getAggregationType( ValueType valueType, AggregationType aggregationType,
+    public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType, ValueType valueType, 
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
-        AggregationType type;
+        DataType dataType = DataType.fromValueType( valueType );
 
         boolean disaggregation = isDisaggregation( aggregationPeriodType, dataPeriodType );
-        boolean number = valueType.isNumeric();
 
-        if ( aggregationType.isAverage() && ValueType.BOOLEAN == valueType )
-        {
-            type = AggregationType.AVERAGE_BOOL;
-        }
-        else if ( AggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType && number && disaggregation )
-        {
-            type = AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
-        }
-        else if ( AggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType && number )
-        {
-            type = AggregationType.AVERAGE_SUM_INT;
-        }
-        else if ( AggregationType.AVERAGE == aggregationType && number && disaggregation )
-        {
-            type = AggregationType.AVERAGE_INT_DISAGGREGATION;
-        }
-        else if ( AggregationType.AVERAGE == aggregationType && number )
-        {
-            type = AggregationType.AVERAGE_INT;
-        }
-        else
-        {
-            type = aggregationType;
-        }
-
-        return type;
+        return new AnalyticsAggregationType( aggregationType.getAggregationType(), 
+            aggregationType.getPeriodAggregationType(), dataType, disaggregation );
     }
 
     /**
@@ -238,7 +210,7 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject element : dataElements )
         {
             DataElement dataElement = (DataElement) element;
-
+            
             map.putValue( dataElement.getPeriodType(), element );
         }
 
@@ -253,12 +225,7 @@ public class QueryPlannerUtils
     public static List<EventQueryParams> convert( List<DataQueryParams> params )
     {
         List<EventQueryParams> eventParams = new ArrayList<>();
-        
-        for ( DataQueryParams param : params )
-        {
-            eventParams.add( (EventQueryParams) param );
-        }
-        
+        params.forEach( p -> eventParams.add( (EventQueryParams) p ) );
         return eventParams;
     }
 }

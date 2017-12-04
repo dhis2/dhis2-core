@@ -55,7 +55,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -96,9 +95,6 @@ public class DefaultPushAnalysisService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private Scheduler scheduler;
 
     @Autowired
     private ExternalFileResourceService externalFileResourceService;

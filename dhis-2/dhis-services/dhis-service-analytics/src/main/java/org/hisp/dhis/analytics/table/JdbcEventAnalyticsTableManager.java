@@ -39,6 +39,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -48,7 +49,6 @@ import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.util.DateUtils;
@@ -95,10 +95,8 @@ public class JdbcEventAnalyticsTableManager
             AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( program ), Lists.newArrayList(), program );
             
             for ( Integer year : dataYears )
-            {
-                Period period = PartitionUtils.getPeriod( calendar, year );
-                
-                table.addPartitionTable( year, period.getStartDate(), period.getEndDate() );
+            {                
+                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
             }
             
             tables.add( table );
@@ -118,7 +116,8 @@ public class JdbcEventAnalyticsTableManager
     {
         return Lists.newArrayList(
             "yearly = '" + partition.getYear() + "'",
-            "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'" ); ///TODO end date + 1 day
+            "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
+            "executiondate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
     @Override
@@ -162,7 +161,7 @@ public class JdbcEventAnalyticsTableManager
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
             "where psi.executiondate >= '" + start + "' " + 
-            "and psi.executiondate <= '" + end + "' " +
+            "and psi.executiondate < '" + end + "' " +
             "and pr.programid=" + program.getId() + " " + 
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +

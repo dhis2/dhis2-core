@@ -68,6 +68,8 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     protected static final int INFO = 1;
 
+    protected static final int WARNING = 2;
+
     protected static final int ERROR = 3;
 
     private static final ImmutableMap<Integer, Consumer<String>> LOGGER = new ImmutableMap.Builder<Integer, Consumer<String>>()

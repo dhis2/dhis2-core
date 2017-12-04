@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -560,7 +560,7 @@ public class DefaultAnalyticsService
                 DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                     .retainDataDimensionReportingRates( metric )
                     .ignoreDataApproval() // No approval for reporting rates
-                    .withAggregationType( AggregationType.COUNT )
+                    .withAggregationType( AnalyticsAggregationType.COUNT )
                     .withTimely( ( REPORTING_RATE_ON_TIME == metric || ACTUAL_REPORTS_ON_TIME == metric ) ).build();
 
                 addReportingRates( dataSourceParams, grid, metric );
@@ -590,7 +590,7 @@ public class DefaultAnalyticsService
                 .withTimely( false )
                 .withRestrictByOrgUnitOpeningClosedDate( true )
                 .withRestrictByCategoryOptionStartEndDate( true )
-                .withAggregationType( AggregationType.SUM ).build();
+                .withAggregationType( AnalyticsAggregationType.SUM ).build();
 
             Map<String, Double> targetMap = getAggregatedCompletenessTargetMap( targetParams );
 
@@ -710,7 +710,7 @@ public class DefaultAnalyticsService
         {
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                 .retainDataDimension( DataDimensionItemType.VALIDATION_RULE )
-                .withAggregationType( AggregationType.COUNT )
+                .withAggregationType( AnalyticsAggregationType.COUNT )
                 .withIncludeNumDen( false ).build();
 
             Map<String, Double> aggregatedDataMap = getAggregatedValidationResultMapObjectTyped( dataSourceParams );
@@ -738,7 +738,7 @@ public class DefaultAnalyticsService
             // -----------------------------------------------------------------
 
             Map<String, String> cocNameMap = AnalyticsUtils.getCocNameMap( params );
-            
+
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
                 metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );

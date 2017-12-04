@@ -30,21 +30,17 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsTableJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
@@ -64,14 +60,10 @@ public class AnalyticsTableJob
     {
         AnalyticsJobParameters parameters = (AnalyticsJobParameters) jobConfiguration.getJobParameters();
 
-        Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-
-        parameters.getSkipTableTypes().forEach( (s) -> skipTableTypes.add( AnalyticsTableType.valueOf( s ) ) );
-
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .withLastYears( parameters.getLastYears() )
             .withTaskId( jobConfiguration.getJobId() )
-            .withSkipTableTypes( skipTableTypes )
+            .withSkipTableTypes( parameters.getSkipTableTypes() )
             .withSkipResourceTables( parameters.isSkipResourceTables() )
             .build();
 

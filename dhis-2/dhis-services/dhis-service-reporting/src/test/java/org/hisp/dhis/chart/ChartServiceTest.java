@@ -37,9 +37,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.color.ColorService;
+import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendDisplayStrategy;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -53,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class ChartServiceTest
     extends DhisSpringTest
@@ -69,6 +74,12 @@ public class ChartServiceTest
     
     @Autowired
     private ChartService chartService;
+    
+    @Autowired
+    private LegendSetService legendSetService;
+    
+    @Autowired
+    private ColorService colorService;
 
     private Indicator indicatorA;
     private Indicator indicatorB;
@@ -80,6 +91,9 @@ public class ChartServiceTest
 
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
+    
+    private LegendSet lsA;
+    private ColorSet csA;
 
     private Chart chartA;
     private Chart chartB;
@@ -145,9 +159,24 @@ public class ChartServiceTest
         List<OrganisationUnit> units = new ArrayList<>();
         units.add( unitA );
         units.add( unitB );
+        
+        Legend leA = createLegend( 'A', 0.0, 10.0 );
+        Legend leB = createLegend( 'A', 10.0, 20.0 );
+        lsA = createLegendSet( 'A' );
+        lsA.getLegends().add( leA );
+        lsA.getLegends().add( leB );
+
+        legendSetService.addLegendSet( lsA );
+        
+        csA = createColorSet( 'A', "#4286f4", "#3f4f68" );
+        
+        colorService.addColorSet( csA );
 
         chartA = createChart( 'A', indicators, periods, units );
         chartA.setType( ChartType.BAR );
+        chartA.setLegendSet( lsA );
+        chartA.setLegendDisplayStrategy( LegendDisplayStrategy.FIXED );
+        chartA.setColorSet( csA );
 
         chartB = createChart( 'B', indicators, periods, units );
         chartB.setType( ChartType.BAR );
@@ -184,6 +213,10 @@ public class ChartServiceTest
         assertTrue( equals( chartService.getChart( idA ).getIndicators(), indicatorA, indicatorB, indicatorC ) );
         assertTrue( equals( chartService.getChart( idA ).getOrganisationUnits(), unitA, unitB ) );
         assertTrue( equals( chartService.getChart( idA ).getPeriods(), periodA, periodB, periodC ) );
+        
+        assertEquals( lsA, chartService.getChart( idA ).getLegendSet() );
+        assertEquals( LegendDisplayStrategy.FIXED, chartService.getChart( idA ).getLegendDisplayStrategy() );
+        assertEquals( csA, chartService.getChart( idA ).getColorSet() );
     }
 
     @Test

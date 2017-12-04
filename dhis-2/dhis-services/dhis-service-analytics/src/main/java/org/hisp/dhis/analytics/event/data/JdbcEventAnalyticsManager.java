@@ -423,9 +423,9 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasValueDimension() ) // TODO && isNumeric
         {
-            Assert.isTrue( params.getAggregationTypeFallback().isAggregateable(), "Event query aggregation type must be aggregatable" );
+            Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregateable(), "Event query aggregation type must be aggregatable" );
             
-            String function = params.getAggregationTypeFallback().getValue();
+            String function = params.getAggregationTypeFallback().getAggregationType().getValue();
             
             String expression = statementBuilder.columnQuote( params.getValue().getUid() );
             
@@ -718,7 +718,6 @@ public class JdbcEventAnalyticsManager
         
         Legend legend = null;
         Option option = null;
-        
         if ( item.hasLegendSet() && ( legend = item.getLegendSet().getLegendByUid( itemValue ) ) != null )
         {
             return value + legend.getDisplayName();

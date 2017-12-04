@@ -249,6 +249,7 @@ public class DefaultExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
         return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, null );
+
     }
 
     @Override
@@ -852,6 +853,61 @@ public class DefaultExpressionService
 
         sb.append( expression.substring( tail ) );
         expression = sb.toString();
+
+        // ---------------------------------------------------------------------
+        // IsNull function (implemented here)
+        // ---------------------------------------------------------------------
+
+        sb = new StringBuffer();
+        matcher = ISNULL_PATTERN.matcher( expression );
+
+        scan = 0;
+        len = expression.length();
+
+        while ( scan < len && matcher.find( scan ) )
+        {
+            int start = matcher.end();
+            int end = Expression.matchExpression( expression, start );
+
+            sb.append( expression.substring( scan, matcher.start() ) );
+
+            scan = start + 1;
+
+            if ( end > 0 )
+            {
+                String arg = expression.substring( start, end );
+                Matcher argMatcher = VARIABLE_PATTERN.matcher( arg );
+
+                if ( argMatcher.find() )
+                {
+                    String dimItem = argMatcher.group( GROUP_ID );
+
+                    final Double value = dimensionItemValueMap.get( dimItem );
+
+                    sb.append( value == null ? TRUE_VALUE : FALSE_VALUE );
+
+                    scan = end + 1;
+                }
+            }
+        }
+
+        sb.append( expression.substring( scan ) );
+        expression = sb.toString();
+
+        // ---------------------------------------------------------------------
+        // Other scalar custom functions (make them case-insensitive)
+        // ---------------------------------------------------------------------
+
+        sb = new StringBuffer();
+        matcher = CustomFunctions.SCALAR_PATTERN_PREFIX.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            matcher.appendReplacement( sb,
+                expression.substring( matcher.start(), matcher.end() ).toUpperCase() );
+        }
+
+        expression = TextUtils.appendTail( matcher, sb );
 
         // ---------------------------------------------------------------------
         // DimensionalItemObjects

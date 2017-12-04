@@ -32,7 +32,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,11 +47,10 @@ import java.util.List;
  * @author Halvdan Hoem Grelland
  */
 public class FileResourceCleanUpJob
-    implements Job
+    extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( FileResourceCleanUpJob.class );
 
-    // HH verify that autowiring works
     @Autowired
     private FileResourceService fileResourceService;
 

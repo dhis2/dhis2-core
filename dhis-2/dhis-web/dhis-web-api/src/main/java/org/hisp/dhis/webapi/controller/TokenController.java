@@ -36,15 +36,16 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -73,7 +74,7 @@ public class TokenController
     public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
         throws WebMessageException, ExecutionException
     {
-        ContextUtils.setCacheControl( response, CacheControl.noStore() );
+        setNoCache( response );
 
         Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY, c -> config.getGoogleAccessToken() );
 

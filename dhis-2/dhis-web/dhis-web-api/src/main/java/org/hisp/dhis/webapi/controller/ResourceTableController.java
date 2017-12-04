@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -135,7 +135,6 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        // HH verify
         JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(),
             false, true );
 

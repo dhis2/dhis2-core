@@ -30,7 +30,7 @@ package org.hisp.dhis.sms.job;
 
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.Resource;
 
 public class SendSmsJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     @Resource( name = "smsMessageSender" )
