@@ -94,7 +94,9 @@ public class MetadataItem
 
     public void setDataItem( DimensionalItemObject dimensionalItemObject )
     {
-        if ( dimensionalItemObject == null ) return;
+        if ( dimensionalItemObject == null ) {
+            return;
+        }
 
         this.code = dimensionalItemObject.getCode();
         this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
@@ -104,7 +106,9 @@ public class MetadataItem
 
     public void setDataItem( DimensionalObject dimensionalObject )
     {
-        if ( dimensionalObject == null ) return;
+        if ( dimensionalObject == null ) {
+            return;
+        }
 
         this.code = dimensionalObject.getCode();
         this.dimensionType = dimensionalObject.getDimensionType();
