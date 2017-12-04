@@ -198,7 +198,8 @@ public class DefaultReportService
             {
                 if ( report.hasRelativePeriods() )
                 {
-                    AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf( String.valueOf( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ) );
+                    AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf(
+                        systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ).toString() );
                     List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
                         financialYearStart );
 

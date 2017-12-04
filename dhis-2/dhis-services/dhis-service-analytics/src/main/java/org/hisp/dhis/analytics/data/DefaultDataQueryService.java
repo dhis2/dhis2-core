@@ -316,7 +316,8 @@ public class DefaultDataQueryService
                 {
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
-                    AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf( String.valueOf( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ) );
+                    AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf(
+                        systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ).toString() );
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
                     periods.addAll( relativePeriods );
                 }

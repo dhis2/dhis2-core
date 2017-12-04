@@ -236,7 +236,7 @@ public class GeoToolsMapGenerationService
         else if ( mapView.getRelatives() != null )
         {
             AnalyticsFinancialYearStartKey financialYearStart = AnalyticsFinancialYearStartKey.valueOf(
-                String.valueOf( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ) ) );
+                systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START ).toString() );
             period = mapView.getRelatives().getRelativePeriods( date, null, false, financialYearStart ).get( 0 );
         }
 
