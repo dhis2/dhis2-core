@@ -115,47 +115,57 @@ public class MetadataItem
     }
 
     @JsonProperty
-    public String getUid() {
+    public String getUid()
+    {
         return uid;
     }
 
-    public void setUid(String uid) {
+    public void setUid( String uid )
+    {
         this.uid = uid;
     }
 
     @JsonProperty
-    public String getCode() {
+    public String getCode()
+    {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode( String code )
+    {
         this.code = code;
     }
 
     @JsonProperty
-    public DimensionType getDimensionType() {
+    public DimensionType getDimensionType()
+    {
         return dimensionType;
     }
 
-    public void setDimensionType(DimensionType type) {
+    public void setDimensionType( DimensionType type )
+    {
         this.dimensionType = type;
     }
 
     @JsonProperty
-    public AggregationType getAggregationType() {
+    public AggregationType getAggregationType()
+    {
         return aggregationType;
     }
 
-    public void setAggregationType(AggregationType itemSpecificType) {
+    public void setAggregationType( AggregationType itemSpecificType )
+    {
         this.aggregationType = itemSpecificType;
     }
 
     @JsonProperty
-    public DimensionItemType getDimensionItemType() {
+    public DimensionItemType getDimensionItemType()
+    {
         return dimensionItemType;
     }
 
-    public void setDimensionItemType(DimensionItemType dimensionItemType) {
+    public void setDimensionItemType( DimensionItemType dimensionItemType )
+    {
         this.dimensionItemType = dimensionItemType;
     }
     
