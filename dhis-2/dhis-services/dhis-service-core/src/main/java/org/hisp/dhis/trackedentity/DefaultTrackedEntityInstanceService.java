@@ -96,7 +96,7 @@ public class DefaultTrackedEntityInstanceService
     private TrackedEntityAttributeService attributeService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private RelationshipService relationshipService;
@@ -241,7 +241,7 @@ public class DefaultTrackedEntityInstanceService
 
             for ( String te : tes )
             {
-                TrackedEntityType entity = trackedEntityService.getTrackedEntityType( te );
+                TrackedEntityType entity = trackedEntityTypeService.getTrackedEntityType( te );
                 names.put( te, entity != null ? entity.getDisplayName() : null );
             }
 
@@ -312,7 +312,7 @@ public class DefaultTrackedEntityInstanceService
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
         }
 
-        if ( params.hasProgram() && params.hasTrackedEntity() )
+        if ( params.hasProgram() && params.hasTrackedEntityType() )
         {
             violation = "Program and tracked entity cannot be specified simultaneously";
         }
@@ -428,7 +428,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
 
-        TrackedEntityType te = trackedEntityType != null ? trackedEntityService.getTrackedEntityType( trackedEntityType ) : null;
+        TrackedEntityType te = trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
 
         if ( trackedEntityType != null && te == null )
         {

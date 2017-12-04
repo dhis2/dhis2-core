@@ -41,7 +41,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +87,7 @@ public class DefaultProgramInstanceService
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private ProgramNotificationService programNotificationService;
@@ -175,7 +175,7 @@ public class DefaultProgramInstanceService
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
 
-        TrackedEntityType te = trackedEntityType != null ? trackedEntityService.getTrackedEntityType( trackedEntityType ) : null;
+        TrackedEntityType te = trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
 
         if ( trackedEntityType != null && te == null )
         {
@@ -300,7 +300,7 @@ public class DefaultProgramInstanceService
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
         }
 
-        if ( params.hasProgram() && params.hasTrackedEntity() )
+        if ( params.hasProgram() && params.hasTrackedEntityType() )
         {
             violation = "Program and tracked entity cannot be specified simultaneously";
         }

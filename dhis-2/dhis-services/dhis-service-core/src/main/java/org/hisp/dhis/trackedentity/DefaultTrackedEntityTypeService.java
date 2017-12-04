@@ -37,18 +37,18 @@ import java.util.List;
  * @author Chau Thu Tran
  */
 @Transactional
-public class DefaultTrackedEntityService
-    implements TrackedEntityService
+public class DefaultTrackedEntityTypeService
+    implements TrackedEntityTypeService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityStore;
+    private GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
 
-    public void setTrackedEntityStore( GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityStore )
+    public void setTrackedEntityTypeStore( GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
     {
-        this.trackedEntityStore = trackedEntityStore;
+        this.trackedEntityTypeStore = trackedEntityTypeStore;
     }
 
     // -------------------------------------------------------------------------
@@ -56,46 +56,46 @@ public class DefaultTrackedEntityService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addTrackedEntity( TrackedEntityType trackedEntityType )
+    public int addTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        trackedEntityStore.save( trackedEntityType );
+        trackedEntityTypeStore.save( trackedEntityType );
 
         return trackedEntityType.getId();
     }
 
     @Override
-    public void deleteTrackedEntity( TrackedEntityType trackedEntityType )
+    public void deleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        trackedEntityStore.delete( trackedEntityType );
+        trackedEntityTypeStore.delete( trackedEntityType );
     }
 
     @Override
-    public void updateTrackedEntity( TrackedEntityType trackedEntityType )
+    public void updateTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        trackedEntityStore.update( trackedEntityType );
+        trackedEntityTypeStore.update( trackedEntityType );
     }
 
     @Override
     public TrackedEntityType getTrackedEntityType( int id )
     {
-        return trackedEntityStore.get( id );
+        return trackedEntityTypeStore.get( id );
     }
 
     @Override
     public TrackedEntityType getTrackedEntityType( String uid )
     {
-        return trackedEntityStore.getByUid( uid );
+        return trackedEntityTypeStore.getByUid( uid );
     }
 
     @Override
     public TrackedEntityType getTrackedEntityByName( String name )
     {
-        return trackedEntityStore.getByName( name );
+        return trackedEntityTypeStore.getByName( name );
     }
 
     @Override
-    public List<TrackedEntityType> getAllTrackedEntity()
+    public List<TrackedEntityType> getAllTrackedEntityType()
     {
-        return trackedEntityStore.getAll();
+        return trackedEntityTypeStore.getAll();
     }
 }

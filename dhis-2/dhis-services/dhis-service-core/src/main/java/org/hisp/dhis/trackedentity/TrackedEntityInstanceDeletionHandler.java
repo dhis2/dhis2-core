@@ -78,7 +78,7 @@ public class TrackedEntityInstanceDeletionHandler
     }
     
     @Override
-    public String allowDeleteTrackedEntity( TrackedEntityType trackedEntityType )
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = " + trackedEntityType.getId();
 

@@ -82,7 +82,7 @@ public class HibernateProgramStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<Program> getByTrackedEntity( TrackedEntityType trackedEntityType )
+    public List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         return getCriteria( Restrictions.eq( "trackedEntityType", trackedEntityType ) ).list();
     }

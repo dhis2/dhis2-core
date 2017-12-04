@@ -613,7 +613,7 @@ public class Attribute
             .add( "userGroupAttribute", userGroupAttribute )
             .add( "programAttribute", programAttribute )
             .add( "programStageAttribute", programStageAttribute )
-            .add( "trackedEntityAttribute", trackedEntityTypeAttribute )
+            .add( "trackedEntityTypeAttribute", trackedEntityTypeAttribute )
             .add( "trackedEntityAttributeAttribute", trackedEntityAttributeAttribute )
             .add( "categoryOptionAttribute", categoryOptionAttribute )
             .add( "categoryOptionGroupAttribute", categoryOptionGroupAttribute )

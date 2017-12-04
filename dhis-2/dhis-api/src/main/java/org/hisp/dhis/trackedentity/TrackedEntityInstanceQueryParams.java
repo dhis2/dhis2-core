@@ -518,7 +518,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Indicates whether this parameters specifies a tracked entity.
      */
-    public boolean hasTrackedEntity()
+    public boolean hasTrackedEntityType()
     {
         return trackedEntityType != null;
     }

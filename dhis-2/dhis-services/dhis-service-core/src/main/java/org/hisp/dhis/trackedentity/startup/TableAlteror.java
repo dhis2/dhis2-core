@@ -233,7 +233,7 @@ public class TableAlteror
         executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTEVALUE_DELETE' where authority='F_PATIENTATTRIBUTEVALUE_DELETE'" );
 
         executeSql( "ALTER TABLE program_attributes RENAME COLUMN programattributeid TO programtrackedentityattributeid" );
-        createPersonTrackedEntity();
+        createPersonTrackedEntityType();
 
         executeSql( "ALTER TABLE trackedentityattributevalue DROP COLUMN trackedentityattributeoptionid" );
         executeSql( "DROP TABLE trackedentityattributeoption" );
@@ -350,7 +350,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE programinstance DROP COLUMN completed" );
     }
 
-    private void createPersonTrackedEntity()
+    private void createPersonTrackedEntityType()
     {
         int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentitytype where name='Person'",
             Integer.class );

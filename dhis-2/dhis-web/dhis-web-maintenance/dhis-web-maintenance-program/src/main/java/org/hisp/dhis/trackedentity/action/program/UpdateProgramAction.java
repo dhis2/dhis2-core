@@ -45,7 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class UpdateProgramAction
     private RelationshipTypeService relationshipTypeService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private AttributeService attributeService;
@@ -418,7 +418,7 @@ public class UpdateProgramAction
 
         if ( trackedEntityId != null )
         {
-            TrackedEntityType trackedEntityType = trackedEntityService.getTrackedEntityType( trackedEntityId );
+            TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityId );
             program.setTrackedEntityType( trackedEntityType );
         }
         else if ( program.getTrackedEntityType() != null )

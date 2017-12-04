@@ -78,7 +78,7 @@ public interface ProgramStore
      *
      * @param trackedEntityType {@link TrackedEntityType}
      */
-    List<Program> getByTrackedEntity( TrackedEntityType trackedEntityType );
+    List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Get all Programs associated with the given DataEntryForm.

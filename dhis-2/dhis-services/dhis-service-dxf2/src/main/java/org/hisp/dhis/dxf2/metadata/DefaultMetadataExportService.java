@@ -559,7 +559,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         handleCategoryCombo( metadata, program.getCategoryCombo() );
         handleDataEntryForm( metadata, program.getDataEntryForm() );
-        handleTrackedEntity( metadata, program.getTrackedEntityType() );
+        handleTrackedEntityType( metadata, program.getTrackedEntityType() );
 
         program.getProgramStages().forEach( programStage -> handleProgramStage( metadata, programStage ) );
         program.getProgramAttributes().forEach( programTrackedEntityAttribute -> handleProgramTrackedEntityAttribute( metadata, programTrackedEntityAttribute ) );
@@ -680,7 +680,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleTrackedEntity( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, TrackedEntityType trackedEntityType )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleTrackedEntityType( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, TrackedEntityType trackedEntityType )
     {
         if ( trackedEntityType == null ) return metadata;
         metadata.putValue( TrackedEntityType.class, trackedEntityType );

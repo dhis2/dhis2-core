@@ -871,11 +871,11 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteTrackedEntity( TrackedEntityType trackedEntityType )
+    public void deleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
     }
 
-    public String allowDeleteTrackedEntity( TrackedEntityType trackedEntityType )
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         return null;
     }

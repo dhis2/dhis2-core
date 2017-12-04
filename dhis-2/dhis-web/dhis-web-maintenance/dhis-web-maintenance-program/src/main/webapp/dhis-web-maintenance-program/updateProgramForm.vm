@@ -123,7 +123,7 @@
 			<td>
 				<select id='trackedEntityId' name='trackedEntityId' class="{validate:{required:true}}">
 					<option value=''>[$i18n.getString('please_select')]</option>
-					#foreach($trackedEntityType in $trackedEntities)
+					#foreach($trackedEntityType in $trackedEntityTypes)
 					<option value='$trackedEntityType.id' #if($trackedEntityType.id==$program.trackedEntityType.id) selected #end >$encoder.htmlEncode($trackedEntityType.displayName)</option>
 					#end
 				</select>

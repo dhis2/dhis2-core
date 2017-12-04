@@ -1498,7 +1498,7 @@ public abstract class DhisConvenienceTest
         return section;
     }
 
-    public static TrackedEntityType createTrackedEntity( char uniqueChar )
+    public static TrackedEntityType createTrackedEntityType( char uniqueChar )
     {
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setAutoFields();

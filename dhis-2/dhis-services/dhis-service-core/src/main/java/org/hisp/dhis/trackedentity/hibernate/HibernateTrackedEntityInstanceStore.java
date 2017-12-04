@@ -124,7 +124,7 @@ public class HibernateTrackedEntityInstanceStore
         String hql = "select distinct tei from TrackedEntityInstance tei left join tei.trackedEntityAttributeValues";
         SqlHelper hlp = new SqlHelper( true );
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
             hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
         }
@@ -403,7 +403,7 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
             sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }

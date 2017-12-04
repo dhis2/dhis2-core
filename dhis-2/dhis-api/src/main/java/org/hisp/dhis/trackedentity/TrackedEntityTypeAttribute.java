@@ -48,17 +48,11 @@ public class TrackedEntityTypeAttribute
 {
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityAttribute attribute;
+    private TrackedEntityAttribute trackedEntityAttribute;
 
-    private boolean displayInList;
-
-    private Integer sortOrder;
+    private boolean displayInList;    
 
     private Boolean mandatory;
-
-    private Boolean allowFutureDate;
-
-    private Boolean renderOptionsAsRadio = false;
     
     private Boolean searchable = false;
 
@@ -71,11 +65,11 @@ public class TrackedEntityTypeAttribute
         setAutoFields();
     }
 
-    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute )
+    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute trackedEntityAttribute )
     {
         this();
         this.trackedEntityType = trackedEntityType;
-        this.attribute = attribute;
+        this.trackedEntityAttribute = trackedEntityAttribute;
     }
 
     public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute, boolean displayInList,
@@ -92,34 +86,32 @@ public class TrackedEntityTypeAttribute
         this( trackedEntityType, attribute );
         this.displayInList = displayInList;
         this.mandatory = mandatory;
-        this.sortOrder = sortOrder;
     }
 
     public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute, boolean displayInList,
         Boolean mandatory, Boolean allowFutureDate )
     {
         this( trackedEntityType, attribute, displayInList, mandatory );
-        this.allowFutureDate = allowFutureDate;
     }
     
 
     @Override
     public String getName()
     {
-        return (trackedEntityType != null ? trackedEntityType.getDisplayName() + " " : "") + (attribute != null ? attribute.getDisplayName() : "");
+        return (trackedEntityType != null ? trackedEntityType.getDisplayName() + " " : "") + (trackedEntityAttribute != null ? trackedEntityAttribute.getDisplayName() : "");
     }
 
     @JsonProperty
     public String getDisplayShortName()
     {
-        return (trackedEntityType != null ? trackedEntityType.getDisplayShortName() + " " : "") + (attribute != null ? attribute.getDisplayShortName() : "");
+        return (trackedEntityType != null ? trackedEntityType.getDisplayShortName() + " " : "") + (trackedEntityAttribute != null ? trackedEntityAttribute.getDisplayShortName() : "");
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
     {
-        return attribute != null ? attribute.getValueType() : null;
+        return trackedEntityAttribute != null ? trackedEntityAttribute.getValueType() : null;
     }
 
     @Override
@@ -130,7 +122,7 @@ public class TrackedEntityTypeAttribute
             "\"id\":\"" + id + "\", " +
             "\"uid\":\"" + uid + "\", " +
             "\"trackedEntityType\":" + trackedEntityType + ", " +
-            "\"attribute\":" + attribute + ", " +
+            "\"trackedEntityAttribute\":" + trackedEntityAttribute + ", " +
             "\"created\":\"" + created + "\", " +
             "\"lastUpdated\":\"" + lastUpdated + "\" " +
             "}";
@@ -156,14 +148,14 @@ public class TrackedEntityTypeAttribute
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityAttribute getAttribute()
+    public TrackedEntityAttribute getTrackedEntityAttribute()
     {
-        return attribute;
+        return trackedEntityAttribute;
     }
 
-    public void setAttribute( TrackedEntityAttribute attribute )
+    public void setTrackedEntityAttribute( TrackedEntityAttribute trackedEntityAttribute )
     {
-        this.attribute = attribute;
+        this.trackedEntityAttribute = trackedEntityAttribute;
     }
 
     @JsonProperty
@@ -189,43 +181,7 @@ public class TrackedEntityTypeAttribute
     {
         this.displayInList = displayInList;
     }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getAllowFutureDate()
-    {
-        return allowFutureDate;
-    }
-
-    public void setAllowFutureDate( Boolean allowFutureDate )
-    {
-        this.allowFutureDate = allowFutureDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getSortOrder()
-    {
-        return sortOrder;
-    }
-
-    public void setSortOrder( Integer sortOrder )
-    {
-        this.sortOrder = sortOrder;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getRenderOptionsAsRadio()
-    {
-        return renderOptionsAsRadio;
-    }
-
-    public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
-    {
-        this.renderOptionsAsRadio = renderOptionsAsRadio;
-    }
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isSearchable()

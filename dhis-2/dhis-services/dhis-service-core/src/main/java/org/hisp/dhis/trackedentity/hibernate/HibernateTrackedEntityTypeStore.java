@@ -30,13 +30,13 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeStore;
 
 /**
  * @author Lars Helge Overland
  */
-public class HibernateTrackedEntityStore
+public class HibernateTrackedEntityTypeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityType>
-    implements TrackedEntityStore
+    implements TrackedEntityTypeStore
 {
 }

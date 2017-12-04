@@ -28,6 +28,6 @@ function showTrackedEntityDetails( context ) {
 // Remove Attribute
 // -----------------------------------------------------------------------------
 
-function removeTrackedEntity( context ) {
+function removeTrackedEntityType( context ) {
   removeItem(context.id, context.name, i18n_confirm_delete, 'removeTrackedEntity.action');
 }

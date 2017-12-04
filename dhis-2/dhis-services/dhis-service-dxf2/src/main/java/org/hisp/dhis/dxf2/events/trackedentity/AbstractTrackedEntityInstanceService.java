@@ -341,7 +341,7 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.trimValuesToNull();
 
         Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkTrackedEntity( trackedEntityInstance, importOptions ) );
+        importConflicts.addAll( checkTrackedEntityType( trackedEntityInstance, importOptions ) );
         importConflicts.addAll( checkAttributes( trackedEntityInstance, importOptions ) );
 
         importSummary.setConflicts( importConflicts );
@@ -742,7 +742,7 @@ public abstract class AbstractTrackedEntityInstanceService
         return importConflicts;
     }
 
-    private List<ImportConflict> checkTrackedEntity( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    private List<ImportConflict> checkTrackedEntityType( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
 

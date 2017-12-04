@@ -1041,14 +1041,14 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntities", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "trackedEntityTypes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntityType> getTrackedEntities()
+    public List<TrackedEntityType> getTrackedEntityTypes()
     {
         return trackedEntityTypes;
     }
 
-    public void setTrackedEntities( List<TrackedEntityType> trackedEntityTypes )
+    public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
         this.trackedEntityTypes = trackedEntityTypes;
     }
@@ -1169,7 +1169,7 @@ public class Metadata
             ", programs=" + programs +
             ", programStages=" + programStages +
             ", relationshipTypes=" + relationshipTypes +
-            ", trackedEntities=" + trackedEntityTypes +
+            ", trackedEntityTypes=" + trackedEntityTypes +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
             ", colors=" + colors +
             ", colorSets=" + colorSets +

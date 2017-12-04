@@ -79,7 +79,7 @@ public interface AttributeStore
         .put( UserGroup.class, "userGroupAttribute" )
         .put( Program.class, "programAttribute" )
         .put( ProgramStage.class, "programStageAttribute" )
-        .put( TrackedEntityType.class, "trackedEntityAttribute" )
+        .put( TrackedEntityType.class, "trackedEntityTypeAttribute" )
         .put( TrackedEntityAttribute.class, "trackedEntityAttributeAttribute" )
         .put( DataElementCategoryOption.class, "categoryOptionAttribute" )
         .put( CategoryOptionGroup.class, "categoryOptionGroupAttribute" )

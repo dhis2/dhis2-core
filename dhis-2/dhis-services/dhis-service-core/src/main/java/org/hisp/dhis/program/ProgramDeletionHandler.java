@@ -135,9 +135,9 @@ public class ProgramDeletionHandler
     }
 
     @Override
-    public String allowDeleteTrackedEntity( TrackedEntityType trackedEntityType )
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        Collection<Program> programs = programService.getProgramsByTrackedEntity( trackedEntityType );
+        Collection<Program> programs = programService.getProgramsByTrackedEntityType( trackedEntityType );
 
         return (programs != null && programs.size() > 0) ? ERROR : null;
     }

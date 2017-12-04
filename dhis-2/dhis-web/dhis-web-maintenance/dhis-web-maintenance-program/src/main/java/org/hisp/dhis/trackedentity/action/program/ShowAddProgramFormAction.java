@@ -45,7 +45,7 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +95,7 @@ public class ShowAddProgramFormAction
     }
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private AttributeService attributeService;
@@ -143,7 +143,7 @@ public class ShowAddProgramFormAction
 
     private List<TrackedEntityType> trackedEntityTypes;
 
-    public List<TrackedEntityType> getTrackedEntities()
+    public List<TrackedEntityType> getTrackedEntityTypes()
     {
         return trackedEntityTypes;
     }
@@ -204,7 +204,7 @@ public class ShowAddProgramFormAction
         relationshipTypes = relationshipTypeService.getAllRelationshipTypes();
         Collections.sort( relationshipTypes );
 
-        trackedEntityTypes = trackedEntityService.getAllTrackedEntity();
+        trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
         Collections.sort( trackedEntityTypes );
 
         attributes = attributeService.getAttributes( Program.class );

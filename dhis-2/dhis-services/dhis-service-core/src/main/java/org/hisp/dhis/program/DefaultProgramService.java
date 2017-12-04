@@ -144,9 +144,9 @@ public class DefaultProgramService
     }
 
     @Override
-    public List<Program> getProgramsByTrackedEntity( TrackedEntityType trackedEntityType )
+    public List<Program> getProgramsByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        return programStore.getByTrackedEntity( trackedEntityType );
+        return programStore.getByTrackedEntityType( trackedEntityType );
     }
 
     @Override

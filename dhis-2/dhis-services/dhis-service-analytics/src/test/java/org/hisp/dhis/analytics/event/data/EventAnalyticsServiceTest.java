@@ -159,7 +159,7 @@ public class EventAnalyticsServiceTest
 
         programA.getProgramStages().add( psA );
 
-        TrackedEntityType trackedEntityType = createTrackedEntity( 'A' );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         idObjectManager.save( trackedEntityType );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', ouA );

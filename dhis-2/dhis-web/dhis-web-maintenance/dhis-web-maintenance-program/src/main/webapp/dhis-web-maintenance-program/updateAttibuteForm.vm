@@ -103,7 +103,7 @@
 	<tr id="trackedEntityRow" #if($attribute.trackedEntityType) #else class="hidden" #end>
 			<td><label for="trackedEntityId">$i18n.getString( "tracked_entity" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
 			<td><select id="trackedEntityId" name="trackedEntityId" class="{validate:{required:true}}">
-					#foreach( $trackedEntityType in $trackedEntities )
+					#foreach( $trackedEntityType in $trackedEntityTypes )
 						<option value="$trackedEntityType.id" #if($attribute.trackedEntityType.id==$trackedEntityType.id) selected#end>$encoder.htmlEncode($trackedEntityType.name)</option>
 					#end
 				</select>

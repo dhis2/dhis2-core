@@ -35,9 +35,9 @@ import java.util.List;
  * 
  * @version $ TrackedEntityService.java Feb 15, 2014 7:23:48 PM $
  */
-public interface TrackedEntityService
+public interface TrackedEntityTypeService
 {
-    String ID = TrackedEntityService.class.getName();
+    String ID = TrackedEntityTypeService.class.getName();
 
     /**
      * Adds an {@link TrackedEntityType}
@@ -48,7 +48,7 @@ public interface TrackedEntityService
      * @return A generated unique id of the added
      *         {@link TrackedEntityType}.
      */
-    int addTrackedEntity( TrackedEntityType trackedEntityType );
+    int addTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Deletes a {@link TrackedEntityType}.
@@ -56,7 +56,7 @@ public interface TrackedEntityService
      * @param trackedEntityType the TrackedEntityType to
      *        delete.
      */
-    void deleteTrackedEntity( TrackedEntityType trackedEntityType );
+    void deleteTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Updates a {@link TrackedEntityType}.
@@ -64,7 +64,7 @@ public interface TrackedEntityService
      * @param trackedEntityType the TrackedEntityType to
      *        update.
      */
-    void updateTrackedEntity( TrackedEntityType trackedEntityType );
+    void updateTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Returns a {@link TrackedEntityType}.
@@ -100,5 +100,5 @@ public interface TrackedEntityService
      * @return a List of all TrackedEntityType, or an empty
      *         List if there are no TrackedEntitys.
      */
-    List<TrackedEntityType> getAllTrackedEntity();
+    List<TrackedEntityType> getAllTrackedEntityType();
 }

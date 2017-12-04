@@ -144,7 +144,7 @@ public interface ProgramService
      *
      * @param trackedEntityType {@link TrackedEntityType}
      */
-    List<Program> getProgramsByTrackedEntity( TrackedEntityType trackedEntityType );
+    List<Program> getProgramsByTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Get all Programs with the given DataEntryForm.

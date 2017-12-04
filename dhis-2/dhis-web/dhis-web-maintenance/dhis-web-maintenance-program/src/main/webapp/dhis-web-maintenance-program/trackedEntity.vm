@@ -30,7 +30,7 @@
 			  </tr>
 			</thead>
 			<tbody id="list">
-          #foreach( $trackedEntityType in $trackedEntities )
+          #foreach( $trackedEntityType in $trackedEntityTypes )
             <tr id="tr${trackedEntityType.id}" data-id="$!trackedEntityType.id" 
 				data-uid="$!trackedEntityType.uid" data-type="TrackedEntityType" 
 				data-name="$encoder.htmlEncode( $!trackedEntityType.displayName )"
