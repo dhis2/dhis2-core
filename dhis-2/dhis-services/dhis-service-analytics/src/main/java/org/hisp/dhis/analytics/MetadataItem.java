@@ -70,7 +70,6 @@ public class MetadataItem
     {
         this.name = name;
         this.legendSet = legendSet;
-
         setDataItem( dimensionalItemObject );
     }
 
@@ -78,7 +77,6 @@ public class MetadataItem
     {
         this.name = name;
         this.legendSet = legendSet;
-
         setDataItem( dimensionalObject );
     }
 

@@ -201,7 +201,7 @@ public class DataQueryParams
     /**
      * Indicates whether to include metadata details to response
      */
-    protected boolean includeMetadataDetails;
+    protected boolean includeMetadatadetails;
     
     /**
      * Indicates which property to display for meta-data.
@@ -389,7 +389,7 @@ public class DataQueryParams
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
         params.includeNumDen = this.includeNumDen;
-        params.includeMetadataDetails = this.includeMetadataDetails;
+        params.includeMetadatadetails = this.includeMetadatadetails;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
         params.outputFormat = this.outputFormat;
@@ -1678,9 +1678,9 @@ public class DataQueryParams
         return includeNumDen;
     }
 
-    public boolean isIncludeMetadataDetails()
+    public boolean isIncludeMetadatadetails()
     {
-        return includeMetadataDetails;
+        return includeMetadatadetails;
     }
 
     public DisplayProperty getDisplayProperty()
@@ -2352,7 +2352,7 @@ public class DataQueryParams
 
         public Builder withIncludeMetadataDetails( boolean includeMetadataDetails )
         {
-            this.params.includeMetadataDetails = includeMetadataDetails;
+            this.params.includeMetadatadetails = includeMetadataDetails;
             return this;
         }
 
