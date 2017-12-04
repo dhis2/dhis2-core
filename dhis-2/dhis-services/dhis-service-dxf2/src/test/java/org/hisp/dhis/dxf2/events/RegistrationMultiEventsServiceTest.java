@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -94,6 +95,9 @@ public class RegistrationMultiEventsServiceTest
 
     @Autowired
     private UserService _userService;
+    
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
@@ -224,7 +228,7 @@ public class RegistrationMultiEventsServiceTest
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -260,7 +264,7 @@ public class RegistrationMultiEventsServiceTest
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),

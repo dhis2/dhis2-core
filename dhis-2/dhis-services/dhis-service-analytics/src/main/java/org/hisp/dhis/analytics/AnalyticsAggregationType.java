@@ -28,83 +28,179 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Objects;
+import org.hisp.dhis.util.ObjectUtils;
+import com.google.common.base.MoreObjects;
+
 /**
- * Enumeration of analytics aggregation types. Should be kept up to date with
- * {@link AggregationType}.
- * 
  * @author Lars Helge Overland
  */
-public enum AnalyticsAggregationType
+public class AnalyticsAggregationType
 {
-    SUM( "sum", true ),
-    AVERAGE( "avg", true ),
-    AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
-    AVERAGE_SUM_INT( "avg_sum_int",  true ), // Sum in organisation unit hierarchy
-    AVERAGE_SUM_INT_DISAGGREGATION( "avg_sum_int_disaggregation", true ), // Sum in organisation unit hierarchy
-    AVERAGE_INT( "avg_int", true ),
-    AVERAGE_INT_DISAGGREGATION( "avg_int_disaggregation", true ),
-    AVERAGE_BOOL( "avg_bool", true ),
-    LAST_SUM_ORG_UNIT( "last_sum_org_unit", true ),
-    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
-    COUNT( "count", true ),
-    STDDEV( "stddev", true ),
-    VARIANCE( "variance", true ),
-    MIN( "min", true ),
-    MAX( "max", true ),
-    NONE( "none", true ), // Text only
-    CUSTOM( "custom", false ),
-    DEFAULT( "default", false );
-
-    private final String value;
+    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
+    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
+    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
+    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
     
-    private boolean aggregateable;
+    /**
+     * General aggregation type.
+     */
+    private AggregationType aggregationType;
     
-    AnalyticsAggregationType( String value )
-    {
-        this.value = value;
-    }
+    /**
+     * Aggregation type for the period dimension.
+     */
+    private AggregationType periodAggregationType;
+    
+    /**
+     * Analytics data type.
+     */
+    private DataType dataType;
+    
+    /**
+     * Indicates whether to perform data disaggregation.
+     */
+    private boolean disaggregation;
 
-    AnalyticsAggregationType( String value, boolean aggregateable )
-    {
-        this.value = value;
-        this.aggregateable = aggregateable;
-    }
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-    public String getValue()
+    public AnalyticsAggregationType( AggregationType aggregationType )
     {
-        return value;
-    }
-
-    public boolean isAverage()
-    {
-        return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
+        this.aggregationType = aggregationType;
     }
     
-    public boolean isLast()
+    public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType )
     {
-        return this == LAST_SUM_ORG_UNIT || this == LAST_AVERAGE_ORG_UNIT;
+        this( aggregationType );
+        this.periodAggregationType = periodAggregationType;
     }
     
-    public boolean isAggregateable()
+    public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType, DataType dataType, boolean disaggregation )
     {
-        return aggregateable;
+        this( aggregationType, periodAggregationType );
+        this.dataType = dataType;
+        this.disaggregation = disaggregation;
     }
+
+    // -------------------------------------------------------------------------
+    // Logic methods
+    // -------------------------------------------------------------------------
 
     public static AnalyticsAggregationType fromAggregationType( AggregationType aggregationType )
     {
-        return aggregationType != null ? fromName( aggregationType.name() ) : null;
+        if ( AggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType )
+        {
+            return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE );
+        }
+        else if ( AggregationType.LAST == aggregationType )
+        {
+            return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST );
+        }
+        else if ( AggregationType.LAST_AVERAGE_ORG_UNIT == aggregationType )
+        {
+            return new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
+        }
+        else
+        {
+            return new AnalyticsAggregationType( aggregationType, aggregationType );
+        }
+    }
+    
+    public boolean isAggregationType( AggregationType type )
+    {
+        return this.aggregationType == type;
+    }
+    
+    public boolean isPeriodAggregationType( AggregationType type )
+    {
+        return this.periodAggregationType == type;
+    }
+    
+    public boolean isLastPeriodAggregationType()
+    {
+        return AggregationType.LAST == periodAggregationType;
+    }
+    
+    public boolean isNumericDataType()
+    {
+        return this.dataType == DataType.NUMERIC;
+    }
+    
+    public boolean isBooleanDataType()
+    {
+        return this.dataType == DataType.BOOLEAN;
     }
 
-    public static AnalyticsAggregationType fromName( String name )
+    // -------------------------------------------------------------------------
+    // Get methods
+    // -------------------------------------------------------------------------
+
+    public AggregationType getAggregationType()
     {
-        for ( AnalyticsAggregationType type : AnalyticsAggregationType.values() )
+        return aggregationType;
+    }
+
+    public AggregationType getPeriodAggregationType()
+    {
+        return ObjectUtils.firstNonNull( periodAggregationType, aggregationType );
+    }
+
+    public DataType getDataType()
+    {
+        return dataType;
+    }
+
+    public boolean isDisaggregation()
+    {
+        return disaggregation;
+    }
+
+    // -------------------------------------------------------------------------
+    // toString, equals, hash code
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "aggregation type", aggregationType )
+            .add( "period dim aggregation type", periodAggregationType )
+            .add( "data type", dataType )
+            .add( "disaggregation", disaggregation ).toString();
+    }
+    
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
         {
-            if ( type.name().equalsIgnoreCase( name ) )
-            {
-                return type;
-            }
+            return true;
         }
 
-        return null;
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( !getClass().isAssignableFrom( object.getClass() ) )
+        {
+            return false;
+        }
+
+        final AnalyticsAggregationType other = (AnalyticsAggregationType) object;
+
+        return Objects.equals( this.aggregationType, other.aggregationType ) &&
+            Objects.equals( this.periodAggregationType, other.periodAggregationType ) &&
+            Objects.equals( this.dataType, other.dataType ) &&
+            Objects.equals( this.disaggregation, other.disaggregation );
+    }
+    
+
+    @Override
+    public int hashCode()
+    {
+        return 31 * Objects.hash( aggregationType, periodAggregationType, dataType, disaggregation );
     }
 }

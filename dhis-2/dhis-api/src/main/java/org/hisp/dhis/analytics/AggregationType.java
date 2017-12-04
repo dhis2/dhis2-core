@@ -36,12 +36,14 @@ public enum AggregationType
     SUM( "sum", true ),
     AVERAGE( "avg", true ),
     AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
+    LAST( "last" ), // Sum org unit
+    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
     COUNT( "count", true ),
     STDDEV( "stddev", true ),
     VARIANCE( "variance", true ),
     MIN( "min", true ),
     MAX( "max", true ),
-    NONE( "none", true ), // Text only
+    NONE( "none", true ), // Aggregatable for text only
     CUSTOM( "custom", false ),
     DEFAULT( "default", false );
 

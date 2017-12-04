@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.interceptor;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,55 +28,52 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Iterator;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpMethod;
+
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
- * @author markusbekken
+ * Interceptor which sets HTTP headers which instructs clients not to
+ * cache the response. This is the default behavior for Struts-generated
+ * responses. Does not set the cache interceptor if already set, allowing
+ * other interceptors to set cache headers for special cases.
+ * 
+ * @author Lars Helge Overland
  */
-public class ProgramRuleActionDeletionHandler
-    extends DeletionHandler 
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private ProgramRuleActionService programRuleActionService;
-
-    public void setProgramRuleActionService( ProgramRuleActionService programRuleActionService )
-    {
-        this.programRuleActionService = programRuleActionService;
-    }
-    
-    private ProgramRuleService programRuleService;
-
-    public void setProgramRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
-    }
-    
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-    
+public class NoCacheInterceptor
+    implements Interceptor
+{    
     @Override
-    protected String getClassName()
+    public String intercept( ActionInvocation invocation )
+        throws Exception
     {
-        return ProgramRuleAction.class.getSimpleName();
-    }
-    
-    @Override
-    public void deleteProgramRule( ProgramRule programRule )
-    {
-        Iterator<ProgramRuleAction> actionIterator = programRuleActionService.getProgramRuleAction( programRule ).iterator();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
         
-        programRule.setProgramRuleActions( null );
-        programRuleService.updateProgramRule( programRule );
+        String header = response.getHeader( ContextUtils.HEADER_CACHE_CONTROL );
+        boolean headerSet = header != null && !header.trim().isEmpty();
         
-        while ( actionIterator.hasNext() )
-        {   
-            programRuleActionService.deleteProgramRuleAction( actionIterator.next() );
+        if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
+        {
+            ContextUtils.setNoCache( response );
         }
+                
+        return invocation.invoke();
+    }
+
+    @Override
+    public void destroy()
+    {        
+    }
+
+    @Override
+    public void init()
+    {        
     }
 }

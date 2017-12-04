@@ -28,8 +28,6 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-
 /**
  * Service for analytics table generation and analysis.
  * 

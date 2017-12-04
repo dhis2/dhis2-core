@@ -39,7 +39,10 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -441,13 +444,11 @@ public class DefaultDataQueryService
 
         else if ( LONGITUDE_DIM_ID.contains( dimension ) )
         {
-
             return new BaseDimensionalObject( dimension, DimensionType.STATIC, null, DISPLAY_NAME_LONGITUDE, new ArrayList<>() );
         }
 
         else if ( LATITUDE_DIM_ID.contains( dimension ) )
         {
-
             return new BaseDimensionalObject( dimension, DimensionType.STATIC, null, DISPLAY_NAME_LATITUDE, new ArrayList<>() );
         }
 

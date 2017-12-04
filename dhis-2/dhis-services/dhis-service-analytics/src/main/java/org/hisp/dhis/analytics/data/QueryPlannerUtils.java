@@ -114,14 +114,14 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject element : dataElements )
         {
             DataElement de = (DataElement) element;
-            AnalyticsAggregationType deAggType = AnalyticsAggregationType.fromAggregationType( de.getAggregationType() );
             
-            AnalyticsAggregationType type = ObjectUtils.firstNonNull( params.getAggregationType(), deAggType );
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), 
+                AnalyticsAggregationType.fromAggregationType( de.getAggregationType() ) );
 
-            AnalyticsAggregationType aggregationType = getAggregationType( de.getValueType(), 
-                type, aggregationPeriodType, de.getPeriodType() );
+            AnalyticsAggregationType analyticsAggregationType = getAggregationType( aggregationType, de.getValueType(), 
+                aggregationPeriodType, de.getPeriodType() );
 
-            map.putValue( aggregationType, de );
+            map.putValue( analyticsAggregationType, de );
         }
 
         return map;
@@ -151,45 +151,20 @@ public class QueryPlannerUtils
      * Puts the given element into the map according to the value type, aggregation
      * operator, aggregation period type and data period type.
      * 
-     * @param valueType the value type.
      * @param aggregationType the aggregation operator.
+     * @param valueType the value type.
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static AnalyticsAggregationType getAggregationType( ValueType valueType, AnalyticsAggregationType aggregationType,
+    public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType, ValueType valueType, 
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
-        AnalyticsAggregationType type;
+        DataType dataType = DataType.fromValueType( valueType );
 
         boolean disaggregation = isDisaggregation( aggregationPeriodType, dataPeriodType );
-        boolean number = valueType.isNumeric();
 
-        if ( aggregationType.isAverage() && ValueType.BOOLEAN == valueType )
-        {
-            type = AnalyticsAggregationType.AVERAGE_BOOL;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType && number && disaggregation )
-        {
-            type = AnalyticsAggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType && number )
-        {
-            type = AnalyticsAggregationType.AVERAGE_SUM_INT;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE == aggregationType && number && disaggregation )
-        {
-            type = AnalyticsAggregationType.AVERAGE_INT_DISAGGREGATION;
-        }
-        else if ( AnalyticsAggregationType.AVERAGE == aggregationType && number )
-        {
-            type = AnalyticsAggregationType.AVERAGE_INT;
-        }
-        else
-        {
-            type = aggregationType;
-        }
-
-        return type;
+        return new AnalyticsAggregationType( aggregationType.getAggregationType(), 
+            aggregationType.getPeriodAggregationType(), dataType, disaggregation );
     }
 
     /**

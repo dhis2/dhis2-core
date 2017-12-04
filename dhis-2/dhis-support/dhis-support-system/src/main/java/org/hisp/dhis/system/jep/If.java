@@ -1,4 +1,4 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.system.jep;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,52 +28,47 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.nfunk.jep.ParseException;
+import org.nfunk.jep.function.PostfixMathCommand;
+import org.nfunk.jep.function.PostfixMathCommandI;
 
-import java.util.Date;
-
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import java.util.Stack;
 
 /**
+ * @author Jim Grace
  *
- * Reschedule old jobs and execute jobs which were scheduled when the server was not running.
+ * The IF function takes three arguments:
  *
- * @author Henning Håkonsen
+ * IF ( test, valueIfTrue, valueIfFalse )
+ *
+ * Where test should be a boolean value (represented in JEP by a
+ * Double with value 1 if true and 0 if false). If test is true, the
+ * valueIfTrue is returned, otherwise valueIfFalse is returned.
  */
-public class SchedulerStart
-    extends AbstractStartupRoutine
+public class If
+    extends PostfixMathCommand
+    implements PostfixMathCommandI
 {
-    private JobConfigurationService jobConfigurationService;
-
-    public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
+    public If()
     {
-        this.jobConfigurationService = jobConfigurationService;
+        numberOfParameters = 3;
     }
 
-    private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
+    // nFunk's JEP run() method uses the raw Stack type
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    public void run( Stack inStack )
+        throws ParseException
     {
-        this.schedulingManager = schedulingManager;
-    }
+        checkStack( inStack );
 
-    @Override
-    public void execute( )
-        throws Exception
-    {
-        Date now = new Date();
-        jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
-            jobConfig.setNextExecutionTime( null );
-            jobConfigurationService.updateJobConfiguration( jobConfig );
+        // First arg was pushed on the stack first, and pops last.
+        Object valueIfFalse = inStack.pop();
+        Object valueIfTrue = inStack.pop();
+        Object test = inStack.pop();
 
-            if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
-            {
-                schedulingManager.executeJob( jobConfig );
-            }
-            schedulingManager.scheduleJob( jobConfig );
-        }) );
+        Object result = test instanceof Double && (Double)test != 0.0 ?
+            valueIfTrue : valueIfFalse;
+
+        inStack.push( result );
     }
 }

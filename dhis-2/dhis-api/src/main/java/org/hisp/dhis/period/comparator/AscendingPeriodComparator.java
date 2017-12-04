@@ -33,7 +33,8 @@ import java.util.Comparator;
 import org.hisp.dhis.period.Period;
 
 /**
- * Sorts periods ascending based on the start date, then the end date.
+ * Sorts periods ascending based on the start date, then the end date, i.e. the earliest
+ * period comes first. The start date and end date properties cannot be null.
  * 
  * @author Lars Helge Overland
  */
@@ -45,29 +46,11 @@ public class AscendingPeriodComparator
     @Override
     public int compare( Period period1, Period period2 )
     {
-        if ( period1.getStartDate() == null )
-        {
-            return -1;
-        }
+        int startDateCompared = period1.getStartDate().compareTo( period2.getStartDate() );
         
-        if ( period2.getStartDate() == null )
+        if ( startDateCompared != 0 )
         {
-            return 1;
-        }
-        
-        if ( period1.getStartDate().compareTo( period2.getStartDate() ) != 0 )
-        {
-            return period1.getStartDate().compareTo( period2.getStartDate() );
-        }
-        
-        if ( period1.getEndDate() == null )
-        {
-            return -1;
-        }
-        
-        if ( period2.getEndDate() == null )
-        {
-            return 1;
+            return startDateCompared;
         }
         
         return period1.getEndDate().compareTo( period2.getEndDate() );

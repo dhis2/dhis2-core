@@ -66,11 +66,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;

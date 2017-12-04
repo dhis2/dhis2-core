@@ -1,4 +1,4 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.dataset.notifications;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,52 +28,22 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import com.google.common.collect.ImmutableSet;
 
-import java.util.Date;
-
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import java.util.Set;
 
 /**
- *
- * Reschedule old jobs and execute jobs which were scheduled when the server was not running.
- *
- * @author Henning Håkonsen
+ * Created by zubair@dhis2.org on 29.11.17.
  */
-public class SchedulerStart
-    extends AbstractStartupRoutine
+public enum DataSetNotificationTrigger
 {
-    private JobConfigurationService jobConfigurationService;
+    COMPLETION, SCHEDULED;
 
-    public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
+    private static final Set<DataSetNotificationTrigger> SCHEDULED_TRIGGERS =
+        new ImmutableSet.Builder<DataSetNotificationTrigger>().add( SCHEDULED ).build();
+
+    public boolean isScheduled()
     {
-        this.jobConfigurationService = jobConfigurationService;
-    }
-
-    private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        this.schedulingManager = schedulingManager;
-    }
-
-    @Override
-    public void execute( )
-        throws Exception
-    {
-        Date now = new Date();
-        jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
-            jobConfig.setNextExecutionTime( null );
-            jobConfigurationService.updateJobConfiguration( jobConfig );
-
-            if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
-            {
-                schedulingManager.executeJob( jobConfig );
-            }
-            schedulingManager.scheduleJob( jobConfig );
-        }) );
+        return SCHEDULED_TRIGGERS.contains( this );
     }
 }
