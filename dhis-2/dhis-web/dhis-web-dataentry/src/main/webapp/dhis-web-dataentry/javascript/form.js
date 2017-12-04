@@ -557,7 +557,7 @@ dhis2.de.addEventListeners = function()
                 }
             };
 
-            dhis2.period.picker.createInstance( '#' + id, false, {
+            dhis2.period.picker.createInstance( '#' + id, false, false, {
                 onSelect: function() {
                     saveVal( dataElementId, optionComboId, id, fakeEvent.target.id );
                 },
