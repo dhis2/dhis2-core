@@ -2,8 +2,7 @@ package org.hisp.dhis.textpattern;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class TestTextPatternMethod
 {
@@ -176,6 +175,46 @@ public class TestTextPatternMethod
     public void testGetParamCurrentDateFails()
     {
         assertNull( TextPatternMethod.CURRENT_DATE.getParam( "INVALID(DDMMYYYY)" ) );
+    }
+
+    @Test
+    public void testIsResolved()
+    {
+        assertTrue( TextPatternMethod.TEXT.isResolved() );
+        assertFalse( TextPatternMethod.SEQUENTIAL.isResolved() );
+        assertFalse( TextPatternMethod.RANDOM.isResolved() );
+        assertFalse( TextPatternMethod.ORG_UNIT_CODE.isResolved() );
+        assertFalse( TextPatternMethod.CURRENT_DATE.isResolved() );
+    }
+
+    @Test
+    public void testIsGenerated()
+    {
+        assertTrue( TextPatternMethod.SEQUENTIAL.isGenerated() );
+        assertTrue( TextPatternMethod.RANDOM.isGenerated() );
+        assertFalse( TextPatternMethod.TEXT.isGenerated() );
+        assertFalse( TextPatternMethod.ORG_UNIT_CODE.isGenerated() );
+        assertFalse( TextPatternMethod.CURRENT_DATE.isGenerated() );
+    }
+
+    @Test
+    public void testHasTextFormat()
+    {
+        assertTrue( TextPatternMethod.ORG_UNIT_CODE.hasTextFormat() );
+        assertFalse( TextPatternMethod.TEXT.hasTextFormat() );
+        assertFalse( TextPatternMethod.SEQUENTIAL.hasTextFormat() );
+        assertFalse( TextPatternMethod.RANDOM.hasTextFormat() );
+        assertFalse( TextPatternMethod.CURRENT_DATE.hasTextFormat() );
+    }
+
+    @Test
+    public void testHasDateFormat()
+    {
+        assertTrue( TextPatternMethod.CURRENT_DATE.hasDateFormat() );
+        assertFalse( TextPatternMethod.SEQUENTIAL.hasDateFormat() );
+        assertFalse( TextPatternMethod.RANDOM.hasDateFormat() );
+        assertFalse( TextPatternMethod.TEXT.hasDateFormat() );
+        assertFalse( TextPatternMethod.ORG_UNIT_CODE.hasDateFormat() );
     }
 
     private void testSyntax( TextPatternMethod method, String[] input, boolean expected )

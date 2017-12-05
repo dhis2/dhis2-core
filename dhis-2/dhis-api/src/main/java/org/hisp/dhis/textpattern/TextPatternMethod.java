@@ -1,5 +1,7 @@
 package org.hisp.dhis.textpattern;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,9 +61,46 @@ public enum TextPatternMethod
 
     private Pattern regex;
 
+    private static ImmutableSet<TextPatternMethod> required = ImmutableSet.of(
+        ORG_UNIT_CODE,
+        SEQUENTIAL
+    );
+
+    private static ImmutableSet<TextPatternMethod> optional = ImmutableSet.of(
+        RANDOM,
+        CURRENT_DATE
+    );
+
+    private static ImmutableSet<TextPatternMethod> isResolved = ImmutableSet.of(
+        TEXT
+    );
+
+    private static ImmutableSet<TextPatternMethod> isGenerated = ImmutableSet.of(
+        RANDOM,
+        SEQUENTIAL
+    );
+
+    private static ImmutableSet<TextPatternMethod> hasTextFormat = ImmutableSet.of(
+        ORG_UNIT_CODE
+    );
+
+    private static ImmutableSet<TextPatternMethod> hasDateFormat = ImmutableSet.of(
+        CURRENT_DATE
+    );
+
     TextPatternMethod( Pattern regex )
     {
         this.regex = regex;
+    }
+
+    public boolean isRequired()
+    {
+        return required.contains( this );
+    }
+
+    public boolean isOptional()
+    {
+        return optional.contains( this );
     }
 
     public boolean isSyntaxValid( String raw )
@@ -81,4 +120,23 @@ public enum TextPatternMethod
         return null;
     }
 
+    public boolean isResolved()
+    {
+        return isResolved.contains( this );
+    }
+
+    public boolean isGenerated()
+    {
+        return isGenerated.contains( this );
+    }
+
+    public boolean hasTextFormat()
+    {
+        return hasTextFormat.contains( this );
+    }
+
+    public boolean hasDateFormat()
+    {
+        return hasDateFormat.contains( this );
+    }
 }
