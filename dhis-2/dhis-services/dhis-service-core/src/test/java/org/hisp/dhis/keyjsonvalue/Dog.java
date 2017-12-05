@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,62 +28,60 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
  */
-public class JacksonUtils
+public class Dog
 {
-    private final static ObjectMapper jsonMapper = new ObjectMapper();
-
-    static
+    private String id;
+    
+    private String name;
+    
+    private String color;
+    
+    public Dog()
     {
-        jsonMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
-        jsonMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
-        jsonMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        jsonMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-    }
-
-    public static <T> T fromJson( byte[] src, Class<T> clazz )
-    {
-        try
-        {
-            return jsonMapper.readValue( src, clazz );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
     }
     
-    public static <T> T fromJson( String string, Class<T> clazz )
+    public Dog( String id, String name, String color )
     {
-        try
-        {
-            return jsonMapper.readValue( string, clazz );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        this.id = id;
+        this.name = name;
+        this.color = color;
     }
-    
-    public static <T> String toJson( T object )
+
+    @JsonProperty
+    public String getId()
     {
-        try
-        {
-            return jsonMapper.writeValueAsString( object );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getColor()
+    {
+        return color;
+    }
+
+    public void setColor( String color )
+    {
+        this.color = color;
     }
 }
