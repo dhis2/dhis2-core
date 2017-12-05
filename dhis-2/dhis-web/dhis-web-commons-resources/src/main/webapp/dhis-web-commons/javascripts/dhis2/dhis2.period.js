@@ -81,9 +81,10 @@ dhis2.period.DatePicker = function(calendar, format) {
  *
  * @param {jQuery|String|Object} el Element to select on, can be any kind of jQuery selector, or a jqEl
  * @param {boolean} [fromIso] Convert field from ISO 8601 to local calendar
+ * @param {boolean} [defaultIsToday] set default date to today
  * @param {Object} [options] Additional options, will be merged with the defaults
  */
-dhis2.period.DatePicker.prototype.createInstance = function(el, fromIso, options) {
+dhis2.period.DatePicker.prototype.createInstance = function(el, fromIso, defaultIsToday, options) {
   var self = this;
   var $el = $( el );
 
@@ -94,7 +95,7 @@ dhis2.period.DatePicker.prototype.createInstance = function(el, fromIso, options
     $el.val( this.calendar.formatDate( this.format, cDateIsoDate ) );
   }
 
-  if ( !$el.val() ) {
+  if ( !$el.val() && defaultIsToday ) {
     $el.val( dhis2.period.calendar.formatDate( this.format, dhis2.period.calendar.today() ) );
   }
 

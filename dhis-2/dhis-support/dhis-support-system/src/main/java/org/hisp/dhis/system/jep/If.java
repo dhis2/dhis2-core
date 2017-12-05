@@ -1,4 +1,4 @@
-package org.hisp.dhis.servlet.filter;
+package org.hisp.dhis.system.jep;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,47 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
+import org.nfunk.jep.ParseException;
+import org.nfunk.jep.function.PostfixMathCommand;
+import org.nfunk.jep.function.PostfixMathCommandI;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.Stack;
 
 /**
- * Filter which enforces no cache for HTML pages like
- * index pages to prevent stale versions being rendered
- * in clients.
+ * @author Jim Grace
  *
- * @author Lars Helge Overland
+ * The IF function takes three arguments:
+ *
+ * IF ( test, valueIfTrue, valueIfFalse )
+ *
+ * Where test should be a boolean value (represented in JEP by a
+ * Double with value 1 if true and 0 if false). If test is true, the
+ * valueIfTrue is returned, otherwise valueIfFalse is returned.
  */
-public class HttpNoCacheFilter
-    extends HttpUrlPatternFilter
+public class If
+    extends PostfixMathCommand
+    implements PostfixMathCommandI
 {
-    @Override
-    public final void doHttpFilter( HttpServletRequest request, HttpServletResponse response, FilterChain chain )
-        throws IOException, ServletException
+    public If()
     {
-        if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
-        {
-            ContextUtils.setNoCache( response );
-        }
+        numberOfParameters = 3;
+    }
 
-        chain.doFilter( request, response );
+    // nFunk's JEP run() method uses the raw Stack type
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    public void run( Stack inStack )
+        throws ParseException
+    {
+        checkStack( inStack );
+
+        // First arg was pushed on the stack first, and pops last.
+        Object valueIfFalse = inStack.pop();
+        Object valueIfTrue = inStack.pop();
+        Object test = inStack.pop();
+
+        Object result = test instanceof Double && (Double)test != 0.0 ?
+            valueIfTrue : valueIfFalse;
+
+        inStack.push( result );
     }
 }
