@@ -29,7 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
  */
 
 import org.springframework.transaction.annotation.Transactional;
-
+import org.hisp.dhis.system.util.JacksonUtils;
 import java.util.List;
 import java.util.Date;
 
@@ -92,12 +92,49 @@ public class DefaultKeyJsonValueService
     @Override
     public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        keyJsonValueStore.save( keyJsonValue );
+        keyJsonValueStore.update( keyJsonValue );
     }
 
     @Override
     public void deleteKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         keyJsonValueStore.delete( keyJsonValue );
+    }
+
+    @Override
+    public <T> T getValue( String namespace, String key, Class<T> clazz )
+    {
+        KeyJsonValue value = getKeyJsonValue( namespace, key );
+
+        if ( value == null || value.getPlainValue() == null )
+        {
+            return null;
+        }
+        
+        T o = JacksonUtils.fromJson( value.getPlainValue(), clazz );
+        
+        System.out.println( "get object " + o );
+        
+        return o;
+    }
+
+    @Override
+    public <T> void addValue( String namespace, String key, T object )
+    {
+        String value = JacksonUtils.toJson( object );
+        
+        KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
+        
+        addKeyJsonValue( keyJsonValue );
+    }
+
+    @Override
+    public <T> void updateValue( String namespace, String key, T object )
+    {
+        String value = JacksonUtils.toJson( object );
+        
+        KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
+        
+        updateKeyJsonValue( keyJsonValue );
     }
 }
