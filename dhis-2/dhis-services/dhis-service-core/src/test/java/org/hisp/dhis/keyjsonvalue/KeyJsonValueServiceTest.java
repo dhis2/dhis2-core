@@ -54,15 +54,15 @@ public class KeyJsonValueServiceTest
         keyJsonValueService.addValue( namespace, dogA.getId(), dogA );
         keyJsonValueService.addValue( namespace, dogB.getId(), dogB );
         
-        Dog retrievedDogA = keyJsonValueService.getValue( namespace, dogA.getId(), Dog.class );
-        Dog retrievedDogB = keyJsonValueService.getValue( namespace, dogB.getId(), Dog.class );
+        dogA = keyJsonValueService.getValue( namespace, dogA.getId(), Dog.class );
+        dogB = keyJsonValueService.getValue( namespace, dogB.getId(), Dog.class );
         
-        assertNotNull( retrievedDogA );        
-        assertEquals( dogA.getId(), retrievedDogA.getId() );
-        assertEquals( dogA.getName(), retrievedDogA.getName() );
-        assertNotNull( retrievedDogB );
-        assertEquals( dogB.getId(), retrievedDogB.getId() );
-        assertEquals( dogB.getName(), retrievedDogB.getName() );
+        assertNotNull( dogA );        
+        assertEquals( "1", dogA.getId() );
+        assertEquals( "Fido", dogA.getName() );
+        assertNotNull( dogB );
+        assertEquals( "2", dogB.getId() );
+        assertEquals( "Aldo", dogB.getName() );
     }
 
     @Test
@@ -73,12 +73,12 @@ public class KeyJsonValueServiceTest
         
         keyJsonValueService.addValue( namespace, dogA.getId(), dogA );
         keyJsonValueService.addValue( namespace, dogB.getId(), dogB );
-        
-        Dog retrievedDogA = keyJsonValueService.getValue( namespace, dogA.getId(), Dog.class );
-        Dog retrievedDogB = keyJsonValueService.getValue( namespace, dogB.getId(), Dog.class );
-        
-        assertEquals( dogA.getName(), retrievedDogA.getName() );
-        assertEquals( dogB.getName(), retrievedDogB.getName() );
+
+        dogA = keyJsonValueService.getValue( namespace, dogA.getId(), Dog.class );
+        dogB = keyJsonValueService.getValue( namespace, dogB.getId(), Dog.class );
+
+        assertEquals( "Fido", dogA.getName() );
+        assertEquals( "Aldo", dogB.getName() );
         
         dogA.setName( "Lilly" );
         dogB.setName( "Teddy" );
@@ -86,10 +86,10 @@ public class KeyJsonValueServiceTest
         keyJsonValueService.updateValue( namespace, dogA.getId(), dogA );
         keyJsonValueService.updateValue( namespace, dogB.getId(), dogB );
 
-        retrievedDogA = keyJsonValueService.getValue( namespace, dogA.getId(), Dog.class );
-        retrievedDogB = keyJsonValueService.getValue( namespace, dogB.getId(), Dog.class );
+        dogA = keyJsonValueService.getValue( namespace, dogA.getId(), Dog.class );
+        dogB = keyJsonValueService.getValue( namespace, dogB.getId(), Dog.class );
 
-        assertEquals( dogA.getName(), retrievedDogA.getName() );
-        assertEquals( dogB.getName(), retrievedDogB.getName() );
+        assertEquals( "Lilly", dogA.getName() );
+        assertEquals( "Teddy", dogB.getName() );
     }
 }

@@ -92,7 +92,7 @@ public class DefaultKeyJsonValueService
     @Override
     public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        keyJsonValueStore.update( keyJsonValue );
+        keyJsonValueStore.save( keyJsonValue );
     }
 
     @Override
@@ -125,16 +125,24 @@ public class DefaultKeyJsonValueService
         
         KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
         
-        addKeyJsonValue( keyJsonValue );
+        keyJsonValueStore.save( keyJsonValue );
     }
 
     @Override
     public <T> void updateValue( String namespace, String key, T object )
     {
+        KeyJsonValue keyJsonValue = getKeyJsonValue( namespace, key );
+        
+        if ( keyJsonValue == null )
+        {
+            throw new IllegalStateException( String.format( 
+                "No object found for namespace '%s' and key '%s'", namespace, key ) );
+        }
+
         String value = JacksonUtils.toJson( object );
         
-        KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
+        keyJsonValue.setValue( value );
         
-        updateKeyJsonValue( keyJsonValue );
+        keyJsonValueStore.update( keyJsonValue );
     }
 }
