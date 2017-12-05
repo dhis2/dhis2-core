@@ -1,4 +1,4 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.interceptor;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,52 +28,52 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import java.util.Date;
+import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpMethod;
 
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
- *
- * Reschedule old jobs and execute jobs which were scheduled when the server was not running.
- *
- * @author Henning Håkonsen
+ * Interceptor which sets HTTP headers which instructs clients not to
+ * cache the response. This is the default behavior for Struts-generated
+ * responses. Does not set the cache interceptor if already set, allowing
+ * other interceptors to set cache headers for special cases.
+ * 
+ * @author Lars Helge Overland
  */
-public class SchedulerStart
-    extends AbstractStartupRoutine
-{
-    private JobConfigurationService jobConfigurationService;
-
-    public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
+public class NoCacheInterceptor
+    implements Interceptor
+{    
+    @Override
+    public String intercept( ActionInvocation invocation )
+        throws Exception
     {
-        this.jobConfigurationService = jobConfigurationService;
-    }
-
-    private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        this.schedulingManager = schedulingManager;
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        
+        String header = response.getHeader( ContextUtils.HEADER_CACHE_CONTROL );
+        boolean headerSet = header != null && !header.trim().isEmpty();
+        
+        if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
+        {
+            ContextUtils.setNoCache( response );
+        }
+                
+        return invocation.invoke();
     }
 
     @Override
-    public void execute( )
-        throws Exception
-    {
-        Date now = new Date();
-        jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
-            jobConfig.setNextExecutionTime( null );
-            jobConfigurationService.updateJobConfiguration( jobConfig );
+    public void destroy()
+    {        
+    }
 
-            if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
-            {
-                schedulingManager.executeJob( jobConfig );
-            }
-            schedulingManager.scheduleJob( jobConfig );
-        }) );
+    @Override
+    public void init()
+    {        
     }
 }

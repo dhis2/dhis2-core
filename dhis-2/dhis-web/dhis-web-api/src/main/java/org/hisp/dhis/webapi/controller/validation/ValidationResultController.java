@@ -48,7 +48,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Stian Sandvold
@@ -76,7 +80,7 @@ public class ValidationResultController
     @GetMapping
     public
     @ResponseBody
-    RootNode getObjectList( ValidationResultQuery query )
+    RootNode getObjectList( ValidationResultQuery query, HttpServletResponse response )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -97,6 +101,7 @@ public class ValidationResultController
 
         rootNode.addChild( fieldFilterService.toCollectionNode( ValidationResult.class, new FieldFilterParams( validationResults, fields ) ) );
 
+        setNoCache( response );
         return rootNode;
     }
 
