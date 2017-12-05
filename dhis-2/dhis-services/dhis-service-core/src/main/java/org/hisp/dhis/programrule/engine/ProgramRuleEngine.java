@@ -28,6 +28,8 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
@@ -43,6 +45,8 @@ import java.util.*;
  */
 public class ProgramRuleEngine
 {
+    private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
+
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -77,6 +81,9 @@ public class ProgramRuleEngine
         try
         {
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
+
+            ruleEffects.stream().map( ruleEffect -> ruleEffect.ruleAction() )
+                .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e)
         {
@@ -110,6 +117,9 @@ public class ProgramRuleEngine
         try
         {
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
+
+            ruleEffects.stream().map( ruleEffect -> ruleEffect.ruleAction() )
+                .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {

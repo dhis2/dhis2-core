@@ -252,6 +252,8 @@ public class DefaultProgramNotificationService
 
     private void triggerRuleEngineForEvent( ProgramStageInstance programStageInstance )
     {
+        log.info( "RuleEngine triggered" );
+
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
@@ -266,6 +268,8 @@ public class DefaultProgramNotificationService
 
     private void triggerRuleEngineForEnrollment( ProgramInstance programInstance )
     {
+        log.info( "RuleEngine triggered" );
+
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
