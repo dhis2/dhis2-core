@@ -167,7 +167,7 @@ public class TextPatternParser
         return result;
     }
 
-    static class TextPatternParsingException
+    public static class TextPatternParsingException
         extends Exception
     {
         TextPatternParsingException( String message, int position )
