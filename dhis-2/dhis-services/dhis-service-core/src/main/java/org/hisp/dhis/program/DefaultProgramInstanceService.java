@@ -443,6 +443,7 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
 
         programNotificationService.sendCompletionNotifications( programInstance );
+        programNotificationService.sendProgramRuleTriggeredNotifications( programInstance );
 
         // -----------------------------------------------------------------
         // Update program-instance
