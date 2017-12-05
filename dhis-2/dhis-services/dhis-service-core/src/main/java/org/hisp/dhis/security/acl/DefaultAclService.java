@@ -1,32 +1,32 @@
 package org.hisp.dhis.security.acl;
 
-/*
- * Copyright (c) 2004-2017, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+    /*
+     * Copyright (c) 2004-2017, University of Oslo
+     * All rights reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions are met:
+     * Redistributions of source code must retain the above copyright notice, this
+     * list of conditions and the following disclaimer.
+     *
+     * Redistributions in binary form must reproduce the above copyright notice,
+     * this list of conditions and the following disclaimer in the documentation
+     * and/or other materials provided with the distribution.
+     * Neither the name of the HISP project nor the names of its contributors may
+     * be used to endorse or promote products derived from this software without
+     * specific prior written permission.
+     *
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+     * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+     * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -90,6 +90,13 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean isDataShareable( Class<?> klass )
+    {
+        Schema schema = schemaService.getSchema( klass );
+        return schema != null && schema.isDataShareable();
+    }
+
+    @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )
@@ -115,6 +122,32 @@ public class DefaultAclService implements AclService
         else
         {
             return false;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean canDataRead( User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
+        {
+            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ ) )
+            {
+                return true;
+            }
         }
 
         return false;
@@ -159,6 +192,34 @@ public class DefaultAclService implements AclService
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
         {
             return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean canDataWrite( User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
+
+        if ( canAccess( user, anyAuthorities ) )
+        {
+            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE ) )
+            {
+                return true;
+            }
         }
 
         return false;
@@ -361,6 +422,16 @@ public class DefaultAclService implements AclService
         access.setUpdate( canUpdate( user, object ) );
         access.setDelete( canDelete( user, object ) );
 
+        if ( isDataShareable( object.getClass() ) )
+        {
+            AccessData data = new AccessData(
+                canDataRead( user, object ),
+                canDataWrite( user, object )
+            );
+
+            access.setData( data );
+        }
+
         return access;
     }
 
@@ -470,7 +541,7 @@ public class DefaultAclService implements AclService
      *
      * @param user   User to check against
      * @param object Object to check against
-     * @return true/false depending on if accesss should be allowed
+     * @return true/false depending on if access should be allowed
      */
     private boolean checkUser( User user, IdentifiableObject object )
     {
