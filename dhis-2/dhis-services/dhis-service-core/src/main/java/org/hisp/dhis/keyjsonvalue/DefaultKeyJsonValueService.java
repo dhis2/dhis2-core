@@ -111,11 +111,7 @@ public class DefaultKeyJsonValueService
             return null;
         }
         
-        T o = JacksonUtils.fromJson( value.getPlainValue(), clazz );
-        
-        System.out.println( "get object " + o );
-        
-        return o;
+        return JacksonUtils.fromJson( value.getPlainValue(), clazz );
     }
 
     @Override
