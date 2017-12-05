@@ -71,7 +71,7 @@ public class HibernateProgramInstanceStore
     @Override
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
-        String hql = buildProgramInstanceHql( params );
+        String hql = buildProgramInstanceCountHql( params );
         
         Query query = getQuery( hql );
 
@@ -93,6 +93,11 @@ public class HibernateProgramInstanceStore
         }
 
         return query.list();
+    }
+
+    private String buildProgramInstanceCountHql( ProgramInstanceQueryParams params )
+    {
+        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
     }
 
     private String buildProgramInstanceHql( ProgramInstanceQueryParams params )
