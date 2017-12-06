@@ -50,6 +50,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -170,13 +171,15 @@ public class EventPredictionServiceTest
         final String DATA_ELEMENT_X_UID = "DataElemenX";
         final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
         final String PROGRAM_UID = "ProgramUidA";
-        final String PROGRAM_INDICATOR_UID = "ProgramIndA";
+        final String PROGRAM_INDICATOR_A_UID = "ProgramIndA";
+        final String PROGRAM_INDICATOR_B_UID = "ProgramIndB";
 
         final String EXPRESSION_A = "SUM( A{" + PROGRAM_UID + SEPARATOR + TRACKED_ENTITY_ATTRIBUTE_UID + "} )"; // A - ProgramTrackedEntityAttribute
         final String EXPRESSION_D = "SUM( D{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID + "} )"; // D - ProgramDataElement
-        final String EXPRESSION_I = "SUM( I{" + PROGRAM_INDICATOR_UID + "} )"; // I - ProgramIndicator
+        final String EXPRESSION_I = "SUM( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )"; // I - ProgramIndicators
 
-        final String EX_INDICATOR = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID + "} + 4"; // Program Indicator expression
+        final String EX_INDICATOR_A = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID + "} + 4"; // Program Indicator A expression
+        final String EX_INDICATOR_B = "V{enrollment_count}"; // Program Indicator B expression
 
         defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
@@ -239,13 +242,20 @@ public class EventPredictionServiceTest
         stageA.addDataElement( dataElementX, 1 );
         programStageService.saveProgramStage( stageA );
 
-        ProgramIndicator programIndicator = createProgramIndicator( 'A', program, EX_INDICATOR, null );
-        programIndicator.setAggregationType( AggregationType.SUM );
-        programIndicator.setUid( PROGRAM_INDICATOR_UID );
-        programIndicatorService.addProgramIndicator( programIndicator );
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', program, EX_INDICATOR_A, null );
+        programIndicatorA.setAggregationType( AggregationType.SUM );
+        programIndicatorA.setUid( PROGRAM_INDICATOR_A_UID );
+        programIndicatorService.addProgramIndicator( programIndicatorA );
+
+        ProgramIndicator programIndicatorB = createProgramIndicator( 'B', program, EX_INDICATOR_B, null );
+        programIndicatorB.setAnalyticsType( AnalyticsType.ENROLLMENT );
+        programIndicatorB.setAggregationType( AggregationType.COUNT );
+        programIndicatorB.setUid( PROGRAM_INDICATOR_B_UID );
+        programIndicatorService.addProgramIndicator( programIndicatorB );
 
         program.setProgramStages( Sets.newHashSet( stageA ) );
-        program.getProgramIndicators().add( programIndicator );
+        program.getProgramIndicators().add( programIndicatorA );
+        program.getProgramIndicators().add( programIndicatorB );
         programService.updateProgram( program );
 
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program, dateMar20, dateMar20, orgUnitA );
@@ -267,7 +277,7 @@ public class EventPredictionServiceTest
 
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );
-        Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicator" );
+        Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicators" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionD );
