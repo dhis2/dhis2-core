@@ -139,11 +139,11 @@ public class DefaultAnalyticsTableService
         populateTables( tables );
         
         clock.logTime( "Populated analytics tables" );
-        notifier.notify( jobId, "Invoking SQL hooks" );
+        notifier.notify( jobId, "Invoking analytics table hooks" );
                 
         tableManager.invokeAnalyticsTableSqlHooks();
         
-        clock.logTime( "Invoked SQL hooks" );
+        clock.logTime( "Invoked analytics table hooks" );
         notifier.notify( jobId, "Applying aggregation levels" );
         
         applyAggregationLevels( tables );

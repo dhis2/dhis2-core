@@ -108,6 +108,8 @@ public class DefaultAnalyticsTableGenerator
             {
                 notifier.notify( jobId, "Updating resource tables" );
                 generateResourceTables();
+                
+                notifier.notify( jobId, "Invoking resource table hooks" );
                 invokeSqlHooks();
             }
 
