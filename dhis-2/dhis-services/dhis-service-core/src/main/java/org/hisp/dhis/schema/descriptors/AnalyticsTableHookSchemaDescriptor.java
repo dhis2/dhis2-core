@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.hibernate;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,46 +28,35 @@ package org.hisp.dhis.analytics.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
-import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.analytics.AnalyticsTableSqlHook;
-import org.hisp.dhis.analytics.AnalyticsTableSqlHookStore;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-public class HibernateAnalyticsTableSqlHookStore
-    extends HibernateIdentifiableObjectStore<AnalyticsTableSqlHook>
-    implements AnalyticsTableSqlHookStore
+public class AnalyticsTableHookSchemaDescriptor implements SchemaDescriptor
 {
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<AnalyticsTableSqlHook> getByPhase( AnalyticsTablePhase phase )
-    {
-        return getJpaQuery( "from AnalyticsTableSqlHook h where h.phase = :phase" )
-            .setParameter( "phase", phase )
-            .getResultList();
-    }
+    public static final String SINGULAR = "analyticsTableHook";
+
+    public static final String PLURAL = "analyticsTableHooks";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    @SuppressWarnings("unchecked")
-    public List<AnalyticsTableSqlHook> getByType( AnalyticsTableType type )
+    public Schema getSchema()
     {
-        return getJpaQuery( "from AnalyticsTableSqlHook h where h.phase = :phase and h.type = :type" )
-            .setParameter( "phase", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED )
-            .setParameter( "type", type )
-            .getResultList();
-    }
+        Schema schema = new Schema( AnalyticsTableHook.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1240 );
 
-    @Override
-    public void executeAnalyticsTableSqlHooks( List<AnalyticsTableSqlHook> hooks )
-    {
-        for ( AnalyticsTableSqlHook hook : hooks )
-        {
-            jdbcTemplate.execute( hook.getSql() );
-        }
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_DELETE" ) ) );
+
+        return schema;
     }
 }

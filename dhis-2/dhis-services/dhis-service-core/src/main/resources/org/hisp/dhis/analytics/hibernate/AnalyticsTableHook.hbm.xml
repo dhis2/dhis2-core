@@ -6,11 +6,11 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.analytics.AnalyticsTableSqlHook" table="analyticstablesqlhook">
+  <class name="org.hisp.dhis.analytics.AnalyticsTableHook" table="analyticstablehook">
 
     <cache usage="read-write" />
 
-    <id name="id" column="analyticstablesqlhookid">
+    <id name="id" column="analyticstablehookid">
       <generator class="native" />
     </id>
     &identifiableProperties;

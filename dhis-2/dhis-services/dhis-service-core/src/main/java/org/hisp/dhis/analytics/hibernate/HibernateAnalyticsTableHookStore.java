@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.hibernate;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -30,42 +30,44 @@ package org.hisp.dhis.analytics;
 
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.*;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.analytics.AnalyticsTableHookStore;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
-public class AnalyticsTableSqlHookStoreTest
-    extends DhisSpringTest
+public class HibernateAnalyticsTableHookStore
+    extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
+    implements AnalyticsTableHookStore
 {
-    @Autowired
-    private AnalyticsTableSqlHookStore sqlHookStore;
-    
-    private final String sql = "update _orgunitstructure set organisationunitid=1";
-    
-    @Test
-    public void testGetByType()
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {
-        AnalyticsTableSqlHook hookA = new AnalyticsTableSqlHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED, null, sql );
-        AnalyticsTableSqlHook hookB = new AnalyticsTableSqlHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
-        AnalyticsTableSqlHook hookC = new AnalyticsTableSqlHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
-        AnalyticsTableSqlHook hookD = new AnalyticsTableSqlHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.EVENT, sql );
-        
-        sqlHookStore.save( hookA );
-        sqlHookStore.save( hookB );
-        sqlHookStore.save( hookC );
-        sqlHookStore.save( hookD );
-        
-        List<AnalyticsTableSqlHook> hooks = sqlHookStore.getByType( AnalyticsTableType.DATA_VALUE );
-        
-        assertEquals( 2, hooks.size() );
-        
-        hooks.forEach( hook -> {
-            assertEquals( AnalyticsTableType.DATA_VALUE, hook.getType() );
-        });
+        return getJpaQuery( "from AnalyticsTableSqlHook h where h.phase = :phase" )
+            .setParameter( "phase", phase )
+            .getResultList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<AnalyticsTableHook> getByType( AnalyticsTableType type )
+    {
+        return getJpaQuery( "from AnalyticsTableSqlHook h where h.phase = :phase and h.type = :type" )
+            .setParameter( "phase", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED )
+            .setParameter( "type", type )
+            .getResultList();
+    }
+
+    @Override
+    public void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks )
+    {
+        for ( AnalyticsTableHook hook : hooks )
+        {
+            jdbcTemplate.execute( hook.getSql() );
+        }
     }
 }

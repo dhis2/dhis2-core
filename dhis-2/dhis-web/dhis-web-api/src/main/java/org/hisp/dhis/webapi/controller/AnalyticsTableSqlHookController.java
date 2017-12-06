@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -26,35 +26,16 @@ package org.hisp.dhis.analytics;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import java.util.List;
-
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AnalyticsTableSqlHookStore
-    extends GenericIdentifiableObjectStore<AnalyticsTableSqlHook>
+public class AnalyticsTableSqlHookController
+    extends AbstractCrudController<AnalyticsTableHook>
 {
-    /**
-     * Returns a list of {@link AnalyticsTableSqlHook} with the given phase.
-     * 
-     * @param phase the analytics table phase.
-     * @return a list of {@link AnalyticsTableSqlHook}.
-     */
-    List<AnalyticsTableSqlHook> getByPhase( AnalyticsTablePhase phase );
-    
-    /**
-     * Returns a list of {@link AnalyticsTableSqlHook} with the given type.
-     * The {@link AnalyticsTablePhase#ANALYTICS_TABLE_POPULATED} phase is
-     * implicit.
-     * 
-     * @param type the analytics table type.
-     * @return a list of {@link AnalyticsTableSqlHook}.
-     */
-    List<AnalyticsTableSqlHook> getByType( AnalyticsTableType type );
-    
-    void executeAnalyticsTableSqlHooks( List<AnalyticsTableSqlHook> hooks );
+
 }

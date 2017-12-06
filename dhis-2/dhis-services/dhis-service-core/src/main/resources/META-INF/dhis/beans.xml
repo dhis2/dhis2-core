@@ -803,8 +803,8 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
   
-  <bean id="org.hisp.dhis.analytics.AnalyticsTableSqlHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableSqlHookStore">
-    <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableSqlHook" />
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableHookStore">
+    <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableHook" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
