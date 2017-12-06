@@ -83,6 +83,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -243,6 +244,8 @@ public class Metadata
     private List<ColorSet> colorSets = new ArrayList<>();
 
     private List<Predictor> predictors = new ArrayList<>();
+
+    private List<ProgramNotificationTemplate> programNotificationTemplates = new ArrayList<>();
 
     public Metadata()
     {
@@ -1118,6 +1121,19 @@ public class Metadata
         this.predictors = predictors;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ProgramNotificationTemplate> getProgramNotificationTemplates()
+    {
+        return programNotificationTemplates;
+    }
+
+    public void setProgramNotificationTemplates( List<ProgramNotificationTemplate> programNotificationTemplates )
+    {
+        this.programNotificationTemplates = programNotificationTemplates;
+    }
+
     @Override
     public String toString()
     {
@@ -1173,6 +1189,7 @@ public class Metadata
             ", trackedEntityAttributes=" + trackedEntityAttributes +
             ", colors=" + colors +
             ", colorSets=" + colorSets +
+            ", programNotificationTemplates=" + programNotificationTemplates +
             '}';
     }
 }
