@@ -120,71 +120,71 @@ public class TestTextPatternMethod
     @Test
     public void testGetParamText()
     {
-        assertEquals( "Hello world", TextPatternMethod.TEXT.getParam( "\"Hello world\"" ) );
+        assertEquals( "Hello world", TextPatternMethod.TEXT.getType().getParam( "\"Hello world\"" ) );
     }
 
     @Test
     public void testGetParamRandom()
     {
-        assertEquals( "##XXxx", TextPatternMethod.RANDOM.getParam( "RANDOM(##XXxx)" ) );
+        assertEquals( "##XXxx", TextPatternMethod.RANDOM.getType().getParam( "RANDOM(##XXxx)" ) );
     }
 
     @Test
     public void testGetParamSequential()
     {
-        assertEquals( "###", TextPatternMethod.SEQUENTIAL.getParam( "SEQUENTIAL(###)" ) );
+        assertEquals( "###", TextPatternMethod.SEQUENTIAL.getType().getParam( "SEQUENTIAL(###)" ) );
     }
 
     @Test
     public void testGetParamOrgUnitCode()
     {
-        assertEquals( "...", TextPatternMethod.ORG_UNIT_CODE.getParam( "ORG_UNIT_CODE(...)" ) );
+        assertEquals( "...", TextPatternMethod.ORG_UNIT_CODE.getType().getParam( "ORG_UNIT_CODE(...)" ) );
     }
 
     @Test
     public void testGetParamCurrentDate()
     {
-        assertEquals( "DDMMYYYY", TextPatternMethod.CURRENT_DATE.getParam( "CURRENT_DATE(DDMMYYYY)" ) );
+        assertEquals( "DDMMYYYY", TextPatternMethod.CURRENT_DATE.getType().getParam( "CURRENT_DATE(DDMMYYYY)" ) );
     }
 
     @Test
     public void testGetParamTextFails()
     {
-        assertNull( TextPatternMethod.TEXT.getParam( "Hello world" ) );
+        assertNull( TextPatternMethod.TEXT.getType().getParam( "Hello world" ) );
     }
 
     @Test
     public void testGetParamRandomFails()
     {
-        assertNull( TextPatternMethod.RANDOM.getParam( "INVALID(##XXxx)" ) );
+        assertNull( TextPatternMethod.RANDOM.getType().getParam( "INVALID(##XXxx)" ) );
     }
 
     @Test
     public void testGetParamSequentialFails()
     {
-        assertNull( TextPatternMethod.SEQUENTIAL.getParam( "INVALID(###)" ) );
+        assertNull( TextPatternMethod.SEQUENTIAL.getType().getParam( "INVALID(###)" ) );
     }
 
     @Test
     public void testGetParamOrgUnitCodeFails()
     {
-        assertNull( TextPatternMethod.ORG_UNIT_CODE.getParam( "INVALID(...)" ) );
+        assertNull( TextPatternMethod.ORG_UNIT_CODE.getType().getParam( "INVALID(...)" ) );
     }
 
     @Test
     public void testGetParamCurrentDateFails()
     {
-        assertNull( TextPatternMethod.CURRENT_DATE.getParam( "INVALID(DDMMYYYY)" ) );
+        assertNull( TextPatternMethod.CURRENT_DATE.getType().getParam( "INVALID(DDMMYYYY)" ) );
     }
 
     @Test
     public void testIsResolved()
     {
-        assertTrue( TextPatternMethod.TEXT.isResolved() );
-        assertFalse( TextPatternMethod.SEQUENTIAL.isResolved() );
-        assertFalse( TextPatternMethod.RANDOM.isResolved() );
-        assertFalse( TextPatternMethod.ORG_UNIT_CODE.isResolved() );
-        assertFalse( TextPatternMethod.CURRENT_DATE.isResolved() );
+        assertTrue( TextPatternMethod.TEXT.isText() );
+        assertFalse( TextPatternMethod.SEQUENTIAL.isText() );
+        assertFalse( TextPatternMethod.RANDOM.isText() );
+        assertFalse( TextPatternMethod.ORG_UNIT_CODE.isText() );
+        assertFalse( TextPatternMethod.CURRENT_DATE.isText() );
     }
 
     @Test
@@ -221,7 +221,7 @@ public class TestTextPatternMethod
     {
         for ( String s : input )
         {
-            assertEquals( expected, method.isSyntaxValid( s ) );
+            assertEquals( expected, method.getType().validatePattern( s ) );
         }
     }
 }

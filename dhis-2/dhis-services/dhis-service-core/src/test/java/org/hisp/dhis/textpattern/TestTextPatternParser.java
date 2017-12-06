@@ -197,6 +197,24 @@ public class TestTextPatternParser
         TextPatternParser.parse( pattern );
     }
 
+    @Test
+    public void testCompletePatternOK()
+        throws TextPatternParser.TextPatternParsingException
+    {
+        String pattern = "ORG_UNIT_CODE() + CURRENT_DATE(yyyy) + RANDOM(###) + \"-OK\"";
+
+        TextPattern textPattern = TextPatternParser.parse( pattern );
+        List<TextPattern.Segment> segments = textPattern.getSegments();
+
+        assertEquals( 4, segments.size());
+
+        assertEquals( segments.get(0).getMethod(), TextPatternMethod.ORG_UNIT_CODE );
+        assertEquals( segments.get(1).getMethod(), TextPatternMethod.CURRENT_DATE );
+        assertEquals( segments.get(2).getMethod(), TextPatternMethod.RANDOM );
+        assertEquals( segments.get(3).getMethod(), TextPatternMethod.TEXT );
+
+    }
+
 
     private void testParseOK( String input, TextPatternMethod method )
         throws TextPatternParser.TextPatternParsingException

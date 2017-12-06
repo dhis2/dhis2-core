@@ -75,7 +75,7 @@ public class TextPatternParser
                 {
 
                     // Only add if valid syntax, else it will throw exception after if-else.
-                    if ( TextPatternMethod.TEXT.isSyntaxValid( method ) )
+                    if ( TextPatternMethod.TEXT.getType().validatePattern( method ) )
                     {
                         segment = true;
                         result.addSegment( method, TextPatternMethod.TEXT );
@@ -92,26 +92,31 @@ public class TextPatternParser
                     try
                     {
                         TextPatternMethod textPatternMethod = TextPatternMethod.valueOf( methodName );
-
                         // Only add if valid syntax, else it will throw exception after if-else.
-                        if ( textPatternMethod.isSyntaxValid( method ) )
+                        if ( textPatternMethod.getType().validatePattern( method ) )
                         {
 
-                            // Sequence method can only appear once, and only when no Random method is present
-                            if ( textPatternMethod.equals( TextPatternMethod.SEQUENTIAL ) && !randomSegmentPresent &&
-                                !sequenceSegmentPresent )
+                            if ( textPatternMethod.isGenerated() )
                             {
-                                sequenceSegmentPresent = true;
-                            }
-                            else if ( textPatternMethod.equals( TextPatternMethod.RANDOM ) && !sequenceSegmentPresent )
-                            {
-                                randomSegmentPresent = true;
-                            }
-                            else
-                            {
-                                throw new TextPatternParsingException(
-                                    "Pattern can not contain multiple sequence methods or both sequence and random methods: '" +
-                                        pattern + "'", m.start( "Segment" ) );
+
+                                // Sequence method can only appear once, and only when no Random method is present
+                                if ( textPatternMethod.equals( TextPatternMethod.SEQUENTIAL ) &&
+                                    !randomSegmentPresent &&
+                                    !sequenceSegmentPresent )
+                                {
+                                    sequenceSegmentPresent = true;
+                                }
+                                else if ( textPatternMethod.equals( TextPatternMethod.RANDOM ) &&
+                                    !sequenceSegmentPresent )
+                                {
+                                    randomSegmentPresent = true;
+                                }
+                                else
+                                {
+                                    throw new TextPatternParsingException(
+                                        "Pattern can not contain multiple sequence methods or both sequence and random methods: '" +
+                                            pattern + "'", m.start( "Segment" ) );
+                                }
                             }
 
                             segment = true;

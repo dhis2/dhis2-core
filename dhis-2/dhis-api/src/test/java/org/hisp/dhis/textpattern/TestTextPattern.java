@@ -3,6 +3,7 @@ package org.hisp.dhis.textpattern;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestTextPattern
 {
@@ -47,4 +48,16 @@ public class TestTextPattern
 
         assertEquals( TextPatternMethod.TEXT, tp.getSegments().get( 0 ).getMethod() );
     }
+
+    @Test
+    public void testValidate()
+    {
+        TextPattern _1 = new TextPattern();
+        _1.addSegment( "ABC-", TextPatternMethod.TEXT );
+        _1.addSegment( "^..$", TextPatternMethod.ORG_UNIT_CODE );
+        _1.addSegment( "yyyy", TextPatternMethod.CURRENT_DATE );
+
+        assertTrue( _1.validate( "ABC-ab1234" ) );
+    }
+
 }

@@ -19,20 +19,20 @@ public class DefaultTextPatternService
             TextPatternMethod method = segment.getMethod();
             String value = segment.getValue();
 
-            if ( !method.isResolved() )
+            if ( !method.isText() )
             {
                 if ( method.hasTextFormat() )
                 {
                     resolvedPattern.append(
                         TextPatternMethodUtils
-                            .formatText( method.getParam( value ), values.getOrDefault( method.name(), "" ) ) );
+                            .formatText( method.getType().getParam( value ), values.getOrDefault( method.name(), "" ) ) );
                 }
                 else if ( method.hasDateFormat() )
                 {
                     if ( method.equals( TextPatternMethod.CURRENT_DATE ) )
                     {
                         resolvedPattern.append(
-                            (new SimpleDateFormat( Objects.requireNonNull( method.getParam( value ) ) ))
+                            (new SimpleDateFormat( Objects.requireNonNull( method.getType().getParam( value ) ) ))
                                 .format( new Date() )
                         );
                     }
@@ -40,7 +40,7 @@ public class DefaultTextPatternService
                 else if ( method.equals( TextPatternMethod.RANDOM ) )
                 {
                     resolvedPattern.append( TextPatternMethodUtils.generateRandom(
-                        Objects.requireNonNull( method.getParam( value ) ) ) );
+                        Objects.requireNonNull( method.getType().getParam( value ) ) ) );
                 }
                 else
                 {
@@ -49,7 +49,7 @@ public class DefaultTextPatternService
             }
             else
             {
-                resolvedPattern.append( method.getParam( value ) );
+                resolvedPattern.append( method.getType().getParam( value ) );
             }
 
         }

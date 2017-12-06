@@ -2,7 +2,6 @@ package org.hisp.dhis.textpattern;
 
 import com.google.common.collect.ImmutableSet;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum TextPatternMethod
@@ -17,14 +16,14 @@ public enum TextPatternMethod
      * <p>
      * This is the only method that has no keyword associated with it.
      */
-    TEXT( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ) ),
+    TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ) ) ),
 
     /**
      * Generator methods has a required param, that needs to be between 1 and 12 characters.
      * SEQUENTIAL only accepts #'s while RANDOM accepts #Xx's
      */
-    RANDOM( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ) ),
-    SEQUENTIAL( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ) ),
+    RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ) ) ),
+    SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ) ) ),
 
     /**
      * Variable methods has an optional param, that can:
@@ -44,9 +43,7 @@ public enum TextPatternMethod
      * ORG_UNIT_CODE(^..) = "He"
      * ORG_UNIT_CODE(..$) = "ld"
      */
-
-    // OrgUnit methods
-    ORG_UNIT_CODE( Pattern.compile( "ORG_UNIT_CODE\\((.{0}|[\\^]?[.]+?[$]?)\\)" ) ),
+    ORG_UNIT_CODE( new StringMethodType( Pattern.compile( "ORG_UNIT_CODE\\((.{0}|[\\^]?[.]+?[$]?)\\)" ) ) ),
 
     /**
      * Date methods has a required param that will be used to format the date.
@@ -55,42 +52,23 @@ public enum TextPatternMethod
      * The param will be used directly as the format in SimpleDateFormat:
      * https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html
      */
+    CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ) ) );
 
-    // Date methods
-    CURRENT_DATE( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ) );
-
-    private Pattern regex;
+    private MethodType type;
 
     private static ImmutableSet<TextPatternMethod> required = ImmutableSet.of(
-        ORG_UNIT_CODE,
-        SEQUENTIAL
+        ORG_UNIT_CODE
     );
 
     private static ImmutableSet<TextPatternMethod> optional = ImmutableSet.of(
         RANDOM,
+        SEQUENTIAL,
         CURRENT_DATE
     );
 
-    private static ImmutableSet<TextPatternMethod> isResolved = ImmutableSet.of(
-        TEXT
-    );
-
-    private static ImmutableSet<TextPatternMethod> isGenerated = ImmutableSet.of(
-        RANDOM,
-        SEQUENTIAL
-    );
-
-    private static ImmutableSet<TextPatternMethod> hasTextFormat = ImmutableSet.of(
-        ORG_UNIT_CODE
-    );
-
-    private static ImmutableSet<TextPatternMethod> hasDateFormat = ImmutableSet.of(
-        CURRENT_DATE
-    );
-
-    TextPatternMethod( Pattern regex )
+    TextPatternMethod( MethodType type )
     {
-        this.regex = regex;
+        this.type = type;
     }
 
     public boolean isRequired()
@@ -103,40 +81,28 @@ public enum TextPatternMethod
         return optional.contains( this );
     }
 
-    public boolean isSyntaxValid( String raw )
+    public boolean isText()
     {
-        return regex.matcher( raw ).matches();
-    }
-
-    public String getParam( String raw )
-    {
-        Matcher m = regex.matcher( raw );
-
-        if ( m.matches() )
-        {
-            return m.group( 1 );
-        }
-
-        return null;
-    }
-
-    public boolean isResolved()
-    {
-        return isResolved.contains( this );
+        return this.type instanceof TextMethodType;
     }
 
     public boolean isGenerated()
     {
-        return isGenerated.contains( this );
+        return this.type instanceof GeneratedMethodType;
     }
 
     public boolean hasTextFormat()
     {
-        return hasTextFormat.contains( this );
+        return this.type instanceof StringMethodType;
     }
 
     public boolean hasDateFormat()
     {
-        return hasDateFormat.contains( this );
+        return this.type instanceof DateMethodType;
+    }
+
+    public MethodType getType()
+    {
+        return type;
     }
 }
