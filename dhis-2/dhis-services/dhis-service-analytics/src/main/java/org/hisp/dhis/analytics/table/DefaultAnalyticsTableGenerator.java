@@ -34,7 +34,7 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookStore;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -74,7 +74,7 @@ public class DefaultAnalyticsTableGenerator
     private MessageService messageService;
     
     @Autowired
-    private AnalyticsTableHookStore sqlHookStore;
+    private AnalyticsTableHookService tableHookService;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -199,7 +199,7 @@ public class DefaultAnalyticsTableGenerator
     
     private void invokeSqlHooks()
     {
-        List<AnalyticsTableHook> hooks = sqlHookStore.getByPhase( AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED );
-        sqlHookStore.executeAnalyticsTableSqlHooks( hooks );
+        List<AnalyticsTableHook> hooks = tableHookService.getByPhase( AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED );
+        tableHookService.executeAnalyticsTableSqlHooks( hooks );
     }
 }

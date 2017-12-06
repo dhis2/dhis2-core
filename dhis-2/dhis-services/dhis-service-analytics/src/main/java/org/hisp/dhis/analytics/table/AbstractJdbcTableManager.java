@@ -37,7 +37,7 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookStore;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
@@ -99,7 +99,7 @@ public abstract class AbstractJdbcTableManager
     protected ResourceTableService resourceTableService;
     
     @Autowired
-    private AnalyticsTableHookStore sqlHookStore;
+    private AnalyticsTableHookService tableHookService;
     
     @Autowired
     protected StatementBuilder statementBuilder;
@@ -229,8 +229,8 @@ public abstract class AbstractJdbcTableManager
     public void invokeAnalyticsTableSqlHooks()
     {
         AnalyticsTableType type = getAnalyticsTableType();        
-        List<AnalyticsTableHook> hooks = sqlHookStore.getByType( type );
-        sqlHookStore.executeAnalyticsTableSqlHooks( hooks );
+        List<AnalyticsTableHook> hooks = tableHookService.getByType( type );
+        tableHookService.executeAnalyticsTableSqlHooks( hooks );
     }
     
     // -------------------------------------------------------------------------

@@ -1329,6 +1329,8 @@
   <bean id="org.hisp.dhis.color.ColorService" class="org.hisp.dhis.color.DefaultColorService">
     <property name="colorSetStore" ref="org.hisp.dhis.color.ColorSetStore" />
   </bean>
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookService" class="org.hisp.dhis.analytics.DefaultAnalyticsTableHookService" />
 
   <!-- SMS Services -->
 
