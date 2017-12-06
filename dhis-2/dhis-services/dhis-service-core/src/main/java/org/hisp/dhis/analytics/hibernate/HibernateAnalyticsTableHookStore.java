@@ -47,7 +47,7 @@ public class HibernateAnalyticsTableHookStore
     @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {
-        return getJpaQuery( "from AnalyticsTableSqlHook h where h.phase = :phase" )
+        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase" )
             .setParameter( "phase", phase )
             .getResultList();
     }
@@ -56,7 +56,7 @@ public class HibernateAnalyticsTableHookStore
     @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByType( AnalyticsTableType type )
     {
-        return getJpaQuery( "from AnalyticsTableSqlHook h where h.phase = :phase and h.type = :type" )
+        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.type = :type" )
             .setParameter( "phase", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED )
             .setParameter( "type", type )
             .getResultList();
