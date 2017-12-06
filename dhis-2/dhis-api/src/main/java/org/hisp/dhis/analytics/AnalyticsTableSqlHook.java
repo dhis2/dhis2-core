@@ -39,7 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "indicatorType", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "analyticsTableSqlHook", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsTableSqlHook
     extends BaseIdentifiableObject implements MetadataObject
 {
