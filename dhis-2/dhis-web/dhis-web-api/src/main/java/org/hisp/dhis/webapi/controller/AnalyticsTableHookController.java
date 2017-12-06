@@ -34,7 +34,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHook;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AnalyticsTableSqlHookController
+public class AnalyticsTableHookController
     extends AbstractCrudController<AnalyticsTableHook>
 {
 
