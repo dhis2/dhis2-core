@@ -6,18 +6,17 @@ public class GeneratedMethodType
     extends BaseMethodType
 {
 
-    GeneratedMethodType( Pattern patternRegex )
+    GeneratedMethodType( Pattern pattern, RequiredStatus requiredStatus )
     {
-        super( patternRegex );
+        super( pattern, requiredStatus );
     }
 
     @Override
-    public boolean validateValue( String pattern, String value )
+    public String getValueRegex( String format )
     {
-        pattern = pattern.replaceAll( "#", "[0-9]" );
-        pattern = pattern.replaceAll( "X", "[A-Z]" );
-        pattern = pattern.replaceAll( "x", "[a-z]" );
-
-        return Pattern.compile( pattern ).matcher( value ).matches();
+        format = format.replaceAll( "#", "[0-9]" );
+        format = format.replaceAll( "X", "[A-Z]" );
+        format = format.replaceAll( "x", "[a-z]" );
+        return format;
     }
 }

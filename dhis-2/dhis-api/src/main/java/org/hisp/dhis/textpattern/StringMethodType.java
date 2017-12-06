@@ -1,48 +1,20 @@
 package org.hisp.dhis.textpattern;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringMethodType
-    implements MethodType
+    extends BaseMethodType
 {
-    private Pattern patternRegex;
-
-    StringMethodType( Pattern patternRegex )
+    StringMethodType( Pattern pattern, RequiredStatus requiredStatus )
     {
-        this.patternRegex = patternRegex;
+        super( pattern, requiredStatus );
     }
 
     @Override
-    public boolean validatePattern( String raw )
+    public String getValueRegex( String format )
     {
-        return patternRegex.matcher( raw ).matches();
-    }
-
-    @Override
-    public boolean validateValue( String pattern, String value )
-    {
-        return compilePattern( pattern ).matcher( value ).matches();
-    }
-
-    @Override
-    public String getParam( String raw )
-    {
-        Matcher m = patternRegex.matcher( raw );
-
-        if ( m.matches() )
-        {
-            return m.group( 1 );
-        }
-
-        return null;
-    }
-
-    private Pattern compilePattern( String valueFormat )
-    {
-        String value = valueFormat;
-        value = value.replaceAll( "\\^", "" );
-        value = value.replaceAll( "\\$", "" );
-        return Pattern.compile( value );
+        format = format.replaceAll( "\\^", "" );
+        format = format.replaceAll( "\\$", "" );
+        return format;
     }
 }

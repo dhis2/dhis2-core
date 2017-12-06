@@ -8,15 +8,24 @@ public abstract class BaseMethodType
 {
     private Pattern pattern;
 
-    BaseMethodType( Pattern pattern )
+    private RequiredStatus requiredStatus;
+
+    BaseMethodType( Pattern pattern, RequiredStatus requiredStatus )
     {
         this.pattern = pattern;
+        this.requiredStatus = requiredStatus;
     }
 
     @Override
     public boolean validatePattern( String raw )
     {
         return pattern.matcher( raw ).matches();
+    }
+
+    @Override
+    public boolean validateText( String format, String text )
+    {
+        return Pattern.compile( getValueRegex( format ) ).matcher( text ).matches();
     }
 
     @Override
@@ -30,6 +39,18 @@ public abstract class BaseMethodType
         }
 
         return null;
+    }
+
+    @Override
+    public boolean isRequired()
+    {
+        return requiredStatus.equals( RequiredStatus.REQUIRED );
+    }
+
+    @Override
+    public boolean isOptional()
+    {
+        return requiredStatus.equals( RequiredStatus.OPTIONAL );
     }
 
 }

@@ -17,7 +17,7 @@ public class DefaultTextPatternService
         for ( TextPattern.Segment segment : pattern.getSegments() )
         {
             TextPatternMethod method = segment.getMethod();
-            String value = segment.getValue();
+            String value = segment.getFormat();
 
             if ( !method.isText() )
             {
@@ -25,7 +25,8 @@ public class DefaultTextPatternService
                 {
                     resolvedPattern.append(
                         TextPatternMethodUtils
-                            .formatText( method.getType().getParam( value ), values.getOrDefault( method.name(), "" ) ) );
+                            .formatText( method.getType().getParam( value ),
+                                values.getOrDefault( method.name(), "" ) ) );
                 }
                 else if ( method.hasDateFormat() )
                 {
@@ -62,11 +63,11 @@ public class DefaultTextPatternService
     {
         return ImmutableMap.<String, List<String>>builder()
             .put( REQUIRED, pattern.getSegments().stream()
-                .filter( ( segment ) -> segment.getMethod().isRequired() )
+                .filter( ( segment ) -> segment.getType().isRequired() )
                 .map( ( segment ) -> segment.getMethod().name() )
                 .collect( Collectors.toList() ) )
             .put( OPTIONAL, pattern.getSegments().stream()
-                .filter( ( segment ) -> segment.getMethod().isOptional() )
+                .filter( ( segment ) -> segment.getType().isOptional() )
                 .map( ( segment ) -> segment.getMethod().name() )
                 .collect( Collectors.toList() ) )
             .build();

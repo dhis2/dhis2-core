@@ -8,17 +8,17 @@ public class DateMethodType
     extends BaseMethodType
 {
 
-    DateMethodType( Pattern patternRegex )
+    DateMethodType( Pattern pattern, RequiredStatus requiredStatus )
     {
-        super( patternRegex );
+        super( pattern, requiredStatus );
     }
 
     @Override
-    public boolean validateValue( String pattern, String value )
+    public boolean validateText( String format, String text )
     {
         try
         {
-            new SimpleDateFormat( pattern ).parse( value );
+            new SimpleDateFormat( format ).parse( text );
         }
         catch ( ParseException e )
         {
@@ -26,5 +26,11 @@ public class DateMethodType
         }
 
         return true;
+    }
+
+    @Override
+    public String getValueRegex( String format )
+    {
+        return ".*?";
     }
 }

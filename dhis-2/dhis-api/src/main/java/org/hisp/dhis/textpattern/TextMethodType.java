@@ -5,14 +5,20 @@ import java.util.regex.Pattern;
 public class TextMethodType
     extends BaseMethodType
 {
-    TextMethodType( Pattern patternRegex )
+    TextMethodType( Pattern pattern, RequiredStatus requiredStatus )
     {
-        super( patternRegex );
+        super( pattern, requiredStatus );
     }
 
     @Override
-    public boolean validateValue( String pattern, String value )
+    public boolean validateText( String format, String text )
     {
-        return value.equals( pattern );
+        return text.equals( format );
+    }
+
+    @Override
+    public String getValueRegex( String format )
+    {
+        return ".*?";
     }
 }

@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableSet;
 
 import java.util.regex.Pattern;
 
+import static org.hisp.dhis.textpattern.MethodType.RequiredStatus.*;
+
 public enum TextPatternMethod
 {
 
@@ -16,14 +18,14 @@ public enum TextPatternMethod
      * <p>
      * This is the only method that has no keyword associated with it.
      */
-    TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ) ) ),
+    TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ), NONE ) ),
 
     /**
      * Generator methods has a required param, that needs to be between 1 and 12 characters.
      * SEQUENTIAL only accepts #'s while RANDOM accepts #Xx's
      */
-    RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ) ) ),
-    SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ) ) ),
+    RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ), OPTIONAL ) ),
+    SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ), OPTIONAL ) ),
 
     /**
      * Variable methods has an optional param, that can:
@@ -43,7 +45,7 @@ public enum TextPatternMethod
      * ORG_UNIT_CODE(^..) = "He"
      * ORG_UNIT_CODE(..$) = "ld"
      */
-    ORG_UNIT_CODE( new StringMethodType( Pattern.compile( "ORG_UNIT_CODE\\((.{0}|[\\^]?[.]+?[$]?)\\)" ) ) ),
+    ORG_UNIT_CODE( new StringMethodType( Pattern.compile( "ORG_UNIT_CODE\\((.{0}|[\\^]?[.]+?[$]?)\\)" ), REQUIRED ) ),
 
     /**
      * Date methods has a required param that will be used to format the date.
@@ -52,7 +54,7 @@ public enum TextPatternMethod
      * The param will be used directly as the format in SimpleDateFormat:
      * https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html
      */
-    CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ) ) );
+    CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ), OPTIONAL ) );
 
     private MethodType type;
 
