@@ -806,6 +806,7 @@
   <bean id="org.hisp.dhis.analytics.AnalyticsTableSqlHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableSqlHookStore">
     <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableSqlHook" />
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
   <!-- File resource jobs -->

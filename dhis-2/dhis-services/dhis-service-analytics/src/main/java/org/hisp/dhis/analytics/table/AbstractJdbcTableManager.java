@@ -36,6 +36,9 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableSqlHook;
+import org.hisp.dhis.analytics.AnalyticsTableSqlHookStore;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.CodeGenerator;
@@ -94,6 +97,9 @@ public abstract class AbstractJdbcTableManager
     
     @Autowired
     protected ResourceTableService resourceTableService;
+    
+    @Autowired
+    private AnalyticsTableSqlHookStore sqlHookStore;
     
     @Autowired
     protected StatementBuilder statementBuilder;
@@ -218,7 +224,15 @@ public abstract class AbstractJdbcTableManager
 
         return null;
     }
-
+    
+    @Override
+    public void invokeAnalyticsTableSqlHooks()
+    {
+        AnalyticsTableType type = getAnalyticsTableType();        
+        List<AnalyticsTableSqlHook> hooks = sqlHookStore.getByType( type );
+        sqlHookStore.executeAnalyticsTableSqlHooks( hooks );
+    }
+    
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------

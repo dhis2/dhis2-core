@@ -60,5 +60,14 @@ public class HibernateAnalyticsTableSqlHookStore
             .setParameter( "phase", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED )
             .setParameter( "type", type )
             .getResultList();
-    }    
+    }
+
+    @Override
+    public void executeAnalyticsTableSqlHooks( List<AnalyticsTableSqlHook> hooks )
+    {
+        for ( AnalyticsTableSqlHook hook : hooks )
+        {
+            jdbcTemplate.execute( hook.getSql() );
+        }
+    }
 }

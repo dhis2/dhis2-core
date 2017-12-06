@@ -55,4 +55,6 @@ public interface AnalyticsTableSqlHookStore
      * @return a list of {@link AnalyticsTableSqlHook}.
      */
     List<AnalyticsTableSqlHook> getByType( AnalyticsTableType type );
+    
+    void executeAnalyticsTableSqlHooks( List<AnalyticsTableSqlHook> hooks );
 }
