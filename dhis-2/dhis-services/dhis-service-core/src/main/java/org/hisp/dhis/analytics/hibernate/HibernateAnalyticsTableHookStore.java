@@ -31,6 +31,8 @@ package org.hisp.dhis.analytics.hibernate;
 import java.util.List;
 
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -43,6 +45,8 @@ public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
     implements AnalyticsTableHookStore
 {
+    private static final Log log = LogFactory.getLog( HibernateAnalyticsTableHookStore.class );
+    
     @Override
     @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
@@ -67,6 +71,8 @@ public class HibernateAnalyticsTableHookStore
     {
         for ( AnalyticsTableHook hook : hooks )
         {
+            log.info( String.format( "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName() ) );
+            
             jdbcTemplate.execute( hook.getSql() );
         }
     }
