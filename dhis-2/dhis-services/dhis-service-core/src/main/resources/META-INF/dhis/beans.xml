@@ -247,19 +247,11 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
 
-  <!--DataSetNotifications-->
-
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
-
-  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationService" />
-
-  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationTemplateService" />
-
-  <bean id="scheduledDataSetNotificationTask" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
   <bean id="org.hisp.dhis.minmax.MinMaxDataElementStore" class="org.hisp.dhis.minmax.hibernate.HibernateMinMaxDataElementStore">
     <property name="clazz" value="org.hisp.dhis.minmax.MinMaxDataElement" />
@@ -810,6 +802,11 @@
     <property name="clazz" value="org.hisp.dhis.pushanalysis.PushAnalysis" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableSqlHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableSqlHookStore">
+    <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableSqlHook" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
 
   <!-- File resource jobs -->
 
@@ -1131,6 +1128,12 @@
   <bean id="org.hisp.dhis.legend.LegendService" class="org.hisp.dhis.legend.DefaultLegendSetService">
     <property name="legendSetStore" ref="org.hisp.dhis.legend.LegendSetStore" />
   </bean>
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationService" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationTemplateService" />
+
+  <bean id="scheduledDataSetNotificationTask" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
   <bean id="org.hisp.dhis.security.oauth2.OAuth2ClientStore" class="org.hisp.dhis.security.oauth2.hibernate.HibernateOAuth2ClientStore">
     <property name="clazz" value="org.hisp.dhis.security.oauth2.OAuth2Client" />

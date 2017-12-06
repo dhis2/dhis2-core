@@ -87,8 +87,9 @@ public class DefaultAnalyticsTableGenerator
         final Clock clock = new Clock( log ).startClock();
         final JobId jobId = params.getJobId();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
-        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.
-            stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
+        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
+            .map( AnalyticsTableService::getAnalyticsTableType )
+            .collect( Collectors.toSet() );
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Skip %d analytics table types: %s", skipTypes.size(), skipTypes ) );
