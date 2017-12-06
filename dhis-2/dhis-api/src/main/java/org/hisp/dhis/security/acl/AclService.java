@@ -56,6 +56,14 @@ public interface AclService
     boolean isSupported( Class<?> klass );
 
     /**
+     * Is class supported for data acl?
+     *
+     * @param klass Class to check
+     * @return true if type is supported
+     */
+    boolean isDataShareable( Class<?> klass );
+
+    /**
      * Is type supported for sharing?
      *
      * @param type Type to check
@@ -87,6 +95,15 @@ public interface AclService
     boolean canRead( User user, IdentifiableObject object );
 
     /**
+     * Can user read data this object.
+     *
+     * @param user   User to check against
+     * @param object Object to check
+     * @return Result of test
+     */
+    boolean canDataRead( User user, IdentifiableObject object );
+
+    /**
      * Can user write to this object (create)
      * <p/>
      * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
@@ -100,6 +117,15 @@ public interface AclService
      * @return Result of test
      */
     boolean canWrite( User user, IdentifiableObject object );
+
+    /**
+     * Can user write data to this object (create)
+     *
+     * @param user   User to check against
+     * @param object Object to check
+     * @return Result of test
+     */
+    boolean canDataWrite( User user, IdentifiableObject object );
 
     /**
      * Can user update this object

@@ -52,6 +52,7 @@ public class ProgramStageSchemaDescriptor implements SchemaDescriptor
         Schema schema = new Schema( ProgramStage.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1509 );
+        schema.setDataShareable( true );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
