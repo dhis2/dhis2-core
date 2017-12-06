@@ -662,41 +662,19 @@ public class PredictionServiceTest
     @Category( IntegrationTest.class )
     public void testPredictIsNull()
     {
-        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, -1 );
-        useDataValue( dataElementB, makeMonth( 2001, 7 ), sourceA, 1 );
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 1 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 2 );
 
-        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictIsNull_A",
-            new Expression( "If(IsNull(#{" + dataElementB.getUid() + "}),1,2)", "ExpressionIsNull_A" ),
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceA, 3 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictIsNull",
+            new Expression( "#{" + dataElementA.getUid() + "} + If(IsNull(#{" + dataElementB.getUid() + "}),5,#{" + dataElementB.getUid() + "})", "ExpressionIsNull" ),
             null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
-        assertEquals( 6, predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ) ) );
+        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ) ) );
 
-        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
-        assertEquals( "2.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
-
-        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 6 ) ) );
-        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
-
-        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
-        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
-
-        p = createPredictor( dataElementX, defaultCombo, "PredictIsNull_B",
-            new Expression( "iF( isnull(#{" + dataElementA.getUid() + "}) && ISNULL(#{" + dataElementB.getUid() + "}),3,4)", "ExpressionIsNull_B" ),
-            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
-
-        assertEquals( 9, predictionService.predict( p, monthStart( 2001, 5 ), monthStart( 2001, 8 ) ) );
-
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) );
-        assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
-        assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
-
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 5 ) ) );
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 6 ) ) );
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
-
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 5 ) ) );
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
+        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
+        assertEquals( "8.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
     }
 }
 

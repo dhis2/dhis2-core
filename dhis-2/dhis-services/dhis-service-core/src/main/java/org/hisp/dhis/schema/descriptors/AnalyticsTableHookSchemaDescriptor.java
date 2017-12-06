@@ -28,35 +28,34 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ProgramSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "program";
+import com.google.common.collect.Lists;
 
-    public static final String PLURAL = "programs";
+/**
+ * @author Lars Helge Overland
+ */
+public class AnalyticsTableHookSchemaDescriptor implements SchemaDescriptor
+{
+    public static final String SINGULAR = "analyticsTableHook";
+
+    public static final String PLURAL = "analyticsTableHooks";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( Program.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( AnalyticsTableHook.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1520 );
-        schema.setDataShareable( true );
+        schema.setOrder( 1240 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_DELETE" ) ) );
 
         return schema;
     }

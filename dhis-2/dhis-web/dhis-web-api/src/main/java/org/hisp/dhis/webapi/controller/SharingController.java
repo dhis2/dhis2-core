@@ -413,6 +413,19 @@ public class SharingController
             }
         }
 
+        if ( !object.getUserAccesses().isEmpty() )
+        {
+            builder.append( ", userAccesses: " );
+
+            for ( UserAccess userAccess : object.getUserAccesses() )
+            {
+                builder.append( "{uid: " ).append( userAccess.getUser().getUid() )
+                    .append( ", name: " ).append( userAccess.getUser().getName() )
+                    .append( ", access: " ).append( userAccess.getAccess() )
+                    .append( "} " );
+            }
+        }
+
         return builder.toString();
     }
 }

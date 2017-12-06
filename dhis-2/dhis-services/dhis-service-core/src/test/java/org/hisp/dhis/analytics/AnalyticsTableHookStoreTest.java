@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,44 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import java.util.List;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.*;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class ProgramSchemaDescriptor implements SchemaDescriptor
+public class AnalyticsTableHookStoreTest
+    extends DhisSpringTest
 {
-    public static final String SINGULAR = "program";
-
-    public static final String PLURAL = "programs";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    @Autowired
+    private AnalyticsTableHookStore sqlHookStore;
+    
+    private final String sql = "update _orgunitstructure set organisationunitid=1";
+    
+    @Test
+    public void testGetByType()
     {
-        Schema schema = new Schema( Program.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1520 );
-        schema.setDataShareable( true );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
-
-        return schema;
+        AnalyticsTableHook hookA = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED, null, sql );
+        AnalyticsTableHook hookB = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
+        AnalyticsTableHook hookC = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
+        AnalyticsTableHook hookD = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.EVENT, sql );
+        
+        sqlHookStore.save( hookA );
+        sqlHookStore.save( hookB );
+        sqlHookStore.save( hookC );
+        sqlHookStore.save( hookD );
+        
+        List<AnalyticsTableHook> hooks = sqlHookStore.getByType( AnalyticsTableType.DATA_VALUE );
+        
+        assertEquals( 2, hooks.size() );
+        
+        hooks.forEach( hook -> {
+            assertEquals( AnalyticsTableType.DATA_VALUE, hook.getType() );
+        });
     }
 }

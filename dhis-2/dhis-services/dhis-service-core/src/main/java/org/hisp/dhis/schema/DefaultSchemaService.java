@@ -64,6 +64,7 @@ public class DefaultSchemaService
 {
     private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
+        add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
         add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,38 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import java.util.List;
+
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class ProgramSchemaDescriptor implements SchemaDescriptor
+public interface AnalyticsTableHookStore
+    extends GenericIdentifiableObjectStore<AnalyticsTableHook>
 {
-    public static final String SINGULAR = "program";
-
-    public static final String PLURAL = "programs";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Program.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1520 );
-        schema.setDataShareable( true );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
-
-        return schema;
-    }
+    /**
+     * Returns a list of {@link AnalyticsTableHook} with the given phase.
+     * 
+     * @param phase the analytics table phase.
+     * @return a list of {@link AnalyticsTableHook}.
+     */
+    List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase );
+    
+    /**
+     * Returns a list of {@link AnalyticsTableHook} with the given type.
+     * The {@link AnalyticsTablePhase#ANALYTICS_TABLE_POPULATED} phase is
+     * implicit.
+     * 
+     * @param type the analytics table type.
+     * @return a list of {@link AnalyticsTableHook}.
+     */
+    List<AnalyticsTableHook> getByType( AnalyticsTableType type );
+    
+    /**
+     * Executes the SQL commands for the given list of {@link AnalyticsTableHook}.
+     * 
+     * @param hooks the list of analytics table hooks.
+     */
+    void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks );
 }
