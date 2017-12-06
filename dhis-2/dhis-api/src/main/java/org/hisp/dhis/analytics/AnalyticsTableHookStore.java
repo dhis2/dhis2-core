@@ -56,5 +56,10 @@ public interface AnalyticsTableHookStore
      */
     List<AnalyticsTableHook> getByType( AnalyticsTableType type );
     
+    /**
+     * Executes the SQL commands for the given list of {@link AnalyticsTableHook}.
+     * 
+     * @param hooks the list of analytics table hooks.
+     */
     void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks );
 }
