@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.system.jep;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,47 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import org.nfunk.jep.ParseException;
+import org.nfunk.jep.function.PostfixMathCommand;
+import org.nfunk.jep.function.PostfixMathCommandI;
+
+import java.util.Stack;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jim Grace
+ *
+ * The IF function takes three arguments:
+ *
+ * IF ( test, valueIfTrue, valueIfFalse )
+ *
+ * Where test should be a boolean value (represented in JEP by a
+ * Double with value 1 if true and 0 if false). If test is true, the
+ * valueIfTrue is returned, otherwise valueIfFalse is returned.
  */
-public class ProgramSchemaDescriptor implements SchemaDescriptor
+public class If
+    extends PostfixMathCommand
+    implements PostfixMathCommandI
 {
-    public static final String SINGULAR = "program";
-
-    public static final String PLURAL = "programs";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    public If()
     {
-        Schema schema = new Schema( Program.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1520 );
-        schema.setDataShareable( true );
+        numberOfParameters = 3;
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
+    // nFunk's JEP run() method uses the raw Stack type
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    public void run( Stack inStack )
+        throws ParseException
+    {
+        checkStack( inStack );
 
-        return schema;
+        // First arg was pushed on the stack first, and pops last.
+        Object valueIfFalse = inStack.pop();
+        Object valueIfTrue = inStack.pop();
+        Object test = inStack.pop();
+
+        Object result = test instanceof Double && (Double)test != 0.0 ?
+            valueIfTrue : valueIfFalse;
+
+        inStack.push( result );
     }
 }

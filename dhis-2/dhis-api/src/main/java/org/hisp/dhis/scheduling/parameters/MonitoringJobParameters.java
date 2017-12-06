@@ -28,7 +28,6 @@ package org.hisp.dhis.scheduling.parameters;
      * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
      */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
