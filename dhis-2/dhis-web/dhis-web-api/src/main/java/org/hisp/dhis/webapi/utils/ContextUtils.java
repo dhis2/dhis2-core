@@ -82,6 +82,7 @@ public class ContextUtils
     public static final String HEADER_EXPIRES = "Expires";
     public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
+    public static final String HEADER_VALUE_NO_CACHE = "no-cache, no-store, max-age=0, must-revalidate";
 
     public static final String QUERY_PARAM_SEP = ";";
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
@@ -178,11 +179,18 @@ public class ContextUtils
         }
     }
 
-    public static void setCacheControl( HttpServletResponse response, CacheControl value )
+    public static HttpServletResponse setCacheControl( HttpServletResponse response, CacheControl value )
     {
         response.setHeader( HEADER_CACHE_CONTROL, value.getHeaderValue() );
+        return response;
     }
 
+    public static HttpServletResponse setNoCache( HttpServletResponse response )
+    {
+        response.setHeader( HEADER_CACHE_CONTROL, HEADER_VALUE_NO_CACHE );
+        return response;
+    }
+    
     public static void okResponse( HttpServletResponse response, String message ) //TODO remove message
     {
         setResponse( response, HttpServletResponse.SC_OK, message );

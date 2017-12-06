@@ -51,7 +51,7 @@ public enum JobType
 
     private final String key;
 
-    private final Class<?> clazz;
+    private final Class<?> clazz; //TODO use JobParameters type?
 
     private final boolean configurable;
 

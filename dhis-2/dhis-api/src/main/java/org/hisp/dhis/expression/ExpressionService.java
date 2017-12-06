@@ -50,6 +50,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+
 /**
  * Expressions are mathematical formulas and can contain references to various
  * elements.
@@ -86,6 +88,7 @@ public interface ExpressionService
     String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String DAYS_EXPRESSION = "\\[days\\]";
     String WILDCARD_EXPRESSION = "(?<key>#)\\{(?<id>(\\w|\\.)+)(\\.\\*){1,2}\\}";
+    String ISNULL_EXPRESSION = "ISNULL\\s*\\(";
 
     /**
      * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
@@ -122,6 +125,25 @@ public interface ExpressionService
      */
     Pattern DAYS_PATTERN = Pattern.compile( DAYS_EXPRESSION );
 
+    /**
+     * Wild card pattern. Contains the named groups {@code id}.
+     */
+    Pattern WILDCARD_PATTERN = Pattern.compile( WILDCARD_EXPRESSION );
+
+    /**
+     * IsNull function pattern.
+     */
+    Pattern ISNULL_PATTERN = Pattern.compile( ISNULL_EXPRESSION, CASE_INSENSITIVE );
+
+    /**
+     * Define TRUE and FALSE values for the parser.
+     */
+    String TRUE_VALUE = "1";
+    String FALSE_VALUE = "0";
+
+    /**
+     * Variable types with their associated classes.
+     */
     static final Map<String, Class<? extends DimensionalItemObject>> VARIABLE_TYPES = ImmutableMap.of(
         "#", DataElementOperand.class,
         "D", ProgramDataElementDimensionItem.class,
@@ -130,11 +152,6 @@ public interface ExpressionService
         "R", ReportingRate.class
     );
 
-    /**
-     * Wild card pattern. Contains the named groups {@code id}.
-     */
-    Pattern WILDCARD_PATTERN = Pattern.compile( WILDCARD_EXPRESSION );
-    
     String GROUP_KEY = "key";
     String GROUP_ID = "id";
     String GROUP_ID1 = "id1";

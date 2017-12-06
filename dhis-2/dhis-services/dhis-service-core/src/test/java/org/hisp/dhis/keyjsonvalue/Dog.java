@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.keyjsonvalue;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,60 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class ProgramSchemaDescriptor implements SchemaDescriptor
+public class Dog
 {
-    public static final String SINGULAR = "program";
-
-    public static final String PLURAL = "programs";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    private String id;
+    
+    private String name;
+    
+    private String color;
+    
+    public Dog()
     {
-        Schema schema = new Schema( Program.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1520 );
-        schema.setDataShareable( true );
+    }
+    
+    public Dog( String id, String name, String color )
+    {
+        this.id = id;
+        this.name = name;
+        this.color = color;
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
 
-        return schema;
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getColor()
+    {
+        return color;
+    }
+
+    public void setColor( String color )
+    {
+        this.color = color;
     }
 }

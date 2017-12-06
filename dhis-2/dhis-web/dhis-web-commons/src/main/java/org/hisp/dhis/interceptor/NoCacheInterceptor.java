@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.interceptor;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,36 +28,52 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpMethod;
+
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Interceptor which sets HTTP headers which instructs clients not to
+ * cache the response. This is the default behavior for Struts-generated
+ * responses. Does not set the cache interceptor if already set, allowing
+ * other interceptors to set cache headers for special cases.
+ * 
+ * @author Lars Helge Overland
  */
-public class ProgramSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "program";
-
-    public static final String PLURAL = "programs";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+public class NoCacheInterceptor
+    implements Interceptor
+{    
+    @Override
+    public String intercept( ActionInvocation invocation )
+        throws Exception
+    {
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        
+        String header = response.getHeader( ContextUtils.HEADER_CACHE_CONTROL );
+        boolean headerSet = header != null && !header.trim().isEmpty();
+        
+        if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
+        {
+            ContextUtils.setNoCache( response );
+        }
+                
+        return invocation.invoke();
+    }
 
     @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Program.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1520 );
-        schema.setDataShareable( true );
+    public void destroy()
+    {        
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
-
-        return schema;
+    @Override
+    public void init()
+    {        
     }
 }
