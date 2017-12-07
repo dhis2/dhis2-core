@@ -30,11 +30,15 @@ package org.hisp.dhis.resourcetable.jdbc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -52,6 +56,9 @@ public class JdbcResourceTableStore
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
+    private AnalyticsTableHookService analyticsTableHookService;
+    
     private JdbcTemplate jdbcTemplate;
 
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -126,6 +133,15 @@ public class JdbcResourceTableStore
                 batchUpdate( columns, resourceTable.getTempTableName(), content );
             }
         }
+
+        // ---------------------------------------------------------------------
+        // Invoke hooks
+        // ---------------------------------------------------------------------
+        
+        List<AnalyticsTableHook> hooks = analyticsTableHookService
+            .getByPhaseAndResourceTableType( AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED, resourceTable.getTableType() );
+        
+        analyticsTableHookService.executeAnalyticsTableSqlHooks( hooks );
 
         // ---------------------------------------------------------------------
         // Create indexes
