@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -229,7 +230,7 @@ public abstract class AbstractJdbcTableManager
     public void invokeAnalyticsTableSqlHooks()
     {
         AnalyticsTableType type = getAnalyticsTableType();        
-        List<AnalyticsTableHook> hooks = tableHookService.getByType( type );
+        List<AnalyticsTableHook> hooks = tableHookService.getByPhaseAndAnalyticsTableType( AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type );
         tableHookService.executeAnalyticsTableSqlHooks( hooks );
     }
     

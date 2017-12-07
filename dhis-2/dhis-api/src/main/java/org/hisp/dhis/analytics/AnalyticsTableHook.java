@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -45,7 +46,9 @@ public class AnalyticsTableHook
 {
     private AnalyticsTablePhase phase;
     
-    private AnalyticsTableType type;
+    private ResourceTableType resourceTableType;
+    
+    private AnalyticsTableType analyticsTableType;
     
     private String sql;
 
@@ -57,11 +60,19 @@ public class AnalyticsTableHook
     {
     }
     
-    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType type, String sql )
+    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType, String sql )
     {
         this.name = name;
         this.phase = phase;
-        this.type = type;
+        this.analyticsTableType = analyticsTableType;
+        this.sql = sql;
+    }
+
+    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, ResourceTableType resourceTableType, String sql )
+    {
+        this.name = name;
+        this.phase = phase;
+        this.resourceTableType = resourceTableType;
         this.sql = sql;
     }
     
@@ -83,14 +94,26 @@ public class AnalyticsTableHook
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsTableType getType()
+    public ResourceTableType getResourceTableType()
     {
-        return type;
+        return resourceTableType;
     }
 
-    public void setType( AnalyticsTableType type )
+    public void setResourceTableType( ResourceTableType resourceTableType )
     {
-        this.type = type;
+        this.resourceTableType = resourceTableType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return analyticsTableType;
+    }
+
+    public void setAnalyticsTableType( AnalyticsTableType analyticsTableType )
+    {
+        this.analyticsTableType = analyticsTableType;
     }
 
     @JsonProperty

@@ -30,7 +30,6 @@ package org.hisp.dhis.resourcetable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.common.CodeGenerator;
 
 import java.util.List;

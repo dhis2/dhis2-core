@@ -32,6 +32,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -57,9 +58,15 @@ public class DefaultAnalyticsTableHookService
     }
 
     @Override
-    public List<AnalyticsTableHook> getByType( AnalyticsTableType type )
+    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
     {
-        return analyticsTableHookStore.getByType( type );
+        return analyticsTableHookStore.getByPhaseAndResourceTableType( phase, resourceTableType );
+    }
+
+    @Override
+    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
+    {
+        return analyticsTableHookStore.getByPhaseAndAnalyticsTableType( phase, analyticsTableType );
     }
 
     @Override

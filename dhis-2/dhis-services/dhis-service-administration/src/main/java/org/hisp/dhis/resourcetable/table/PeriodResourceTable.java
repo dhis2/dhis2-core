@@ -34,12 +34,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
