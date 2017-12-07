@@ -185,7 +185,7 @@ public abstract class AbstractEnrollmentService
 
         if ( programInstance.getEntityInstance() != null )
         {
-            enrollment.setTrackedEntity( programInstance.getEntityInstance().getTrackedEntity().getUid() );
+            enrollment.setTrackedEntityType( programInstance.getEntityInstance().getTrackedEntityType().getUid() );
             enrollment.setTrackedEntityInstance( programInstance.getEntityInstance().getUid() );
         }
 

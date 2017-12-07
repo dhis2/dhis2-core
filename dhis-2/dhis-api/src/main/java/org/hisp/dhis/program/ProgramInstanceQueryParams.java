@@ -30,7 +30,7 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Date;
@@ -90,7 +90,7 @@ public class ProgramInstanceQueryParams
     /**
      * Tracked entity of the instances in the response.
      */
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     /**
      * Tracked entity instance.
@@ -197,9 +197,9 @@ public class ProgramInstanceQueryParams
     /**
      * Indicates whether this params specifies a tracked entity.
      */
-    public boolean hasTrackedEntity()
+    public boolean hasTrackedEntityType()
     {
-        return trackedEntity != null;
+        return trackedEntityType != null;
     }
 
     /**
@@ -352,14 +352,14 @@ public class ProgramInstanceQueryParams
         return this;
     }
 
-    public TrackedEntity getTrackedEntity()
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public ProgramInstanceQueryParams setTrackedEntity( TrackedEntity trackedEntity )
+    public ProgramInstanceQueryParams setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
         return this;
     }
 

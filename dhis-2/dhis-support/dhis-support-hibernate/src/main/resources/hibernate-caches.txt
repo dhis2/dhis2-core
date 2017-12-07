@@ -208,7 +208,7 @@ org.hisp.dhis.setting.SystemSetting
 org.hisp.dhis.sqlview.SqlView
 org.hisp.dhis.sqlview.SqlView.attributeValues
 org.hisp.dhis.sqlview.SqlView.userGroupAccesses
-org.hisp.dhis.trackedentity.TrackedEntity
+org.hisp.dhis.trackedentity.TrackedEntityType
 org.hisp.dhis.trackedentity.TrackedEntity.attributeValues
 org.hisp.dhis.trackedentity.TrackedEntityAttribute
 org.hisp.dhis.trackedentity.TrackedEntityAttribute.attributeValues
