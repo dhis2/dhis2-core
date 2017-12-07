@@ -35,7 +35,7 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,9 +144,9 @@ public class DefaultProgramService
     }
 
     @Override
-    public List<Program> getProgramsByTrackedEntity( TrackedEntity trackedEntity )
+    public List<Program> getProgramsByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        return programStore.getByTrackedEntity( trackedEntity );
+        return programStore.getByTrackedEntityType( trackedEntityType );
     }
 
     @Override

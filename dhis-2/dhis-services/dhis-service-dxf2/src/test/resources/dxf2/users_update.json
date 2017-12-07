@@ -110,7 +110,7 @@
       "uuid": "0f2d7a85-3b6e-4cae-9d5a-e2903331629b"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "id": "xjZaLLspj2r",
       "attributeValues": [ ],
