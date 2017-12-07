@@ -48,7 +48,7 @@ public interface SchedulingManager
     String TASK_META_DATA_SYNC = "metadataSyncTask";
     String TASK_SEND_SCHEDULED_SMS_NOW = "sendScheduledMessageTaskNow";
     String TASK_SCHEDULED_PROGRAM_NOTIFICATIONS = "scheduledProgramNotificationsTask";
-    
+
     /**
      * Schedules all tasks.
      */

@@ -63,6 +63,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.jclouds.rest.AuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,6 +78,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -286,13 +290,22 @@ public class DataValueController
                 }
                 else
                 {
-                    value = "false";
+                    value = DataValue.FALSE;
                 }
             }
 
             if ( dataElement.isFileType() )
             {
-                fileResourceService.deleteFileResource( dataValue.getValue() );
+                try
+                {
+                    fileResourceService.deleteFileResource( dataValue.getValue() );
+                }
+                catch ( AuthorizationException exception )
+                {
+                    // If we fail to delete the fileResource now, mark it as unassigned for removal later
+                    fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
+                }
+                dataValue.setValue( StringUtils.EMPTY );
             }
 
             // -----------------------------------------------------------------
@@ -426,6 +439,7 @@ public class DataValueController
         List<String> value = new ArrayList<>();
         value.add( dataValue.getValue() );
 
+        setNoCache( response );
         return value;
     }
 
@@ -530,6 +544,7 @@ public class DataValueController
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        setNoCache( response );
 
         // ---------------------------------------------------------------------
         // Request signing is not available, stream content back to client

@@ -82,6 +82,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -492,6 +493,12 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         }
+        
+        if ( enrollment.getOrgUnit() != null ) 
+        {
+            OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
+            programInstance.setOrganisationUnit( organisationUnit );
+        }
 
         programInstance.setFollowup( enrollment.getFollowup() );
 
@@ -726,6 +733,24 @@ public abstract class AbstractEnrollmentService
         {
             importConflicts.add( new ImportConflict( "Attribute.attribute",
                 "Only program attributes is allowed for enrollment " + attributeValueMap ) );
+        }
+
+        if ( !program.getSelectEnrollmentDatesInFuture() )
+        {
+            if ( Objects.nonNull( enrollment.getEnrollmentDate() ) && enrollment.getEnrollmentDate().after( new Date() ) )
+            {
+                importConflicts.add( new ImportConflict( "Enrollment.date", "Enrollment Date can't be future date :" + enrollment
+                    .getEnrollmentDate() ) );
+            }
+        }
+
+        if ( !program.getSelectIncidentDatesInFuture() )
+        {
+            if ( Objects.nonNull( enrollment.getIncidentDate() ) && enrollment.getIncidentDate().after( new Date() ) )
+            {
+                importConflicts.add( new ImportConflict( "Enrollment.incidentDate", "Incident Date can't be future date :" + enrollment
+                    .getIncidentDate() ) );
+            }
         }
 
         return importConflicts;

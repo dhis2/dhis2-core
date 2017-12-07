@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
@@ -72,7 +73,7 @@ import java.util.Objects;
  */
 @Controller
 @RequestMapping( value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT )
-@ApiVersion ( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MinMaxDataElementController
 {
     private final ContextService contextService;
@@ -126,7 +127,7 @@ public class MinMaxDataElementController
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( MinMaxDataElement.class, minMaxDataElements, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( MinMaxDataElement.class, new FieldFilterParams( minMaxDataElements, fields ) ) );
 
         return rootNode;
     }

@@ -52,7 +52,7 @@ public class QuarterlyPeriodType
 
     private static final String ISO_FORMAT = "yyyyQn";
 
-    private static final String ISO8601_DURATION = "P1Q";
+    private static final String ISO8601_DURATION = "P3M";
 
     private static final String ISO_CALENDAR_NAME = org.hisp.dhis.calendar.impl.Iso8601Calendar.getInstance().name();
 

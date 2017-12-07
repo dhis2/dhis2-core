@@ -94,6 +94,11 @@ public class HibernateUserStore
             }
         }
 
+        if ( params.getDisabled() != null )
+        {
+            hql += hlp.whereAnd() + " uc.disabled = :disabled ";
+        }
+
         if ( params.getQuery() != null )
         {
             hql += hlp.whereAnd() + " (" +
@@ -190,6 +195,11 @@ public class HibernateUserStore
             Collection<Integer> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
 
             query.setParameterList( "ids", managedGroups );
+        }
+
+        if ( params.getDisabled() != null )
+        {
+            query.setBoolean( "disabled", params.getDisabled().booleanValue() );
         }
         
         if ( params.isAuthSubset() && params.getUser() != null )

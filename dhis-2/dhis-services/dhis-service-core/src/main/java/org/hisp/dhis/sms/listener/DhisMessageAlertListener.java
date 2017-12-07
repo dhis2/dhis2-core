@@ -35,7 +35,6 @@ import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
@@ -43,19 +42,16 @@ import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
+@Transactional
 public class DhisMessageAlertListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
 
     // -------------------------------------------------------------------------
@@ -64,9 +60,6 @@ public class DhisMessageAlertListener
 
     @Autowired
     private SMSCommandService smsCommandService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private MessageService messageService;
@@ -97,7 +90,7 @@ public class DhisMessageAlertListener
 
         if ( userGroup != null )
         {
-            Collection<User> users = userService.getUsersByPhoneNumber( senderPhoneNumber );
+            Collection<User> users = Collections.singleton( sms.getUser() );
 
             if ( users != null && users.size() > 1 )
             {
@@ -154,5 +147,19 @@ public class DhisMessageAlertListener
                     "No user associated with this phone number. Please contact your supervisor." );
             }
         }
+    }
+
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for AlertSMSListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for AlertSMSListener
+        return StringUtils.EMPTY;
     }
 }

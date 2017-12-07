@@ -87,6 +87,7 @@ public class DefaultSchemaService
         add( new DataEntryFormSchemaDescriptor() ).
         add( new DataSetSchemaDescriptor() ).
         add( new DataSetElementSchemaDescriptor() ).
+        add( new DataSetNotificationTemplateSchemaDescriptor() ).
         add( new DocumentSchemaDescriptor() ).
         add( new EventChartSchemaDescriptor() ).
         add( new EventReportSchemaDescriptor() ).
@@ -153,6 +154,11 @@ public class DefaultSchemaService
         add( new UserGroupAccessSchemaDescriptor() ).
         add( new MinMaxDataElementSchemaDescriptor() ).
         add( new ValidationResultSchemaDescriptor() ).
+        add( new SmsCommandSchemaDescriptor() ).
+        add( new CategoryDimensionSchemaDescriptor() ).
+        add( new CategoryOptionGroupSetDimensionSchemaDescriptor() ).
+        add( new DataElementGroupSetDimensionSchemaDescriptor() ).
+        add( new OrganisationUnitGroupSetDimensionSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -181,7 +187,7 @@ public class DefaultSchemaService
         {
             Schema schema = descriptor.getSchema();
 
-            MetamodelImplementor metamodelImplementor = ( MetamodelImplementor ) sessionFactory.getMetamodel();
+            MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
 
             try
             {
@@ -257,7 +263,7 @@ public class DefaultSchemaService
         String name = getName( klass );
 
         schema = new Schema( klass, name, name + "s" );
-        schema.setDisplayName( beautify( schema ));
+        schema.setDisplayName( beautify( schema ) );
         schema.setPropertyMap( new HashMap<>( propertyIntrospectorService.getPropertiesMap( schema.getKlass() ) ) );
 
         updateSelf( schema );

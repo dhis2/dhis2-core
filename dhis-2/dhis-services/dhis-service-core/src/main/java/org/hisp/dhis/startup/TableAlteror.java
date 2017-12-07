@@ -191,6 +191,15 @@ public class TableAlteror
         executeSql( "ALTER TABLE mapview DROP COLUMN legendtype" );
         executeSql( "ALTER TABLE mapview ALTER COLUMN opacity TYPE double precision" );
 
+        executeSql( "UPDATE incomingsms SET userid = 0 WHERE userid IS NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN completenessmethod TYPE text" );
+        executeSql( "UPDATE smscommands SET completenessmethod='ALL_DATAVALUE' WHERE completenessmethod='1'" );
+        executeSql( "UPDATE smscommands SET completenessmethod='AT_LEAST_ONE_DATAVALUE' WHERE completenessmethod='2'" );
+        executeSql( "UPDATE smscommands SET completenessmethod='DO_NOT_MARK_COMPLETE' WHERE completenessmethod='3'" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN uid set NOT NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN created set NOT NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN lastUpdated set NOT NULL" );
+
         executeSql( "ALTER TABLE maplegend DROP CONSTRAINT maplegend_name_key" );
 
         executeSql( "UPDATE mapview SET layer = 'thematic1' WHERE layer IS NULL" );
@@ -441,6 +450,7 @@ public class TableAlteror
         executeSql( "update chart set userorganisationunit = false where userorganisationunit is null" );
         executeSql( "update chart set percentstackedvalues = false where percentstackedvalues is null" );
         executeSql( "update chart set cumulativevalues = false where cumulativevalues is null" );
+        executeSql( "update chart set nospacebetweencolumns = false where nospacebetweencolumns is null" );
         executeSql( "update indicator set annualized = false where annualized is null" );
         executeSql( "update indicatortype set indicatornumber = false where indicatornumber is null" );
         executeSql( "update dataset set mobile = false where mobile is null" );
@@ -459,9 +469,11 @@ public class TableAlteror
         executeSql( "update eventchart set hidenadata = false where hidenadata is null" );
         executeSql( "update eventchart set percentstackedvalues = false where percentstackedvalues is null" );
         executeSql( "update eventchart set cumulativevalues = false where cumulativevalues is null" );
+        executeSql( "update eventchart set nospacebetweencolumns = false where nospacebetweencolumns is null" );
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
+        executeSql( "update validationrule set skipformvalidation = false where skipformvalidation is null" );
         executeSql( "update validationnotificationtemplate set sendstrategy = 'COLLECTIVE_SUMMARY' where sendstrategy is null" );
 
         // move timelydays from system setting => dataset property

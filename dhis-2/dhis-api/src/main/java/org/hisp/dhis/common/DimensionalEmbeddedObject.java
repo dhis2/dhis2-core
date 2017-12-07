@@ -31,13 +31,14 @@ package org.hisp.dhis.common;
 import java.util.List;
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public interface DimensionalEmbeddedObject
+    extends EmbeddedObject
 {
     int getId();
-    
+
     DimensionalObject getDimension();
-    
+
     List<? extends DimensionalItemObject> getItems();
 }

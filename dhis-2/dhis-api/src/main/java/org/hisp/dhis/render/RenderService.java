@@ -45,19 +45,15 @@ public interface RenderService
 {
     void toJson( OutputStream output, Object value ) throws IOException;
 
-    void toJson( OutputStream output, Object value, Class<?> klass ) throws IOException;
+    String toJsonAsString( Object value );
 
     void toJsonP( OutputStream output, Object value, String callback ) throws IOException;
-
-    void toJsonP( OutputStream output, Object value, Class<?> klass, String callback ) throws IOException;
 
     <T> T fromJson( InputStream input, Class<T> klass ) throws IOException;
 
     <T> T fromJson( String input, Class<T> klass ) throws IOException;
 
     <T> void toXml( OutputStream output, T value ) throws IOException;
-
-    <T> void toXml( OutputStream output, T value, Class<?> klass ) throws IOException;
 
     <T> T fromXml( InputStream input, Class<T> klass ) throws IOException;
 

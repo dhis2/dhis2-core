@@ -44,40 +44,34 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.sms.command.CompletenessMethod;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.UserService;
 import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+@Transactional
 public class DataValueSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
-    private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
+    private static final String DEFAULTPATTERN = "([a-zA-Z]+)\\s*(\\d+)";
+
+    private static final String SEPARATOR = "=";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -94,9 +88,6 @@ public class DataValueSMSListener
 
     @Autowired
     private SMSCommandService smsCommandService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private DataSetService dataSetService;
@@ -129,12 +120,12 @@ public class DataValueSMSListener
         String message = sms.getText();
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.KEY_VALUE_PARSER );
-        Map<String, String> parsedMessage = this.parse( message, smsCommand );
+
+        Map<String, String> parsedMessage = this.parse( sms.getText(), smsCommand );
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( senderPhoneNumber,
-            userService.getUsersByPhoneNumber( senderPhoneNumber ) );
+        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
@@ -163,7 +154,7 @@ public class DataValueSMSListener
         {
             if ( parsedMessage.containsKey( code.getCode() ) )
             {
-                valueStored = storeDataValue( senderPhoneNumber, orgUnit, parsedMessage, code, smsCommand, date,
+                valueStored = storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, date,
                     smsCommand.getDataset() );
             }
         }
@@ -191,7 +182,7 @@ public class DataValueSMSListener
             }
         }
 
-        markCompleteDataSet( senderPhoneNumber, orgUnit, parsedMessage, smsCommand, date );
+        markCompleteDataSet( sms, orgUnit, parsedMessage, smsCommand, date );
         sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit );
 
         sms.setStatus( SmsMessageStatus.PROCESSED );
@@ -199,31 +190,18 @@ public class DataValueSMSListener
         incomingSmsService.update( sms );
     }
 
-    private Map<String, String> parse( String sms, SMSCommand smsCommand )
+    @Override
+    protected String getDefaultPattern()
     {
-        HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( defaultPattern );
+        // Not supported for DataValueListener
+        return StringUtils.EMPTY;
+    }
 
-        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
-        {
-            String x = "([^\\s|" + smsCommand.getSeparator().trim() + "]+)\\s*\\" + smsCommand.getSeparator().trim()
-                + "\\s*([-\\w\\s]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
-            pattern = Pattern.compile( x );
-        }
-
-        Matcher matcher = pattern.matcher( sms );
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 ).trim();
-            String value = matcher.group( 2 ).trim();
-
-            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
-            {
-                output.put( key, value );
-            }
-        }
-
-        return output;
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for DataValueListener
+        return StringUtils.EMPTY;
     }
 
     private Period getPeriod( SMSCommand command, Date date )
@@ -249,10 +227,11 @@ public class DataValueSMSListener
         return period;
     }
 
-    private boolean storeDataValue( String sender, OrganisationUnit orgunit, Map<String, String> parsedMessage,
+    private boolean storeDataValue( IncomingSms sms, OrganisationUnit orgunit, Map<String, String> parsedMessage,
         SMSCode code, SMSCommand command, Date date, DataSet dataSet )
     {
-        String storedBy = SmsUtils.getUser( sender, command, userService.getUsersByPhoneNumber( sender ) )
+        String sender = sms.getOriginator();
+        String storedBy = SmsUtils.getUser( sender, command, Collections.singletonList( getUser( sms ) ) )
             .getUsername();
 
         if ( StringUtils.isBlank( storedBy ) )
@@ -404,9 +383,11 @@ public class DataValueSMSListener
         return true;
     }
 
-    private void markCompleteDataSet( String sender, OrganisationUnit orgunit, Map<String, String> parsedMessage,
+    private void markCompleteDataSet( IncomingSms sms, OrganisationUnit orgunit, Map<String, String> parsedMessage,
         SMSCommand command, Date date )
     {
+        String sender = sms.getOriginator();
+
         Period period = null;
         int numberOfEmptyValue = 0;
         for ( SMSCode code : command.getCodes() )
@@ -426,27 +407,27 @@ public class DataValueSMSListener
         }
 
         // Check completeness method
-        if ( command.getCompletenessMethod() == SMSCommand.RECEIVE_ALL_DATAVALUE )
+        if ( command.getCompletenessMethod() == CompletenessMethod.ALL_DATAVALUE )
         {
             if ( numberOfEmptyValue > 0 )
             {
                 return;
             }
         }
-        else if ( command.getCompletenessMethod() == SMSCommand.RECEIVE_AT_LEAST_ONE_DATAVALUE )
+        else if ( command.getCompletenessMethod() == CompletenessMethod.AT_LEAST_ONE_DATAVALUE )
         {
             if ( numberOfEmptyValue == command.getCodes().size() )
             {
                 return;
             }
         }
-        else if ( command.getCompletenessMethod() == SMSCommand.DO_NOT_MARK_COMPLETE )
+        else if ( command.getCompletenessMethod() == CompletenessMethod.DO_NOT_MARK_COMPLETE )
         {
             return;
         }
 
         // Go through the complete process
-        String storedBy = SmsUtils.getUser( sender, command, userService.getUsersByPhoneNumber( sender ) )
+        String storedBy = SmsUtils.getUser( sender, command, Collections.singletonList( getUser( sms ) ) )
             .getUsername();
 
         if ( StringUtils.isBlank( storedBy ) )
@@ -568,5 +549,32 @@ public class DataValueSMSListener
         {
             registrationService.deleteCompleteDataSetRegistration( registration );
         }
+    }
+
+    private Map<String, String> parse( String sms, SMSCommand smsCommand )
+    {
+        HashMap<String, String> output = new HashMap<>();
+        Pattern pattern = Pattern.compile( DEFAULTPATTERN );
+
+        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
+        {
+            String x = "([^\\s|" + smsCommand.getSeparator().trim() + "]+)\\s*\\" + smsCommand.getSeparator().trim()
+                    + "\\s*([-\\w\\s ]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
+            pattern = Pattern.compile( x );
+        }
+
+        Matcher matcher = pattern.matcher( sms );
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 ).trim();
+            String value = matcher.group( 2 ).trim();
+
+            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
+            {
+                output.put( key, value );
+            }
+        }
+
+        return output;
     }
 }

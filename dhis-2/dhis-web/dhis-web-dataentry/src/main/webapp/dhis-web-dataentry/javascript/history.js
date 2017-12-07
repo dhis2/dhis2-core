@@ -61,9 +61,16 @@ function CommentSaver( de, co, comment )
 
     function handleError( xhr, textStatus, errorThrown )
     {
-        var errorText = JSON.parse( xhr.responseText );
-        markComment( dhis2.de.cst.colorRed );
-        window.alert( i18n_saving_comment_failed_error_code + '\n\n' + errorText.message );
+        if ( xhr.status === 201 )
+        {
+          markComment( dhis2.de.cst.colorGreen );
+        }
+        else
+        {
+          var errorText = JSON.parse( xhr.responseText );
+          markComment( dhis2.de.cst.colorRed );
+          window.alert( i18n_saving_comment_failed_error_code + '\n\n' + errorText.message );
+        }
     }
 }
 
@@ -201,7 +208,7 @@ function markValueForFollowup()
     
     $.ajax( { url: '../api/dataValues',
     	data: dataValue,
-    	dataType: 'json',
+    	dataType: 'text',
         type: 'post',
     	success: function( json )
 	    {

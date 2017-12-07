@@ -414,8 +414,6 @@ public class ValidationServiceTest
                 .append( formatResultsList ( "But was", resultsList ) )
                 .append( getAllDataValues() )
                 .append( getAllValidationRules() );
-
-            log.error( sb.toString() );
         }
 
         assertTrue( referenceList.equals( resultsList ) );
@@ -512,7 +510,7 @@ public class ValidationServiceTest
         // appear in the same order.
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourcesA, null, null, false, null );
+            getDate( 2000, 6, 1 ), sourcesA, false, null, null, false, null );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -563,7 +561,7 @@ public class ValidationServiceTest
         validationRuleService.addValidationRuleGroup( group );
 
         Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourcesA, null, group, false, null );
+            getDate( 2000, 6, 1 ), sourcesA, false, null, group, false, null );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
@@ -593,6 +591,28 @@ public class ValidationServiceTest
         Collection<ValidationResult> reference = new HashSet<>();
 
         reference.add( new ValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidateForm()
+    {
+        validationRuleA.setSkipFormValidation( true );
+
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+        useDataValue( dataElementB, periodA, sourceA, "2" );
+        useDataValue( dataElementC, periodA, sourceA, "3" );
+        useDataValue( dataElementD, periodA, sourceA, "4" );
+
+        validationRuleService.saveValidationRule( validationRuleA );
+        validationRuleService.saveValidationRule( validationRuleB );
+
+        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
         reference.add( new ValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
 
         assertResultsEquals( reference, results );

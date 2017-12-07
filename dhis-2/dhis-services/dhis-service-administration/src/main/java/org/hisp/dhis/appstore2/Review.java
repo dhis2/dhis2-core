@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.appstore2;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,55 +28,100 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Iterator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import java.util.Date;
 
 /**
- * @author markusbekken
+ * Created by zubair@dhis2.org on 07.09.17.
  */
-public class ProgramRuleActionDeletionHandler
-    extends DeletionHandler 
+public class Review
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private String id;
 
-    private ProgramRuleActionService programRuleActionService;
+    private String userId;
 
-    public void setProgramRuleActionService( ProgramRuleActionService programRuleActionService )
-    {
-        this.programRuleActionService = programRuleActionService;
-    }
-    
-    private ProgramRuleService programRuleService;
+    private String reviewText;
 
-    public void setProgramRuleService( ProgramRuleService programRuleService )
+    private int rate;
+
+    private Date created;
+
+    private Date lastUpdated;
+
+    public Review()
     {
-        this.programRuleService = programRuleService;
     }
-    
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-    
-    @Override
-    protected String getClassName()
+
+    public Review( String userId, String reviewText )
     {
-        return ProgramRuleAction.class.getSimpleName();
+        this.userId = userId;
+        this.reviewText = reviewText;
     }
-    
-    @Override
-    public void deleteProgramRule( ProgramRule programRule )
+
+    @JsonProperty
+    public String getUserId()
     {
-        Iterator<ProgramRuleAction> actionIterator = programRuleActionService.getProgramRuleAction( programRule ).iterator();
-        
-        programRule.setProgramRuleActions( null );
-        programRuleService.updateProgramRule( programRule );
-        
-        while ( actionIterator.hasNext() )
-        {   
-            programRuleActionService.deleteProgramRuleAction( actionIterator.next() );
-        }
+        return userId;
+    }
+
+    public void setUserId( String userId )
+    {
+        this.userId = userId;
+    }
+
+    @JsonProperty
+    public String getReviewText()
+    {
+        return reviewText;
+    }
+
+    public void setReviewText( String reviewText )
+    {
+        this.reviewText = reviewText;
+    }
+
+    @JsonProperty
+    public int getRate()
+    {
+        return rate;
+    }
+
+    public void setRate( int rate )
+    {
+        this.rate = rate;
+    }
+
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
     }
 }

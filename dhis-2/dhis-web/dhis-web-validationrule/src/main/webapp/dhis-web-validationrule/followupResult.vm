@@ -57,6 +57,7 @@
       <th style="width: 100px; text-align:center" class="{sorter: false}">$i18n.getString( "value" )</th>
       <th style="text-align:center" class="{sorter: false}">$i18n.getString( "max" )</th>
       <th style="text-align:center" class="{sorter: false}">$i18n.getString( "mark" )</th>
+      <th style="text-align:center" class="{sorter: false}">$i18n.getString( "comment" )</th>
     </tr>
   </thead>
   #set( $count = 0 )
@@ -77,6 +78,7 @@
       <input type="hidden" id="value-${count}-pe" value="$value.periodId">
       <input type="hidden" id="value-${count}-ou" value="$value.sourceId">
       <input type="hidden" id="value-${count}-coc" value="$value.categoryOptionComboId">
+      <input type="hidden" id="value-${count}-aoc" value="$value.attributeOptionComboId">
       <input type="hidden" id="value-${count}-min" value="$value.min">
       <input type="hidden" id="value-${count}-max" value="$value.max">
     </td>
@@ -90,7 +92,17 @@
           <img id="value-${count}-followUp" src="../images/unmarked.png" onclick="markFollowup($count)" style="cursor:pointer">
         #end
     </td>
+    <td style="text-align:center">
+      #if ( $value.comment )
+        <img id="value-${count}-followUp" src="../images/comment.png" onclick="viewComment($count)" style="cursor:pointer">
+        <input type="hidden" id="value-${count}-comment"  value="${value.comment}"/>
+      #end
+    </td>
   </tr>
   #end
   </tbody>
 </table>
+
+<div id="commentContainer" style="display: none">
+  <textarea id="commentTextArea" disabled="disabled"/>
+</div>

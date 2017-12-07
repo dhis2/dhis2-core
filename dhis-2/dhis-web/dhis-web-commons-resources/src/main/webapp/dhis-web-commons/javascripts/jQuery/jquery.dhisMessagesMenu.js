@@ -177,7 +177,7 @@
 
         $checkbox.click(function (event) {
             if (this.checked) {
-                $slaveCheckboxes.attr("checked", "checked").trigger("change");
+                $slaveCheckboxes.prop("checked", true).trigger("change");
             } else {
                 $slaveCheckboxes.removeAttr("checked").trigger("change");
             }
@@ -197,7 +197,7 @@
             }
             else {
                 $checkbox.prop("indeterminate", false);
-                $checkbox.attr("checked", "checked");
+                $checkbox.prop("checked", true);
             }
         });
 

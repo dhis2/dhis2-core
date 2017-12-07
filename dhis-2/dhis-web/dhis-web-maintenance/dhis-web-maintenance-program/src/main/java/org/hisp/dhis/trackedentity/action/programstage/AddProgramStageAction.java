@@ -63,6 +63,13 @@ public class AddProgramStageAction
     {
         this.programStageService = programStageService;
     }
+    
+    private ProgramStageDataElementService programStageDataElementService;
+
+    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
+    {
+        this.programStageDataElementService = programStageDataElementService;
+    }
 
     private ProgramService programService;
 
@@ -76,13 +83,6 @@ public class AddProgramStageAction
     public void setDataElementService( DataElementService dataElementService )
     {
         this.dataElementService = dataElementService;
-    }
-
-    private ProgramStageDataElementService programStageDataElementService;
-
-    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
-    {
-        this.programStageDataElementService = programStageDataElementService;
     }
 
     private PeriodService periodService;
@@ -372,16 +372,9 @@ public class AddProgramStageAction
         programStage.setPreGenerateUID( preGenerateUID );
         programStage.setSortOrder( program.getProgramStages().size() + 1 );
         programStage.setHideDueDate( hideDueDate );
-
-        program.getProgramStages().add( programStage );
-
-        if ( jsonAttributeValues != null )
-        {
-            attributeService.updateAttributeValues( programStage, jsonAttributeValues );
-        }
-
+                
         programStageService.saveProgramStage( programStage );
-
+        
         // Data elements
 
         for ( int i = 0; i < this.selectedDataElementsValidator.size(); i++ )
@@ -398,7 +391,17 @@ public class AddProgramStageAction
             programStageDataElement.setAllowFutureDate( allowDate );
             programStageDataElementService.addProgramStageDataElement( programStageDataElement );
         }
-
+        
+        programStageService.updateProgramStage( programStage );
+        
+        
+        // Custom attributes
+        
+        if ( jsonAttributeValues != null )
+        {
+            attributeService.updateAttributeValues( programStage, jsonAttributeValues );
+        }
+        
         return SUCCESS;
     }
 }

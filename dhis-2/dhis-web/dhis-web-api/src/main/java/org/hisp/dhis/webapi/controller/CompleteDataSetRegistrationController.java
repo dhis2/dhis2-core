@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -243,7 +244,8 @@ public class CompleteDataSetRegistrationController
             startDate, endDate, orgUnit, children );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( CompleteDataSetRegistration.class, completeDataSetRegistrations.getCompleteDataSetRegistrations(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( CompleteDataSetRegistration.class,
+            new FieldFilterParams( completeDataSetRegistrations.getCompleteDataSetRegistrations(), fields ) ) );
 
         return rootNode;
     }
@@ -296,6 +298,7 @@ public class CompleteDataSetRegistrationController
 
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.POST, produces = "text/plain" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveCompleteDataSetRegistration(
         @RequestParam String ds,
         @RequestParam String pe,
@@ -371,7 +374,7 @@ public class CompleteDataSetRegistrationController
                 attributeOptionCombo, storedBy, completionDate );
         }
 
-        registrationService.saveCompleteDataSetRegistrations( registrations, true );
+        registrationService.saveCompleteDataSetRegistrations( registrations, false );
     }
 
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
@@ -453,7 +456,7 @@ public class CompleteDataSetRegistrationController
             addRegistrationsForOrgUnits( registrations, orgUnits, dataSet, period, attributeOptionCombo, storedBy, completionDate );
         }
 
-        registrationService.saveCompleteDataSetRegistrations( registrations, true );
+        registrationService.saveCompleteDataSetRegistrations( registrations, false );
     }
 
     // -------------------------------------------------------------------------

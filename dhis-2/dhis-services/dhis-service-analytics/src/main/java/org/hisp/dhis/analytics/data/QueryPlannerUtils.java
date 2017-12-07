@@ -90,7 +90,8 @@ public class QueryPlannerUtils
 
             ValueType valueType = dataElement.getValueType();
 
-            // Both Text and Date types are recognized as TEXT
+            // Both text and date types are recognized as DataType.TEXT
+            
             DataType dataType = ( valueType.isText() || valueType.isDate() ) ? DataType.TEXT : DataType.NUMERIC;
 
             map.putValue( dataType, dataElement );
@@ -195,14 +196,32 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Indicates whether disaggregation is allowed for the given input.
+     * Indicates whether disaggregation is allowed for the given input. Disaggregation
+     * implies that the frequency order of the aggregation period type is lower than
+     * the data period type.
      * 
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
     public static boolean isDisaggregation( PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
-        return dataPeriodType != null && aggregationPeriodType != null && aggregationPeriodType.getFrequencyOrder() < dataPeriodType.getFrequencyOrder();
+        if ( dataPeriodType == null || aggregationPeriodType == null )
+        {
+            return false;
+        }
+        
+        if ( aggregationPeriodType.getFrequencyOrder() < dataPeriodType.getFrequencyOrder() )
+        {
+            return true;
+        }
+        
+        if ( aggregationPeriodType.getFrequencyOrder() == dataPeriodType.getFrequencyOrder() &&
+            !aggregationPeriodType.equals( dataPeriodType ) )
+        {
+            return true;
+        }
+        
+        return false;
     }
 
     /**

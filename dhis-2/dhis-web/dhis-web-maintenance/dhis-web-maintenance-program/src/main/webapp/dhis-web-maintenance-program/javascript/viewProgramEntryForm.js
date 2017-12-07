@@ -126,15 +126,15 @@ function getDefaultRequiredFields()
 				var inputKey = jQuery(item).attr('fixedattributeid');
 				if( inputKey!=undefined)
 				{
-					key = 'fixedattributeid=' + inputKey
+					key = 'fixedattributeid=' + inputKey;
 				}
 				else if( jQuery(item).attr('attributeid')!=undefined ){
 					inputKey = jQuery(item).attr('attributeid');
-					key = 'attributeid=' + inputKey
+					key = 'attributeid=' + inputKey;
 				}
 				else if( jQuery(item).attr('programid')!=undefined ){
 					inputKey = jQuery(item).attr('programid');
-					key = 'programid=' + inputKey
+					key = 'programid=' + inputKey;
 				}
 					
 				for (var idx in requiredFields){
@@ -169,7 +169,7 @@ function validateProgramFields()
 			var inputKey = jQuery(item).attr('fixedattributeid');
 			if( jQuery(item).attr('programid')!=undefined ){
 				inputKey = jQuery(item).attr('programid');
-				key = 'programid=' + inputKey
+				key = 'programid=' + inputKey;
 			}
 			
 			for (var idx in requiredFields){
@@ -326,7 +326,7 @@ function insertElement( type )
 		
 		if( element.length == 0 ) return;		
 		
-		id = 'attributeId.' + element.attr('value');
+		id = 'attributeId.' + element.val();
 		
 		var assigned = checkLabelAssigned( id );
 		if( assigned && assigned.assigned ){
@@ -343,21 +343,21 @@ function insertElement( type )
 		if( type == 'fixedAttr' ){
 			var element = jQuery('#fixedAttrSelector option:selected');
 			if( element.length == 0 ) return;		
-			id = 'fixedattributeid="' + element.attr('value') + '"';
+			id = 'fixedattributeid="' + element.val() + '"';
 			value = element.text();
 		}
 		else if( type == 'attr' ){
 			var element = jQuery('#attributesSelector option:selected');
 			if( element.length == 0 ) return;
 			
-			id = 'attributeid="' + element.attr('value') + '"';
+			id = 'attributeid="' + element.val() + '"';
 			value = element.text();
 		}
 		else if( type == 'prg' ){
 			var element = jQuery('#programAttrSelector option:selected');
 			if( element.length == 0 ) return;
 			
-			id = 'programid="' + element.attr('value') + '"';
+			id = 'programid="' + element.val() + '"';
 			value = element.text();
 		}		
 		var htmlCode = "<input " + id + " value=\"[" + value + "]\" title=\"" + value + "\" ";
@@ -368,7 +368,7 @@ function insertElement( type )
 			htmlCode += " suggested='" + suggestedValue + "' ";
 		}
 		
-		var isHidden = jQuery('#hiddenField').attr('checked');
+		var isHidden = jQuery('#hiddenField').prop('checked');
 		if(isHidden)
 		{
 			htmlCode += " class='hidden' ";

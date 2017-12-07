@@ -30,6 +30,7 @@ package org.hisp.dhis.external.conf;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -37,6 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -290,6 +293,14 @@ public class DefaultDhisConfigurationProvider
         }
 
         return EncryptionStatus.OK;
+    }
+
+    @Override
+    public Map<String, Serializable> getConfigurationsAsMap()
+    {
+        return Stream.of( ConfigurationKey.values() )
+            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? "" :
+            getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
     }
 
     // -------------------------------------------------------------------------

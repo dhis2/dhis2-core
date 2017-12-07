@@ -123,6 +123,9 @@ public class DefaultValidationService
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private ValidationResultService validationResultService;
+
     private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
@@ -136,7 +139,7 @@ public class DefaultValidationService
 
     @Override
     public Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate,
-        List<OrganisationUnit> orgUnits,
+        List<OrganisationUnit> orgUnits, boolean persistResults,
         DataElementCategoryOptionCombo attributeOptionCombo, ValidationRuleGroup group, boolean sendNotifications,
         I18nFormat format )
     {
@@ -145,11 +148,12 @@ public class DefaultValidationService
         Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
         Collection<ValidationRule> rules =
-            group != null ? group.getMembers() : validationRuleService.getAllValidationRules();
+            group != null ? group.getMembers() : validationRuleService.getAllFormValidationRules();
 
         ValidationRunContext context = getValidationContext( orgUnits, periods, rules )
             .withAttributeCombo( attributeOptionCombo )
             .withMaxResults( MAX_INTERACTIVE_ALERTS )
+            .withPersistResults( persistResults )
             .withSendNotifications( sendNotifications )
             .build();
 
@@ -327,7 +331,8 @@ public class DefaultValidationService
             .withPeriodTypeExtendedMap( periodTypeExtendedMap )
             .withOrgUnits( orgUnits )
             .withEventItems( getEventItems( dimensionItemMap ) )
-            .withConstantMap( constantService.getConstantMap() );
+            .withConstantMap( constantService.getConstantMap() )
+            .withInitialResults( validationResultService.getValidationResults(orgUnits, validationRules, periods) );
 
         if ( currentUser != null )
         {

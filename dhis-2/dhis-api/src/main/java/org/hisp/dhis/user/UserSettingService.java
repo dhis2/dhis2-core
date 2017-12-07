@@ -143,4 +143,11 @@ public interface UserSettingService
      * Invalidates in-memory caches.
      */
     void invalidateCache();
+
+    /**
+     * Returns all user settings for currently logged in user. Setting will not be
+     * included in map if its value is null.
+     * @return a map of setting names and their values
+     */
+    Map<String, Serializable> getUserSettingsAsMap();
 }

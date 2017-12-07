@@ -373,6 +373,7 @@ public class DefaultAdxDataService
         List<ImportConflict> adxConflicts = new LinkedList<>();
 
         IdScheme categoryOptionComboIdScheme = importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
+        IdScheme categoryOptionIdScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
         Map<String, String> groupAttributes = adxReader.readAttributes();
 
@@ -409,7 +410,8 @@ public class DefaultAdxDataService
 
             groupAttributes.put( AdxDataService.DATASET, dataSet.getUid() );
             DataElementCategoryCombo attributeCombo = dataSet.getCategoryCombo();
-            convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo, categoryOptionComboIdScheme );
+            convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo, 
+                    categoryOptionIdScheme, categoryOptionComboIdScheme );
         }
 
         // process the dataValues
@@ -451,6 +453,7 @@ public class DefaultAdxDataService
         }
 
         IdScheme categoryOptionComboIdScheme = importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
+        IdScheme categoryOptionIdScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
         String dataElementStr = trimToNull( dvAttributes.get( AdxDataService.DATAELEMENT ) );
         final DataElement dataElement = dataElementMap.get( dataElementStr, dataElementCallable.setId( dataElementStr ) );
@@ -470,7 +473,8 @@ public class DefaultAdxDataService
 
             DataElementCategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
 
-            convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, categoryOptionComboIdScheme );
+            convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, 
+                    categoryOptionIdScheme, categoryOptionComboIdScheme );
         }
 
         // if data element type is not numeric we need to pick out the
@@ -580,8 +584,9 @@ public class DefaultAdxDataService
         return catOptionCombo;
     }
 
-    private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName, DataElementCategoryCombo catCombo,
-        IdScheme idScheme )
+    private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName, 
+            DataElementCategoryCombo catCombo, 
+            IdScheme catOptIdScheme, IdScheme catOptComboIdScheme )
         throws AdxException
     {
         log.debug( "ADX attributes: " + attributes );
@@ -609,9 +614,9 @@ public class DefaultAdxDataService
             }
         }
 
-        DataElementCategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo, idScheme.getIdentifiableProperty() );
+        DataElementCategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo, catOptIdScheme.getIdentifiableProperty() );
 
-        attributes.put( optionComboName, catOptCombo.getPropertyValue( idScheme ) );
+        attributes.put( optionComboName, catOptCombo.getPropertyValue( catOptComboIdScheme ) );
 
         log.debug( "DXF attributes: " + attributes );
     }

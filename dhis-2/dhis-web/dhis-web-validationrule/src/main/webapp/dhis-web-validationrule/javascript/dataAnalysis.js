@@ -95,12 +95,13 @@ function markFollowup( valueId )
 {
     var dataElementId = $( '#value-' + valueId + '-de' ).val();
     var categoryOptionComboId = $( '#value-' + valueId + '-coc' ).val();
+    var attributeOptionComboId = $( '#value-' + valueId + '-aoc' ).val();
     var periodId = $( '#value-' + valueId + '-pe' ).val();
     var sourceId = $( '#value-' + valueId + '-ou' ).val();
     
     $.ajax( {
       url: 'markForFollowup.action',
-      data: { dataElementId:dataElementId, periodId:periodId, sourceId:sourceId, categoryOptionComboId:categoryOptionComboId },
+      data: { dataElementId:dataElementId, periodId:periodId, sourceId:sourceId, categoryOptionComboId:categoryOptionComboId, attributeOptionComboId:attributeOptionComboId },
       type: 'POST',
       dataType: 'json',
       success: function( json )
@@ -125,12 +126,86 @@ function getFollowupAnalysis()
 {
     setHeaderWaitMessage( i18n_analysing_please_wait );
 
+    var dataSetId = $("#selectedDataSetId").val();
+
     var url = "getFollowup.action";
 
-    $.get( url, function( data )
+    if ( dataSetId )
     {
-        hideHeaderMessage();
-        $( "div#analysisResult" ).show();
-        $( "div#analysisResult" ).html( data );
+        url += "?dataSetId=" + dataSetId;
+    }
+
+    $.ajax({
+        type: 'GET',
+        url: url,
+        success: function( data ){
+            hideHeaderMessage();
+            $( "div#analysisResult" ).show();
+            $( "div#analysisResult" ).html( data );
+        }
+    });
+}
+
+function viewComment( index )
+{
+    var comment = $("#value-"+ index + "-comment").val();
+    $("#commentTextArea").val(comment);
+
+    $("#commentContainer").dialog({
+        autoOpen: true,
+        modal: false,
+        width: 200,
+        height: 200,
+        resizable: true,
+        title: "Comment"
+    });
+}
+
+function fetchDataSets()
+{
+    var ouId = selectionTreeSelection.getSelected();
+
+    $.ajax({
+        type: 'GET',
+        url: '../api/organisationUnits/' + ouId,
+        data: {
+            fields: 'id,dataSets[id,name],children[id,dataSets[id,name]]'
+        },
+        success: function( ou ){
+            var dataSets = [];
+            if ( ou.dataSets )
+            {
+                ou.dataSets.forEach(function( item ) {
+                    dataSets.push(item);
+                });
+
+                initDataSetList( dataSets );
+            }
+        }
+    });
+};
+
+function initDataSetList( dataSets )
+{
+    dataSets.sort( function( a, b )
+    {
+        return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
     } );
+
+    var dataSetId = $('#selectedDataSetId').val();
+    $("#selectedDataSetId").removeAttr("disabled");
+    clearListById('selectedDataSetId');
+    addOptionById('selectedDataSetId', '', '[ ' + i18n_select_all + ' ]');
+
+    var dataSetValid = false;
+
+    $.each(dataSets, function ( idx, item ) {
+        if( item ) {
+            addOptionById('selectedDataSetId', item.id, item.name);
+
+            if( dataSetId == item.id ) {
+                dataSetValid = true;
+            }
+        }
+    });
 }

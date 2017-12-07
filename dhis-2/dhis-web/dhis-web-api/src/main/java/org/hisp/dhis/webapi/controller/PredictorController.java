@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
@@ -63,6 +64,9 @@ public class PredictorController
     private PredictorService predictorService;
 
     @Autowired
+    private PredictionService predictionService;
+
+    @Autowired
     private WebMessageService webMessageService;
 
     @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
@@ -78,7 +82,7 @@ public class PredictorController
 
         try
         {
-            int count = predictorService.predict( predictor, startDate, endDate );
+            int count = predictionService.predict( predictor, startDate, endDate );
 
             webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
         }
@@ -106,7 +110,7 @@ public class PredictorController
         {
             try
             {
-                count += predictorService.predict( predictor, startDate, endDate );
+                count += predictionService.predict( predictor, startDate, endDate );
             }
             catch ( Exception ex )
             {

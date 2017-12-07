@@ -412,6 +412,10 @@ public abstract class AbstractTrackedEntityInstanceService
             importConflicts.add( new ImportConflict( "OrganisationUnit", "orgUnit " + trackedEntityInstance.getOrgUnit()
                 + " does not point to valid organisation unit" ) );
         }
+        else
+        {
+            entityInstance.setOrganisationUnit( organisationUnit );
+        }
 
         importSummary.setConflicts( importConflicts );
 

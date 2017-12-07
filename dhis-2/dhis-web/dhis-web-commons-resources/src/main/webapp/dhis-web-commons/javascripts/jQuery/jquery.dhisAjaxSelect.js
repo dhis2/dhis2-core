@@ -44,7 +44,7 @@ function dhisAjaxSelect_moveAllSelected(sourceId)
 function dhisAjaxSelect_moveAll(sourceId)
 {
     var jqSource = $("#" + sourceId);
-    jqSource.find("option").attr("selected", "selected");
+    jqSource.find("option").prop("selected", true);
     jqSource.dblclick();
 }
 
@@ -197,7 +197,7 @@ function dhisAjaxSelect_selectedList_dblclick(sourceId, targetId)
                     if ($connectedTo) {
                         $connectedTo.children().each(function()
                         {
-                            var value = $(this).attr("value");
+                            var value = $(this).val();
                             $select.find("option[value='" + value + "']").remove();
                         });
                     }

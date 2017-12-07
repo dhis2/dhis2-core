@@ -475,65 +475,46 @@ public class DataQueryParams
     }
 
     /**
-     * Finds the latest endDate associated with this DataQueryParams. checks endDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period dimensions and
+     * period filters.
      */
     public Date getLatestEndDate()
     {
-        // Set to minimum value
-        Date latestEndDate = new Date(Long.MIN_VALUE);
+        Date latestEndDate = new Date( Long.MIN_VALUE );
 
         if ( endDate != null && endDate.after( latestEndDate ) )
         {
             latestEndDate = endDate;
         }
 
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
-        }
-
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
+            latestEndDate = period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate;
         }
 
         return latestEndDate;
-
     }
     
     /**
-     * Finds the earliest startDate associated with this DataQueryParams. checks startDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Finds the earliest startDate associated with this DataQueryParams. Checks startDate, period dimensions and
+     * period filters.
      */
     public Date getEarliestStartDate()
     {
-        // Set to minimum value
-        Date earliestStartDate = new Date(Long.MAX_VALUE);
+        Date earliestStartDate = new Date( Long.MAX_VALUE );
 
-        if ( startDate != null && startDate.before( startDate ) )
+        if ( startDate != null && startDate.before( earliestStartDate ) )
         {
             earliestStartDate = startDate;
         }
-
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
-        }
-
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
+            earliestStartDate = period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate;
         }
 
         return earliestStartDate;
@@ -730,7 +711,7 @@ public class DataQueryParams
     public List<DimensionalItemObject> getDimensionOptions( String dimension )
     {
         int index = dimensions.indexOf( new BaseDimensionalObject( dimension ) );
-        
+
         return index != -1 ? dimensions.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
     }
     
@@ -762,6 +743,7 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getFilterOptions( String filter )
     {
+
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
         
         return index != -1 ? filters.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
@@ -1836,7 +1818,23 @@ public class DataQueryParams
     {
         return ListUtils.union( getAllProgramAttributes(), getAllProgramDataElements() );
     }
-    
+
+    /**
+     * Returns all validation results part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllValidationResults()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getValidationResults(), getFilterValidationResults() ) );
+    }
+
+    /**
+     * Returns all periods part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllPeriods()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
+    }
+
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
@@ -1921,6 +1919,14 @@ public class DataQueryParams
         return ListUtils.union( dimensions, filters ).stream().
             filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
     }
+
+    /**
+     * Returns all program data elements part of the data dimension.
+     */
+    public List<DimensionalItemObject> getValidationResults()
+    {
+        return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.VALIDATION_RULE, getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
             
     // -------------------------------------------------------------------------
     // Get helpers for filters
@@ -1964,6 +1970,14 @@ public class DataQueryParams
     public List<DimensionalItemObject> getFilterProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all validation results part of the validation result filter.
+     */
+    public List<DimensionalItemObject> getFilterValidationResults()
+    {
+        return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.VALIDATION_RULE, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
@@ -2152,6 +2166,12 @@ public class DataQueryParams
         public Builder withOrganisationUnit( DimensionalItemObject organisationUnit )
         {
             this.withOrganisationUnits( getList( organisationUnit ) );
+            return this;
+        }
+
+        public Builder withValidationRules( List<? extends DimensionalItemObject> validationRules )
+        {
+            this.params.setDataDimensionOptions( DataDimensionItemType.VALIDATION_RULE, validationRules );
             return this;
         }
         

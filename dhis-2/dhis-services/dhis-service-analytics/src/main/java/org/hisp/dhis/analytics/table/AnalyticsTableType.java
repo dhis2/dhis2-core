@@ -40,11 +40,12 @@ public enum AnalyticsTableType
     COMPLETENESS_TARGET( "analytics_completenesstarget" ),
     ORG_UNIT_TARGET( "analytics_orgunittarget" ),
     EVENT( "analytics_event" ),
-    ENROLLMENT( "analytics_enrollment" );
-    
+    ENROLLMENT( "analytics_enrollment" ),
+    VALIDATION_RESULT( "analytics_validationresult" );
+
     private String tableName;
     
-    private AnalyticsTableType( String tableName )
+    AnalyticsTableType( String tableName )
     {
         this.tableName = tableName;
     }

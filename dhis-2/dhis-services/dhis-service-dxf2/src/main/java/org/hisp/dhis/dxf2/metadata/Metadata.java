@@ -78,6 +78,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -240,6 +241,8 @@ public class Metadata
     private List<Color> colors = new ArrayList<>();
 
     private List<ColorSet> colorSets = new ArrayList<>();
+
+    private List<Predictor> predictors = new ArrayList<>();
 
     public Metadata()
     {
@@ -1087,6 +1090,32 @@ public class Metadata
     public void setColorSets( List<ColorSet> colorSets )
     {
         this.colorSets = colorSets;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "colors", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Color> getColors()
+    {
+        return colors;
+    }
+
+    public void setColors( List<Color> colors )
+    {
+        this.colors = colors;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Predictor> getPredictors()
+    {
+        return predictors;
+    }
+
+    public void setPredictors( List<Predictor> predictors )
+    {
+        this.predictors = predictors;
     }
 
     @Override

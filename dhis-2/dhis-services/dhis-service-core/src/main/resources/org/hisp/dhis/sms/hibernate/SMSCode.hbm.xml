@@ -23,6 +23,7 @@
 		<many-to-one name="trackedEntityAttribute"
 			class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" column="trackedentityattributeid"
 			foreign-key="fk_trackedentityattribute_trackedentityattributeid" />
+
 		<property name="optionId" type="integer" />
 
 	</class>

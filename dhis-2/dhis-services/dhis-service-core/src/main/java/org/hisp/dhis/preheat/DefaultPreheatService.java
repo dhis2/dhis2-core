@@ -565,6 +565,18 @@ public class DefaultPreheatService implements PreheatService
                         {
                             addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
                         }
+                        
+                        if ( dataDimensionItem.getProgramDataElement() != null )
+                        {
+                            addIdentifiers( map, dataDimensionItem.getProgramDataElement().getDataElement() );
+                            addIdentifiers( map, dataDimensionItem.getProgramDataElement().getProgram() );
+                        }
+                        
+                        if ( dataDimensionItem.getProgramAttribute() != null )
+                        {
+                            addIdentifiers( map, dataDimensionItem.getProgramAttribute().getAttribute() );
+                            addIdentifiers( map, dataDimensionItem.getProgramAttribute().getProgram() );
+                        }
                     } );
 
                     CollectionUtils.nullSafeForEach( categoryDimensions, categoryDimension ->
@@ -811,8 +823,6 @@ public class DefaultPreheatService implements PreheatService
             return;
         }
 
-        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = preheat.getDefaults();
-
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
         List<Property> properties = schema.getProperties().stream()
@@ -831,11 +841,7 @@ public class DefaultPreheatService implements PreheatService
                 IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
                 IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
 
-                if ( !DataSetElement.class.isInstance( object )
-                    && (Preheat.isDefaultClass( property.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() ))) )
-                {
-                    ref = defaults.get( property.getKlass() );
-                }
+                ref = connectDefaults( preheat, property, object, refObject, ref );
 
                 if ( ref != null && ref.getId() == 0 )
                 {
@@ -876,6 +882,33 @@ public class DefaultPreheatService implements PreheatService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
+
+    private IdentifiableObject connectDefaults( Preheat preheat, Property property, Object object,
+        IdentifiableObject refObject, IdentifiableObject ref )
+    {
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = preheat.getDefaults();
+
+        if ( refObject == null && DataSetElement.class.isInstance( object ) )
+        {
+            return null;
+        }
+
+        IdentifiableObject defaultObject = defaults.get( property.getKlass() );
+
+        if ( Preheat.isDefaultClass( property.getKlass() ) )
+        {
+            if ( refObject == null )
+            {
+                ref = defaultObject;
+            }
+            else if ( refObject.getUid() != null && refObject.getUid().equals( defaultObject.getUid() ) )
+            {
+                ref = defaultObject;
+            }
+        }
+
+        return ref;
+    }
 
     private void cleanEmptyEntries( Map<Class<? extends IdentifiableObject>, Set<String>> map )
     {

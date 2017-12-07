@@ -30,8 +30,10 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -44,6 +46,7 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -61,7 +64,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -116,7 +118,8 @@ public class AuditController
         @RequestParam( required = false ) String co,
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -140,7 +143,7 @@ public class AuditController
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
 
-        if ( skipPaging )
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             dataValueAudits = dataValueAuditService.getDataValueAudits( dataElements, periods,
                 organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
@@ -164,8 +167,8 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "dataValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.filter( DataValueAudit.class,
-            dataValueAudits, fields ).getChildren() );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( DataValueAudit.class,
+            new FieldFilterParams( dataValueAudits, fields ) ).getChildren() );
 
         return rootNode;
     }
@@ -175,7 +178,8 @@ public class AuditController
         @RequestParam( required = false, defaultValue = "" ) List<String> de,
         @RequestParam( required = false, defaultValue = "" ) List<String> psi,
         @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -193,7 +197,7 @@ public class AuditController
         List<TrackedEntityDataValueAudit> dataValueAudits;
         Pager pager = null;
 
-        if ( skipPaging )
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
                 dataElements, programStageInstances, auditType );
@@ -216,8 +220,8 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityDataValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.filter( TrackedEntityDataValueAudit.class,
-            dataValueAudits, fields ).getChildren() );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityDataValueAudit.class,
+            new FieldFilterParams( dataValueAudits, fields ) ).getChildren() );
 
         return rootNode;
     }
@@ -227,7 +231,8 @@ public class AuditController
         @RequestParam( required = false, defaultValue = "" ) List<String> tea,
         @RequestParam( required = false, defaultValue = "" ) List<String> tei,
         @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -240,7 +245,7 @@ public class AuditController
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
         Pager pager = null;
 
-        if ( skipPaging )
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
                 trackedEntityAttributes, trackedEntityInstances, auditType );
@@ -264,8 +269,8 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityAttributeValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.filter( TrackedEntityAttributeValueAudit.class,
-            attributeValueAudits, fields ).getChildren() );
+        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAttributeValueAudit.class,
+            new FieldFilterParams( attributeValueAudits, fields ) ).getChildren() );
 
         return rootNode;
     }
@@ -278,7 +283,8 @@ public class AuditController
         @RequestParam( required = false, defaultValue = "" ) List<String> aoc,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page
     ) throws WebMessageException
@@ -304,7 +310,7 @@ public class AuditController
         Pager pager = null;
         RootNode rootNode = NodeUtils.createMetadata();
 
-        if ( !skipPaging )
+        if ( !PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             pager = new Pager( page, audits.size(), pageSize );
 
@@ -315,8 +321,8 @@ public class AuditController
         }
 
         CollectionNode dataApprovalAudits = rootNode.addChild( new CollectionNode( "dataApprovalAudits", true ) );
-        dataApprovalAudits.addChildren( fieldFilterService.filter( DataApprovalAudit.class,
-            audits, fields ).getChildren() );
+        dataApprovalAudits.addChildren( fieldFilterService.toCollectionNode( DataApprovalAudit.class,
+            new FieldFilterParams( audits, fields ) ).getChildren() );
 
         return rootNode;
     }
@@ -491,6 +497,10 @@ public class AuditController
             if ( period == null )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
+            }
+            else
+            {
+                periods.add( period );
             }
         }
 

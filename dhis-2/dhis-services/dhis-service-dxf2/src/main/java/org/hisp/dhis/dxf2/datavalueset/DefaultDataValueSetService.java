@@ -1029,7 +1029,7 @@ public class DefaultDataValueSetService
                     {
                         DataApproval lowestApproval = DataApproval.getLowestApproval( new DataApproval( null, workflow, period, orgUnit, aoc ) );
 
-                        return lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
+                        return lowestApproval != null && lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
                             () -> approvalService.getDataApproval( lowestApproval ) != null );
                     } ) )
                     {
@@ -1175,6 +1175,15 @@ public class DefaultDataValueSetService
                             if ( !dryRun )
                             {
                                 added = dataValueBatchHandler.addObject( internalValue );
+
+                                if ( added && dataElement.isFileType() )
+                                {
+                                    FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+
+                                    fr.setAssigned( true );
+
+                                    fileResourceService.updateFileResource( fr );
+                                }
                             }
 
                             if ( dryRun || added )

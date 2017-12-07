@@ -115,6 +115,7 @@ public class SaveProgramEntryFormAction
         if ( dataEntryForm == null )
         {
             dataEntryForm = new DataEntryForm( name, designTextarea );
+            dataEntryFormService.addDataEntryForm( dataEntryForm );
             program.setDataEntryForm( dataEntryForm );
             
             programService.updateProgram( program );
