@@ -133,7 +133,12 @@ public class JdbcResourceTableStore
         List<AnalyticsTableHook> hooks = analyticsTableHookService
             .getByPhaseAndResourceTableType( AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED, resourceTable.getTableType() );
         
-        analyticsTableHookService.executeAnalyticsTableSqlHooks( hooks );
+        if ( !hooks.isEmpty() )
+        {
+            analyticsTableHookService.executeAnalyticsTableSqlHooks( hooks );
+        
+            log.info( "Invoked resource table hooks: " + hooks.size() );
+        }
 
         // ---------------------------------------------------------------------
         // Create indexes
