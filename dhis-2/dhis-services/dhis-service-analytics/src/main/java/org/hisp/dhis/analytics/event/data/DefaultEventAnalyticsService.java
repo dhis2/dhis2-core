@@ -28,24 +28,31 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.*;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -53,6 +60,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
+import static org.hisp.dhis.reporttable.ReportTable.IRT2D;
+import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -92,7 +101,7 @@ public class DefaultEventAnalyticsService
 
     @Autowired
     private DatabaseInfo databaseInfo;
-    
+
     // -------------------------------------------------------------------------
     // EventAnalyticsService implementation
     // -------------------------------------------------------------------------
@@ -100,6 +109,143 @@ public class DefaultEventAnalyticsService
     // TODO use [longitude/latitude] format for event points
     // TODO order event analytics tables on execution date to avoid default sort
     // TODO sorting in queries
+
+    @Override
+    public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
+    {
+        boolean tableLayout = (columns != null && !columns.isEmpty()) || (rows != null && !rows.isEmpty());
+
+        return tableLayout ?
+            getAggregatedEventDataTableLayout( params, columns, rows ) :
+            getAggregatedEventData( params );
+    }
+
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+    {
+        params.removeProgramIndicatorItems(); // Not supported as items for aggregate
+
+        Grid grid = getAggregatedEventData( params );
+
+        ListUtils.removeEmptys( columns );
+        ListUtils.removeEmptys( rows );
+
+        ReportTable reportTable = new ReportTable();
+
+        List<QueryItem> queryItems = params.getItems();
+        List<DimensionalItemObject[]> tableColumns = new ArrayList<>();
+        List<DimensionalItemObject[]> tableRows = new ArrayList<>();
+
+        Map<String, OptionSet> dataOptionMap = new TreeMap<>( );
+
+        OptionSet booleanSet = new OptionSet(  );
+        Option t = new Option( );
+        t.setCode( "1" );
+        t.setName( "Yes" );
+
+        Option f = new Option( );
+        f.setCode( "0" );
+        f.setName( "No" );
+
+        booleanSet.addOption( t );
+        booleanSet.addOption( f );
+
+        queryItems.forEach( queryItem -> {
+            OptionSet optionSet = queryItem.getOptionSet();
+            if ( optionSet != null )
+            {
+                dataOptionMap.put( queryItem.getItem().getUid(), optionSet );
+            } else if ( queryItem.getValueType() == ValueType.BOOLEAN )
+            {
+                dataOptionMap.put( queryItem.getItem().getUid(), booleanSet );
+            }
+        } );
+
+        Map<String, DataElement> dataElementMap = new TreeMap<>( );
+        if ( columns != null )
+        {
+            for ( String dimension : columns )
+            {
+                reportTable.getColumnDimensions().add( dimension );
+                DimensionalItemObject[] objects = params.getDimensionItemArrayExplodeCoc( dimension );
+
+                if ( objects.length == 0 )
+                {
+                    DataElement dataElement = dataElementService.getDataElement( dimension );
+                    objects = new DimensionalItemObject[] { dataElement };
+                    dataElementMap.put( dataElement.getUid(), dataElement );
+                }
+
+                tableColumns.add( objects );
+            }
+        }
+
+        if ( rows != null )
+        {
+            for ( String dimension : rows )
+            {
+                reportTable.getRowDimensions().add( dimension );
+                DimensionalItemObject[] objects = params.getDimensionItemArrayExplodeCoc( dimension );
+
+                if ( objects.length == 0 )
+                {
+                    DataElement dataElement = dataElementService.getDataElement( dimension );
+                    objects = new DimensionalItemObject[] { dataElement };
+                    dataElementMap.put( dataElement.getUid(), dataElement );
+                }
+
+                tableRows.add( objects );
+            }
+        }
+
+        reportTable
+            .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
+            .setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() )
+            .setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() );
+
+        addListIfEmpty( reportTable.getGridColumns() );
+        addListIfEmpty( reportTable.getGridRows() );
+
+        reportTable.setHideEmptyRows( params.isHideEmptyRows() );
+        reportTable.setHideEmptyColumns( params.isHideEmptyColumns() );
+        reportTable.setShowHierarchy( params.isShowHierarchy() );
+
+        Map<String, Object> valueMap = getAggregatedEventDataMapping( grid );
+
+        return reportTable.getEventReportGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap,
+            params.getDisplayProperty(), false, dataOptionMap, dataElementMap );
+    }
+
+    private Map<String, Object> getAggregatedEventDataMapping( Grid grid )
+    {
+        Map<String, Object> map = new HashMap<>();
+
+        int metaCols = grid.getWidth() - 1;
+        int valueIndex = grid.getWidth() - 1;
+
+        for ( List<Object> row : grid.getRows() )
+        {
+            System.out.println( "row: " + row );
+            List<String> ids = new ArrayList<>( );
+
+            for ( int index = 0; index < metaCols; index++ )
+            {
+                ids.add( (String) row.get( index ) );
+            }
+
+            Collections.sort( ids );
+
+            String key = StringUtils.join( ids, DIMENSION_SEP );
+            Object value = row.get( valueIndex );
+
+            map.put( key, value );
+        }
+
+        return map;
+    }
 
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
@@ -195,6 +341,8 @@ public class DefaultEventAnalyticsService
                 grid.limitGrid( params.getLimit() );
             }
         }
+
+        System.out.println("griden: " + grid);
 
         // ---------------------------------------------------------------------
         // Meta-data

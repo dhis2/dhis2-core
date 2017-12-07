@@ -230,6 +230,7 @@ public class AnalyticsController
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        System.out.println("analytics grid: " + grid);
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
