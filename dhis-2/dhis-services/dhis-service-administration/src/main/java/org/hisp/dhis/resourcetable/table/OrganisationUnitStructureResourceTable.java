@@ -35,10 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 

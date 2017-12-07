@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
@@ -47,14 +48,22 @@ public interface AnalyticsTableHookStore
     List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase );
     
     /**
-     * Returns a list of {@link AnalyticsTableHook} with the given type.
-     * The {@link AnalyticsTablePhase#ANALYTICS_TABLE_POPULATED} phase is
-     * implicit.
+     * Returns a list of {@link AnalyticsTableHook} with the given phase
+     * and given resource table type.
+     * 
+     * @param resourceTableType the resource table type.
+     * @return a list of {@link AnalyticsTableHook}.
+     */
+    List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType );
+
+    /**
+     * Returns a list of {@link AnalyticsTableHook} with the given phase
+     * and given analytics table type.
      * 
      * @param type the analytics table type.
      * @return a list of {@link AnalyticsTableHook}.
      */
-    List<AnalyticsTableHook> getByType( AnalyticsTableType type );
+    List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType );
     
     /**
      * Executes the SQL commands for the given list of {@link AnalyticsTableHook}.
