@@ -53,9 +53,9 @@ public class CategoryOptionComboNameResourceTable
     }
     
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.CATEGORY_OPTION_COMBO_NAME.getTableName();
+        return ResourceTableType.CATEGORY_OPTION_COMBO_NAME;
     }
     
     @Override

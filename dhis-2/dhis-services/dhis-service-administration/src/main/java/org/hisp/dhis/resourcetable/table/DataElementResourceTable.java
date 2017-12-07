@@ -54,9 +54,9 @@ public class DataElementResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.DATA_ELEMENT_STRUCTURE.getTableName();
+        return ResourceTableType.DATA_ELEMENT_STRUCTURE;
     }
     
     @Override

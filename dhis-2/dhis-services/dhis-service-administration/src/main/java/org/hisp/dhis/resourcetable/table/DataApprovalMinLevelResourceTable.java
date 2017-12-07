@@ -31,6 +31,7 @@ package org.hisp.dhis.resourcetable.table;
 import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -49,9 +50,9 @@ public class DataApprovalMinLevelResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_dataapprovalminlevel";
+        return ResourceTableType.DATA_APPROVAL_MIN_LEVEL;
     }
 
     @Override

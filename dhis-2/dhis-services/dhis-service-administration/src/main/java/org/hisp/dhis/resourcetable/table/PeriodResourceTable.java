@@ -55,9 +55,9 @@ public class PeriodResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.PERIOD_STRUCTURE.getTableName();
+        return ResourceTableType.PERIOD_STRUCTURE;
     }
 
     @Override

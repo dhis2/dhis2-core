@@ -56,9 +56,9 @@ public class DatePeriodResourceTable
     }
     
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.DATE_PERIOD_STRUCTURE.getTableName();
+        return ResourceTableType.DATE_PERIOD_STRUCTURE;
     }
 
     @Override

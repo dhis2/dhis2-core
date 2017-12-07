@@ -50,9 +50,9 @@ public class DataElementGroupSetResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.DATA_ELEMENT_GROUP_SET_STRUCTURE.getTableName();
+        return ResourceTableType.DATA_ELEMENT_GROUP_SET_STRUCTURE;
     }
     
     @Override

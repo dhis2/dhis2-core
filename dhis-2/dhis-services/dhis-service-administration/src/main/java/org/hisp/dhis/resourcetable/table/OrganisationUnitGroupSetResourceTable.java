@@ -50,9 +50,9 @@ public class OrganisationUnitGroupSetResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.ORG_UNIT_GROUP_SET_STRUCTURE.getTableName();
+        return ResourceTableType.ORG_UNIT_GROUP_SET_STRUCTURE;
     }
     
     @Override

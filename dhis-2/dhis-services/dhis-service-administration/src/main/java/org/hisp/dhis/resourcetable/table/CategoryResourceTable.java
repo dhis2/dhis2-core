@@ -54,9 +54,9 @@ public class CategoryResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.CATEGORY_STRUCTURE.getTableName();
+        return ResourceTableType.CATEGORY_STRUCTURE;
     }
     
     @Override

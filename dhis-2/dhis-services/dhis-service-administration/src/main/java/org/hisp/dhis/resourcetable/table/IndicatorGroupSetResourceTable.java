@@ -50,9 +50,9 @@ public class IndicatorGroupSetResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.INDICATOR_GROUP_SET_STRUCTURE.getTableName();
+        return ResourceTableType.INDICATOR_GROUP_SET_STRUCTURE;
     }
     
     @Override

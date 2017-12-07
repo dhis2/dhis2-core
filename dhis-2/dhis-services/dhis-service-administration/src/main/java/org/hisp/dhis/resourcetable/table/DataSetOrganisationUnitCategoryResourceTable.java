@@ -61,9 +61,9 @@ public class DataSetOrganisationUnitCategoryResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.DATA_SET_ORG_UNIT_CATEGORY.getTableName();
+        return ResourceTableType.DATA_SET_ORG_UNIT_CATEGORY;
     }
 
     @Override

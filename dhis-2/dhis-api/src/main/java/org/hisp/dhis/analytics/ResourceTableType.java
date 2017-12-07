@@ -43,7 +43,8 @@ public enum ResourceTableType
     DATA_ELEMENT_STRUCTURE( "_dataelementstructure" ),
     PERIOD_STRUCTURE( "_periodstructure" ),
     DATE_PERIOD_STRUCTURE( "_dateperiodstructure" ),
-    DATA_ELEMENT_CATEGORY_OPTION_COMBO( "_dataelementcategoryoptioncombo" );
+    DATA_ELEMENT_CATEGORY_OPTION_COMBO( "_dataelementcategoryoptioncombo" ),
+    DATA_APPROVAL_MIN_LEVEL( "_dataapprovalminlevel" );
     
     private String tableName;
     

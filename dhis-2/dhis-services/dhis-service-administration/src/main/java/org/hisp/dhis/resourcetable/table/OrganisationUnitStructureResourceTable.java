@@ -61,9 +61,9 @@ public class OrganisationUnitStructureResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return ResourceTableType.ORG_UNIT_STRUCTURE.getTableName();
+        return ResourceTableType.ORG_UNIT_STRUCTURE;
     }
     
     @Override
