@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -62,7 +63,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
     @Override
     public String getTableName()
     {
-        return "_datasetorganisationunitcategory";
+        return ResourceTableType.DATA_SET_ORG_UNIT_CATEGORY.getTableName();
     }
 
     @Override

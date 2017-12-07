@@ -31,6 +31,7 @@ package org.hisp.dhis.resourcetable.table;
 import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -51,7 +52,7 @@ public class DataElementGroupSetResourceTable
     @Override
     public String getTableName()
     {
-        return "_dataelementgroupsetstructure";
+        return ResourceTableType.DATA_ELEMENT_GROUP_SET_STRUCTURE.getTableName();
     }
     
     @Override

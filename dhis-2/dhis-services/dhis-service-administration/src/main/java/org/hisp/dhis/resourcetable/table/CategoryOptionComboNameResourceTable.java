@@ -29,6 +29,8 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import com.google.common.collect.Lists;
+
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -53,7 +55,7 @@ public class CategoryOptionComboNameResourceTable
     @Override
     public String getTableName()
     {
-        return "_categoryoptioncomboname";
+        return ResourceTableType.CATEGORY_OPTION_COMBO_NAME.getTableName();
     }
     
     @Override
