@@ -29,6 +29,8 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import com.google.common.collect.Lists;
+
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -48,9 +50,9 @@ public class OrganisationUnitGroupSetResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_organisationunitgroupsetstructure";
+        return ResourceTableType.ORG_UNIT_GROUP_SET_STRUCTURE;
     }
     
     @Override

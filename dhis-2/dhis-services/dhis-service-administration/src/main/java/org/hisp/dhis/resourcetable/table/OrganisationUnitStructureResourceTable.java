@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -60,9 +61,9 @@ public class OrganisationUnitStructureResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_orgunitstructure";
+        return ResourceTableType.ORG_UNIT_STRUCTURE;
     }
     
     @Override
