@@ -48,9 +48,9 @@ import java.util.Date;
  * @author Margrethe Store
  */
 @JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
-public class ValidationResult implements Comparable<ValidationResult>
+public class ValidationResult
+    implements Comparable<ValidationResult>
 {
-
     private int id;
 
     private Date created;
@@ -106,6 +106,11 @@ public class ValidationResult implements Comparable<ValidationResult>
         this.leftsideValue = leftsideValue;
         this.rightsideValue = rightsideValue;
         this.dayInPeriod = dayInPeriod;
+    }
+
+    public String getUid()
+    {
+        return validationRule != null ? validationRule.getUid() : null;
     }
 
     // -------------------------------------------------------------------------
@@ -244,11 +249,14 @@ public class ValidationResult implements Comparable<ValidationResult>
     }
 
     /**
-     * Comparing validation results is done by priority, then time
+     * Compare ValidationResults so they will be listed in the desired
+     * order: by validationRule, period, attributeOptionCombo and orgUnit.
      *
-     * @param identifiableObject
-     * @return
+     * @param other The other ValidationResult to compare with.
+     * @return a negative integer, zero, or a positive integer as this object
+     *         is less than, equal to, or greater than the specified object.
      */
+    @Override
     public int compareTo( ValidationResult other )
     {
         return new CompareToBuilder()
@@ -352,6 +360,8 @@ public class ValidationResult implements Comparable<ValidationResult>
         this.rightsideValue = rightsideValue;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getDayInPeriod()
     {
         return dayInPeriod;

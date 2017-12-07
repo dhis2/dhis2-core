@@ -37,6 +37,8 @@
     <many-to-one name="rightSide" column="rightexpressionid" class="org.hisp.dhis.expression.Expression"
       cascade="all" foreign-key="fk_validationrule_rightexpressionid" not-null="true" />
 
+    <property name="skipFormValidation" />
+
     <set name="groups" table="validationrulegroupmembers" inverse="true">
       <key column="validationruleid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRuleGroup" column="validationgroupid" />
@@ -51,6 +53,12 @@
 
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />
+
+    <set name="organisationUnitLevels" table="validationruleorganisationunitlevels">
+      <cache usage="read-write" />
+      <key column="validationruleid" foreign-key="fk_organisationunitlevel_validationtuleid" />
+      <element column="organisationunitlevel" type="int" />
+    </set>
 
     <!-- Object Translation -->
     <set name="translations" table="validationruletranslations" cascade="all-delete-orphan">

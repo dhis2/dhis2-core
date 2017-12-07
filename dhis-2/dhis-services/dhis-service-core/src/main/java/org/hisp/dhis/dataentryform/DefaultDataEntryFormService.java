@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml3;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
 
 /**
  * @author Bharath Kumar
@@ -348,19 +348,19 @@ public class DefaultDataEntryFormService
                     inputHtml = inputHtml.replaceAll(inputHtml, TAG_CLOSE);
                     
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"\">";
-                    appendCode += i18n.getString( "no_value" );
-                    appendCode += "</label>";
-                    
-                    appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
+                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" +
+                        optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
                     appendCode += i18n.getString( "yes" );
                     appendCode += "</label>";
                     
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"false\">";
+                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\" " +
+                        " id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"false\">";
                     appendCode += i18n.getString( "no" );
                     appendCode += "</label>";
+
+                    appendCode += "<img class=\"commentlink\" id=\"" + dataElementId + "-" + optionComboId +"-comment\" " +
+                                    "src=\"../images/comment.png\" title=\"View " + "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
                 }
                 else if ( ValueType.TRUE_ONLY == valueType )
                 {
@@ -369,6 +369,9 @@ public class DefaultDataEntryFormService
                 else if ( dataElement.hasOptionSet() )
                 {
                     appendCode += " name=\"entryoptionset\" class=\"entryoptionset\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += "<img class=\"commentlink\" id=\"" + dataElementId + "-" + optionComboId +"-comment\" " +
+                        "src=\"../images/comment.png\" title=\"View " +
+                        "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
                 }
                 else if ( ValueType.LONG_TEXT == valueType )
                 {
@@ -400,7 +403,14 @@ public class DefaultDataEntryFormService
                 }
                 else if ( ValueType.TIME == valueType ) 
                 {
-                    appendCode += " type=\"text\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId + "-" + optionComboId + "\">";
+                    appendCode += " type=\"time\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId +
+                        "-" + optionComboId + "\">";
+                }
+                else if ( ValueType.DATETIME == valueType )
+                {
+                    appendCode += " type=\"text\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\">&nbsp;";
+                    appendCode += "<input type=\"time\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+
+                        dataElementId + "-" + optionComboId +"-time" +"\">";
                 }
                 else if ( ValueType.URL == valueType )
                 {

@@ -3,7 +3,7 @@
 
 <script type="text/javascript">
   var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete" ) , "'" )';
-  var currentUser = '$encoder.jsEscape( $currentUserUid, "'" )';
+  var sender = '$encoder.jsEscape( $currentUserUid, "'" )';
 </script>
 
 <h3>$i18n.getString( "user_group_management" ) #openHelp( "user_group_management" )</h3>

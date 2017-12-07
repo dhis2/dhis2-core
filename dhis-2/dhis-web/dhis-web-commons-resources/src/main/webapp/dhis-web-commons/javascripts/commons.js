@@ -331,7 +331,7 @@ function disable( elementId )
 	var hasDatePicker = jQuery("#" + elementId ).data("datepicker");
 	if( hasDatePicker == undefined)
 	{
-		jQuery( "#" + elementId ).attr("disabled", true );
+		jQuery( "#" + elementId ).prop("disabled", true );
 	}
 	else
 	{
@@ -936,7 +936,9 @@ function removeItem( itemId, itemName, confirmation, action, success )
 					setHeaderMessage( json.message );
     	    	}
     	    }
-    	);
+    	).fail( function(response){
+          setHeaderMessage( response.responseText );
+      });
     }
 }
 
@@ -1380,7 +1382,7 @@ function checkPassword( inputId, password ) {
     if (passWord) {
         if (parameter) {
             if ((passWord.indexOf(parameter) !== -1) ||  (parameter.indexOf(passWord) !== -1)) {
-                alert("Username/Email cannot be part of password");
+                alert( i18n_username_email_in_password );
                 $("#" +  password).val("");
             }
         }

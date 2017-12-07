@@ -31,7 +31,9 @@ package org.hisp.dhis.minmax;
  */
 
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 
 import java.util.List;
 
@@ -44,7 +46,9 @@ public class MinMaxDataElementQueryParams
 
     private List<String> filters;
 
-    private boolean skipPaging;
+    private Boolean skipPaging;
+
+    private Boolean paging;
 
     private int page = 1;
 
@@ -58,12 +62,22 @@ public class MinMaxDataElementQueryParams
 
     public boolean isSkipPaging()
     {
-        return skipPaging;
+        return PagerUtils.isSkipPaging( skipPaging, paging );
     }
 
-    public void setSkipPaging( boolean skipPaging )
+    public void setSkipPaging( Boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+    }
+
+    public boolean isPaging()
+    {
+        return BooleanUtils.toBoolean( paging );
+    }
+
+    public void setPaging( Boolean paging )
+    {
+        this.paging = paging;
     }
 
     public int getPage()
@@ -98,7 +112,7 @@ public class MinMaxDataElementQueryParams
 
     public Pager getPager()
     {
-        return skipPaging ? null : new Pager( page, total, pageSize );
+        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
     }
 
     public List<String> getFilters()

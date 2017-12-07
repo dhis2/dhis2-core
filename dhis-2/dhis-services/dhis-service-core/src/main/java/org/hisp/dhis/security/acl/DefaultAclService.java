@@ -1,32 +1,32 @@
 package org.hisp.dhis.security.acl;
 
-/*
- * Copyright (c) 2004-2017, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+    /*
+     * Copyright (c) 2004-2017, University of Oslo
+     * All rights reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions are met:
+     * Redistributions of source code must retain the above copyright notice, this
+     * list of conditions and the following disclaimer.
+     *
+     * Redistributions in binary form must reproduce the above copyright notice,
+     * this list of conditions and the following disclaimer in the documentation
+     * and/or other materials provided with the distribution.
+     * Neither the name of the HISP project nor the names of its contributors may
+     * be used to endorse or promote products derived from this software without
+     * specific prior written permission.
+     *
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+     * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+     * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -39,7 +39,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,11 +53,15 @@ import static org.springframework.util.CollectionUtils.containsAny;
  */
 public class DefaultAclService implements AclService
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
+
+    public DefaultAclService( SchemaService schemaService, CurrentUserService currentUserService )
+    {
+        this.schemaService = schemaService;
+        this.currentUserService = currentUserService;
+    }
 
     @Override
     public boolean isSupported( String type )
@@ -87,6 +90,13 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean isDataShareable( Class<?> klass )
+    {
+        Schema schema = schemaService.getSchema( klass );
+        return schema != null && schema.isDataShareable();
+    }
+
+    @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )
@@ -96,19 +106,15 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || object.getUser() == null || object.getPublicAccess() == null )
+        if ( schema == null )
         {
             return true;
         }
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
-            if ( !schema.isShareable() )
-            {
-                return true;
-            }
-
-            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
+            if ( !schema.isShareable() || object.getUser() == null || object.getPublicAccess() == null || checkUser( user, object )
+                || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
             {
                 return true;
             }
@@ -122,11 +128,42 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public boolean canWrite( User user, IdentifiableObject object )
+    public boolean canDataRead( User user, IdentifiableObject object )
     {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || haveOverrideAuthority( user ) )
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
+        {
+            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean canWrite( User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
         {
             return true;
         }
@@ -161,11 +198,44 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public boolean canUpdate( User user, IdentifiableObject object )
+    public boolean canDataWrite( User user, IdentifiableObject object )
     {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || haveOverrideAuthority( user ) )
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
+
+        if ( canAccess( user, anyAuthorities ) )
+        {
+            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean canUpdate( User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
         {
             return true;
         }
@@ -203,9 +273,14 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDelete( User user, IdentifiableObject object )
     {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null || haveOverrideAuthority( user ) )
+        if ( schema == null )
         {
             return true;
         }
@@ -221,12 +296,13 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            if ( !schema.isShareable() )
+            if ( !schema.isShareable() || object.getPublicAccess() == null )
             {
                 return true;
             }
 
-            if ( checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE ) )
+            if ( checkSharingAccess( user, object ) &&
+                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
             {
                 return true;
             }
@@ -324,21 +400,6 @@ public class DefaultAclService implements AclService
         return null;
     }
 
-    private boolean haveOverrideAuthority( User user )
-    {
-        return user == null || user.isSuper();
-    }
-
-    private boolean canAccess( User user, Collection<String> anyAuthorities )
-    {
-        return haveOverrideAuthority( user ) || anyAuthorities.isEmpty() || haveAuthority( user, anyAuthorities );
-    }
-
-    private boolean haveAuthority( User user, Collection<String> anyAuthorities )
-    {
-        return containsAny( user.getUserCredentials().getAllAuthorities(), anyAuthorities );
-    }
-
     @Override
     public <T extends IdentifiableObject> Access getAccess( T object )
     {
@@ -348,7 +409,7 @@ public class DefaultAclService implements AclService
     @Override
     public <T extends IdentifiableObject> Access getAccess( T object, User user )
     {
-        if ( user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
             return new Access( true );
         }
@@ -360,6 +421,16 @@ public class DefaultAclService implements AclService
         access.setRead( canRead( user, object ) );
         access.setUpdate( canUpdate( user, object ) );
         access.setDelete( canDelete( user, object ) );
+
+        if ( isDataShareable( object.getClass() ) )
+        {
+            AccessData data = new AccessData(
+                canDataRead( user, object ),
+                canDataWrite( user, object )
+            );
+
+            access.setData( data );
+        }
 
         return access;
     }
@@ -373,7 +444,6 @@ public class DefaultAclService implements AclService
         }
 
         BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-
         baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
         baseIdentifiableObject.setExternalAccess( false );
 
@@ -399,7 +469,7 @@ public class DefaultAclService implements AclService
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( object == null || !isShareable( object.getClass() ) || user == null )
+        if ( object == null || haveOverrideAuthority( user ) || !isShareable( object.getClass() ) )
         {
             return errorReports;
         }
@@ -408,6 +478,13 @@ public class DefaultAclService implements AclService
         {
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
             return errorReports;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema.isImplicitPrivateAuthority() && !checkUser( user, object ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
         }
 
         boolean canMakePublic = canMakePublic( user, object.getClass() );
@@ -444,16 +521,40 @@ public class DefaultAclService implements AclService
         return errorReports;
     }
 
-    private boolean checkUser( User user, IdentifiableObject object )
+    private boolean haveOverrideAuthority( User user )
     {
-        if ( user == null || object.getUser() == null )
-        {
-            return false;
-        }
-
-        return user.equals( object.getUser() );
+        return user == null || user.isSuper();
     }
 
+    private boolean canAccess( User user, Collection<String> anyAuthorities )
+    {
+        return haveOverrideAuthority( user ) || anyAuthorities.isEmpty() || haveAuthority( user, anyAuthorities );
+    }
+
+    private boolean haveAuthority( User user, Collection<String> anyAuthorities )
+    {
+        return containsAny( user.getUserCredentials().getAllAuthorities(), anyAuthorities );
+    }
+
+    /**
+     * Should user be allowed access to this object.
+     *
+     * @param user   User to check against
+     * @param object Object to check against
+     * @return true/false depending on if access should be allowed
+     */
+    private boolean checkUser( User user, IdentifiableObject object )
+    {
+        return user == null || object.getUser() == null || user.getUid().equals( object.getUser().getUid() );
+    }
+
+    /**
+     * Is the current user allowed to create/update the object given based on its sharing settings.
+     *
+     * @param user   User to check against
+     * @param object Object to check against
+     * @return true/false depending on if sharing settings are allowed for given user
+     */
     private boolean checkSharingAccess( User user, IdentifiableObject object )
     {
         boolean canMakePublic = canMakePublic( user, object.getClass() );
@@ -483,6 +584,14 @@ public class DefaultAclService implements AclService
         return true;
     }
 
+    /**
+     * If the given user allowed to access the given object using the permissions given.
+     *
+     * @param user       User to check against
+     * @param object     Object to check against
+     * @param permission Permission to check against
+     * @return true if user can access object, false otherwise
+     */
     private boolean checkSharingPermission( User user, IdentifiableObject object, AccessStringHelper.Permission permission )
     {
         if ( AccessStringHelper.isEnabled( object.getPublicAccess(), permission ) )

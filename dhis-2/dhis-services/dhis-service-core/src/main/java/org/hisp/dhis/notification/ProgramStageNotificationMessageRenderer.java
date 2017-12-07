@@ -34,6 +34,7 @@ import com.google.common.collect.Maps;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.Date;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class ProgramStageNotificationMessageRenderer
             .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
-        ImmutableSet.of( ExpressionType.ATTRIBUTE, ExpressionType.VARIABLE );
+        ImmutableSet.of( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE, ExpressionType.DATA_ELEMENT );
 
     // -------------------------------------------------------------------------
     // Singleton instance
@@ -86,7 +87,7 @@ public class ProgramStageNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, ProgramStageInstance entity )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, ProgramStageInstance entity )
     {
         if ( attributeKeys.isEmpty() )
         {
@@ -96,6 +97,19 @@ public class ProgramStageNotificationMessageRenderer
         return entity.getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramStageNotificationMessageRenderer::filterValue ) );
+    }
+
+    @Override
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ProgramStageInstance entity )
+    {
+        if ( elementKeys.isEmpty() )
+        {
+            return Maps.newHashMap();
+        }
+
+        return entity.getDataValues().stream()
+            .filter( dv -> elementKeys.contains( dv.getDataElement().getUid() ) )
+            .collect( Collectors.toMap( dv -> dv.getDataElement().getUid() , ProgramStageNotificationMessageRenderer::filterValue ) );
     }
 
     @Override
@@ -127,6 +141,24 @@ public class ProgramStageNotificationMessageRenderer
         if ( av.getAttribute().hasOptionSet() )
         {
             value = av.getAttribute().getOptionSet().getOptionByCode( value ).getName();
+        }
+
+        return value != null ? value : MISSING_VALUE_REPLACEMENT;
+    }
+
+    private static String filterValue( TrackedEntityDataValue dv )
+    {
+        String value = dv.getValue();
+
+        if ( value == null )
+        {
+            return CONFIDENTIAL_VALUE_REPLACEMENT;
+        }
+
+        // If the DV has an OptionSet -> substitute value with the name of the Option
+        if ( dv.getDataElement().hasOptionSet() )
+        {
+            value = dv.getDataElement().getOptionSet().getOptionByCode( value ).getName();
         }
 
         return value != null ? value : MISSING_VALUE_REPLACEMENT;

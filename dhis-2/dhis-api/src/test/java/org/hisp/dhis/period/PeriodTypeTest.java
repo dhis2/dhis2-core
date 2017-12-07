@@ -71,4 +71,22 @@ public class PeriodTypeTest
         assertNull( PeriodType.getPeriodTypeFromIsoString( "201er2345566" ) );
         assertNull( PeriodType.getPeriodTypeFromIsoString( "2011Q10" ) );
     }
+
+    @Test
+    public void testGetIsoDurationFromIsoString()
+    {
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011" ).getIso8601Duration(), "P1Y" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "201101" ).getIso8601Duration(), "P1M" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011W1" ).getIso8601Duration(), "P7D" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "20110101" ).getIso8601Duration(), "P1D" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011Q3" ).getIso8601Duration(), "P3M" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "201101B" ).getIso8601Duration(), "P2M" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011S1" ).getIso8601Duration(), "P6M" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011AprilS1" ).getIso8601Duration(), "P6M" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011April" ).getIso8601Duration(), "P1Y" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011July" ).getIso8601Duration(), "P1Y" );
+        assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011Oct" ).getIso8601Duration(), "P1Y" );
+
+    }
+
 }

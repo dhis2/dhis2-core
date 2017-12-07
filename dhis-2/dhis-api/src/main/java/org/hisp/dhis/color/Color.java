@@ -42,6 +42,9 @@ import org.hisp.dhis.common.EmbeddedObject;
 public class Color
     extends BaseIdentifiableObject implements EmbeddedObject
 {
+    /**
+     * Hex color code.
+     */
     private String color;
 
     // -------------------------------------------------------------------------

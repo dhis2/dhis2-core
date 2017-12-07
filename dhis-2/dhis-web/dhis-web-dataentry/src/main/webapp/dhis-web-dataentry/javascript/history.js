@@ -20,12 +20,14 @@ function saveComment()
 
 function CommentSaver( de, co, comment )
 {
-	var pe = $( '#selectedPeriodId' ).val();
+    var pe = $( '#selectedPeriodId' ).val();
+    var ds = $( '#selectedDataSetId' ).val();
 	var ou = dhis2.de.currentOrganisationUnitId;
 	
 	var dataValue = {
 	    'de' : de,
 	    'co' : co,
+	    'ds' : ds,
 	    'ou' : ou,
 	    'pe' : pe,
 	    'comment' : comment
@@ -61,9 +63,16 @@ function CommentSaver( de, co, comment )
 
     function handleError( xhr, textStatus, errorThrown )
     {
-        var errorText = JSON.parse( xhr.responseText );
-        markComment( dhis2.de.cst.colorRed );
-        window.alert( i18n_saving_comment_failed_error_code + '\n\n' + errorText.message );
+        if ( xhr.status === 201 )
+        {
+          markComment( dhis2.de.cst.colorGreen );
+        }
+        else
+        {
+          var errorText = JSON.parse( xhr.responseText );
+          markComment( dhis2.de.cst.colorRed );
+          window.alert( i18n_saving_comment_failed_error_code + '\n\n' + errorText.message );
+        }
     }
 }
 
@@ -170,7 +179,7 @@ function saveMinMaxLimit()
 function refreshChart()
 {	
     var periodId = $( '#selectedPeriodId' ).val();
-    
+
     var source = '../api/charts/history/data.png?de=' + currentDataElementId + '&co='
     	+ currentOptionComboId + '&pe=' + periodId + 
     	'&ou=' + dhis2.de.currentOrganisationUnitId + '&r=' + Math.random();
@@ -181,12 +190,15 @@ function refreshChart()
 function markValueForFollowup()
 {
 	var periodId = $( '#selectedPeriodId' ).val();
-	
+
+	var dataSetId = $( '#selectedDataSetId' ).val();
+
 	var dataValue = {
 	    'de' : currentDataElementId,
 	    'co' : currentOptionComboId,
 	    'ou' : dhis2.de.currentOrganisationUnitId,
 	    'pe' : periodId,
+	    'ds' : dataSetId,
 	    'followUp' : true
 	};
 
@@ -201,7 +213,7 @@ function markValueForFollowup()
     
     $.ajax( { url: '../api/dataValues',
     	data: dataValue,
-    	dataType: 'json',
+    	dataType: 'text',
         type: 'post',
     	success: function( json )
 	    {

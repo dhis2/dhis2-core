@@ -28,39 +28,53 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.trackedentity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Created by zubair@dhis2.org on 11.08.17.
+ */
+@Transactional
 public class ProgramStageDataEntrySMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
-    private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
+    private static final String DEFAULT_PATTERN = "(\\w+)\\s*((\\w+\\s*)=(\\s*\\w+\\s*),\\s*)*((\\w+\\s*)=(\\s*\\w+))";
+
+    private static final String SUCCESS = "Program Stage registered successfully";
+
+    private static final String MORE_THAN_ONE_TEI = "More than one tracked entity found for given phone number";
+
+    private static final String NO_OU_FOUND = "No organisation unit found";
+
+    private static final String NO_TEI_EXIST = "No tracked entity exists with given phone number";
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
     private SMSCommandService smsCommandService;
 
     @Autowired
-    private UserService userService;
+    private ProgramInstanceService programInstanceService;
 
     // -------------------------------------------------------------------------
     // IncomingSmsListener implementation
@@ -70,64 +84,124 @@ public class ProgramStageDataEntrySMSListener
     @Override
     public boolean accept( IncomingSms sms )
     {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.PROGRAM_STAGE_DATAENTRY_PARSER ) != null;
+        return getCommand( sms ) != null;
     }
 
     @Transactional
     @Override
     public void receive( IncomingSms sms )
     {
-        String message = sms.getText();
-        SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
+        SMSCommand smsCommand = getCommand( sms );
 
-        this.parse( message, smsCommand );
+        Set<OrganisationUnit> ous = getOrganisationUnits( sms );
 
-        SmsUtils.lookForDate( message );
+        List<TrackedEntityInstance> teis = getTrackedEntityInstanceByPhoneNumber( sms, smsCommand, ous );
 
-        String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( senderPhoneNumber,
-            userService.getUsersByPhoneNumber( senderPhoneNumber ) );
+        Map<String, String> commandValuePairs = parseMessageInput( sms, smsCommand );
 
-        if ( orgUnits == null || orgUnits.size() == 0 )
+        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( commandValuePairs, smsCommand, sms ) )
         {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
-            }
+            return;
         }
+
+        if ( !validate( teis, ous, sms ) )
+        {
+            return;
+        }
+
+        registerProgramStage( teis.iterator().next(), sms, smsCommand, commandValuePairs, ous );
     }
 
-    private Map<String, String> parse( String message, SMSCommand smsCommand )
+    @Override
+    protected String getDefaultPattern()
     {
-        HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( defaultPattern );
-        
-        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
-        {
-            String x = "(\\w+)\\s*\\" + smsCommand.getSeparator().trim() + "\\s*([\\w ]+)\\s*(\\"
-                + smsCommand.getSeparator().trim() + "|$)*\\s*";
-            pattern = Pattern.compile( x );
-        }
-        
-        Matcher matcher = pattern.matcher( message );
-        
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 );
-            String value = matcher.group( 2 );
+        return DEFAULT_PATTERN;
+    }
 
-            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
-            {
-                output.put( key.toUpperCase(), value );
-            }
+    @Override
+    protected String getSuccessMessage()
+    {
+        return SUCCESS;
+    }
+
+    private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
+    {
+        List<ProgramInstance> programInstances = new ArrayList<>(
+                programInstanceService.getProgramInstances( tei, smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
+
+        register( programInstances, keyValue, smsCommand, sms, ous );
+    }
+
+    private List<TrackedEntityInstance> getTrackedEntityInstanceByPhoneNumber( IncomingSms sms, SMSCommand command, Set<OrganisationUnit> ous )
+    {
+        List<TrackedEntityAttribute> attributes = trackedEntityAttributeService.getAllTrackedEntityAttributes().stream()
+            .filter( attr -> attr.getValueType().equals( ValueType.PHONE_NUMBER ) )
+            .collect( Collectors.toList() );
+
+        List<TrackedEntityInstance> teis = new ArrayList<>();
+
+        attributes.parallelStream()
+            .map( attr -> getParams( attr, sms, command.getProgram(), ous ) )
+            .forEach( param -> teis.addAll( trackedEntityInstanceService.getTrackedEntityInstances( param ) ) );
+
+        return teis;
+    }
+
+    private boolean hasMoreThanOneEntity( List<TrackedEntityInstance> trackedEntityInstances )
+    {
+        return  trackedEntityInstances.size() > 1 ;
+    }
+
+    private TrackedEntityInstanceQueryParams getParams( TrackedEntityAttribute attribute, IncomingSms sms, Program program, Set<OrganisationUnit> ous )
+    {
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+        QueryFilter queryFilter = new QueryFilter();
+        queryFilter.setOperator( QueryOperator.LIKE );
+        queryFilter.setFilter( sms.getOriginator() );
+
+        QueryItem item = new QueryItem( attribute );
+        item.getFilters().add( queryFilter );
+        item.setValueType( ValueType.PHONE_NUMBER );
+
+        params.setProgram( program );
+        params.setOrganisationUnits( ous );
+        params.getFilters().add( item );
+
+        return params;
+    }
+
+    private SMSCommand getCommand( IncomingSms sms )
+    {
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
+                ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
+    }
+
+    private boolean validate( List<TrackedEntityInstance> teis, Set<OrganisationUnit> ous, IncomingSms sms )
+    {
+        if ( teis == null || teis.isEmpty() )
+        {
+            sendFeedback( NO_TEI_EXIST, sms.getOriginator(), ERROR );
+            return false;
         }
 
-        return output;
+        if ( hasMoreThanOneEntity( teis ) )
+        {
+            sendFeedback( MORE_THAN_ONE_TEI, sms.getOriginator(), ERROR );
+            return false;
+        }
+
+        if ( validateOrganisationUnits( ous ) )
+        {
+            sendFeedback( NO_OU_FOUND, sms.getOriginator(), ERROR );
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validateOrganisationUnits( Set<OrganisationUnit> ous )
+    {
+        return ous == null || ous.isEmpty();
     }
 }

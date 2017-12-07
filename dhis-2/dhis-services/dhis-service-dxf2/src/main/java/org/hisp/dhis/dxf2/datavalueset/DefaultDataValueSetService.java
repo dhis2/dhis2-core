@@ -76,7 +76,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
@@ -508,7 +508,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobId id )
     {
         try
         {
@@ -525,7 +525,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobId id )
     {
         try
         {
@@ -542,7 +542,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobId id )
     {
         try
         {
@@ -559,7 +559,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobId id )
     {
         try
         {
@@ -596,7 +596,7 @@ public class DefaultDataValueSetService
      * @param dataValueSet
      * @return
      */
-    private ImportSummary saveDataValueSet( ImportOptions importOptions, TaskId id, DataValueSet dataValueSet )
+    private ImportSummary saveDataValueSet( ImportOptions importOptions, JobId id, DataValueSet dataValueSet )
     {
         importOptions = ObjectUtils.firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() );
 
@@ -1029,7 +1029,7 @@ public class DefaultDataValueSetService
                     {
                         DataApproval lowestApproval = DataApproval.getLowestApproval( new DataApproval( null, workflow, period, orgUnit, aoc ) );
 
-                        return lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
+                        return lowestApproval != null && lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
                             () -> approvalService.getDataApproval( lowestApproval ) != null );
                     } ) )
                     {
@@ -1175,6 +1175,15 @@ public class DefaultDataValueSetService
                             if ( !dryRun )
                             {
                                 added = dataValueBatchHandler.addObject( internalValue );
+
+                                if ( added && dataElement.isFileType() )
+                                {
+                                    FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+
+                                    fr.setAssigned( true );
+
+                                    fileResourceService.updateFileResource( fr );
+                                }
                             }
 
                             if ( dryRun || added )

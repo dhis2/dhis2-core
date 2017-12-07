@@ -56,6 +56,9 @@
 			trackedEntityAttributeCodes += '{"trackedEntityAttributeId" :"'+document.getElementById("attId"+i).value+'",';
 			trackedEntityAttributeCodes += '"code" :"'+document.getElementById("attCode"+i).value+'"},';	
 		}
+
+        trackedEntityAttributeCodes = trackedEntityAttributeCodes.slice(0, -1);
+
 		trackedEntityAttributeCodes += ']}';
 		$("#trackedEntityAttributeCodes").val(trackedEntityAttributeCodes);
 		
@@ -66,9 +69,9 @@
 		
 		for (var i=1; i<= jQuery('.programStageDataElement').length; i++)
 		{ 
-			programStageDataElementCodes += '{"programStageDataElementId" :"'+document.getElementById("attId"+i).value+'",';
-			programStageDataElementCodes += '"compulsory" : "'+document.getElementById("attreq"+i).value+'",';
-			programStageDataElementCodes += '"code" :"'+document.getElementById("attCode"+i).value+'"},';	
+			programStageDataElementCodes += '{"programStageDataElementId" :"'+document.getElementById("pattId"+i).value+'",';
+			programStageDataElementCodes += '"compulsory" : "'+document.getElementById("pattreq"+i).value+'",';
+			programStageDataElementCodes += '"code" :"'+document.getElementById("pattCode"+i).value+'"},';
 		}
 		
 		programStageDataElementCodes = programStageDataElementCodes.slice(0,programStageDataElementCodes.length-1);
@@ -182,29 +185,48 @@
 			<td>#if($smsCommand.parserType) $i18n.getString( "$smsCommand.parserType" ) #end</td>
 		</tr>
 		
-		#if( $smsCommand.parserType == 'KEY_VALUE_PARSER' || $smsCommand.parserType == 'J2ME_PARSER' || $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' || $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER')
+		#if( $smsCommand.parserType == 'KEY_VALUE_PARSER' || $smsCommand.parserType == 'J2ME_PARSER' || $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' || $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER' || $smsCommand.parserType == 'PROGRAM_STAGE_DATAENTRY_PARSER')
 		<tbody id="codes">
-		<tr>
-			<td><label for="dataset">$i18n.getString( "dataset" )</label></td>
-			<td>#if($smsCommand.dataset.name) $smsCommand.dataset.name #end</td>
-		</tr>
-		<tr>
-			<td><label for="completenessMethod">$i18n.getString( "completeness_method" )</label></td>
-			<td>
-				<select id="completenessMethod" name="completenessMethod">
-					<option value="1" #if($smsCommand.completenessMethod == 1) selected #end>$i18n.getString( "receive_all_datavalue" )</option>
-					<option value="2" #if($smsCommand.completenessMethod == 2) selected #end>$i18n.getString( "receive_at_least_one_datavalue" )</option>
-					<option value="3" #if($smsCommand.completenessMethod == 3) selected #end>$i18n.getString( "do_not_mark_complete" )</option>
-				</select>
-			</td>
-		</tr>
-		<tr>
-	       <td><label for="currentPeriodUsedForReporting">Use current period for reporting</label></td>
-		   <td><input type="checkbox" id='currentPeriodUsedForReporting' name="currentPeriodUsedForReporting" #if($smsCommand.currentPeriodUsedForReporting) checked #end /></td>
-		</tr>   
+
+		#if( $smsCommand.parserType == 'KEY_VALUE_PARSER')
+					<tr>
+						<td><label for="dataset">$i18n.getString( "dataset" )</label></td>
+						<td>#if($smsCommand.dataset.name) $smsCommand.dataset.name #end</td>
+					</tr>
+					<tr>
+						<td><label for="completenessMethod">$i18n.getString( "completeness_method" )</label></td>
+						<td>
+							<select id="completenessMethod" name="completenessMethod">
+								<option value="ALL_DATAVALUE" #if($smsCommand.completenessMethod == 'ALL_DATAVALUE') selected #end>$i18n.getString( "receive_all_datavalue" )</option>
+								<option value="AT_LEAST_ONE_DATAVALUE" #if($smsCommand.completenessMethod == 'AT_LEAST_ONE_DATAVALUE') selected #end>$i18n.getString( "receive_at_least_one_datavalue" )</option>
+								<option value="DO_NOT_MARK_COMPLETE" #if($smsCommand.completenessMethod == 'DO_NOT_MARK_COMPLETE') selected #end>$i18n.getString( "do_not_mark_complete" )</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+					   <td><label for="currentPeriodUsedForReporting">Use current period for reporting</label></td>
+					   <td><input type="checkbox" id='currentPeriodUsedForReporting' name="currentPeriodUsedForReporting" #if($smsCommand.currentPeriodUsedForReporting) checked #end /></td>
+					</tr>
+
+			#end
+
+
+			#if( $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' )
+				<tr>
+					<td><label for="program">$i18n.getString( "program" )</label></td>
+					<td>$smsCommand.program.name</td>
+				</tr>
+			#end
+
+				#if( $smsCommand.parserType == 'PROGRAM_STAGE_DATAENTRY_PARSER' )
+				<tr>
+					<td><label for="programstage">$i18n.getString( "program_stage" )</label></td>
+				<td>$smsCommand.programStage.name</td>
+				</tr>
+				#end
 
         <tr>
-			<td><label for="separator">$i18n.getString( "code_value_separator" )</label></td>
+            <td><label for="separator">$i18n.getString( "field_separator" )</label></td>
 			<td>
 				<input type="text" #if($smsCommand.separator) value="$smsCommand.separator" #end id="separator" name="separator" class="validate" />
 			</td>
@@ -327,11 +349,9 @@
             </tr>      
 	    #end
     #end
-    
-    
-    
-    
-     #if( $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER' )
+
+
+     #if( $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER' || $smsCommand.parserType == 'PROGRAM_STAGE_DATAENTRY_PARSER')
     	<tbody id="codes">
 	      <tr>
 	        <th colspan='2'>$i18n.getString( "program_stage_data_elements")</th>
@@ -345,12 +365,12 @@
     		 <tr class="programStageDataElement">
                <td>
 				   <label for="attCode$index">$attribute.dataElement.name</label>
-				   <input type="hidden" id="attId$index" name="attId$index" value="$attribute.dataElement.id"/>
+				   <input type="hidden" id="pattId$index" name="pattId$index" value="$attribute.dataElement.id"/>
 				   
-				   <input type="hidden" id="attreq$index" name="attreq$index" value="$attribute.compulsory"/>
+				   <input type="hidden" id="pattreq$index" name="pattreq$index" value="$attribute.compulsory"/>
 				   
 			   </td>
-               <td><input type="text" name="attCode$index" id="attCode$index" class="{validate:{required:true}}" value='$!codes["$attribute.dataElement.id"]'></td>   
+                 <td><input type="text" name="pattCode$index" id="pattCode$index" class="#if( $attribute.compulsory ) {validate:{required:true}}#end" value='$!codes["$attribute.dataElement.id"]'></td>
             </tr>      
 	    #end
     #end

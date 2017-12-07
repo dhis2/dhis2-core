@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -36,7 +37,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,7 +80,7 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-          .stream()
+          .parallelStream()
           .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
           .collect( Collectors.toList() );
      }
@@ -104,11 +104,11 @@ public class SimplisticHttpGetGateWay
         {
             HttpEntity<?> request = new HttpEntity<>( getRequestHeaderParameters( genericHttpConfiguration.getParameters() ) );
 
-            HttpStatus httpStatus = send( uri.build().encode( "ISO-8859-1" ).toUriString(), request, String.class );
+            HttpStatus httpStatus = send( uri.build().encode().toUriString(), request, String.class );
 
             return wrapHttpStatus( httpStatus );
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
             log.error( "Message failed: " + e.getMessage() );
 
@@ -129,8 +129,7 @@ public class SimplisticHttpGetGateWay
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
         uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
         uriBuilder.queryParam( config.getMessageParameter(), text );
-        uriBuilder.queryParam( config.getRecipientParameter(),
-            !recipients.isEmpty() ? recipients.iterator().next() : "" );
+        uriBuilder.queryParam( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
         return uriBuilder;
     }

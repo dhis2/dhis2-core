@@ -17,16 +17,14 @@ The software is open source and released under the [BSD license](https://opensou
 
 For general info please visit the [project web page](https://www.dhis2.org/).
 
+For software development guides please visit the [project wiki](http://dhis2.github.io/).
+
 ## Build process
 
 This repository contains the source code for the server-side component of DHIS 2, which is developed in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/). 
 
 To build it you must first install the root POM file, navigate to the dhis-web directory and then build the web POM file.
 
-<pre>
-cd dhis-2
-mvn install
-cd dhis-web
-mvn install
-</pre>
+Check [contributing](https://github.com/dhis2/dhis2-core/blob/master/CONTRIBUTING.md) for the procedure to make it run locally.
+
 [![Build Status](https://travis-ci.org/dhis2/dhis2-core.svg?branch=master)](https://travis-ci.org/dhis2/dhis2-core)

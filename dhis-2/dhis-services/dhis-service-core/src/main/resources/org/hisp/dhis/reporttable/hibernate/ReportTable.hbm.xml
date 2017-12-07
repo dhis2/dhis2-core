@@ -18,6 +18,8 @@
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
     <property name="description" type="text" />
+    
+    <property name="measureCriteria" />
 
     <property name="regression" />
 

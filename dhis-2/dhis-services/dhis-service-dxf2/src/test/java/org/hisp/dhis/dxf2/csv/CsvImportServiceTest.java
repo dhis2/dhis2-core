@@ -31,6 +31,10 @@ package org.hisp.dhis.dxf2.csv;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dxf2.metadata.Metadata;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -46,29 +50,76 @@ public class CsvImportServiceTest
 {
     @Autowired
     private CsvImportService csvImportService;
-    
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
+
     private InputStream inputBasicObjects;
 
+    private InputStream orgUnitGroupMembership;
+
+    private OrganisationUnit organisationUnit_A;
+
+    private OrganisationUnit organisationUnit_B;
+
+    private OrganisationUnit organisationUnit_C;
+
+    private OrganisationUnit organisationUnit_D;
+
+    private OrganisationUnitGroup organisationUnitGroup_A;
+
+    private OrganisationUnitGroup organisationUnitGroup_B;
+
     @Override
-    protected void setUpTest() 
+    protected void setUpTest()
         throws Exception
     {
         inputBasicObjects = new ClassPathResource( "csv/basic_objects.csv" ).getInputStream();
+        orgUnitGroupMembership = new ClassPathResource( "csv/org_unit_group_membership.csv" ).getInputStream();
+
+        organisationUnitGroup_A = createOrganisationUnitGroup( 'A' );
+        organisationUnitGroup_B = createOrganisationUnitGroup( 'B' );
+
+        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup_A );
+        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup_B );
+
+        organisationUnit_A = createOrganisationUnit( 'A' );
+        organisationUnit_B = createOrganisationUnit( 'B' );
+        organisationUnit_C = createOrganisationUnit( 'C' );
+        organisationUnit_D = createOrganisationUnit( 'D' );
+
+        organisationUnitService.addOrganisationUnit( organisationUnit_A );
+        organisationUnitService.addOrganisationUnit( organisationUnit_B );
+        organisationUnitService.addOrganisationUnit( organisationUnit_C );
+        organisationUnitService.addOrganisationUnit( organisationUnit_D );
     }
-    
+
     @Test
     public void testCategoryOptionImport()
         throws IOException
     {
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, DataElementCategoryOption.class );
-        
+        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, CsvImportClass.CATEGORY_OPTION );
+
         assertEquals( 3, metadata.getCategoryOptions().size() );
-        
+
         for ( DataElementCategoryOption categoryOption : metadata.getCategoryOptions() )
         {
             assertNotNull( categoryOption.getUid() );
             assertNotNull( categoryOption.getName() );
             assertNotNull( categoryOption.getShortName() );
         }
+    }
+
+    @Test
+    public void testOrganisationUnitGroupMembershipImport()
+        throws IOException
+    {
+        Metadata metadata = csvImportService
+            .fromCsv( orgUnitGroupMembership, CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP );
+
+        assertEquals( 2, metadata.getOrganisationUnitGroups().size() );
     }
 }

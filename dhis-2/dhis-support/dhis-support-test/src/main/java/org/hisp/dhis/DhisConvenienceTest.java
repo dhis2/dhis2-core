@@ -37,6 +37,8 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
+import org.hisp.dhis.color.Color;
+import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -104,7 +106,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -1056,6 +1058,20 @@ public abstract class DhisConvenienceTest
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
     {
+        return createValidationRule( uniqueCharacter, operator, leftSide, rightSide, periodType, false );
+    }
+
+    /**
+     * @param uniqueCharacter    A unique character to identify the object.
+     * @param operator           The operator.
+     * @param leftSide           The left side expression.
+     * @param rightSide          The right side expression.
+     * @param periodType         The period-type.
+     * @param skipFormValidation Skip when validating forms.
+     */
+    public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
+        Expression rightSide, PeriodType periodType, boolean skipFormValidation )
+    {
         Assert.notNull( leftSide, "Left side expression must be specified" );
         Assert.notNull( rightSide, "Rigth side expression must be specified" );
 
@@ -1068,6 +1084,7 @@ public abstract class DhisConvenienceTest
         validationRule.setLeftSide( leftSide );
         validationRule.setRightSide( rightSide );
         validationRule.setPeriodType( periodType );
+        validationRule.setSkipFormValidation( skipFormValidation );
 
         return validationRule;
     }
@@ -1176,6 +1193,22 @@ public abstract class DhisConvenienceTest
         legendSet.setName( "LegendSet" + uniqueCharacter );
 
         return legendSet;
+    }
+    
+    public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
+    {
+        ColorSet colorSet = new ColorSet();
+        colorSet.setAutoFields();
+        colorSet.setName( "ColorSet" + uniqueCharacter );
+        
+        for ( String colorCode : hexColorCodes )
+        {
+            Color color = new Color( colorCode );
+            color.setAutoFields();
+            colorSet.getColors().add( color );
+        }
+        
+        return colorSet;
     }
 
     public static Chart createChart( char uniqueCharacter )
@@ -1465,14 +1498,14 @@ public abstract class DhisConvenienceTest
         return section;
     }
 
-    public static TrackedEntity createTrackedEntity( char uniqueChar )
+    public static TrackedEntityType createTrackedEntityType( char uniqueChar )
     {
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setAutoFields();
-        trackedEntity.setName( "TrackedEntity" + uniqueChar );
-        trackedEntity.setDescription( "TrackedEntity" + uniqueChar + " description" );
+        TrackedEntityType trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setAutoFields();
+        trackedEntityType.setName( "TrackedEntityType" + uniqueChar );
+        trackedEntityType.setDescription( "TrackedEntityType" + uniqueChar + " description" );
 
-        return trackedEntity;
+        return trackedEntityType;
     }
 
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit )
@@ -1678,7 +1711,7 @@ public abstract class DhisConvenienceTest
     {
         ValidationNotificationTemplate template = new ValidationNotificationTemplate();
         template.setAutoFields();
-        
+
         template.setName( name );
         template.setSubjectTemplate( "Subject" );
         template.setMessageTemplate( "Message" );
@@ -1691,24 +1724,24 @@ public abstract class DhisConvenienceTest
     {
         OptionSet optionSet = new OptionSet();
         optionSet.setAutoFields();
-        
+
         optionSet.setName( "OptionSet" + uniqueCharacter );
         optionSet.setCode( "OptionSetCode" + uniqueCharacter );
-        
+
         return optionSet;
     }
-    
+
     protected static Option createOption( char uniqueCharacter )
     {
         Option option = new Option();
         option.setAutoFields();
-        
+
         option.setName( "Option" + uniqueCharacter );
         option.setCode( "OptionCode" + uniqueCharacter );
-        
+
         return option;
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -2027,6 +2060,23 @@ public abstract class DhisConvenienceTest
         SecurityContextHolder.getContext().setAuthentication( authentication );
 
         return user;
+    }
+
+    protected void injectSecurityContext( User user )
+    {
+        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
+            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+        SecurityContextHolder.getContext().setAuthentication( authentication );
+    }
+
+    protected void clearSecurityContext()
+    {
+        SecurityContextHolder.clearContext();
     }
 
     protected static String getStackTrace( Throwable t )

@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -35,11 +36,12 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -76,10 +78,11 @@ public class MetadataImportController
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setObjects( renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON ) );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
             startAsync( params );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.METADATA_IMPORT );
+            response.setStatus( HttpServletResponse.SC_ACCEPTED );
         }
         else
         {
@@ -95,10 +98,11 @@ public class MetadataImportController
         Metadata metadata = renderService.fromXml( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), Metadata.class );
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
 
-        if ( params.hasTaskId() )
+        if ( params.hasJobId() )
         {
             startAsync( params );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.METADATA_IMPORT );
+            response.setStatus( HttpServletResponse.SC_ACCEPTED );
         }
         else
         {

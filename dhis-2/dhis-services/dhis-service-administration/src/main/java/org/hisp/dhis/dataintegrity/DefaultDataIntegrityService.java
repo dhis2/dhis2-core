@@ -54,6 +54,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.transaction.annotation.Transactional;
@@ -159,6 +161,12 @@ public class DefaultDataIntegrityService
         this.periodService = periodService;
     }
 
+    private ProgramIndicatorService programIndicatorService;
+
+    public void setProgramIndicatorService( ProgramIndicatorService programIndicatorService )
+    {
+        this.programIndicatorService = programIndicatorService;
+    }
     // -------------------------------------------------------------------------
     // DataIntegrityService implementation
     // -------------------------------------------------------------------------
@@ -608,6 +616,11 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked validation rules" );
 
+        report.setInvalidProgramIndicatorExpressions( getInvalidProgramIndicatorExpressions() );
+        report.setInvalidProgramIndicatorFilters( getInvalidProgramIndicatorFilters() );
+
+        log.info( "Checked ProgramIndicators" );
+
         Collections.sort( report.getDataElementsWithoutDataSet() );
         Collections.sort( report.getDataElementsWithoutGroups() );
         Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
@@ -625,5 +638,29 @@ public class DefaultDataIntegrityService
     public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport()
     {
         return new FlattenedDataIntegrityReport( getDataIntegrityReport() );
+    }
+
+    @Override
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
+    {
+        Map<ProgramIndicator, String> invalidExpressions = new HashMap<>();
+
+        invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
+            .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
+            .collect( Collectors.toMap( pi -> pi, pi -> pi.getExpression() ) );
+
+        return invalidExpressions;
+    }
+
+    @Override
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
+    {
+        Map<ProgramIndicator, String> invalidFilters = new HashMap<>();
+
+        invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
+            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
+            .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
+
+        return invalidFilters;
     }
 }

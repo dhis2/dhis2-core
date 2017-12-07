@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.event;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -41,6 +42,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
@@ -117,29 +119,33 @@ public class EnrollmentController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date programStartDate,
         @RequestParam( required = false ) Date programEndDate,
-        @RequestParam( required = false ) String trackedEntity,
+        @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String enrollment,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging )
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging
+        )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         if ( fields.isEmpty() )
         {
-            fields.add( "enrollment,created,lastUpdated,trackedEntity,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
+            fields.add( "enrollment,created,lastUpdated,trackedEntityType,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
         }
 
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
 
         List<Enrollment> enrollments;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         if ( enrollment == null )
         {
             ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntity, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
+                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
 
             enrollments = new ArrayList<>( enrollmentService.getEnrollments(
                 programInstanceService.getProgramInstances( params ) ) );
@@ -151,7 +157,7 @@ public class EnrollmentController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( Enrollment.class, enrollments, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( Enrollment.class, new FieldFilterParams( enrollments, fields ) ) );
 
         return rootNode;
     }

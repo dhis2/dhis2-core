@@ -290,7 +290,7 @@ public class ExpressionServiceTest
             "D{" + pdeA.getDimensionItem() + "}+" + "A{" + pteaA.getDimensionItem() + "}-10+" + "I{" + piA.getDimensionItem() + "}";
         expressionJ = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
         expressionK = "1.5*AVG(" + expressionJ + ")";
-        expressionL = "AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")";
+        expressionL = expressionA + "+AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")+" + expressionB;
         expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + SEPARATOR + cocA.getUid() + "}";
         expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() + ".REPORTING_RATE}";
@@ -406,48 +406,38 @@ public class ExpressionServiceTest
         assertEquals( 2, reportingRates.size() );
         assertTrue( reportingRates.contains( reportingRate ) );
     }
-    
+
     @Test
-    public void testGetAggregatesInExpression()
+    public void testGetAggregatesAndNonAggregtesInExpression()
     {
-        Set<DataElement> dataElements = expressionService.getDataElementsInExpression( expressionK );
-        Set<String> aggregates = expressionService.getAggregatesInExpression( expressionK.toString() );
-
-        assertEquals( 2, dataElements.size() );
-        assertTrue( dataElements.contains( deA ) );
-        assertTrue( dataElements.contains( deB ) );
+        Set<String> aggregates = new HashSet<>();
+        Set<String> nonAggregates = new HashSet<>();
+        expressionService.getAggregatesAndNonAggregatesInExpression( expressionK.toString(), aggregates, nonAggregates );
 
         assertEquals( 1, aggregates.size() );
-
-        for ( String subexp : aggregates )
-        {
-            assertEquals( expressionJ, subexp );
-        }
-
         assertTrue( aggregates.contains( expressionJ ) );
 
-        dataElements = expressionService.getDataElementsInExpression( expressionK );
-        aggregates = expressionService.getAggregatesInExpression( expressionK.toString() );
+        assertEquals( 1, nonAggregates.size() );
+        assertTrue( nonAggregates.contains( "1.5*" ) );
 
-        assertEquals( 2, dataElements.size() );
-        assertTrue( dataElements.contains( deA ) );
-        assertTrue( dataElements.contains( deB ) );
+        aggregates = new HashSet<>();
+        nonAggregates = new HashSet<>();
+        expressionService.getAggregatesAndNonAggregatesInExpression( expressionL.toString(), aggregates, nonAggregates );
 
         assertEquals( 1, aggregates.size() );
-
-        for ( String subExpression : aggregates )
-        {
-            assertEquals( expressionJ, subExpression );
-        }
-
         assertTrue( aggregates.contains( expressionJ ) );
+
+        assertEquals( 3, nonAggregates.size() );
+        assertTrue( nonAggregates.contains( expressionA + "+" ) );
+        assertTrue( nonAggregates.contains( "+1.5*" ) );
+        assertTrue( nonAggregates.contains( "+" + expressionB ) );
     }
 
     @Test
     public void testCalculateExpressionWithCustomFunctions()
     {
         assertEquals( 5.0, calculateExpression( "COUNT([1,2,3,4,5])" ) );
-        assertEquals( 15.0, calculateExpression( "VSUM([1,2,3,4,5])" ) );
+        assertEquals( 15.0, calculateExpression( "SUM([1,2,3,4,5])" ) );
         assertEquals( 1.0, calculateExpression( "MIN([1,2,3,4,5])" ) );
         assertEquals( 5.0, calculateExpression( "MAX([1,2,3,4,5])" ) );
         assertEquals( 3.0, calculateExpression( "AVG([1,2,3,4,5])" ) );

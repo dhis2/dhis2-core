@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -46,10 +46,11 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -132,6 +133,9 @@ public class DefaultAnalyticsService
 
     @Autowired
     private QueryPlanner queryPlanner;
+    
+    @Autowired
+    private QueryValidator queryValidator;
 
     @Autowired
     private ExpressionService expressionService;
@@ -164,7 +168,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withDimensionConstraints( params );
 
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
 
         return getAggregatedDataValueGridInternal( params );
     }
@@ -187,7 +191,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withDimensionConstraints( params );
 
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
         
         return getRawDataGrid( params );
     }
@@ -269,6 +273,8 @@ public class DefaultAnalyticsService
         addProgramDataElementAttributeIndicatorValues( params, grid );
 
         addDynamicDimensionValues( params, grid );
+
+        addValidationResultValues( params, grid );
 
         // ---------------------------------------------------------------------
         // Meta-data
@@ -471,8 +477,7 @@ public class DefaultAnalyticsService
         if ( !params.getDataElementOperands().isEmpty() && !params.isSkipData() )
         {
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
-                .retainDataDimension( DataDimensionItemType.DATA_ELEMENT_OPERAND )
-                .withIncludeNumDen( false ).build();
+                .retainDataDimension( DataDimensionItemType.DATA_ELEMENT_OPERAND ).build();
             
             for ( DataElementOperand.TotalType type : DataElementOperand.TotalType.values() )
             {
@@ -555,7 +560,7 @@ public class DefaultAnalyticsService
                 DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                     .retainDataDimensionReportingRates( metric )
                     .ignoreDataApproval() // No approval for reporting rates
-                    .withAggregationType( AggregationType.COUNT )
+                    .withAggregationType( AnalyticsAggregationType.COUNT )
                     .withTimely( ( REPORTING_RATE_ON_TIME == metric || ACTUAL_REPORTS_ON_TIME == metric ) ).build();
 
                 addReportingRates( dataSourceParams, grid, metric );
@@ -585,7 +590,7 @@ public class DefaultAnalyticsService
                 .withTimely( false )
                 .withRestrictByOrgUnitOpeningClosedDate( true )
                 .withRestrictByCategoryOptionStartEndDate( true )
-                .withAggregationType( AggregationType.SUM ).build();
+                .withAggregationType( AnalyticsAggregationType.SUM ).build();
 
             Map<String, Double> targetMap = getAggregatedCompletenessTargetMap( targetParams );
 
@@ -688,19 +693,29 @@ public class DefaultAnalyticsService
             Map<String, Double> aggregatedDataMap = getAggregatedDataValueMap( DataQueryParams.newBuilder( params )
                 .withIncludeNumDen( false ).build() );
 
-            for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
-            {
-                Double value = params.isSkipRounding() ? entry.getValue() : MathUtils.getRounded( entry.getValue() );
+            fillGridWithAggregatedDataMap(params, grid, aggregatedDataMap);
+        }
+    }
 
-                grid.addRow()
-                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
-                    .addValue( value );
+    /**
+     * Adds validation results to the given grid based on the given data query
+     * parameters.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
+     */
+    private void addValidationResultValues( DataQueryParams params, Grid grid )
+    {
+        if ( !params.getAllValidationResults().isEmpty() && !params.isSkipData() )
+        {
+            DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
+                .retainDataDimension( DataDimensionItemType.VALIDATION_RULE )
+                .withAggregationType( AnalyticsAggregationType.COUNT )
+                .withIncludeNumDen( false ).build();
 
-                if ( params.isIncludeNumDen() )
-                {
-                    grid.addNullValues( 3 );
-                }
-            }
+            Map<String, Double> aggregatedDataMap = getAggregatedValidationResultMapObjectTyped( dataSourceParams );
+
+            fillGridWithAggregatedDataMap(params, grid, aggregatedDataMap);
         }
     }
 
@@ -723,7 +738,7 @@ public class DefaultAnalyticsService
             // -----------------------------------------------------------------
 
             Map<String, String> cocNameMap = AnalyticsUtils.getCocNameMap( params );
-            
+
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
                 metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );
@@ -851,7 +866,7 @@ public class DefaultAnalyticsService
         ListUtils.removeEmptys( columns );
         ListUtils.removeEmptys( rows );
 
-        queryPlanner.validateTableLayout( params, columns, rows );
+        queryValidator.validateTableLayout( params, columns, rows );
 
         ReportTable reportTable = new ReportTable();
 
@@ -896,6 +911,30 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Fill grid with aggregated data map with key and value
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid
+     * @param aggregatedDataMap the aggregated data map
+     */
+    private void fillGridWithAggregatedDataMap( DataQueryParams params, Grid grid, Map<String, Double> aggregatedDataMap)
+    {
+        for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
+        {
+            Double value = params.isSkipRounding() ? entry.getValue() : MathUtils.getRounded( entry.getValue() );
+
+            grid.addRow()
+                .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                .addValue( value );
+
+            if ( params.isIncludeNumDen() )
+            {
+                grid.addNullValues( 3 );
+            }
+        }
+    }
 
     /**
      * Generates a mapping of permutations keys (organisation unit id or null)
@@ -995,6 +1034,17 @@ public class DefaultAnalyticsService
     }
 
     /**
+     * Generates a mapping between the count of a validation result.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a mapping between validation results and counts of them
+     */
+    private Map<String, Double> getAggregatedValidationResultMapObjectTyped( DataQueryParams params )
+    {
+        return AnalyticsUtils.getDoubleMap( getAggregatedValueMap( params, AnalyticsTableType.VALIDATION_RESULT.getTableName(), Lists.newArrayList() ) );
+    }
+
+    /**
      * Generates a mapping between a dimension key and the aggregated value. The
      * dimension key is a concatenation of the identifiers of the dimension items
      * separated by "-".
@@ -1007,7 +1057,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Object> getAggregatedValueMap( DataQueryParams params, String tableName, List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
     {
-        queryPlanner.validateMaintenanceMode();
+        queryValidator.validateMaintenanceMode();
 
         int optimalQueries = MathUtils.getWithin( getProcessNo(), 1, MAX_QUERIES );
 
@@ -1095,9 +1145,9 @@ public class DefaultAnalyticsService
             QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
                 .withTableName( AnalyticsTableType.DATA_VALUE.getTableName() ).build();
             
-            List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+            params = queryPlanner.withTableNameAndPartitions( params, plannerParams );
             
-            queries.forEach( query -> rawAnalyticsManager.getRawDataValues( query, grid ) );
+            rawAnalyticsManager.getRawDataValues( params, grid );
         }
     }
 

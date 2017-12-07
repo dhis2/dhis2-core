@@ -28,18 +28,13 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.datasource.DataSourceManager;
@@ -51,7 +46,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -60,7 +54,13 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +69,7 @@ public class DefaultSystemService
     implements SystemService
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
-    
+
     @Autowired
     private LocationManager locationManager;
 
@@ -78,7 +78,7 @@ public class DefaultSystemService
 
     @Autowired
     private ConfigurationService configurationService;
-    
+
     @Autowired
     private DhisConfigurationProvider dhisConfig;
 
@@ -100,7 +100,7 @@ public class DefaultSystemService
     public void initFixedInfo( ContextRefreshedEvent event )
     {
         systemInfo = getFixedSystemInfo();
-        
+
         List<String> info = ImmutableList.<String>builder()
             .add( "Version: " + systemInfo.getVersion() )
             .add( "revision: " + systemInfo.getRevision() )
@@ -109,7 +109,7 @@ public class DefaultSystemService
             .add( "database type: " + systemInfo.getDatabaseInfo().getType() )
             .add( "Java version: " + systemInfo.getJavaVersion() )
             .build();
-        
+
         log.info( StringUtils.join( info, ", " ) );
     }
 
@@ -121,12 +121,12 @@ public class DefaultSystemService
     public SystemInfo getSystemInfo()
     {
         SystemInfo info = systemInfo.instance();
-        
+
         if ( info == null )
         {
             return null;
         }
-        
+
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
@@ -221,6 +221,36 @@ public class DefaultSystemService
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
 
         // ---------------------------------------------------------------------
+        // Metadata Audit
+        // ---------------------------------------------------------------------
+
+        info.setMetadataAudit( new MetadataAudit(
+            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" ),
+            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
+        ) );
+
+        // ---------------------------------------------------------------------
+        // RabbitMQ
+        // ---------------------------------------------------------------------
+
+        RabbitMQ rabbitMQ = new RabbitMQ(
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
+        );
+
+        rabbitMQ.setExchange( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ) );
+        rabbitMQ.setAddresses( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_ADDRESSES ) );
+        rabbitMQ.setVirtualHost( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ) );
+        rabbitMQ.setConnectionTimeout( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_CONNECTION_TIMEOUT ) ) );
+
+        if ( rabbitMQ.isValid() )
+        {
+            info.setRabbitMQ( rabbitMQ );
+        }
+
+        // ---------------------------------------------------------------------
         // System env variables and properties
         // ---------------------------------------------------------------------
 
@@ -253,13 +283,11 @@ public class DefaultSystemService
         Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
         Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
         Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
-        String metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
         String systemMetadataVersion = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
         Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
 
         info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
         info.setSystemMetadataVersion( systemMetadataVersion );
-        info.setIsMetadataSyncEnabled( !StringUtils.isEmpty( metadataSyncCron ) );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 
@@ -274,6 +302,6 @@ public class DefaultSystemService
             return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
         }
 
-        return ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 ) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
+        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
     }
 }

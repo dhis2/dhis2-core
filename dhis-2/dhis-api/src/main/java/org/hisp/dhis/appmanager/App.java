@@ -59,6 +59,10 @@ public class App
 
     private String defaultLocale;
 
+    private AppStorageSource appStorageSource;
+
+    private String folderName;
+
     /**
      * Optional.
      */
@@ -71,8 +75,6 @@ public class App
     private String locales;
 
     private AppActivities activities;
-
-    private String folderName;
 
     private String launchUrl;
 
@@ -91,19 +93,19 @@ public class App
     {
         this.baseUrl = contextPath + "/api/apps";
 
-        if ( contextPath != null && folderName != null && launchPath != null )
+        if ( contextPath != null && name != null && launchPath != null )
         {
-            launchUrl = baseUrl + "/" + folderName + "/" + launchPath;
+            launchUrl = baseUrl + ("/" + getUrlFriendlyName() + "/" + launchPath).replaceAll( "//", "/" );
         }
     }
 
     /**
-     * Alias for folder name.
+     * Unique identifier for the app. Is based on app-name
      */
     @JsonProperty
     public String getKey()
     {
-        return folderName;
+        return getUrlFriendlyName();
     }
 
     // -------------------------------------------------------------------------
@@ -230,7 +232,6 @@ public class App
         this.activities = activities;
     }
 
-    @JsonProperty
     public String getFolderName()
     {
         return folderName;
@@ -261,6 +262,17 @@ public class App
     public void setBaseUrl( String baseUrl )
     {
         this.baseUrl = baseUrl;
+    }
+
+    @JsonProperty
+    public AppStorageSource getAppStorageSource()
+    {
+        return appStorageSource;
+    }
+
+    public void setAppStorageSource( AppStorageSource appStorageSource )
+    {
+        this.appStorageSource = appStorageSource;
     }
 
     // -------------------------------------------------------------------------
@@ -312,5 +324,14 @@ public class App
             "\"appType:\"" + appType + "\", " +
             "\"launchPath:\"" + launchPath + "\" " +
             "}";
+    }
+
+    @JsonProperty( "folderName")
+    public String getUrlFriendlyName()
+    {
+        String result = name.replaceAll("[^A-Za-z0-9 -]", "");
+        result = result.replaceAll(" ", "-");
+
+        return result;
     }
 }

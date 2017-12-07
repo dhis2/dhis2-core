@@ -55,6 +55,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
@@ -169,6 +172,8 @@ public class UserSettingController
             throw new WebMessageException( WebMessageUtils.notFound( "User setting not found for key: " + key ) );
         }
 
+        setNoCache( response );
+        
         return String.valueOf( value );
     }
 
@@ -187,6 +192,8 @@ public class UserSettingController
             us = currentUserService.getCurrentUser();
         }
 
+        setNoCache( response );
+        
         return userSettingService.getUserSettingsWithFallbackByUserAsMap( us, USER_SETTING_NAMES, useFallback );
     }
 

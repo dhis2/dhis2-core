@@ -31,9 +31,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -84,5 +87,23 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
             organisationUnit.setParent( parent );
             session.update( organisationUnit );
         }
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) ) return new ArrayList<>();
+
+        OrganisationUnit organisationUnit = ( OrganisationUnit ) object;
+
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( organisationUnit.getClosedDate() != null && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
+        {
+            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013 , organisationUnit.getClosedDate(), organisationUnit
+                .getOpeningDate()) );
+        }
+
+        return errors;
     }
 }

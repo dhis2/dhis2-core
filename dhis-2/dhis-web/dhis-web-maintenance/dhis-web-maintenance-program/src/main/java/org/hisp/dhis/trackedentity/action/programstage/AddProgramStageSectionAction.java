@@ -36,6 +36,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,6 +72,9 @@ public class AddProgramStageSectionAction
     @Autowired
     private ProgramIndicatorService programIndicatorService;
 
+    @Autowired
+    private ProgramStageSectionService programStageSectionService;
+
     // -------------------------------------------------------------------------
     // Input/Output
     // -------------------------------------------------------------------------
@@ -92,6 +96,13 @@ public class AddProgramStageSectionAction
     public void setName( String name )
     {
         this.name = name;
+    }
+    
+    private String description;
+
+    public void setDescription( String description )
+    {
+        this.description = description;
     }
 
     private List<Integer> dataElementIds;
@@ -131,9 +142,8 @@ public class AddProgramStageSectionAction
         
         ProgramStageSection programStageSection = new ProgramStageSection( StringUtils.trimToNull( name ), 
             dataElements, programStage.getProgramStageSections().size() );
+        programStageSection.setDescription( StringUtils.trimToNull( description ) );
         programStageSection.setAutoFields();
-
-
 
         // ---------------------------------------------------------------------
         // Program indicators
@@ -149,6 +159,7 @@ public class AddProgramStageSectionAction
 
         programStageSection.setProgramIndicators( programIndicators );
         programStageSection.setProgramStage( programStage );
+        programStageSectionService.saveProgramStageSection( programStageSection );
 
         // ---------------------------------------------------------------------
         // Update program stage

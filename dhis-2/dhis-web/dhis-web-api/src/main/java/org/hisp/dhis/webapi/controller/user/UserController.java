@@ -34,7 +34,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -43,6 +42,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
@@ -163,6 +164,7 @@ public class UserController
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
 
         return (List<User>) queryService.query( query );
@@ -434,7 +436,8 @@ public class UserController
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser ) )
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
+            || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
@@ -476,7 +479,8 @@ public class UserController
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser ) )
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
+            || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
@@ -496,6 +500,43 @@ public class UserController
         }
 
         renderService.toJson( response.getOutputStream(), importReport );
+    }
+
+    // -------------------------------------------------------------------------
+    // PATCH
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected void prePatchEntity( User entity ) throws Exception
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
+            || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // DELETE
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected void preDeleteEntity( User entity ) throws Exception
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
+            || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+
+        if ( userService.isLastSuperUser( entity.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Can not remove the last super user." ) );
+        }
     }
 
     // -------------------------------------------------------------------------

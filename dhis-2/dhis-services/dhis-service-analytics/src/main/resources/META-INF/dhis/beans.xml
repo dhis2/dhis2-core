@@ -15,6 +15,8 @@
   <bean id="org.hisp.dhis.analytics.EventAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager" />
   
   <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEnrollmentAnalyticsTableManager" />
+
+  <bean id="org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcValidationResultTableManager" />
   
   <!-- Table services -->
   
@@ -38,9 +40,14 @@
     <property name="tableManager" ref="org.hisp.dhis.analytics.EventAnalyticsTableManager" />
   </bean>
   
+  <bean id="org.hisp.dhis.analytics.ValidationResultTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" />
+  </bean>
+
   <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
     <property name="tableManager" ref="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" />
   </bean>
+
   
   <!-- Table generator -->
   
@@ -61,6 +68,8 @@
   <bean id="org.hisp.dhis.analytics.AnalyticsService" class="org.hisp.dhis.analytics.data.DefaultAnalyticsService" />
   
   <bean id="org.hisp.dhis.analytics.QueryPlanner" class="org.hisp.dhis.analytics.data.DefaultQueryPlanner" />
+  
+  <bean id="org.hisp.dhis.analytics.QueryValidator" class="org.hisp.dhis.analytics.data.DefaultQueryValidator" />
 
   <bean id="org.hisp.dhis.analytics.AnalyticsSecurityManager" class="org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager" />
 
@@ -75,21 +84,12 @@
   <bean id="org.hisp.dhis.analytics.event.EventAnalyticsService" class="org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService" />
 
   <bean id="org.hisp.dhis.analytics.event.EventQueryPlanner" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryPlanner" />
-
-  <!-- Scheduled tasks -->
   
-  <bean id="analyticsAllTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype" />
+  <bean id="org.hisp.dhis.analytics.event.EventQueryValidator" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryValidator" />
+
+  <!-- Scheduled jobs -->
   
-  <bean id="analyticsLast2YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype">
-    <property name="lastYears" value="2" />
-  </bean>
+  <bean id="resourceTableJob" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableJob" scope="prototype" />
 
-  <bean id="analyticsLast3YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype">
-    <property name="lastYears" value="3" />
-  </bean>
-
-  <bean id="resourceTableTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableTask" scope="prototype" />
-
-  <bean id="resourceTable15MinTask" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableTask" scope="prototype" />
-
+  <bean id="analyticsTableJob" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" />
 </beans>

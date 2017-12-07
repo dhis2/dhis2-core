@@ -317,6 +317,7 @@ public class Event
 
     public void setCreated( String created )
     {
+        this.created = created;
     }
 
     @JsonProperty
@@ -328,6 +329,7 @@ public class Event
 
     public void setLastUpdated( String lastUpdated )
     {
+        this.lastUpdated = lastUpdated;
     }
 
     @JsonProperty( required = true )

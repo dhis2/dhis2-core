@@ -37,7 +37,7 @@ import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.comparator.PeriodComparator;
+import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 
 /**
  * @author Lars Helge Overland
@@ -114,7 +114,7 @@ public class GetPeriodsAction
             period.setName( format.formatPeriod( period ) );
         }
 
-        Collections.sort( periods, new PeriodComparator() );
+        Collections.sort( periods, new DescendingPeriodComparator() );
 
         if ( usePaging )
         {

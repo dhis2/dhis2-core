@@ -28,8 +28,6 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -54,12 +52,12 @@ public interface AnalyticsTableManager
     AnalyticsTableType getAnalyticsTableType();
     
     /**
-     * Returns a list of generated {@link AnalyticsTable} for yearly partitions.
+     * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
      * 
      * @param earliest the start date for the first year to generate table partitions.
-     * @return list of analytics tables.
+     * @return the analytics table with partitions.
      */
-    List<AnalyticsTable> getTables( Date earliest );
+    List<AnalyticsTable> getAnalyticsTables( Date earliest );
     
     /**
      * Returns a list of existing analytics database table names.
@@ -83,9 +81,10 @@ public interface AnalyticsTableManager
     /**
      * Attempts to drop and then create analytics table.
      * 
-     * @param table the table name.
+     * @param table the analytics table.
+     * @param skipMasterTable whether to skip creating the master analytics table.
      */
-    void createTable( AnalyticsTable table );
+    void createTable( AnalyticsTable table, boolean skipMasterTable );
     
     /**
      * Creates single indexes on the given columns of the analytics table with
@@ -102,24 +101,29 @@ public interface AnalyticsTableManager
      * 
      * @param table the analytics table.
      */
-    void swapTable( AnalyticsTable table );
+    void swapTable( AnalyticsTable table, boolean skipMasterTable );
     
     /**
      * Copies and denormalizes rows from data value table into analytics table.
      * The data range is based on the start date of the data value row.
      * 
-     * @param tables the analytics tables.
+     * @param tablePartitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
-    Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
+    Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
     
     /**
-     * Performs analyze operations on analytics tables.
-     * 
-     * @param tables the analytics tables.
+     * Invokes analytics table SQL hooks for the table type.
      */
-    void analyzeTables( List<AnalyticsTable> tables );
-
+    void invokeAnalyticsTableSqlHooks();
+    
+    /**
+     * Drops the given {@link AnalyticsTable}.
+     * 
+     * @param table the analytics table.
+     */
+    void dropTempTable( AnalyticsTable table );
+    
     /**
      * Drops the given table.
      * 
@@ -128,7 +132,14 @@ public interface AnalyticsTableManager
     void dropTable( String tableName );
     
     /**
-     * Performs an analyze operation on the given table.
+     * Drops the given table and all potential partitions.
+     * 
+     * @param tableName the table name.
+     */
+    void dropTableCascade( String tableName );
+    
+    /**
+     * Performs an analyze operation on the given table name.
      * 
      * @param tableName the table name.
      */
@@ -139,19 +150,19 @@ public interface AnalyticsTableManager
      * organisation unit level column values to null for the levels above the
      * given aggregation level.
      * 
-     * @param tables the analytics tables.
-     * @param dataElements the data element uids to apply aggregation levels for.
+     * @param tablePartitions the analytics table partitions.
+     * @param dataElements the data element identifiers to apply aggregation levels for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */
-    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel );
+    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel );
     
     /**
      * Performs vacuum or optimization of the given table. The type of operation
      * performed is dependent on the underlying DBMS.
      * 
-     * @param tables the analytics tables.
+     * @param partitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
-    Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
+    Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
 }

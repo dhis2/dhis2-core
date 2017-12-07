@@ -45,8 +45,8 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -62,19 +62,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -117,7 +116,7 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit )
+    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit, HttpServletResponse response )
         throws IOException, InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
@@ -130,6 +129,8 @@ public class SystemController
         {
             collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
+
+        setNoCache( response );
 
         return rootNode;
     }
@@ -159,7 +160,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit )
+    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit, HttpServletResponse response )
         throws IOException, InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
@@ -173,6 +174,8 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
         }
 
+        setNoCache( response );
+
         return rootNode;
     }
 
@@ -184,26 +187,28 @@ public class SystemController
 
         if ( category != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
+            JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
 
-            notifications = notifier.getNotifications( taskId, lastId );
+            notifications = notifier.getNotifications( jobId, lastId );
         }
+
+        setNoCache( response );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
     @RequestMapping( value = "/taskSummaries/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskSummaryJson( HttpServletResponse response, @PathVariable( "category" ) String category ) throws IOException
+    public void getTaskSummaryJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
     {
         if ( category != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
+            JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
-            
-            Object summary = notifier.getTaskSummary( taskId );
+            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
+
+            Object summary = notifier.getTaskSummary( jobId );
 
             if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
             {
@@ -218,11 +223,13 @@ public class SystemController
             }
         }
 
+        setNoCache( response );
+
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
     }
 
     @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request )
+    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 
@@ -233,6 +240,8 @@ public class SystemController
         {
             info.clearSensitiveInfo();
         }
+
+        setNoCache( response );
 
         return info;
     }
@@ -252,7 +261,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";

@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,14 +48,20 @@ public class UserAccess
 {
     private int id;
 
+    private String access;
+
     private User user;
 
     private transient String uid;
 
-    private transient String access;
-
     public UserAccess()
     {
+    }
+
+    public UserAccess( User user, String access )
+    {
+        this.user = user;
+        this.access = access;
     }
 
     public int getId()
@@ -124,11 +131,35 @@ public class UserAccess
     }
 
     @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        UserAccess that = (UserAccess) o;
+
+        return Objects.equals( access, that.access ) && Objects.equals( getUid(), that.getUid() );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( access, getUid() );
+    }
+
+    @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "id", id )
             .add( "access", access )
+            .add( "uid", getUid() )
             .toString();
     }
 }

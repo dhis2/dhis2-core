@@ -36,6 +36,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
@@ -94,6 +96,7 @@ public class DimensionController
         List<DimensionalObject> dimensionalObjects;
         Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( dimensionService.getAllDimensions() );
         dimensionalObjects = (List<DimensionalObject>) queryService.query( query );
 
@@ -128,7 +131,8 @@ public class DimensionController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.filter( getEntityClass(), items, fields ) );
+        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( items, fields ) ) );
         collectionNode.setName( "items" );
 
         for ( Node node : collectionNode.getChildren() )
@@ -151,7 +155,7 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( getEntityClass(), dimensionConstraints, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensionConstraints, fields ) ) );
 
         return rootNode;
     }
@@ -193,7 +197,7 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( getEntityClass(), metadata.getDimensions(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( metadata.getDimensions(), fields ) ) );
 
         return rootNode;
     }

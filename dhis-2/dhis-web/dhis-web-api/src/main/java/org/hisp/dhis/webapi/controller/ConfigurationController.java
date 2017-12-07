@@ -28,10 +28,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.configuration.SettingType;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -44,10 +49,10 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,13 +61,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * @author Lars Helge Overland
@@ -90,9 +101,37 @@ public class ConfigurationController
     @Autowired
     private SystemSettingManager systemSettingManager;
 
+    @Autowired
+    private UserSettingService userSettingService;
+
+    private final ImmutableMap<SettingType, Supplier<Map<String, Serializable>>>
+        TYPE_RESOLVER = new ImmutableMap.Builder<SettingType, Supplier<Map<String,Serializable>>>()
+        .put( SettingType.CONFIGURATION, () -> config.getConfigurationsAsMap() )
+        .put( SettingType.USER_SETTING, () -> userSettingService.getUserSettingsAsMap() )
+        .put( SettingType.SYSTEM_SETTING, () -> systemSettingManager.getSystemSettingsAsMap() )
+        .build();
+
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
+    @RequestMapping( value = "/settings", method = RequestMethod.GET, produces = { "application/json", "application/xml" } )
+    public @ResponseBody Map<String, Map<String, Serializable>> getAllSettings( HttpServletRequest request, HttpServletResponse response )
+    {
+        response.setContentType( request.getContentType() );
+
+        return readConfigurationsBasedOnType( Sets.newHashSet( SettingType.values() ) );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
+    @RequestMapping( value = "/settings/filter", method = RequestMethod.GET )
+    public @ResponseBody Map<String, Map<String, Serializable>> getAllSettingsBasedOnType( @RequestParam Set<SettingType> type, HttpServletRequest request, HttpServletResponse response )
+    {
+        response.setContentType( request.getContentType() );
+
+        return readConfigurationsBasedOnType( type );
+    }
 
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody Configuration getConfiguration( Model model, HttpServletRequest request )
@@ -289,6 +328,7 @@ public class ConfigurationController
     public void setSelfRegistrationRole( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         UserAuthorityGroup userGroup = identifiableObjectManager.get( UserAuthorityGroup.class, uid );
 
         if ( userGroup == null )
@@ -390,5 +430,20 @@ public class ConfigurationController
     public @ResponseBody boolean getSystemReadOnlyMode( Model model, HttpServletRequest request )
     {
         return config.isReadOnlyMode();
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Map<String, Map<String, Serializable>> readConfigurationsBasedOnType( Set<SettingType> types )
+    {
+        Map<String, Map<String, Serializable>> configurations = new HashMap<>();
+
+        types.stream()
+            .filter( t -> TYPE_RESOLVER.containsKey( t ) )
+            .forEach( t -> configurations.put( t.getKey() , TYPE_RESOLVER.get( t ).get() ) );
+
+        return configurations;
     }
 }

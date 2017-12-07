@@ -28,14 +28,7 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
 
 import javax.annotation.Resource;
 
@@ -47,7 +40,6 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
@@ -56,17 +48,15 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public class TrackedEntityRegistrationSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
-    private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -75,10 +65,7 @@ public class TrackedEntityRegistrationSMSListener
     private SMSCommandService smsCommandService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -113,41 +100,33 @@ public class TrackedEntityRegistrationSMSListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
 
-        Map<String, String> parsedMessage = this.parse( message, smsCommand );
+        Map<String, String> parsedMessage = parseMessageInput( sms, smsCommand );
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( senderPhoneNumber,
-            userService.getUsersByPhoneNumber( senderPhoneNumber ) );
+        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
-            }
+            sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), senderPhoneNumber, WARNING );
+
+            throw new SMSParserException( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ) );
         }
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setOrganisationUnit( orgUnit );
-        trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( "Person" ) );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityTypeService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntityType().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
-        for ( SMSCode code : smsCommand.getCodes() )
-        {
-            if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
+        smsCommand.getCodes().stream()
+            .filter( code -> parsedMessage.containsKey( code.getCode() ) )
+            .forEach( code ->
             {
-                TrackedEntityAttributeValue trackedEntityAttributeValue = this
-                    .createTrackedEntityAttributeValue( parsedMessage, code, smsCommand, trackedEntityInstance );
+                TrackedEntityAttributeValue trackedEntityAttributeValue = this.createTrackedEntityAttributeValue( parsedMessage, code, trackedEntityInstance) ;
                 patientAttributeValues.add( trackedEntityAttributeValue );
-            }
-        }
+            });
 
         int trackedEntityInstanceId = 0;
         if ( patientAttributeValues.size() > 0 )
@@ -155,22 +134,40 @@ public class TrackedEntityRegistrationSMSListener
             trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance,
                 null, null, patientAttributeValues );
         }
+        else
+        {
+            sendFeedback( "No TrackedEntityAttribute found", senderPhoneNumber, WARNING );
+        }
 
         programInstanceService.enrollTrackedEntityInstance(
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
             new Date(), date, orgUnit );
-        
-        smsSender.sendMessage( null, "Entity Registered Successfully ", senderPhoneNumber );
+
+        sendFeedback( "Tracked Entity Registered Successfully", senderPhoneNumber, INFO );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
         incomingSmsService.update( sms );
     }
 
-    private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
-        SMSCode code, SMSCommand smsCommand, TrackedEntityInstance trackedEntityInstance )
+    @Override
+    protected String getDefaultPattern()
     {
-        String value = parsedMessage.get( code.getCode().toUpperCase() );
+        // Not supported for TeiListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for TeiListener
+        return StringUtils.EMPTY;
+    }
+
+    private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
+        SMSCode code, TrackedEntityInstance trackedEntityInstance )
+    {
+        String value = parsedMessage.get( code.getCode() );
         TrackedEntityAttribute trackedEntityAttribute = code.getTrackedEntityAttribute();
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
@@ -178,33 +175,5 @@ public class TrackedEntityRegistrationSMSListener
         trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
         trackedEntityAttributeValue.setValue( value );
         return trackedEntityAttributeValue;
-    }
-
-    private Map<String, String> parse( String message, SMSCommand smsCommand )
-    {
-        HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( defaultPattern );
-
-        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
-        {
-            String x = "(\\w+)\\s*\\" + smsCommand.getSeparator().trim() + "\\s*([\\w ]+)\\s*(\\"
-                + smsCommand.getSeparator().trim() + "|$)*\\s*";
-            pattern = Pattern.compile( x );
-        }
-
-        Matcher matcher = pattern.matcher( message );
-
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 );
-            String value = matcher.group( 2 );
-
-            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
-            {
-                output.put( key.toUpperCase(), value );
-            }
-        }
-
-        return output;
     }
 }

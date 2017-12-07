@@ -40,6 +40,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
@@ -54,6 +55,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -78,7 +80,7 @@ import java.util.stream.Collectors;
 @JacksonXmlRootElement( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
 public class DataSet
     extends BaseDimensionalItemObject
-    implements VersionedObject, MetadataObject
+    implements VersionedObject, MetadataObject, InterpretableObject
 {
     public static final int NO_EXPIRY = 0;
 
@@ -169,6 +171,8 @@ public class DataSet
      * The approval workflow for this data set, can be null.
      */
     private DataApprovalWorkflow workflow;
+
+    private Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Form properties
@@ -739,7 +743,31 @@ public class DataSet
 
     public void setWorkflow( DataApprovalWorkflow workflow )
     {
+        if ( this.workflow != null )
+        {
+            this.workflow.getDataSets().remove( this );
+        }
+
+        if ( workflow != null )
+        {
+            workflow.getDataSets().add( this );
+        }
+
         this.workflow = workflow;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Interpretation> getInterpretations()
+    {
+        return interpretations;
+    }
+
+    public void setInterpretations( Set<Interpretation> interpretations )
+    {
+        this.interpretations = interpretations;
     }
 
     @JsonProperty

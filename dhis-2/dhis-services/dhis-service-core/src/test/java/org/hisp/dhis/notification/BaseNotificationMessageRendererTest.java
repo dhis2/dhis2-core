@@ -30,19 +30,16 @@ package org.hisp.dhis.notification;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -176,7 +173,7 @@ public class BaseNotificationMessageRendererTest
     public void testSubjectLengthIsLimited()
     {
         Entity e = entity();
-        String templateString = RandomStringUtils.randomAlphanumeric( 101 );
+        String templateString = CodeGenerator.generateCode( 101 );
         NotificationTemplate template = template( templateString );
 
         NotificationMessage message = renderer.render( e, template );
@@ -195,7 +192,7 @@ public class BaseNotificationMessageRendererTest
             BaseNotificationMessageRenderer.SMS_CHAR_LIMIT + 100
         );
 
-        String templateString = RandomStringUtils.randomAlphanumeric( tooLong );
+        String templateString = CodeGenerator.generateCode( tooLong );
         NotificationTemplate template = template( templateString );
 
         NotificationMessage message = renderer.render( e, template );
@@ -214,7 +211,7 @@ public class BaseNotificationMessageRendererTest
             BaseNotificationMessageRenderer.EMAIL_CHAR_LIMIT + 100
         );
 
-        String templateString = RandomStringUtils.randomAlphanumeric( tooLong );
+        String templateString = CodeGenerator.generateCode( tooLong );
         NotificationTemplate template = Mockito.spy( template( templateString ) );
         Mockito.when( template.getDeliveryChannels() ).thenReturn( Sets.newHashSet( DeliveryChannel.EMAIL ) );
 
@@ -276,7 +273,7 @@ public class BaseNotificationMessageRendererTest
         }
 
         @Override
-        protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, Entity entity )
+        protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, Entity entity )
         {
             return ATTRIBUTE_VALUES;
         }
@@ -294,6 +291,12 @@ public class BaseNotificationMessageRendererTest
         protected Set<ExpressionType> getSupportedExpressionTypes()
         {
             return Sets.newHashSet( BaseNotificationMessageRenderer.ExpressionType.values() );
+        }
+
+        @Override
+        protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, Entity entity )
+        {
+            return Collections.emptyMap();
         }
     }
 

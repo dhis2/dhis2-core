@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -45,13 +46,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.event.ImportEventTask;
-import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
+import org.hisp.dhis.dxf2.events.event.*;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -65,6 +60,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -79,8 +75,8 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.scheduling.Scheduler;
@@ -95,11 +91,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -107,12 +99,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -219,7 +206,8 @@ public class EventController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -249,9 +237,12 @@ public class EventController
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement, includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            dataElement, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
 
@@ -283,7 +274,8 @@ public class EventController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -313,9 +305,12 @@ public class EventController
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null, includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null,
+            includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -346,7 +341,7 @@ public class EventController
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
-        rootNode.addChild( fieldFilterService.filter( Event.class, events.getEvents(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( Event.class, new FieldFilterParams( events.getEvents(), fields ) ) );
 
         return rootNode;
     }
@@ -374,7 +369,8 @@ public class EventController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -393,9 +389,12 @@ public class EventController
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null, includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null,
+            includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -430,7 +429,8 @@ public class EventController
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam Map<String, String> parameters, Model model )
@@ -438,9 +438,12 @@ public class EventController
     {
         DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null, null, null, eventStatus, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null, includeDeleted );
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null,
+            includeDeleted );
 
         return eventRowService.getEventRows( params );
     }
@@ -450,7 +453,7 @@ public class EventController
     public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( uid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
 
         if ( event == null )
         {
@@ -467,7 +470,7 @@ public class EventController
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
         HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( eventUid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
 
         if ( event == null )
         {
@@ -624,10 +627,11 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
             List<Event> events = eventService.getEventsXml( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
+
+            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }
@@ -670,10 +674,10 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
             List<Event> events = eventService.getEventsJson( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
+            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }
@@ -713,9 +717,9 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
-            scheduler.executeTask( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
+            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }

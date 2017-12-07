@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import org.hisp.dhis.query.operators.BetweenOperator;
+import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.GreaterEqualOperator;
 import org.hisp.dhis.query.operators.GreaterThanOperator;
@@ -123,6 +124,11 @@ public final class Restrictions
     public static Restriction isNotNull( String path )
     {
         return new Restriction( path, new NotNullOperator() );
+    }
+
+    public static Restriction isEmpty( String path )
+    {
+        return new Restriction( path, new EmptyOperator() );
     }
 
     private Restrictions()

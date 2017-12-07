@@ -119,7 +119,7 @@ function optionSetChanged() {
 }
 
 function uniqueOnChange() {
-  if( $('#unique').attr('checked') == "checked" ) {
+  if( $('#unique').prop('checked') == "checked" ) {
     jQuery('[name=uniqueTR]').show();
     jQuery('#valueType [value=BOOLEAN]').hide();
     jQuery('#valueType [value=TRUE_ONLY]').hide();
@@ -150,8 +150,8 @@ function uniqueOnChange() {
 }
 
 function generatedOnChange() {
-  if( $('#generated').attr('checked') == "checked" &&
-          $('#unique').attr('checked') == "checked" ) {
+  if( $('#generated').prop('checked') == "checked" &&
+          $('#unique').prop('checked') == "checked" ) {
     jQuery('[name=generatedPatternTR]').show();
   }
   else {
@@ -159,12 +159,5 @@ function generatedOnChange() {
   }
 }
 
-function applyConfidentialEffect() {
-	if( $('#confidential').attr('checked') == "checked" ) {
-		$('#searchScope').find('option[value="NOT_SEARCHABLE"]').prop('selected', true);
-		$('#searchScope').prop('disabled', true);
-	}
-	else {
-		$('#searchScope').prop('disabled', false);
-	}
+function applyConfidentialEffect() {	
 }

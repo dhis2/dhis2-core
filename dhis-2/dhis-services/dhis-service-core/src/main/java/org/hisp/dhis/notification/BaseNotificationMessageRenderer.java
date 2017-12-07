@@ -76,22 +76,25 @@ public abstract class BaseNotificationMessageRenderer<T>
     protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
     protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
 
-    protected static final Pattern VAR_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" );
-    protected static final Pattern ATTR_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" );
+    protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" ); // For Variable
+    protected static final Pattern COMBINED_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" ); // For TrackedEntityAttribute and DataElement
 
     private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches the variable in group 1
-    private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
+    private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
+    private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1 for DataElement
 
     private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS =
         new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
             .put( ExpressionType.VARIABLE, (entity, keys) -> resolveVariableValues( keys, entity ) )
-            .put( ExpressionType.ATTRIBUTE, (entity, keys) -> resolveAttributeValues( keys, entity ) )
+            .put( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, (entity, keys) -> resolveTrackedEntityAttributeValues( keys, entity ) )
+            .put( ExpressionType.DATA_ELEMENT, ( entity, keys ) -> resolveDataElementValues( keys, entity ) )
             .build();
 
     protected enum ExpressionType
     {
-        VARIABLE ( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
-        ATTRIBUTE ( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
+        VARIABLE ( VARIABLE_PATTERN, VARIABLE_CONTENT_PATTERN ),
+        TRACKED_ENTITY_ATTRIBUTE ( TRACKED_ENTITY_ATTRIBUTE_PATTERN, COMBINED_CONTENT_PATTERN ),
+        DATA_ELEMENT ( DATA_ELEMENT_PATTERN, COMBINED_CONTENT_PATTERN );
 
         private final Pattern expressionPattern;
         private final Pattern contentPattern;
@@ -155,7 +158,16 @@ public abstract class BaseNotificationMessageRenderer<T>
      * @param entity the entity to resolve the values from/for.
      * @return a Map of values, keyed by the corresponding attribute UID.
      */
-    protected abstract Map<String, String> resolveAttributeValues( Set<String> attributeKeys, T entity );
+    protected abstract Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, T entity );
+
+    /**
+     * Resolves values for the given data element UIDs.
+     *
+     * @param elementKeys the Set of attribute UIDs.
+     * @param entity the entity to resolve the values from/for.
+     * @return a Map of values, keyed by the corresponding data element UID.
+     */
+    protected abstract Map<String, String> resolveDataElementValues( Set<String> elementKeys, T entity );
 
     /**
      * Converts a string to the TemplateVariable supported by the implementor.

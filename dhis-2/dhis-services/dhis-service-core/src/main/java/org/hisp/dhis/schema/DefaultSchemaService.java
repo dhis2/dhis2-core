@@ -64,6 +64,7 @@ public class DefaultSchemaService
 {
     private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
+        add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
         add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).
@@ -87,6 +88,7 @@ public class DefaultSchemaService
         add( new DataEntryFormSchemaDescriptor() ).
         add( new DataSetSchemaDescriptor() ).
         add( new DataSetElementSchemaDescriptor() ).
+        add( new DataSetNotificationTemplateSchemaDescriptor() ).
         add( new DocumentSchemaDescriptor() ).
         add( new EventChartSchemaDescriptor() ).
         add( new EventReportSchemaDescriptor() ).
@@ -130,7 +132,7 @@ public class DefaultSchemaService
         add( new SqlViewSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
-        add( new TrackedEntitySchemaDescriptor() ).
+        add( new TrackedEntityTypeSchemaDescriptor() ).
         add( new TrackedEntityDataElementDimensionSchemaDescriptor() ).
         add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() ).
         add( new UserCredentialsSchemaDescriptor() ).
@@ -153,6 +155,12 @@ public class DefaultSchemaService
         add( new UserGroupAccessSchemaDescriptor() ).
         add( new MinMaxDataElementSchemaDescriptor() ).
         add( new ValidationResultSchemaDescriptor() ).
+        add( new JobConfigurationSchemaDescriptor() ).
+        add( new SmsCommandSchemaDescriptor() ).
+        add( new CategoryDimensionSchemaDescriptor() ).
+        add( new CategoryOptionGroupSetDimensionSchemaDescriptor() ).
+        add( new DataElementGroupSetDimensionSchemaDescriptor() ).
+        add( new OrganisationUnitGroupSetDimensionSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -181,7 +189,7 @@ public class DefaultSchemaService
         {
             Schema schema = descriptor.getSchema();
 
-            MetamodelImplementor metamodelImplementor = ( MetamodelImplementor ) sessionFactory.getMetamodel();
+            MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
 
             try
             {
@@ -257,7 +265,7 @@ public class DefaultSchemaService
         String name = getName( klass );
 
         schema = new Schema( klass, name, name + "s" );
-        schema.setDisplayName( beautify( schema ));
+        schema.setDisplayName( beautify( schema ) );
         schema.setPropertyMap( new HashMap<>( propertyIntrospectorService.getPropertiesMap( schema.getKlass() ) ) );
 
         updateSelf( schema );

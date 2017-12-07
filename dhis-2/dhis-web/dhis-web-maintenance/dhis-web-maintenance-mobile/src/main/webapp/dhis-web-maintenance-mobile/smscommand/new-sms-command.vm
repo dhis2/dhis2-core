@@ -6,6 +6,33 @@
 		validation( "newSMSCommandForm" );
 		checkValueIsExist( "name", "validateSMSCommand.action");
 	});
+
+    function getProgramStages() {
+
+        var program = $( '#selectedParentProgramId' ).val();
+        $( '#selectedProgramStageId' ).attr('disabled', true)
+                .html($( '<option/>' ).html('$i18n.getString( "no_program_stages_available" )'));
+
+        $.ajax({
+            url: '../api/programs/' + program + '.json?fields=id,displayName,programStages[id,displayName]'
+        } ).done(function(data) {
+            var options = [];
+
+            $.each(data.programStages, function() {
+                var option = $( '<option/>' ).html( this.displayName ).val(this.id);
+                options.push( option );
+            });
+
+            if( options.length > 0 ) {
+                var option = $( '<option/>' ).html( "[ " + "$i18n.getString("all_program_stages")" +" ]" ).val( '' );
+                options.unshift( option );
+                $( '#selectedProgramStageId' ).removeAttr( 'disabled' ).html( options );
+            }
+        });
+
+    }
+
+
 </script>
 <h3>Add command</h3>
 <form id="newSMSCommandForm" name="newSMSCommandForm" action="createSMSCommandForm.action" method="post">
@@ -71,7 +98,30 @@
 				</td>
 			</tr>
 		</tbody>
-		
+
+
+        <tbody id="stageRegistrationParser">
+        <tr>
+            <td><label for="selectedParentProgramId">$i18n.getString( "program" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+            <td>
+                <select id="selectedParentProgramId" name="selectedParentProgramId" class="{validate:{required:true}}" disabled onclick="getProgramStages()">
+					#foreach( $program in $programList )
+                        <option value="$program.uid">$program.name</option>
+					#end
+                </select>
+            </td>
+        </tr>
+
+        <tr>
+            <td><label for="selectedProgramStageId">$i18n.getString( "program_stage" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+            <td>
+                <select id="selectedProgramStageId" name="selectedProgramStageId" class="{validate:{required:true}}" >
+                </select>
+            </td>
+        </tr>
+
+        </tbody>
+
 		
 	<tbody id="eventRegistrationParser">
 			<tr>

@@ -159,7 +159,7 @@ public class UserCredentials
 
     public UserCredentials()
     {
-        this.lastLogin = new Date();
+        this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // needed to support userCredentials uniqueness
     }

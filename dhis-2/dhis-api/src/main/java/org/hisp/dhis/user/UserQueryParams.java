@@ -70,6 +70,8 @@ public class UserQueryParams
 
     private boolean includeOrgUnitChildren;
 
+    private Boolean isDisabled;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -284,5 +286,15 @@ public class UserQueryParams
     public void setDaysPassedSincePasswordChange( Date daysPassedSincePasswordChange )
     {
         this.daysPassedSincePasswordChange = daysPassedSincePasswordChange;
+    }
+
+    public Boolean getDisabled()
+    {
+        return isDisabled;
+    }
+
+    public void setDisabled( Boolean disabled )
+    {
+        this.isDisabled = disabled;
     }
 }

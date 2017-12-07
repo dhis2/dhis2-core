@@ -126,19 +126,6 @@ public class OptionGroupSet
     // Logic
     // -------------------------------------------------------------------------
 
-    public OptionGroup getGroup( OptionGroup option )
-    {
-        for ( OptionGroup group : members )
-        {
-            if ( group.getMembers().contains( option ) )
-            {
-                return group;
-            }
-        }
-
-        return null;
-    }
-
     public void addOptionGroup( OptionGroup optionGroup )
     {
         members.add( optionGroup );

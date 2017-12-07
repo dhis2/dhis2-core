@@ -39,6 +39,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -63,6 +64,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.jclouds.rest.AuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,6 +79,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -145,6 +150,7 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
+        @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) boolean followUp, HttpServletResponse response )
@@ -168,6 +174,8 @@ public class DataValueController
         Period period = getAndValidatePeriod( pe );
 
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
+
+        DataSet dataSet = getAndValidateOptionalDataSet( ds, dataElement );
 
         validateInvalidFuturePeriod( period, dataElement );
 
@@ -220,13 +228,13 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
+        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
         // Period validation
         // ---------------------------------------------------------------------
 
-        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period, dataSet );
 
         // ---------------------------------------------------------------------
         // Assemble and save data value
@@ -286,13 +294,22 @@ public class DataValueController
                 }
                 else
                 {
-                    value = "false";
+                    value = DataValue.FALSE;
                 }
             }
 
             if ( dataElement.isFileType() )
             {
-                fileResourceService.deleteFileResource( dataValue.getValue() );
+                try
+                {
+                    fileResourceService.deleteFileResource( dataValue.getValue() );
+                }
+                catch ( AuthorizationException exception )
+                {
+                    // If we fail to delete the fileResource now, mark it as unassigned for removal later
+                    fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
+                }
+                dataValue.setValue( StringUtils.EMPTY );
             }
 
             // -----------------------------------------------------------------
@@ -340,7 +357,8 @@ public class DataValueController
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response )
+        @RequestParam String ou,
+        @RequestParam( required = false ) String ds, HttpServletResponse response )
         throws WebMessageException
     {
         // ---------------------------------------------------------------------
@@ -357,17 +375,19 @@ public class DataValueController
 
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
 
+        DataSet dataSet = getAndValidateOptionalDataSet( ds, dataElement );
+
         // ---------------------------------------------------------------------
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
+        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
         // Period validation
         // ---------------------------------------------------------------------
 
-        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period, dataSet );
 
         // ---------------------------------------------------------------------
         // Delete data value
@@ -426,6 +446,7 @@ public class DataValueController
         List<String> value = new ArrayList<>();
         value.add( dataValue.getValue() );
 
+        setNoCache( response );
         return value;
     }
 
@@ -530,6 +551,7 @@ public class DataValueController
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        setNoCache( response );
 
         // ---------------------------------------------------------------------
         // Request signing is not available, stream content back to client
@@ -641,6 +663,29 @@ public class DataValueController
         return organisationUnit;
     }
 
+    private DataSet getAndValidateOptionalDataSet( String ds, DataElement dataElement )
+        throws WebMessageException
+    {
+        if ( ds == null )
+        {
+            return null;
+        }
+
+        DataSet dataSet = dataSetService.getDataSet( ds );
+
+        if ( dataSet == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+        }
+
+        if ( !dataSet.getDataElements().contains( dataElement ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set " + ds + " does not contain data element: " + dataElement.getUid() ) );
+        }
+
+        return dataSet;
+    }
+
     private void validateInvalidFuturePeriod( Period period, DataElement dataElement )
         throws WebMessageException
     {
@@ -695,20 +740,22 @@ public class DataValueController
         }
     }
 
-    private void validateDataSetNotLocked( DataElement dataElement, Period period,
+    private void validateDataSetNotLocked( DataElement dataElement, Period period, DataSet dataSet,
         OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
         throws WebMessageException
     {
-        if ( dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null ) )
+        if ( dataSet == null ? dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null )
+            : dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked" ) );
         }
     }
 
-    private void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, Period period )
+    private void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, Period period, DataSet dataSet )
         throws WebMessageException
     {
-        if ( !dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) )
+        if ( !( dataSet == null ? dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() )
+            : dataSet.isDataInputPeriodAndDateAllowed( period, new Date() ) ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Period reported is not open in data set" ) );
         }

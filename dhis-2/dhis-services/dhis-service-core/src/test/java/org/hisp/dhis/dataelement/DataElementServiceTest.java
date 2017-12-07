@@ -372,7 +372,7 @@ public class DataElementServiceTest
     @Test
     public void testDataElementUrl()
     {
-        DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.DEFAULT );
+        DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.SUM );
 
         int id = dataElementService.addDataElement( de );
 

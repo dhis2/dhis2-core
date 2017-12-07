@@ -28,8 +28,7 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -39,7 +38,10 @@ import java.util.Set;
  */
 public class Partitions
 {
-    private List<String> partitions = new ArrayList<>();
+    /**
+     * Yearly partitions containing four-digit years.
+     */
+    private Set<Integer> partitions = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -49,14 +51,14 @@ public class Partitions
     {
     }
     
-    public Partitions( List<String> partitions )
+    public Partitions( Set<Integer> partitions )
     {
         this.partitions = partitions;
     }
     
     public Partitions( Partitions partitions )
     {
-        this.partitions = partitions != null ? new ArrayList<>( partitions.getPartitions() ) : new ArrayList<String>();
+        this.partitions = partitions != null ? new HashSet<>( partitions.getPartitions() ) : new HashSet<Integer>();
     }
 
     // -------------------------------------------------------------------------
@@ -66,7 +68,7 @@ public class Partitions
     /**
      * Adds a partition.
      */
-    public Partitions add( String partition )
+    public Partitions add( Integer partition )
     {
         partitions.add( partition );
         return this;
@@ -88,30 +90,6 @@ public class Partitions
         return partitions != null && !partitions.isEmpty();
     }
     
-    /**
-     * Returns the first partition of this instance.
-     */
-    public String getSinglePartition()
-    {
-        return partitions.get( 0 );
-    }
-    
-    /**
-     * Prunes this instance so that it retains only the partitions included in 
-     * the given set. No operation takes place if the given set is null or empty.
-     * 
-     * @param validPartitions set of valid partitions to retain.
-     */
-    public Partitions prunePartitions( Set<String> validPartitions )
-    {
-        if ( validPartitions != null && !validPartitions.isEmpty() )
-        {
-            partitions.retainAll( validPartitions );
-        }
-        
-        return this;
-    }
-
     // -------------------------------------------------------------------------
     // toString, hashCode, equals
     // -------------------------------------------------------------------------
@@ -155,12 +133,12 @@ public class Partitions
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public List<String> getPartitions()
+    public Set<Integer> getPartitions()
     {
         return partitions;
     }
 
-    public void setPartitions( List<String> partitions )
+    public void setPartitions( Set<Integer> partitions )
     {
         this.partitions = partitions;
     }

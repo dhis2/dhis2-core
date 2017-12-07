@@ -44,6 +44,8 @@
 
     <property name="hideLegend" />
 
+    <property name="noSpaceBetweenColumns" />
+
     <property name="regressionType" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.RegressionType</param>
@@ -184,6 +186,18 @@
     <property name="rangeAxisSteps" />
 
     <property name="rangeAxisDecimals" />
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_chart_legendsetid" />
+    
+    <property name="legendDisplayStrategy" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <many-to-one name="colorSet" class="org.hisp.dhis.color.ColorSet" column="colorsetid" foreign-key="fk_chart_colorsetid" />
 
     <property name="sortOrder" />
 

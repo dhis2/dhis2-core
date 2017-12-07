@@ -50,6 +50,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+
 /**
  * Expressions are mathematical formulas and can contain references to various
  * elements.
@@ -86,6 +88,7 @@ public interface ExpressionService
     String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String DAYS_EXPRESSION = "\\[days\\]";
     String WILDCARD_EXPRESSION = "(?<key>#)\\{(?<id>(\\w|\\.)+)(\\.\\*){1,2}\\}";
+    String ISNULL_EXPRESSION = "ISNULL\\s*\\(";
 
     /**
      * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
@@ -122,6 +125,25 @@ public interface ExpressionService
      */
     Pattern DAYS_PATTERN = Pattern.compile( DAYS_EXPRESSION );
 
+    /**
+     * Wild card pattern. Contains the named groups {@code id}.
+     */
+    Pattern WILDCARD_PATTERN = Pattern.compile( WILDCARD_EXPRESSION );
+
+    /**
+     * IsNull function pattern.
+     */
+    Pattern ISNULL_PATTERN = Pattern.compile( ISNULL_EXPRESSION, CASE_INSENSITIVE );
+
+    /**
+     * Define TRUE and FALSE values for the parser.
+     */
+    String TRUE_VALUE = "1";
+    String FALSE_VALUE = "0";
+
+    /**
+     * Variable types with their associated classes.
+     */
     static final Map<String, Class<? extends DimensionalItemObject>> VARIABLE_TYPES = ImmutableMap.of(
         "#", DataElementOperand.class,
         "D", ProgramDataElementDimensionItem.class,
@@ -130,11 +152,6 @@ public interface ExpressionService
         "R", ReportingRate.class
     );
 
-    /**
-     * Wild card pattern. Contains the named groups {@code id}.
-     */
-    Pattern WILDCARD_PATTERN = Pattern.compile( WILDCARD_EXPRESSION );
-    
     String GROUP_KEY = "key";
     String GROUP_ID = "id";
     String GROUP_ID1 = "id1";
@@ -291,15 +308,17 @@ public interface ExpressionService
     Set<DataElementOperand> getOperandsInExpression( String expression );
 
     /**
-     * Returns all aggregates included in an expression string. An aggregate has
+     * Parse an expression into a set of aggregate expression strings and a set
+     * of non-aggregate expression strings. An aggregate expression string has
      * the AGGREGATE_FUNCTION(expr) where expr is a well-formed sub-expression.
-     * This returns the empty set if the given expression is null or there are
-     * no aggregates.
+     * The method adds to two sets which must be allocated by the caller.
      *
      * @param expression The expression string.
-     * @return A Set of Expression strings.
+     * @param aggregates A set of aggregate expressin strings to fill.
+     * @param nonAggregates A set of non-aggregate expression strings to fill.
      */
-    Set<String> getAggregatesInExpression( String expression );
+    void getAggregatesAndNonAggregatesInExpression( String expression,
+        Set<String> aggregates, Set<String> nonAggregates );
 
     /**
      * Returns identifiers of all data elements which are present in the expression.

@@ -29,12 +29,10 @@ package org.hisp.dhis.sms.config;
  */
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.sms.outbound.SubmissionType;
@@ -50,11 +48,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 public class BulkSmsGateway
     extends SmsGateway
 {
@@ -85,12 +83,9 @@ public class BulkSmsGateway
     @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
-        BulkSmsGatewayConfig bulkSmsConfig = (BulkSmsGatewayConfig) config;
-
-        UriComponentsBuilder uriBuilder = buildBaseUrl( bulkSmsConfig, SubmissionType.BATCH );
-        uriBuilder.queryParam( "batch_data", buildCsvUrl( smsBatch.getMessages() ) );
-
-        return Lists.newArrayList( send( uriBuilder ) );
+        return smsBatch.getMessages().parallelStream()
+            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -127,7 +122,7 @@ public class BulkSmsGateway
 
         try
         {
-            URI url = uriBuilder.build().encode( "ISO-8859-1" ).toUri();
+            URI url = uriBuilder.build().encode().toUri();
 
             responseEntity = restTemplate.exchange( url, HttpMethod.POST, null, String.class );
         }
@@ -145,19 +140,6 @@ public class BulkSmsGateway
         }
 
         return getResponse( responseEntity );
-    }
-
-    private String buildCsvUrl( List<OutboundMessage> smsBatch )
-    {
-        String csvData = "msisdn,message\n";
-
-        for ( OutboundMessage sms : smsBatch )
-        {
-            csvData += getRecipients( sms.getRecipients() );
-            csvData += "," + sms.getText() + "\n";
-        }
-
-        return csvData;
     }
 
     private UriComponentsBuilder buildBaseUrl( BulkSmsGatewayConfig bulkSmsConfiguration, SubmissionType type )

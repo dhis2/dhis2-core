@@ -39,10 +39,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
@@ -60,7 +60,7 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
@@ -796,6 +796,7 @@ public class ObjectBundleServiceTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
         assertTrue( validate.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
@@ -807,12 +808,12 @@ public class ObjectBundleServiceTest
         List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
         List<User> users = manager.getAll( User.class );
         List<DataElementOperand> dataElementOperands = manager.getAll( DataElementOperand.class );
-        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
         List<OrganisationUnitLevel> organisationUnitLevels = manager.getAll( OrganisationUnitLevel.class );
 
         assertFalse( organisationUnits.isEmpty() );
         assertEquals( 1, organisationUnitLevels.size() );
-        assertEquals( 1, trackedEntities.size() );
+        assertEquals( 1, trackedEntityTypes.size() );
         assertFalse( dataElements.isEmpty() );
         assertFalse( users.isEmpty() );
         assertFalse( userRoles.isEmpty() );
@@ -972,6 +973,34 @@ public class ObjectBundleServiceTest
         assertNotNull( dataSet.getUser() );
         assertEquals( 1, dataSet.getCompulsoryDataElementOperands().size() );
         */
+    }
+
+    @Test
+    public void testCreateDataSetNoDSEDefaults() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_compulsory.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        List<DataSet> dataSets = manager.getAll( DataSet.class );
+        assertEquals( 1, dataSets.size() );
+
+        DataSet dataSet = dataSets.get( 0 );
+        assertEquals( dataSet.getDataSetElements().size(), 1 );
+        DataSetElement dataSetElement = dataSet.getDataSetElements().iterator().next();
+
+        assertNull( dataSetElement.getCategoryCombo() );
     }
 
     @Test
@@ -1495,29 +1524,37 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    public void testCreateDuplicateDefault() throws IOException
+    public void testMetadataWithoutDefaults() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_duplicate_default.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_no_defaults.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        objectBundleValidationService.validate( bundle );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
+    }
 
-        List<DataElementCategory> categories = manager.getAllByName( DataElementCategory.class, "default" );
-        List<DataElementCategoryOption> categoryOptions = manager.getAllByName( DataElementCategoryOption.class, "default" );
-        List<DataElementCategoryCombo> categoryCombos = manager.getAllByName( DataElementCategoryCombo.class, "default" );
-        List<DataElementCategoryOptionCombo> categoryOptionCombos = manager.getAllByName( DataElementCategoryOptionCombo.class, "default" );
+    @Test
+    public void testInvalidDefaults() throws IOException
+    {
+        defaultSetup();
 
-        assertEquals( 1, categories.size() );
-        assertEquals( 1, categoryOptions.size() );
-        assertEquals( 1, categoryCombos.size() );
-        assertEquals( 1, categoryOptionCombos.size() );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/defaults_invalid.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
     }
 
     private void defaultSetup()

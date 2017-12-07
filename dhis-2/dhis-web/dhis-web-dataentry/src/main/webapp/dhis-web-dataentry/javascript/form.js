@@ -119,6 +119,7 @@ dhis2.de.cst.colorWhite = '#fff';
 dhis2.de.cst.colorGrey = '#ccc';
 dhis2.de.cst.colorBorderActive = '#73ad72';
 dhis2.de.cst.colorBorder = '#aaa';
+dhis2.de.cst.colorLightGrey = '#dcdcdc';
 
 // Form types
 
@@ -460,7 +461,7 @@ dhis2.de.uploadLocalData = function()
         $.ajax( {
             url: '../api/dataValues',
             data: value,
-            dataType: 'json',
+            dataType: 'text',
             type: 'post',
             success: function( data, textStatus, xhr )
             {
@@ -503,9 +504,10 @@ dhis2.de.uploadLocalData = function()
 
 dhis2.de.addEventListeners = function()
 {
-    $( '.entryfield' ).each( function( i )
+    $( '.entryfield, .entrytime' ).each( function( i )
     {
         var id = $( this ).attr( 'id' );
+        var isTimeField = $( this ).hasClass('entrytime');
 
         // If entry field is a date picker, remove old target field, and change id
         if( /-dp$/.test( id ) )
@@ -548,7 +550,7 @@ dhis2.de.addEventListeners = function()
             keyPress( event, this );
         } );
 
-        if ( type === 'DATE' )
+        if ( ( type === 'DATE' || type === 'DATETIME' ) && !isTimeField )
         {
             // Fake event, needed for valueBlur / valueFocus when using date-picker
             var fakeEvent = {
@@ -557,7 +559,7 @@ dhis2.de.addEventListeners = function()
                 }
             };
 
-            dhis2.period.picker.createInstance( '#' + id, false, {
+            dhis2.period.picker.createInstance( '#' + id, false, false, {
                 onSelect: function() {
                     saveVal( dataElementId, optionComboId, id, fakeEvent.target.id );
                 },
@@ -573,16 +575,34 @@ dhis2.de.addEventListeners = function()
         }
     } );
 
-    $( '.entryselect' ).each( function( i )
+    $( '.entryselect' ).each( function()
     {
         var id = $( this ).attr( 'id' );
         var split = dhis2.de.splitFieldId( id );
 
         var dataElementId = split.dataElementId;
-        var optionComboId = split.optionComboId;       
+        var optionComboId = split.optionComboId;
+        var name = dataElementId + "-" + optionComboId + "-val";
 
-        $( this ).change( function()
+        $( this ).click( function()
         {
+            if ( $(this).hasClass( "checked" ) )
+            {
+                $( this ).removeClass( "checked" );
+                $( this ).prop('checked', false );
+            }
+            else
+            {
+                $(  '[name='+ name +']' ).each( function()
+                {
+                    $( this ).removeClass( 'checked' );
+                    $( this ).prop( 'checked', false );
+                });
+
+                $( this ).prop( 'checked', true );
+                $( this ).addClass( 'checked' );
+            }
+
             saveBoolean( dataElementId, optionComboId, id );
         } );
     } );
@@ -690,7 +710,7 @@ dhis2.de.loadForm = function()
 
 	                dhis2.de.enableSectionFilter();	               
 	                $( document ).trigger( dhis2.de.event.formLoaded, dhis2.de.currentDataSetId );
-	
+
 	                loadDataValues();
                     var table = $( '.sectionTable' );
                     table.floatThead({
@@ -699,7 +719,10 @@ dhis2.de.loadForm = function()
                         zIndex: 9
                     });
 
+
+
                   dhis2.de.insertOptionSets();
+                  dhis2.de.enableDEDescriptionEvent();
 
 	            } );
 	        } 
@@ -721,6 +744,7 @@ dhis2.de.loadForm = function()
 
        	                loadDataValues();
        	                dhis2.de.insertOptionSets();
+                        dhis2.de.enableDEDescriptionEvent();
        	            } );
                 });
             }
@@ -752,6 +776,7 @@ dhis2.de.loadForm = function()
             }
 
             dhis2.de.insertOptionSets();
+
             loadDataValues();
         } );
     }
@@ -1633,6 +1658,7 @@ function getAndInsertDataValues()
     // Clear existing values and colors, grey disabled fields
 
     $( '.entryfield' ).val( '' );
+    $( '.entrytime' ).val( '' );
     $( '.entryselect' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'checked' );
     $( '.entrytrueonly' ).removeAttr( 'onclick' );
@@ -1640,7 +1666,7 @@ function getAndInsertDataValues()
 
     $( '.entryfield' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entryselect' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
-    $( '.indicator' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
+    $( '.indicator' ).css( 'background-color', dhis2.de.cst.colorLightGrey  ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entrytrueonly' ).css( 'background-color', dhis2.de.cst.colorWhite );    
 
     clearFileEntryFields();
@@ -1677,7 +1703,7 @@ function getAndInsertDataValues()
 	    	$( '#infoDiv' ).hide();
 	    	
 	    	var json = getOfflineDataValueJson( params );
-	    	
+
 	    	insertDataValues( json );
 	    },
 	    success: function( json ) // online
@@ -1753,7 +1779,7 @@ function insertDataValues( json )
     		if ( dhis2.de.validateOrgUnitOpening( organisationUnits[dhis2.de.getCurrentOrganisationUnit()], period ) )
     		{
     			dhis2.de.lockForm();
-    	        setHeaderMessage( i18n_orgunit_is_closed );
+            setHeaderDelayMessage( i18n_orgunit_is_closed );
     	        return;
     		}
     	}
@@ -1776,25 +1802,21 @@ function insertDataValues( json )
     	if ( orgUnitClosed )
 		{
     		dhis2.de.lockForm();
-	        setHeaderMessage( i18n_orgunit_is_closed );
+	        setHeaderDelayMessage( i18n_orgunit_is_closed );
 	        return;
 		}
 
     }
     
-    //Hide i18n_orgunit_is_closed message
-    hideHeaderMessage();
-    
     $.safeEach( json.dataValues, function( i, value )
     {
         var fieldId = '#' + value.id + '-val';
         var commentId = '#' + value.id + '-comment';
-
         if ( $( fieldId ).length > 0 ) // Set values
         {
             if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
             {
-                $( fieldId ).attr( 'checked', true );
+                $( fieldId ).prop( 'checked', true );
             }
             else if ( $( fieldId ).attr( 'name' ) == 'entryoptionset' || $( fieldId ).hasClass( "entryoptionset" ) )
             {
@@ -1803,17 +1825,20 @@ function insertDataValues( json )
             else if ( $( fieldId ).attr( 'class' ) == 'entryselect' )
             {                
                 var fId = fieldId.substring(1, fieldId.length);
+
+                console.log("id "+fId);
     
                 if( value.val == 'true' )
                 {
-                    $('input[id=' + fId + ']')[1].checked = true;
+                  $('input[id=' + fId + ']')[0].click();
                 }
                 else if ( value.val == 'false')
                 {
-                    $('input[id=' + fId + ']')[2].checked = true;
+                  $('input[id=' + fId + ']')[1].click();
                 }
                 else{
-                    $('input[id=' + fId + ']')[0].checked = true;
+                    $('input[id=' + fId + ']')[0].prop('checked',false);
+                    $('input[id=' + fId + ']')[1].prop('checked',false);
                 }
             }
             else if ( $( fieldId ).attr( 'class' ) == 'entryfileresource' )
@@ -1828,7 +1853,8 @@ function insertDataValues( json )
                     'de': split.dataElementId,
                     'co': split.optionComboId,
                     'ou': split.organisationUnitId,
-                    'pe': $( '#selectedPeriodId' ).val()
+                    'pe': $( '#selectedPeriodId' ).val(),
+                    'ds': $( '#selectedDataSetId' ).val()
                 };
 
                 var cc = dhis2.de.getCurrentCategoryCombo();
@@ -1862,6 +1888,11 @@ function insertDataValues( json )
                 } ).appendTo( $filename );
 
                 $field.find( '.upload-fileinfo-size' ).text( size );
+            }
+            else if ( $( fieldId.replace('val', 'time') ).length > 0 )
+            {
+                $( fieldId ).val( value.val );
+                $( fieldId.replace('val', 'time') ).val( value.val.split('T')[1] );
             }
             else 
             {                
@@ -3248,6 +3279,26 @@ dhis2.de.loadOptionSets = function()
 
     deferred.resolve();
 };
+
+/**
+ * Enable event for showing DataElement description when click on
+ * a DataElement label
+ */
+dhis2.de.enableDEDescriptionEvent = function()
+{
+    $('.dataelement-label, .indicator-label').on({
+        "click": function () {
+            var description = $('#' + $(this).attr('id') + '-description' ).val();
+            $(this).tooltip({ items: '#' + $(this).attr('id'), content: description });
+            $(this).tooltip("open");
+        },
+        "mouseout" : function() {
+            if ( $(this).is(":ui-tooltip") ) {
+                $(this).tooltip("disable");
+            }
+        }
+    });
+}
 
 /**
  * Inserts option sets in the appropriate input fields.

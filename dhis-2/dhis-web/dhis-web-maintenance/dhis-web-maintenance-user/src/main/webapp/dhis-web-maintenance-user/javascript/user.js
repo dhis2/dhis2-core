@@ -48,7 +48,7 @@ function showUpdateUserForm( context ) {
 }
 
 function showUserProfile( context ) {
-  location.href = '../dhis-web-dashboard-integration/profile.action?id=' + context.id;
+  location.href = 'profile.action?id=' + context.id;
 }
 
 function showUserDetails( context ) {

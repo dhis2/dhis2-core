@@ -1,22 +1,6 @@
 {
   "categoryCombos": [
     {
-      "userGroupAccesses": [ ],
-      "categories": [
-        {
-          "id": "GLevLNI9wkl"
-        }
-      ],
-      "skipTotal": false,
-      "lastUpdated": "2016-03-17T01:40:08.004+0000",
-      "publicAccess": "--------",
-      "dataDimensionType": "DISAGGREGATION",
-      "created": "2016-03-17T01:40:08.002+0000",
-      "name": "default",
-      "id": "bjDvmb4bfuf",
-      "code": "default"
-    },
-    {
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
       "lastUpdated": "2016-03-17T01:54:04.956+0000",
@@ -37,22 +21,6 @@
     }
   ],
   "categoryOptionCombos": [
-    {
-      "ignoreApproval": false,
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "lastUpdated": "2016-03-17T01:40:08.003+0000",
-      "code": "default",
-      "created": "2016-03-17T01:40:08.003+0000",
-      "id": "HllvX50cXC0",
-      "categoryOptions": [
-        {
-          "id": "xYerKDKCefk"
-        }
-      ],
-      "name": "default"
-    },
     {
       "ignoreApproval": false,
       "lastUpdated": "2016-03-17T01:54:04.952+0000",
@@ -104,22 +72,6 @@
   ],
   "categories": [
     {
-      "userGroupAccesses": [ ],
-      "lastUpdated": "2016-03-17T03:15:40.488+0000",
-      "publicAccess": "--------",
-      "dataDimensionType": "DISAGGREGATION",
-      "dataDimension": true,
-      "created": "2016-03-17T01:40:07.999+0000",
-      "categoryOptions": [
-        {
-          "id": "xYerKDKCefk"
-        }
-      ],
-      "name": "default",
-      "id": "GLevLNI9wkl",
-      "code": "default"
-    },
-    {
       "created": "2016-03-17T01:53:56.097+0000",
       "categoryOptions": [
         {
@@ -142,7 +94,7 @@
       "dataDimensionType": "DISAGGREGATION"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "attributeValues": [ ],
       "code": "Person",
@@ -216,7 +168,7 @@
       "hideLegend": false,
       "organisationUnitLevels": [ ],
       "regression": false,
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "hideEmptyRows": false,
       "publicAccess": "rw------",
       "id": "gyYXi0rXAIc",
@@ -270,7 +222,7 @@
       "hideLegend": false,
       "regression": false,
       "organisationUnitLevels": [ ],
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "organisationUnitGroups": [ ],
       "itemOrganisationUnitGroups": [ ],
       "categoryOptionGroups": [ ],
@@ -429,7 +381,7 @@
       ],
       "organisationUnitLevels": [ ],
       "regression": false,
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "hideLegend": false,
       "itemOrganisationUnitGroups": [ ],
       "organisationUnitGroups": [ ],
@@ -442,7 +394,7 @@
       "hideLegend": false,
       "regression": false,
       "organisationUnitLevels": [ ],
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "itemOrganisationUnitGroups": [ ],
       "organisationUnitGroups": [ ],
       "categoryOptionGroups": [ ],
@@ -607,9 +559,6 @@
       "name": "DataElementA",
       "attributeValues": [ ],
       "aggregationType": "AVERAGE",
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
       "userGroupAccesses": [ ],
       "zeroIsSignificant": false,
       "publicAccess": "rw------",
@@ -637,9 +586,6 @@
       "valueType": "NUMBER",
       "code": "DataElementCodeB",
       "userGroupAccesses": [ ],
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
       "zeroIsSignificant": false,
       "domainType": "AGGREGATE",
       "publicAccess": "rw------",
@@ -727,9 +673,6 @@
       "version": 1,
       "skipOffline": false,
       "userGroupAccesses": [ ],
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
       "renderAsTabs": false,
       "mobile": false,
       "code": "DataSetCodeA",
@@ -852,18 +795,6 @@
     }
   ],
   "categoryOptions": [
-    {
-      "code": "default",
-      "attributeValues": [ ],
-      "name": "default",
-      "id": "xYerKDKCefk",
-      "created": "2016-03-17T01:40:07.989+0000",
-      "organisationUnits": [ ],
-      "publicAccess": "--------",
-      "lastUpdated": "2016-03-17T01:40:08.007+0000",
-      "userGroupAccesses": [ ],
-      "shortName": "default"
-    },
     {
       "organisationUnits": [ ],
       "publicAccess": "rw------",

@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -130,10 +131,34 @@ public class UserGroupAccess
     }
 
     @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        UserGroupAccess that = (UserGroupAccess) o;
+
+        return Objects.equals( access, that.access ) && Objects.equals( getUid(), that.getUid() );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( access, getUid() );
+    }
+
+    @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "uid", uid )
+            .add( "uid", getUid() )
             .add( "access", access )
             .toString();
     }

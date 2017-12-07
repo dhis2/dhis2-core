@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
@@ -78,6 +80,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -90,7 +93,7 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -233,7 +236,7 @@ public class Metadata
 
     private List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
 
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
@@ -241,6 +244,10 @@ public class Metadata
 
     private List<ColorSet> colorSets = new ArrayList<>();
 
+    private List<Predictor> predictors = new ArrayList<>();
+
+    private List<AnalyticsTableHook> analyticsTableHooks = new ArrayList<>();
+    
     public Metadata()
     {
     }
@@ -1038,16 +1045,16 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntities", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntity> getTrackedEntities()
+    @JacksonXmlElementWrapper( localName = "trackedEntityTypes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackedEntityType> getTrackedEntityTypes()
     {
-        return trackedEntities;
+        return trackedEntityTypes;
     }
 
-    public void setTrackedEntities( List<TrackedEntity> trackedEntities )
+    public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
-        this.trackedEntities = trackedEntities;
+        this.trackedEntityTypes = trackedEntityTypes;
     }
 
     @JsonProperty
@@ -1087,6 +1094,45 @@ public class Metadata
     public void setColorSets( List<ColorSet> colorSets )
     {
         this.colorSets = colorSets;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "colors", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Color> getColors()
+    {
+        return colors;
+    }
+
+    public void setColors( List<Color> colors )
+    {
+        this.colors = colors;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Predictor> getPredictors()
+    {
+        return predictors;
+    }
+
+    public void setPredictors( List<Predictor> predictors )
+    {
+        this.predictors = predictors;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "analyticsTableHooks", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0 )
+    public List<AnalyticsTableHook> getAnalyticsTableHooks()
+    {
+        return analyticsTableHooks;
+    }
+
+    public void setAnalyticsTableHooks( List<AnalyticsTableHook> analyticsTableHooks )
+    {
+        this.analyticsTableHooks = analyticsTableHooks;
     }
 
     @Override
@@ -1140,10 +1186,12 @@ public class Metadata
             ", programs=" + programs +
             ", programStages=" + programStages +
             ", relationshipTypes=" + relationshipTypes +
-            ", trackedEntities=" + trackedEntities +
+            ", trackedEntityTypes=" + trackedEntityTypes +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
             ", colors=" + colors +
             ", colorSets=" + colorSets +
+            ", predictors=" + predictors +
+            ", analyticsTableHooks=" + analyticsTableHooks +
             '}';
     }
 }

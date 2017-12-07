@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -40,6 +41,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -64,7 +66,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.controller.exception.FilterTooShortException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FormUtils;
@@ -95,6 +96,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -173,12 +176,14 @@ public class CurrentUserController
             fields.add( ":all" );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
+            new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         RootNode rootNode = new RootNode( collectionNode.getChildren().get( 0 ) );
         rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
         rootNode.setNamespace( DxfNamespaces.DXF_2_0 );
 
+        setNoCache( response );
         return rootNode;
     }
 
@@ -205,6 +210,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), dashboards );
     }
 
@@ -233,6 +239,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), inbox );
     }
 
@@ -255,6 +262,7 @@ public class CurrentUserController
             messageConversation.setAccess( aclService.getAccess( messageConversation, user ) );
         }
 
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), messageConversations );
     }
 
@@ -276,6 +284,7 @@ public class CurrentUserController
             interpretation.setAccess( aclService.getAccess( interpretation, user ) );
         }
 
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), interpretations );
     }
 
@@ -294,6 +303,7 @@ public class CurrentUserController
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), dashboard );
     }
 
@@ -303,6 +313,7 @@ public class CurrentUserController
         UserAccount userAccount = getUserAccount();
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), userAccount );
     }
 
@@ -312,6 +323,7 @@ public class CurrentUserController
         UserAccount userAccount = getUserAccount();
 
         response.setContentType( "application/javascript" );
+        setNoCache( response );
         renderService.toJsonP( response.getOutputStream(), userAccount, callback );
     }
 
@@ -400,6 +412,7 @@ public class CurrentUserController
         User currentUser = currentUserService.getCurrentUser();
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
@@ -411,6 +424,7 @@ public class CurrentUserController
         boolean hasAuth = currentUser != null && currentUser.getUserCredentials().isAuthorized( auth );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), hasAuth );
     }
 
@@ -439,6 +453,7 @@ public class CurrentUserController
         recipients.setUserGroups( new HashSet<>( userGroupService.getUserGroupsBetweenByName( filter, 0, MAX_OBJECTS ) ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), recipients );
     }
 
@@ -479,6 +494,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), userOrganisationUnits );
     }
 
@@ -593,6 +609,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), forms );
     }
 
@@ -714,6 +731,7 @@ public class CurrentUserController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), forms );
     }
 
@@ -722,6 +740,7 @@ public class CurrentUserController
     {
         List<DataApprovalLevel> approvalLevels = approvalLevelService.getUserDataApprovalLevels();
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), approvalLevels );
     }
 
@@ -730,6 +749,7 @@ public class CurrentUserController
     {
         Map<OrganisationUnit, Integer> orgUnitApprovalLevelMap = approvalLevelService.getUserReadApprovalLevels();
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoCache( response );
         renderService.toJson( response.getOutputStream(), orgUnitApprovalLevelMap );
     }
 }

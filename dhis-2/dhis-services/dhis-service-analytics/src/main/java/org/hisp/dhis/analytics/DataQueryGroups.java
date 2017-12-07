@@ -128,7 +128,7 @@ public class DataQueryGroups
     @Override
     public String toString()
     {
-        return "[Seq queries: " + sequentialQueries.size() + ", all queries: " + queries.size() + "]";        
+        return "[Seq queries: " + sequentialQueries.size() + ", all queries: " + queries.size() + ", queries: " + queries + "]";        
     }
 
     // -------------------------------------------------------------------------

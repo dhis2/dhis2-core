@@ -31,6 +31,8 @@ package org.hisp.dhis.query;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,7 +122,10 @@ public class DefaultQueryService
 
         if ( objects != null )
         {
-            return inMemoryQueryEngine.query( query.setObjects( objects ) );
+            objects = inMemoryQueryEngine.query( query.setObjects( objects ) );
+            clearDefaults( query.getSchema().getKlass(), objects, query.getDefaults() );
+
+            return objects;
         }
 
         QueryPlan queryPlan = queryPlanner.planQuery( query );
@@ -130,18 +135,31 @@ public class DefaultQueryService
 
         objects = criteriaQueryEngine.query( pQuery );
 
-        if ( npQuery.isEmpty() )
+        if ( !npQuery.isEmpty() )
         {
-            return objects;
+            if ( log.isDebugEnabled() )
+            {
+                log.debug( "Doing in-memory for " + npQuery.getCriterions().size() + " criterions and "
+                    + npQuery.getOrders().size() + " orders." );
+            }
+
+            npQuery.setObjects( objects );
+
+            objects = inMemoryQueryEngine.query( npQuery );
         }
 
-        if ( log.isDebugEnabled() )
+        clearDefaults( query.getSchema().getKlass(), objects, query.getDefaults() );
+
+        return objects;
+    }
+
+    private void clearDefaults( Class<?> klass, List<? extends IdentifiableObject> objects, Defaults defaults )
+    {
+        if ( Defaults.INCLUDE == defaults || !Preheat.isDefaultClass( klass ) )
         {
-            log.debug( "Doing in-memory for " + npQuery.getCriterions().size() + " criterions and " + npQuery.getOrders().size() + " orders." );
+            return;
         }
 
-        npQuery.setObjects( objects );
-
-        return inMemoryQueryEngine.query( npQuery );
+        objects.removeIf( object -> "default".equals( object.getName() ) );
     }
 }

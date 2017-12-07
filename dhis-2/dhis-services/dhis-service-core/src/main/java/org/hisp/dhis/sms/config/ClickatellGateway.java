@@ -70,7 +70,7 @@ public class ClickatellGateway
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
         return batch.getMessages()
-            .stream()
+            .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
     }

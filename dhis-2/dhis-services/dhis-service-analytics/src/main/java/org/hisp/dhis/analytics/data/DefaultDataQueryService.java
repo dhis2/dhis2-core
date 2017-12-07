@@ -93,7 +93,7 @@ public class DefaultDataQueryService
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
         String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
-        boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
+        boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
         boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -121,9 +121,13 @@ public class DefaultDataQueryService
         {
             params.withPreAggregationMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( preAggregationMeasureCriteria) );
         }
+        
+        if ( aggregationType != null )
+        {
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
+        }
 
         return params
-            .withAggregationType( aggregationType )
             .withStartDate( startDate )
             .withEndDate( endDate )
             .withSkipMeta( skipMeta )
@@ -136,6 +140,7 @@ public class DefaultDataQueryService
             .withHideEmptyColumns( hideEmptyColumns )
             .withShowHierarchy( showHierarchy )
             .withIncludeNumDen( includeNumDen )
+            .withIncludeMetadataDetails( includeMetadataDetails )
             .withDisplayProperty( displayProperty )
             .withOutputIdScheme( outputIdScheme )
             .withOutputFormat( OutputFormat.ANALYTICS )

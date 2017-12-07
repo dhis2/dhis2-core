@@ -1,4 +1,5 @@
 package org.hisp.dhis.validation;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -29,16 +30,15 @@ package org.hisp.dhis.validation;
 
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -74,6 +74,8 @@ public class ValidationRunContext
     private boolean sendNotifications = false;
 
     private boolean persistResults = false;
+
+    private MapMapMap<OrganisationUnit, ValidationRule, Period, List<ValidationResult>> initialValidationResults = new MapMapMap<>();
 
     public ValidationRunContext()
     {
@@ -139,6 +141,34 @@ public class ValidationRunContext
         return persistResults;
     }
 
+    public Queue<ValidationResult> getValidationResults()
+    {
+        return validationResults;
+    }
+
+    public boolean skipValidationOfTuple( OrganisationUnit organisationUnit, ValidationRule validationRule,
+        Period period, String attributeOptionCombo, int dayInPeriod )
+    {
+
+        List<ValidationResult> validationResultList = initialValidationResults
+            .getValue( organisationUnit, validationRule, period );
+
+        if ( validationResultList != null )
+        {
+            for ( ValidationResult vr : validationResultList )
+            {
+                if ( vr.getAttributeOptionCombo().getUid().equals( attributeOptionCombo ) &&
+                    vr.getDayInPeriod() == dayInPeriod )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
+    }
+
     // -------------------------------------------------------------------------
     // Builder
     // -------------------------------------------------------------------------
@@ -146,11 +176,6 @@ public class ValidationRunContext
     public static Builder newBuilder()
     {
         return new Builder();
-    }
-
-    public Queue<ValidationResult> getValidationResults()
-    {
-        return validationResults;
     }
 
     public boolean isAnalysisComplete()
@@ -258,6 +283,30 @@ public class ValidationRunContext
         public Builder withPersistResults( boolean persistResults )
         {
             this.context.persistResults = persistResults;
+            return this;
+        }
+
+        public Builder withInitialResults( Collection<ValidationResult> results )
+        {
+            this.context.validationResults.addAll( results );
+
+            results.forEach( validationResult -> {
+                List<ValidationResult> res = context.initialValidationResults
+                    .getValue( validationResult.getOrganisationUnit(), validationResult.getValidationRule(),
+                        validationResult.getPeriod() );
+                
+                if ( res == null )
+                {
+                    res = new ArrayList<ValidationResult>();
+                }
+
+                res.add( validationResult );
+
+                context.initialValidationResults
+                    .putEntry( validationResult.getOrganisationUnit(), validationResult.getValidationRule(),
+                        validationResult.getPeriod(), res );
+            } );
+
             return this;
         }
     }

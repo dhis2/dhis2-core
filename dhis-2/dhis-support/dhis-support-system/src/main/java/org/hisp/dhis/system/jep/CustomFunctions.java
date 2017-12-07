@@ -33,30 +33,40 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import org.hisp.dhis.system.jep.ArithmeticMean;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommandI;
 
 import com.google.common.collect.ImmutableMap;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+
 /**
  * @author Kenneth Haase
  */
 public class CustomFunctions
 {
-    public static final Map<String, PostfixMathCommandI> AGGREGATE_FUNCTIONS = 
+    public static final Map<String, PostfixMathCommandI> AGGREGATE_FUNCTIONS =
         ImmutableMap.<String, PostfixMathCommandI>builder().
-        put( "AVG", new ArithmeticMean() ).put( "STDDEV", new StandardDeviation() ).
-        put( "MEDIAN", new MedianValue() ).put( "MAX", new MaxValue() ).
-        put( "MIN", new MinValue() ).put( "COUNT", new Count() ).
-        put( "VSUM", new VectorSum() ).build();
-    
-    public static final Pattern AGGREGATE_PATTERN_PREFIX = Pattern.compile( "(AVG|STDDEV|MEDIAN|MAX|MIN|COUNT|VSUM)\\s*\\(" );
+            put( "AVG", new ArithmeticMean() ).put( "STDDEV", new StandardDeviation() ).
+            put( "MEDIAN", new MedianValue() ).put( "MAX", new MaxValue() ).
+            put( "MIN", new MinValue() ).put( "COUNT", new Count() ).
+            put( "SUM", new VectorSum() ).build();
+
+    public static final Pattern AGGREGATE_PATTERN_PREFIX = Pattern.compile( "(AVG|STDDEV|MEDIAN|MAX|MIN|COUNT|SUM)\\s*\\(", CASE_INSENSITIVE );
+
+    public static final Map<String, PostfixMathCommandI> SCALAR_FUNCTIONS =
+        ImmutableMap.<String, PostfixMathCommandI>builder().
+            put( "IF", new If() ).build();
+
+    public static final Pattern SCALAR_PATTERN_PREFIX = Pattern.compile( "(IF)\\s*\\(", CASE_INSENSITIVE );
+
+    public static final Map<String, PostfixMathCommandI> ALL_FUNCTIONS =
+        ImmutableMap.<String, PostfixMathCommandI>builder().putAll( AGGREGATE_FUNCTIONS ).putAll( SCALAR_FUNCTIONS ).build();
 
     public static void addFunctions( JEP parser )
     {        
-        for ( Entry<String, PostfixMathCommandI> e : AGGREGATE_FUNCTIONS.entrySet() )
+        for ( Entry<String, PostfixMathCommandI> e : ALL_FUNCTIONS.entrySet() )
         {
             String fname = e.getKey();
             PostfixMathCommandI cmd = e.getValue();

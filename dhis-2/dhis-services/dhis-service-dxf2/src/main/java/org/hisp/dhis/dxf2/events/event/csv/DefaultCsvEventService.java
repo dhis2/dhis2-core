@@ -34,13 +34,12 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.event.EventStatus;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +75,8 @@ public class DefaultCsvEventService implements CsvEventService
             templateDataValue.setEventDate( event.getEventDate() );
             templateDataValue.setDueDate( event.getDueDate() );
             templateDataValue.setStoredBy( event.getStoredBy() );
+            templateDataValue.setCompletedDate( event.getCompletedDate() );
+            templateDataValue.setCompletedBy( event.getCompletedBy() );
 
             if ( event.getCoordinate() != null )
             {
@@ -130,6 +131,8 @@ public class DefaultCsvEventService implements CsvEventService
                 event.setOrgUnit( dataValue.getOrgUnit() );
                 event.setEventDate( dataValue.getEventDate() );
                 event.setDueDate( dataValue.getDueDate() );
+                event.setCompletedDate( dataValue.getCompletedDate() );
+                event.setCompletedBy( dataValue.getCompletedBy() );
 
                 if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
                 {

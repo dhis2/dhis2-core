@@ -31,21 +31,17 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequest;
 import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequests;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrations;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.*;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
@@ -54,6 +50,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -66,8 +63,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -76,27 +73,13 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
@@ -159,7 +142,7 @@ public class CompleteDataSetRegistrationController
     // GET
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
@@ -186,7 +169,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
@@ -243,7 +226,8 @@ public class CompleteDataSetRegistrationController
             startDate, endDate, orgUnit, children );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( CompleteDataSetRegistration.class, completeDataSetRegistrations.getCompleteDataSetRegistrations(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( CompleteDataSetRegistration.class,
+            new FieldFilterParams( completeDataSetRegistrations.getCompleteDataSetRegistrations(), fields ) ) );
 
         return rootNode;
     }
@@ -252,7 +236,7 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -272,7 +256,7 @@ public class CompleteDataSetRegistrationController
         }
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -296,6 +280,7 @@ public class CompleteDataSetRegistrationController
 
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.POST, produces = "text/plain" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveCompleteDataSetRegistration(
         @RequestParam String ds,
         @RequestParam String pe,
@@ -371,7 +356,7 @@ public class CompleteDataSetRegistrationController
                 attributeOptionCombo, storedBy, completionDate );
         }
 
-        registrationService.saveCompleteDataSetRegistrations( registrations, true );
+        registrationService.saveCompleteDataSetRegistrations( registrations, false );
     }
 
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
@@ -453,7 +438,7 @@ public class CompleteDataSetRegistrationController
             addRegistrationsForOrgUnits( registrations, orgUnits, dataSet, period, attributeOptionCombo, storedBy, completionDate );
         }
 
-        registrationService.saveCompleteDataSetRegistrations( registrations, true );
+        registrationService.saveCompleteDataSetRegistrations( registrations, false );
     }
 
     // -------------------------------------------------------------------------
@@ -560,22 +545,23 @@ public class CompleteDataSetRegistrationController
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        TaskId taskId = new TaskId( TaskCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser() );
+        JobId jobId = new JobId( JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid() );
 
-        scheduler.executeTask(
+        scheduler.executeJob(
             new ImportCompleteDataSetRegistrationsTask(
-                registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format, taskId )
+                registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format,
+                jobId )
         );
 
         response.setHeader(
-            "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT );
+            "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 
     private Pair<InputStream, Path> saveTmpFile( InputStream in )
         throws IOException
     {
-        String filename = RandomStringUtils.randomAlphanumeric( 6 );
+        String filename = CodeGenerator.generateCode( 6 );
 
         File tmpFile = File.createTempFile( filename, null );
         tmpFile.deleteOnExit();

@@ -47,7 +47,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,6 +56,8 @@ import java.util.List;
 public class DefaultTrackedEntityAttributeService
     implements TrackedEntityAttributeService
 {
+    private static final int VALUE_MAX_LENGTH = 50000;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -155,21 +156,6 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutProgram()
-    {
-        List<TrackedEntityAttribute> result = new ArrayList<>( attributeStore.getAll() );
-
-        List<Program> programs = programService.getAllPrograms();
-
-        for ( Program program : programs )
-        {
-            result.removeAll( program.getProgramAttributes() );
-        }
-
-        return result;
-    }
-
-    @Override
     public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList()
     {
         return attributeStore.getDisplayInList();
@@ -246,9 +232,9 @@ public class DefaultTrackedEntityAttributeService
 
         String errorValue = StringUtils.substring( value, 0, 30 );
 
-        if ( value.length() > 255 )
+        if ( value.length() > VALUE_MAX_LENGTH )
         {
-            return "Value length is greater than 255 chars for attribute " + trackedEntityAttribute.getUid();
+            return "Value length is greater than 50000 chars for attribute " + trackedEntityAttribute.getUid();
         }
 
         if ( ValueType.NUMBER == valueType && !MathUtils.isNumeric( value ) )
