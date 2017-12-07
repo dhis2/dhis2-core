@@ -59,14 +59,6 @@ public class AnalyticsTableHook
     public AnalyticsTableHook()
     {
     }
-    
-    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType, String sql )
-    {
-        this.name = name;
-        this.phase = phase;
-        this.analyticsTableType = analyticsTableType;
-        this.sql = sql;
-    }
 
     public AnalyticsTableHook( String name, AnalyticsTablePhase phase, ResourceTableType resourceTableType, String sql )
     {
@@ -76,6 +68,14 @@ public class AnalyticsTableHook
         this.sql = sql;
     }
     
+    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType, String sql )
+    {
+        this.name = name;
+        this.phase = phase;
+        this.analyticsTableType = analyticsTableType;
+        this.sql = sql;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
