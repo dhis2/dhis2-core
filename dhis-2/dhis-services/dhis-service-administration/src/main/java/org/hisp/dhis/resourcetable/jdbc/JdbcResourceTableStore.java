@@ -58,6 +58,12 @@ public class JdbcResourceTableStore
 
     @Autowired
     private AnalyticsTableHookService analyticsTableHookService;
+
+    @Autowired
+    private DbmsManager dbmsManager;
+
+    @Autowired
+    private StatementBuilder statementBuilder;
     
     private JdbcTemplate jdbcTemplate;
 
@@ -66,20 +72,6 @@ public class JdbcResourceTableStore
         this.jdbcTemplate = jdbcTemplate;
     }
     
-    private StatementBuilder statementBuilder;
-    
-    public void setStatementBuilder( StatementBuilder statementBuilder )
-    {
-        this.statementBuilder = statementBuilder;
-    }
-
-    private DbmsManager dbmsManager;
-
-    public void setDbmsManager( DbmsManager dbmsManager )
-    {
-        this.dbmsManager = dbmsManager;
-    }
-
     // -------------------------------------------------------------------------
     // ResourceTableStore implementation
     // -------------------------------------------------------------------------
