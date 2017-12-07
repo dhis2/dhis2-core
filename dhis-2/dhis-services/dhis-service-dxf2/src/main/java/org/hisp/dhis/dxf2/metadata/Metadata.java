@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
@@ -244,6 +246,8 @@ public class Metadata
 
     private List<Predictor> predictors = new ArrayList<>();
 
+    private List<AnalyticsTableHook> analyticsTableHooks = new ArrayList<>();
+    
     public Metadata()
     {
     }
@@ -1118,6 +1122,19 @@ public class Metadata
         this.predictors = predictors;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "analyticsTableHooks", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0 )
+    public List<AnalyticsTableHook> getAnalyticsTableHooks()
+    {
+        return analyticsTableHooks;
+    }
+
+    public void setAnalyticsTableHooks( List<AnalyticsTableHook> analyticsTableHooks )
+    {
+        this.analyticsTableHooks = analyticsTableHooks;
+    }
+
     @Override
     public String toString()
     {
@@ -1173,6 +1190,8 @@ public class Metadata
             ", trackedEntityAttributes=" + trackedEntityAttributes +
             ", colors=" + colors +
             ", colorSets=" + colorSets +
+            ", predictors=" + predictors +
+            ", analyticsTableHooks=" + analyticsTableHooks +
             '}';
     }
 }
