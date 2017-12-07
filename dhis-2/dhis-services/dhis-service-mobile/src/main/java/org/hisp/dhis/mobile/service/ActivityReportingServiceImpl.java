@@ -83,13 +83,13 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -172,7 +172,7 @@ public class ActivityReportingServiceImpl
 
     private TrackedEntityAttributeService attributeService;
 
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     private I18nManager i18nManager;
 
@@ -766,9 +766,9 @@ public class ActivityReportingServiceImpl
             patientModel.setOrganisationUnitName( patient.getOrganisationUnit().getName() );
         }
 
-        if ( patient.getTrackedEntity() != null )
+        if ( patient.getTrackedEntityType() != null )
         {
-            patientModel.setTrackedEntityName( patient.getTrackedEntity().getName() );
+            patientModel.setTrackedEntityName( patient.getTrackedEntityType().getName() );
         }
         else
         {
@@ -1469,7 +1469,7 @@ public class ActivityReportingServiceImpl
             }
         }
 
-        patientWeb.setTrackedEntity( trackedEntityService.getTrackedEntityByName( patient.getTrackedEntityName() ) );
+        patientWeb.setTrackedEntityType( trackedEntityTypeService.getTrackedEntityByName( patient.getTrackedEntityName() ) );
         patientId = entityInstanceService.createTrackedEntityInstance( patientWeb, null, null, patientAttributeValues );
         TrackedEntityInstance newTrackedEntityInstance = entityInstanceService
             .getTrackedEntityInstance( this.patientId );
@@ -1525,12 +1525,12 @@ public class ActivityReportingServiceImpl
     {
         TrackedEntityInstance entityInstance = entityInstanceService.getTrackedEntityInstance( patient.getId() );
         TrackedEntityInstance tempTEI = entityInstance;
-        TrackedEntity trackedEntity = null;
+        TrackedEntityType trackedEntityType = null;
 
         Program program = programService.getProgram( Integer.parseInt( programIdText ) );
-        trackedEntity = program.getTrackedEntity();
+        trackedEntityType = program.getTrackedEntityType();
 
-        entityInstance.setTrackedEntity( trackedEntity );
+        entityInstance.setTrackedEntityType( trackedEntityType );
 
         // get attributes to be saved/updated/deleted
         Collection<TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes();
@@ -1596,7 +1596,7 @@ public class ActivityReportingServiceImpl
             valuesForDelete );
         enrollProgram( patient.getId() + "-" + programIdText, null, new Date() );
         entityInstance = entityInstanceService.getTrackedEntityInstance( patient.getId() );
-        entityInstance.setTrackedEntity( trackedEntity );
+        entityInstance.setTrackedEntityType( trackedEntityType );
 
         return getPatientModel( entityInstance );
     }
@@ -1752,7 +1752,7 @@ public class ActivityReportingServiceImpl
         String trackedEntityName = "";
         for ( List<Object> row : listOfTrackedEntityInstance )
         {
-            TrackedEntity te = trackedEntityService.getTrackedEntity( (String) row.get( teIndex ) );
+            TrackedEntityType te = trackedEntityTypeService.getTrackedEntityType( (String) row.get( teIndex ) );
             if ( !trackedEntityName.equals( te.getDisplayName() ) )
             {
                 trackedEntityName = te.getDisplayName();
@@ -2396,14 +2396,14 @@ public class ActivityReportingServiceImpl
         this.i18nManager = i18nManager;
     }
 
-    public TrackedEntityService getTrackedEntityService()
+    public TrackedEntityTypeService getTrackedEntityTypeService()
     {
-        return trackedEntityService;
+        return trackedEntityTypeService;
     }
 
-    public void setTrackedEntityService( TrackedEntityService trackedEntityService )
+    public void setTrackedEntityTypeService( TrackedEntityTypeService trackedEntityTypeService )
     {
-        this.trackedEntityService = trackedEntityService;
+        this.trackedEntityTypeService = trackedEntityTypeService;
     }
 
     @Override
@@ -2438,7 +2438,7 @@ public class ActivityReportingServiceImpl
             }
         }
 
-        patientWeb.setTrackedEntity( trackedEntityService.getTrackedEntityByName( patient.getTrackedEntityName() ) );
+        patientWeb.setTrackedEntityType( trackedEntityTypeService.getTrackedEntityByName( patient.getTrackedEntityName() ) );
 
         if ( patient.getIdToAddRelative() != 0 )
         {

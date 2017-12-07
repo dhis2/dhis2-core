@@ -307,7 +307,7 @@
     }
   ],
   "date": "2016-03-10T07:29:50.921+0000",
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "name": "Person",
       "lastUpdated": "2016-03-10T07:21:10.000+0000",

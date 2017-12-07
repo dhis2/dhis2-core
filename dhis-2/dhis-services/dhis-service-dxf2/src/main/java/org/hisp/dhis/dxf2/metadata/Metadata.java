@@ -93,7 +93,7 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -236,7 +236,7 @@ public class Metadata
 
     private List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
 
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
@@ -1045,16 +1045,16 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntities", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntity> getTrackedEntities()
+    @JacksonXmlElementWrapper( localName = "trackedEntityTypes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackedEntityType> getTrackedEntityTypes()
     {
-        return trackedEntities;
+        return trackedEntityTypes;
     }
 
-    public void setTrackedEntities( List<TrackedEntity> trackedEntities )
+    public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
-        this.trackedEntities = trackedEntities;
+        this.trackedEntityTypes = trackedEntityTypes;
     }
 
     @JsonProperty
@@ -1186,7 +1186,7 @@ public class Metadata
             ", programs=" + programs +
             ", programStages=" + programStages +
             ", relationshipTypes=" + relationshipTypes +
-            ", trackedEntities=" + trackedEntities +
+            ", trackedEntityTypes=" + trackedEntityTypes +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
             ", colors=" + colors +
             ", colorSets=" + colorSets +

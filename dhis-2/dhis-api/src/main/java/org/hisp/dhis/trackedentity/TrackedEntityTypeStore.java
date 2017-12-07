@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentity.hibernate;
+package org.hisp.dhis.trackedentity;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,15 +28,9 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
+import org.hisp.dhis.common.GenericNameableObjectStore;
 
-/**
- * @author Lars Helge Overland
- */
-public class HibernateTrackedEntityStore
-    extends HibernateIdentifiableObjectStore<TrackedEntity>
-    implements TrackedEntityStore
+public interface TrackedEntityTypeStore
+    extends GenericNameableObjectStore<TrackedEntityType>
 {
 }

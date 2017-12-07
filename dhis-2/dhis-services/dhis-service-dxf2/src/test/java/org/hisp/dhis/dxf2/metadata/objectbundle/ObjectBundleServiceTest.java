@@ -60,7 +60,7 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
@@ -808,12 +808,12 @@ public class ObjectBundleServiceTest
         List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
         List<User> users = manager.getAll( User.class );
         List<DataElementOperand> dataElementOperands = manager.getAll( DataElementOperand.class );
-        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
         List<OrganisationUnitLevel> organisationUnitLevels = manager.getAll( OrganisationUnitLevel.class );
 
         assertFalse( organisationUnits.isEmpty() );
         assertEquals( 1, organisationUnitLevels.size() );
-        assertEquals( 1, trackedEntities.size() );
+        assertEquals( 1, trackedEntityTypes.size() );
         assertFalse( dataElements.isEmpty() );
         assertFalse( users.isEmpty() );
         assertFalse( userRoles.isEmpty() );
