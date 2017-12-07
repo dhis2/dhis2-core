@@ -1,13 +1,12 @@
 package org.hisp.dhis.textpattern;
 
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
 import java.util.List;
 import java.util.Map;
 
 public interface TextPatternService
 {
-    String REQUIRED = "REQUIRED";
-    String OPTIONAL = "OPTIONAL";
-
     /**
      * Resolves a pattern by injecting values into the TextPattern and returning a fully resolved pattern
      *
@@ -23,5 +22,10 @@ public interface TextPatternService
      * @param pattern the pattern to check
      * @return a list of method names, or an empty list if no values are rquired
      */
-    Map<String, List<String>> getRequiredValues( TextPattern pattern );
+    Map<MethodType.RequiredStatus, List<String>> getRequiredValues( TextPattern pattern );
+
+    boolean validate( TextPattern pattern, String text );
+
+    TextPattern getTextPattern( TrackedEntityAttribute attribute )
+        throws Exception;
 }

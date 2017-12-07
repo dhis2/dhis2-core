@@ -1,10 +1,16 @@
 package org.hisp.dhis.textpattern;
 
 import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.textpattern.MethodType.RequiredStatus;
 
 public class DefaultTextPatternService
     implements TextPatternService
@@ -59,17 +65,51 @@ public class DefaultTextPatternService
     }
 
     @Override
-    public Map<String, List<String>> getRequiredValues( TextPattern pattern )
+    public Map<RequiredStatus, List<String>> getRequiredValues( TextPattern pattern )
     {
-        return ImmutableMap.<String, List<String>>builder()
-            .put( REQUIRED, pattern.getSegments().stream()
-                .filter( ( segment ) -> segment.getType().isRequired() )
-                .map( ( segment ) -> segment.getMethod().name() )
-                .collect( Collectors.toList() ) )
-            .put( OPTIONAL, pattern.getSegments().stream()
-                .filter( ( segment ) -> segment.getType().isOptional() )
-                .map( ( segment ) -> segment.getMethod().name() )
-                .collect( Collectors.toList() ) )
+        List<String> required = pattern
+            .getSegments()
+            .stream()
+            .filter( ( segment ) -> segment
+                .getType()
+                .isRequired() )
+            .map( ( segment ) -> segment
+                .getMethod()
+                .name() )
+            .collect( Collectors.toList() );
+
+        List<String> optional = pattern
+            .getSegments()
+            .stream()
+            .filter( ( segment ) -> segment
+                .getType()
+                .isOptional() )
+            .map( ( segment ) -> segment
+                .getMethod()
+                .name() )
+            .collect( Collectors.toList() );
+
+        return ImmutableMap.<RequiredStatus, List<String>>builder()
+            .put( RequiredStatus.REQUIRED, required )
+            .put( RequiredStatus.OPTIONAL, optional )
             .build();
+    }
+
+    @Override
+    public boolean validate( TextPattern pattern, String text )
+    {
+        return pattern.validateText( text );
+    }
+
+    @Override
+    public TextPattern getTextPattern( TrackedEntityAttribute attribute )
+        throws TextPatternParser.TextPatternParsingException
+    {
+        if ( attribute.getTextPattern() == null && attribute.isGenerated() )
+        {
+            attribute.setTextPattern( TextPatternParser.parse( attribute.getPattern() ) );
+        }
+
+        return attribute.getTextPattern();
     }
 }

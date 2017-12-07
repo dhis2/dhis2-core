@@ -71,6 +71,7 @@ public enum ErrorCode
 
     /* TextPattern Errors */
     E4016( "Failed to parse pattern `{0}`. {1}"),
+    E4017( "The value `{0}` does not conform to the attribute pattern `{1}`"),
 
     /* Scheduling errors */
     E7000( "Failed to add new job configuration. Another job of the same job type is already scheduled with this cron expression" ),
@@ -98,4 +99,5 @@ public enum ErrorCode
     {
         return message;
     }
+
 }

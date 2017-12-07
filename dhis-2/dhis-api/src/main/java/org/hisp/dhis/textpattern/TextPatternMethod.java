@@ -1,7 +1,5 @@
 package org.hisp.dhis.textpattern;
 
-import com.google.common.collect.ImmutableSet;
-
 import java.util.regex.Pattern;
 
 import static org.hisp.dhis.textpattern.MethodType.RequiredStatus.*;
@@ -58,29 +56,9 @@ public enum TextPatternMethod
 
     private MethodType type;
 
-    private static ImmutableSet<TextPatternMethod> required = ImmutableSet.of(
-        ORG_UNIT_CODE
-    );
-
-    private static ImmutableSet<TextPatternMethod> optional = ImmutableSet.of(
-        RANDOM,
-        SEQUENTIAL,
-        CURRENT_DATE
-    );
-
     TextPatternMethod( MethodType type )
     {
         this.type = type;
-    }
-
-    public boolean isRequired()
-    {
-        return required.contains( this );
-    }
-
-    public boolean isOptional()
-    {
-        return optional.contains( this );
     }
 
     public boolean isText()

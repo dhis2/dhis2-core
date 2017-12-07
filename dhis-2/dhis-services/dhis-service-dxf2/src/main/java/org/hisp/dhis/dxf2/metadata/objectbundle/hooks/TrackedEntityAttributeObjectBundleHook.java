@@ -22,7 +22,7 @@ public class TrackedEntityAttributeObjectBundleHook
         {
             TrackedEntityAttribute attribute = (TrackedEntityAttribute) object;
 
-            if ( ((TrackedEntityAttribute) object).isGenerated() )
+            if ( attribute.isGenerated() )
             {
                 if ( attribute.getPattern() == null || attribute.getPattern().isEmpty() )
                 {
@@ -45,5 +45,4 @@ public class TrackedEntityAttributeObjectBundleHook
 
         return new ArrayList<>();
     }
-
 }

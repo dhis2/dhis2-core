@@ -28,8 +28,11 @@ package org.hisp.dhis.webapi.controller.event;
      * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
      */
 
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.textpattern.TextPatternParser;
+import org.hisp.dhis.textpattern.MethodType.RequiredStatus;
+import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -41,9 +44,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,27 +95,85 @@ public class TrackedEntityAttributeController
             attribute, numberToReserve );
     }
 
-    @RequestMapping( value = "/{id}/generate", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
-        ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
+    @RequestMapping( value = "/{id}/generate", method = RequestMethod.GET )
     public @ResponseBody
-    String queryTrackedEntityInstancesJson(
+    String legacyQueryTrackedEntityInstancesJson(
         @PathVariable String id,
         Model model,
         HttpServletResponse response )
         throws Exception
     {
+
         TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
         if ( attribute == null )
         {
-            throw new Exception( "No attribute found with id " + id );
+            throw new WebMessageException( WebMessageUtils
+                .conflict( "No attribute with id " + id + " was found." ) );
         }
 
-        return trackedEntityAttributeReservedValueService.getGeneratedValue( attribute );
+        if ( !attribute.isGenerated() )
+        {
+            throw new WebMessageException( WebMessageUtils
+                .conflict( "This attribute can not be generated." ) );
+        }
+
+        TextPattern textPattern = textPatternService.getTextPattern( attribute );
+        List<String> missingValues = textPatternService
+            .getRequiredValues( textPattern )
+            .get( RequiredStatus.REQUIRED );
+
+        if ( missingValues.size() > 0 )
+        {
+            throw new WebMessageException( WebMessageUtils
+                .conflict(
+                    "Missing required values: " + StringUtils.collectionToDelimitedString( missingValues, ", " ) ) );
+        }
+
+        return textPatternService.resolvePattern( textPattern, new HashMap() );
+    }
+
+    @RequestMapping( value = "/{id}/generate", method = RequestMethod.POST, consumes = "application/json" )
+    public @ResponseBody
+    String queryTrackedEntityInstancesJson(
+        @PathVariable String id,
+        @RequestBody Map<String, String> values
+    )
+        throws Exception
+    {
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
+        if ( attribute == null )
+        {
+            throw new WebMessageException( WebMessageUtils
+                .conflict( "No attribute with id " + id + " was found." ) );
+        }
+
+        if ( !attribute.isGenerated() )
+        {
+            throw new WebMessageException( WebMessageUtils
+                .conflict( "This attribute can not be generated." ) );
+        }
+
+        TextPattern textPattern = textPatternService.getTextPattern( attribute );
+        values = (values == null ? new HashMap<>() : values);
+        List<String> missingValues = textPatternService
+            .getRequiredValues( textPattern )
+            .get( RequiredStatus.REQUIRED );
+
+        missingValues.removeAll( values.keySet() );
+
+        if ( missingValues.size() > 0 )
+        {
+            throw new WebMessageException( WebMessageUtils
+                .conflict(
+                    "Missing required values: " + StringUtils.collectionToDelimitedString( missingValues, ", " ) ) );
+        }
+
+        return textPatternService.resolvePattern( textPattern, values );
     }
 
     @RequestMapping( value = "/{id}/requiredValues", method = RequestMethod.GET )
     public @ResponseBody
-    Map<String, List<String>> getRequiredValues( @PathVariable String id )
+    Map<RequiredStatus, List<String>> getRequiredValues( @PathVariable String id )
         throws Exception
     {
         TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
@@ -120,12 +183,7 @@ public class TrackedEntityAttributeController
             throw new Exception( "No attribute found with id " + id );
         }
 
-        if ( attribute.getTextPattern() == null && attribute.isGenerated() )
-        {
-            attribute.setTextPattern( TextPatternParser.parse( attribute.getPattern() ) );
-        }
-
-        return textPatternService.getRequiredValues( attribute.getTextPattern() );
+        return textPatternService.getRequiredValues( textPatternService.getTextPattern( attribute ) );
 
     }
 
