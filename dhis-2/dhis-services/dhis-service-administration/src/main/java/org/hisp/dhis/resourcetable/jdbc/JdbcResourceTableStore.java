@@ -132,6 +132,7 @@ public class JdbcResourceTableStore
         
         List<AnalyticsTableHook> hooks = analyticsTableHookService
             .getByPhaseAndResourceTableType( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, resourceTable.getTableType() );
+
         
         if ( !hooks.isEmpty() )
         {
