@@ -51,7 +51,7 @@ public class AnalyticsTableHookStoreTest
     @Test
     public void testGetByType()
     {
-        AnalyticsTableHook hookA = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED, ResourceTableType.ORG_UNIT_STRUCTURE, sql );
+        AnalyticsTableHook hookA = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, ResourceTableType.ORG_UNIT_STRUCTURE, sql );
         AnalyticsTableHook hookB = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
         AnalyticsTableHook hookC = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
         AnalyticsTableHook hookD = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.EVENT, sql );
