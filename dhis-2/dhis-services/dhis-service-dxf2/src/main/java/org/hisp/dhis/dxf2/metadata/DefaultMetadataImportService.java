@@ -104,6 +104,11 @@ public class DefaultMetadataImportService implements MetadataImportService
             params.setUser( currentUserService.getCurrentUser() );
         }
 
+        if ( params.getUserOverrideMode() == UserOverrideMode.CURRENT )
+        {
+            params.setOverrideUser( currentUserService.getCurrentUser() );
+        }
+
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
@@ -115,7 +120,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
-        prepareBundle( bundle );
+        prepareBundle( bundle, bundleParams );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport.getTypeReportMap() );
@@ -246,7 +251,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private void prepareBundle( ObjectBundle bundle )
+    private void prepareBundle( ObjectBundle bundle, ObjectBundleParams params )
     {
         if ( bundle.getUser() == null )
         {
@@ -255,20 +260,28 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
         {
-            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle ) );
+            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle, params ) );
         }
     }
 
-    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle )
+    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
     {
         if ( StringUtils.isEmpty( object.getPublicAccess() ) )
         {
             aclService.resetSharing( object, bundle.getUser() );
         }
 
-        if ( object.getUser() == null ) object.setUser( bundle.getUser() );
-        if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
-        if ( object.getUserAccesses() == null ) object.setUserAccesses( new HashSet<>() );
         object.setLastUpdatedBy( bundle.getUser() );
+
+        if ( params.getUserOverrideMode() == UserOverrideMode.NONE )
+        {
+            if ( object.getUser() == null ) object.setUser( bundle.getUser() );
+            if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
+            if ( object.getUserAccesses() == null ) object.setUserAccesses( new HashSet<>() );
+        }
+        else // override user and clear sharing for all objects
+        {
+            aclService.clearSharing( object, params.getOverrideUser() );
+        }
     }
 }

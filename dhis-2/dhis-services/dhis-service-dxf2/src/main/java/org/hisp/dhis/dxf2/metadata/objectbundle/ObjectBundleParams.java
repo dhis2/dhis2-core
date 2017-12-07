@@ -56,6 +56,8 @@ public class ObjectBundleParams
 
     private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
 
+    private User overrideUser;
+
     private ObjectBundleMode objectBundleMode = ObjectBundleMode.COMMIT;
 
     private PreheatIdentifier preheatIdentifier = PreheatIdentifier.UID;
@@ -104,6 +106,17 @@ public class ObjectBundleParams
     public ObjectBundleParams setUserOverrideMode( UserOverrideMode userOverrideMode )
     {
         this.userOverrideMode = userOverrideMode;
+        return this;
+    }
+
+    public User getOverrideUser()
+    {
+        return overrideUser;
+    }
+
+    public ObjectBundleParams setOverrideUser( User overrideUser )
+    {
+        this.overrideUser = overrideUser;
         return this;
     }
 
