@@ -31,11 +31,11 @@ package org.hisp.dhis.resourcetable.table;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 

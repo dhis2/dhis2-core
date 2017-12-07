@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Cal;
@@ -41,6 +40,7 @@ import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 

@@ -37,6 +37,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
@@ -58,11 +59,21 @@ public class HibernateAnalyticsTableHookStore
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<AnalyticsTableHook> getByType( AnalyticsTableType type )
+    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
     {
-        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.type = :type" )
-            .setParameter( "phase", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED )
-            .setParameter( "type", type )
+        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
+            .setParameter( "phase", phase )
+            .setParameter( "resourceTableType", resourceTableType )
+            .getResultList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
+    {
+        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
+            .setParameter( "phase", phase )
+            .setParameter( "analyticsTableType", analyticsTableType )
             .getResultList();
     }
 

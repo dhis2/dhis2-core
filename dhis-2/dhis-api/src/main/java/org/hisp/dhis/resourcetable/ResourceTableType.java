@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.resourcetable;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo

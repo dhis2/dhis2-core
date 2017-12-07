@@ -34,11 +34,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
