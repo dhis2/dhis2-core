@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Cal;
@@ -55,9 +56,9 @@ public class DatePeriodResourceTable
     }
     
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_dateperiodstructure";
+        return ResourceTableType.DATE_PERIOD_STRUCTURE;
     }
 
     @Override

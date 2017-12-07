@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
@@ -53,9 +54,9 @@ public class DataElementResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_dataelementstructure";
+        return ResourceTableType.DATA_ELEMENT_STRUCTURE;
     }
     
     @Override

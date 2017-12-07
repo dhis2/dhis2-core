@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.period.Period;
@@ -54,9 +55,9 @@ public class PeriodResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_periodstructure";
+        return ResourceTableType.PERIOD_STRUCTURE;
     }
 
     @Override

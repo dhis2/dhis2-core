@@ -30,6 +30,7 @@ package org.hisp.dhis.resourcetable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.common.CodeGenerator;
 
 import java.util.List;
@@ -65,7 +66,22 @@ public abstract class ResourceTable<T>
     // -------------------------------------------------------------------------
     // Public methods
     // -------------------------------------------------------------------------
-    
+
+    /**
+     * Provides the name of the resource database table.
+     * 
+     * @return the name of the resource database table.
+     */
+    public String getTableName()
+    {
+        return getTableType().getTableName();
+    }
+
+    /**
+     * Provides the temporary name of the resource database table.
+     * 
+     * @return the temporary name of the resource database table.
+     */
     public final String getTempTableName()
     {
         return getTableName() + TEMP_TABLE_SUFFIX;
@@ -100,11 +116,10 @@ public abstract class ResourceTable<T>
     // -------------------------------------------------------------------------
 
     /**
-     * Provides the name of the resource database table.
-     * 
-     * @return the name of the resource database table.
+     * Returns the {@link ResourceTableType} of this resource table.
+     * @return
      */
-    public abstract String getTableName();
+    public abstract ResourceTableType getTableType();
     
     /**
      * Provides a create table SQL statement for the temporary resource table.

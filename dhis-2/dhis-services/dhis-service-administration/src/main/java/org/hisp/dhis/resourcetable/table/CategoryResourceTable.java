@@ -31,6 +31,7 @@ package org.hisp.dhis.resourcetable.table;
 import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.analytics.ResourceTableType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -53,9 +54,9 @@ public class CategoryResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_categorystructure";
+        return ResourceTableType.CATEGORY_STRUCTURE;
     }
     
     @Override
