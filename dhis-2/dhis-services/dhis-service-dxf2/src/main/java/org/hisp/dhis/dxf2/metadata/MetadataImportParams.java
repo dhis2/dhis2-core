@@ -64,6 +64,12 @@ public class MetadataImportParams
     private User user;
 
     /**
+     * How should the user property be handled, by default it is left as is. You can override this
+     * to use current user, or a selected user instead (not yet supported).
+     */
+    private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
+
+    /**
      * Should import be imported or just validated.
      */
     private ObjectBundleMode importMode = ObjectBundleMode.COMMIT;
@@ -152,6 +158,19 @@ public class MetadataImportParams
     public MetadataImportParams setUser( User user )
     {
         this.user = user;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserOverrideMode getUserOverrideMode()
+    {
+        return userOverrideMode;
+    }
+
+    public MetadataImportParams setUserOverrideMode( UserOverrideMode userOverrideMode )
+    {
+        this.userOverrideMode = userOverrideMode;
         return this;
     }
 
@@ -389,6 +408,7 @@ public class MetadataImportParams
     {
         ObjectBundleParams params = new ObjectBundleParams();
         params.setUser( user );
+        params.setUserOverrideMode( userOverrideMode );
         params.setSkipSharing( skipSharing );
         params.setSkipValidation( skipValidation );
         params.setJobId( jobId );
