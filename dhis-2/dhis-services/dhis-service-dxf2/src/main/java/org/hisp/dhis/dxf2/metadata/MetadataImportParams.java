@@ -179,8 +179,6 @@ public class MetadataImportParams
         return this;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getOverrideUser()
     {
         return overrideUser;

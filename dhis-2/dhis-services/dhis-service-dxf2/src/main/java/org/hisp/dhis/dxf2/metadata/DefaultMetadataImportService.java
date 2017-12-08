@@ -48,6 +48,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitRepor
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -57,7 +58,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -205,6 +205,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
+        params.setUserOverrideMode( getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
         params.setPreheatMode( getEnumWithDefault( PreheatMode.class, parameters, "preheatMode", PreheatMode.REFERENCE ) );
         params.setIdentifier( getEnumWithDefault( PreheatIdentifier.class, parameters, "identifier", PreheatIdentifier.UID ) );
@@ -272,23 +273,10 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, bundle.getUser() );
         }
 
+        if ( object.getUser() == null ) object.setUser( bundle.getUser() );
+        if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
+        if ( object.getUserAccesses() == null ) object.setUserAccesses( new HashSet<>() );
+
         object.setLastUpdatedBy( bundle.getUser() );
-
-        if ( params.getUserOverrideMode() == UserOverrideMode.NONE )
-        {
-            if ( object.getUser() == null ) object.setUser( bundle.getUser() );
-            if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
-            if ( object.getUserAccesses() == null ) object.setUserAccesses( new HashSet<>() );
-        }
-        else
-        {
-            object.setUser( params.getOverrideUser() );
-
-            if ( User.class.isInstance( object ) )
-            {
-                User user = (User) object;
-                user.getUserCredentials().setUser( params.getOverrideUser() );
-            }
-        }
     }
 }

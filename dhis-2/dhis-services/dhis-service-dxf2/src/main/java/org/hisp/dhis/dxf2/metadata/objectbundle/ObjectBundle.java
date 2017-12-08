@@ -67,7 +67,7 @@ public class ObjectBundle
     /**
      * User to use for override, can be current or a selected user.
      */
-    private final User overrideUser;
+    private User overrideUser;
 
     /**
      * Should import be imported or just validated.
@@ -172,6 +172,21 @@ public class ObjectBundle
     public User getUser()
     {
         return user;
+    }
+
+    public UserOverrideMode getUserOverrideMode()
+    {
+        return userOverrideMode;
+    }
+
+    public User getOverrideUser()
+    {
+        return overrideUser;
+    }
+
+    public void setOverrideUser( User overrideUser )
+    {
+        this.overrideUser = overrideUser;
     }
 
     public String getUsername()
