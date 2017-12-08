@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.dxf2.metadata;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -29,10 +29,9 @@ package org.hisp.dhis.analytics;
  */
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AnalyticsTablePhase
+public enum UserOverrideMode
 {
-    RESOURCE_TABLE_POPULATED,
-    ANALYTICS_TABLE_POPULATED    
+    NONE, CURRENT, SELECTED
 }
