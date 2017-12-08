@@ -52,6 +52,7 @@ import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpResponseException;
 import org.jclouds.rest.AuthorizationException;
+import org.jclouds.s3.reference.S3Constants;
 import org.joda.time.Minutes;
 
 import javax.annotation.PostConstruct;
@@ -74,7 +75,7 @@ public class JCloudsFileResourceContentStore
     implements FileResourceContentStore
 {
     private static final Log log = LogFactory.getLog( JCloudsFileResourceContentStore.class );
-    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^((?!-)[a-zA-Z0-9-]{1,63}(?<!-))+$" );
+    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
     private BlobStore blobStore;
@@ -394,6 +395,7 @@ public class JCloudsFileResourceContentStore
         else if ( provider.equals( JCLOUDS_PROVIDER_KEY_AWS_S3 ) )
         {
             credentials = new Credentials( identity, secret );
+            overrides.setProperty( S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false" );
 
             if ( credentials.identity.isEmpty() || credentials.credential.isEmpty() )
             {
