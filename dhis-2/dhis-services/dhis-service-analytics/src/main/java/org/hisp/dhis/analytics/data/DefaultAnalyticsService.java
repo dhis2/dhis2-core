@@ -901,9 +901,6 @@ public class DefaultAnalyticsService
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
-
-        System.out.println("grid: " + reportTable.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false ));
-        System.out.println("valueMap: " + valueMap);
         return reportTable.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false );
     }
 

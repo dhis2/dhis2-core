@@ -868,44 +868,55 @@ public class DataQueryParams
     public List<DimensionalItemObject> getDimensionOrFilterItems( String key )
     {
         List<DimensionalItemObject> dimensionOptions = getDimensionOptions( key );
-        
+
         return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions( key );
     }
-    
-    /**
-     * Retrieves the options for the given dimension identifier. If the "co"
-     * dimension is specified, all category option combinations for the first data 
-     * element is returned. Returns an empty array if the dimension is not present.
-     */
-    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
+
+    private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
     {
         List<DimensionalItemObject> items = new ArrayList<>();
-        
+
         if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> des = getDataElements();
-            
+
             if ( !des.isEmpty() )
             {
                 Set<DataElementCategoryCombo> categoryCombos = Sets.newHashSet();
-                
+
                 for ( DimensionalItemObject de : des )
                 {
                     categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
                 }
-                
+
                 for ( DataElementCategoryCombo cc : categoryCombos )
                 {
                     items.addAll( cc.getSortedOptionCombos() );
-                }                
+                }
             }
         }
         else
         {
             items.addAll( getDimensionOptions( dimension ) );
         }
-        
-        return items.toArray( new DimensionalItemObject[0] );
+
+        return items;
+    }
+
+    /**
+     * Retrieves the options for the given dimension identifier. If the "co"
+     * dimension is specified, all category option combinations for the first data
+     * element is returned. Returns an empty array if the dimension is not present.
+     */
+    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
+    {
+        return getDimensionItemObjects( dimension ).toArray( new DimensionalItemObject[0] );
+    }
+
+    public List<EventReportDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
+    {
+        return getDimensionItemObjects( dimension ).stream()
+            .map( item -> new EventReportDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
     }
     
     /**

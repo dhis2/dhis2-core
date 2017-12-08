@@ -244,6 +244,7 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
         Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
+
         GridUtils.toCsv( substituteMetaData( grid ), response.getWriter() );
     }
 
@@ -328,7 +329,6 @@ public class EventAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getAggregatedEventData( params, DimensionalObjectUtils.getItemsFromParam( columns ), DimensionalObjectUtils.getItemsFromParam( rows ) );
-        System.out.println("outputgrid: " + grid);
         GridUtils.toHtmlCss( substituteMetaData( grid ), response.getWriter() );
     }
 

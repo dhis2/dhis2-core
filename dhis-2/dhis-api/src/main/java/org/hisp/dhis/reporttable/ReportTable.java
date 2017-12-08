@@ -44,7 +44,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
@@ -52,8 +51,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 import static org.hisp.dhis.common.DimensionalObject.*;
 
@@ -69,6 +67,7 @@ public class ReportTable
     public static final String ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME = "organisation_unit_is_parent";
 
     public static final String SEPARATOR = "_";
+    public static final String DASH_PRETTY_SEPARATOR = " - ";
     public static final String SPACE = " ";
     public static final String KEY_ORGUNIT_GROUPSET = "orgunit_groupset_";
 
@@ -78,11 +77,11 @@ public class ReportTable
     public static final DimensionalItemObject[] IRT = new DimensionalItemObject[0];
     public static final DimensionalItemObject[][] IRT2D = new DimensionalItemObject[0][];
 
-    private static final String EMPTY = "";
+    public static final String EMPTY = "";
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
 
-    private static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
+    public static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
         DATA_X_DIM_ID, "data",
         CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
         PERIOD_DIM_ID, "period",
@@ -255,15 +254,12 @@ public class ReportTable
      * @param indicators        the indicators.
      * @param reportingRates    the reporting rates.
      * @param periods           the periods. Cannot have the name property set.
-     * @param relativePeriods   the relative periods. These periods must have the
+     * @param relatives         the relative periods. These periods must have the
      *                          name property set. Not persisted.
      * @param organisationUnits the organisation units.
-     * @param relativeUnits     the organisation units. Not persisted.
      * @param doIndicators      indicating whether indicators should be crosstabulated.
      * @param doPeriods         indicating whether periods should be crosstabulated.
      * @param doUnits           indicating whether organisation units should be crosstabulated.
-     * @param relatives         the relative periods.
-     * @param i18nFormat        the i18n format. Not persisted.
      */
     public ReportTable( String name, List<DataElement> dataElements, List<Indicator> indicators,
         List<ReportingRate> reportingRates, List<Period> periods,
@@ -345,7 +341,7 @@ public class ReportTable
 
         if ( isDimensional() )
         {
-            transientCategoryOptionCombos.addAll( getFirstCategoryCombo().getSortedOptionCombos() );
+            transientCategoryOptionCombos.addAll( Objects.requireNonNull( getFirstCategoryCombo() ).getSortedOptionCombos() );
             verify( nonEmptyLists( transientCategoryOptionCombos ) == 1, "Category option combos size must be larger than 0" );
         }
 
@@ -526,286 +522,6 @@ public class ReportTable
         }
     }
 
-    /**
-     * Generates a grid for this report table based on the given aggregate value
-     * map.
-     *
-     * @param grid               the grid, should be empty and not null.
-     * @param valueMap           the mapping of identifiers to aggregate values.
-     * @param displayProperty    the display property to use for meta data.
-     * @param reportParamColumns whether to include report parameter columns.
-     * @return a grid.
-     */
-    public Grid getEventReportGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean reportParamColumns, Map<String, OptionSet> dataOptionMap, Map<String, DataElement> dataElementMap )
-    {
-        System.out.println("dataOptionMap: " + dataOptionMap);
-        valueMap = new HashMap<>( valueMap );
-
-        sortKeys( valueMap );
-
-        // ---------------------------------------------------------------------
-        // Title
-        // ---------------------------------------------------------------------
-
-        if ( name != null )
-        {
-            grid.setTitle( name );
-            grid.setSubtitle( gridTitle );
-        }
-        else
-        {
-            grid.setTitle( gridTitle );
-        }
-
-        // ---------------------------------------------------------------------
-        // Headers
-        // ---------------------------------------------------------------------
-
-        Map<String, String> metaData = getMetaData();
-        metaData.putAll( DimensionalObject.PRETTY_NAMES );
-
-        for ( String row : rowDimensions )
-        {
-            DataElement dataElement = dataElementMap.get( row );
-            if ( dataElement == null ) {
-                String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
-                String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
-
-                grid.addHeader( new GridHeader( name + " ID", col + "id", ValueType.TEXT, String.class.getName(), true, true ) );
-                grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
-                grid.addHeader( new GridHeader( name + " code", col + "code", ValueType.TEXT, String.class.getName(), true, true ) );
-                grid.addHeader( new GridHeader( name + " description", col + "description", ValueType.TEXT, String.class.getName(), true, true ) );
-            }
-        }
-
-        dataElementMap.forEach( (key, dataElement) -> {
-            String name = dataElement.getShortName();
-            String col = dataElement.getUid();
-
-            grid.addHeader( new GridHeader( name + " ID", col + "id", ValueType.TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
-            grid.addHeader( new GridHeader( name + " code", col + "code", ValueType.TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name + " description", col + "description", ValueType.TEXT, String.class.getName(), true, true ) );
-        } );
-
-        if ( reportParamColumns )
-        {
-            grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
-                ValueType.TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME,
-                ValueType.TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME,
-                ValueType.TEXT, String.class.getName(), true, true ) );
-        }
-
-        final int startColumnIndex = grid.getHeaders().size();
-        final int numberOfColumns = getGridColumns().size();
-
-        for ( List<DimensionalItemObject> column : gridColumns )
-        {
-            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ),
-                ValueType.NUMBER, Double.class.getName(), false, false ) );
-        }
-
-        // ---------------------------------------------------------------------
-        // Values
-        // ---------------------------------------------------------------------
-
-        String periodKey = "";
-        List<String> orgUnitKeys = new ArrayList<>( );
-        List<Object> basicRow = new ArrayList<>();
-
-        for ( List<DimensionalItemObject> row : gridRows )
-        {
-            // -----------------------------------------------------------------
-            // Row meta data
-            // -----------------------------------------------------------------
-
-            for ( DimensionalItemObject object : row )
-            {
-                if ( object.getDimensionItemType() == DimensionItemType.PERIOD )
-                {
-                    periodKey = object.getDimensionItem();
-                }
-                else if ( object.getDimensionItemType() == DimensionItemType.ORGANISATION_UNIT )
-                {
-                    orgUnitKeys.add( object.getDimensionItem() );
-                }
-
-                if ( object.getDimensionItemType() != DimensionItemType.DATA_ELEMENT )
-                {
-                    basicRow.add( object.getDimensionItem() );
-                    basicRow.add( object.getDisplayProperty( displayProperty ) );
-                    basicRow.add( object.getCode() );
-                    basicRow.add( object.getDisplayDescription() );
-                }
-            }
-        }
-
-        for ( List<DimensionalItemObject> column : gridColumns )
-        {
-            for ( DimensionalItemObject object : column )
-            {
-                if ( object.getDimensionItemType() == DimensionItemType.PERIOD )
-                {
-                    periodKey = object.getDimensionItem();
-                }
-                else if ( object.getDimensionItemType() == DimensionItemType.ORGANISATION_UNIT )
-                {
-                    orgUnitKeys.add( object.getDimensionItem() );
-                }
-            }
-        }
-
-        Map<String, List<String>> dataCodeMap = new HashMap<>( );
-        dataOptionMap.forEach( ( key, value ) -> {
-            List<String> options = value.getOptionCodes();
-            Collections.sort( options.subList( 1, options.size() ) );
-            dataCodeMap.put( key, options );
-        } );
-
-        List<Map<String,String>> optionCodePermutations = generateOptionPermutations( dataCodeMap );
-
-        Map<String, List<String>> dataNameMap = new HashMap<>( );
-        dataOptionMap.forEach( ( key, value ) -> {
-            List<String> options = value.getOptionValues();
-            Collections.sort( options.subList( 1, options.size() ) );
-            dataNameMap.put( key, options );
-        } );
-        List<Map<String,String>> optionNamePermutations = generateOptionPermutations( dataNameMap );
-
-        boolean hasValue = false;
-
-        int index = 0;
-        System.out.println("basicKeys: " + periodKey);
-        System.out.println("orgUnitKeys: " + orgUnitKeys);
-        System.out.println("valueMap: " + valueMap);
-
-        for ( Map<String, String> combination : optionCodePermutations )
-        {
-            grid.addRow();
-
-            List<String> ids = new ArrayList<>( );
-            basicRow.forEach( grid::addValue );
-
-            ids.add( periodKey );
-            ids.addAll( orgUnitKeys );
-
-            for (Map.Entry<String, String> entry : combination.entrySet()) {
-                String key = entry.getKey();
-                String option = entry.getValue();
-
-                ids.add( option );
-                grid.addValue( null );
-                grid.addValue( optionNamePermutations.get( index ).get( key ) );
-                grid.addValue( null );
-                grid.addValue( null );
-            }
-
-            Collections.sort( ids );
-
-            String key = StringUtils.join( ids, DIMENSION_SEP );
-
-            Object value = valueMap.get( key );
-            System.out.println("key: " + key + ", value: " + value);
-            grid.addValue( value );
-
-            hasValue = hasValue || value != null;
-
-            if ( hideEmptyRows && !hasValue )
-            {
-                grid.removeCurrentWriteRow();
-            }
-
-            index++;
-        }
-
-        if ( hideEmptyColumns )
-        {
-            grid.removeEmptyColumns();
-        }
-
-        if ( regression )
-        {
-            grid.addRegressionToGrid( startColumnIndex, numberOfColumns );
-        }
-
-        if ( cumulative )
-        {
-            grid.addCumulativesToGrid( startColumnIndex, numberOfColumns );
-        }
-
-        // ---------------------------------------------------------------------
-        // Sort and limit
-        // ---------------------------------------------------------------------
-
-        if ( sortOrder != BaseAnalyticalObject.NONE )
-        {
-            grid.sortGrid( grid.getWidth(), sortOrder );
-        }
-
-        if ( topLimit > 0 )
-        {
-            grid.limitGrid( topLimit );
-        }
-
-        // ---------------------------------------------------------------------
-        // Show hierarchy option
-        // ---------------------------------------------------------------------
-
-        if ( showHierarchy && rowDimensions.contains( ORGUNIT_DIM_ID ) && grid.hasInternalMetaDataKey( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() ) )
-        {
-            int ouIdColumnIndex = rowDimensions.indexOf( ORGUNIT_DIM_ID ) * 4;
-
-            addHierarchyColumns( grid, ouIdColumnIndex );
-        }
-
-        return grid;
-    }
-
-    public static <K, V> void combinations( Map<K, List<V>> map, List<Map<K, V>> list )
-    {
-        recurse( map, new LinkedList<K>( map.keySet() ).listIterator(), new TreeMap<>(), list );
-    }
-
-    private static <K, V> void recurse( Map<K, List<V>> map, ListIterator<K> iter, Map<K, V> cur, List<Map<K, V>> list )
-    {
-        // we're at a leaf node in the recursion tree, add solution to list
-        if ( !iter.hasNext() )
-        {
-            Map<K, V> entry = new HashMap<>();
-
-            for ( K key : cur.keySet() )
-            {
-                entry.put( key, cur.get( key ) );
-            }
-
-            list.add( entry );
-        }
-        else
-        {
-            K key = iter.next();
-            List<V> set = map.get( key );
-
-            for ( V value : set )
-            {
-                cur.put( key, value );
-                recurse( map, iter, cur, list );
-                cur.remove( key );
-            }
-
-            iter.previous();
-        }
-    }
-
-    private List<Map<String, String>> generateOptionPermutations( Map<String, List<String>> dataOptionMap )
-    {
-        List<Map<String, String>> list = new LinkedList<>();
-        combinations( dataOptionMap, list );
-
-        return list;
-    }
-
     public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean reportParamColumns )
     {
         valueMap = new HashMap<>( valueMap );
@@ -867,7 +583,6 @@ public class ReportTable
         // Values
         // ---------------------------------------------------------------------
 
-        System.out.println("valueMap: " + valueMap);
         for ( List<DimensionalItemObject> row : gridRows )
         {
             grid.addRow();
@@ -902,7 +617,6 @@ public class ReportTable
                 String key = getIdentifier( column, row );
 
                 Object value = valueMap.get( key );
-                System.out.println("key: " + key + ", object: " + value);
 
                 grid.addValue( value );
 
