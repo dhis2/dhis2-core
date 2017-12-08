@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -48,7 +49,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitRepor
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -58,6 +58,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +85,9 @@ public class DefaultMetadataImportService implements MetadataImportService
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Autowired
     private AclService aclService;
@@ -220,6 +224,22 @@ public class DefaultMetadataImportService implements MetadataImportService
             JobId jobId = new JobId( JobType.METADATA_IMPORT, params.getUser().getUid() );
             notifier.clear( jobId );
             params.setJobId( jobId );
+        }
+
+        if ( params.getUserOverrideMode() == UserOverrideMode.SELECTED )
+        {
+            User overrideUser = null;
+
+            if ( parameters.containsKey( "overrideUser" ) )
+            {
+                List<String> overrideUsers = parameters.get( "overrideUser" );
+                overrideUser = manager.get( User.class, overrideUsers.get( 0 ) );
+            }
+
+            if ( overrideUser == null )
+            {
+                throw new MetadataImportException( "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
+            }
         }
 
         return params;
