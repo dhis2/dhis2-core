@@ -51,7 +51,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -79,7 +79,7 @@ public interface AttributeStore
         .put( UserGroup.class, "userGroupAttribute" )
         .put( Program.class, "programAttribute" )
         .put( ProgramStage.class, "programStageAttribute" )
-        .put( TrackedEntity.class, "trackedEntityAttribute" )
+        .put( TrackedEntityType.class, "trackedEntityTypeAttribute" )
         .put( TrackedEntityAttribute.class, "trackedEntityAttributeAttribute" )
         .put( DataElementCategoryOption.class, "categoryOptionAttribute" )
         .put( CategoryOptionGroup.class, "categoryOptionGroupAttribute" )

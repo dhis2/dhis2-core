@@ -201,7 +201,7 @@ public class DefaultAnalyticsTableGenerator
     
     private void invokeSqlHooks()
     {
-        List<AnalyticsTableHook> hooks = tableHookService.getByPhase( AnalyticsTablePhase.RESOURCE_TABLE_COMPLETED );
+        List<AnalyticsTableHook> hooks = tableHookService.getByPhase( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED );
         tableHookService.executeAnalyticsTableSqlHooks( hooks );
     }
 }
