@@ -257,6 +257,8 @@ public interface AclService
      */
     <T extends IdentifiableObject> void resetSharing( T object, User user );
 
+    <T extends IdentifiableObject> void clearSharing( T object, User user );
+
     /**
      * Verify that sharing props are correctly set according to user.
      *

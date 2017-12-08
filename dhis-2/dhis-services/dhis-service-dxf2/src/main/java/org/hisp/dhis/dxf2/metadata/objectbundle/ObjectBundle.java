@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -56,6 +57,17 @@ public class ObjectBundle
      * User to use for import job (important for threaded imports).
      */
     private final User user;
+
+    /**
+     * How should the user property be handled, by default it is left as is. You can override this
+     * to use current user, or a selected user instead (not yet supported).
+     */
+    private final UserOverrideMode userOverrideMode;
+
+    /**
+     * User to use for override, can be current or a selected user.
+     */
+    private User overrideUser;
 
     /**
      * Should import be imported or just validated.
@@ -140,6 +152,8 @@ public class ObjectBundle
         if ( !objects.containsKey( Boolean.FALSE ) ) objects.put( Boolean.FALSE, new HashMap<>() );
 
         this.user = params.getUser();
+        this.userOverrideMode = params.getUserOverrideMode();
+        this.overrideUser = params.getOverrideUser();
         this.objectBundleMode = params.getObjectBundleMode();
         this.preheatIdentifier = params.getPreheatIdentifier();
         this.importMode = params.getImportStrategy();
@@ -158,6 +172,21 @@ public class ObjectBundle
     public User getUser()
     {
         return user;
+    }
+
+    public UserOverrideMode getUserOverrideMode()
+    {
+        return userOverrideMode;
+    }
+
+    public User getOverrideUser()
+    {
+        return overrideUser;
+    }
+
+    public void setOverrideUser( User overrideUser )
+    {
+        this.overrideUser = overrideUser;
     }
 
     public String getUsername()
