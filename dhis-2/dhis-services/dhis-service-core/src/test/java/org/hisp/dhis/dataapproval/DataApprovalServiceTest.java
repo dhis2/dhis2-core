@@ -52,6 +52,8 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -104,10 +106,14 @@ public class DataApprovalServiceTest
     @Autowired
     protected CurrentUserService currentUserService;
 
+    @Autowired
+    protected DataSetService dataSetService;
+
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
 
+    private DataElementCategoryCombo defaultCategoryCombo;
     private DataElementCategoryOptionCombo defaultOptionCombo;
 
     private PeriodType periodType;
@@ -148,6 +154,15 @@ public class DataApprovalServiceTest
     private DataApprovalWorkflow workflow12A_H;
     private DataApprovalWorkflow workflow3;
     private DataApprovalWorkflow workflow1234;
+
+    private DataSet dataSetA;
+    private DataSet dataSetB;
+    private DataSet dataSetC;
+    private DataSet dataSetD;
+    private DataSet dataSetE;
+    private DataSet dataSetF;
+    private DataSet dataSetG;
+    private DataSet dataSetH;
 
     private User userA;
     private User userB;
@@ -203,6 +218,9 @@ public class DataApprovalServiceTest
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
+
+        defaultCategoryCombo = categoryService.getDefaultDataElementCategoryCombo();
+        defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
@@ -276,6 +294,14 @@ public class DataApprovalServiceTest
         workflow3 = new DataApprovalWorkflow( "workflow3", periodType, newHashSet( level3 ) );
         workflow1234 = new DataApprovalWorkflow( "workflow1234", periodType, newHashSet( level1, level2, level3, level4 ) );
 
+        workflow0.setUid(    "workflow000" );
+        workflow1.setUid(    "workflow001" );
+        workflow12.setUid(   "workflow012" );
+        workflow12A.setUid(  "workflow12A" );
+        workflow12B.setUid(  "workflow12B" );
+        workflow3.setUid(    "workflow003" );
+        workflow1234.setUid( "workflo1234" );
+
         dataApprovalService.addWorkflow( workflow0 );
         dataApprovalService.addWorkflow( workflow1 );
         dataApprovalService.addWorkflow( workflow12 );
@@ -284,13 +310,35 @@ public class DataApprovalServiceTest
         dataApprovalService.addWorkflow( workflow3 );
         dataApprovalService.addWorkflow( workflow1234 );
 
+        dataSetA = createDataSet( 'A', periodType, defaultCategoryCombo );
+        dataSetB = createDataSet( 'B', periodType, defaultCategoryCombo );
+        dataSetC = createDataSet( 'C', periodType, defaultCategoryCombo );
+        dataSetD = createDataSet( 'D', periodType, defaultCategoryCombo );
+        dataSetE = createDataSet( 'E', periodType, defaultCategoryCombo );
+        dataSetF = createDataSet( 'F', periodType, defaultCategoryCombo );
+        dataSetG = createDataSet( 'G', periodType, defaultCategoryCombo );
+
+        dataSetA.setWorkflow( workflow0 );
+        dataSetB.setWorkflow( workflow1 );
+        dataSetC.setWorkflow( workflow12 );
+        dataSetD.setWorkflow( workflow12A );
+        dataSetE.setWorkflow( workflow12B );
+        dataSetF.setWorkflow( workflow3 );
+        dataSetG.setWorkflow( workflow1234 );
+
+        dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
+        dataSetService.addDataSet( dataSetC );
+        dataSetService.addDataSet( dataSetD );
+        dataSetService.addDataSet( dataSetE );
+        dataSetService.addDataSet( dataSetF );
+        dataSetService.addDataSet( dataSetG );
+
         userA = createUser( 'A' );
         userB = createUser( 'B' );
 
         userService.addUser( userA );
         userService.addUser( userB );
-
-        defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
     }
 
     @Override
@@ -369,6 +417,23 @@ public class DataApprovalServiceTest
         optionComboDG = createCategoryOptionCombo( 'O', categoryComboA, optionD, optionG );
         optionComboDH = createCategoryOptionCombo( 'P', categoryComboA, optionD, optionH );
 
+        optionComboAE.setUid( "optionComAE" );
+        optionComboAF.setUid( "optionComAF" );
+        optionComboAG.setUid( "optionComAG" );
+        optionComboAH.setUid( "optionComAH" );
+        optionComboBE.setUid( "optionComBE" );
+        optionComboBF.setUid( "optionComBF" );
+        optionComboBG.setUid( "optionComBG" );
+        optionComboBH.setUid( "optionComBH" );
+        optionComboCE.setUid( "optionComCE" );
+        optionComboCF.setUid( "optionComCF" );
+        optionComboCG.setUid( "optionComCG" );
+        optionComboCH.setUid( "optionComCH" );
+        optionComboDE.setUid( "optionComDE" );
+        optionComboDF.setUid( "optionComDF" );
+        optionComboDG.setUid( "optionComDG" );
+        optionComboDH.setUid( "optionComDH" );
+
         categoryService.addDataElementCategoryOptionCombo( optionComboAE );
         categoryService.addDataElementCategoryOptionCombo( optionComboAF );
         categoryService.addDataElementCategoryOptionCombo( optionComboAG );
@@ -385,6 +450,24 @@ public class DataApprovalServiceTest
         categoryService.addDataElementCategoryOptionCombo( optionComboDF );
         categoryService.addDataElementCategoryOptionCombo( optionComboDG );
         categoryService.addDataElementCategoryOptionCombo( optionComboDH );
+
+        categoryComboA.getOptionCombos().add( optionComboAE );
+        categoryComboA.getOptionCombos().add( optionComboAF );
+        categoryComboA.getOptionCombos().add( optionComboAG );
+        categoryComboA.getOptionCombos().add( optionComboAH );
+        categoryComboA.getOptionCombos().add( optionComboBE );
+        categoryComboA.getOptionCombos().add( optionComboBF );
+        categoryComboA.getOptionCombos().add( optionComboBG );
+        categoryComboA.getOptionCombos().add( optionComboBH );
+        categoryComboA.getOptionCombos().add( optionComboCF );
+        categoryComboA.getOptionCombos().add( optionComboCG );
+        categoryComboA.getOptionCombos().add( optionComboCH );
+        categoryComboA.getOptionCombos().add( optionComboDE );
+        categoryComboA.getOptionCombos().add( optionComboDF );
+        categoryComboA.getOptionCombos().add( optionComboDG );
+        categoryComboA.getOptionCombos().add( optionComboDH );
+
+        categoryService.updateDataElementCategoryCombo( categoryComboA );
 
         groupAB = createCategoryOptionGroup( 'A', optionA, optionB );
         groupCD = createCategoryOptionGroup( 'C', optionC, optionD );
@@ -420,7 +503,15 @@ public class DataApprovalServiceTest
         dataApprovalLevelService.addDataApprovalLevel( level2ABCD );
 
         workflow12A_H = new DataApprovalWorkflow( "workflow12A_H", periodType, newHashSet( level1, level2, level2ABCD, level2EFGH ) );
+        workflow12A_H.setUid( "workflo12AH" );
         dataApprovalService.addWorkflow( workflow12A_H );
+
+        dataSetH = createDataSet( 'H', periodType, categoryComboA );
+        dataSetH.setWorkflow( workflow12A_H );
+        dataSetService.addDataSet( dataSetH );
+
+        workflow12A_H.getDataSets().add( dataSetH );
+        dataApprovalService.updateWorkflow( workflow12A_H );
     }
 
     // -------------------------------------------------------------------------
