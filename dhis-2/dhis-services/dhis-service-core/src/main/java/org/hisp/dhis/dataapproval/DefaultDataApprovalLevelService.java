@@ -149,7 +149,7 @@ public class DefaultDataApprovalLevelService
 
         int levelAboveOrgUnitLevel = 0;
 
-        List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels();
+        List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels( currentUserService.getCurrentUser() );
         
         for ( DataApprovalLevel level : userApprovalLevels )
         {
@@ -245,15 +245,15 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    public List<DataApprovalLevel> getUserDataApprovalLevels()
+    public List<DataApprovalLevel> getUserDataApprovalLevels( User user )
     {
-        return subsetUserDataApprovalLevels( getAllDataApprovalLevels() );
+        return subsetUserDataApprovalLevels( getAllDataApprovalLevels(), user );
     }
 
     @Override
-    public List<DataApprovalLevel> getUserDataApprovalLevels( DataApprovalWorkflow workflow )
+    public List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow )
     {
-        return subsetUserDataApprovalLevels( workflow.getSortedLevels() );
+        return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user );
     }
 
     @Override
@@ -721,11 +721,12 @@ public class DefaultDataApprovalLevelService
      * Returns the subset of approval levels that the user is allowed to access.
      *
      * @param approvalLevels the approval levels to test.
+     * @param user the user to test access for.
      * @return the subset of approval levels to which the user has access.
      */
-    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels )
+    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user )
     {
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
+        UserCredentials userCredentials = user.getUserCredentials();
 
         int lowestNumberOrgUnitLevel = getCurrentUsersLowestNumberOrgUnitLevel();
 

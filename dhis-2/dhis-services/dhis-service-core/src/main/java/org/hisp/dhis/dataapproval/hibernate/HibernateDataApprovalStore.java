@@ -37,9 +37,12 @@ import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -132,27 +135,27 @@ public class HibernateDataApprovalStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void addDataApproval( DataApproval dataApproval )
+    public void addDataApproval( DataApproval dataApproval, User user )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        save( dataApproval );
+        save( dataApproval, user );
     }
 
     @Override
-    public void updateDataApproval( DataApproval dataApproval )
+    public void updateDataApproval( DataApproval dataApproval, User user )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        update( dataApproval );
+        update( dataApproval, user );
     }
 
     @Override
-    public void deleteDataApproval( DataApproval dataApproval )
+    public void deleteDataApproval( DataApproval dataApproval, User user )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        delete( dataApproval );
+        delete( dataApproval, user );
     }    
 
     @Override
@@ -188,6 +191,22 @@ public class HibernateDataApprovalStore
     }
 
     @Override
+    public List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
+        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<DataElementCategoryOptionCombo> attributeOptionCombos )
+    {
+        List<Period> storedPeriods = periods.stream().map(p -> periodService.reloadPeriod( p ) ).collect( Collectors.toList() );
+
+        Criteria criteria = getCriteria();
+        criteria.add( Restrictions.in( "dataApprovalLevel", dataApprovalLevels ) );
+        criteria.add( Restrictions.in( "workflow", workflows ) );
+        criteria.add( Restrictions.in( "period", storedPeriods ) );
+        criteria.add( Restrictions.in( "organisationUnit", organisationUnits ) );
+        criteria.add( Restrictions.in( "attributeOptionCombo", attributeOptionCombos ) );
+
+        return criteria.list();
+    }
+
+    @Override
     public List<DataApprovalStatus> getDataApprovals( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, DataElementCategoryCombo attributeCombo,
         Set<DataElementCategoryOptionCombo> attributeOptionCombos )
@@ -200,7 +219,7 @@ public class HibernateDataApprovalStore
 
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
 
-        List<DataApprovalLevel> userApprovalLevels = dataApprovalLevelService.getUserDataApprovalLevels( workflow );
+        List<DataApprovalLevel> userApprovalLevels = dataApprovalLevelService.getUserDataApprovalLevels( user, workflow );
 
         Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
 

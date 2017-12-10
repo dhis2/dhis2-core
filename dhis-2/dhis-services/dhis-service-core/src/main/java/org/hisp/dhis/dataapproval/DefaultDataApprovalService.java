@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.dataapproval.exceptions.DataApprovalNotFound;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
@@ -47,6 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -180,6 +182,8 @@ public class DefaultDataApprovalService
     {
         log.debug( "approveData ( " + dataApprovalList.size() + " items )" );
 
+        User currentUser = currentUserService.getCurrentUser();
+
         validateAttributeOptionCombos( dataApprovalList );
 
         Map<String, DataApprovalStatus> statusMap = getStatusMap( dataApprovalList );
@@ -255,9 +259,9 @@ public class DefaultDataApprovalService
         {
             log.debug( "-> approving " + da );
 
-            audit( da, APPROVE );
+            audit( da, currentUser, APPROVE );
 
-            dataApprovalStore.addDataApproval( da );
+            dataApprovalStore.addDataApproval( da, currentUser );
         }
         
         log.info( "Approvals saved: " + checkedList.size() );
@@ -267,6 +271,8 @@ public class DefaultDataApprovalService
     public void unapproveData( List<DataApproval> dataApprovalList )
     {
         log.debug( "unapproveData ( " + dataApprovalList.size() + " items )" );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         Map<String, DataApprovalStatus> statusMap = getStatusMap( dataApprovalList );
 
@@ -297,22 +303,15 @@ public class DefaultDataApprovalService
             checkedList.add ( da );
         }
 
-        for ( DataApproval da : checkedList )
+        List<DataApproval> foundApprovals = getPresentApprovals( checkedList, "unapprove" );
+
+        for ( DataApproval da : foundApprovals )
         {
             log.debug( "unapproving " + da );
 
-            DataApproval d = dataApprovalStore.getDataApproval( da );
+            audit( da, currentUser, UNAPPROVE );
 
-            if ( d == null )
-            {
-                log.warn( "unapproveData: approval not found at " + da );
-
-                throw new DataMayNotBeUnapprovedException();
-            }
-
-            audit( d, UNAPPROVE );
-
-            dataApprovalStore.deleteDataApproval( d );
+            dataApprovalStore.deleteDataApproval( da, currentUser );
         }
         
         log.info( "Approvals deleted: " + dataApprovalList.size() );
@@ -322,6 +321,8 @@ public class DefaultDataApprovalService
     public void acceptData( List<DataApproval> dataApprovalList )
     {
         log.debug( "acceptData ( " + dataApprovalList.size() + " items )" );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         Map<String, DataApprovalStatus> statusMap = getStatusMap( dataApprovalList );
 
@@ -353,26 +354,17 @@ public class DefaultDataApprovalService
             checkedList.add ( da );
         }
 
-        for ( DataApproval da : checkedList )
-        {
-            da.setAccepted( true );
+        List<DataApproval> presentApprovals = getPresentApprovals( checkedList, "accept"  );
 
+        for ( DataApproval da : presentApprovals )
+        {
             log.debug( "accepting " + da );
 
-            DataApproval d = dataApprovalStore.getDataApproval( da );
+            da.setAccepted( true );
 
-            if ( d == null )
-            {
-                log.info( "acceptData: approval not found at " + da );
+            audit( da, currentUser, ACCEPT );
 
-                throw new DataMayNotBeAcceptedException();
-            }
-
-            d.setAccepted( true );
-
-            audit( d, ACCEPT );
-
-            dataApprovalStore.updateDataApproval( d );
+            dataApprovalStore.updateDataApproval( da, currentUser );
         }
         
         log.info( "Accepts saved: " + dataApprovalList.size() );
@@ -382,6 +374,8 @@ public class DefaultDataApprovalService
     public void unacceptData( List<DataApproval> dataApprovalList )
     {
         log.debug( "unacceptData ( " + dataApprovalList.size() + " items )" );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         Map<String, DataApprovalStatus> statusMap = getStatusMap( dataApprovalList );
 
@@ -412,24 +406,17 @@ public class DefaultDataApprovalService
             checkedList.add ( da );
         }
 
+        List<DataApproval> presentApprovals = getPresentApprovals( checkedList, "unaccept"  );
+
         for ( DataApproval da : checkedList )
         {
             log.debug( "unaccepting " + da );
 
-            DataApproval d = dataApprovalStore.getDataApproval( da );
+            da.setAccepted( false );
 
-            if ( d == null )
-            {
-                log.info( "unacceptData: approval not found at " + da );
+            audit( da, currentUser, UNACCEPT );
 
-                throw new DataMayNotBeUnacceptedException();
-            }
-
-            d.setAccepted( false );
-
-            audit( d, UNACCEPT );
-
-            dataApprovalStore.updateDataApproval( d );
+            dataApprovalStore.updateDataApproval( da, currentUser );
         }
         
         log.info( "Accepts deleted: " + dataApprovalList.size() );
@@ -540,16 +527,17 @@ public class DefaultDataApprovalService
      * Audits a data approval action.
      *
      * @param da the details of the action.
+     * @param currentUser the current user.
      * @param action the data approval action to audit.
      */
-    private void audit( DataApproval da, DataApprovalAction action )
+    private void audit( DataApproval da, User currentUser, DataApprovalAction action )
     {
         DataApprovalAudit audit = new DataApprovalAudit( da, action );
 
         audit.setCreated( new Date() );
-        audit.setCreator( currentUserService.getCurrentUser() );
+        audit.setCreator( currentUser );
 
-        dataApprovalAuditStore.save( audit );
+        dataApprovalAuditStore.save( audit, currentUser );
     }
 
     /**
@@ -636,6 +624,79 @@ public class DefaultDataApprovalService
         }
 
         return statusMap;
+    }
+
+    /**
+     * Looks up which data approvals are present in the database, and returns
+     * a list of database approval objects (with approval id).
+     *
+     * Throws an exception if any approval is not present in the database.
+     *
+     * This is done by making a single call to the database level instead of
+     * one call per data approval, to speed performance in the case where
+     * there are many data approvals.
+     *
+     * @param approvals the list of approvals to check.
+     * @param operation operation (for error logging).
+     * @return the list of those approvals actually present.
+     */
+    private List<DataApproval> getPresentApprovals ( List<DataApproval> approvals, String operation )
+    {
+        Set<DataApprovalLevel> levels = new HashSet<>();
+        Set<DataApprovalWorkflow> workflows = new HashSet<>();
+        Set<Period> periods = new HashSet<>();
+        Set<OrganisationUnit> organisationUnits = new HashSet<>();
+        Set<DataElementCategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+
+        for ( DataApproval a : approvals )
+        {
+            levels.add( a.getDataApprovalLevel() );
+            workflows.add( a.getWorkflow() );
+            periods.add( a.getPeriod() );
+            organisationUnits.add( a.getOrganisationUnit() );
+            attributeOptionCombos.add( a.getAttributeOptionCombo() );
+        }
+
+        List<DataApproval> foundList = dataApprovalStore.getDataApprovals( levels,
+            workflows, periods, organisationUnits, attributeOptionCombos );
+
+        Map<String, DataApproval> foundMap = foundList.stream().collect( Collectors.toMap( a -> approvalKey( a ), a -> a ) );
+
+        List presentApprovals = new ArrayList<>();
+
+        for ( DataApproval a : approvals )
+        {
+            DataApproval present = foundMap.get( approvalKey( a ) );
+
+            if ( present != null )
+            {
+                presentApprovals.add( present );
+            }
+            else
+            {
+                log.info( operation + ": approval not found at " + a );
+
+                throw new DataApprovalNotFound( operation + " " + a.toString() );
+            }
+        }
+
+        return presentApprovals;
+    }
+
+    /**
+     * Returns a key for a data approval object, consisting of the UIDs
+     * of all the approval object dimensions that uniquely define it.
+     *
+     * @param da the data approval object.
+     * @return a key for the object.
+     */
+    private String approvalKey( DataApproval da )
+    {
+        return da.getDataApprovalLevel().getUid()
+            + da.getWorkflow().getUid()
+            + da.getPeriod().getCode()
+            + da.getOrganisationUnit().getUid()
+            + da.getAttributeOptionCombo().getUid();
     }
 
     /**
