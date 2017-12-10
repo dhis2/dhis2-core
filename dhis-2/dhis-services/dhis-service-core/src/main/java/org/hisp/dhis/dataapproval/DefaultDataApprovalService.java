@@ -408,7 +408,7 @@ public class DefaultDataApprovalService
 
         List<DataApproval> presentApprovals = getPresentApprovals( checkedList, "unaccept"  );
 
-        for ( DataApproval da : checkedList )
+        for ( DataApproval da : presentApprovals )
         {
             log.debug( "unaccepting " + da );
 
