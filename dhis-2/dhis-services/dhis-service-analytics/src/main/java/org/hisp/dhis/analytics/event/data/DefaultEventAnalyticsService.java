@@ -80,11 +80,6 @@ public class DefaultEventAnalyticsService
 
     private final List<Option> booleanOptions = new ArrayList<>( );
 
-    private Map<String, String> BASIC_COLUMN_NAMES = DimensionalObjectUtils.asMap(
-        PERIOD_DIM_ID, "Period",
-        ORGUNIT_DIM_ID, "Organisation Unit"
-    );
-
     @Autowired
     private DataElementService dataElementService;
 
@@ -167,7 +162,7 @@ public class DefaultEventAnalyticsService
         {
             for ( String dimension : columns )
             {
-                getEventDataObjects( params, tableColumns, dimension );
+                getEventDataObjects( grid, params, tableColumns, dimension );
             }
         }
 
@@ -178,7 +173,7 @@ public class DefaultEventAnalyticsService
             for ( String dimension : rows )
             {
                 rowDimensions.add( dimension );
-                getEventDataObjects( params, tableRows, dimension );
+                getEventDataObjects( grid, params, tableRows, dimension );
             }
         }
 
@@ -192,20 +187,14 @@ public class DefaultEventAnalyticsService
 
         for ( String row : rowDimensions )
         {
-            DataElement dataElement = dataElementService.getDataElement( row );
-            String name;
+            MetadataItem metadataItem = (MetadataItem) ((HashMap<String, Object>) grid.getMetaData()
+                .get( AnalyticsMetaDataKey.ITEMS.getKey() )).get( row );
 
-            if ( dataElement == null )
-            {
-                name = StringUtils.defaultIfEmpty( BASIC_COLUMN_NAMES.get( row ), row );
-            }
-            else
-            {
-                name = dataElement.getDisplayProperty( params.getDisplayProperty() );
-            }
+            String name = StringUtils.defaultIfEmpty( metadataItem.getName(), row );
+            String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
 
             outputGrid
-                .addHeader( new GridHeader( name, name, ValueType.TEXT, String.class.getName(), false, true ) );
+                .addHeader( new GridHeader( name, col, ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         columnPermutations.forEach( permutation -> {
@@ -291,7 +280,8 @@ public class DefaultEventAnalyticsService
      * @param table the map to add elements to
      * @param dimension the requested dimension
      */
-    private void getEventDataObjects( EventQueryParams params, Map<String, List<EventReportDimensionalItem>> table,
+    private void getEventDataObjects( Grid grid, EventQueryParams params,
+        Map<String, List<EventReportDimensionalItem>> table,
         String dimension )
     {
         List<EventReportDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
@@ -299,8 +289,6 @@ public class DefaultEventAnalyticsService
         if ( objects.size() == 0 )
         {
             DataElement dataElement = dataElementService.getDataElement( dimension );
-            objects = getEventDataItemArrayExplode( dataElement );
-
             if ( dataElement.getValueType() == ValueType.BOOLEAN )
             {
                 List<EventReportDimensionalItem> options = new ArrayList<>();
@@ -310,47 +298,55 @@ public class DefaultEventAnalyticsService
                     options.add( new EventReportDimensionalItem( booleanOption, dataElement.getUid() ) );
                 }
                 objects = options;
-            } else if ( dataElement.getValueType() == ValueType.INTEGER )
+            }
+            else if ( dataElement.hasOptionSet() )
             {
-                List<Legend> legends = dataElement.getLegendSet().getSortedLegends();
-
-                for ( Legend legend : legends )
+                OptionSet optionSet = dataElement.getOptionSet();
+                if ( optionSet != null )
                 {
-                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
+                    for ( Option option : optionSet.getOptions() )
                     {
-                        objects.add( new EventReportDimensionalItem( new Option( i + "", i + "" ), dataElement.getUid() ) );
+                        objects.add( new EventReportDimensionalItem( option, dataElement.getUid() ) );
+                    }
+                }
+            }
+            else if ( dataElement.hasLegendSet() )
+            {
+                List<String> legendOptions = (List<String>) ((HashMap<String, Object>) grid.getMetaData()
+                    .get( AnalyticsMetaDataKey.DIMENSIONS.getKey() )).get( dimension );
+
+                if ( legendOptions.size() == 0 )
+                {
+                    List<Legend> legends = dataElement.getLegendSet().getSortedLegends();
+
+                    for ( Legend legend : legends )
+                    {
+                        for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
+                        {
+                            objects.add(
+                                new EventReportDimensionalItem( new Option( i + "", i + "" ), dataElement.getUid() ) );
+                        }
+                    }
+                }
+                else
+                {
+                    for ( String legend : legendOptions )
+                    {
+                        MetadataItem metadataItem = (MetadataItem) ((HashMap<String, Object>) grid.getMetaData()
+                            .get( AnalyticsMetaDataKey.ITEMS.getKey() )).get( legend );
+
+                        objects.add( new EventReportDimensionalItem( new Option( metadataItem.getName(), legend ),
+                            dataElement.getUid() ) );
                     }
                 }
             }
 
-            if ( objects != null )
-            {
-                table.put( dataElement.getDisplayName(), objects );
-            }
+            table.put( dataElement.getDisplayName(), objects );
         }
         else
         {
             table.put( dimension, objects );
         }
-    }
-
-    /**
-     * Get event data items from data element.
-     *
-     * @param dataElement the requested data element
-     * @return list of {@link EventReportDimensionalItem}.
-     */
-    private List<EventReportDimensionalItem> getEventDataItemArrayExplode( DataElement dataElement )
-    {
-        List<EventReportDimensionalItem> items = new ArrayList<>();
-        OptionSet optionSet = dataElement.getOptionSet();
-        if ( optionSet != null )
-        {
-            optionSet.getOptions()
-                .forEach( option -> items.add( new EventReportDimensionalItem( option, dataElement.getUid() ) ) );
-        }
-
-        return items;
     }
 
     public static void combinations( Map<String, List<EventReportDimensionalItem>> map,
@@ -422,7 +418,12 @@ public class DefaultEventAnalyticsService
 
             for ( int index = 0; index < metaCols; index++ )
             {
-                ids.add( (String) row.get( index ) );
+                Object id = row.get( index );
+
+                if ( id != null )
+                {
+                    ids.add( (String) row.get( index ) );
+                }
             }
 
             Collections.sort( ids );
@@ -712,7 +713,6 @@ public class DefaultEventAnalyticsService
             Map<String, Object> metaData = new HashMap<>();
             
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
-            
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
                 metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
@@ -739,7 +739,7 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasOptionSet() )
                 {
-                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
                 }
                 else if ( item.hasLegendSet() )
                 {
@@ -755,7 +755,7 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasOptionSet() )
                 {
-                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
                 }
                 else if ( item.hasLegendSet() )
                 {
