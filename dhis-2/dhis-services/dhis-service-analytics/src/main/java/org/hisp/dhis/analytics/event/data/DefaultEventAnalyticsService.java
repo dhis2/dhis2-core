@@ -349,12 +349,25 @@ public class DefaultEventAnalyticsService
         }
     }
 
+    /**
+     * Get all combinations from map. Fill the result into list.
+     * @param map the map with all values
+     * @param list the resulting list
+     */
     public static void combinations( Map<String, List<EventReportDimensionalItem>> map,
         List<Map<String, EventReportDimensionalItem>> list )
     {
         recurse( map, new LinkedList<>( map.keySet() ).listIterator(), new TreeMap<>(), list );
     }
 
+    /**
+     * A recursive method which finds all permutations of the elements in map.
+     *
+     * @param map the map with all values
+     * @param iter iterator with keys
+     * @param cur the current map
+     * @param list the resulting list
+     */
     private static void recurse( Map<String, List<EventReportDimensionalItem>> map, ListIterator<String> iter,
         TreeMap<String, EventReportDimensionalItem> cur, List<Map<String, EventReportDimensionalItem>> list )
     {
