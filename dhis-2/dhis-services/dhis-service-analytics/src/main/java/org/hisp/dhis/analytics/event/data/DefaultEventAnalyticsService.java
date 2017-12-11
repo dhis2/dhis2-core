@@ -140,6 +140,18 @@ public class DefaultEventAnalyticsService
             getAggregatedEventData( params );
     }
 
+    /**
+     * Create a grid with table layout for downloading event reports.
+     * The grid is dynamically made from rows and columns input, which refers to the dimensions requested.
+     *
+     * For event reports each option for a dimension will be an {@link EventReportDimensionalItem} and all permutations
+     * will be added to the grid.
+     *
+     * @param params the event query parameters.
+     * @param columns the identifiers of the dimensions to use as columns.
+     * @param rows the identifiers of the dimensions to use as rows.
+     * @return aggregated data as a Grid object.
+     */
     private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
     {
         params.removeProgramIndicatorItems(); // Not supported as items for aggregate
@@ -170,8 +182,7 @@ public class DefaultEventAnalyticsService
         }
 
         List<Map<String, EventReportDimensionalItem>> rowPermutations = generateEventDataPermutations( tableRows );
-        List<Map<String, EventReportDimensionalItem>> columnPermutations = generateEventDataPermutations(
-            tableColumns );
+        List<Map<String, EventReportDimensionalItem>> columnPermutations = generateEventDataPermutations( tableColumns );
 
         Map<String, Object> valueMap = getAggregatedEventDataMapping( grid );
 
@@ -182,21 +193,18 @@ public class DefaultEventAnalyticsService
         {
             DataElement dataElement = dataElementService.getDataElement( row );
             String name;
-            String col;
 
             if ( dataElement == null )
             {
                 name = StringUtils.defaultIfEmpty( BASIC_COLUMN_NAMES.get( row ), row );
-                col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
             }
             else
             {
                 name = dataElement.getDisplayProperty( params.getDisplayProperty() );
-                col = COLUMN_NAMES.get( DATA_X_DIM_ID );
             }
 
             outputGrid
-                .addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
+                .addHeader( new GridHeader( name, name, ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         columnPermutations.forEach( permutation -> {
@@ -219,7 +227,7 @@ public class DefaultEventAnalyticsService
                 builder.substring( 0, builder.lastIndexOf( DASH_PRETTY_SEPARATOR ) ) :
                 TOTAL_COLUMN_PRETTY_NAME;
 
-            outputGrid.addHeader( new GridHeader( display, null,
+            outputGrid.addHeader( new GridHeader( display, display,
                 ValueType.NUMBER, Double.class.getName(), false, false ) );
         } );
 
@@ -268,6 +276,13 @@ public class DefaultEventAnalyticsService
         return outputGrid;
     }
 
+    /**
+     * Put elements into the map "table". The elements are fetched from the query parameters.
+     *
+     * @param params the event query parameters.
+     * @param table the map to add elements to
+     * @param dimension the requested dimension
+     */
     private void getEventDataObjects( EventQueryParams params, Map<String, List<EventReportDimensionalItem>> table,
         String dimension )
     {
@@ -296,6 +311,12 @@ public class DefaultEventAnalyticsService
         }
     }
 
+    /**
+     * Get event data items from data element.
+     *
+     * @param dataElement the requested data element
+     * @return list of {@link EventReportDimensionalItem}.
+     */
     private List<EventReportDimensionalItem> getEventDataItemArrayExplode( DataElement dataElement )
     {
         List<EventReportDimensionalItem> items = new ArrayList<>();
@@ -318,7 +339,6 @@ public class DefaultEventAnalyticsService
     private static void recurse( Map<String, List<EventReportDimensionalItem>> map, ListIterator<String> iter,
         TreeMap<String, EventReportDimensionalItem> cur, List<Map<String, EventReportDimensionalItem>> list )
     {
-        // we're at a leaf node in the recursion tree, add solution to list
         if ( !iter.hasNext() )
         {
             Map<String, EventReportDimensionalItem> entry = new HashMap<>();
@@ -346,6 +366,12 @@ public class DefaultEventAnalyticsService
         }
     }
 
+    /**
+     *  Get all permutations for event report dimensions.
+     *
+     * @param dataOptionMap the map to generate permutations from
+     * @return a list of a map with a permutations
+     */
     private List<Map<String, EventReportDimensionalItem>> generateEventDataPermutations(
         Map<String, List<EventReportDimensionalItem>> dataOptionMap )
     {
@@ -355,6 +381,11 @@ public class DefaultEventAnalyticsService
         return list;
     }
 
+    /**
+     * Get event data mapping for values.
+     * @param grid the grid to collect data from
+     * @return map with key and values
+     */
     private Map<String, Object> getAggregatedEventDataMapping( Grid grid )
     {
         Map<String, Object> map = new HashMap<>();
