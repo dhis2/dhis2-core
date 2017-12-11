@@ -31,8 +31,8 @@ package org.hisp.dhis.dxf2.monitoring;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
@@ -66,7 +66,7 @@ public class DefaultMonitoringService
     private SystemService systemService;
     
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    private DhisConfigurationProvider config;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -87,9 +87,9 @@ public class DefaultMonitoringService
     @Override
     public void pushMonitoringInfo()
     {
-        String url = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_URL );
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_PASSWORD );
+        String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
+        String username = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_USERNAME );
+        String password = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
         
         if ( StringUtils.isBlank( url ) )
         {
