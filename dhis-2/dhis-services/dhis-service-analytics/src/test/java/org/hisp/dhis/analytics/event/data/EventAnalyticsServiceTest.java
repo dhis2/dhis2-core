@@ -48,7 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,16 +159,16 @@ public class EventAnalyticsServiceTest
 
         programA.getProgramStages().add( psA );
 
-        TrackedEntity trackedEntity = createTrackedEntity( 'A' );
-        idObjectManager.save( trackedEntity );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        idObjectManager.save( trackedEntityType );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', ouA );
         maleA.setUid( "person1234A" );
         org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance( 'B', ouB );
         femaleB.setUid( "person1234B" );
 
-        maleA.setTrackedEntity( trackedEntity );
-        femaleB.setTrackedEntity( trackedEntity );
+        maleA.setTrackedEntityType( trackedEntityType );
+        femaleB.setTrackedEntityType( trackedEntityType );
 
         idObjectManager.save( maleA );
         idObjectManager.save( femaleB );

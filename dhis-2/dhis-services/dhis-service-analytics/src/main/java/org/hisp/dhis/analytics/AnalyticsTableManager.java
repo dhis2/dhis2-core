@@ -113,6 +113,11 @@ public interface AnalyticsTableManager
     Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
     
     /**
+     * Invokes analytics table SQL hooks for the table type.
+     */
+    void invokeAnalyticsTableSqlHooks();
+    
+    /**
      * Drops the given {@link AnalyticsTable}.
      * 
      * @param table the analytics table.

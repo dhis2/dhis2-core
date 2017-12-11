@@ -37,10 +37,10 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +87,7 @@ public class ShowAddProgramStageFormAction
     }
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     // -------------------------------------------------------------------------
     // Output
@@ -121,11 +121,11 @@ public class ShowAddProgramStageFormAction
         return programs;
     }
 
-    private List<TrackedEntity> trackedEntities;
+    private List<TrackedEntityType> trackedEntityTypes;
 
-    public List<TrackedEntity> getTrackedEntities()
+    public List<TrackedEntityType> getTrackedEntityTypes()
     {
-        return trackedEntities;
+        return trackedEntityTypes;
     }
 
     // -------------------------------------------------------------------------
@@ -146,8 +146,8 @@ public class ShowAddProgramStageFormAction
         relationshipTypes = relationshipTypeService.getAllRelationshipTypes();
         Collections.sort( relationshipTypes );
 
-        trackedEntities = trackedEntityService.getAllTrackedEntity();
-        Collections.sort( trackedEntities );
+        trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+        Collections.sort( trackedEntityTypes );
 
         return SUCCESS;
     }

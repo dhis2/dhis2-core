@@ -106,7 +106,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -1498,14 +1498,14 @@ public abstract class DhisConvenienceTest
         return section;
     }
 
-    public static TrackedEntity createTrackedEntity( char uniqueChar )
+    public static TrackedEntityType createTrackedEntityType( char uniqueChar )
     {
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setAutoFields();
-        trackedEntity.setName( "TrackedEntity" + uniqueChar );
-        trackedEntity.setDescription( "TrackedEntity" + uniqueChar + " description" );
+        TrackedEntityType trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setAutoFields();
+        trackedEntityType.setName( "TrackedEntityType" + uniqueChar );
+        trackedEntityType.setDescription( "TrackedEntityType" + uniqueChar + " description" );
 
-        return trackedEntity;
+        return trackedEntityType;
     }
 
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit )

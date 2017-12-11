@@ -58,7 +58,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -100,7 +100,7 @@ public class Attribute
 
     private boolean programStageAttribute;
 
-    private boolean trackedEntityAttribute;
+    private boolean trackedEntityTypeAttribute;
 
     private boolean trackedEntityAttributeAttribute;
 
@@ -150,7 +150,7 @@ public class Attribute
     {
         return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute, indicatorAttribute, indicatorGroupAttribute,
             dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute, organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
-            programAttribute, programStageAttribute, trackedEntityAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
+            programAttribute, programStageAttribute, trackedEntityTypeAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
             mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute );
     }
 
@@ -185,7 +185,7 @@ public class Attribute
             && Objects.equals( this.userGroupAttribute, other.userGroupAttribute )
             && Objects.equals( this.programAttribute, other.programAttribute )
             && Objects.equals( this.programStageAttribute, other.programStageAttribute )
-            && Objects.equals( this.trackedEntityAttribute, other.trackedEntityAttribute )
+            && Objects.equals( this.trackedEntityTypeAttribute, other.trackedEntityTypeAttribute )
             && Objects.equals( this.trackedEntityAttributeAttribute, other.trackedEntityAttributeAttribute )
             && Objects.equals( this.categoryOptionAttribute, other.categoryOptionAttribute )
             && Objects.equals( this.categoryOptionGroupAttribute, other.categoryOptionGroupAttribute )
@@ -384,14 +384,14 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isTrackedEntityAttribute()
+    public boolean isTrackedEntityTypeAttribute()
     {
-        return trackedEntityAttribute;
+        return trackedEntityTypeAttribute;
     }
 
-    public void setTrackedEntityAttribute( boolean trackedEntityAttribute )
+    public void setTrackedEntityTypeAttribute( boolean trackedEntityTypeAttribute )
     {
-        this.trackedEntityAttribute = trackedEntityAttribute;
+        this.trackedEntityTypeAttribute = trackedEntityTypeAttribute;
     }
 
     @JsonProperty
@@ -580,7 +580,7 @@ public class Attribute
         if ( userGroupAttribute ) klasses.add( UserGroup.class );
         if ( programAttribute ) klasses.add( Program.class );
         if ( programStageAttribute ) klasses.add( ProgramStage.class );
-        if ( trackedEntityAttribute ) klasses.add( TrackedEntity.class );
+        if ( trackedEntityTypeAttribute ) klasses.add( TrackedEntityType.class );
         if ( trackedEntityAttributeAttribute ) klasses.add( TrackedEntityAttribute.class );
         if ( documentAttribute ) klasses.add( Document.class );
         if ( optionAttribute ) klasses.add( Option.class );
@@ -613,7 +613,7 @@ public class Attribute
             .add( "userGroupAttribute", userGroupAttribute )
             .add( "programAttribute", programAttribute )
             .add( "programStageAttribute", programStageAttribute )
-            .add( "trackedEntityAttribute", trackedEntityAttribute )
+            .add( "trackedEntityTypeAttribute", trackedEntityTypeAttribute )
             .add( "trackedEntityAttributeAttribute", trackedEntityAttributeAttribute )
             .add( "categoryOptionAttribute", categoryOptionAttribute )
             .add( "categoryOptionGroupAttribute", categoryOptionGroupAttribute )

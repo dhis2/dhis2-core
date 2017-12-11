@@ -124,9 +124,9 @@ public class HibernateTrackedEntityInstanceStore
         String hql = "select distinct tei from TrackedEntityInstance tei left join tei.trackedEntityAttributeValues";
         SqlHelper hlp = new SqlHelper( true );
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "tei.trackedEntity.uid='" + params.getTrackedEntity().getUid() + "'";
+            hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
         }
 
         if ( params.hasLastUpdatedStartDate() )
@@ -376,7 +376,7 @@ public class HibernateTrackedEntityInstanceStore
         final String anyChar = "\\.*?";
 
         String sql = "from trackedentityinstance tei "
-            + "inner join trackedentity te on tei.trackedentityid = te.trackedentityid "
+            + "inner join trackedentitytype te on tei.trackedentitytypeid = te.trackedentitytypeid "
             + "inner join organisationunit ou on tei.organisationunitid = ou.organisationunitid ";
 
         for ( QueryItem item : params.getAttributesAndFilters() )
@@ -403,9 +403,9 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
-            sql += hlp.whereAnd() + " tei.trackedentityid = " + params.getTrackedEntity().getId() + " ";
+            sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }
 
         params.handleOrganisationUnits();

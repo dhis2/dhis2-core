@@ -92,7 +92,7 @@ public class MetadataItem
         setDataItem( dimensionalObject );
     }
 
-    public void setDataItem( DimensionalItemObject dimensionalItemObject )
+    private void setDataItem( DimensionalItemObject dimensionalItemObject )
     {
         if ( dimensionalItemObject == null ) {
             return;
@@ -104,7 +104,7 @@ public class MetadataItem
         this.uid = dimensionalItemObject.getUid();
     }
 
-    public void setDataItem( DimensionalObject dimensionalObject )
+    private void setDataItem( DimensionalObject dimensionalObject )
     {
         if ( dimensionalObject == null ) {
             return;
