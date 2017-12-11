@@ -80,7 +80,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,7 +150,7 @@ public class MeController
             new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoCache( response );
+        setNoStore( response );
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
 
@@ -227,7 +227,7 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoCache( response );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
@@ -244,7 +244,7 @@ public class MeController
         boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoCache( response );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), hasAuthority );
     }
 
@@ -262,7 +262,7 @@ public class MeController
             currentUser, USER_SETTING_NAMES, true );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoCache( response );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), userSettings );
     }
 
@@ -291,7 +291,7 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoCache( response );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), value );
     }
 
