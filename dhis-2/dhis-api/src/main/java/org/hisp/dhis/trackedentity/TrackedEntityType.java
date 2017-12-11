@@ -47,11 +47,11 @@ import org.hisp.dhis.common.MetadataObject;
 public class TrackedEntityType
     extends BaseNameableObject implements MetadataObject
 {
+    private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
+    
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-    
-    private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
     
     public TrackedEntityType()
     {
@@ -64,6 +64,11 @@ public class TrackedEntityType
         this.description = description;
     }
 
+    
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------    
+    
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -76,4 +81,27 @@ public class TrackedEntityType
     {
         this.trackedEntityTypeAttributes = trackedEntityTypeAttributes;
     }
+    
+    // -------------------------------------------------------------------------
+    // Logic methods
+    // -------------------------------------------------------------------------
+    
+    /**
+     * Returns IDs of searchable TrackedEntityAttributes.
+     */
+    public List<String> getSearchableAttributeIds()
+    {
+        List<String> searchableAttributes = new ArrayList<>();
+        
+        for ( TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes )
+        {
+            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isUnique()  )
+            {
+                searchableAttributes.add( trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid() );
+            }
+        }
+
+        return searchableAttributes;
+    }
+    
 }

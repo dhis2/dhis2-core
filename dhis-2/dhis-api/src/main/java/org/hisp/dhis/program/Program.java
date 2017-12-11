@@ -211,6 +211,24 @@ public class Program
         organisationUnits.clear();
         organisationUnits.addAll( updates );
     }
+    
+    /**
+     * Returns IDs of searchable TrackedEntityAttributes.
+     */
+    public List<String> getSearchableAttributeIds()
+    {
+        List<String> searchableAttributes = new ArrayList<>();
+        
+        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
+        {
+            if ( programAttribute.getAttribute().isUnique() || programAttribute.isSearchable() )
+            {
+                searchableAttributes.add( programAttribute.getAttribute().getUid() );
+            }
+        }
+
+        return searchableAttributes;
+    }
 
     /**
      * Returns the ProgramTrackedEntityAttribute of this Program which contains
