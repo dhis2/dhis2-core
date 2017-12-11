@@ -50,6 +50,8 @@ public class OrganisationUnitGroup
     extends BaseDimensionalItemObject implements MetadataObject
 {
     private String symbol;
+    
+    private String color;
 
     private Set<OrganisationUnit> members = new HashSet<>();
 
@@ -140,6 +142,18 @@ public class OrganisationUnitGroup
     public void setSymbol( String symbol )
     {
         this.symbol = symbol;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getColor()
+    {
+        return color;
+    }
+
+    public void setColor( String color )
+    {
+        this.color = color;
     }
 
     @JsonProperty( "organisationUnits" )
