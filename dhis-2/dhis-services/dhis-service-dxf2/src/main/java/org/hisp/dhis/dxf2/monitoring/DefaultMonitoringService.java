@@ -79,9 +79,16 @@ public class DefaultMonitoringService
     {
         Date date = new DateTime().plus( PUSH_INITIAL_DELAY ).toDate();
         
+        String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
+        
+        if ( !StringUtils.isBlank( url ) )
+        {
+            log.info( String.format( "Monitoring service configured, URL: %s", url ) );
+        }
+        
         scheduler.scheduleWithFixedDelay( this::pushMonitoringInfo, date, PUSH_INTERVAL );
         
-        log.info( "Scheduled monitoring push service" );
+        log.info( "Scheduled monitoring service" );
     }
     
     @Override
@@ -137,7 +144,7 @@ public class DefaultMonitoringService
         
         if ( response != null && sc != null && sc.is2xxSuccessful() )
         {
-            log.debug( String.format( "Monitoring request successfully sent, url: %s", url ) );
+            log.info( String.format( "Monitoring request successfully sent, url: %s", url ) );
         }
         else
         {
