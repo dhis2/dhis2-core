@@ -729,14 +729,7 @@ public class DataQueryParams
     {
         int index = dimensions.indexOf( new BaseDimensionalObject( dimension ) );
 
-        List<DimensionalItemObject> items = new ArrayList<>( );
-        if ( index != -1 )
-        {
-            items = dimensions.get( index ).getItems();
-            Collections.sort( items );
-        }
-
-        return items;
+        return index != -1 ? dimensions.get( index ).getItems() : new ArrayList<>( );
     }
     
     /**

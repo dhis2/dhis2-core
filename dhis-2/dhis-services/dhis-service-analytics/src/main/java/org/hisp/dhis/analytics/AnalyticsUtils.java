@@ -296,7 +296,6 @@ public class AnalyticsUtils
 
         for ( List<Object> row : grid.getRows() )
         {
-            System.out.println("row: " + row);
             StringBuilder key = new StringBuilder();
 
             for ( int index = 0; index < metaCols; index++ )

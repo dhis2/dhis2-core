@@ -37,6 +37,7 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -262,14 +263,21 @@ public class DefaultEventAnalyticsService
             rowDimensions.forEach( dimension -> outputGrid
                 .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
 
+            boolean hasValues = false;
             for ( List<String> idList : ids )
             {
                 Collections.sort( idList );
 
                 String key = StringUtils.join( idList, DIMENSION_SEP );
                 Object value = valueMap.get( key );
+                hasValues = hasValues || value != null;
 
                 outputGrid.addValue( value );
+            }
+
+            if ( !hasValues )
+            {
+                outputGrid.removeCurrentWriteRow();
             }
         }
 
@@ -302,8 +310,23 @@ public class DefaultEventAnalyticsService
                     options.add( new EventReportDimensionalItem( booleanOption, dataElement.getUid() ) );
                 }
                 objects = options;
+            } else if ( dataElement.getValueType() == ValueType.INTEGER )
+            {
+                List<Legend> legends = dataElement.getLegendSet().getSortedLegends();
+
+                for ( Legend legend : legends )
+                {
+                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
+                    {
+                        objects.add( new EventReportDimensionalItem( new Option( i + "", i + "" ), dataElement.getUid() ) );
+                    }
+                }
             }
-            table.put( dataElement.getDisplayName(), objects );
+
+            if ( objects != null )
+            {
+                table.put( dataElement.getDisplayName(), objects );
+            }
         }
         else
         {

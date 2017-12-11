@@ -885,8 +885,6 @@ public class DefaultAnalyticsService
                 tableRows.add( params.getDimensionItemArrayExplodeCoc( dimension ) );
             }
         }
-        tableRows.forEach( row -> Arrays.stream( row ).forEach( r -> System.out.println("r: " + r) ) );
-        tableColumns.forEach( row -> Arrays.stream( row ).forEach( r -> System.out.println("r: " + r) ) );
 
         reportTable
             .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
