@@ -52,33 +52,13 @@ public enum TextPatternMethod
      * The param will be used directly as the format in SimpleDateFormat:
      * https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html
      */
-    CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ), OPTIONAL ) );
+    CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ), NONE ) );
 
     private MethodType type;
 
     TextPatternMethod( MethodType type )
     {
         this.type = type;
-    }
-
-    public boolean isText()
-    {
-        return this.type instanceof TextMethodType;
-    }
-
-    public boolean isGenerated()
-    {
-        return this.type instanceof GeneratedMethodType;
-    }
-
-    public boolean hasTextFormat()
-    {
-        return this.type instanceof StringMethodType;
-    }
-
-    public boolean hasDateFormat()
-    {
-        return this.type instanceof DateMethodType;
     }
 
     public MethodType getType()

@@ -42,6 +42,12 @@ public abstract class BaseMethodType
     }
 
     @Override
+    public String getFormattedText( String format, String value )
+    {
+        return value;
+    }
+
+    @Override
     public boolean isRequired()
     {
         return requiredStatus.equals( RequiredStatus.REQUIRED );

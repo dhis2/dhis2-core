@@ -34,29 +34,35 @@ public class TextPattern
      */
     class Segment
     {
-        private String format;
+        /* The full String of the segment */
+        private String segment;
 
-        private TextPatternMethod method;
+        /* The method type */
+        private MethodType methodType;
 
-        Segment( String format, TextPatternMethod method )
+        /* The parameter */
+        private String parameter;
+
+        Segment( String segment, MethodType methodType )
         {
-            this.format = format;
-            this.method = method;
+            this.segment = segment;
+            this.methodType = methodType;
+            this.parameter = methodType.getParam( segment );
         }
 
-        public String getFormat()
+        public String getSegment()
         {
-            return format;
+            return segment;
         }
 
         public MethodType getType()
         {
-            return method.getType();
+            return methodType;
         }
 
-        public TextPatternMethod getMethod()
+        public String getParameter()
         {
-            return method;
+            return parameter;
         }
 
         /**
@@ -64,9 +70,9 @@ public class TextPattern
          *
          * @return a regex String
          */
-        public String getValueRegex()
+        private String getValueRegex()
         {
-            return getType().getValueRegex( format );
+            return methodType.getValueRegex( parameter );
         }
 
         /**
@@ -77,19 +83,29 @@ public class TextPattern
          */
         public boolean validateValue( String text )
         {
-            return getType().validateText( format, text );
+            return methodType.validateText( getValueRegex(), text );
+        }
+
+        public boolean isRequired()
+        {
+            return methodType.isRequired();
+        }
+
+        public boolean isOptional()
+        {
+            return methodType.isOptional();
         }
     }
 
     /**
      * Adds a new Segment to the TextPattern.
      *
-     * @param format the format of the segment
-     * @param method the method of the segment
+     * @param segment    the format of the segment
+     * @param methodType the method type of the segment
      */
-    public void addSegment( String format, TextPatternMethod method )
+    public void addSegment( String segment, MethodType methodType )
     {
-        this.segments.add( new Segment( format, method ) );
+        this.segments.add( new Segment( segment, methodType ) );
     }
 
     /**
@@ -146,9 +162,9 @@ public class TextPattern
     {
         StringBuilder regex = new StringBuilder( "^" );
 
-        for ( int i = 0; i < segments.size(); i++ )
+        for ( Segment segment : segments )
         {
-            regex.append( StringFormatter.format( "(%s)", segments.get( 0 ).getValueRegex() ) );
+            regex.append( StringFormatter.format( "(%s)", segment.getValueRegex() ) );
         }
 
         regex.append( "$" );

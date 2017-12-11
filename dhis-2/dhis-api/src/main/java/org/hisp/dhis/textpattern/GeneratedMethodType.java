@@ -19,4 +19,5 @@ public class GeneratedMethodType
         format = format.replaceAll( "x", "[a-z]" );
         return format;
     }
+
 }

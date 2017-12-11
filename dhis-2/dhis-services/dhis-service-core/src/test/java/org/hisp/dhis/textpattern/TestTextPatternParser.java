@@ -168,9 +168,9 @@ public class TestTextPatternParser
         List<TextPattern.Segment> segments = textPattern.getSegments();
         assertEquals( segments.size(), 3 );
 
-        assertEquals( segments.get( 0 ).getValue(), TEXT_1 );
-        assertEquals( segments.get( 1 ).getValue(), SEPARATOR );
-        assertEquals( segments.get( 2 ).getValue(), SEQUENTIAL );
+        assertEquals( segments.get( 0 ).getSegment(), TEXT_1 );
+        assertEquals( segments.get( 1 ).getSegment(), SEPARATOR );
+        assertEquals( segments.get( 2 ).getSegment(), SEQUENTIAL );
     }
 
     @Test
@@ -208,10 +208,10 @@ public class TestTextPatternParser
 
         assertEquals( 4, segments.size());
 
-        assertEquals( segments.get(0).getMethod(), TextPatternMethod.ORG_UNIT_CODE );
-        assertEquals( segments.get(1).getMethod(), TextPatternMethod.CURRENT_DATE );
-        assertEquals( segments.get(2).getMethod(), TextPatternMethod.RANDOM );
-        assertEquals( segments.get(3).getMethod(), TextPatternMethod.TEXT );
+        assertEquals( segments.get(0).getType(), TextPatternMethod.ORG_UNIT_CODE.getType() );
+        assertEquals( segments.get(1).getType(), TextPatternMethod.CURRENT_DATE.getType() );
+        assertEquals( segments.get(2).getType(), TextPatternMethod.RANDOM.getType() );
+        assertEquals( segments.get(3).getType(), TextPatternMethod.TEXT.getType() );
 
     }
 
@@ -225,7 +225,7 @@ public class TestTextPatternParser
         List<TextPattern.Segment> segments = result.getSegments();
         assertEquals( segments.size(), 1 );
 
-        assertEquals( segments.get( 0 ).getValue(), input );
-        assertEquals( segments.get( 0 ).getMethod(), method );
+        assertEquals( segments.get( 0 ).getSegment(), input );
+        assertEquals( segments.get( 0 ).getType(), method.getType() );
     }
 }

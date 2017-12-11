@@ -14,7 +14,8 @@ public interface TextPatternService
      * @param values  the values to inject
      * @return a string represeting the pattern with values
      */
-    String resolvePattern( TextPattern pattern, Map<String, String> values );
+    String resolvePattern( TextPattern pattern, Map<String, String> values )
+        throws Exception;
 
     /**
      * Returns a list of values that are required to resolve the pattern

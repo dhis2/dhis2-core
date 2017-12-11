@@ -17,4 +17,10 @@ public class StringMethodType
         format = format.replaceAll( "\\$", "" );
         return format;
     }
+
+    @Override
+    public String getFormattedText( String format, String value )
+    {
+        return TextPatternMethodUtils.formatText( format, value );
+    }
 }

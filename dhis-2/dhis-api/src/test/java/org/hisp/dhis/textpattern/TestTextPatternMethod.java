@@ -177,46 +177,6 @@ public class TestTextPatternMethod
         assertNull( TextPatternMethod.CURRENT_DATE.getType().getParam( "INVALID(DDMMYYYY)" ) );
     }
 
-    @Test
-    public void testIsResolved()
-    {
-        assertTrue( TextPatternMethod.TEXT.isText() );
-        assertFalse( TextPatternMethod.SEQUENTIAL.isText() );
-        assertFalse( TextPatternMethod.RANDOM.isText() );
-        assertFalse( TextPatternMethod.ORG_UNIT_CODE.isText() );
-        assertFalse( TextPatternMethod.CURRENT_DATE.isText() );
-    }
-
-    @Test
-    public void testIsGenerated()
-    {
-        assertTrue( TextPatternMethod.SEQUENTIAL.isGenerated() );
-        assertTrue( TextPatternMethod.RANDOM.isGenerated() );
-        assertFalse( TextPatternMethod.TEXT.isGenerated() );
-        assertFalse( TextPatternMethod.ORG_UNIT_CODE.isGenerated() );
-        assertFalse( TextPatternMethod.CURRENT_DATE.isGenerated() );
-    }
-
-    @Test
-    public void testHasTextFormat()
-    {
-        assertTrue( TextPatternMethod.ORG_UNIT_CODE.hasTextFormat() );
-        assertFalse( TextPatternMethod.TEXT.hasTextFormat() );
-        assertFalse( TextPatternMethod.SEQUENTIAL.hasTextFormat() );
-        assertFalse( TextPatternMethod.RANDOM.hasTextFormat() );
-        assertFalse( TextPatternMethod.CURRENT_DATE.hasTextFormat() );
-    }
-
-    @Test
-    public void testHasDateFormat()
-    {
-        assertTrue( TextPatternMethod.CURRENT_DATE.hasDateFormat() );
-        assertFalse( TextPatternMethod.SEQUENTIAL.hasDateFormat() );
-        assertFalse( TextPatternMethod.RANDOM.hasDateFormat() );
-        assertFalse( TextPatternMethod.TEXT.hasDateFormat() );
-        assertFalse( TextPatternMethod.ORG_UNIT_CODE.hasDateFormat() );
-    }
-
     private void testSyntax( TextPatternMethod method, String[] input, boolean expected )
     {
         for ( String s : input )

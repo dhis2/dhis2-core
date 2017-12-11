@@ -78,7 +78,7 @@ public class TextPatternParser
                     if ( TextPatternMethod.TEXT.getType().validatePattern( method ) )
                     {
                         segment = true;
-                        result.addSegment( method, TextPatternMethod.TEXT );
+                        result.addSegment( method, TextPatternMethod.TEXT.getType() );
                         continue;
                     }
 
@@ -96,7 +96,7 @@ public class TextPatternParser
                         if ( textPatternMethod.getType().validatePattern( method ) )
                         {
 
-                            if ( textPatternMethod.isGenerated() )
+                            if ( textPatternMethod.getType() instanceof GeneratedMethodType )
                             {
 
                                 // Sequence method can only appear once, and only when no Random method is present
@@ -120,7 +120,7 @@ public class TextPatternParser
                             }
 
                             segment = true;
-                            result.addSegment( method, textPatternMethod );
+                            result.addSegment( method, textPatternMethod.getType() );
                             continue;
                         }
 

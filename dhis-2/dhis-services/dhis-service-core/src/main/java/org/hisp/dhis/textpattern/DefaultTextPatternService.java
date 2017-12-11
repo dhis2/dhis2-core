@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.textpattern.MethodType.RequiredStatus;
@@ -17,81 +16,55 @@ public class DefaultTextPatternService
 {
     @Override
     public String resolvePattern( TextPattern pattern, Map<String, String> values )
+        throws Exception
     {
         StringBuilder resolvedPattern = new StringBuilder();
 
         for ( TextPattern.Segment segment : pattern.getSegments() )
         {
-            TextPatternMethod method = segment.getMethod();
-            String value = segment.getFormat();
-
-            if ( !method.isText() )
+            if ( segment.isRequired() )
             {
-                if ( method.hasTextFormat() )
-                {
-                    resolvedPattern.append(
-                        TextPatternMethodUtils
-                            .formatText( method.getType().getParam( value ),
-                                values.getOrDefault( method.name(), "" ) ) );
-                }
-                else if ( method.hasDateFormat() )
-                {
-                    if ( method.equals( TextPatternMethod.CURRENT_DATE ) )
-                    {
-                        resolvedPattern.append(
-                            (new SimpleDateFormat( Objects.requireNonNull( method.getType().getParam( value ) ) ))
-                                .format( new Date() )
-                        );
-                    }
-                }
-                else if ( method.equals( TextPatternMethod.RANDOM ) )
-                {
-                    resolvedPattern.append( TextPatternMethodUtils.generateRandom(
-                        Objects.requireNonNull( method.getType().getParam( value ) ) ) );
-                }
-                else
-                {
-                    resolvedPattern.append( values.getOrDefault( method.name(), "" ) );
-                }
+                resolvedPattern.append( handleRequiredValue( segment, values.get( segment.getSegment() ) ) );
+            }
+            else if ( segment.isOptional() )
+            {
+                resolvedPattern.append( handleOptionalValue( segment, values.get( segment.getSegment() ) ) );
             }
             else
             {
-                resolvedPattern.append( method.getType().getParam( value ) );
+                resolvedPattern.append( handleFixedValues( segment ) );
             }
-
         }
 
         return resolvedPattern.toString();
     }
 
+    private String handleFixedValues( TextPattern.Segment segment )
+    {
+        if ( TextPatternMethod.CURRENT_DATE.getType().validatePattern( segment.getSegment() ) )
+        {
+            return new SimpleDateFormat( segment.getParameter() ).format( new Date() );
+        }
+        else
+        {
+            return segment.getParameter();
+        }
+    }
+
     @Override
     public Map<RequiredStatus, List<String>> getRequiredValues( TextPattern pattern )
     {
-        List<String> required = pattern
-            .getSegments()
-            .stream()
-            .filter( ( segment ) -> segment
-                .getType()
-                .isRequired() )
-            .map( ( segment ) -> segment
-                .getMethod()
-                .name() )
-            .collect( Collectors.toList() );
-
-        List<String> optional = pattern
-            .getSegments()
-            .stream()
-            .filter( ( segment ) -> segment
-                .getType()
-                .isOptional() )
-            .map( ( segment ) -> segment
-                .getMethod()
-                .name() )
-            .collect( Collectors.toList() );
-
         return ImmutableMap.<RequiredStatus, List<String>>builder()
-            .put( RequiredStatus.REQUIRED, required )
-            .put( RequiredStatus.OPTIONAL, optional )
+            .put( RequiredStatus.REQUIRED, pattern.getSegments()
+                .stream()
+                .filter( TextPattern.Segment::isRequired )
+                .map( TextPattern.Segment::getSegment )
+                .collect( Collectors.toList() ) )
+            .put( RequiredStatus.OPTIONAL, pattern.getSegments()
+                .stream()
+                .filter( TextPattern.Segment::isOptional )
+                .map( TextPattern.Segment::getSegment )
+                .collect( Collectors.toList() ) )
             .build();
     }
 
@@ -111,5 +84,55 @@ public class DefaultTextPatternService
         }
 
         return attribute.getTextPattern();
+    }
+
+    private String handleOptionalValue( TextPattern.Segment segment, String value )
+        throws Exception
+    {
+        if ( value != null && !segment.validateValue( value ) )
+        {
+            throw new Exception( "Supplied optional value is invalid" );
+        }
+        else if ( value != null )
+        {
+            return getFormattedValue( segment, value );
+        }
+        else
+        {
+            if ( segment.getType() instanceof GeneratedMethodType )
+            {
+                // Put parameter as placeholder, this will be handled after the rest have been resolved
+                return segment.getParameter();
+            }
+            else
+            {
+                throw new Exception( "Trying to generate unknown segment: '" + segment.getSegment() + "'" );
+            }
+        }
+    }
+
+    private String handleRequiredValue( TextPattern.Segment segment, String value )
+        throws Exception
+    {
+        if ( value == null )
+        {
+            throw new Exception( "Missing required value" );
+        }
+
+        String res = getFormattedValue( segment, value );
+
+        if ( res == null || !segment.validateValue( res ) )
+        {
+            throw new Exception( "Value is invalid" );
+        }
+
+        return res;
+    }
+
+    private String getFormattedValue( TextPattern.Segment segment, String value )
+    {
+        MethodType methodType = segment.getType();
+
+        return methodType.getFormattedText( segment.getParameter(), value );
     }
 }

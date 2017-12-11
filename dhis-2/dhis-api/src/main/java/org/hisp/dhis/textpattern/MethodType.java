@@ -43,6 +43,14 @@ public interface MethodType
     String getValueRegex( String format );
 
     /**
+     * Returns a String after applying format to the value
+     * @param format the format to apply to the value
+     * @param value the string to format
+     * @return the formatted text
+     */
+    String getFormattedText( String format, String value );
+
+    /**
      * Returns true if this MethodType is required when injecting values
      * @return true if REQUIRED RequiredStatus, false if not
      */

@@ -12,7 +12,7 @@ public class TestTextPattern
     {
         TextPattern tp = new TextPattern();
 
-        tp.addSegment( "ABC", TextPatternMethod.TEXT );
+        tp.addSegment( "ABC", TextPatternMethod.TEXT.getType() );
 
         assertEquals( 1, tp.getSegments().size() );
     }
@@ -22,8 +22,8 @@ public class TestTextPattern
     {
         TextPattern tp = new TextPattern();
 
-        tp.addSegment( "ABC", TextPatternMethod.TEXT );
-        tp.addSegment( "DEF", TextPatternMethod.TEXT );
+        tp.addSegment( "ABC", TextPatternMethod.TEXT.getType() );
+        tp.addSegment( "DEF", TextPatternMethod.TEXT.getType() );
 
         assertEquals( 2, tp.getSegments().size() );
     }
@@ -33,9 +33,9 @@ public class TestTextPattern
     {
         TextPattern tp = new TextPattern();
 
-        tp.addSegment( "ABC", TextPatternMethod.TEXT );
+        tp.addSegment( "ABC", TextPatternMethod.TEXT.getType() );
 
-        assertEquals( "ABC", tp.getSegments().get( 0 ).getFormat() );
+        assertEquals( "ABC", tp.getSegments().get( 0 ).getSegment() );
     }
 
     @Test
@@ -43,8 +43,8 @@ public class TestTextPattern
     {
         TextPattern tp = new TextPattern();
 
-        tp.addSegment( "ABC", TextPatternMethod.TEXT );
+        tp.addSegment( "ABC", TextPatternMethod.TEXT.getType() );
 
-        assertEquals( TextPatternMethod.TEXT, tp.getSegments().get( 0 ).getMethod() );
+        assertEquals( TextPatternMethod.TEXT.getType(), tp.getSegments().get( 0 ).getType() );
     }
 }
