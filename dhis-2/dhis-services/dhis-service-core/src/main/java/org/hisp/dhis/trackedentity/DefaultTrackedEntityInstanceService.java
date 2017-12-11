@@ -763,4 +763,44 @@ public class DefaultTrackedEntityInstanceService
 
         return null;
     }
+    
+    @Override
+    public boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
+    {        
+        if( currentUserService.getCurrentUser().getOrganisationUnits().containsAll(  currentUserService.getCurrentUser().getTeiSearchOrganisationUnits()  ) )
+        {
+            return true;
+        }
+        
+        if( params.isOrganisationUnitMode( ALL ) )
+        {
+            return currentUserService.getCurrentUser().getOrganisationUnits().containsAll( organisationUnitService.getRootOrganisationUnits() );
+        }
+        
+        if( params.isOrganisationUnitMode( ACCESSIBLE ) )
+        {            
+            return currentUserService.getCurrentUser().getOrganisationUnits().containsAll( currentUserService.getCurrentUser().getTeiSearchOrganisationUnits() );
+        }        
+        
+        for( OrganisationUnit searchOu : params.getOrganisationUnits() )
+        {
+            boolean localSearch = false;
+            
+            for( OrganisationUnit localOu : currentUserService.getCurrentUser().getOrganisationUnits() )
+            {
+                if( searchOu.getPath().indexOf(  localOu.getUid() ) != - 1 )
+                {
+                    localSearch = true;
+                    break;
+                }
+            }
+            
+            if( !localSearch )
+            {
+                return localSearch;
+            }
+        }        
+        
+        return true;
+    }
 }

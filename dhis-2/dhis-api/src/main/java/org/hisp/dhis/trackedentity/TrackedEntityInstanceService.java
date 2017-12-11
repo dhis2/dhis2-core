@@ -160,7 +160,15 @@ public interface TrackedEntityInstanceService
      *
      * @param params the TrackedEntityInstanceQueryParams.
      */
-    void decideAccess( TrackedEntityInstanceQueryParams params );
+    void decideAccess( TrackedEntityInstanceQueryParams params );    
+    
+    /**
+     * Checks whether the search is being conducted locally (data capture organisation units) or 
+     * broadly within tei search organisation units
+     *
+     * @param params the TrackedEntityInstanceQueryParams.
+     */
+    boolean isLocalSearch( TrackedEntityInstanceQueryParams params );
 
     /**
      * Validates the given TrackedEntityInstanceQueryParams. The params is
