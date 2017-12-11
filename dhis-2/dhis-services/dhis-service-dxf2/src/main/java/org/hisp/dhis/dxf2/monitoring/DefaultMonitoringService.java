@@ -126,7 +126,7 @@ public class DefaultMonitoringService
         }
         catch ( HttpClientErrorException | HttpServerErrorException ex )
         {
-            log.warn( "Monitoring request failed, status code: " + sc, ex );
+            log.warn( String.format( "Monitoring request failed, status code: %s", sc ), ex );
             return;
         }
         catch ( ResourceAccessException ex )
@@ -137,11 +137,11 @@ public class DefaultMonitoringService
         
         if ( response != null && sc != null && sc.is2xxSuccessful() )
         {
-            log.debug( "Monitoring request successfully sent" );
+            log.debug( String.format( "Monitoring request successfully sent, url: %s", url ) );
         }
         else
         {
-            log.warn( "Monitoring request was unsuccessful, status code: " + sc );
+            log.warn( String.format( "Monitoring request was unsuccessful, status code: %s", sc ) );
         }
     }
 }
