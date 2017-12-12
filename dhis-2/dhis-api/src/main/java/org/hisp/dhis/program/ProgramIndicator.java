@@ -143,6 +143,14 @@ public class ProgramIndicator
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
 
     private AnalyticsType analyticsType = AnalyticsType.EVENT;
+    
+    private AnayticsEvaluationBoundaryType eventStartBoundary;
+    
+    private AnayticsEvaluationBoundaryType eventEndBoundary;
+
+    private AnayticsEvaluationBoundaryType enrollmentStartBoundary;
+    
+    private AnayticsEvaluationBoundaryType enrollmentEndBoundary;
 
     // -------------------------------------------------------------------------
     // Constructors
