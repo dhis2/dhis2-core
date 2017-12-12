@@ -18,6 +18,10 @@
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
     <property name="description" type="text" />
+    
+    <property name="minAttributesRequiredToSearch" />
+    
+    <property name="maxTeiCountToReturn" />
 
     <!-- Dynamic attribute values -->
     <set name="attributeValues" table="trackedentitytypeattributevalues" cascade="all-delete-orphan">

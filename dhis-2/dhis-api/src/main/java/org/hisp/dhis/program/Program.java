@@ -168,7 +168,18 @@ public class Program
     /**
      * How many days after an event is completed will this program block modification of the event
      */
-    private int completeEventsExpiryDays;
+    private int completeEventsExpiryDays;    
+    
+    /**
+     * Property indicating minimum number of attributes required to fill
+     * before search is triggered
+     */
+    private int minAttributesRequiredToSearch = 1;
+    
+    /**
+     * Property indicating maximum number of TEI to return after search
+     */
+    private int maxTeiCountToReturn = 0;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -823,5 +834,29 @@ public class Program
     public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
     {
         this.completeEventsExpiryDays = completeEventsExpiryDays;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMinAttributesRequiredToSearch()
+    {
+        return minAttributesRequiredToSearch;
+    }
+
+    public void setMinAttributesRequiredToSearch( int minAttributesRequiredToSearch )
+    {
+        this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMaxTeiCountToReturn()
+    {
+        return maxTeiCountToReturn;
+    }
+
+    public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
+    {
+        this.maxTeiCountToReturn = maxTeiCountToReturn;
     }
 }
