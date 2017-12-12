@@ -450,7 +450,7 @@ public class DefaultProgramIndicatorService
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
                     columnName = AnalyticsType.ENROLLMENT == analyticsType ? 
-                        statementBuilder.columnQuote( el1 + ProgramIndicator.DB_SEPARATOR_ID + el2 ) : statementBuilder.columnQuote( el2 );
+                        getLatestDataValueSql( el2, el1 ) : statementBuilder.columnQuote( el2 );
                 }
                 else // ProgramIndicator.KEY_ATTRIBUTE
                 {                    
@@ -484,6 +484,20 @@ public class DefaultProgramIndicatorService
         }
 
         return TextUtils.appendTail( matcher, buffer );
+    }
+    
+    private String getLatestDataValueSql( String dataElementUid, String eventUid )
+    {
+        String eventTableName = "analytics_event_" + eventUid;
+        String columnName = "\"" + dataElementUid + "\"";
+        return "(select " + columnName + " from " + eventTableName + 
+            " where " + eventTableName + ".pi = enrollmenttable.pi " +
+            "and " + eventTableName + ".ps = 'WZbXY0S00lP' " + 
+            "and " + columnName + " is not null " +
+            "and executiondate < '2019-04-30' " + 
+            "and executiondate > '2010-04-30' " + 
+            "order by executiondate " +
+            "desc limit 1 )";
     }
 
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )

@@ -329,25 +329,7 @@ public class JdbcEnrollmentAnalyticsManager
      */
     private String getFromWhereClause( EventQueryParams params )
     {        
-        String sql = "from " + params.getTableName() + " ";
-
-        //Join the program stages (used in this expression).
-        if( params.hasProgramIndicatorDimension() ) 
-        {
-            List<ProgramStageDataElement> prStDes = programIndicatorService.getProgramStageDateElementsInExpression( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getFilter() );
-            List<ProgramStage> programStages = getProgramStages( prStDes );
-            for ( ProgramStage ps : programStages )
-            {
-                //TODO: Remove 2017 when table inheritance is set up for program event data.
-                sql += "left join analytics_event_2017_" + ps.getProgram().getUid() +
-                    " on analytics_event_2017_" + ps.getProgram().getUid() + ".psi = " +
-                    "(select psi from analytics_event_2017_" + ps.getProgram().getUid() +
-                    " where analytics_event_2017_" + ps.getProgram().getUid() + ".pi = analytics_enrollment_wsgab5xwj3y.pi " +
-                    "and analytics_event_2017_" + ps.getProgram().getUid() + ".ps = '" + ps.getUid() + "' " +
-                    //"and executiondate < '2017-04-30' " +  TODO: Include this and other date boundaries
-                    "order by executiondate desc limit 1) ";
-            }
-        }
+        String sql = "from " + params.getTableName() + " as enrollmenttable ";
        
         // ---------------------------------------------------------------------
         // Periods
