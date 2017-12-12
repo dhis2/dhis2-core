@@ -175,10 +175,10 @@ public class GeoFeatureController
 
         DataQueryParams params = dataQueryService
             .getFromUrl( set, null, AggregationType.SUM, null, null, null, null, false, false,
-                false, false, false, false, false, false, false, false, displayProperty, null, null, false, null,
+                false, false, false, false, false, false, false, false, false, displayProperty, null, null, false, null,
                 relativePeriodDate, userOrgUnit, false, apiVersion );
 
-        boolean useOrgUnitGroup = dimension.startsWith( "oug" );
+        boolean useOrgUnitGroup = dimension.startsWith( ORGUNIT_GROUP_DIM_ID );
         DimensionalObject dimensionalObject = params
             .getDimension( useOrgUnitGroup ? ORGUNIT_GROUP_DIM_ID : ORGUNIT_DIM_ID );
 
