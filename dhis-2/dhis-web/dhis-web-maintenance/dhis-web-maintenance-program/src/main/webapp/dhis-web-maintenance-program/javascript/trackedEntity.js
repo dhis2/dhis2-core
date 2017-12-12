@@ -14,11 +14,11 @@ function showUpdateTrackedEntityForm( context ) {
 }
 
 function showTrackedEntityDetails( context ) {
-  jQuery.getJSON('getTrackedEntity.action', { id: context.id },
+  jQuery.getJSON('getTrackedEntityType.action', { id: context.id },
     function( json ) {
-      setInnerHTML('nameField', json.trackedEntity.name);
-      setInnerHTML('descriptionField', json.trackedEntity.description);
-      setInnerHTML('idField', json.trackedEntity.uid);
+      setInnerHTML('nameField', json.trackedEntityType.name);
+      setInnerHTML('descriptionField', json.trackedEntityType.description);
+      setInnerHTML('idField', json.trackedEntityType.uid);
 
       showDetails();
     });
@@ -28,6 +28,6 @@ function showTrackedEntityDetails( context ) {
 // Remove Attribute
 // -----------------------------------------------------------------------------
 
-function removeTrackedEntity( context ) {
+function removeTrackedEntityType( context ) {
   removeItem(context.id, context.name, i18n_confirm_delete, 'removeTrackedEntity.action');
 }

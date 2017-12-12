@@ -172,6 +172,9 @@ public class DataSet
      */
     private DataApprovalWorkflow workflow;
 
+    /**
+     * Interpretations of this data set.
+     */
     private Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------

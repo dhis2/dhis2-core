@@ -95,7 +95,7 @@ public class DefaultJobConfigurationService
                 continue;
             }
 
-            Class<?> clazz = jobType.getJobParametersClass();
+            Class<?> clazz = jobType.getJobParameters();
             if ( clazz == null )
             {
                 propertyMap.put( jobType.name(), null );

@@ -47,7 +47,7 @@ public class JobConfigurationDeserializer
         JobParameters jobParameters = null;
         if ( root.get( JOB_PARAMETERS ) != null && jobType.getJobParameters() != null )
         {
-            jobParameters = mapper.convertValue( root.get( JOB_PARAMETERS ), jobType.getJobParametersClass() );
+            jobParameters = mapper.convertValue( root.get( JOB_PARAMETERS ), jobType.getJobParameters() );
         }
 
         boolean enabled = !root.has( ENABLED ) || root.get( ENABLED ).asBoolean();

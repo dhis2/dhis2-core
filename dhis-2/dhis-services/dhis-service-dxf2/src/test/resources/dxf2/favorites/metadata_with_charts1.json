@@ -201,7 +201,7 @@
       }
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "created": "2016-03-16T17:00:00.000+0000",
       "name": "Person",
