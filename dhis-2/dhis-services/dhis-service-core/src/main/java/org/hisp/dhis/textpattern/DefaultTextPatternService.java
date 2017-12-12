@@ -39,18 +39,6 @@ public class DefaultTextPatternService
         return resolvedPattern.toString();
     }
 
-    private String handleFixedValues( TextPattern.Segment segment )
-    {
-        if ( TextPatternMethod.CURRENT_DATE.getType().validatePattern( segment.getSegment() ) )
-        {
-            return new SimpleDateFormat( segment.getParameter() ).format( new Date() );
-        }
-        else
-        {
-            return segment.getParameter();
-        }
-    }
-
     @Override
     public Map<RequiredStatus, List<String>> getRequiredValues( TextPattern pattern )
     {
@@ -84,6 +72,18 @@ public class DefaultTextPatternService
         }
 
         return attribute.getTextPattern();
+    }
+
+    private String handleFixedValues( TextPattern.Segment segment )
+    {
+        if ( TextPatternMethod.CURRENT_DATE.getType().validatePattern( segment.getSegment() ) )
+        {
+            return new SimpleDateFormat( segment.getParameter() ).format( new Date() );
+        }
+        else
+        {
+            return segment.getParameter();
+        }
     }
 
     private String handleOptionalValue( TextPattern.Segment segment, String value )

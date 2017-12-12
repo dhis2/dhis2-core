@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        >
+<hibernate-mapping>
+    <class name="org.hisp.dhis.reservedvalue.ReservedValue" table="reservedvalue">
+        <id name="id" column="id">
+            <generator class="native"/>
+        </id>
+        <property name="ownerUID"/>
+        <property name="key"/>
+        <property name="value"/>
+        <property name="expires"/>
+
+    </class>
+
+</hibernate-mapping>

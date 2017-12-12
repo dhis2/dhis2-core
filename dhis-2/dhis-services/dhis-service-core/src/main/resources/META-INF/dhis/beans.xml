@@ -247,6 +247,11 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
 
+
+  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateSequentialNumberCounterStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
   <!--DataSetNotifications-->
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">

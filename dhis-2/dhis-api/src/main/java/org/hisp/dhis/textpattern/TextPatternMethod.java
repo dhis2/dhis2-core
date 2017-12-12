@@ -22,8 +22,8 @@ public enum TextPatternMethod
      * Generator methods has a required param, that needs to be between 1 and 12 characters.
      * SEQUENTIAL only accepts #'s while RANDOM accepts #Xx's
      */
-    RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ), OPTIONAL ) ),
-    SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ), OPTIONAL ) ),
+    RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ), REQUIRED ) ),
+    SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ), REQUIRED ) ),
 
     /**
      * Variable methods has an optional param, that can:
