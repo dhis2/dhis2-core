@@ -31,8 +31,8 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.metadata.tasks.MetadataRetryContext;
-import org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask;
+import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
+import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.email.Email;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.feedback.Stats;
@@ -88,14 +88,14 @@ public class MetadataSyncPostProcessor
 
     public void handleVersionAlreadyExists ( MetadataRetryContext retryContext, MetadataVersion dataVersion )
     {
-        retryContext.updateRetryContext( MetadataSyncTask.METADATA_SYNC, "Version already exists in system and hence stopping the sync", dataVersion, null );
+        retryContext.updateRetryContext( MetadataSyncJob.METADATA_SYNC, "Version already exists in system and hence stopping the sync", dataVersion, null );
         sendFailureMailToAdmin( retryContext );
         log.info( "Aborting Metadata sync. Version already exists in system and hence stopping the sync. Check mail and logs for more details." );
     }
 
     private void handleImportFailedContext( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext, MetadataVersion dataVersion )
     {
-        retryContext.updateRetryContext( MetadataSyncTask.METADATA_SYNC, "Import of metadata objects was unsuccessful", dataVersion, metadataSyncSummary );
+        retryContext.updateRetryContext( MetadataSyncJob.METADATA_SYNC, "Import of metadata objects was unsuccessful", dataVersion, metadataSyncSummary );
         sendFailureMailToAdmin( retryContext );
         log.info( "Aborting Metadata sync Import Failure happened. Check mail and logs for more details." );
     }
@@ -165,7 +165,7 @@ public class MetadataSyncPostProcessor
     {
         StringBuilder text = new StringBuilder( "Following Exceptions were encountered while the scheduler run for metadata sync \n\n" );
 
-        for ( String name : MetadataSyncTask.keys )
+        for ( String name : MetadataSyncJob.keys )
         {
             Object value = retryContext.getRetryContext().getAttribute( name );
 
@@ -178,13 +178,13 @@ public class MetadataSyncPostProcessor
             }
         }
 
-        Object report = retryContext.getRetryContext().getAttribute( MetadataSyncTask.METADATA_SYNC_REPORT );
+        Object report = retryContext.getRetryContext().getAttribute( MetadataSyncJob.METADATA_SYNC_REPORT );
 
         if ( report != null )
         {
             String reportString = (String) report;
             
-            text.append( MetadataSyncTask.METADATA_SYNC_REPORT )
+            text.append( MetadataSyncJob.METADATA_SYNC_REPORT )
                 .append( "\n " )
                 .append( reportString );
         }

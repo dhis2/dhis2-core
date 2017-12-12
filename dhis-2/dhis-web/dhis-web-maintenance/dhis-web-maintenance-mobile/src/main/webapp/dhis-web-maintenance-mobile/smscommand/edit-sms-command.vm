@@ -226,7 +226,7 @@
 				#end
 
         <tr>
-			<td><label for="separator">$i18n.getString( "code_value_separator" )</label></td>
+            <td><label for="separator">$i18n.getString( "field_separator" )</label></td>
 			<td>
 				<input type="text" #if($smsCommand.separator) value="$smsCommand.separator" #end id="separator" name="separator" class="validate" />
 			</td>

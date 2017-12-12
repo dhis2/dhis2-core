@@ -89,7 +89,7 @@ public class DefaultDeletionManager
 
         try
         {
-            Method allowMethod = DeletionHandler.class.getMethod( allowMethodName, new Class[]{ clazz } );
+            Method allowMethod = DeletionHandler.class.getMethod( allowMethodName, clazz );
 
             for ( DeletionHandler handler : deletionHandlers )
             {
@@ -136,7 +136,7 @@ public class DefaultDeletionManager
 
         try
         {
-            Method deleteMethod = DeletionHandler.class.getMethod( deleteMethodName, new Class[]{ clazz } );
+            Method deleteMethod = DeletionHandler.class.getMethod( deleteMethodName, clazz );
 
             for ( DeletionHandler handler : deletionHandlers )
             {

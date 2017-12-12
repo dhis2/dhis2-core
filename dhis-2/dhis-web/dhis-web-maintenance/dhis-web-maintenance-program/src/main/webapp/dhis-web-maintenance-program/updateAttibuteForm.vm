@@ -46,22 +46,7 @@
       <tr>
         <td><label for="description">$i18n.getString( "description" )</label></td>
         <td><textarea id="description" name="description">$!encoder.htmlEncode( $attribute.description )</textarea></td>
-      </tr>
-    
-	<!--
-	<tr>
-		<td><label for="searchScope">$i18n.getString( "search_scope" ) <br /></label></td>
-		<td>
-            <select id="searchScope" name="searchScope" >
-				<option value='SEARCH_ORG_UNITS' #if( $attribute.searchScope=='SEARCH_ORG_UNITS' ) selected #end>$i18n.getString('across_search_orgunits')</option>				
-				<option value='DATA_CAPTURE_ORG_UNITS' #if( $attribute.searchScope=='DATA_CAPTURE_ORG_UNITS' ) selected #end>$i18n.getString('across_data_capture_orgunits')</option>
-				<option value='ALL_ORG_UNITS' #if( $attribute.searchScope=='ALL_ORG_UNITS' ) selected #end>$i18n.getString('across_all_orgunits')</option>
-				<option value='NOT_SEARCHABLE' #if( $attribute.searchScope=='NOT_SEARCHABLE' ) selected #end>$i18n.getString('not_searchable')</option>
-			</select>
-		</td>
-		<td></td>
-	</tr>
-	-->
+      </tr>	
 	
 	<tr>
 		<td><label for="optionSetId">$i18n.getString( "option_set" )</label></td>
@@ -115,11 +100,11 @@
         </td>
     </tr>
 
-	<tr id="trackedEntityRow" #if($attribute.trackedEntity) #else class="hidden" #end>
+	<tr id="trackedEntityRow" #if($attribute.trackedEntityType) #else class="hidden" #end>
 			<td><label for="trackedEntityId">$i18n.getString( "tracked_entity" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
 			<td><select id="trackedEntityId" name="trackedEntityId" class="{validate:{required:true}}">
-					#foreach( $trackedEntity in $trackedEntities )
-						<option value="$trackedEntity.id" #if($attribute.trackedEntity.id==$trackedEntity.id) selected#end>$encoder.htmlEncode($trackedEntity.name)</option>
+					#foreach( $trackedEntityType in $trackedEntityTypes )
+						<option value="$trackedEntityType.id" #if($attribute.trackedEntityType.id==$trackedEntityType.id) selected#end>$encoder.htmlEncode($trackedEntityType.name)</option>
 					#end
 				</select>
 			</td>

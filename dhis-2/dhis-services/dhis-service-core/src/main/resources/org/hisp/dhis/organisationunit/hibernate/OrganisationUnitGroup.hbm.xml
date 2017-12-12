@@ -20,6 +20,8 @@
     <property name="shortName" column="shortname" unique="true" length="50" />
 
     <property name="symbol" />
+    
+    <property name="color" />
 
     <set name="members" table="orgunitgroupmembers">
       <cache usage="read-write" />

@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.security.SecurityContextRunnable;
 
 import java.util.List;
@@ -46,19 +46,19 @@ public class ImportEventTask
 
     private final ImportOptions importOptions;
 
-    private final TaskId taskId;
+    private final JobId jobId;
 
-    public ImportEventTask( List<Event> events, EventService eventService, ImportOptions importOptions, TaskId taskId )
+    public ImportEventTask( List<Event> events, EventService eventService, ImportOptions importOptions, JobId jobId )
     {
         this.events = events;
         this.eventService = eventService;
         this.importOptions = importOptions;
-        this.taskId = taskId;
+        this.jobId = jobId;
     }
 
     @Override
     public void call()
     {
-        eventService.addEvents( events, importOptions, taskId );
+        eventService.addEvents( events, importOptions, jobId );
     }
 }

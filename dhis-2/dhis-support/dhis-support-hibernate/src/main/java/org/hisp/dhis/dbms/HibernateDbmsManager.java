@@ -85,6 +85,11 @@ public class HibernateDbmsManager
         emptyTable( "constant" );
         emptyTable( "sqlview" );
 
+        emptyTable( "smscodes" );
+        emptyTable( "smscommandcodes" );
+        emptyTable( "smscommands" );
+        emptyTable( "incomingsms" );
+
         emptyTable( "datavalue_audit" );
         emptyTable( "datavalueaudit" );
         emptyTable( "datavalue" );
@@ -99,6 +104,7 @@ public class HibernateDbmsManager
         emptyTable( "dashboard_items" );
         emptyTable( "dashboarditem" );
         emptyTable( "dashboardusergroupaccesses" );
+        emptyTable( "dashboarduseraccesses" );
         emptyTable( "dashboard" );
 
         emptyTable( "interpretation_comments" );
@@ -178,6 +184,8 @@ public class HibernateDbmsManager
         emptyTable( "orgunitgroupsetdimension_items" );
         emptyTable( "orgunitgroupsetdimension" );
 
+        emptyTable( "program_userroles" );
+
         emptyTable( "users_catdimensionconstraints" );
         emptyTable( "users_cogsdimensionconstraints" );
         emptyTable( "userrolemembers" );
@@ -209,6 +217,9 @@ public class HibernateDbmsManager
 
         emptyTable( "lockexception" );
 
+        emptyTable( "sectiondataelements" );
+        emptyTable( "section" );
+
         emptyTable( "datasetsource" );
         emptyTable( "datasetelement" );
         emptyTable( "datasetindicators" );
@@ -224,9 +235,17 @@ public class HibernateDbmsManager
         emptyTable( "predictororgunitlevels" );
         emptyTable( "predictor" );
 
+        emptyTable( "datadimensionitem" );
+
+        emptyTable( "programrulevariable" );
+        emptyTable( "programruleaction" );
+        emptyTable( "programrule" );
+
         emptyTable( "trackedentitydatavalue" );
+        emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
+        emptyTable( "programnotificationtemplate" );
         emptyTable( "programstage_dataelements" );
         emptyTable( "programstagedataelement" );
         emptyTable( "programstage" );
@@ -237,8 +256,10 @@ public class HibernateDbmsManager
         emptyTable( "program" );
 
         emptyTable( "trackedentityattributevalue" );
+        emptyTable( "trackedentityattributevalueaudit" );
         emptyTable( "trackedentityattribute" );
         emptyTable( "trackedentityinstance" );
+        emptyTable( "trackedentity" );
 
         emptyTable( "minmaxdataelement" );
         emptyTable( "expressiondataelement" );
@@ -264,6 +285,7 @@ public class HibernateDbmsManager
         emptyTable( "categorycombos_categories" );
         emptyTable( "categories_categoryoptions" );
 
+        emptyTable( "userteisearchorgunits" );
         emptyTable( "categoryoption_organisationunits" );
         emptyTable( "organisationunit" );
         emptyTable( "orgunitlevel" );
@@ -305,12 +327,23 @@ public class HibernateDbmsManager
 
         emptyTable( "systemsetting" );
 
+        emptyTable( "attribute" );
+
+        emptyTable( "messageconversation_usermessages" );
+        emptyTable( "usermessage" );
+        emptyTable( "messageconversation_messages" );
+        emptyTable( "messageconversation" );
+        emptyTable( "message" );
+
         emptyTable( "usergroupusergroupaccesses" );
         emptyTable( "usergroupaccess" );
         emptyTable( "usergroupmembers" );
         emptyTable( "usergroup" );
 
+        emptyTable( "previouspasswords" );
         emptyTable( "users" );
+        emptyTable( "useraccess" );
+        emptyTable( "usersetting" );
         emptyTable( "userinfo" );
 
         dropTable( "_orgunitstructure" );

@@ -30,25 +30,11 @@ package org.hisp.dhis.analytics.event;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
-
 /**
  * @author Lars Helge Overland
  */
 public interface EventQueryPlanner
 {
-    /**
-     * Validates the given query. Throws an IllegalQueryException if the query
-     * is not valid with a descriptive message. Returns normally if the query is
-     * valid.
-     * 
-     * @param params the event query parameters.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    void validate( EventQueryParams params )
-        throws IllegalQueryException, MaintenanceModeException;
-        
     /**
      * Plans the given parameters and returns a list of parameters.
      * 
@@ -64,11 +50,4 @@ public interface EventQueryPlanner
      * @return an {@link EventQueryParams}.
      */
     EventQueryParams planEventQuery( EventQueryParams params );
-    
-    /**
-     * Returns the max number of records to return. A value of 0 indicates no limit.
-     * 
-     * @return the max number of recrods to return.
-     */
-    int getMaxLimit();
 }

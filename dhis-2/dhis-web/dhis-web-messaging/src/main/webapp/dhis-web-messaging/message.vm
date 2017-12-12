@@ -63,7 +63,7 @@
             </thead>
             <tbody id="messages" >
                 #foreach( $conversation in $conversations )
-                <tr name="${conversation.uid}" id="tr${conversation.id}" #if( !$conversation.read )class="unread bold"#end>
+                <td name="${conversation.uid}" id="tr${conversation.id}" #if( !$conversation.read )class="unread bold"#end>
                     <td style="width:20px;padding-left:5px;">
                         <input type="checkbox" value="${conversation.uid}" onchange="toggleRowSelected( this )"/>
                     </td>
@@ -75,13 +75,13 @@
                     </td>
                     <td onclick="read( '${conversation.uid}' )">
                         <span class="margin-left 4px">
-                            #if( $showTicketTools && $conversation.priority != "NONE" && $conversation.status != "SOLVED" )
+                            #if( ( ($conversation.messageType.toString().equals("TICKET") && $ticketAccess) || $conversation.messageType.toString().equals("VALIDATION_RESULT" )) && $conversation.priority != "NONE" && $conversation.status != "SOLVED" )
                                 <span class="message-priority message-priority-${conversation.priority}">$!{conversation.priority}</span>
                             #end
                         </span>
                         $!encoder.htmlEncode( $conversation.subject )
                     </td>
-                    #if( $showTicketTools )
+                    #if( ($conversation.messageType.toString().equals("TICKET") && $ticketAccess) || $conversation.messageType.toString().equals("VALIDATION_RESULT" ))
                         <td style="width:100px; text-align: center;">
                         #if( $conversation.status != "NONE" )
                             <span class="message-status">
@@ -89,6 +89,8 @@
                             </span>
                         #end
                         </td>
+                    #else
+                        <td></td>
                     #end
                     <td onclick="read( '${conversation.uid}' )" style="width:80px">$!format.formatDate( $conversation.lastMessage )</td>
                     <td style="width:70px; text-align:center;">

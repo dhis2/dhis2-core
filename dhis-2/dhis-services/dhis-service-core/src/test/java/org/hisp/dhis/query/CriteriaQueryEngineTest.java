@@ -468,4 +468,76 @@ public class CriteriaQueryEngineTest
         assertEquals( 1, objects.size() );
         assertEquals( "abcdefghijB", objects.get( 0 ).getUid() );
     }
+
+    @Test
+    public void testIdentifiableSearch1()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "name", "DataElementGroupA" ) );
+        query.add( Restrictions.eq( "name", "DataElementGroupB" ) );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testIdentifiableSearch2()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+
+        Junction disjunction = new Disjunction( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        disjunction.add( Restrictions.eq( "name", "DataElementGroupA" ) );
+        disjunction.add( Restrictions.eq( "name", "DataElementGroupB" ) );
+        query.add( disjunction );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testIdentifiableSearch3()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
+
+        Junction disjunction = new Disjunction( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        disjunction.add( Restrictions.like( "name", "GroupA", MatchMode.ANYWHERE ) );
+        query.add( disjunction );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 1, objects.size() );
+    }
+
+    @Test
+    public void testIdentifiableSearch4()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+
+        Junction disjunction = new Disjunction( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        disjunction.add( Restrictions.like( "name", "GroupA", MatchMode.ANYWHERE ) );
+        disjunction.add( Restrictions.like( "name", "GroupA", MatchMode.ANYWHERE ) );
+        query.add( disjunction );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 1, objects.size() );
+    }
+
+    @Test
+    public void testIdentifiableSearch5()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+
+        Junction disjunction = new Disjunction( schemaService.getDynamicSchema( DataElementGroup.class ) );
+        disjunction.add( Restrictions.like( "name", "GroupA", MatchMode.ANYWHERE ) );
+        disjunction.add( Restrictions.like( "name", "GroupA", MatchMode.ANYWHERE ) );
+        disjunction.add( Restrictions.like( "name", "GroupB", MatchMode.ANYWHERE ) );
+        query.add( disjunction );
+
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 2, objects.size() );
+    }
 }

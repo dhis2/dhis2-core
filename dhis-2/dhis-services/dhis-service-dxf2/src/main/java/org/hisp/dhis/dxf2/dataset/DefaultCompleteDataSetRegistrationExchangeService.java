@@ -64,7 +64,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
@@ -204,7 +204,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, TaskId taskId )
+    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobId jobId )
     {
         try
         {
@@ -212,11 +212,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             CompleteDataSetRegistrations completeDataSetRegistrations =
                 new StreamingXmlCompleteDataSetRegistrations( XMLFactory.getXMLReader( in ) );
 
-            return saveCompleteDataSetRegistrations( importOptions, taskId, completeDataSetRegistrations );
+            return saveCompleteDataSetRegistrations( importOptions, jobId, completeDataSetRegistrations );
         }
         catch ( Exception ex )
         {
-            return handleImportError( taskId, ex );
+            return handleImportError( jobId, ex );
         }
     }
 
@@ -227,7 +227,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, TaskId taskId )
+    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobId jobId )
     {
         try
         {
@@ -235,11 +235,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             CompleteDataSetRegistrations completeDataSetRegistrations =
                 DefaultRenderService.getJsonMapper().readValue( in, CompleteDataSetRegistrations.class );
 
-            return saveCompleteDataSetRegistrations( importOptions, taskId, completeDataSetRegistrations );
+            return saveCompleteDataSetRegistrations( importOptions, jobId, completeDataSetRegistrations );
         }
         catch ( Exception ex )
         {
-            return handleImportError( taskId, ex );
+            return handleImportError( jobId, ex );
         }
     }
 
@@ -346,10 +346,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private ImportSummary handleImportError( TaskId taskId, Throwable ex )
+    private ImportSummary handleImportError( JobId jobId, Throwable ex )
     {
         log.error( DebugUtils.getStackTrace( ex ) );
-        notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+        notifier.notify( jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
         return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
     }
 
@@ -360,7 +360,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         throw new IllegalQueryException( message );
     }
 
-    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, TaskId id, CompleteDataSetRegistrations completeRegistrations )
+    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobId id, CompleteDataSetRegistrations completeRegistrations )
     {
         Clock clock = new Clock( log ).startClock().logTime( "Starting complete data set registration import, options: " + importOptions );
         notifier.clear( id ).notify( id, "Process started" );

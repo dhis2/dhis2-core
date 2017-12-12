@@ -73,6 +73,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -184,7 +185,7 @@ public abstract class AbstractEnrollmentService
 
         if ( programInstance.getEntityInstance() != null )
         {
-            enrollment.setTrackedEntity( programInstance.getEntityInstance().getTrackedEntity().getUid() );
+            enrollment.setTrackedEntityType( programInstance.getEntityInstance().getTrackedEntityType().getUid() );
             enrollment.setTrackedEntityInstance( programInstance.getEntityInstance().getUid() );
         }
 
@@ -233,6 +234,7 @@ public abstract class AbstractEnrollmentService
         enrollment.setFollowup( programInstance.getFollowup() );
         enrollment.setCompletedDate( programInstance.getEndDate() );
         enrollment.setCompletedBy( programInstance.getCompletedBy() );
+        enrollment.setStoredBy( programInstance.getStoredBy() );
 
         List<TrackedEntityComment> comments = programInstance.getComments();
 
@@ -269,6 +271,8 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions )
     {
+        User user = currentUserService.getCurrentUser();
+    	
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
@@ -279,7 +283,7 @@ public abstract class AbstractEnrollmentService
 
         for ( Enrollment enrollment : enrollments )
         {
-            importSummaries.addImportSummary( addEnrollment( enrollment, importOptions ) );
+            importSummaries.addImportSummary( addEnrollment( enrollment, importOptions, user ) );
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
@@ -293,8 +297,10 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user )
     {
+    	String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ? enrollment.getStoredBy() : user.getUsername();
+    	
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
@@ -398,6 +404,8 @@ public abstract class AbstractEnrollmentService
         updateAttributeValues( enrollment, importOptions );
         updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
+        programInstance.setStoredBy( storedBy );
+        
 
         programInstanceService.updateProgramInstance( programInstance );
         manager.update( programInstance.getEntityInstance() );

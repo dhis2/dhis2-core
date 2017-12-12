@@ -201,7 +201,7 @@
       }
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "created": "2016-03-16T17:00:00.000+0000",
       "name": "Person",
@@ -291,7 +291,7 @@
       "hideTitle": false,
       "regression": false,
       "type": "COLUMN",
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "series": "dx",
       "created": "2016-03-17T01:56:51.847+0000",
       "periods": [ ],
@@ -385,7 +385,7 @@
       "type": "COLUMN",
       "hideTitle": false,
       "hideSubtitle": false,
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "userGroupAccesses": [ ],
       "categoryDimensions": [ ],
       "userOrganisationUnit": false,
@@ -398,7 +398,7 @@
       "created": "2016-03-17T01:57:13.118+0000"
     },
     {
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "hideTitle": false,
       "hideSubtitle": false,
       "type": "COLUMN",

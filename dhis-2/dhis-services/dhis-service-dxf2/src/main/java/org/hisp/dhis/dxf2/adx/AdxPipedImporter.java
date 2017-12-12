@@ -40,7 +40,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -60,14 +60,14 @@ public class AdxPipedImporter
 
     private final ImportOptions importOptions;
 
-    private final TaskId id;
+    private final JobId id;
     
     private final SessionFactory sessionFactory;
     
     private final Authentication authentication;
 
     public AdxPipedImporter( DataValueSetService dataValueSetService, ImportOptions importOptions,
-        TaskId id, PipedOutputStream pipeOut, SessionFactory sessionFactory ) throws IOException
+        JobId id, PipedOutputStream pipeOut, SessionFactory sessionFactory ) throws IOException
     {
         this.dataValueSetService = dataValueSetService;
         this.pipeIn = new PipedInputStream( pipeOut, PIPE_BUFFER_SIZE );

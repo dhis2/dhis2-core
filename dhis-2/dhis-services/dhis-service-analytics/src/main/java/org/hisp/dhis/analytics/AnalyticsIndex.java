@@ -35,10 +35,19 @@ package org.hisp.dhis.analytics;
  */
 public class AnalyticsIndex
 {
+    /**
+     * Table name.
+     */
     private String table;
     
+    /**
+     * Table column name.
+     */
     private String column;
     
+    /**
+     * Index type.
+     */
     private String type;
 
     /**

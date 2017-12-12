@@ -28,15 +28,14 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.TaskCategory;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.scheduling.JobType;
+
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -48,7 +47,7 @@ public class Notification
     
     private NotificationLevel level;
     
-    private TaskCategory category;
+    private JobType category;
     
     private Date time;
     
@@ -65,7 +64,7 @@ public class Notification
         this.uid = CodeGenerator.generateUid();
     }
 
-    public Notification( NotificationLevel level, TaskCategory category, Date time, String message, boolean completed )
+    public Notification(NotificationLevel level, JobType category, Date time, String message, boolean completed )
     {
         this.uid = CodeGenerator.generateUid();
         this.level = level;
@@ -105,12 +104,12 @@ public class Notification
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TaskCategory getCategory()
+    public JobType getCategory()
     {
         return category;
     }
 
-    public void setCategory( TaskCategory category )
+    public void setCategory( JobType category )
     {
         this.category = category;
     }

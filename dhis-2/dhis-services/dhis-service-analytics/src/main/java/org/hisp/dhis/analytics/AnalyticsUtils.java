@@ -53,6 +53,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.joda.time.DateTime;
 import org.springframework.util.Assert;
 
 import java.util.*;
@@ -514,6 +515,7 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
+
                     map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), period.getDisplayName() );
                 }
                 else
@@ -549,6 +551,8 @@ public class AnalyticsUtils
 
         Calendar calendar = PeriodType.getCalendar();
 
+        Boolean includeMetadataDetails = params.includeMetadataDetails;
+
         for ( DimensionalObject dimension : dimensions )
         {
             for ( DimensionalItemObject item : dimension.getItems() )
@@ -557,12 +561,12 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
-                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName() ) );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
                 }
                 else
                 {
                     String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
-                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet ) );
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet, includeMetadataDetails ? item : null ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
@@ -571,7 +575,7 @@ public class AnalyticsUtils
                     
                     for ( OrganisationUnit ancestor : unit.getAncestors() )
                     {
-                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ) ) );
+                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? ancestor : null ) );
                     }
                 }
                 
@@ -581,12 +585,12 @@ public class AnalyticsUtils
                     
                     for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                     {
-                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ) ) );
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
                     }
                 }
             }
 
-            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ) ) );
+            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
         }
 
         return map;
@@ -687,7 +691,7 @@ public class AnalyticsUtils
      * 
      * @param dimensions the dimensions.
      * @param hierarchyMeta indicates whether to include meta data about the
-     *        organisation unit hierarchy.
+     *         organisation unit hierarchy.
      * @return a mapping between identifiers and display properties.
      */
     public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
@@ -725,18 +729,15 @@ public class AnalyticsUtils
      * @param maxYears amount of years back to check
      * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
      */
-    public static boolean periodIsOutsideApprovalMaxYears( Period period, Integer maxYears )
+    public static boolean periodIsOutsideApprovalMaxYears( Integer year, Integer maxYears )
     {
         if ( maxYears == 0 )
         {
             return false;
         }
 
-        java.util.Calendar periodDate = java.util.Calendar.getInstance();
-        java.util.Calendar now = java.util.Calendar.getInstance();
-
-        periodDate.setTime( period.getStartDate() );
-
-        return ( now.get( java.util.Calendar.YEAR ) - periodDate.get( java.util.Calendar.YEAR ) ) >= maxYears;
+        int currentYear = new DateTime().getYear();
+        
+        return ( currentYear - year ) >= maxYears;
     }
 }

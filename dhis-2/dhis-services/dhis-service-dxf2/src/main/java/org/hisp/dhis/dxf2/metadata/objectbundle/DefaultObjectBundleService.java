@@ -1,32 +1,32 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-/*
- * Copyright (c) 2004-2017, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+    /*
+     * Copyright (c) 2004-2017, University of Oslo
+     * All rights reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions are met:
+     * Redistributions of source code must retain the above copyright notice, this
+     * list of conditions and the following disclaimer.
+     *
+     * Redistributions in binary form must reproduce the above copyright notice,
+     * this list of conditions and the following disclaimer in the documentation
+     * and/or other materials provided with the distribution.
+     * Neither the name of the HISP project nor the names of its contributors may
+     * be used to endorse or promote products derived from this software without
+     * specific prior written permission.
+     *
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+     * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+     * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     */
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,6 +35,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -62,6 +63,7 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -228,9 +230,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         objects.forEach( object -> objectBundleHooks.forEach( hook -> {
@@ -248,6 +250,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
             typeReport.addObjectReport( objectReport );
 
             preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+
+            if ( bundle.getOverrideUser() != null )
+            {
+                ((BaseIdentifiableObject) object).setUser( bundle.getOverrideUser() );
+
+                if ( User.class.isInstance( object ) )
+                {
+                    ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
+                }
+            }
 
             session.save( object );
 
@@ -315,9 +327,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         objects.forEach( object ->
@@ -350,6 +362,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 mergeService.merge( new MergeParams<>( object, persistedObject )
                     .setMergeMode( bundle.getMergeMode() )
                     .setSkipSharing( bundle.isSkipSharing() ) );
+            }
+
+            if ( bundle.getOverrideUser() != null )
+            {
+                ((BaseIdentifiableObject) persistedObject).setUser( bundle.getOverrideUser() );
+
+                if ( User.class.isInstance( object ) )
+                {
+                    ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
+                }
             }
 
             session.update( persistedObject );
@@ -418,9 +440,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         List<IdentifiableObject> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(), objects );

@@ -100,10 +100,11 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -870,11 +871,11 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteTrackedEntity( TrackedEntity trackedEntity )
+    public void deleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
     }
 
-    public String allowDeleteTrackedEntity( TrackedEntity trackedEntity )
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         return null;
     }
@@ -967,6 +968,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteSMSCommand( SMSCommand smsCommand )
+    {
+        return null;
+    }
+
+    public void deleteJobConfiguration( JobConfiguration jobConfiguration )
+    {
+    }
+
+    public String allowDeleteJobConfiguration(JobConfiguration jobConfiguration )
     {
         return null;
     }

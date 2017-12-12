@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -386,7 +387,7 @@ public class DefaultHibernateConfigurationProvider
     {
         try ( InputStream input = new ClassPathResource( FILENAME_CACHE_NAMES ).getInputStream() )
         {
-            return IOUtils.readLines( input );
+            return IOUtils.readLines( input, StandardCharsets.UTF_8 );
         }
         catch ( IOException ex )
         {

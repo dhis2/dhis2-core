@@ -23,7 +23,7 @@ jQuery(function() {
 </script>
 
 #macro( gearDropDown $user )
-  #if( $currentUser.userCredentials.isSuper() || $currentUser == $user )
+  #if( $sender.userCredentials.isSuper() || $sender == $user )
   <div class="gearDropDown">
     <span><i class="fa fa-gear"></i> <i class="fa fa-caret-down"></i></span>
   </div>

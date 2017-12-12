@@ -29,15 +29,18 @@ package org.hisp.dhis.predictor;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ListMapMap;
+import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.constant.ConstantService;
@@ -50,10 +53,13 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -75,13 +81,13 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @author Ken Haase
  * @author Jim Grace
  */
-
-public class DefaultPredictionService implements PredictionService
+public class DefaultPredictionService
+    implements PredictionService
 {
     private static final Log log = LogFactory.getLog( DefaultPredictionService.class );
 
     @Autowired
-    private PredictorStore predictorStore;
+    private PredictorService predictorService;
 
     @Autowired
     private ConstantService constantService;
@@ -116,6 +122,24 @@ public class DefaultPredictionService implements PredictionService
     // Prediction business logic
     // -------------------------------------------------------------------------
 
+    public final static String NON_AOC = ""; // String that is not an Attribute Option Combo
+
+    public int predictPredictors( List<String> predictors, Date startDate, Date endDate )
+    {
+        int totalCount = 0;
+
+        for ( String uid : predictors) {
+            Predictor predictor = predictorService.getPredictor( uid );
+
+            int count = predict( predictor, startDate, endDate );
+
+            log.info( "Generated " + count + " predictions" );
+            totalCount += count;
+        }
+
+        return totalCount;
+    }
+
     @Override
     public int predict( Predictor predictor, Date startDate, Date endDate )
     {
@@ -125,52 +149,100 @@ public class DefaultPredictionService implements PredictionService
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement outputDataElement = predictor.getOutput();
 
-        Set<String> aggregates = expressionService.getAggregatesInExpression( generator.getExpression() );
+        Set<String> aggregates = new HashSet<>();
+        Set<String> nonAggregates = new HashSet<>();
+        expressionService.getAggregatesAndNonAggregatesInExpression( generator.getExpression(), aggregates, nonAggregates );
         Map<String, Double> constantMap = constantService.getConstantMap();
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
+        Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
-        Set<DimensionalItemObject> dimensionItems = getdimensionItems( aggregates, skipTest );
+        Set<DimensionalItemObject> aggregateDimensionItems = getDimensionItems( aggregates, skipTest );
+        Set<DimensionalItemObject> nonAggregateDimensionItems = getDimensionItems( nonAggregates, null );
         User currentUser = currentUserService.getCurrentUser();
+        Set<String> defaultOptionComboAsSet = Sets.newHashSet( categoryService.getDefaultDataElementCategoryOptionCombo().getUid() );
+        Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> emptyMap4 = new Map4<>();
+        MapMapMap<Period, String, DimensionalItemObject, Double> emptyMapMapMap = new MapMapMap<>();
+        boolean usingAttributeOptions = hasAttributeOptions( aggregateDimensionItems ) || hasAttributeOptions( nonAggregateDimensionItems );
 
         DataElementCategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
             categoryService.getDefaultDataElementCategoryOptionCombo() : predictor.getOutputCombo();
 
-        List<OrganisationUnit> orgUnits = organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
-            predictor.getOrganisationUnitLevels(), currentUser.getOrganisationUnits() );
-
         int predictionCount = 0;
 
-        for ( OrganisationUnit orgUnit : orgUnits )
+        for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
-            MapMapMap<Period, String, DimensionalItemObject, Double> dataMap = dimensionItems.isEmpty() ? null :
-                getDataValues( dimensionItems, allSamplePeriods, orgUnit );
+            List<OrganisationUnit> orgUnitsAtLevel = organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
+                Lists.newArrayList( orgUnitLevel ), currentUser.getOrganisationUnits() );
 
-            applySkipTest( dataMap, skipTest, constantMap );
-
-            for ( Period period : outputPeriods )
+            if ( orgUnitsAtLevel.size() == 0 )
             {
-                ListMapMap<String, String, Double> aggregateSampleMap = getAggregateSamples( dataMap,
-                    aggregates, samplePeriodsMap.get( period ), constantMap );
+                continue;
+            }
 
-                for ( String aoc : aggregateSampleMap.keySet() )
+            List<List<OrganisationUnit>> orgUnitLists = Lists.partition(orgUnitsAtLevel, 500);
+
+            for ( List<OrganisationUnit> orgUnits : orgUnitLists )
+            {
+                Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> aggregateDataMap4 =
+                    aggregateDimensionItems.isEmpty() ? emptyMap4 :
+                        getDataValues( aggregateDimensionItems, allSamplePeriods, orgUnits );
+
+                Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> nonAggregateDataMap4 =
+                    nonAggregateDimensionItems.isEmpty() ? emptyMap4 :
+                        getDataValues( nonAggregateDimensionItems, existingOutputPeriods, orgUnits );
+
+                for ( OrganisationUnit orgUnit : orgUnits )
                 {
-                    ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
+                    MapMapMap<Period, String, DimensionalItemObject, Double> aggregateDataMap = aggregateDataMap4.get( orgUnit );
 
-                    Double value = expressionService.getExpressionValue( generator, new HashMap<>(),
-                        constantMap,null, period.getDaysInPeriod(), aggregateValueMap );
+                    MapMapMap<Period, String, DimensionalItemObject, Double> nonAggregateDataMap =
+                        firstNonNull( nonAggregateDataMap4.get( orgUnit ), emptyMapMapMap );
 
-                    if ( value != null && !value.isNaN() && !value.isInfinite() )
+                    applySkipTest( aggregateDataMap, skipTest, constantMap );
+
+                    for ( Period period : outputPeriods )
                     {
-                        String valueString = outputDataElement.getValueType().isInteger() ?
-                            Long.toString( Math.round( value ) ) :
-                            Double.toString( MathUtils.roundFraction( value, 4 ) );
+                        ListMapMap<String, String, Double> aggregateSampleMap = getAggregateSamples( aggregateDataMap,
+                            aggregates, samplePeriodsMap.get( period ), constantMap );
 
-                        writeDataValue( outputDataElement, period, orgUnit, outputOptionCombo,
-                            categoryService.getDataElementCategoryOptionCombo( aoc ),
-                            valueString, currentUser.getUsername() );
+                        MapMap<String, DimensionalItemObject, Double> nonAggregateSampleMap = firstNonNull(
+                            nonAggregateDataMap.get( period ), new MapMap<>() );
 
-                        predictionCount++;
+                        Set<String> attributeOptionCombos = usingAttributeOptions ?
+                            Sets.union( aggregateSampleMap.keySet(), nonAggregateSampleMap.keySet() ) : defaultOptionComboAsSet;
+
+                        ListMap<String, Double> aggregateSampleMapNonAoc = aggregateSampleMap.get( NON_AOC );
+
+                        Map<DimensionalItemObject, Double> nonAggregateSampleMapNonAoc = nonAggregateSampleMap.get( NON_AOC );
+
+                        for ( String aoc : attributeOptionCombos )
+                        {
+                            if ( NON_AOC.compareTo( aoc ) == 0 )
+                            {
+                                continue;
+                            }
+
+                            ListMap<String, Double> aggregateValueMap = ListMap.union( aggregateSampleMap.get( aoc ), aggregateSampleMapNonAoc );
+
+                            Map<DimensionalItemObject, Double> nonAggregateValueMap = combine( nonAggregateSampleMap.get( aoc ), nonAggregateSampleMapNonAoc );
+
+                            Double value = expressionService.getExpressionValue( generator, nonAggregateValueMap,
+                                constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
+
+                            if ( value != null && !value.isNaN() && !value.isInfinite() )
+                            {
+                                String valueString = outputDataElement.getValueType().isInteger() ?
+                                    Long.toString( Math.round( value ) ) :
+                                    Double.toString( MathUtils.roundFraction( value, 4 ) );
+
+                                writeDataValue( outputDataElement, period, orgUnit, outputOptionCombo,
+                                    categoryService.getDataElementCategoryOptionCombo( aoc ),
+                                    valueString, currentUser.getUsername() );
+
+                                predictionCount++;
+                            }
+                        }
                     }
                 }
             }
@@ -182,23 +254,48 @@ public class DefaultPredictionService implements PredictionService
         return predictionCount;
     }
 
+    private Map<DimensionalItemObject, Double> combine ( Map<DimensionalItemObject, Double> a, Map<DimensionalItemObject, Double> b )
+    {
+        if ( a == null || a.isEmpty() )
+        {
+            if ( b == null || b.isEmpty() )
+            {
+                return new HashMap<>();
+            }
+            else
+            {
+                return b;
+            }
+        }
+        else if ( b == null || b.isEmpty() )
+        {
+            return a;
+        }
+
+        Map<DimensionalItemObject, Double> c = new HashMap<>( a );
+
+        for (Map.Entry<DimensionalItemObject, Double> entry : b.entrySet() )
+        {
+            c.put( (DimensionalItemObject)entry.getKey(), entry.getValue() );
+        }
+
+        return c;
+    }
+
     /**
-     * Gets all DimensionalItemObjects from the aggregate expressions and skip test.
+     * Gets all DimensionalItemObjects from the expressions and skip test.
      *
-     * @param aggregates set of aggregate expressions. These are subexpressions
-     *                   which are passed to aggregate functions (such as AVG,
-     *                   STDDEV, etc.) which generate vectors of sample values
-     *                   rather than a simple, scalar value.
-     * @param skipTest the skip test expression.
-     * @return set of all DataElementOperands found in all expressions.
+     * @param expressions set of expressions.
+     * @param skipTest the skip test expression (if any).
+     * @return set of all dimensional item objects found in all expressions.
      */
-    private Set<DimensionalItemObject> getdimensionItems( Set<String> aggregates, Expression skipTest )
+    private Set<DimensionalItemObject> getDimensionItems( Set<String> expressions, Expression skipTest )
     {
         Set<DimensionalItemObject> operands = new HashSet<>();
 
-        for ( String aggregate : aggregates )
+        for ( String expression : expressions )
         {
-            operands.addAll( expressionService.getDimensionalItemObjectsInExpression( aggregate ) );
+            operands.addAll( expressionService.getDimensionalItemObjectsInExpression( expression ) );
         }
 
         if ( skipTest != null )
@@ -210,13 +307,41 @@ public class DefaultPredictionService implements PredictionService
     }
 
     /**
+     * Checks to see if any dimensional item objects in a set have values
+     * stored in the database by attribute option combo.
+     *
+     * @param oSet set of dimensional item objects
+     * @return true if any are stored by attribuete option combo.
+     */
+    private boolean hasAttributeOptions( Set<DimensionalItemObject> oSet )
+    {
+        for ( DimensionalItemObject o : oSet )
+        {
+            if ( hasAttributeOptions( o ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks to see if a dimensional item object has values
+     * stored in the database by attribute option combo.
+     *
+     * @param o dimensional item object
+     * @return true if values are stored by attribuete option combo.
+     */
+    private boolean hasAttributeOptions( DimensionalItemObject o )
+    {
+        return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
+            || ( (ProgramIndicator)o ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
+    }
+
+    /**
      * For a given predictor, orgUnit, and outputPeriod, returns for each
      * attribute option combo and aggregate expression a list of values for
      * the various sample periods.
-     *
-     * If there are no aggregate expressions, then the prediction is a constant.
-     * If this is the case, then return the default attribute option combo
-     * into which any constant prediction value will be written.
      *
      * @param dataMap data to be used in evaluating expressions.
      * @param aggregates the aggregate expressions.
@@ -231,11 +356,7 @@ public class DefaultPredictionService implements PredictionService
     {
         ListMapMap<String, String, Double> result = new ListMapMap<>();
 
-        if ( aggregates.isEmpty() )
-        {
-            result.put( categoryService.getDefaultDataElementCategoryOptionCombo().getUid(), new ListMap<>() );
-        }
-        else if ( dataMap != null )
+        if ( dataMap != null )
         {
             for ( String aggregate : aggregates )
             {
@@ -405,6 +526,34 @@ public class DefaultPredictionService implements PredictionService
     }
 
     /**
+     * Finds the set of periods that exist, from a list of periods.
+     *
+     * Only adds the period if it is found in the database, because:
+     * (a) We will need the period id, and
+     * (b) If the period does not exist in the database, then
+     *     there is no data in the database to look for.
+     *
+     * @param periods the periods to look for
+     * @return the set of periods that exist, with ids.
+     */
+    private Set<Period> getExistingPeriods( List<Period> periods )
+    {
+        Set<Period> existingPeriods = new HashSet<>();
+
+        for ( Period period : periods )
+        {
+            Period existingPeriod = period.getId() != 0 ? period :
+                periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
+
+            if ( existingPeriod != null )
+            {
+                existingPeriods.add( existingPeriod );
+            }
+        }
+        return existingPeriods;
+    }
+
+    /**
      * Gets data values for a set of DimensionalItemObjects over a set of
      * Periods for an organisation unit and/or any of the organisation unit's
      * descendants.
@@ -416,15 +565,16 @@ public class DefaultPredictionService implements PredictionService
      *
      * @param dimensionItems the dimensionItems.
      * @param periods the Periods of the DataValues.
-     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @param orgUnits the roots of the OrganisationUnit trees to include.
      * @return the map of values
      */
-    private MapMapMap<Period, String, DimensionalItemObject, Double> getDataValues(
-        Set<DimensionalItemObject> dimensionItems, Set<Period> periods, OrganisationUnit orgUnit)
+    private Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataValues(
+        Set<DimensionalItemObject> dimensionItems, Set<Period> periods, List<OrganisationUnit> orgUnits)
     {
         Set<DataElementOperand> dataElementOperands = new HashSet<>();
-        Set<DimensionalItemObject> eventObjects = new HashSet<>();
-        MapMapMap<Period, String, DimensionalItemObject, Double> dataValues = new MapMapMap<>();
+        Set<DimensionalItemObject> eventAttributeOptionObjects = new HashSet<>();
+        Set<DimensionalItemObject> eventNonAttributeOptionObjects = new HashSet<>();
+        Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> dataValues = new Map4<>();
 
         for ( DimensionalItemObject o : dimensionItems )
         {
@@ -436,20 +586,29 @@ public class DefaultPredictionService implements PredictionService
             {
                 dataElementOperands.add( new DataElementOperand( (DataElement) o ) );
             }
+            else if ( hasAttributeOptions( o ) )
+            {
+                eventAttributeOptionObjects.add( o );
+            }
             else
             {
-                eventObjects.add( o );
+                eventNonAttributeOptionObjects.add( o );
             }
         }
 
         if ( !dataElementOperands.isEmpty() )
         {
-            dataValues = dataValueService.getDataElementOperandValues( dataElementOperands, periods, orgUnit );
+            dataValues = dataValueService.getDataElementOperandValues( dataElementOperands, periods, orgUnits );
         }
 
-        if ( !eventObjects.isEmpty() )
+        if ( !eventAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putAll( getEventDataValues( eventObjects, periods, orgUnit ) );
+            dataValues.putAll( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
+        }
+
+        if ( !eventNonAttributeOptionObjects.isEmpty() )
+        {
+            dataValues.putAll( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
         }
 
         return dataValues;
@@ -457,50 +616,57 @@ public class DefaultPredictionService implements PredictionService
 
     /**
      * Gets data values for a set of Event dimensionItems over a set of
-     * Periods for an organisation unit and/or any of the organisation unit's
-     * descendants.
+     * Periods for a list of organisation units and/or any of the organisation
+     * units' descendants.
      *
-     * Returns the values mapped by Period, then attribute option combo UID,
-     * then DimensionalItemObject.
+     * Returns the values mapped by OrganisationUnit, Period, attribute option
+     * combo UID, and DimensionalItemObject.
      *
      * @param dimensionItems the dimensionItems.
      * @param periods the Periods of the DataValues.
-     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @param orgUnits the roots of the OrganisationUnit trees to include.
      * @return the map of values
      */
-    private MapMapMap<Period, String, DimensionalItemObject, Double> getEventDataValues(
-        Set<DimensionalItemObject> dimensionItems, Set<Period> periods, OrganisationUnit orgUnit)
+    private Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getEventDataValues(
+        Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions, Set<Period> periods, List<OrganisationUnit> orgUnits)
     {
-        MapMapMap<Period, String, DimensionalItemObject, Double> eventDataValues = new MapMapMap<>();
+        Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> eventDataValues = new Map4<>();
 
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( new ArrayList( periods ) )
+        DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder()
+            .withPeriods( new ArrayList<Period>( periods ) )
             .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
-            .withAttributeOptionCombos( Lists.newArrayList() )
-            .withFilterOrganisationUnits( Lists.newArrayList( orgUnit ) )
-            .build();
+            .withOrganisationUnits( orgUnits );
 
-        Grid grid = analyticsService.getAggregatedDataValues( params );
+        if ( hasAttributeOptions )
+        {
+            paramsBuilder.withAttributeOptionCombos( Lists.newArrayList() );
+        }
+
+        Grid grid = analyticsService.getAggregatedDataValues( paramsBuilder.build() );
 
         int peInx = grid.getIndexOfHeader( DimensionalObject.PERIOD_DIM_ID );
-        int aoInx = grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID );
         int dxInx = grid.getIndexOfHeader( DimensionalObject.DATA_X_DIM_ID );
+        int ouInx = grid.getIndexOfHeader( DimensionalObject.ORGUNIT_DIM_ID );
+        int aoInx = hasAttributeOptions ? grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) : 0;
         int vlInx = grid.getWidth() - 1;
 
         Map<String, Period> periodLookup = periods.stream().collect( Collectors.toMap( p -> p.getIsoDate(), p -> p ) );
         Map<String, DimensionalItemObject> dimensionItemLookup = dimensionItems.stream().collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
+        Map<String, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
 
         for ( List<Object> row : grid.getRows() )
         {
             String pe = (String) row.get( peInx );
-            String ao = (String) row.get( aoInx );
             String dx = (String) row.get( dxInx );
+            String ou = (String) row.get( ouInx );
+            String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
             Double vl = (Double) row.get( vlInx );
 
             Period period = periodLookup.get( pe );
             DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );
+            OrganisationUnit orgUnit = orgUnitLookup.get( ou );
 
-            eventDataValues.putEntry( period, ao, dimensionItem, vl );
+            eventDataValues.putEntry( orgUnit, period, ao, dimensionItem, vl );
         }
 
         return eventDataValues;

@@ -28,8 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
@@ -63,8 +61,6 @@ import static org.hisp.dhis.expression.Operator.*;
 public class ValidationServiceTest
     extends DhisTest
 {
-    private static final Log log = LogFactory.getLog( ValidationServiceTest.class );
-
     @Autowired
     private ValidationService validationService;
 

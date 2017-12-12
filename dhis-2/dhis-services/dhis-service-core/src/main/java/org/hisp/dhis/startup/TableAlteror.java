@@ -417,7 +417,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE indicator ALTER COLUMN code TYPE varchar(50)" );
 
         // remove uuid
-
+                
         executeSql( "ALTER TABLE attribute DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categorycombo DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categoryoptioncombo DROP COLUMN uuid" );
@@ -1035,6 +1035,13 @@ public class TableAlteror
         executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
 
+        // Scheduler fixes for 2.29
+        executeSql( "delete from systemsetting where name='keyScheduledTasks'" );
+        executeSql( "delete from systemsetting where name='keyDataMartTask'" );
+
+        executeSql( "delete from systemsetting where name='dataSyncCron'" );
+        executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
+
         log.info( "Tables updated" );
     }
 
@@ -1260,7 +1267,7 @@ public class TableAlteror
             "section", "dataset", "sqlview", "dataelement", "dataelementgroup", "dataelementgroupset", "categorycombo",
             "dataelementcategory", "dataelementcategoryoption", "indicator", "indicatorgroup", "indicatorgroupset", "indicatortype",
             "validationrule", "validationrulegroup", "constant", "attribute", "attributegroup",
-            "program", "programstage", "programindicator", "trackedentity", "trackedentityattribute" );
+            "program", "programstage", "programindicator", "trackedentitytype", "trackedentityattribute" );
 
         for ( String table : tables )
         {
@@ -1757,7 +1764,7 @@ public class TableAlteror
         addTranslationTable( listTables, "RelationshipType", "relationshiptypetranslations", "relationshiptype", "relationshiptypeid" );
         addTranslationTable( listTables, "Report", "reporttranslations", "report", "reportid" );
         addTranslationTable( listTables, "ReportTable", "reporttabletranslations", "reporttable", "reporttableid" );
-        addTranslationTable( listTables, "TrackedEntity", "trackedentitytranslations", "trackedentity", "trackedentityid" );
+        addTranslationTable( listTables, "TrackedEntityType", "trackedentitytranslations", "trackedentitytype", "trackedentitytypeid" );
         addTranslationTable( listTables, "TrackedEntityAttribute", "trackedentityattributetranslations", "trackedentityattribute", "trackedentityattributeid" );
         addTranslationTable( listTables, "TrackedEntityInstance", "trackedentityinstancetranslations", "trackedentityinstance", "trackedentityinstanceid" );
         addTranslationTable( listTables, "User", "userinfotranslations", "userinfo", "userinfoid" );

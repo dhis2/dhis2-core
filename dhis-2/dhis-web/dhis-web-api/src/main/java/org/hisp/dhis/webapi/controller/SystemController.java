@@ -45,8 +45,8 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -59,24 +59,21 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -133,7 +130,7 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         return rootNode;
     }
@@ -177,7 +174,7 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         return rootNode;
     }
@@ -190,14 +187,14 @@ public class SystemController
 
         if ( category != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
+            JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
 
-            notifications = notifier.getNotifications( taskId, lastId );
+            notifications = notifier.getNotifications( jobId, lastId );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
@@ -207,11 +204,11 @@ public class SystemController
     {
         if ( category != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
+            JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
+            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
 
-            Object summary = notifier.getTaskSummary( taskId );
+            Object summary = notifier.getTaskSummary( jobId );
 
             if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
             {
@@ -226,7 +223,7 @@ public class SystemController
             }
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
     }
@@ -244,7 +241,7 @@ public class SystemController
             info.clearSensitiveInfo();
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         return info;
     }
