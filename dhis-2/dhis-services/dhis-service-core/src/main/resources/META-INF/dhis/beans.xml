@@ -840,7 +840,7 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementService" class="org.hisp.dhis.dataelement.DefaultDataElementService">
