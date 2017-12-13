@@ -76,6 +76,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
@@ -394,7 +395,7 @@ public abstract class BaseAnalyticalObject
 
             if ( hasRelativePeriods() )
             {
-                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames ) );
+                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER ) );
             }
 
             type = DimensionType.PERIOD;
