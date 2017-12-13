@@ -458,6 +458,14 @@ public class DataQueryParams
     }
     
     /**
+     * Returns the index of the organisation unit dimension in the dimensio map.
+     */
+    public int getOrganisationUnitDimensionIndex()
+    {
+        return getDimensionIdentifiersAsList().indexOf( ORGUNIT_DIM_ID );
+    }
+    
+    /**
      * Returns the dimensions which are part of dimensions and filters. If any
      * such dimensions exist this object is in an illegal state.
      */

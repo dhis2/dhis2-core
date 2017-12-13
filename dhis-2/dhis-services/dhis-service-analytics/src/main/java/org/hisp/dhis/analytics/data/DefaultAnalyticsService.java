@@ -87,6 +87,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1128,6 +1129,8 @@ public class DefaultAnalyticsService
         
         applyIdScheme( params, grid );
         
+        addHierarchyColumns( params, grid );
+        
         return grid;
     }
     
@@ -1150,6 +1153,42 @@ public class DefaultAnalyticsService
         }
     }
 
+    /**
+     * Adds grid columns for each organisation unit level.
+     * 
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
+     */
+    @SuppressWarnings( "unchecked" )
+    private void addHierarchyColumns( DataQueryParams params, Grid grid )
+    {
+        if ( !params.isShowHierarchy() )
+        {
+            int ouIndex = params.getOrganisationUnitDimensionIndex();
+            
+            Map<Object, List<?>> ancestorMap = (Map<Object, List<?>>) grid.getInternalMetaData().get( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey() );
+
+            Assert.notEmpty( ancestorMap, "Ancestor map cannot be null or empty when show hierarchy is enabled" );
+
+            int newColumns = ancestorMap.values().stream().mapToInt( List::size ).max().orElseGet( () -> 0 );
+
+            List<GridHeader> headers = new ArrayList<>();
+
+            for ( int i = 0; i < newColumns; i++ )
+            {
+                int level = i + 1;
+
+                String name = String.format( "Org unit level %d", level );
+                String column = String.format( "orgunitlevel%d", level );
+
+                headers.add( new GridHeader( name, column, ValueType.TEXT, String.class.getName(), false, true ) );
+            }
+
+            grid.addHeaders( ouIndex, headers );
+            grid.addAndPopulateColumnsBefore( ouIndex, ancestorMap, newColumns );
+        }
+    }
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
