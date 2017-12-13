@@ -133,14 +133,19 @@ public interface DataApprovalStore
      * no higher than level 3. If data is approved at levels 1 or 2, it will
      * look to a level 3 user only as if it was approved at level 3.
      *
+     * If a list of organisation units is specified, they must all be at the
+     * same hierarchy level.
+     *
      * @param workflow Data approval workflow to check
      * @param period Period to look within
-     * @param orgUnit Organisation unit to look for (null means all)
+     * @param orgUnits Organisation unit to look for (null means all)
+     * @param orgUnitLevel level for all orgUnits specified (if any)
      * @param attributeCombo Attribute category combo to look within
      * @param attributeOptionCombos Attribute option combos (null means all)
      * @return data approval status objects
      */
-    List<DataApprovalStatus> getDataApprovals( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit orgUnit, DataElementCategoryCombo attributeCombo,
+    List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
+        Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
+        DataElementCategoryCombo attributeCombo,
         Set<DataElementCategoryOptionCombo> attributeOptionCombos );
 }

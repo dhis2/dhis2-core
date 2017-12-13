@@ -41,7 +41,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -96,11 +96,11 @@ public class DefaultDataApprovalLevelService
         this.currentUserService = currentUserService;
     }
 
-    private SecurityService securityService;
+    private AclService aclService;
 
-    public void setSecurityService( SecurityService securityService )
+    public void setAclService( AclService aclService )
     {
-        this.securityService = securityService;
+        this.aclService = aclService;
     }
 
     // -------------------------------------------------------------------------
@@ -680,7 +680,7 @@ public class DefaultDataApprovalLevelService
         for ( DataApprovalLevel level : approvalLevels )
         {
             if ( level.getOrgUnitLevel() >= userOrgUnitLevel &&
-                securityService.canRead( level ) &&
+                aclService.canRead( user, level ) &&
                 canReadCOGS( user, level.getCategoryOptionGroupSet() ) )
             {
                 userLevel = level;
@@ -743,9 +743,9 @@ public class DefaultDataApprovalLevelService
             {
                 CategoryOptionGroupSet cogs = approvalLevel.getCategoryOptionGroupSet();
 
-                addLevel = securityService.canRead( approvalLevel ) &&
+                addLevel = aclService.canRead( user, approvalLevel ) &&
                     cogs == null ? canSeeAllDimensions :
-                    ( securityService.canRead( cogs ) && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ) );
+                    ( aclService.canRead( user, cogs ) && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ) );
             }
 
             if ( addLevel )

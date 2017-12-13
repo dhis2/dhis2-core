@@ -28,6 +28,7 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -458,8 +459,9 @@ public class DefaultDataApprovalService
             + organisationUnit.getName() + ", "
             + ( attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName() ) + " )" );
 
-        List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovals( workflow,
-            periodService.reloadPeriod( period ), organisationUnit, null,
+        List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow,
+            periodService.reloadPeriod( period ), Lists.newArrayList( organisationUnit ),
+            organisationUnit.getHierarchyLevel(), null,
             attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ) );
 
         if ( statuses != null && !statuses.isEmpty() )
@@ -492,7 +494,7 @@ public class DefaultDataApprovalService
     {
         DataApprovalStatus status = getDataApprovalStatus( workflow, period, organisationUnit, attributeOptionCombo );
 
-        status.setPermissions( makePermissionsEvaluator().getPermissions( status, organisationUnit, workflow ) );
+        status.setPermissions( makePermissionsEvaluator().getPermissions( status, workflow ) );
 
         return status;
     }
@@ -501,13 +503,16 @@ public class DefaultDataApprovalService
     public List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, DataElementCategoryCombo attributeCombo )
     {
-        List<DataApprovalStatus> statusList = dataApprovalStore.getDataApprovals( workflow, period, orgUnit, attributeCombo, null );
+        List<DataApprovalStatus> statusList = dataApprovalStore.getDataApprovalStatuses( workflow, period,
+            orgUnit == null ? null : Lists.newArrayList( orgUnit ),
+            orgUnit == null ? 0 : orgUnit.getHierarchyLevel(),
+            attributeCombo, null );
 
         DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
 
         for ( DataApprovalStatus status : statusList )
         {
-            status.setPermissions( permissionsEvaluator.getPermissions( status, orgUnit, workflow ) );
+            status.setPermissions( permissionsEvaluator.getPermissions( status, workflow ) );
         }
 
         return statusList;
@@ -563,35 +568,37 @@ public class DefaultDataApprovalService
      * attributeOptionCombo appears in the set of optionCombos for at least
      * one of the data sets in the workflow.
      *
-     * @param dataApprovalList
+     * @param dataApprovalList list of data approvals to test.
      */
     private void validateAttributeOptionCombos( List<DataApproval> dataApprovalList )
     {
-        SetMap<DataApprovalWorkflow, DataElementCategoryOptionCombo> validAttributeOptionCombos = new SetMap<>();
-
         for ( DataApproval da : dataApprovalList )
         {
-            Set<DataElementCategoryOptionCombo> validOptionCombos = validAttributeOptionCombos.get( da.getWorkflow() );
+            validAttributeOptionCombo( da.getAttributeOptionCombo(), da.getWorkflow() );
+        }
+    }
 
-            if ( validOptionCombos == null )
+    /**
+     * Makes sure that an attribute option combo is valid for a workflow.
+     *
+     * @param attributeOptionCombo attribute option combo to test.
+     * @param workflow workflow to check against.
+     */
+    private void validAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo, DataApprovalWorkflow workflow )
+    {
+        for ( DataSet ds : workflow.getDataSets() )
+        {
+            if ( ds.getCategoryCombo().getOptionCombos().contains( attributeOptionCombo ) )
             {
-                validOptionCombos = da.getWorkflow().getDataSets().stream()
-                    .map( DataSet::getCategoryCombo ).distinct()
-                    .map( DataElementCategoryCombo::getOptionCombos )
-                    .flatMap( Set::stream ).collect( Collectors.toSet() );
-
-                validAttributeOptionCombos.put( da.getWorkflow(), validOptionCombos );
-            }
-
-            if ( !validOptionCombos.contains( da.getAttributeOptionCombo() ) )
-            {
-                log.info( "validateAttributeOptionCombos: attribuetOptionCombo "
-                    + da.getAttributeOptionCombo().getUid() + " not valid for workflow "
-                    + da.getWorkflow().getUid() );
-
-                throw new DataMayNotBeApprovedException();
+                return;
             }
         }
+
+        log.info( "validateAttributeOptionCombos: attribuetOptionCombo "
+            + attributeOptionCombo.getUid() + " not valid for workflow "
+            + workflow.getUid() );
+
+        throw new DataMayNotBeApprovedException();
     }
 
     /**
@@ -606,24 +613,59 @@ public class DefaultDataApprovalService
 
         ListMap<String, DataApproval> listMap = getIndexedListMap( dataApprovalList );
         
-        for ( String key : listMap.keySet() )
+        for ( Map.Entry<String, List<DataApproval>> entry : listMap.entrySet() )
         {
-            List<DataApproval> dataApprovals = listMap.get( key );
-            
+            List<DataApproval> dataApprovals = entry.getValue();
+
+            Set<OrganisationUnit> orgUnits = dataApprovals.stream().map( DataApproval::getOrganisationUnit ).collect( Collectors.toSet() );
+
             DataApproval da = dataApprovals.get( 0 );
 
-            List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovals( da.getWorkflow(),
-                da.getPeriod(), da.getOrganisationUnit(), null, getCategoryOptionCombos( dataApprovals ) );
+            List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( da.getWorkflow(),
+                da.getPeriod(), orgUnits, da.getOrganisationUnit().getHierarchyLevel(), null, getCategoryOptionCombos( dataApprovals ) );
 
             for ( DataApprovalStatus status : statuses )
             {
-                status.setPermissions( evaluator.getPermissions( status, da.getOrganisationUnit(), da.getWorkflow() ) );
+                status.setPermissions( evaluator.getPermissions( status, da.getWorkflow() ) );
 
                 statusMap.put( daKey( da, status.getAttributeOptionComboUid() ), status );
             }
         }
 
         return statusMap;
+    }
+
+    /**
+     * Returns an indexed map where the key is based on each distinct
+     * combination of organisation unit level, period, and workflow.
+     *
+     * If multiple attributeOptionCombo values are needed for the same
+     * combination of organisation unit level, period, and workflow, then
+     * these are fetched at the same time time, for better performance.
+     */
+    private ListMap<String, DataApproval> getIndexedListMap( List<DataApproval> dataApprovalList )
+    {
+        ListMap<String, DataApproval> map = new ListMap<>();
+
+        for ( DataApproval approval : dataApprovalList )
+        {
+            map.putValue( statusKey( approval ), approval );
+        }
+
+        return map;
+    }
+
+    /**
+     * Returns a key consisting of organisation unit level, period, and workflow.
+     * Approval status with these three values in common can be fetched in
+     * one call for many values of attributeOptionCombo.
+     */
+    private String statusKey( DataApproval approval )
+    {
+        return approval == null ? null :
+            approval.getOrganisationUnit().getHierarchyLevel() +
+                IdentifiableObjectUtils.SEPARATOR + approval.getPeriod().getId() +
+                IdentifiableObjectUtils.SEPARATOR + approval.getWorkflow().getId();
     }
 
     /**
@@ -697,38 +739,6 @@ public class DefaultDataApprovalService
             + da.getPeriod().getCode()
             + da.getOrganisationUnit().getUid()
             + da.getAttributeOptionCombo().getUid();
-    }
-
-    /**
-     * Returns an indexed map where the key is based on each distinct
-     * combination of organisation unit, period, and workflow.
-     *
-     * If multiple attributeOptionCombo values are needed for the same
-     * combination of organisation unit, period, and workflow, then
-     * these are fetched at the same time time, for better performance.
-     */
-    private ListMap<String, DataApproval> getIndexedListMap( List<DataApproval> dataApprovalList )
-    {
-        ListMap<String, DataApproval> map = new ListMap<>();
-
-        for ( DataApproval approval : dataApprovalList )
-        {
-            map.putValue( statusKey( approval ), approval );
-        }
-
-        return map;
-    }
-
-    /**
-     * Returns a key consisting of organisation unit, period, and workflow.
-     * Approval status with these three values in common can be fetched in
-     * one call for many values of attributeOptionCombo.
-     */
-    private String statusKey( DataApproval approval )
-    {
-        return approval == null ? null : approval.getOrganisationUnit().getId() +
-            IdentifiableObjectUtils.SEPARATOR + approval.getPeriod().getId() +
-            IdentifiableObjectUtils.SEPARATOR + approval.getWorkflow().getId();
     }
 
     /**
