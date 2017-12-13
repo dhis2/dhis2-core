@@ -144,11 +144,7 @@ public class DefaultMonitoringService
         
         if ( response != null && sc != null && sc.is2xxSuccessful() )
         {
-<<<<<<< HEAD
             log.debug( String.format( "Monitoring request successfully sent, url: %s", url ) );
-=======
-            log.info( String.format( "Monitoring request successfully sent, url: %s", url ) );
->>>>>>> master
         }
         else
         {
