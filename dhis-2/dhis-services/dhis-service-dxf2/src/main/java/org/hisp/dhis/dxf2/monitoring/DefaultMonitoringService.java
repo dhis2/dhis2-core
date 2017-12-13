@@ -81,7 +81,7 @@ public class DefaultMonitoringService
         
         String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
         
-        if ( !StringUtils.isBlank( url ) )
+        if ( StringUtils.isNotBlank( url ) )
         {
             log.info( String.format( "Monitoring service configured, URL: %s", url ) );
         }
@@ -144,7 +144,7 @@ public class DefaultMonitoringService
         
         if ( response != null && sc != null && sc.is2xxSuccessful() )
         {
-            log.info( String.format( "Monitoring request successfully sent, url: %s", url ) );
+            log.debug( String.format( "Monitoring request successfully sent, url: %s", url ) );
         }
         else
         {
