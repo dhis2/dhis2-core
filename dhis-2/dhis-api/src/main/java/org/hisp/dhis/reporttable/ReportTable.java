@@ -272,8 +272,7 @@ public class ReportTable
      * @param indicators        the indicators.
      * @param reportingRates    the reporting rates.
      * @param periods           the periods. Cannot have the name property set.
-     * @param relativePeriods   the relative periods. These periods must have the
-     *                          name property set. Not persisted.
+     * @param relativePeriods   the relative periods. These periods must have the name property set. Not persisted.
      * @param organisationUnits the organisation units.
      * @param relativeUnits     the organisation units. Not persisted.
      * @param doIndicators      indicating whether indicators should be crosstabulated.

@@ -426,7 +426,7 @@ public abstract class AbstractEventService
             String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
             List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
 
-            if ( programInstances == null || programInstances.isEmpty() )
+            if ( programInstances.isEmpty() )
             {            	
                 // Create PI if it doesn't exist (should only be one)
             	
@@ -1655,8 +1655,7 @@ public abstract class AbstractEventService
     private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
     {
         return activeProgramInstanceCache.get( key, () -> {
-            List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
-            return programInstances.isEmpty() ? null : programInstances;
+            return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
         } );
     }
 
