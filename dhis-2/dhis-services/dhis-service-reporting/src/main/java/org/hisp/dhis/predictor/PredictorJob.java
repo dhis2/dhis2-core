@@ -4,8 +4,10 @@ import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -36,10 +38,9 @@ public class PredictorJob
 
         List<String> predictors = predictorJobParameters.getPredictors();
 
-        // TODO get start/end date
-        //Date startDate = predictorJobParameters.getRelativeStart();
-        //Date endDate = predictorJobParameters.getRelativeEnd();
+        Date startDate = DateUtils.getDateAfterAddition( new Date(), predictorJobParameters.getRelativeStart() );
+        Date endDate = DateUtils.getDateAfterAddition( new Date(), predictorJobParameters.getRelativeEnd() );
 
-        predictionService.predictPredictors( predictors, null, null );
+        predictionService.predictPredictors( predictors, startDate, endDate );
     }
 }
