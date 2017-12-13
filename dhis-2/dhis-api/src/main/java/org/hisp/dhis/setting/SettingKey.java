@@ -84,7 +84,7 @@ public enum SettingKey
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
-    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_PERIOD_OCTOBER, AnalyticsFinancialYearStartKey.class ),
+    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
@@ -249,6 +249,11 @@ public enum SettingKey
             {
                 return Cacheability.valueOf( value );
             }
+            else if ( AnalyticsFinancialYearStartKey.class.isAssignableFrom( settingClazz ) )
+            {
+                return AnalyticsFinancialYearStartKey.valueOf( value );
+            }
+
 
             //TODO handle Dates
         }
