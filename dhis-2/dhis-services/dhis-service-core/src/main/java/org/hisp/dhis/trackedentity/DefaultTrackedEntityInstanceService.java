@@ -61,6 +61,7 @@ import org.hisp.dhis.validation.ValidationCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -365,6 +366,44 @@ public class DefaultTrackedEntityInstanceService
         if ( !params.getDuplicateFilters().isEmpty() )
         {
             violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
+        }
+        
+        if( !isLocalSearch( params ) )
+        {
+            if( params.hasQuery() )
+            {
+                violation = "Query cannot be used during global search";
+            }
+            
+            if( params.hasFilters() )
+            {
+                List<String> searchableAttributeIds = new ArrayList<>();
+                
+                if( params.hasProgram() )
+                {
+                    searchableAttributeIds.addAll(  params.getProgram().getSearchableAttributeIds()  );
+                }
+                
+                if( params.hasTrackedEntityType() )
+                {
+                    searchableAttributeIds.addAll( params.getTrackedEntityType().getSearchableAttributeIds() );
+                }
+                
+                List<String> violatingAttributes = new ArrayList<>();
+                
+                for ( QueryItem queryItem : params.getFilters() )
+                {
+                    if( !searchableAttributeIds.contains( queryItem.getItemId() ) )
+                    {
+                        violatingAttributes.add(  queryItem.getItemId() );
+                    }
+                }
+                
+                if( !violatingAttributes.isEmpty() )
+                {
+                    violation = "Non-searchable attribute(s) can not be used during global search:  " + violatingAttributes.toString();
+                }
+            }
         }
 
         if ( violation != null )
