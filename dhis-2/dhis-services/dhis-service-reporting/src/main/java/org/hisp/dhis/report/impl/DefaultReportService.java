@@ -34,6 +34,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.Grid;
@@ -51,9 +52,12 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,11 +66,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
@@ -136,6 +136,9 @@ public class DefaultReportService
         this.dataSource = dataSource;
     }
 
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     // -------------------------------------------------------------------------
     // ReportService implementation
     // -------------------------------------------------------------------------
@@ -191,7 +194,9 @@ public class DefaultReportService
             {
                 if ( report.hasRelativePeriods() )
                 {
-                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false );
+                    AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
+                        financialYearStart );
 
                     String periodString = getCommaDelimitedString( getIdentifiers( periodService.reloadPeriods( relativePeriods ) ) );
                     String isoPeriodString = getCommaDelimitedString( IdentifiableObjectUtils.getUids( relativePeriods ) );
@@ -266,16 +271,20 @@ public class DefaultReportService
 
         if ( report != null && report.hasRelativePeriods() )
         {
+            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+
             if ( calendar.isIso8601() )
             {
-                for ( Period period : report.getRelatives().getRelativePeriods( date, format, true ) )
+                for ( Period period : report.getRelatives().getRelativePeriods( date, format, true,
+                    financialYearStart ) )
                 {
                     periods.add( period.getIsoDate() );
                 }
             }
             else
             {
-                periods = IdentifiableObjectUtils.getLocalPeriodIdentifiers( report.getRelatives().getRelativePeriods( date, format, true ), calendar );
+                periods = IdentifiableObjectUtils.getLocalPeriodIdentifiers( report.getRelatives().getRelativePeriods( date, format, true,
+                    financialYearStart ), calendar );
             }
         }
 
