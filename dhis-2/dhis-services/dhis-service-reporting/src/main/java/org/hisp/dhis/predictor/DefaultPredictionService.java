@@ -30,6 +30,7 @@ package org.hisp.dhis.predictor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -76,6 +77,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 /**
  * @author Ken Haase
@@ -127,6 +129,11 @@ public class DefaultPredictionService
     public int predictPredictors( List<String> predictors, Date startDate, Date endDate )
     {
         int totalCount = 0;
+
+        if ( CollectionUtils.isEmpty( predictors ) )
+        {
+            predictors = getUids( predictorService.getAllPredictors() );
+        }
 
         for ( String uid : predictors) {
             Predictor predictor = predictorService.getPredictor( uid );
