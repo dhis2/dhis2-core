@@ -36,13 +36,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.io.MalformedByteSequenceException;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -50,6 +44,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.schema.MergeParams;
+import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -140,10 +136,9 @@ public class DefaultGmlImportService
 
         PreProcessingResult preProcessed = preProcessGml( inputStream );
 
-        if ( preProcessed.isSuccess && preProcessed.dxf2MetaData != null )
+        if ( preProcessed.isSuccess && preProcessed.metaData != null )
         {
-            Metadata metadata = dxf2ToMetaData( preProcessed.dxf2MetaData );
-            importParams.addMetadata( schemaService.getMetadataSchemas(), metadata );
+            importParams.addMetadata( schemaService.getMetadataSchemas(), preProcessed.metaData );
             importService.importMetadata( importParams );
         }
         else
@@ -214,28 +209,21 @@ public class DefaultGmlImportService
             mergeNonGeoData( persisted, imported );
         }
 
-        String dxf2MetaData = metaDataToDxf2( metadata );
-
-        if ( dxf2MetaData == null )
-        {
-            return PreProcessingResult.failure( new Exception( "GML import failed during pre-processing stage." ) );
-        }
-
-        return PreProcessingResult.success( dxf2MetaData );
+        return PreProcessingResult.success( metadata );
     }
 
     // Basic holder for the return value of preProcessGml(InputStream)
     private static class PreProcessingResult
     {
         private boolean isSuccess;
-        private String dxf2MetaData;
+        private Metadata metaData;
         private Throwable throwable;
 
-        static PreProcessingResult success( String dxf2MetaData )
+        static PreProcessingResult success( Metadata metaData )
         {
             PreProcessingResult result = new PreProcessingResult();
             result.isSuccess = true;
-            result.dxf2MetaData = dxf2MetaData;
+            result.metaData = metaData;
 
             return result;
         }
@@ -311,44 +299,6 @@ public class DefaultGmlImportService
             parent.setUid( source.getParent().getUid() );
             target.setParent( parent );
         }
-    }
-
-    private String metaDataToDxf2( Metadata metadata )
-    {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String dxf2 = null;
-
-        try
-        {
-            renderService.toXml( baos, metadata );
-            dxf2 = baos.toString();
-        }
-        catch ( IOException e )
-        {
-            // Gulp! Intentionally ignored
-        }
-        finally
-        {
-            IOUtils.closeQuietly( baos );
-        }
-
-        return dxf2;
-    }
-
-    private Metadata dxf2ToMetaData( String dxf2Content )
-    {
-        Metadata metadata;
-
-        try
-        {
-            metadata = renderService.fromXml( dxf2Content, Metadata.class );
-        }
-        catch ( IOException e )
-        {
-            metadata = new Metadata();
-        }
-
-        return metadata;
     }
 
     private String createNotifierErrorMessage( Throwable throwable )

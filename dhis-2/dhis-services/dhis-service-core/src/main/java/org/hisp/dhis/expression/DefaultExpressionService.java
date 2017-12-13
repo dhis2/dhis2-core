@@ -62,6 +62,7 @@ import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -863,6 +864,7 @@ public class DefaultExpressionService
 
         scan = 0;
         len = expression.length();
+        List<String> isNullArgList = new ArrayList<>();
 
         while ( scan < len && matcher.find( scan ) )
         {
@@ -884,7 +886,15 @@ public class DefaultExpressionService
 
                     final Double value = dimensionItemValueMap.get( dimItem );
 
-                    sb.append( value == null ? TRUE_VALUE : FALSE_VALUE );
+                    if ( value == null )
+                    {
+                        sb.append( TRUE_VALUE );
+                        isNullArgList.add( arg.trim() );
+                    }
+                    else
+                    {
+                        sb.append( FALSE_VALUE );
+                    }
 
                     scan = end + 1;
                 }
@@ -893,6 +903,13 @@ public class DefaultExpressionService
 
         sb.append( expression.substring( scan ) );
         expression = sb.toString();
+
+        // Replace any other instances of the isNull() args with zeros, to
+        // avoid the expression being disqualified because they are there.
+        for( String isNullArg : isNullArgList )
+        {
+            expression = expression.replace(isNullArg, "0" );
+        }
 
         // ---------------------------------------------------------------------
         // Other scalar custom functions (make them case-insensitive)

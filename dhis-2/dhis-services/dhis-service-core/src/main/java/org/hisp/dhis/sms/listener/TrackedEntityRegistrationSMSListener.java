@@ -48,7 +48,7 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +65,7 @@ public class TrackedEntityRegistrationSMSListener
     private SMSCommandService smsCommandService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -117,7 +117,7 @@ public class TrackedEntityRegistrationSMSListener
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setOrganisationUnit( orgUnit );
-        trackedEntityInstance.setTrackedEntity( trackedEntityService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntity().getName() ) );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityTypeService.getTrackedEntityByName( smsCommand.getProgram().getTrackedEntityType().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
         smsCommand.getCodes().stream()

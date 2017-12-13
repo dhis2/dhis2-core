@@ -96,7 +96,7 @@ public class DefaultTrackedEntityInstanceService
     private TrackedEntityAttributeService attributeService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private RelationshipService relationshipService;
@@ -175,7 +175,7 @@ public class DefaultTrackedEntityInstanceService
         grid.addHeader( new GridHeader( LAST_UPDATED_ID, "Last updated" ) );
         grid.addHeader( new GridHeader( ORG_UNIT_ID, "Organisation unit" ) );
         grid.addHeader( new GridHeader( ORG_UNIT_NAME, "Organisation unit name" ) );
-        grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity" ) );
+        grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity type" ) );
         grid.addHeader( new GridHeader( INACTIVE_ID, "Inactive" ) );
 
         if ( params.isIncludeDeleted() )
@@ -241,7 +241,7 @@ public class DefaultTrackedEntityInstanceService
 
             for ( String te : tes )
             {
-                TrackedEntity entity = trackedEntityService.getTrackedEntity( te );
+                TrackedEntityType entity = trackedEntityTypeService.getTrackedEntityType( te );
                 names.put( te, entity != null ? entity.getDisplayName() : null );
             }
 
@@ -312,7 +312,7 @@ public class DefaultTrackedEntityInstanceService
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
         }
 
-        if ( params.hasProgram() && params.hasTrackedEntity() )
+        if ( params.hasProgram() && params.hasTrackedEntityType() )
         {
             violation = "Program and tracked entity cannot be specified simultaneously";
         }
@@ -379,7 +379,7 @@ public class DefaultTrackedEntityInstanceService
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
-        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
+        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
         Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -428,9 +428,9 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
 
-        TrackedEntity te = trackedEntity != null ? trackedEntityService.getTrackedEntity( trackedEntity ) : null;
+        TrackedEntityType te = trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
 
-        if ( trackedEntity != null && te == null )
+        if ( trackedEntityType != null && te == null )
         {
             throw new IllegalQueryException( "Tracked entity does not exist: " + program );
         }
@@ -445,7 +445,7 @@ public class DefaultTrackedEntityInstanceService
             .setProgramEnrollmentEndDate( programEnrollmentEndDate )
             .setProgramIncidentStartDate( programIncidentStartDate )
             .setProgramIncidentEndDate( programIncidentEndDate )
-            .setTrackedEntity( te )
+            .setTrackedEntityType( te )
             .setOrganisationUnitMode( ouMode )
             .setEventStatus( eventStatus )
             .setEventStartDate( eventStartDate )

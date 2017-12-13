@@ -73,7 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -130,7 +130,7 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         return rootNode;
     }
@@ -174,7 +174,7 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         return rootNode;
     }
@@ -194,7 +194,7 @@ public class SystemController
             notifications = notifier.getNotifications( jobId, lastId );
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
@@ -223,7 +223,7 @@ public class SystemController
             }
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
     }
@@ -241,7 +241,7 @@ public class SystemController
             info.clearSensitiveInfo();
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         return info;
     }

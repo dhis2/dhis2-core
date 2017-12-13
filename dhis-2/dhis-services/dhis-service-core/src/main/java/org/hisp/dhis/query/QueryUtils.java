@@ -135,7 +135,14 @@ public final class QueryUtils
         {
             if ( !value.startsWith( "[" ) || !value.endsWith( "]" ) )
             {
-                return null;
+                try
+                {
+                    return (T) Integer.valueOf( value );
+                }
+                catch ( NumberFormatException e )
+                {
+                    throw new QueryParserException( "Collection size must be integer `" + value + "`" );
+                }
             }
 
             String[] split = value.substring( 1, value.length() - 1 ).split( "," );

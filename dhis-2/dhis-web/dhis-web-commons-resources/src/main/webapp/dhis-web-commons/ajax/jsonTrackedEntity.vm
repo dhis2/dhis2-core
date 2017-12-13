@@ -1,8 +1,8 @@
-{ "trackedEntity": 
+{ "trackedEntityType": 
   {
-    "id": $!{trackedEntity.id},
-    "uid": "$!{trackedEntity.uid}",
-    "name": "$!encoder.jsonEncode( ${trackedEntity.displayName} )",
-    "description": "$!encoder.jsonEncode( ${trackedEntity.displayDescription} )"
+    "id": $!{trackedEntityType.id},
+    "uid": "$!{trackedEntityType.uid}",
+    "name": "$!encoder.jsonEncode( ${trackedEntityType.displayName} )",
+    "description": "$!encoder.jsonEncode( ${trackedEntityType.displayDescription} )"
   } 
 }

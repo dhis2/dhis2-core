@@ -53,7 +53,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.validation.ValidationCriteria;
@@ -116,7 +116,7 @@ public class Program
 
     private Program relatedProgram;
 
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     private DataEntryForm dataEntryForm;
 
@@ -663,16 +663,16 @@ public class Program
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
+    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty

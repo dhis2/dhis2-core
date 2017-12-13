@@ -32,21 +32,16 @@ import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.filter.OrganisationUnitWithValidCoordinatesFilter;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -61,14 +56,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 
 /**
  * @author Lars Helge Overland
@@ -105,7 +98,8 @@ public class GeoFeatureController
 
     @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     public void getGeoFeaturesJson(
-        @RequestParam String ou,
+        @RequestParam( required = false ) String ou,
+        @RequestParam( required = false ) String oug,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -117,7 +111,7 @@ public class GeoFeatureController
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
+        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
@@ -131,7 +125,8 @@ public class GeoFeatureController
 
     @RequestMapping( method = RequestMethod.GET, produces = { "application/javascript" } )
     public void getGeoFeaturesJsonP(
-        @RequestParam String ou,
+        @RequestParam( required = false ) String ou,
+        @RequestParam( required = false ) String oug,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -144,7 +139,7 @@ public class GeoFeatureController
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
+        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
@@ -164,7 +159,8 @@ public class GeoFeatureController
      * Returns list of geo features. Returns null if not modified based on the
      * request.
      *
-     * @param ou                 the organisation unit parameter.
+     * @param ou                 the organisation unit parameter
+     * @param oug                the organisation unit group parameter
      * @param displayProperty    the display property.
      * @param relativePeriodDate the date to use as basis for relative periods.
      * @param userOrgUnit        the user organisation unit parameter.
@@ -173,35 +169,52 @@ public class GeoFeatureController
      * @param includeGroupSets   whether to include organisation unit group sets.
      * @return a list of geo features or null.
      */
-    private List<GeoFeature> getGeoFeatures( String ou, DisplayProperty displayProperty, Date relativePeriodDate,
-        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets, DhisApiVersion apiVersion )
+    private List<GeoFeature> getGeoFeatures( String ou, String oug, DisplayProperty displayProperty, Date relativePeriodDate,
+        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets,
+        DhisApiVersion apiVersion )
     {
-        Set<String> set = new HashSet<>();
-        set.add( ou );
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( ou );
+        dimensionParams.add( oug );
 
-        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null, null, null, false, false,
-            false, false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit, false, apiVersion );
+        DataQueryParams params = dataQueryService
+            .getFromUrl( dimensionParams, null, AggregationType.SUM, null, null, null, null, false, false,
+                false, false, false, false, false, false, false, false, false, displayProperty, null, null, false, null,
+                relativePeriodDate, userOrgUnit, false, apiVersion );
 
-        DimensionalObject dim = params.getDimension( DimensionalObject.ORGUNIT_DIM_ID );
+        boolean useOrgUnitGroup = ou == null;
+        DimensionalObject dimensionalObject = params
+            .getDimension( useOrgUnitGroup ? ORGUNIT_GROUP_DIM_ID : ORGUNIT_DIM_ID );
 
-        List<OrganisationUnit> organisationUnits = DimensionalObjectUtils.asTypedList( dim.getItems() );
+        if ( dimensionalObject == null )
+        {
+            throw new IllegalArgumentException( "Dimension is present in query without any valid dimension options" );
+        }
 
-        FilterUtils.filter( organisationUnits, new OrganisationUnitWithValidCoordinatesFilter() );
+        List<CoordinateBaseDimensionalItemObject> coordinateBaseDimensionalItemObjects = DimensionalObjectUtils
+            .asTypedList( dimensionalObject.getItems() );
 
-        boolean modified = !ContextUtils.clearIfNotModified( request, response, organisationUnits );
+        coordinateBaseDimensionalItemObjects = coordinateBaseDimensionalItemObjects.stream().filter( object ->
+            object != null && object.getFeatureType() != null && object.hasCoordinates() &&
+                (object.getFeatureType() != FeatureType.POINT ||
+                    ValidationUtils.coordinateIsValid( object.getCoordinates() )) ).collect( Collectors.toList() );
+
+        boolean modified = !ContextUtils.clearIfNotModified( request, response, coordinateBaseDimensionalItemObjects );
 
         if ( !modified )
         {
             return null;
         }
 
-        List<OrganisationUnitGroupSet> groupSets = includeGroupSets ? organisationUnitGroupService.getAllOrganisationUnitGroupSets() : null;
+        List<OrganisationUnitGroupSet> groupSets = includeGroupSets ?
+            organisationUnitGroupService.getAllOrganisationUnitGroupSets() :
+            null;
 
         List<GeoFeature> features = new ArrayList<>();
 
         Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-        for ( OrganisationUnit unit : organisationUnits )
+        for ( CoordinateBaseDimensionalItemObject unit : coordinateBaseDimensionalItemObjects )
         {
             GeoFeature feature = new GeoFeature();
 
@@ -209,33 +222,39 @@ public class GeoFeatureController
 
             feature.setId( unit.getUid() );
             feature.setCode( unit.getCode() );
-            feature.setHcd( unit.hasChildrenWithCoordinates() );
-            feature.setHcu( unit.hasCoordinatesUp() );
-            feature.setLe( unit.getLevel() );
-            feature.setPg( unit.getParentGraph( roots ) );
-            feature.setPi( unit.getParent() != null ? unit.getParent().getUid() : null );
-            feature.setPn( unit.getParent() != null ? unit.getParent().getDisplayName() : null );
-            feature.setTy( ObjectUtils.firstNonNull( ty, 0 ) );
-            feature.setCo( unit.getCoordinates() );
-            feature.setNa( unit.getDisplayProperty( params.getDisplayProperty() ) );
+            feature.setHcd( unit.hasDescendantsWithCoordinates() );
 
-            if ( includeGroupSets )
+            if ( !useOrgUnitGroup )
             {
-                for ( OrganisationUnitGroupSet groupSet : groupSets )
-                {
-                    OrganisationUnitGroup group = unit.getGroupInGroupSet( groupSet );
+                OrganisationUnit castUnit = (OrganisationUnit) unit;
+                feature.setHcu( castUnit.hasCoordinatesUp() );
+                feature.setLe( castUnit.getLevel() );
+                feature.setPg( castUnit.getParentGraph( roots ) );
+                feature.setPi( castUnit.getParent() != null ? castUnit.getParent().getUid() : null );
+                feature.setPn( castUnit.getParent() != null ? castUnit.getParent().getDisplayName() : null );
 
-                    if ( group != null )
+                if ( includeGroupSets )
+                {
+                    for ( OrganisationUnitGroupSet groupSet : groupSets )
                     {
-                        feature.getDimensions().put( groupSet.getUid(), group.getUid() );
+                        OrganisationUnitGroup group = castUnit.getGroupInGroupSet( groupSet );
+
+                        if ( group != null )
+                        {
+                            feature.getDimensions().put( groupSet.getUid(), group.getUid() );
+                        }
                     }
                 }
             }
 
+            feature.setTy( ObjectUtils.firstNonNull( ty, 0 ) );
+            feature.setCo( unit.getCoordinates() );
+            feature.setNa( unit.getDisplayProperty( params.getDisplayProperty() ) );
+
             features.add( feature );
         }
 
-        Collections.sort( features, ( o1, o2 ) -> Integer.valueOf( o1.getTy() ).compareTo( Integer.valueOf( o2.getTy() ) ) );
+        features.sort( Comparator.comparing( o -> (o.getTy()) ) );
 
         return features;
     }

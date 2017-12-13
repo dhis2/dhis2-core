@@ -718,7 +718,6 @@ public class JdbcEventAnalyticsManager
         
         Legend legend = null;
         Option option = null;
-        
         if ( item.hasLegendSet() && ( legend = item.getLegendSet().getLegendByUid( itemValue ) ) != null )
         {
             return value + legend.getDisplayName();
