@@ -31,15 +31,10 @@ package org.hisp.dhis.dataapproval.exceptions;
 /**
  * @author Jim Grace
  */
-public abstract class DataApprovalException
-    extends RuntimeException
+public class DataApprovalNotFound
+    extends DataApprovalException
 {
-    public DataApprovalException()
-    {
-        super();
-    }
-
-    public DataApprovalException( String message )
+    public DataApprovalNotFound( String message )
     {
         super( message );
     }
