@@ -211,6 +211,9 @@ public class TableAlteror
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
+        executeSql( "DELETE FROM systemsetting WHERE name = 'keySystemMonitoringUrl'" );
+        executeSql( "DELETE FROM systemsetting WHERE name = 'keySystemMonitoringUsername'" );
+        executeSql( "DELETE FROM systemsetting WHERE name = 'keySystemMonitoringPassword'" );
 
         executeSql( "ALTER TABLE maplayer DROP CONSTRAINT maplayer_mapsource_key" );
         executeSql( "ALTER TABLE maplayer DROP COLUMN mapsource" );
