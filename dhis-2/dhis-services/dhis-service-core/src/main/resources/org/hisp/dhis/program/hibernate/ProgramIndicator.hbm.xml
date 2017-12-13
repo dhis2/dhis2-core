@@ -64,6 +64,78 @@
         <param name="type">12</param>
       </type>
     </property>
+    
+	<property name="eventStartBoundary" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.AnayticsEvaluationBoundaryType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+	<property name="eventStartBoundaryPeriodType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.period.PeriodType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+	<property name="eventStartBoundaryOffset" />
+	
+	<property name="eventEndBoundary" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.AnayticsEvaluationBoundaryType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+	<property name="eventEndBoundaryPeriodType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.period.PeriodType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+	<property name="eventEndBoundaryOffset" />
+	
+	<property name="enrollmentStartBoundary" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.AnayticsEvaluationBoundaryType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+	<property name="enrollmentStartBoundaryPeriodType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.period.PeriodType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+	<property name="enrollmentStartBoundaryOffset" />
+	
+	<property name="enrollmentEndBoundary" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.AnayticsEvaluationBoundaryType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+	<property name="enrollmentEndBoundaryPeriodType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.period.PeriodType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+	<property name="enrollmentEndBoundaryOffset" />
 
     <!-- Object Translation -->
     <set name="translations" table="programindicatortranslations" cascade="all-delete-orphan">

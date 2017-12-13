@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.period.PeriodType;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -146,11 +147,27 @@ public class ProgramIndicator
     
     private AnayticsEvaluationBoundaryType eventStartBoundary;
     
+    private PeriodType eventStartBoundaryPeriodType;
+    
+    private int eventStartBoundaryOffset;
+    
     private AnayticsEvaluationBoundaryType eventEndBoundary;
+    
+    private PeriodType eventEndBoundaryPeriodType;
+    
+    private int eventEndBoundaryOffset;
 
     private AnayticsEvaluationBoundaryType enrollmentStartBoundary;
     
+    private PeriodType enrollmentStartBoundaryPeriodType;
+    
+    private int enrollmentStartBoundaryOffset;
+    
     private AnayticsEvaluationBoundaryType enrollmentEndBoundary;
+    
+    private PeriodType enrollmentEndBoundaryPeriodType;
+    
+    private int enrollmentEndBoundaryOffset;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -375,5 +392,149 @@ public class ProgramIndicator
     public void setAnalyticsType( AnalyticsType analyticsType )
     {
         this.analyticsType = analyticsType;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnayticsEvaluationBoundaryType getEventStartBoundary()
+    {
+        return eventStartBoundary;
+    }
+
+    public void setEventStartBoundary( AnayticsEvaluationBoundaryType eventStartBoundary )
+    {
+        this.eventStartBoundary = eventStartBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public PeriodType getEventStartBoundaryPeriodType()
+    {
+        return eventStartBoundaryPeriodType;
+    }
+
+    public void setEventStartBoundaryPeriodType( PeriodType eventStartBoundaryPeriodType )
+    {
+        this.eventStartBoundaryPeriodType = eventStartBoundaryPeriodType;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getEventStartBoundaryOffset()
+    {
+        return eventStartBoundaryOffset;
+    }
+
+    public void setEventStartBoundaryOffset( int eventStartBoundaryOffset )
+    {
+        this.eventStartBoundaryOffset = eventStartBoundaryOffset;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnayticsEvaluationBoundaryType getEventEndBoundary()
+    {
+        return eventEndBoundary;
+    }
+
+    public void setEventEndBoundary( AnayticsEvaluationBoundaryType eventEndBoundary )
+    {
+        this.eventEndBoundary = eventEndBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public PeriodType getEventEndBoundaryPeriodType()
+    {
+        return eventEndBoundaryPeriodType;
+    }
+
+    public void setEventEndBoundaryPeriodType( PeriodType eventEndBoundaryPeriodType )
+    {
+        this.eventEndBoundaryPeriodType = eventEndBoundaryPeriodType;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getEventEndBoundaryOffset()
+    {
+        return eventEndBoundaryOffset;
+    }
+
+    public void setEventEndBoundaryOffset( int eventEndBoundaryOffset )
+    {
+        this.eventEndBoundaryOffset = eventEndBoundaryOffset;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnayticsEvaluationBoundaryType getEnrollmentStartBoundary()
+    {
+        return enrollmentStartBoundary;
+    }
+
+    public void setEnrollmentStartBoundary( AnayticsEvaluationBoundaryType enrollmentStartBoundary )
+    {
+        this.enrollmentStartBoundary = enrollmentStartBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public PeriodType getEnrollmentStartBoundaryPeriodType()
+    {
+        return enrollmentStartBoundaryPeriodType;
+    }
+
+    public void setEnrollmentStartBoundaryPeriodType( PeriodType enrollmentStartBoundaryPeriodType )
+    {
+        this.enrollmentStartBoundaryPeriodType = enrollmentStartBoundaryPeriodType;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getEnrollmentStartBoundaryOffset()
+    {
+        return enrollmentStartBoundaryOffset;
+    }
+
+    public void setEnrollmentStartBoundaryOffset( int enrollmentStartBoundaryOffset )
+    {
+        this.enrollmentStartBoundaryOffset = enrollmentStartBoundaryOffset;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnayticsEvaluationBoundaryType getEnrollmentEndBoundary()
+    {
+        return enrollmentEndBoundary;
+    }
+
+    public void setEnrollmentEndBoundary( AnayticsEvaluationBoundaryType enrollmentEndBoundary )
+    {
+        this.enrollmentEndBoundary = enrollmentEndBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public PeriodType geteEnrollmentEndBoundaryPeriodType()
+    {
+        return enrollmentEndBoundaryPeriodType;
+    }
+
+    public void setEnrollmentEndBoundaryPeriodType( PeriodType enrollmentEndBoundaryPeriodType )
+    {
+        this.enrollmentEndBoundaryPeriodType = enrollmentEndBoundaryPeriodType;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getEnrollmentEndBoundaryOffset()
+    {
+        return enrollmentEndBoundaryOffset;
+    }
+
+    public void setEnrollmentEndBoundaryOffset( int enrollmentEndBoundaryOffset )
+    {
+        this.enrollmentEndBoundaryOffset = enrollmentEndBoundaryOffset;
     }
 }
