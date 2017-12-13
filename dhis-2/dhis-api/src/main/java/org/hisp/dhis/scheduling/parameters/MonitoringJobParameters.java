@@ -31,7 +31,6 @@ package org.hisp.dhis.scheduling.parameters;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -50,7 +49,10 @@ public class MonitoringJobParameters
         private static final long serialVersionUID = -1683853240301569669L;
 
         @Property
-        private List<RelativePeriodEnum> relativePeriods;
+        private int relativeStart;
+
+        @Property
+        private int relativeEnd;
 
         @Property
         private List<String> validationRuleGroups;
@@ -65,23 +67,34 @@ public class MonitoringJobParameters
         {
         }
 
-        public MonitoringJobParameters( List<RelativePeriodEnum> relativePeriods, List<String> validationRuleGroups,
+        public MonitoringJobParameters( int relativeStart, int relativeEnd, List<String> validationRuleGroups,
             boolean sendNotifications, boolean persistResults )
         {
-                this.relativePeriods = relativePeriods;
+                this.relativeStart = relativeStart;
+                this.relativeEnd = relativeEnd;
                 this.validationRuleGroups = validationRuleGroups;
                 this.sendNotifications = sendNotifications;
                 this.persistResults = persistResults;
         }
 
-        public List<RelativePeriodEnum> getRelativePeriods()
+        public int getRelativeStart()
         {
-                return relativePeriods;
+                return relativeStart;
         }
 
-        public void setRelativePeriods( List<RelativePeriodEnum> relativePeriods )
+        public void setRelativeStart( int relativeStart )
         {
-                this.relativePeriods = relativePeriods;
+                this.relativeStart = relativeStart;
+        }
+
+        public int getRelativeEnd()
+        {
+                return relativeEnd;
+        }
+
+        public void setRelativeEnd( int relativeEnd )
+        {
+                this.relativeEnd = relativeEnd;
         }
 
         public List<String> getValidationRuleGroups()

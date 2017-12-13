@@ -37,7 +37,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -120,7 +119,8 @@ public class MonitoringJob
                     .reduce( Sets.newHashSet(), SetUtils::union );
             }
 
-            if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
+            // TODO fix with new model
+            /*if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
             {
                 periods = new RelativePeriods()
                     .setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
@@ -135,7 +135,13 @@ public class MonitoringJob
                     .distinct()
                     .map( ( vr ) -> Arrays.asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
                     .reduce( Lists.newArrayList(), ListUtils::union );
-            }
+            }*/
+
+            periods = validationRules.stream()
+                .map( ValidationRule::getPeriodType )
+                .distinct()
+                .map( ( vr ) -> Arrays.asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
+                .reduce( Lists.newArrayList(), ListUtils::union );
 
             ValidationAnalysisParams parameters = validationService
                 .newParamsBuilder( validationRules, organisationUnits, periods )
