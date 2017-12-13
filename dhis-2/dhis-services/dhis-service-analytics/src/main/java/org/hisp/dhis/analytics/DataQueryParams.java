@@ -39,6 +39,7 @@ import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
@@ -303,6 +304,11 @@ public class DataQueryParams
      * should be returned.
      */
     protected boolean timely;
+    
+    /**
+     * Current organisation unit levels;
+     */
+    protected List<OrganisationUnitLevel> orgUnitLevels = new ArrayList<>();
     
     /**
      * Applies to reporting rates only. Indicates whether only organisation units
@@ -1788,6 +1794,11 @@ public class DataQueryParams
         return timely;
     }
 
+    public List<OrganisationUnitLevel> getOrgUnitLevels()
+    {
+        return orgUnitLevels;
+    }
+
     public boolean isRestrictByOrgUnitOpeningClosedDate()
     {
         return restrictByOrgUnitOpeningClosedDate;
@@ -2414,6 +2425,12 @@ public class DataQueryParams
         public Builder withTimely( boolean timely )
         {
             this.params.timely = timely;
+            return this;
+        }
+        
+        public Builder withOrgUnitLevels( List<OrganisationUnitLevel> orgUnitLevels )
+        {
+            this.params.orgUnitLevels = orgUnitLevels;
             return this;
         }
         
