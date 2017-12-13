@@ -98,7 +98,8 @@ public class GeoFeatureController
 
     @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     public void getGeoFeaturesJson(
-        @RequestParam String dimension,
+        @RequestParam( required = false ) String ou,
+        @RequestParam( required = false ) String oug,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -110,7 +111,7 @@ public class GeoFeatureController
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( dimension, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
+        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
@@ -124,7 +125,8 @@ public class GeoFeatureController
 
     @RequestMapping( method = RequestMethod.GET, produces = { "application/javascript" } )
     public void getGeoFeaturesJsonP(
-        @RequestParam String dimension,
+        @RequestParam( required = false ) String ou,
+        @RequestParam( required = false ) String oug,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -137,7 +139,7 @@ public class GeoFeatureController
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( dimension, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
+        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
@@ -157,7 +159,8 @@ public class GeoFeatureController
      * Returns list of geo features. Returns null if not modified based on the
      * request.
      *
-     * @param dimension          the dim parameter (either organisation unit or organisation unit group).
+     * @param ou                 the organisation unit parameter
+     * @param oug                the organisation unit group parameter
      * @param displayProperty    the display property.
      * @param relativePeriodDate the date to use as basis for relative periods.
      * @param userOrgUnit        the user organisation unit parameter.
@@ -166,19 +169,20 @@ public class GeoFeatureController
      * @param includeGroupSets   whether to include organisation unit group sets.
      * @return a list of geo features or null.
      */
-    private List<GeoFeature> getGeoFeatures( String dimension, DisplayProperty displayProperty, Date relativePeriodDate,
+    private List<GeoFeature> getGeoFeatures( String ou, String oug, DisplayProperty displayProperty, Date relativePeriodDate,
         String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets,
         DhisApiVersion apiVersion )
     {
-        Set<String> set = new HashSet<>();
-        set.add( dimension );
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( ou );
+        dimensionParams.add( oug );
 
         DataQueryParams params = dataQueryService
-            .getFromUrl( set, null, AggregationType.SUM, null, null, null, null, false, false,
+            .getFromUrl( dimensionParams, null, AggregationType.SUM, null, null, null, null, false, false,
                 false, false, false, false, false, false, false, false, false, displayProperty, null, null, false, null,
                 relativePeriodDate, userOrgUnit, false, apiVersion );
 
-        boolean useOrgUnitGroup = dimension.startsWith( ORGUNIT_GROUP_DIM_ID );
+        boolean useOrgUnitGroup = ou == null;
         DimensionalObject dimensionalObject = params
             .getDimension( useOrgUnitGroup ? ORGUNIT_GROUP_DIM_ID : ORGUNIT_DIM_ID );
 
