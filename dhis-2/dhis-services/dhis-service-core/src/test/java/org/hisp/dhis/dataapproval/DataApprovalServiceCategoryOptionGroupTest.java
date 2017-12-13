@@ -575,7 +575,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     {
         setUser( mockUserService );
 
-        List<DataApprovalLevel> levels = dataApprovalLevelService.getUserDataApprovalLevels();
+        List<DataApprovalLevel> levels = dataApprovalLevelService.getUserDataApprovalLevels( mockUserService.getCurrentUser() );
 
         String names = "";
 
