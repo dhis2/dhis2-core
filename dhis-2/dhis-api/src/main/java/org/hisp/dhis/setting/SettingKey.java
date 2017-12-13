@@ -249,6 +249,11 @@ public enum SettingKey
             {
                 return Cacheability.valueOf( value );
             }
+            else if ( AnalyticsFinancialYearStartKey.class.isAssignableFrom( settingClazz ) )
+            {
+                return AnalyticsFinancialYearStartKey.valueOf( value );
+            }
+
 
             //TODO handle Dates
         }
