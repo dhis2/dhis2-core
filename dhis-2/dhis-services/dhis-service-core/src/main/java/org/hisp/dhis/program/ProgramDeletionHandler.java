@@ -37,7 +37,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.validation.ValidationCriteria;
@@ -135,9 +135,9 @@ public class ProgramDeletionHandler
     }
 
     @Override
-    public String allowDeleteTrackedEntity( TrackedEntity trackedEntity )
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        Collection<Program> programs = programService.getProgramsByTrackedEntity( trackedEntity );
+        Collection<Program> programs = programService.getProgramsByTrackedEntityType( trackedEntityType );
 
         return (programs != null && programs.size() > 0) ? ERROR : null;
     }

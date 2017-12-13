@@ -137,7 +137,7 @@ public interface TrackedEntityInstanceService
      * @param programEnrollmentEndDate   the end date for enrollment in the given Program.
      * @param programIncidentStartDate   the start date for incident in the given Program.
      * @param programIncidentEndDate     the end date for enrollment in the given Program.
-     * @param trackedEntity              the TrackedEntity uid.
+     * @param trackedEntityType              the TrackedEntityType uid.
      * @param eventStatus                the event status for the given Program.
      * @param eventStartDate             the event start date for the given Program.
      * @param eventEndDate               the event end date for the given Program.
@@ -151,7 +151,7 @@ public interface TrackedEntityInstanceService
      */
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntity, EventStatus eventStatus,
+        Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
         Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders );
 
     /**

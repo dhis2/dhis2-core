@@ -33,7 +33,7 @@ import java.util.List;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * @author Chau Thu Tran
@@ -74,11 +74,11 @@ public interface ProgramStore
     List<Program> get( ProgramType type, OrganisationUnit orgunit );
 
     /**
-     * Get {@link Program} by TrackedEntity
+     * Get {@link Program} by TrackedEntityType
      *
-     * @param trackedEntity {@link TrackedEntity}
+     * @param trackedEntityType {@link TrackedEntityType}
      */
-    List<Program> getByTrackedEntity( TrackedEntity trackedEntity );
+    List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Get all Programs associated with the given DataEntryForm.

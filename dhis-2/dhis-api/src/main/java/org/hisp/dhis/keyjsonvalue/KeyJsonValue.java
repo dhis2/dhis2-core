@@ -29,6 +29,8 @@ package org.hisp.dhis.keyjsonvalue;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
@@ -84,6 +86,19 @@ public class KeyJsonValue
         this.encrypted = encrypted;
     }
 
+    // -------------------------------------------------------------------------
+    // toString
+    // -------------------------------------------------------------------------
+    
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "namespace", namespace )
+            .add( "key", key )
+            .add( "value", value ).toString();
+    }
+    
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------

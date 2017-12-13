@@ -55,7 +55,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.Date;
 import java.util.List;
@@ -97,7 +97,7 @@ public class DataStatisticsController
             throw new WebMessageException( WebMessageUtils.conflict( "Start date is after end date" ) );
         }
 
-        setNoCache( response );
+        setNoStore( response );
         return dataStatisticsService.getReports( startDate, endDate, interval );
     }
 
@@ -110,7 +110,7 @@ public class DataStatisticsController
         pageSize = ObjectUtils.firstNonNull( pageSize, 20 );
         sortOrder = ObjectUtils.firstNonNull( sortOrder, SortOrder.DESC );
 
-        setNoCache( response );
+        setNoStore( response );
         return dataStatisticsService.getTopFavorites( eventType, pageSize, sortOrder, username );
     }
 

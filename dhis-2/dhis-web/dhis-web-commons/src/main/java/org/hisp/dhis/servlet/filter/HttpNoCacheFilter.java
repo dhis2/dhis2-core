@@ -53,7 +53,7 @@ public class HttpNoCacheFilter
     {
         if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {
-            ContextUtils.setNoCache( response );
+            ContextUtils.setNoStore( response );
         }
 
         chain.doFilter( request, response );

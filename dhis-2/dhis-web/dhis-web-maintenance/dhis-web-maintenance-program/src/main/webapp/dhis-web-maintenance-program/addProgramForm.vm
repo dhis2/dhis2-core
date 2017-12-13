@@ -114,8 +114,8 @@
 			<td>
 				<select id='trackedEntityId' name='trackedEntityId' >
 					<option value=''>[$i18n.getString('please_select')]</option>
-					#foreach($trackedEntity in $trackedEntities)
-					<option value='$trackedEntity.id'>$trackedEntity.displayName</option>
+					#foreach($trackedEntityType in $trackedEntityTypes)
+					<option value='$trackedEntityType.id'>$trackedEntityType.displayName</option>
 					#end
 				</select>
 			</td>

@@ -101,7 +101,7 @@ public class DefaultDataQueryService
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
         String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
-        boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
+        boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
         boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -148,6 +148,7 @@ public class DefaultDataQueryService
             .withHideEmptyColumns( hideEmptyColumns )
             .withShowHierarchy( showHierarchy )
             .withIncludeNumDen( includeNumDen )
+            .withIncludeMetadataDetails( includeMetadataDetails )
             .withDisplayProperty( displayProperty )
             .withOutputIdScheme( outputIdScheme )
             .withOutputFormat( OutputFormat.ANALYTICS )
@@ -439,6 +440,23 @@ public class DefaultDataQueryService
             orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
             return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT, orgUnits );
+        }
+
+        else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )
+        {
+            List<DimensionalItemObject> ougs = new ArrayList<>();
+
+            for ( String uid : items )
+            {
+                OrganisationUnitGroup organisationUnitGroup = idObjectManager.getObject( OrganisationUnitGroup.class, inputIdScheme, uid );
+
+                if ( organisationUnitGroup != null )
+                {
+                    ougs.add( organisationUnitGroup );
+                }
+            }
+
+            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT_GROUP, null, DISPLAY_NAME_ORGUNIT_GROUP, ougs );
         }
 
         else if ( LONGITUDE_DIM_ID.contains( dimension ) )
