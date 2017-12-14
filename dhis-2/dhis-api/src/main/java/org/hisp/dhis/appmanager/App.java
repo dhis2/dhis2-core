@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Saptarshi
@@ -81,7 +81,7 @@ public class App
 
     private String baseUrl;
 
-    private List<String> authorities;
+    private Set<String> authorities;
 
     // -------------------------------------------------------------------------
     // Logic
@@ -279,12 +279,12 @@ public class App
     }
 
     @JsonProperty
-    public List<String> getAuthorities()
+    public Set<String> getAuthorities()
     {
         return authorities;
     }
 
-    public void setAuthorities( List<String> authorities )
+    public void setAuthorities( Set<String> authorities )
     {
         this.authorities = authorities;
     }

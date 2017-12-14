@@ -39,7 +39,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Saptarshi
@@ -113,7 +113,7 @@ public class AppTest
     @Test
     public void testGetAuthorities()
     {
-        List<String> authorities = app.getAuthorities();
+        Set<String> authorities = app.getAuthorities();
         Assert.assertNotNull( authorities );
         Assert.assertEquals( 4, authorities.size() );
     }
