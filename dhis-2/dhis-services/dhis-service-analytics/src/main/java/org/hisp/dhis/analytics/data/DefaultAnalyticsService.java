@@ -315,7 +315,7 @@ public class DefaultAnalyticsService
                 .removeFilter( DATA_X_DIM_ID )
                 .addProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
         }
-        
+
         return params;
     }
 
