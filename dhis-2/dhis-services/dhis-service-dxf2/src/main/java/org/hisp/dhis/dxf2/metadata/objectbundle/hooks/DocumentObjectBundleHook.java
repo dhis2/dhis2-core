@@ -29,8 +29,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
-import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -54,7 +54,7 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook {
     private FileResourceService fileResourceService;
 
     @Autowired
-    private DocumentService documentService;
+    private IdentifiableObjectManager idObjectManager;
 
     @Override
     public List<ErrorReport> validate (IdentifiableObject object, ObjectBundle bundle)
@@ -127,7 +127,6 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook {
             fileResourceService.updateFileResource( fileResource );
         }
 
-        documentService.saveDocument( document );
+        idObjectManager.save( document );
     }
-
 }
