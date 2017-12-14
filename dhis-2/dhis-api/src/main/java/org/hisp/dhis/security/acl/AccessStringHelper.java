@@ -205,7 +205,9 @@ public class AccessStringHelper
 
         byte[] bytes = access.getBytes();
 
-        return bytes[0] == '-' || bytes[1] == '-' || bytes[2] == '-' || bytes[3] == '-'
-            || bytes[0] == 'r' || bytes[1] == 'w' || bytes[2] == 'r' || bytes[3] == 'w';
+        return (bytes[0] == '-' || bytes[0] == 'r')
+            && (bytes[1] == '-' || bytes[1] == 'w')
+            && (bytes[2] == '-' || bytes[2] == 'r')
+            && (bytes[3] == '-' || bytes[3] == 'w');
     }
 }
