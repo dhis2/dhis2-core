@@ -8,16 +8,16 @@ import org.hisp.dhis.query.planner.QueryPath;
 /**
  * @author Henning Håkonsen
  */
-public class TokenOperator
+public class NotTokenOperator
     extends Operator
 {
     private final boolean caseSensitive;
 
     private final org.hibernate.criterion.MatchMode matchMode;
 
-    public TokenOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    public NotTokenOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
     {
-        super( "token", Typed.from( String.class ), arg );
+        super( "!token", Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
         this.matchMode = getMatchMode( matchMode );
     }
@@ -32,13 +32,13 @@ public class TokenOperator
         {
             regex.append( "(?=.*" ).append( token ).append( ")" );
         }
-        return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " ~* '" + regex + "'" );
+        return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " !~* '" + regex + "' " );
     }
 
     @Override
     public boolean test( Object value )
     {
         String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-        return TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
+        return !TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
     }
 }

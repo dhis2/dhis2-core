@@ -28,7 +28,23 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.query.operators.*;
+import org.hisp.dhis.query.operators.BetweenOperator;
+import org.hisp.dhis.query.operators.EmptyOperator;
+import org.hisp.dhis.query.operators.EqualOperator;
+import org.hisp.dhis.query.operators.GreaterEqualOperator;
+import org.hisp.dhis.query.operators.GreaterThanOperator;
+import org.hisp.dhis.query.operators.InOperator;
+import org.hisp.dhis.query.operators.LessEqualOperator;
+import org.hisp.dhis.query.operators.LessThanOperator;
+import org.hisp.dhis.query.operators.LikeOperator;
+import org.hisp.dhis.query.operators.MatchMode;
+import org.hisp.dhis.query.operators.NotEqualOperator;
+import org.hisp.dhis.query.operators.NotInOperator;
+import org.hisp.dhis.query.operators.NotLikeOperator;
+import org.hisp.dhis.query.operators.NotNullOperator;
+import org.hisp.dhis.query.operators.NotTokenOperator;
+import org.hisp.dhis.query.operators.NullOperator;
+import org.hisp.dhis.query.operators.TokenOperator;
 
 import java.util.Collection;
 
@@ -95,6 +111,11 @@ public final class Restrictions
     public static Restriction token( String path, Object value, MatchMode matchMode )
     {
         return new Restriction( path, new TokenOperator( value, false, matchMode ) );
+    }
+
+    public static Restriction notToken( String path, Object value, MatchMode matchMode )
+    {
+        return new Restriction( path, new NotTokenOperator( value, false, matchMode ) );
     }
 
     public static Restriction in( String path, Collection<?> values )

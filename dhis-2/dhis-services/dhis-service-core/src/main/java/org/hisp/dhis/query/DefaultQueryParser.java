@@ -41,6 +41,8 @@ import java.util.List;
  */
 public class DefaultQueryParser implements QueryParser
 {
+    private static final String IDENTIFIABLE = "identifiable";
+
     private final SchemaService schemaService;
 
     public DefaultQueryParser( SchemaService schemaService )
@@ -73,7 +75,7 @@ public class DefaultQueryParser implements QueryParser
             {
                 int index = split[0].length() + ":".length() + split[1].length() + ":".length();
 
-                if ( split[0].equals( "identifiable" ) )
+                if ( split[0].equals( IDENTIFIABLE ) && !schema.haveProperty( IDENTIFIABLE ) )
                 {
                     query.add( handleIdentifiablePath( schema, split[1], filter.substring( index ) ));
                 } else
@@ -199,6 +201,10 @@ public class DefaultQueryParser implements QueryParser
             case "token":
             {
                 return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+            }
+            case "!token":
+            {
+                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
             }
             case "endsWith":
             case "ilike$":

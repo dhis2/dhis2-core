@@ -101,21 +101,4 @@ public class LikeOperator extends Operator
 
         return false;
     }
-
-    private MatchMode getMatchMode( org.hisp.dhis.query.operators.MatchMode matchMode )
-    {
-        switch ( matchMode )
-        {
-            case EXACT:
-                return MatchMode.EXACT;
-            case START:
-                return MatchMode.START;
-            case END:
-                return MatchMode.END;
-            case ANYWHERE:
-                return MatchMode.ANYWHERE;
-        }
-
-        return null;
-    }
 }

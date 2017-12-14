@@ -534,7 +534,6 @@ public class CriteriaQueryEngineTest
         disjunction.add( Restrictions.like( "name", "GroupA", MatchMode.ANYWHERE ) );
         disjunction.add( Restrictions.like( "name", "GroupA", MatchMode.ANYWHERE ) );
         disjunction.add( Restrictions.like( "name", "GroupB", MatchMode.ANYWHERE ) );
-        System.out.println("dis: " + disjunction);
         query.add( disjunction );
 
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
