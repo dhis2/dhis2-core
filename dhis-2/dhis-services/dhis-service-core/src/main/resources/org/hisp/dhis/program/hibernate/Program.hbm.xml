@@ -62,6 +62,10 @@
     <property name="expiryDays" />
 
     <property name="completeEventsExpiryDays" />
+    
+    <property name="minAttributesRequiredToSearch" />
+    
+    <property name="maxTeiCountToReturn" />
 
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />

@@ -1932,7 +1932,6 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler"
     class="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler">
-    <property name="instanceService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceService" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 

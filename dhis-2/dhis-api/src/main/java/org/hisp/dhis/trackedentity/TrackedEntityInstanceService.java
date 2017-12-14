@@ -160,7 +160,18 @@ public interface TrackedEntityInstanceService
      *
      * @param params the TrackedEntityInstanceQueryParams.
      */
-    void decideAccess( TrackedEntityInstanceQueryParams params );
+    void decideAccess( TrackedEntityInstanceQueryParams params );    
+    
+    /**
+     * Validates scope of given TrackedEntityInstanceQueryParams. The params is
+     * considered valid if no exception are thrown and the method returns
+     * normally.
+     *
+     * @param params the TrackedEntityInstanceQueryParams.
+     * @throws IllegalQueryException if the given params is invalid.
+     */
+    void validateSearchScope( TrackedEntityInstanceQueryParams params )
+        throws IllegalQueryException;
 
     /**
      * Validates the given TrackedEntityInstanceQueryParams. The params is
