@@ -115,9 +115,9 @@ public class HibernateProgramInstanceStore
             hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityInstance().getUid() + "'";
         }
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '" + params.getTrackedEntityType().getUid() + "'";
         }
 
         if ( params.hasOrganisationUnits() )

@@ -57,7 +57,7 @@
 
     <property name="programStageAttribute" not-null="false" />
 
-    <property name="trackedEntityAttribute" not-null="false" />
+    <property name="trackedEntityTypeAttribute" not-null="false" />
 
     <property name="trackedEntityAttributeAttribute" not-null="false" />
 

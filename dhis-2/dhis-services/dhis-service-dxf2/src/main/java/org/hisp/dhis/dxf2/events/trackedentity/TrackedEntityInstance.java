@@ -46,7 +46,7 @@ import java.util.Objects;
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstance
 {
-    private String trackedEntity;
+    private String trackedEntityType;
 
     private String trackedEntityInstance;
 
@@ -90,14 +90,14 @@ public class TrackedEntityInstance
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntity()
+    public String getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( String trackedEntity )
+    public void setTrackedEntityType( String trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty( required = true )
@@ -133,6 +133,7 @@ public class TrackedEntityInstance
 
     public void setCreated( String created )
     {
+        this.created = created;
     }
 
     @JsonProperty( required = true )
@@ -144,6 +145,7 @@ public class TrackedEntityInstance
 
     public void setLastUpdated( String lastUpdated )
     {
+        this.lastUpdated = lastUpdated;
     }
 
     @JsonProperty( required = true )
@@ -239,7 +241,7 @@ public class TrackedEntityInstance
         if ( this == o ) return true;
         if ( o == null || getClass() != o.getClass() ) return false;
         TrackedEntityInstance that = (TrackedEntityInstance) o;
-        return Objects.equals( trackedEntity, that.trackedEntity ) &&
+        return Objects.equals( trackedEntityType, that.trackedEntityType ) &&
             Objects.equals( trackedEntityInstance, that.trackedEntityInstance ) &&
             Objects.equals( orgUnit, that.orgUnit ) &&
             Objects.equals( created, that.created ) &&
@@ -255,7 +257,7 @@ public class TrackedEntityInstance
     @Override
     public int hashCode()
     {
-        return Objects.hash( trackedEntity, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
+        return Objects.hash( trackedEntityType, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
             relationships, attributes, enrollments, inactive );
     }
 
@@ -263,7 +265,7 @@ public class TrackedEntityInstance
     public String toString()
     {
         return "TrackedEntityInstance{" +
-            "trackedEntity='" + trackedEntity + '\'' +
+            "trackedEntityType='" + trackedEntityType + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
             ", orgUnit='" + orgUnit + '\'' +
             ", created='" + created + '\'' +

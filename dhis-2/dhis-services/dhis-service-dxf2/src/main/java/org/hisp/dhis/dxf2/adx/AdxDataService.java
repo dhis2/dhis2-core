@@ -37,7 +37,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author bobj
@@ -85,7 +85,7 @@ public interface AdxDataService
      * 
      * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
      */
-    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, TaskId id );
+    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobId id );
 
     /**
      * Get data. Writes adx export data to output stream.

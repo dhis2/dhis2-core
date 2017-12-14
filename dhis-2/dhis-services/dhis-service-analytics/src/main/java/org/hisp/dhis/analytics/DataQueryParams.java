@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics;
 
+import com.google.common.base.MoreObjects;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -39,6 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -49,8 +52,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
 import static org.hisp.dhis.common.DimensionType.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
@@ -92,6 +93,7 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO = "Attribute option combo";
     public static final String DISPLAY_NAME_PERIOD = "Period";
     public static final String DISPLAY_NAME_ORGUNIT = "Organisation unit";
+    public static final String DISPLAY_NAME_ORGUNIT_GROUP = "Organisation unit group";
     public static final String DISPLAY_NAME_LONGITUDE = "Longitude";
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
@@ -121,7 +123,7 @@ public class DataQueryParams
     /**
      * The aggregation type.
      */
-    protected AggregationType aggregationType;
+    protected AnalyticsAggregationType aggregationType;
 
     /**
      * The measure criteria, which is measure filters and corresponding values.
@@ -196,6 +198,11 @@ public class DataQueryParams
      * values where relevant in the response.
      */
     protected boolean includeNumDen;
+
+    /**
+     * Indicates whether to include metadata details to response
+     */
+    protected boolean includeMetadataDetails;
     
     /**
      * Indicates which property to display for meta-data.
@@ -265,6 +272,11 @@ public class DataQueryParams
      * The partitions containing data relevant to this query.
      */
     protected transient Partitions partitions;
+    
+    /**
+     * The name of the analytics table to use for this query.
+     */
+    protected transient String tableName;
 
     /**
      * The data type for this query.
@@ -378,6 +390,7 @@ public class DataQueryParams
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
         params.includeNumDen = this.includeNumDen;
+        params.includeMetadataDetails = this.includeMetadataDetails;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
         params.outputFormat = this.outputFormat;
@@ -389,6 +402,7 @@ public class DataQueryParams
         
         params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
+        params.tableName = this.tableName;
         params.dataType = this.dataType;
         params.periodType = this.periodType;
         params.dataPeriodType = this.dataPeriodType;
@@ -415,17 +429,7 @@ public class DataQueryParams
     {
         return aggregationType != null ? aggregationType.toString() : null;
     }
-    
-    /**
-     * Indicates whether the filters of this query spans more than one partition.
-     * If true it means that a period filter exists and that the periods span
-     * multiple years.
-     */
-    public boolean spansMultiplePartitions()
-    {
-        return partitions != null && partitions.isMultiple();
-    }
-        
+            
     /**
      * Creates a mapping between filter dimension identifiers and filter dimensions. 
      * Filters are guaranteed not to be null.
@@ -475,65 +479,57 @@ public class DataQueryParams
     }
 
     /**
-     * Finds the latest endDate associated with this DataQueryParams. checks endDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Returns the latest period based on the period end date.
+     */
+    public Period getLatestPeriod()
+    {        
+        return getAllPeriods().stream()
+            .map( obj -> (Period) obj )
+            .min( DescendingPeriodComparator.INSTANCE )
+            .orElse( null );
+    }
+    
+    /**
+     * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period dimensions and
+     * period filters.
      */
     public Date getLatestEndDate()
     {
-        // Set to minimum value
-        Date latestEndDate = new Date(Long.MIN_VALUE);
+        Date latestEndDate = new Date( Long.MIN_VALUE );
 
         if ( endDate != null && endDate.after( latestEndDate ) )
         {
             latestEndDate = endDate;
         }
 
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
-        }
-
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
+            latestEndDate = period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate;
         }
 
         return latestEndDate;
-
     }
     
     /**
-     * Finds the earliest startDate associated with this DataQueryParams. checks startDate, period dimensions and
-     * period filters
-     * @return the latest endDate present.
+     * Finds the earliest startDate associated with this DataQueryParams. Checks startDate, period dimensions and
+     * period filters.
      */
     public Date getEarliestStartDate()
     {
-        // Set to minimum value
-        Date earliestStartDate = new Date(Long.MAX_VALUE);
+        Date earliestStartDate = new Date( Long.MAX_VALUE );
 
-        if ( startDate != null && startDate.before( startDate ) )
+        if ( startDate != null && startDate.before( earliestStartDate ) )
         {
             earliestStartDate = startDate;
         }
-
-        for ( DimensionalItemObject object : getFilterPeriods() )
+        
+        for ( DimensionalItemObject object : getAllPeriods() )
         {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+            Period period = (Period) object;
 
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
-        }
-
-        for ( DimensionalItemObject object : getPeriods() )
-        {
-            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
-
-            earliestStartDate = ( period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate );
+            earliestStartDate = period.getStartDate().before( earliestStartDate ) ? period.getStartDate() : earliestStartDate;
         }
 
         return earliestStartDate;
@@ -623,19 +619,11 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether this object is of the given data type.
+     * Indicates whether this query is of the given data type.
      */
     public boolean isDataType( DataType dataType )
     {
         return this.dataType != null && this.dataType.equals( dataType );
-    }
-    
-    /**
-     * Indicates whether this object is of the given aggregation type.
-     */
-    public boolean isAggregationType( AggregationType aggregationType )
-    {
-        return this.aggregationType != null && this.aggregationType.equals( aggregationType );
     }
     
     /**
@@ -644,6 +632,31 @@ public class DataQueryParams
     public boolean hasAggregationType()
     {
         return this.aggregationType != null;
+    }
+
+    /**
+     * Indicates whether the aggregation type is of type disaggregation.
+     */
+    public boolean isDisaggregation()
+    {
+        return aggregationType != null && aggregationType.isDisaggregation();
+    }
+
+    /**
+     * Indicates whether this query requires aggregation of data. No aggregation
+     * takes place if aggregation type is none or if data type is text.
+     */
+    public boolean isAggregation()
+    {
+        return !( isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType );
+    }
+    
+    /**
+     * Indicates whether this query has the given aggregation type.
+     */
+    public boolean isAggregationType( AggregationType type )
+    {
+        return aggregationType != null && aggregationType.isAggregationType( type );
     }
     
     /**
@@ -673,14 +686,6 @@ public class DataQueryParams
         }
         
         return map;
-    }
-    
-    /**
-     * Indicates whether the aggregation type is of type disaggregation.
-     */
-    public boolean isDisaggregation()
-    {
-        return isAggregationType( AVERAGE_SUM_INT_DISAGGREGATION ) || isAggregationType( AVERAGE_INT_DISAGGREGATION );
     }
     
     /**
@@ -1020,16 +1025,7 @@ public class DataQueryParams
     {
         return approvalLevel != null;
     }
-        
-    /**
-     * Indicates whether this query requires aggregation of data. No aggregation
-     * takes place if aggregation type is none or if data type is text.
-     */
-    public boolean isAggregation()
-    {
-        return !( AggregationType.NONE.equals( aggregationType ) || DataType.TEXT.equals( dataType ) );
-    }
-        
+
     /**
      * Returns all dimension items.
      */
@@ -1043,6 +1039,14 @@ public class DataQueryParams
         }
         
         return items;
+    }
+    
+    /**
+     * Indicates whether this query has any partitions.
+     */
+    public boolean hasPartitions()
+    {
+        return partitions != null && partitions.hasAny();
     }
     
     /**
@@ -1070,11 +1074,27 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this object has a program stage.
+     * Indicates whether this query has a program stage.
      */
     public boolean hasProgramStage()
     {
         return programStage != null;
+    }
+
+    /**
+     * Indicates whether this query has any measure criteria defined.
+     */
+    public boolean hasMeasureCriteria()
+    {
+        return measureCriteria != null && !measureCriteria.isEmpty();
+    }
+    
+    /**
+     * Indicates whether this query has any pre-aggregate measure criteria defined.
+     */
+    public boolean hasPreAggregateMeasureCriteria()
+    {
+        return preAggregateMeasureCriteria != null && !preAggregateMeasureCriteria.isEmpty();
     }
     
     /**
@@ -1565,14 +1585,14 @@ public class DataQueryParams
     @Override
     public String toString()
     {
-        return ImmutableMap.<String, Object>builder()
-            .put( "Dimensions", dimensions )
-            .put( "Filters", filters )
-            .put( "Aggregation type", aggregationType )
-            .put( "Measure criteria", measureCriteria )
-            .put( "Output format", outputFormat )
-            .put( "API version", apiVersion )
-            .build().toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "Dimensions", dimensions )
+            .add( "Filters", filters )
+            .add( "Aggregation type", aggregationType )
+            .add( "Measure criteria", measureCriteria )
+            .add( "Output format", outputFormat )
+            .add( "API version", apiVersion )
+            .toString();
     }
     
     // -------------------------------------------------------------------------
@@ -1589,7 +1609,7 @@ public class DataQueryParams
         return ImmutableList.copyOf( filters );
     }
 
-    public AggregationType getAggregationType()
+    public AnalyticsAggregationType getAggregationType()
     {
         return aggregationType;
     }
@@ -1657,6 +1677,11 @@ public class DataQueryParams
     public boolean isIncludeNumDen()
     {
         return includeNumDen;
+    }
+
+    public boolean isIncludeMetadataDetails()
+    {
+        return includeMetadataDetails;
     }
 
     public DisplayProperty getDisplayProperty()
@@ -1732,6 +1757,11 @@ public class DataQueryParams
     {
         this.partitions = partitions;
     }
+    
+    public String getTableName()
+    {
+        return tableName;
+    }
 
     public DataType getDataType()
     {
@@ -1793,7 +1823,7 @@ public class DataQueryParams
     /**
      * Returns all indicators part of a dimension or filter.
      */
-    public List<DimensionalItemObject> getAllIndicators()
+    public List<DimensionalItemObject> getAllIndicatfors()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
@@ -1844,6 +1874,14 @@ public class DataQueryParams
     public List<DimensionalItemObject> getAllValidationResults()
     {
         return ImmutableList.copyOf( ListUtils.union( getValidationResults(), getFilterValidationResults() ) );
+    }
+    
+    /**
+     * Returns all periods part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllPeriods()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
     }
 
     // -------------------------------------------------------------------------
@@ -2161,6 +2199,13 @@ public class DataQueryParams
             this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );
             return this;
         }
+
+        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
+            this.params.periodType = periodType;
+            return this;
+        }
         
         public Builder withPeriod( DimensionalItemObject period )
         {
@@ -2234,7 +2279,7 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withAggregationType( AggregationType aggregationType )
+        public Builder withAggregationType( AnalyticsAggregationType aggregationType )
         {
             this.params.aggregationType = aggregationType;
             return this;
@@ -2303,6 +2348,12 @@ public class DataQueryParams
         public Builder withIncludeNumDen( boolean includeNumDen )
         {
             this.params.includeNumDen = includeNumDen;
+            return this;
+        }
+
+        public Builder withIncludeMetadataDetails( boolean includeMetadataDetails )
+        {
+            this.params.includeMetadataDetails = includeMetadataDetails;
             return this;
         }
 
@@ -2399,6 +2450,12 @@ public class DataQueryParams
         public Builder withPartitions( Partitions partitions )
         {
             this.params.partitions = partitions;
+            return this;
+        }
+        
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
             return this;
         }
         

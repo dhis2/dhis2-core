@@ -16,7 +16,7 @@
 		<table width="100%">
 			<tr>
 				<td>
-					#filterDiv( "trackedEntity" )
+					#filterDiv( "trackedEntityType" )
 				</td>
 				<td colspan="3" style="text-align:right"><input type="button" value="$i18n.getString( "add_new" )" onclick="window.location.href='showAddTrackedEntityForm.action'" style="width:70px"></td>				
 			</tr>
@@ -30,14 +30,14 @@
 			  </tr>
 			</thead>
 			<tbody id="list">
-          #foreach( $trackedEntity in $trackedEntities )
-            <tr id="tr${trackedEntity.id}" data-id="$!trackedEntity.id" 
-				data-uid="$!trackedEntity.uid" data-type="TrackedEntity" 
-				data-name="$encoder.htmlEncode( $!trackedEntity.displayName )"
-                data-can-manage="$security.canManage( $trackedEntity )"
-                data-can-update="$security.canUpdate( $trackedEntity )"
-                data-can-delete="$security.canDelete( $trackedEntity )">
-                <td>$encoder.htmlEncode( $!trackedEntity.displayName )</td>
+          #foreach( $trackedEntityType in $trackedEntityTypes )
+            <tr id="tr${trackedEntityType.id}" data-id="$!trackedEntityType.id" 
+				data-uid="$!trackedEntityType.uid" data-type="TrackedEntityType" 
+				data-name="$encoder.htmlEncode( $!trackedEntityType.displayName )"
+                data-can-manage="$security.canManage( $trackedEntityType )"
+                data-can-update="$security.canUpdate( $trackedEntityType )"
+                data-can-delete="$security.canDelete( $trackedEntityType )">
+                <td>$encoder.htmlEncode( $!trackedEntityType.displayName )</td>
             </tr>
           #end
       </tbody>

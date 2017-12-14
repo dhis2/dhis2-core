@@ -33,6 +33,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
 
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     // -------------------------------------------------------------------------
     // UPDATE

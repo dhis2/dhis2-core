@@ -32,11 +32,12 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
@@ -56,6 +57,17 @@ public class ObjectBundle
      * User to use for import job (important for threaded imports).
      */
     private final User user;
+
+    /**
+     * How should the user property be handled, by default it is left as is. You can override this
+     * to use current user, or a selected user instead (not yet supported).
+     */
+    private final UserOverrideMode userOverrideMode;
+
+    /**
+     * User to use for override, can be current or a selected user.
+     */
+    private User overrideUser;
 
     /**
      * Should import be imported or just validated.
@@ -108,9 +120,9 @@ public class ObjectBundle
     private final boolean skipValidation;
 
     /**
-     * Task id to use for threaded imports.
+     * Job id to use for threaded imports.
      */
-    private TaskId taskId;
+    private JobId jobId;
 
     /**
      * Current status of object bundle.
@@ -140,6 +152,8 @@ public class ObjectBundle
         if ( !objects.containsKey( Boolean.FALSE ) ) objects.put( Boolean.FALSE, new HashMap<>() );
 
         this.user = params.getUser();
+        this.userOverrideMode = params.getUserOverrideMode();
+        this.overrideUser = params.getOverrideUser();
         this.objectBundleMode = params.getObjectBundleMode();
         this.preheatIdentifier = params.getPreheatIdentifier();
         this.importMode = params.getImportStrategy();
@@ -149,7 +163,7 @@ public class ObjectBundle
         this.flushMode = params.getFlushMode();
         this.skipSharing = params.isSkipSharing();
         this.skipValidation = params.isSkipValidation();
-        this.taskId = params.getTaskId();
+        this.jobId = params.getJobId();
         this.preheat = preheat;
 
         addObject( objectMap );
@@ -158,6 +172,21 @@ public class ObjectBundle
     public User getUser()
     {
         return user;
+    }
+
+    public UserOverrideMode getUserOverrideMode()
+    {
+        return userOverrideMode;
+    }
+
+    public User getOverrideUser()
+    {
+        return overrideUser;
+    }
+
+    public void setOverrideUser( User overrideUser )
+    {
+        this.overrideUser = overrideUser;
     }
 
     public String getUsername()
@@ -210,14 +239,14 @@ public class ObjectBundle
         return skipValidation;
     }
 
-    public TaskId getTaskId()
+    public JobId getJobId()
     {
-        return taskId;
+        return jobId;
     }
 
-    public boolean hasTaskId()
+    public boolean hasJobId()
     {
-        return taskId != null;
+        return jobId != null;
     }
 
     public ObjectBundleStatus getObjectBundleStatus()

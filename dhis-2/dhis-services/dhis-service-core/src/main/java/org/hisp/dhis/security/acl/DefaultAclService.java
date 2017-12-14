@@ -90,6 +90,13 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean isDataShareable( Class<?> klass )
+    {
+        Schema schema = schemaService.getSchema( klass );
+        return schema != null && schema.isDataShareable();
+    }
+
+    @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
         if ( object == null || haveOverrideAuthority( user ) )
@@ -115,6 +122,32 @@ public class DefaultAclService implements AclService
         else
         {
             return false;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean canDataRead( User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
+        {
+            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ ) )
+            {
+                return true;
+            }
         }
 
         return false;
@@ -159,6 +192,34 @@ public class DefaultAclService implements AclService
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
         {
             return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean canDataWrite( User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return true;
+        }
+
+        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
+
+        if ( canAccess( user, anyAuthorities ) )
+        {
+            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE ) )
+            {
+                return true;
+            }
         }
 
         return false;
@@ -348,7 +409,7 @@ public class DefaultAclService implements AclService
     @Override
     public <T extends IdentifiableObject> Access getAccess( T object, User user )
     {
-        if ( user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
             return new Access( true );
         }
@@ -360,6 +421,16 @@ public class DefaultAclService implements AclService
         access.setRead( canRead( user, object ) );
         access.setUpdate( canUpdate( user, object ) );
         access.setDelete( canDelete( user, object ) );
+
+        if ( isDataShareable( object.getClass() ) )
+        {
+            AccessData data = new AccessData(
+                canDataRead( user, object ),
+                canDataWrite( user, object )
+            );
+
+            access.setData( data );
+        }
 
         return access;
     }
@@ -394,6 +465,23 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public <T extends IdentifiableObject> void clearSharing( T object, User user )
+    {
+        if ( object == null || !isShareable( object.getClass() ) || user == null )
+        {
+            return;
+        }
+
+        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
+        baseIdentifiableObject.setUser( user );
+        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
+        baseIdentifiableObject.setExternalAccess( false );
+
+        object.getUserAccesses().clear();
+        object.getUserGroupAccesses().clear();
+    }
+
+    @Override
     public <T extends IdentifiableObject> List<ErrorReport> verifySharing( T object, User user )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
@@ -410,6 +498,41 @@ public class DefaultAclService implements AclService
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( !schema.isDataShareable() )
+        {
+            ErrorReport errorReport = null;
+
+            if ( AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            {
+                errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
+            }
+            else
+            {
+                for ( UserAccess userAccess : object.getUserAccesses() )
+                {
+                    if ( AccessStringHelper.hasDataSharing( userAccess.getAccess() ) )
+                    {
+                        errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
+                        break;
+                    }
+                }
+
+                for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+                {
+                    if ( AccessStringHelper.hasDataSharing( userGroupAccess.getAccess() ) )
+                    {
+                        errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
+                        break;
+                    }
+                }
+            }
+
+            if ( errorReport != null )
+            {
+                errorReports.add( errorReport );
+            }
+        }
 
         if ( schema.isImplicitPrivateAuthority() && !checkUser( user, object ) )
         {
@@ -470,7 +593,7 @@ public class DefaultAclService implements AclService
      *
      * @param user   User to check against
      * @param object Object to check against
-     * @return true/false depending on if accesss should be allowed
+     * @return true/false depending on if access should be allowed
      */
     private boolean checkUser( User user, IdentifiableObject object )
     {

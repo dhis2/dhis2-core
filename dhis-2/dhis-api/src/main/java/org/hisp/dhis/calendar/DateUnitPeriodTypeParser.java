@@ -33,6 +33,8 @@ import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -119,6 +121,8 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
         else if ( DateUnitType.WEEKLY == dateUnitType || DateUnitType.WEEKLY_WEDNESDAY == dateUnitType || DateUnitType.WEEKLY_THURSDAY == dateUnitType
             || DateUnitType.WEEKLY_SATURDAY == dateUnitType || DateUnitType.WEEKLY_SUNDAY == dateUnitType )
         {
+            DateTimeUnit start;
+            DateTimeUnit end;
             int year = Integer.parseInt( matcher.group( 1 ) );
             int week = Integer.parseInt( matcher.group( 2 ) );
 
@@ -129,17 +133,33 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser
                 return null;
             }
 
-            DateTimeUnit start = new DateTimeUnit( year, 1, 1, calendar.isIso8601() );
-            start = periodType.adjustToStartOfWeek( start, calendar );
-
-            // since we rewind to start of week, we might end up in the previous years weeks, so we check and forward if needed
-            if ( calendar.isoWeek( start ) == calendar.weeksInYear( year ) )
+            if ( calendar.isIso8601() )
             {
-                start = calendar.plusWeeks( start, 1 );
+
+                WeekFields weekFields = WeekFields.of(PeriodType.MAP_WEEK_TYPE.get( periodType.getName() ), 4 );
+
+                LocalDate date = LocalDate.now()
+                    .with( weekFields.weekBasedYear(), year )
+                    .with( weekFields.weekOfWeekBasedYear(), week )
+                    .with( weekFields.dayOfWeek(), 1 );
+
+                start = new DateTimeUnit( date.getYear(), date.getMonthValue(), date.getDayOfMonth(), calendar.isIso8601() );
+            }
+            else
+            {
+                start = new DateTimeUnit( year, 1, 1, calendar.isIso8601() );
+                start = periodType.adjustToStartOfWeek( start, calendar );
+
+//               since we rewind to start of week, we might end up in the previous years weeks, so we check and forward if needed
+                if ( calendar.isoWeek( start ) == calendar.weeksInYear( year ) )
+                {
+                    start = calendar.plusWeeks( start, 1 );
+                }
+
+                start = calendar.plusWeeks( start, week - 1 );
             }
 
-            start = calendar.plusWeeks( start, week - 1 );
-            DateTimeUnit end = new DateTimeUnit( start );
+            end = new DateTimeUnit( start );
             end = calendar.plusWeeks( end, 1 );
             end = calendar.minusDays( end, 1 );
 

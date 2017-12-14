@@ -195,7 +195,7 @@ public class DefaultFileResourceService
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
 
-        final ListenableFuture<String> saveContentTask = scheduler.executeTask( saveCallable );
+        final ListenableFuture<String> saveContentTask = scheduler.executeJob( saveCallable );
 
         final String uid = fileResource.getUid();
 

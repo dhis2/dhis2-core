@@ -37,7 +37,7 @@ import java.util.List;
 public interface ProgramIndicatorService
 {
     /**
-     * Adds an {@link ProgramIndicator}
+     * Adds a {@link ProgramIndicator}
      *
      * @param programIndicator The to ProgramIndicator add.
      * @return A generated unique id of the added {@link ProgramIndicator}.
@@ -45,7 +45,7 @@ public interface ProgramIndicatorService
     int addProgramIndicator( ProgramIndicator programIndicator );
 
     /**
-     * Updates an {@link ProgramIndicator}.
+     * Updates a {@link ProgramIndicator}.
      *
      * @param programIndicator the ProgramIndicator to update.
      */
@@ -103,15 +103,21 @@ public interface ProgramIndicatorService
      * values for data elements and attributes.
      * 
      * @param expression the expression.
+     * @param analyticsType the {@link AnalyticsType}.
+     * @param startDate the start date.
+     * @param endDate the end date.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, AnalyticsType aalyticsType, Date startDate, Date endDate );
+    String getAnalyticsSQl( String expression, AnalyticsType analyticsType, Date startDate, Date endDate );
     
     /**
      * Get the expression as an analytics SQL clause.
      * 
      * @param expression the expression.
-     * @param whether to ignore missing values for data elements and attributes.
+     * @param analyticsType the {@link AnalyticsType}.
+     * @param ignoreMissingValues whether to ignore missing values for data elements and attributes.
+     * @param startDate the start date.
+     * @param endDate the end date.
      * @return the SQL string.
      */
     String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate );

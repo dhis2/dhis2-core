@@ -30,19 +30,19 @@ package org.hisp.dhis.webapi.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -108,19 +108,19 @@ public class PushAnalysisController
 
         if ( pushAnalysis == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
-        scheduler.executeTask( new PushAnalysisTask(
-            pushAnalysis.getId(),
-            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
-            pushAnalysisService ) );
+        JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",
+            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( "" ), false, true );
+        scheduler.executeJob( pushAnalysisJobConfiguration );
     }
 
     @Override
     protected void preDeleteEntity( PushAnalysis pushAnalysis )
     {
-        scheduler.stopTask( pushAnalysis.getSchedulingKey() );
+        scheduler.stopJob( pushAnalysis.getSchedulingKey() );
     }
 
     @Override

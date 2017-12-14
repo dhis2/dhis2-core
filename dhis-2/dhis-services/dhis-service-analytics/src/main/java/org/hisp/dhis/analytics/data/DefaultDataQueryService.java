@@ -43,13 +43,18 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -78,6 +83,9 @@ public class DefaultDataQueryService
     private AnalyticsSecurityManager securityManager;
 
     @Autowired
+    private SystemSettingManager systemSettingManager;
+
+    @Autowired
     private I18nManager i18nManager;
 
     public void setSecurityManager( AnalyticsSecurityManager securityManager )
@@ -93,7 +101,7 @@ public class DefaultDataQueryService
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
         String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
-        boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
+        boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
         boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -121,9 +129,13 @@ public class DefaultDataQueryService
         {
             params.withPreAggregationMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( preAggregationMeasureCriteria) );
         }
+        
+        if ( aggregationType != null )
+        {
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
+        }
 
         return params
-            .withAggregationType( aggregationType )
             .withStartDate( startDate )
             .withEndDate( endDate )
             .withSkipMeta( skipMeta )
@@ -136,6 +148,7 @@ public class DefaultDataQueryService
             .withHideEmptyColumns( hideEmptyColumns )
             .withShowHierarchy( showHierarchy )
             .withIncludeNumDen( includeNumDen )
+            .withIncludeMetadataDetails( includeMetadataDetails )
             .withDisplayProperty( displayProperty )
             .withOutputIdScheme( outputIdScheme )
             .withOutputFormat( OutputFormat.ANALYTICS )
@@ -258,9 +271,7 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension dx is present in query without any valid dimension options" );
             }
 
-            DimensionalObject object = new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dataDimensionItems );
-
-            return object;
+            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X, dataDimensionItems );
         }
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
@@ -277,9 +288,7 @@ public class DefaultDataQueryService
                 }
             }
 
-            DimensionalObject object = new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, cocs );
-
-            return object;
+            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, cocs );
         }
 
         else if ( ATTRIBUTEOPTIONCOMBO_DIM_ID.equals( dimension ) )
@@ -296,9 +305,7 @@ public class DefaultDataQueryService
                 }
             }
 
-            DimensionalObject object = new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, aocs );
-
-            return object;
+            return new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, aocs );
         }
 
         else if ( PERIOD_DIM_ID.equals( dimension ) )
@@ -307,12 +314,15 @@ public class DefaultDataQueryService
 
             List<Period> periods = new ArrayList<>();
 
+            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+
             for ( String isoPeriod : items )
             {
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
-                    List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true );
+
+                    List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
                     periods.addAll( relativePeriods );
                 }
                 else
@@ -345,9 +355,7 @@ public class DefaultDataQueryService
                 }
             }
 
-            DimensionalObject object = new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD, asList( periods ) );
-
-            return object;
+            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD, asList( periods ) );
         }
 
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
@@ -432,23 +440,34 @@ public class DefaultDataQueryService
 
             orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
 
-            DimensionalObject object = new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT, orgUnits );
+            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT, orgUnits );
+        }
 
-            return object;
+        else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )
+        {
+            List<DimensionalItemObject> ougs = new ArrayList<>();
+
+            for ( String uid : items )
+            {
+                OrganisationUnitGroup organisationUnitGroup = idObjectManager.getObject( OrganisationUnitGroup.class, inputIdScheme, uid );
+
+                if ( organisationUnitGroup != null )
+                {
+                    ougs.add( organisationUnitGroup );
+                }
+            }
+
+            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT_GROUP, null, DISPLAY_NAME_ORGUNIT_GROUP, ougs );
         }
 
         else if ( LONGITUDE_DIM_ID.contains( dimension ) )
         {
-            DimensionalObject object = new BaseDimensionalObject( dimension, DimensionType.STATIC, null, DISPLAY_NAME_LONGITUDE, new ArrayList<>() );
-
-            return object;
+            return new BaseDimensionalObject( dimension, DimensionType.STATIC, null, DISPLAY_NAME_LONGITUDE, new ArrayList<>() );
         }
 
         else if ( LATITUDE_DIM_ID.contains( dimension ) )
         {
-            DimensionalObject object = new BaseDimensionalObject( dimension, DimensionType.STATIC, null, DISPLAY_NAME_LATITUDE, new ArrayList<>() );
-
-            return object;
+            return new BaseDimensionalObject( dimension, DimensionType.STATIC, null, DISPLAY_NAME_LATITUDE, new ArrayList<>() );
         }
 
         else
@@ -463,9 +482,7 @@ public class DefaultDataQueryService
 
                 List<DimensionalItemObject> dimItems = !allItems ? asList( idObjectManager.getByUidOrdered( itemClass, items ) ) : dimObject.getItems();
 
-                DimensionalObject object = new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems );
-
-                return object;
+                return new BaseDimensionalObject( dimension, dimObject.getDimensionType(), null, dimObject.getName(), dimItems, allItems );
             }
         }
 

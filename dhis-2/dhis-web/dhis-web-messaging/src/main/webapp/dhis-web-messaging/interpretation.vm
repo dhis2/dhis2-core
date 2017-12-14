@@ -9,9 +9,9 @@
 <div id="interpretationFeed"></div>
 
 <script type="text/javascript">
-var currentUser = {
-	id: "${currentUser.id}",
-	uid: "${currentUser.uid}",
-	name: "${currentUser.name}"
+var sender = {
+	id: "${sender.id}",
+	uid: "${sender.uid}",
+	name: "${sender.name}"
 };	
 </script>

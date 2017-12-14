@@ -45,9 +45,9 @@ public class JacksonUtils
 
     static
     {
-        jsonMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        jsonMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false );
-        jsonMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        jsonMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
+        jsonMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
+        jsonMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
         jsonMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 
@@ -56,6 +56,30 @@ public class JacksonUtils
         try
         {
             return jsonMapper.readValue( src, clazz );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
+    
+    public static <T> T fromJson( String string, Class<T> clazz )
+    {
+        try
+        {
+            return jsonMapper.readValue( string, clazz );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
+    
+    public static <T> String toJson( T object )
+    {
+        try
+        {
+            return jsonMapper.writeValueAsString( object );
         }
         catch ( IOException ex )
         {

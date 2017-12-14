@@ -64,6 +64,7 @@ public class DefaultSchemaService
 {
     private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
+        add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
         add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).
@@ -131,7 +132,7 @@ public class DefaultSchemaService
         add( new SqlViewSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
-        add( new TrackedEntitySchemaDescriptor() ).
+        add( new TrackedEntityTypeSchemaDescriptor() ).
         add( new TrackedEntityDataElementDimensionSchemaDescriptor() ).
         add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() ).
         add( new UserCredentialsSchemaDescriptor() ).
@@ -154,6 +155,7 @@ public class DefaultSchemaService
         add( new UserGroupAccessSchemaDescriptor() ).
         add( new MinMaxDataElementSchemaDescriptor() ).
         add( new ValidationResultSchemaDescriptor() ).
+        add( new JobConfigurationSchemaDescriptor() ).
         add( new SmsCommandSchemaDescriptor() ).
         add( new CategoryDimensionSchemaDescriptor() ).
         add( new CategoryOptionGroupSetDimensionSchemaDescriptor() ).

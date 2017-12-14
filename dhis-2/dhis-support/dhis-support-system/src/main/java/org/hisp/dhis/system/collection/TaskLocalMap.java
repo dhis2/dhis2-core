@@ -31,21 +31,21 @@ package org.hisp.dhis.system.collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobId;
 
 /**
  * @author Lars Helge Overland
  */
 public class TaskLocalMap<T, V>
 {
-    private final Map<TaskId, Map<T, V>> internalMap;
+    private final Map<JobId, Map<T, V>> internalMap;
     
     public TaskLocalMap()
     {
         this.internalMap = new HashMap<>();
     }
 
-    public Map<T, V> get( TaskId id )
+    public Map<T, V> get( JobId id )
     {
         Map<T, V> map = internalMap.get( id );
         
@@ -58,7 +58,7 @@ public class TaskLocalMap<T, V>
         return map;
     }
 
-    public boolean clear( TaskId id )
+    public boolean clear( JobId id )
     {
         return internalMap.remove( id ) != null;
     }

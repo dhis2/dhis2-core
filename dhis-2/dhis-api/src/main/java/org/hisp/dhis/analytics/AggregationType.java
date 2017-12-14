@@ -33,26 +33,21 @@ package org.hisp.dhis.analytics;
  */
 public enum AggregationType
 {
-    SUM( "sum", false, true ),
-    AVERAGE( "avg", false, true ),
-    AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", false, true ),
-    COUNT( "count", false, true ),
-    STDDEV( "stddev", false, true ),
-    VARIANCE( "variance", false, true ),
-    MIN( "min", false, true ),
-    MAX( "max", false, true ),
-    NONE( "none", false, true ), // Text only
-    CUSTOM( "custom", false, false ),
-    DEFAULT( "default", true, false ),
-    AVERAGE_SUM_INT( "avg_sum_int", true, true ), // Sum in organisation unit hierarchy
-    AVERAGE_SUM_INT_DISAGGREGATION( "avg_sum_int_disaggregation", true, true ), // Sum in organisation unit hierarchy
-    AVERAGE_INT( "avg_int", true, true ),
-    AVERAGE_INT_DISAGGREGATION( "avg_int_disaggregation", true, true ),
-    AVERAGE_BOOL( "avg_bool", true, true );
+    SUM( "sum", true ),
+    AVERAGE( "avg", true ),
+    AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
+    LAST( "last" ), // Sum org unit
+    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
+    COUNT( "count", true ),
+    STDDEV( "stddev", true ),
+    VARIANCE( "variance", true ),
+    MIN( "min", true ),
+    MAX( "max", true ),
+    NONE( "none", true ), // Aggregatable for text only
+    CUSTOM( "custom", false ),
+    DEFAULT( "default", false );
 
     private final String value;
-    
-    private boolean internal;
 
     private boolean aggregateable;
     
@@ -61,10 +56,9 @@ public enum AggregationType
         this.value = value;
     }
 
-    AggregationType( String value, boolean internal, boolean aggregateable )
+    AggregationType( String value, boolean aggregateable )
     {
         this.value = value;
-        this.internal = internal;
         this.aggregateable = aggregateable;
     }
 
@@ -76,11 +70,6 @@ public enum AggregationType
     public boolean isAverage()
     {
         return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
-    }
-
-    public boolean isInternal()
-    {
-        return internal;
     }
     
     public boolean isAggregateable()

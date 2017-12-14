@@ -106,7 +106,7 @@
       "created": "2016-03-09T09:41:06.953+0000"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "id": "GVSfhRyCaiZ",
       "name": "Person",

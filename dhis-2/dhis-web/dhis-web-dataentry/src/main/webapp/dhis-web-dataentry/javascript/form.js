@@ -559,7 +559,7 @@ dhis2.de.addEventListeners = function()
                 }
             };
 
-            dhis2.period.picker.createInstance( '#' + id, false, {
+            dhis2.period.picker.createInstance( '#' + id, false, false, {
                 onSelect: function() {
                     saveVal( dataElementId, optionComboId, id, fakeEvent.target.id );
                 },
@@ -1816,7 +1816,7 @@ function insertDataValues( json )
         {
             if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
             {
-                $( fieldId ).attr( 'checked', true );
+                $( fieldId ).prop( 'checked', true );
             }
             else if ( $( fieldId ).attr( 'name' ) == 'entryoptionset' || $( fieldId ).hasClass( "entryoptionset" ) )
             {

@@ -134,6 +134,38 @@ public class ExpressionFunctions
     }
     
     /**
+     * Function which will return the number of months between the two given dates.
+     * 
+     * @param start the start date. 
+     * @param end the end date.
+     * @return number of months between dates.
+     * @throws ParseException if start or end could not be parsed.
+     */
+    public static Long monthsBetween( String start, String end )
+    {
+        LocalDate st = LocalDate.parse( start, DATE_FORMAT );
+        LocalDate en = LocalDate.parse( end, DATE_FORMAT );
+        
+        return ChronoUnit.MONTHS.between( st, en );
+    }
+    
+    /**
+     * Function which will return the number of days between the two given dates.
+     * 
+     * @param start the start date. 
+     * @param end the end date.
+     * @return number of years between dates.
+     * @throws ParseException if start or end could not be parsed.
+     */
+    public static Long yearsBetween( String start, String end )
+    {
+        LocalDate st = LocalDate.parse( start, DATE_FORMAT );
+        LocalDate en = LocalDate.parse( end, DATE_FORMAT );
+        
+        return ChronoUnit.YEARS.between( st, en );
+    }
+    
+    /**
      * Function will will return true only if the parameter value is not null.
      * 
      * @param value to check whether has a value.
