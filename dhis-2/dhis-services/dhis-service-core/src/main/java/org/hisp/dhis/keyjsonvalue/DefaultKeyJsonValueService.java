@@ -92,7 +92,7 @@ public class DefaultKeyJsonValueService
     @Override
     public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        keyJsonValueStore.save( keyJsonValue );
+        keyJsonValueStore.update( keyJsonValue );
     }
 
     @Override
