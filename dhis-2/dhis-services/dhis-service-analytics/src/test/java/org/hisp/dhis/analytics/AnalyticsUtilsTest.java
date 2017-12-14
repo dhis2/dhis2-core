@@ -534,4 +534,13 @@ public class AnalyticsUtilsTest
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 5 ) );
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 5 ) );
     }
+    
+    @Test
+    public void testGetLevelFromOrgUnitDimensionName()
+    {
+        assertEquals( 3, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel3" ) );
+        assertEquals( 5, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel5" ) );
+        assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "notalevel" ) );
+        assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel" ) );
+    }
 }
