@@ -1460,6 +1460,8 @@
 
   <bean id="org.hisp.dhis.textpattern.TextPatternService" class="org.hisp.dhis.textpattern.DefaultTextPatternService" />
 
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueService" class="org.hisp.dhis.reservedvalue.DefaultReservedValueService" />
+
   <!-- Outbound messaging services -->
 
   <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"

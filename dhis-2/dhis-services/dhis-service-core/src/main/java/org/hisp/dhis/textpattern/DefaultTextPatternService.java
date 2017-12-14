@@ -1,9 +1,12 @@
 package org.hisp.dhis.textpattern;
 
 import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +17,16 @@ import static org.hisp.dhis.textpattern.MethodType.RequiredStatus;
 public class DefaultTextPatternService
     implements TextPatternService
 {
+
+    @Autowired
+    private ReservedValueService reservedValueService;
+
     @Override
     public String resolvePattern( TextPattern pattern, Map<String, String> values )
         throws Exception
     {
         StringBuilder resolvedPattern = new StringBuilder();
+        List<TextPattern.Segment> requiresGeneration = new ArrayList<>();
 
         for ( TextPattern.Segment segment : pattern.getSegments() )
         {
@@ -28,6 +36,11 @@ public class DefaultTextPatternService
             }
             else if ( segment.isOptional() )
             {
+                if ( segment.getType() instanceof GeneratedMethodType )
+                {
+                    requiresGeneration.add( segment );
+                }
+
                 resolvedPattern.append( handleOptionalValue( segment, values.get( segment.getSegment() ) ) );
             }
             else
@@ -36,7 +49,17 @@ public class DefaultTextPatternService
             }
         }
 
-        return resolvedPattern.toString();
+        String result = resolvedPattern.toString();
+
+        // Generate values
+        for ( TextPattern.Segment segment : requiresGeneration )
+        {
+            result = result.replaceAll( segment.getParameter(), reservedValueService
+                .generateAndReserveSequentialValues( pattern.getOwnerUID(), resolvedPattern.toString(),
+                    segment.getParameter(), 1 ).get( 0 ) );
+        }
+
+        return result;
     }
 
     @Override
@@ -69,6 +92,7 @@ public class DefaultTextPatternService
         if ( attribute.getTextPattern() == null && attribute.isGenerated() )
         {
             attribute.setTextPattern( TextPatternParser.parse( attribute.getPattern() ) );
+            attribute.getTextPattern().setOwnerUID( attribute.getUid() );
         }
 
         return attribute.getTextPattern();

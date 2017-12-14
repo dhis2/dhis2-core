@@ -1,10 +1,10 @@
 package org.hisp.dhis.reservedvalue;
 
+import java.util.List;
+
 public interface SequentialNumberCounterStore
 {
-    int getNextValue( String uid, String key );
-
-    int[] getNextValues( String uid, String key, int length );
+    List<Integer> getNextValues( String uid, String key, int length );
 
     void deleteCounter( String uid );
 

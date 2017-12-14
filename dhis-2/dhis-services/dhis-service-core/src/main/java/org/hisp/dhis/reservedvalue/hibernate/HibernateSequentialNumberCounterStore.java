@@ -1,6 +1,5 @@
 package org.hisp.dhis.reservedvalue.hibernate;
 
-import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
@@ -8,6 +7,8 @@ import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.springframework.beans.factory.annotation.Required;
 
 import javax.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Transactional
@@ -24,13 +25,7 @@ public class HibernateSequentialNumberCounterStore
     }
 
     @Override
-    public int getNextValue( String uid, String key )
-    {
-        return getNextValues( uid, key, 1 )[0];
-    }
-
-    @Override
-    public int[] getNextValues( String uid, String key, int length )
+    public List<Integer> getNextValues( String uid, String key, int length )
     {
         Session session = sessionFactory.getCurrentSession();
 
@@ -53,7 +48,7 @@ public class HibernateSequentialNumberCounterStore
             counter.setCounter( count + length );
             session.saveOrUpdate( counter );
 
-            return IntStream.range( count, count + length ).toArray();
+            return IntStream.range( count, count + length ).boxed().collect( Collectors.toList() );
         }
         catch ( RuntimeException e )
         {

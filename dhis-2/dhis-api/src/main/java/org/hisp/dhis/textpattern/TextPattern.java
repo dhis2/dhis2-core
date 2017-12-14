@@ -20,11 +20,23 @@ public class TextPattern
 {
     private ArrayList<Segment> segments;
 
+    private String ownerUID;
+
     private Pattern valueRegex;
 
     TextPattern()
     {
         this.segments = new ArrayList<>();
+    }
+
+    public void setOwnerUID( String ownerUID )
+    {
+        this.ownerUID = ownerUID;
+    }
+
+    public String getOwnerUID()
+    {
+        return ownerUID;
     }
 
     /**

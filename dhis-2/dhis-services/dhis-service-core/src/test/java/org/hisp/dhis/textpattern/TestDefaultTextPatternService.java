@@ -1,10 +1,13 @@
 package org.hisp.dhis.textpattern;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.text.SimpleDateFormat;
@@ -14,12 +17,18 @@ import java.util.List;
 import static org.hisp.dhis.textpattern.MethodType.RequiredStatus.OPTIONAL;
 import static org.hisp.dhis.textpattern.MethodType.RequiredStatus.REQUIRED;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
 public class TestDefaultTextPatternService
 {
     @InjectMocks
     private DefaultTextPatternService textPatternService;
+
+    @Mock
+    private ReservedValueService reservedValueService;
 
     private TextPattern pattern;
 
@@ -39,6 +48,10 @@ public class TestDefaultTextPatternService
             .put( "ORG_UNIT_CODE(...)", "OSLO" )
             .put( "SEQUENTIAL(#)", "1" )
             .build();
+
+        when(reservedValueService.generateAndReserveSequentialValues( anyString(), anyString(), anyString(), anyInt() )).thenReturn(
+            Lists.newArrayList("1")
+        );
     }
 
     @Test
