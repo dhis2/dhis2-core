@@ -50,6 +50,7 @@ public enum ErrorCode
     E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
+    E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
 
     /* Metadata Validation Errors */
     E4000( "Missing required property `{0}`." ),
