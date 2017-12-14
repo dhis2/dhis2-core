@@ -499,6 +499,41 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
+        if ( !schema.isDataShareable() )
+        {
+            ErrorReport errorReport = null;
+
+            if ( hasDataSharing( object.getPublicAccess() ) )
+            {
+                errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
+            }
+            else
+            {
+                for ( UserAccess userAccess : object.getUserAccesses() )
+                {
+                    if ( hasDataSharing( userAccess.getAccess() ) )
+                    {
+                        errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
+                        break;
+                    }
+                }
+
+                for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+                {
+                    if ( hasDataSharing( userGroupAccess.getAccess() ) )
+                    {
+                        errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
+                        break;
+                    }
+                }
+            }
+
+            if ( errorReport != null )
+            {
+                errorReports.add( errorReport );
+            }
+        }
+
         if ( schema.isImplicitPrivateAuthority() && !checkUser( user, object ) )
         {
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
@@ -637,5 +672,11 @@ public class DefaultAclService implements AclService
         }
 
         return false;
+    }
+
+    private boolean hasDataSharing( String access )
+    {
+        return AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_READ )
+            || AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_WRITE );
     }
 }
