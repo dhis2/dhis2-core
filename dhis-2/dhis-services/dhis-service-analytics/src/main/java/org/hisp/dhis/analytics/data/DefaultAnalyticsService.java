@@ -352,11 +352,9 @@ public class DefaultAnalyticsService
 
             if ( params.isShowHierarchy() && !params.getOrgUnitLevels().isEmpty() )
             {
-                for ( OrganisationUnitLevel level : params.getOrgUnitLevels() )
+                for ( DimensionalObject level : params.getOrgUnitLevelsAsDimensions() )
                 {
-                    String name = String.format( "orgunitlevel%d", level.getLevel() );
-                    
-                    grid.addHeader( new GridHeader( name, level.getName(), ValueType.TEXT, String.class.getName(), false, true ) );
+                    grid.addHeader( new GridHeader( level.getDimension(), level.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
                 }
             }
             

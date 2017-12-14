@@ -414,6 +414,7 @@ public class DataQueryParams
         params.dataPeriodType = this.dataPeriodType;
         params.skipPartitioning = this.skipPartitioning;
         params.timely = this.timely;
+        params.orgUnitLevels = this.orgUnitLevels;
         params.restrictByOrgUnitOpeningClosedDate = this.restrictByOrgUnitOpeningClosedDate;
         params.restrictByCategoryOptionStartEndDate = this.restrictByCategoryOptionStartEndDate;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
@@ -625,6 +626,17 @@ public class DataQueryParams
     }
     
     /**
+     * Returns the list of organisation unit levels as dimensions.
+     */
+    public List<DimensionalObject> getOrgUnitLevelsAsDimensions()
+    {
+        return orgUnitLevels.stream()
+            .map( l -> new BaseDimensionalObject( "orgunitlevel" + l.getLevel(), 
+                DimensionType.ORGANISATION_UNIT_LEVEL, "orgunitlevel" + l.getLevel(), l.getName(), Lists.newArrayList() ) )
+            .collect( Collectors.toList() );
+    }
+    
+    /**
      * Indicates whether this query is of the given data type.
      */
     public boolean isDataType( DataType dataType )
@@ -773,7 +785,6 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getFilterOptions( String filter )
     {
-
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
         
         return index != -1 ? filters.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
