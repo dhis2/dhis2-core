@@ -133,6 +133,7 @@ public class DefaultSchemaService
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
         add( new TrackedEntityTypeSchemaDescriptor() ).
+        add( new TrackedEntityTypeAttributeSchemaDescriptor() ).
         add( new TrackedEntityDataElementDimensionSchemaDescriptor() ).
         add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() ).
         add( new UserCredentialsSchemaDescriptor() ).
