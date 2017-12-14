@@ -41,6 +41,7 @@ import javax.annotation.Resource;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.common.DimensionType;
@@ -70,7 +71,6 @@ public class JdbcRawAnalyticsManager
     private static final Log log = LogFactory.getLog( JdbcRawAnalyticsManager.class );
     
     private static final String DIM_NAME_OU = "ou.path";
-    private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( "orgunitlevel(\\d+)" );
     
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
@@ -185,8 +185,8 @@ public class JdbcRawAnalyticsManager
         }
         else if ( DimensionType.ORGANISATION_UNIT_LEVEL == dimension.getDimensionType() )
         {
-            String level = OU_LEVEL_PATTERN.matcher( dimension.getDimensionName() ).group( 1 );
-            
+            int level = AnalyticsUtils.getLevelFromOrgUnitDimensionName( dimension.getDimensionName() );
+                        
             return ( "ous." + idScheme + "level" + level + " as " + statementBuilder.columnQuote( dimension.getDimensionName() ) );
         }
         else

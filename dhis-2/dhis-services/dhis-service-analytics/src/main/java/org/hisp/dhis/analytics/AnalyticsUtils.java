@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.*;
@@ -71,8 +72,8 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 public class AnalyticsUtils
 {
     private static final int DECIMALS_NO_ROUNDING = 10;
-
     private static final String KEY_AGG_VALUE = "[aggregated]";
+    private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( "orgunitlevel(\\d+)" );
     
     /**
      * Returns an SQL statement for retrieving raw data values for
@@ -739,5 +740,19 @@ public class AnalyticsUtils
         int currentYear = new DateTime().getYear();
         
         return ( currentYear - year ) >= maxYears;
+    }
+    
+    /**
+     * Returns the level from the given org unit level dimension name. Returns -1 if the level
+     * could not be determined.
+     * 
+     * @param dimensionName the given org unit level dimension name.
+     * @return the org unit level, or -1.
+     */
+    public static int getLevelFromOrgUnitDimensionName( String dimensionName )
+    {
+        Set<String> matches = RegexUtils.getMatches( OU_LEVEL_PATTERN, dimensionName, 1 );
+        
+        return matches.size() == 1 ? Integer.valueOf( matches.iterator().next() ) : -1;
     }
 }
