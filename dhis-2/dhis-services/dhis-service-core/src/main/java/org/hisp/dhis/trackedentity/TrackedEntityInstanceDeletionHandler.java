@@ -28,7 +28,6 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,14 +41,7 @@ public class TrackedEntityInstanceDeletionHandler
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private TrackedEntityInstanceService instanceService;
-
-    public void setInstanceService( TrackedEntityInstanceService instanceService )
-    {
-        this.instanceService = instanceService;
-    }
-
+    
     private JdbcTemplate jdbcTemplate;
 
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )    
@@ -70,12 +62,9 @@ public class TrackedEntityInstanceDeletionHandler
     @Override
     public String allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.addOrganisationUnit( unit );
-        Grid grid = instanceService.getTrackedEntityInstancesGrid( params );
-        
-        return grid.getHeight() == 0 ? null : ERROR;
-    }
+        String sql = "select count(*) from trackedentityinstance where organisationunitid = " + unit.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;    }
     
     @Override
     public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
