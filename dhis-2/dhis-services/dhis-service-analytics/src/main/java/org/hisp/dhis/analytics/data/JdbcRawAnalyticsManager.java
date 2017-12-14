@@ -88,11 +88,9 @@ public class JdbcRawAnalyticsManager
         dimensions.addAll( params.getDimensions() );
         dimensions.addAll( params.getOrgUnitLevelsAsDimensions() );
         
-        log.info( "Dimensions: " + dimensions );
-        
         String sql = getSelectStatement( params, dimensions );
         
-        log.info( "Get raw data SQL: " + sql );
+        log.debug( "Get raw data SQL: " + sql );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
         
@@ -104,7 +102,7 @@ public class JdbcRawAnalyticsManager
             {
                 grid.addValue( rowSet.getString( dim.getDimensionName() ) );
             }
-                        
+            
             grid.addValue( rowSet.getDouble( "value" ) );
         }
         
