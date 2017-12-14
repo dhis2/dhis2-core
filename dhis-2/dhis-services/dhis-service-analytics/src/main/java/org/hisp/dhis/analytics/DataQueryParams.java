@@ -97,6 +97,8 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_ORGUNIT_GROUP = "Organisation unit group";
     public static final String DISPLAY_NAME_LONGITUDE = "Longitude";
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
+    
+    public static final String PREFIX_ORG_UNIT_LEVEL = "orgunitlevel";
 
     public static final int DX_INDEX = 0;
 
@@ -631,8 +633,8 @@ public class DataQueryParams
     public List<DimensionalObject> getOrgUnitLevelsAsDimensions()
     {
         return orgUnitLevels.stream()
-            .map( l -> new BaseDimensionalObject( "orgunitlevel" + l.getLevel(), 
-                DimensionType.ORGANISATION_UNIT_LEVEL, "orgunitlevel" + l.getLevel(), l.getName(), Lists.newArrayList() ) )
+            .map( l -> new BaseDimensionalObject( PREFIX_ORG_UNIT_LEVEL + l.getLevel(), 
+                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(), Lists.newArrayList() ) )
             .collect( Collectors.toList() );
     }
     

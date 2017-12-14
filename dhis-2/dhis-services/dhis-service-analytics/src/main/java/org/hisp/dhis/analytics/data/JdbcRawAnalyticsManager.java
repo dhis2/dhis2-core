@@ -33,7 +33,6 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;

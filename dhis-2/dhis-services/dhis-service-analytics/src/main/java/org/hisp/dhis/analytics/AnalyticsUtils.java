@@ -73,7 +73,7 @@ public class AnalyticsUtils
 {
     private static final int DECIMALS_NO_ROUNDING = 10;
     private static final String KEY_AGG_VALUE = "[aggregated]";
-    private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( "orgunitlevel(\\d+)" );
+    private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)" );
     
     /**
      * Returns an SQL statement for retrieving raw data values for

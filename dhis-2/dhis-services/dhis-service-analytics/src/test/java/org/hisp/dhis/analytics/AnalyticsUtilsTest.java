@@ -55,7 +55,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
@@ -542,6 +541,6 @@ public class AnalyticsUtilsTest
         assertEquals( 3, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel3" ) );
         assertEquals( 5, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel5" ) );
         assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "notalevel" ) );
-        assertEquals( -2, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel" ) );
+        assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel" ) );
     }
 }
