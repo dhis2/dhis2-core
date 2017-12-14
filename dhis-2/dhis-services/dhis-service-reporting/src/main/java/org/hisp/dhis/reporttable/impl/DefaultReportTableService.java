@@ -212,45 +212,10 @@ public class DefaultReportTableService
         return reportTableStore.getByUidNoAcl( uid );
     }
 
-    @Override
-    public List<ReportTable> getReportTablesByUid( List<String> uids )
-    {
-        return reportTableStore.getByUid( uids );
-    }
 
     @Override
     public List<ReportTable> getAllReportTables()
     {
         return reportTableStore.getAll();
-    }
-
-    @Override
-    public List<ReportTable> getReportTableByName( String name )
-    {
-        return reportTableStore.getAllEqName( name );
-    }
-
-    @Override
-    public List<ReportTable> getReportTablesBetweenByName( String name, int first, int max )
-    {
-        return reportTableStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public int getReportTableCount()
-    {
-        return reportTableStore.getCount();
-    }
-
-    @Override
-    public int getReportTableCountByName( String name )
-    {
-        return reportTableStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<ReportTable> getReportTablesBetween( int first, int max )
-    {
-        return reportTableStore.getAllOrderedName( first, max );
     }
 }

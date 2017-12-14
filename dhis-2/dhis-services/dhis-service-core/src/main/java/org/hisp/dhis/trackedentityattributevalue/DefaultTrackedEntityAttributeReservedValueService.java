@@ -34,7 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -95,7 +94,7 @@ public class DefaultTrackedEntityAttributeReservedValueService
             catch ( Exception e ) 
             {
                 log.warn( "Not able to provide all requested reserved values for  "
-                    + attribute.getUid() + ".  " + (i + 1) + " of " + valuesToCreate + " created." );
+                    + attribute.getUid() + ".  " + (i + 1) + " of " + valuesToCreate + " created. Exception:" + e.toString() );
                 break;
             }
         }
@@ -128,7 +127,7 @@ public class DefaultTrackedEntityAttributeReservedValueService
             + trackedEntityAttribute.getUid() + " in " + GENERATION_TIMEOUT + " tries." );
     }
     
-    @Transactional
+   
     public TrackedEntityAttributeReservedValue reserveCandidateValue( TrackedEntityAttribute trackedEntityAttribute ) 
         throws TimeoutException 
     {

@@ -515,6 +515,7 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
+
                     map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), period.getDisplayName() );
                 }
                 else
@@ -550,6 +551,8 @@ public class AnalyticsUtils
 
         Calendar calendar = PeriodType.getCalendar();
 
+        Boolean includeMetadataDetails = params.includeMetadataDetails;
+
         for ( DimensionalObject dimension : dimensions )
         {
             for ( DimensionalItemObject item : dimension.getItems() )
@@ -558,12 +561,12 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
-                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName() ) );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
                 }
                 else
                 {
                     String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
-                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet ) );
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet, includeMetadataDetails ? item : null ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
@@ -572,7 +575,7 @@ public class AnalyticsUtils
                     
                     for ( OrganisationUnit ancestor : unit.getAncestors() )
                     {
-                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ) ) );
+                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? ancestor : null ) );
                     }
                 }
                 
@@ -582,12 +585,12 @@ public class AnalyticsUtils
                     
                     for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                     {
-                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ) ) );
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
                     }
                 }
             }
 
-            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ) ) );
+            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
         }
 
         return map;

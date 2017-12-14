@@ -40,6 +40,7 @@
       <interceptor name="systemSettingInterceptor" class="org.hisp.dhis.interceptor.SystemSettingInterceptor" />
       <interceptor name="userSettingInterceptor" class="org.hisp.dhis.interceptor.UserSettingInterceptor" />
       <interceptor name="contextInterceptor" class="org.hisp.dhis.interceptor.ContextInterceptor" />
+      <interceptor name="noCacheInterceptor" class="org.hisp.dhis.interceptor.NoCacheInterceptor" />
       <interceptor name="cacheInterceptor" class="org.hisp.dhis.interceptor.CacheInterceptor" />
 
       <interceptor name="portalParamsInterceptor" class="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor" />
@@ -61,6 +62,7 @@
         <interceptor-ref name="loginInterceptor" />
         <interceptor-ref name="userSettingInterceptor" />
         <interceptor-ref name="contextInterceptor" />
+        <interceptor-ref name="noCacheInterceptor" />
         <interceptor-ref name="portalParamsInterceptor" />
         <interceptor-ref name="portalMenuInterceptor" />
         <interceptor-ref name="portalModuleInterceptor" />

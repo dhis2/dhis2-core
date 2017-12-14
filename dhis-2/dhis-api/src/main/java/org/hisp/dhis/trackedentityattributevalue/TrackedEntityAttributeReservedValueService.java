@@ -30,6 +30,8 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -59,6 +61,7 @@ public interface TrackedEntityAttributeReservedValueService
      * @return a list of {@link TrackedEntityAttributeReservedValue}
      * @throws Exception 
      */
+    @Transactional
     List<TrackedEntityAttributeReservedValue> createTrackedEntityReservedValues( 
         TrackedEntityAttribute attribute, int valuesToCreate );
     

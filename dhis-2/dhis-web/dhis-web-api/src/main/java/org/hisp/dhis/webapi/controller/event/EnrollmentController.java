@@ -119,7 +119,7 @@ public class EnrollmentController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date programStartDate,
         @RequestParam( required = false ) Date programEndDate,
-        @RequestParam( required = false ) String trackedEntity,
+        @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String enrollment,
         @RequestParam( required = false ) Integer page,
@@ -133,7 +133,7 @@ public class EnrollmentController
 
         if ( fields.isEmpty() )
         {
-            fields.add( "enrollment,created,lastUpdated,trackedEntity,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
+            fields.add( "enrollment,created,lastUpdated,trackedEntityType,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
         }
 
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
@@ -145,7 +145,7 @@ public class EnrollmentController
         if ( enrollment == null )
         {
             ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntity, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
+                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
 
             enrollments = new ArrayList<>( enrollmentService.getEnrollments(
                 programInstanceService.getProgramInstances( params ) ) );

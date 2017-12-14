@@ -1,32 +1,32 @@
 package org.hisp.dhis.dxf2.metadata;
 
-/*
- * Copyright (c) 2004-2017, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+    /*
+     * Copyright (c) 2004-2017, University of Oslo
+     * All rights reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions are met:
+     * Redistributions of source code must retain the above copyright notice, this
+     * list of conditions and the following disclaimer.
+     *
+     * Redistributions in binary form must reproduce the above copyright notice,
+     * this list of conditions and the following disclaimer in the documentation
+     * and/or other materials provided with the distribution.
+     * Neither the name of the HISP project nor the names of its contributors may
+     * be used to endorse or promote products derived from this software without
+     * specific prior written permission.
+     *
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+     * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+     * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     */
 
 import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
@@ -58,6 +58,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,9 @@ public class DefaultMetadataImportService implements MetadataImportService
     private ObjectBundleValidationService objectBundleValidationService;
 
     @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
     private AclService aclService;
 
     @Autowired
@@ -111,6 +115,11 @@ public class DefaultMetadataImportService implements MetadataImportService
             params.setUser( currentUserService.getCurrentUser() );
         }
 
+        if ( params.getUserOverrideMode() == UserOverrideMode.CURRENT )
+        {
+            params.setOverrideUser( currentUserService.getCurrentUser() );
+        }
+
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
@@ -122,7 +131,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
-        prepareBundle( bundle );
+        prepareBundle( bundle, bundleParams );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport.getTypeReportMap() );
@@ -206,6 +215,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
+        params.setUserOverrideMode( getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
         params.setPreheatMode( getEnumWithDefault( PreheatMode.class, parameters, "preheatMode", PreheatMode.REFERENCE ) );
         params.setIdentifier( getEnumWithDefault( PreheatIdentifier.class, parameters, "identifier", PreheatIdentifier.UID ) );
@@ -220,6 +230,22 @@ public class DefaultMetadataImportService implements MetadataImportService
             JobId jobId = new JobId( JobType.METADATA_IMPORT, params.getUser().getUid() );
             notifier.clear( jobId );
             params.setJobId( jobId );
+        }
+
+        if ( params.getUserOverrideMode() == UserOverrideMode.SELECTED )
+        {
+            User overrideUser = null;
+
+            if ( parameters.containsKey( "overrideUser" ) )
+            {
+                List<String> overrideUsers = parameters.get( "overrideUser" );
+                overrideUser = manager.get( User.class, overrideUsers.get( 0 ) );
+            }
+
+            if ( overrideUser == null )
+            {
+                throw new MetadataImportException( "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
+            }
         }
 
         return params;
@@ -253,7 +279,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private void prepareBundle( ObjectBundle bundle )
+    private void prepareBundle( ObjectBundle bundle, ObjectBundleParams params )
     {
         if ( bundle.getUser() == null )
         {
@@ -262,11 +288,11 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
         {
-            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle ) );
+            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle, params ) );
         }
     }
 
-    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle )
+    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
     {
         if ( StringUtils.isEmpty( object.getPublicAccess() ) )
         {
