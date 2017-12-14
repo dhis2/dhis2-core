@@ -111,7 +111,6 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         {
             criteria.addOrder( getHibernateOrder( order ) );
         }
-        System.out.println("criteria: " + criteria.getAlias() + ", query: " + detachedCriteria.toString());
 
         return criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) ).list();
     }
