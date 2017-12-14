@@ -113,6 +113,13 @@ public class JdbcRawAnalyticsManager
     // Supportive methods
     // -------------------------------------------------------------------------
     
+    /**
+     * Returns a SQL select statement.
+     * 
+     * @param params the data query parameters.
+     * @param dimensions the list of dimensions.
+     * @return a SQL select statement.
+     */
     private String getSelectStatement( DataQueryParams params, List<DimensionalObject> dimensions )
     {        
         String idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID ).getIdentifiableString().toLowerCase();
