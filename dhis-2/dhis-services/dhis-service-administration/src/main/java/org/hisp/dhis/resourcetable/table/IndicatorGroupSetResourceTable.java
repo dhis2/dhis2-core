@@ -34,6 +34,7 @@ import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
@@ -49,9 +50,9 @@ public class IndicatorGroupSetResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_indicatorgroupsetstructure";
+        return ResourceTableType.INDICATOR_GROUP_SET_STRUCTURE;
     }
     
     @Override

@@ -201,7 +201,7 @@
       "lastUpdated": "2016-03-31T05:16:45.020+0000"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "name": "Person",
       "code": "Person",
@@ -284,7 +284,7 @@
           "id": "vnLGLc5Yfht"
         }
       ],
-      "trackedEntity": {
+      "trackedEntityType": {
         "id": "MCPQUTHX1Ze"
       },
       "skipOffline": false,

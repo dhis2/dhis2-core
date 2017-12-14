@@ -94,7 +94,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -560,7 +560,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         handleCategoryCombo( metadata, program.getCategoryCombo() );
         handleDataEntryForm( metadata, program.getDataEntryForm() );
-        handleTrackedEntity( metadata, program.getTrackedEntity() );
+        handleTrackedEntityType( metadata, program.getTrackedEntityType() );
 
         program.getNotificationTemplates().forEach( template -> handleNotificationTemplate( metadata, template ) );
         program.getProgramStages().forEach( programStage -> handleProgramStage( metadata, programStage ) );
@@ -700,11 +700,11 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleTrackedEntity( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, TrackedEntity trackedEntity )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleTrackedEntityType( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, TrackedEntityType trackedEntityType )
     {
-        if ( trackedEntity == null ) return metadata;
-        metadata.putValue( TrackedEntity.class, trackedEntity );
-        handleAttributes( metadata, trackedEntity );
+        if ( trackedEntityType == null ) return metadata;
+        metadata.putValue( TrackedEntityType.class, trackedEntityType );
+        handleAttributes( metadata, trackedEntityType );
 
         return metadata;
     }

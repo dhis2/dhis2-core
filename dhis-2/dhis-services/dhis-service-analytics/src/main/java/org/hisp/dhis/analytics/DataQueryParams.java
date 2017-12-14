@@ -93,6 +93,7 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO = "Attribute option combo";
     public static final String DISPLAY_NAME_PERIOD = "Period";
     public static final String DISPLAY_NAME_ORGUNIT = "Organisation unit";
+    public static final String DISPLAY_NAME_ORGUNIT_GROUP = "Organisation unit group";
     public static final String DISPLAY_NAME_LONGITUDE = "Longitude";
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
 
@@ -197,6 +198,11 @@ public class DataQueryParams
      * values where relevant in the response.
      */
     protected boolean includeNumDen;
+
+    /**
+     * Indicates whether to include metadata details to response
+     */
+    protected boolean includeMetadataDetails;
     
     /**
      * Indicates which property to display for meta-data.
@@ -384,6 +390,7 @@ public class DataQueryParams
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
         params.includeNumDen = this.includeNumDen;
+        params.includeMetadataDetails = this.includeMetadataDetails;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
         params.outputFormat = this.outputFormat;
@@ -1672,6 +1679,11 @@ public class DataQueryParams
         return includeNumDen;
     }
 
+    public boolean isIncludeMetadataDetails()
+    {
+        return includeMetadataDetails;
+    }
+
     public DisplayProperty getDisplayProperty()
     {
         return displayProperty;
@@ -2336,6 +2348,12 @@ public class DataQueryParams
         public Builder withIncludeNumDen( boolean includeNumDen )
         {
             this.params.includeNumDen = includeNumDen;
+            return this;
+        }
+
+        public Builder withIncludeMetadataDetails( boolean includeMetadataDetails )
+        {
+            this.params.includeMetadataDetails = includeMetadataDetails;
             return this;
         }
 
