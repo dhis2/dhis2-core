@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -130,6 +131,38 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
+
+    public Enrollments getEnrollments( ProgramInstanceQueryParams params )
+    {
+        Enrollments enrollments = new Enrollments();
+
+        if ( !params.isPaging() && !params.isSkipPaging() )
+        {
+            params.setDefaultPaging();
+        }
+
+        if ( params.isPaging() )
+        {
+            int count = 0;
+
+            if ( params.isTotalPages() )
+            {
+                count = programInstanceService.countProgramInstances( params );
+            }
+
+            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            
+            enrollments.setPager( pager );
+        }
+
+        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
+
+        List listEnrollments = getEnrollments( programInstances );
+
+        enrollments.setEnrollments( listEnrollments );
+
+        return enrollments;
+    }
 
     @Override
     public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
