@@ -40,6 +40,7 @@ import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
@@ -55,9 +56,9 @@ public class DatePeriodResourceTable
     }
     
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_dateperiodstructure";
+        return ResourceTableType.DATE_PERIOD_STRUCTURE;
     }
 
     @Override

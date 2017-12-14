@@ -254,8 +254,7 @@ public class ReportTable
      * @param indicators        the indicators.
      * @param reportingRates    the reporting rates.
      * @param periods           the periods. Cannot have the name property set.
-     * @param relatives         the relative periods. These periods must have the
-     *                          name property set. Not persisted.
+     * @param relatives         the relative periods. These periods must have the name property set. Not persisted.
      * @param organisationUnits the organisation units.
      * @param doIndicators      indicating whether indicators should be crosstabulated.
      * @param doPeriods         indicating whether periods should be crosstabulated.
@@ -522,6 +521,16 @@ public class ReportTable
         }
     }
 
+    /**
+     * Generates a grid for this report table based on the given aggregate value
+     * map.
+     *
+     * @param grid               the grid, should be empty and not null.
+     * @param valueMap           the mapping of identifiers to aggregate values.
+     * @param displayProperty    the display property to use for meta data.
+     * @param reportParamColumns whether to include report parameter columns.
+     * @return a grid.
+     */
     public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean reportParamColumns )
     {
         valueMap = new HashMap<>( valueMap );
@@ -627,10 +636,10 @@ public class ReportTable
             {
                 grid.removeCurrentWriteRow();
             }
-
+            
             // TODO hide empty columns
         }
-
+        
         if ( hideEmptyColumns )
         {
             grid.removeEmptyColumns();

@@ -94,7 +94,7 @@
       "dataDimensionType": "DISAGGREGATION"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "attributeValues": [ ],
       "code": "Person",

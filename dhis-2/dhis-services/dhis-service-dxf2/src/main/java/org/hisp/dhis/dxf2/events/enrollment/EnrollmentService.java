@@ -34,6 +34,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,8 @@ public interface EnrollmentService
     Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params );
 
     List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
+
+    Enrollments getEnrollments( ProgramInstanceQueryParams params);
 
     // -------------------------------------------------------------------------
     // CREATE

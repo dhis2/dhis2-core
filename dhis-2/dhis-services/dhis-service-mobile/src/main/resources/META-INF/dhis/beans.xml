@@ -47,7 +47,7 @@
 		<property name="userService" ref="org.hisp.dhis.user.UserService" />
 		<property name="interpretationService" ref="org.hisp.dhis.interpretation.InterpretationService" />
 		<property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
-		<property name="trackedEntityService" ref="org.hisp.dhis.trackedentity.TrackedEntityService" />
+		<property name="trackedEntityTypeService" ref="org.hisp.dhis.trackedentity.TrackedEntityTypeService" />
 		<property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
 
 	</bean>
