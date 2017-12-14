@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -180,15 +181,28 @@ public class DefaultEventAnalyticsService
         List<Map<String, EventReportDimensionalItem>> rowPermutations = generateEventDataPermutations( tableRows );
         List<Map<String, EventReportDimensionalItem>> columnPermutations = generateEventDataPermutations( tableColumns );
 
-        Map<String, Object> valueMap = getAggregatedEventDataMapping( grid );
+        return generateOutputGrid( grid,  params, rowPermutations, columnPermutations, rowDimensions );
+    }
 
+    /**
+     * Generate grid based on input parameters
+     *
+     * @param grid the result grid
+     * @param params the event query parameters.
+     * @param rowPermutations the row permutations
+     * @param columnPermutations the column permutations
+     * @param rowDimensions the row dimensions
+     * @return grid with table layout
+     */
+    private Grid generateOutputGrid( Grid grid, EventQueryParams params, List<Map<String, EventReportDimensionalItem>> rowPermutations, List<Map<String, EventReportDimensionalItem>> columnPermutations, List<String> rowDimensions )
+    {
         Grid outputGrid = new ListGrid();
         outputGrid.setTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
 
         for ( String row : rowDimensions )
         {
             MetadataItem metadataItem = (MetadataItem) ((HashMap<String, Object>) grid.getMetaData()
-                .get( AnalyticsMetaDataKey.ITEMS.getKey() )).get( row );
+                .get( ITEMS.getKey() )).get( row );
 
             String name = StringUtils.defaultIfEmpty( metadataItem.getName(), row );
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
@@ -220,6 +234,8 @@ public class DefaultEventAnalyticsService
             outputGrid.addHeader( new GridHeader( display, display,
                 ValueType.NUMBER, Double.class.getName(), false, false ) );
         } );
+
+        Map<String, Object> valueMap = getAggregatedEventDataMapping( grid );
 
         for ( Map<String, EventReportDimensionalItem> rowCombination : rowPermutations )
         {
@@ -313,7 +329,7 @@ public class DefaultEventAnalyticsService
             else if ( dataElement.hasLegendSet() )
             {
                 List<String> legendOptions = (List<String>) ((HashMap<String, Object>) grid.getMetaData()
-                    .get( AnalyticsMetaDataKey.DIMENSIONS.getKey() )).get( dimension );
+                    .get( DIMENSIONS.getKey() )).get( dimension );
 
                 if ( legendOptions.size() == 0 )
                 {
@@ -333,7 +349,7 @@ public class DefaultEventAnalyticsService
                     for ( String legend : legendOptions )
                     {
                         MetadataItem metadataItem = (MetadataItem) ((HashMap<String, Object>) grid.getMetaData()
-                            .get( AnalyticsMetaDataKey.ITEMS.getKey() )).get( legend );
+                            .get( ITEMS.getKey() )).get( legend );
 
                         objects.add( new EventReportDimensionalItem( new Option( metadataItem.getName(), legend ),
                             dataElement.getUid() ) );
@@ -635,7 +651,7 @@ public class DefaultEventAnalyticsService
         {
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             
-            grid.getMetaData().put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
+            grid.getMetaData().put( PAGER.getKey(), pager );
         }
 
         return grid;
@@ -728,12 +744,12 @@ public class DefaultEventAnalyticsService
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
-                metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
+                metaData.put( ITEMS.getKey(), uidNameMap.entrySet().stream().collect(
                     Collectors.toMap( Map.Entry::getKey, e -> new MetadataItem( e.getValue() ) ) ) );
             }
             else
             {
-                metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+                metaData.put( NAMES.getKey(), uidNameMap );
             }
             
             Map<String, Object> dimensionItems = new HashMap<>();
@@ -782,7 +798,7 @@ public class DefaultEventAnalyticsService
 
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
-                metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
+                metaData.put( DIMENSIONS.getKey(), dimensionItems );
             }
             else
             {
@@ -797,12 +813,12 @@ public class DefaultEventAnalyticsService
             
             if ( params.isHierarchyMeta() )
             {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
             }
 
             if ( params.isShowHierarchy() )
             {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+                metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
             grid.setMetaData( metaData );

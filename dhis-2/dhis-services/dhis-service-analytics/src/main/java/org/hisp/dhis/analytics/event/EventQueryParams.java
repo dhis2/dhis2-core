@@ -397,7 +397,7 @@ public class EventQueryParams
     /**
      * Get option sets part of items.
      */
-    public Set<OptionSet> getItemOptionSets()
+    private Set<OptionSet> getItemOptionSets()
     {
         Set<OptionSet> optionSets = new HashSet<>();
 
