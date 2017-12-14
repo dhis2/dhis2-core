@@ -210,4 +210,10 @@ public class AccessStringHelper
             && (bytes[2] == '-' || bytes[2] == 'r')
             && (bytes[3] == '-' || bytes[3] == 'w');
     }
+
+    public static boolean hasDataSharing( String access )
+    {
+        return AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_READ )
+            || AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_WRITE );
+    }
 }
