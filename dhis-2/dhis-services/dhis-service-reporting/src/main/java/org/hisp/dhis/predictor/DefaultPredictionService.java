@@ -65,6 +65,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,6 +84,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
  * @author Ken Haase
  * @author Jim Grace
  */
+@Transactional
 public class DefaultPredictionService
     implements PredictionService
 {
@@ -177,10 +179,19 @@ public class DefaultPredictionService
 
         int predictionCount = 0;
 
+        Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
+        String currentUsername = "system-process";
+
+        if ( currentUser != null )
+        {
+            currentUserOrgUnits = currentUser.getOrganisationUnits();
+            currentUsername = currentUser.getUsername();
+        }
+
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
             List<OrganisationUnit> orgUnitsAtLevel = organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
-                Lists.newArrayList( orgUnitLevel ), currentUser.getOrganisationUnits() );
+                Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
 
             if ( orgUnitsAtLevel.size() == 0 )
             {
@@ -245,7 +256,7 @@ public class DefaultPredictionService
 
                                 writeDataValue( outputDataElement, period, orgUnit, outputOptionCombo,
                                     categoryService.getDataElementCategoryOptionCombo( aoc ),
-                                    valueString, currentUser.getUsername() );
+                                    valueString, currentUsername );
 
                                 predictionCount++;
                             }
