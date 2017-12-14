@@ -193,7 +193,19 @@ public class AccessStringHelper
 
     public static boolean isValid( String access )
     {
-        return access == null || DEFAULT.equals( access ) || READ.equals( access ) || WRITE.equals( access ) || READ_WRITE.equals( access )
-            || DATA_READ.equals( access ) || DATA_WRITE.equals( access ) || DATA_READ_WRITE.equals( access ) || FULL.equals( access );
+        if ( access == null )
+        {
+            return true;
+        }
+
+        if ( access.length() != 8 || !access.endsWith( "----" ) )
+        {
+            return false;
+        }
+
+        byte[] bytes = access.getBytes();
+
+        return bytes[0] == '-' || bytes[1] == '-' || bytes[2] == '-' || bytes[3] == '-'
+            || bytes[0] == 'r' || bytes[1] == 'w' || bytes[2] == 'r' || bytes[3] == 'w';
     }
 }
