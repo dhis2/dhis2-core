@@ -163,12 +163,15 @@ public interface TrackedEntityInstanceService
     void decideAccess( TrackedEntityInstanceQueryParams params );    
     
     /**
-     * Checks whether the search is being conducted locally (data capture organisation units) or 
-     * broadly within tei search organisation units
+     * Validates scope of given TrackedEntityInstanceQueryParams. The params is
+     * considered valid if no exception are thrown and the method returns
+     * normally.
      *
      * @param params the TrackedEntityInstanceQueryParams.
+     * @throws IllegalQueryException if the given params is invalid.
      */
-    boolean isLocalSearch( TrackedEntityInstanceQueryParams params );
+    void validateSearchScope( TrackedEntityInstanceQueryParams params )
+        throws IllegalQueryException;
 
     /**
      * Validates the given TrackedEntityInstanceQueryParams. The params is

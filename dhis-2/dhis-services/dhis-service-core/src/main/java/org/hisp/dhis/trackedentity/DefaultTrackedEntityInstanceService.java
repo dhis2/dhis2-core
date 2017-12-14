@@ -142,7 +142,8 @@ public class DefaultTrackedEntityInstanceService
     {
         decideAccess( params );
         validate( params );
-
+        validateSearchScope( params );
+        
         params.setUser( currentUserService.getCurrentUser() );
 
         return trackedEntityInstanceStore.countTrackedEntityInstances( params );
@@ -155,6 +156,7 @@ public class DefaultTrackedEntityInstanceService
     {
         decideAccess( params );
         validate( params );
+        validateSearchScope( params );
         handleAttributes( params );
 
         params.setUser( currentUserService.getCurrentUser() );
@@ -366,6 +368,37 @@ public class DefaultTrackedEntityInstanceService
         if ( !params.getDuplicateFilters().isEmpty() )
         {
             violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
+        }
+        
+        if ( violation != null )
+        {
+            log.warn( "Validation failed: " + violation );
+
+            throw new IllegalQueryException( violation );
+        }
+    }
+    
+    @Override
+    public void validateSearchScope( TrackedEntityInstanceQueryParams params )
+        throws IllegalQueryException
+    {
+        String violation = null;
+
+        if ( params == null )
+        {
+            throw new IllegalQueryException( "Params cannot be null" );
+        }
+        
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user == null )
+        {
+            throw new IllegalQueryException( "User cannot be null" );
+        }
+
+        if ( user.getOrganisationUnits().isEmpty() )
+        {
+            violation = "User need to be associated with at least one organisation unit.";
         }
         
         if( !isLocalSearch( params ) )
@@ -801,31 +834,32 @@ public class DefaultTrackedEntityInstanceService
         // Return null if all criteria are met
 
         return null;
-    }
+    }    
     
-    @Override
-    public boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
-    {        
-        if( currentUserService.getCurrentUser().getOrganisationUnits().containsAll(  currentUserService.getCurrentUser().getTeiSearchOrganisationUnits()  ) )
+    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
+    {   
+        User user = currentUserService.getCurrentUser();
+        
+        if( user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback()  ) )
         {
             return true;
         }
         
         if( params.isOrganisationUnitMode( ALL ) )
         {
-            return currentUserService.getCurrentUser().getOrganisationUnits().containsAll( organisationUnitService.getRootOrganisationUnits() );
+            return user.getOrganisationUnits().containsAll( organisationUnitService.getRootOrganisationUnits() );
         }
         
         if( params.isOrganisationUnitMode( ACCESSIBLE ) )
         {            
-            return currentUserService.getCurrentUser().getOrganisationUnits().containsAll( currentUserService.getCurrentUser().getTeiSearchOrganisationUnits() );
+            return user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback() );
         }        
         
         for( OrganisationUnit searchOu : params.getOrganisationUnits() )
         {
             boolean localSearch = false;
             
-            for( OrganisationUnit localOu : currentUserService.getCurrentUser().getOrganisationUnits() )
+            for( OrganisationUnit localOu : user.getOrganisationUnits() )
             {
                 if( searchOu.getPath().indexOf(  localOu.getUid() ) != - 1 )
                 {
