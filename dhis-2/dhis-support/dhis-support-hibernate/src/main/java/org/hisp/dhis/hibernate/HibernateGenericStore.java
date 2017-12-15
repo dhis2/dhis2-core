@@ -235,6 +235,12 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public final Criteria getDataSharingCriteria()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+    }
+
+    @Override
     public final Criteria getSharingCriteria( String access )
     {
         return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
@@ -701,7 +707,7 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public final List<T> getDataAll()
     {
-        return getSharingCriteria().list();
+        return getDataSharingCriteria().list();
     }
 
     @Override
@@ -718,7 +724,7 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public final List<T> getDataAll( int first, int max )
     {
-        return getSharingCriteria()
+        return getDataSharingCriteria()
             .setFirstResult( first )
             .setMaxResults( max )
             .list();
