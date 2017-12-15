@@ -342,9 +342,7 @@ public class HibernateGenericStore<T>
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
-        preProcessDetachedCriteria( criteria );
-
-        if ( !sharingEnabled( user ) || user == null )
+        if ( !dataSharingEnabled( user ) || user == null )
         {
             return criteria;
         }
@@ -899,6 +897,11 @@ public class HibernateGenericStore<T>
     protected boolean sharingEnabled( UserInfo userInfo )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
+    }
+
+    protected boolean dataSharingEnabled( UserInfo userInfo )
+    {
+        return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
     }
 
     protected boolean isReadAllowed( T object )
