@@ -461,7 +461,7 @@ public class DataElement
 
     /**
      * Returns the maximum number of expiry days from the data sets of this data
-     * element. Returns {@link DataSet.NO_EXPIRY} if any data set has no expiry.
+     * element. Returns {@link DataSet#NO_EXPIRY} if any data set has no expiry.
      */
     public int getExpiryDays()
     {

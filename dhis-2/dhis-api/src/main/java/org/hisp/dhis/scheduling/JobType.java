@@ -70,6 +70,7 @@ public enum JobType
         return key;
     }
 
+    @SuppressWarnings("unchecked")
     public Class<JobParameters> getClazz()
     {
         return (Class<JobParameters>) clazz;

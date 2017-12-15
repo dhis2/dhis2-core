@@ -82,7 +82,6 @@ public interface DataQueryService
      * @param allowAllPeriods whether to allow all period items, meaning specifying the
      *        period dimension with no period items.
      * @param apiVersion the API version used for the request.
-     * @param format the i18n format.
      * @return a data query parameter object created based on the given URL info.
      */
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,

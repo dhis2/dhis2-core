@@ -56,7 +56,6 @@ public interface ValidationRuleService
      * Update a ValidationRule to the database.
      *
      * @param validationRule the ValidationRule to update.
-     * @return the generated unique identifier for the ValidationRule.
      */
     void updateValidationRule( ValidationRule validationRule );
 

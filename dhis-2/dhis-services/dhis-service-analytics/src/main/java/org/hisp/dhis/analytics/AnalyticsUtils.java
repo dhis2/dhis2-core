@@ -220,12 +220,12 @@ public class AnalyticsUtils
     
     /**
      * Converts the data and option combo identifiers to an operand identifier,
-     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link DataElementOperand.TotalType#AOC_ONLY}
+     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link TotalType#AOC_ONLY}
      * a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be inserted after the data
      * item.
      * 
      * @param valueMap the value map to convert.
-     * @param propertyCount the number of properties to collapse into operand key.
+     * @param totalType the {@link TotalType}.
      * @return a value map.
      */
     public static <T> Map<String, T> convertDxToOperand( Map<String, T> valueMap, TotalType totalType )
@@ -602,7 +602,7 @@ public class AnalyticsUtils
      * for the given query.
      *
      * @param params the data query parameters.
-     * @returns a mapping between identifiers and names.
+     * @return a mapping between identifiers and names.
      */
     public static Map<String, String> getCocNameMap( DataQueryParams params )
     {
@@ -726,7 +726,7 @@ public class AnalyticsUtils
     /**
      * Returns true if the given period occurs less than maxYears before the current date.
      * 
-     * @param period periods to check
+     * @param year the year to check.
      * @param maxYears amount of years back to check
      * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
      */
