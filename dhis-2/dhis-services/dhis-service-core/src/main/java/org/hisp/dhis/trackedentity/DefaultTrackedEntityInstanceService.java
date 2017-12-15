@@ -382,8 +382,6 @@ public class DefaultTrackedEntityInstanceService
     public void validateSearchScope( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
     {
-        String violation = null;
-
         if ( params == null )
         {
             throw new IllegalQueryException( "Params cannot be null" );
@@ -398,14 +396,19 @@ public class DefaultTrackedEntityInstanceService
 
         if ( user.getOrganisationUnits().isEmpty() )
         {
-            violation = "User need to be associated with at least one organisation unit.";
+            throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
         
         if( !isLocalSearch( params ) )
         {
             if( params.hasQuery() )
+            {                
+                throw new IllegalQueryException( "Query cannot be used during global search" );
+            }
+            
+            if ( !params.hasProgram() && !params.hasTrackedEntityType() )
             {
-                violation = "Query cannot be used during global search";
+                throw new IllegalQueryException( "Either program or tracked entity need to be specified" );
             }
             
             if( params.hasFilters() )
@@ -434,17 +437,26 @@ public class DefaultTrackedEntityInstanceService
                 
                 if( !violatingAttributes.isEmpty() )
                 {
-                    violation = "Non-searchable attribute(s) can not be used during global search:  " + violatingAttributes.toString();
+                    throw new IllegalQueryException( "Non-searchable attribute(s) can not be used during global search:  " + violatingAttributes.toString() );
                 }
             }
-        }
-
-        if ( violation != null )
-        {
-            log.warn( "Validation failed: " + violation );
-
-            throw new IllegalQueryException( violation );
-        }
+            
+            if( params.hasProgram() )
+            {                
+                if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch() ) )
+                {
+                    throw new IllegalQueryException( "At least " + params.getProgram().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
+                }
+            }
+            
+            if( params.hasTrackedEntityType() )
+            {                
+                if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch() ) )
+                {
+                    throw new IllegalQueryException( "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
+                }
+            }
+        }        
     }
 
     @Override
