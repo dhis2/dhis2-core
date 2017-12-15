@@ -207,7 +207,7 @@ public class HibernateGenericStore<T>
     protected final NativeQuery getSqlQuery( String sql )
     {
         NativeQuery query = getSession().createNativeQuery( sql );
-        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT , cacheable );
+        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
         return query;
     }
 
@@ -231,7 +231,7 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getSharingCriteria()
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
     }
 
     @Override
@@ -243,13 +243,13 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getSharingCriteria( User user )
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
     }
 
     @Override
     public final DetachedCriteria getSharingDetachedCriteria()
     {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" );
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
     }
 
     @Override
@@ -261,7 +261,7 @@ public class HibernateGenericStore<T>
     @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
-        return getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" );
+        return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
     }
 
     @Override
@@ -665,7 +665,7 @@ public class HibernateGenericStore<T>
         query.select( root );
         query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
 
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -737,7 +737,7 @@ public class HibernateGenericStore<T>
         query.select( root.get( "attributeValues" ) );
         query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
 
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -758,7 +758,7 @@ public class HibernateGenericStore<T>
         query.select( root.get( "attributeValues" ) );
         query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
 
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -780,9 +780,9 @@ public class HibernateGenericStore<T>
         query.where(
             builder.and(
                 builder.equal( joinAttributeValue.get( "attribute" ), attribute ),
-                builder.equal( joinAttributeValue.get( "value" ), value )  ) ) ;
+                builder.equal( joinAttributeValue.get( "value" ), value ) ) );
 
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override

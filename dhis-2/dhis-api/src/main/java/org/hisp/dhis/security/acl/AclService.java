@@ -39,6 +39,10 @@ import java.util.List;
  */
 public interface AclService
 {
+    String LIKE_READ_METADATA = "r%"; // TODO use r_______ ?
+
+    String LIKE_READ_DATA = "__r_____";
+
     /**
      * Is type supported for acl?
      *
