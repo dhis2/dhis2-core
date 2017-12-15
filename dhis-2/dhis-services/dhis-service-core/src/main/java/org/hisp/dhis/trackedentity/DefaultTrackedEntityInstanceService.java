@@ -401,6 +401,8 @@ public class DefaultTrackedEntityInstanceService
         
         if( !isLocalSearch( params ) )
         {
+            int maxTeiLimit = 0; // no limit
+            
             if( params.hasQuery() )
             {                
                 throw new IllegalQueryException( "Query cannot be used during global search" );
@@ -442,7 +444,9 @@ public class DefaultTrackedEntityInstanceService
             }
             
             if( params.hasProgram() )
-            {                
+            {             
+                maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+                
                 if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch() ) )
                 {
                     throw new IllegalQueryException( "At least " + params.getProgram().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
@@ -450,13 +454,20 @@ public class DefaultTrackedEntityInstanceService
             }
             
             if( params.hasTrackedEntityType() )
-            {                
+            {   
+                maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
+                
                 if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch() ) )
                 {
                     throw new IllegalQueryException( "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
                 }
             }
-        }        
+                        
+            if( maxTeiLimit > 0 && trackedEntityInstanceStore.getTrackedEntityInstanceCount( params ) > maxTeiLimit )
+            {
+                throw new IllegalQueryException( "Too many records, greater than the maximum allowed (" + maxTeiLimit + ") found. Please narrow down your search." );                
+            }
+        }
     }
 
     @Override
