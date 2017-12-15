@@ -150,7 +150,7 @@ public interface AnalyticsTableManager
      * organisation unit level column values to null for the levels above the
      * given aggregation level.
      * 
-     * @param tablePartitions the analytics table partitions.
+     * @param partitions the analytics table partitions.
      * @param dataElements the data element identifiers to apply aggregation levels for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.

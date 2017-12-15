@@ -205,7 +205,7 @@ public class DefaultUserSettingService
 
     /**
      * No transaction for this method, transaction is initiated in
-     * {@link getUserSettingOptional}.
+     * {@link #getUserSettingOptional}.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key )
@@ -215,7 +215,7 @@ public class DefaultUserSettingService
 
     /**
      * No transaction for this method, transaction is initiated in
-     * {@link getUserSettingOptional}.
+     * {@link #getUserSettingOptional}.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key, User user )

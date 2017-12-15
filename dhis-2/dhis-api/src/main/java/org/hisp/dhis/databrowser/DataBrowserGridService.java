@@ -162,9 +162,10 @@ public interface DataBrowserGridService
      * This method converts a string from the date format "yyyy-MM-dd" to "MMMM
      * yyyy", for instance.
      * 
-     * @param date is the string to be converted.
-     * @param periodService service of period
-     * @param format is i18n format object
+     * @param periodType the period type.
+     * @param dateString the date string.
+     * @param i18n the i18n object.
+     * @param format the i18n format.
      * @return converted string if the date is valid, else the original string
      *         is returned
      */

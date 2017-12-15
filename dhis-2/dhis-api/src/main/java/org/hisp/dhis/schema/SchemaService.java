@@ -98,7 +98,7 @@ public interface SchemaService
     /**
      * Collect all authorities from schema descriptors.
      *
-     * @return
+     * @return a set of authorities.
      */
     Set<String> collectAuthorities();
 }

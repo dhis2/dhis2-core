@@ -94,10 +94,10 @@ public interface MessageService
     List<UserMessage> getLastRecipients( int first, int max );
 
     /**
-     * Returns true is user is part of the feedbackRecipients group
+     * Returns true if user is part of the feedback recipients group.
      *
      * @param user user to check
-     * @return
+     * @return true if user is part of the feedback recipients group.
      */
     boolean hasAccessToManageFeedbackMessages( User user );
 }

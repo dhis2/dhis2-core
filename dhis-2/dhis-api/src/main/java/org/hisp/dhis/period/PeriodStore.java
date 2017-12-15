@@ -111,7 +111,7 @@ public interface PeriodStore
      * @param periodType is the ultimate period type
      * @param startDate  is intercepting startDate
      * @param endDate    is intercepting endDate
-     * @return
+     * @return a list of periods.
      */
     List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate );
 
@@ -183,7 +183,7 @@ public interface PeriodStore
      * Returns the persisted instance of a given PeriodType.
      *
      * @param periodType the PeriodType class of the instance to return.
-     * @return
+     * @return the period type.
      */
     PeriodType getPeriodType( Class<? extends PeriodType> periodType );
 

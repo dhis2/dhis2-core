@@ -44,12 +44,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
 /**
- * Manages the {@link SmsConfiguration} for the DHIS instance.
- * <p>
- * The manager looks up all beans implementing {@link SmsConfigurable} in the
- * context, initializing them on startup and on any SMS configuration changes.
+ * Manages the {@link SmsConfiguration} for the instance.
  */
-
 public class DefaultSmsConfigurationManager
     implements SmsConfigurationManager
 {

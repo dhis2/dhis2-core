@@ -203,7 +203,7 @@ public interface DataElementService
     /**
      * Returns the DataElementGroup with the given UID.
      *
-     * @param id the UID of the DataElementGroup to return.
+     * @param uid the UID of the DataElementGroup to return.
      * @return the DataElementGroup with the given UID, or null if no match.
      */
     DataElementGroup getDataElementGroup( String uid );
@@ -224,7 +224,6 @@ public interface DataElementService
      */
     List<DataElementGroup> getAllDataElementGroups();
 
-
     /**
      * Returns a DataElementGroup with a given short name.
      *
@@ -242,10 +241,10 @@ public interface DataElementService
     DataElementGroup getDataElementGroupByCode( String code );
 
     /**
-     * Returns all DataElement which zeroIsSignificant property is true or false
+     * Returns all DataElements which zeroIsSignificant property is true or false.
      *
-     * @param list is zeroIsSignificant property
-     * @return a collection of all DataElement
+     * @param zeroIsSignificant whether zero is significant is true for this query.
+     * @return a collection of DataElements.
      */
     List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant );
 
