@@ -33,6 +33,8 @@ import org.hibernate.criterion.DetachedCriteria;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.User;
 
+import java.util.List;
+
 /**
  * Interface which extends GenericStore and exposes support methods for retrieving
  * criteria.
@@ -50,11 +52,15 @@ public interface InternalHibernateGenericStore<T>
 
     Criteria getSharingCriteria( User user );
 
+    DetachedCriteria getDataSharingDetachedCriteria( User user );
+
     Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
 
     DetachedCriteria getSharingDetachedCriteria();
 
     DetachedCriteria getSharingDetachedCriteria( String access );
+
+    DetachedCriteria getDataSharingDetachedCriteria( String access );
 
     DetachedCriteria getSharingDetachedCriteria( User user );
 }

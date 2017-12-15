@@ -259,9 +259,21 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
+    {
+        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
         return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
+    }
+
+    @Override
+    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
+    {
+        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
     }
 
     @Override
@@ -316,6 +328,54 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( userDetachedCriteria ) );
 
         criteria.add( disjunction );
+
+        return criteria;
+    }
+
+    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        preProcessDetachedCriteria( criteria );
+
+        if ( !sharingEnabled( user ) || user == null )
+        {
+            return criteria;
+        }
+
+        Assert.notNull( user, "User argument can't be null." );
+
+        Disjunction disjunction = Restrictions.disjunction();
+
+        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
+
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
+
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
+
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
+
+        criteria.add( disjunction );
+
         return criteria;
     }
 
@@ -639,7 +699,24 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
+    public final List<T> getDataAll()
+    {
+        return getSharingCriteria().list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
     public final List<T> getAll( int first, int max )
+    {
+        return getSharingCriteria()
+            .setFirstResult( first )
+            .setMaxResults( max )
+            .list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataAll( int first, int max )
     {
         return getSharingCriteria()
             .setFirstResult( first )

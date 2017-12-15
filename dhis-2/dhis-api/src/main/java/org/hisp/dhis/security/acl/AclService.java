@@ -41,7 +41,11 @@ public interface AclService
 {
     String LIKE_READ_METADATA = "r%"; // TODO use r_______ ?
 
+    String LIKE_WRITE_METADATA = "_w%"; // TODO use r_______ ?
+
     String LIKE_READ_DATA = "__r_____";
+
+    String LIKE_WRITE_DATA = "___w____";
 
     /**
      * Is type supported for acl?
