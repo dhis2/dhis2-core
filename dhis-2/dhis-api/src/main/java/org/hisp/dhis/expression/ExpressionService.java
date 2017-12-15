@@ -179,7 +179,7 @@ public interface ExpressionService
     /**
      * Deletes an Expression from the database.
      *
-     * @param id Identifier of the Expression to delete.
+     * @param expression the expression.
      */
     void deleteExpression( Expression expression );
 
@@ -250,16 +250,16 @@ public interface ExpressionService
      * values supplied in the value map, constant map and days.
      *
      * @param expression the expression which holds the formula for the
-     *        calculation.
+     *         calculation.
      * @param valueMap the mapping between data element operands and values to
-     *        use in the calculation.
+     *         use in the calculation.
      * @param constantMap the mapping between the constant uid and value to use
-     *        in the calculation.
+     *         in the calculation.
      * @param orgUnitCountMap the mapping between organisation unit group uid
-     *        and count of organisation units to use in the calculation.
+     *         and count of organisation units to use in the calculation.
      * @param days the number of days to use in the calculation.
-     * @param a map of subexpression strings to List(s) of aggregated samples
-     *        for the expression
+     * @param aggregateMap a map of subexpression strings to List(s) of aggregated samples
+     *         for the expression
      * @return the calculated value as a double.
      */
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
