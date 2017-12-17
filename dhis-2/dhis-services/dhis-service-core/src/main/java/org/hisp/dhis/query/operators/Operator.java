@@ -135,9 +135,9 @@ public abstract class Operator
             return org.hibernate.criterion.MatchMode.END;
         case ANYWHERE:
             return org.hibernate.criterion.MatchMode.ANYWHERE;
+        default:
+            return null;
         }
-
-        return null;
     }
 
     @Override

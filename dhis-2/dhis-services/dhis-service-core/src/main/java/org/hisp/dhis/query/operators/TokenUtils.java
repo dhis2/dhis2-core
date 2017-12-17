@@ -44,7 +44,17 @@ public class TokenUtils
         return Arrays.asList( value.replaceAll( "[^a-zA-Z0-9]", " " ).split( "[\\s@&.?$+-]+" ) );
     }
 
-    public static boolean test( List<Object> args, Object testValue, String targetValue, boolean caseSensitive, MatchMode matchMode )
+    public static StringBuilder createRegex( String value )
+    {
+        StringBuilder regex = new StringBuilder();
+
+        TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
+
+        return regex;
+    }
+
+    public static boolean test( List<Object> args, Object testValue, String targetValue, boolean caseSensitive,
+        MatchMode matchMode )
     {
         if ( args.isEmpty() || testValue == null )
         {
@@ -85,11 +95,17 @@ public class TokenUtils
                         case ANYWHERE:
                             found = s3.contains( s );
                         }
+
                         if ( found )
+                        {
                             break;
+                        }
                     }
+
                     if ( !found )
+                    {
                         return false;
+                    }
                 }
             }
         }

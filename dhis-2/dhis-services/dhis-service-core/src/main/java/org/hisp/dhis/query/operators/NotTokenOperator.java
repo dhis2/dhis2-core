@@ -55,12 +55,7 @@ public class NotTokenOperator
     {
         String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
 
-        StringBuilder regex = new StringBuilder();
-        for ( String token : TokenUtils.getTokens( value ) )
-        {
-            regex.append( "(?=.*" ).append( token ).append( ")" );
-        }
-        return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " !~* '" + regex + "' " );
+        return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " !~* '" + TokenUtils.createRegex( value ) + "' " );
     }
 
     @Override

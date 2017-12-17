@@ -77,8 +77,9 @@ public class DefaultQueryParser implements QueryParser
 
                 if ( split[0].equals( IDENTIFIABLE ) && !schema.haveProperty( IDENTIFIABLE ) )
                 {
-                    query.add( handleIdentifiablePath( schema, split[1], filter.substring( index ) ));
-                } else
+                    query.add( handleIdentifiablePath( schema, split[1], filter.substring( index ) ) );
+                }
+                else
                 {
                     query.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
                 }
@@ -92,10 +93,11 @@ public class DefaultQueryParser implements QueryParser
         return query;
     }
 
-    private Junction handleIdentifiablePath( Schema schema, String operator, Object arg ) {
-        Restriction displayNameRestriction = getRestriction( schema,"name", operator, arg );
-        Restriction uidRestriction = getRestriction( schema,"id", operator, arg );
-        Restriction codeRestriction = getRestriction( schema,"code", operator, arg );
+    private Junction handleIdentifiablePath( Schema schema, String operator, Object arg )
+    {
+        Restriction displayNameRestriction = getRestriction( schema, "name", operator, arg );
+        Restriction uidRestriction = getRestriction( schema, "id", operator, arg );
+        Restriction codeRestriction = getRestriction( schema, "code", operator, arg );
 
         Junction identifiableJunction = new Disjunction( schema );
         identifiableJunction.add( displayNameRestriction );
