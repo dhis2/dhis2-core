@@ -138,11 +138,10 @@ class DataApprovalPermissionsEvaluator
      * the org units that a user may see (read).
      *
      * @param status the data approval status (if any)
-     * @param orgUnit the organisation unit being looked at
      * @param workflow the data approval workflow
      * @return the data approval permissions for the object
      */
-    public DataApprovalPermissions getPermissions( DataApprovalStatus status, OrganisationUnit orgUnit, DataApprovalWorkflow workflow )
+    public DataApprovalPermissions getPermissions( DataApprovalStatus status, DataApprovalWorkflow workflow )
     {
         DataApprovalState s = status.getState();
 
@@ -150,7 +149,7 @@ class DataApprovalPermissionsEvaluator
 
         if ( status.getOrganisationUnitUid() == null )
         {
-            log.debug( "getPermissions organisationUnitUid null for user " + ( user == null ? "(null)" : user.getUsername() ) + " orgUnit " + ( orgUnit == null ? "[null]" : orgUnit.getName() ) );
+            log.debug( "getPermissions organisationUnitUid null for user " + ( user == null ? "(null)" : user.getUsername() ) + " orgUnit [null]" );
 
             permissions.setMayReadData( true );
 
@@ -161,7 +160,7 @@ class DataApprovalPermissionsEvaluator
 
         if ( userApprovalLevel == null )
         {
-            log.debug( "getPermissions userApprovalLevel null for user " + ( user == null ? "(null)" : user.getUsername() ) + " orgUnit " + ( orgUnit == null ? "[null]" : orgUnit.getName() ) );
+            log.debug( "getPermissions userApprovalLevel null for user " + ( user == null ? "(null)" : user.getUsername() ) + " orgUnit " + status.getOrganisationUnitUid() );
 
             permissions.setMayReadData( true );
 
@@ -206,16 +205,6 @@ class DataApprovalPermissionsEvaluator
 
         boolean mayReadData = mayApprove || mayUnapprove || mayAccept || mayUnaccept ||
                 ( userLevel >= dataLevel || mayViewLowerLevelUnapprovedData );
-
-        log.debug( "getPermissions orgUnit " + ( orgUnit == null ? "[null]" : orgUnit.getName() )
-            + " workflow " + workflow.getName()
-            + " comboUid " + status.getAttributeOptionComboUid() + " state " + s.name()
-            + " isApproved " + s.isApproved() + " isApprovable " + s.isApprovable() + " isUnapprovable " + s.isUnapprovable()
-            + " isAccepted " + s.isAccepted() + " isAcceptable " + s.isAcceptable() + " isUnacceptable " + s.isUnacceptable()
-            + " userLevel " + userLevel + " dataLevel " + dataLevel
-            + " mayApprove " + mayApprove + " mayUnapprove " + mayUnapprove
-            + " mayAccept " + mayAccept + " mayUnaccept " + mayUnaccept
-            + " mayReadData " + mayReadData );
 
         permissions.setMayApprove( mayApprove );
         permissions.setMayUnapprove( mayUnapprove );

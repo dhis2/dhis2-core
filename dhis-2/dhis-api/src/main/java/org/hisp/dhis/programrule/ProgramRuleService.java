@@ -43,7 +43,7 @@ public interface ProgramRuleService
     /**
      * Adds an {@link ProgramRule}
      *
-     * @param ProgramRule The to ProgramRule add.
+     * @param programRule The to ProgramRule add.
      * @return A generated unique id of the added {@link ProgramRule}.
      */
     int addProgramRule( ProgramRule programRule );
@@ -51,14 +51,14 @@ public interface ProgramRuleService
     /**
      * Deletes a {@link ProgramRule}
      *
-     * @param ProgramRule The ProgramRule to delete.
+     * @param programRule The ProgramRule to delete.
      */
     void deleteProgramRule( ProgramRule programRule );
 
     /**
      * Updates an {@link ProgramRule}.
      *
-     * @param ProgramRule The ProgramRule to update.
+     * @param programRule The ProgramRule to update.
      */
     void updateProgramRule( ProgramRule programRule );
 

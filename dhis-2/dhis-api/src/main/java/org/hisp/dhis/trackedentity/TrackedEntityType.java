@@ -47,11 +47,22 @@ import org.hisp.dhis.common.MetadataObject;
 public class TrackedEntityType
     extends BaseNameableObject implements MetadataObject
 {
+    private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
+    
+    /**
+     * Property indicating minimum number of attributes required to fill
+     * before search is triggered
+     */
+    private int minAttributesRequiredToSearch = 1;
+    
+    /**
+     * Property indicating maximum number of TEI to return after search
+     */
+    private int maxTeiCountToReturn = 0;
+    
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-    
-    private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
     
     public TrackedEntityType()
     {
@@ -64,6 +75,11 @@ public class TrackedEntityType
         this.description = description;
     }
 
+    
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------    
+    
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -76,4 +92,51 @@ public class TrackedEntityType
     {
         this.trackedEntityTypeAttributes = trackedEntityTypeAttributes;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMinAttributesRequiredToSearch()
+    {
+        return minAttributesRequiredToSearch;
+    }
+
+    public void setMinAttributesRequiredToSearch( int minAttributesRequiredToSearch )
+    {
+        this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMaxTeiCountToReturn()
+    {
+        return maxTeiCountToReturn;
+    }
+
+    public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
+    {
+        this.maxTeiCountToReturn = maxTeiCountToReturn;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Logic methods
+    // -------------------------------------------------------------------------    
+
+    /**
+     * Returns IDs of searchable TrackedEntityAttributes.
+     */
+    public List<String> getSearchableAttributeIds()
+    {
+        List<String> searchableAttributes = new ArrayList<>();
+        
+        for ( TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes )
+        {
+            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isUnique()  )
+            {
+                searchableAttributes.add( trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid() );
+            }
+        }
+
+        return searchableAttributes;
+    }
+    
 }

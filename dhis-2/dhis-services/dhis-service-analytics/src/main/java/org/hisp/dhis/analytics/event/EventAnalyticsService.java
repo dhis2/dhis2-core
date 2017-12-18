@@ -28,10 +28,12 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 
-import org.hisp.dhis.analytics.Rectangle;
+import java.util.List;
 
 /**
  * This interface is responsible for retrieving aggregated event data. Data will 
@@ -60,6 +62,23 @@ public interface EventAnalyticsService
      * @return aggregated event data as a Grid object.
      */
     Grid getAggregatedEventData( EventQueryParams params );
+
+    /**
+     * Generates an aggregated value grid for the given query. The grid will
+     * represent a table with dimensions used as columns and rows as specified
+     * in columns and rows dimension arguments. If columns and rows are null or
+     * empty, the normalized table will be returned.
+     *
+     * If meta data is included in the query, the meta data map of the grid
+     * will contain keys described in {@link AnalyticsMetaDataKey}.
+     *
+     * @param params the event query parameters.
+     * @param columns the identifiers of the dimensions to use as columns.
+     * @param rows the identifiers of the dimensions to use as rows.
+     * @return aggregated data as a Grid object.
+     */
+    Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
+        throws Exception;
     
     /**
      * Generates aggregated event data for the given analytical object.

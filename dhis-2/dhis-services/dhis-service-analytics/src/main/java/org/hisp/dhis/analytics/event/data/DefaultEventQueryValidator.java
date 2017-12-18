@@ -13,6 +13,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
@@ -123,6 +125,41 @@ public class DefaultEventQueryValidator
         {
             log.warn( String.format( "Event analytics validation failed: %s", violation ) );
             
+            throw new IllegalQueryException( violation );
+        }
+    }
+
+    @Override
+    public void validateTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+    {
+        String violation = null;
+
+        if ( columns != null )
+        {
+            for ( String column : columns )
+            {
+                if ( !params.hasDimension( column ) )
+                {
+                    violation = "Column must be present as dimension in query: " + column;
+                }
+            }
+        }
+
+        if ( rows != null )
+        {
+            for ( String row : rows )
+            {
+                if ( !params.hasDimension( row ) )
+                {
+                    violation = "Row must be present as dimension in query: " + row;
+                }
+            }
+        }
+
+        if ( violation != null )
+        {
+            log.warn( String.format( "Validation failed: %s", violation ) );
+
             throw new IllegalQueryException( violation );
         }
     }

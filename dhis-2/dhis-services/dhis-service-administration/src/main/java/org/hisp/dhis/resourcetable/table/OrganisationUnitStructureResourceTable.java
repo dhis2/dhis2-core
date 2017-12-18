@@ -77,7 +77,8 @@ public class OrganisationUnitStructureResourceTable
         for ( int k = 1 ; k <= organisationUnitLevels; k++ )
         {
             sql.append( ", " ).append( columnQuote ).append( "idlevel" + k ).append( columnQuote ).append (" integer, " ).
-                append( columnQuote ).append( "uidlevel" + k ).append( columnQuote ).append( " character(11)" );
+                append( columnQuote ).append( "uidlevel" + k ).append( columnQuote ).append( " character(11), " ).
+                append( columnQuote ).append( "namelevel" + k ).append( columnQuote ).append( " text" );
         }
         
         return sql.append( ");" ).toString();
@@ -110,11 +111,13 @@ public class OrganisationUnitStructureResourceTable
 
                 Map<Integer, Integer> identifiers = new HashMap<>();
                 Map<Integer, String> uids = new HashMap<>();
+                Map<Integer, String> names = new HashMap<>();
 
                 for ( int j = level; j > 0; j-- )
                 {
                     identifiers.put( j, unit.getId() );
                     uids.put( j, unit.getUid() );
+                    names.put( j, unit.getName() );
 
                     unit = unit.getParent();
                 }
@@ -123,6 +126,7 @@ public class OrganisationUnitStructureResourceTable
                 {
                     values.add( identifiers.get( k ) != null ? identifiers.get( k ) : null );
                     values.add( uids.get( k ) );
+                    values.add( names.get( k ) );
                 }
 
                 batchArgs.add( values.toArray() );

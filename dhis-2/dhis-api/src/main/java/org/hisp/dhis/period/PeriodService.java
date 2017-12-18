@@ -148,7 +148,7 @@ public interface PeriodService
      * @param periodType is the ultimate period type
      * @param startDate is intercepting startDate
      * @param endDate is intercepting endDate
-     * @return
+     * @return a list of Periods.
      */
     List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate );
 
@@ -266,12 +266,12 @@ public interface PeriodService
     PeriodHierarchy getPeriodHierarchy( Collection<Period> periods );
 
     /**
-     * Returns how many days into period date is.
-     * If date is before period.startDate, returns 0
-     * If date is after period.endDate, return last day of period
-     * @param period
-     * @param date
-     * @return
+     * Returns how many days into period date is. If date is before period.startDate, 
+     * returns 0. If date is after period.endDate, return last day of period.
+     * 
+     * @param period the period.
+     * @param date the date.
+     * @return the day in period.
      */
     int getDayInPeriod( Period period, Date date );
     

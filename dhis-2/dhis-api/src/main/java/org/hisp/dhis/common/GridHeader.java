@@ -147,6 +147,11 @@ public class GridHeader
         return legendSet != null;
     }
 
+    public boolean hasOptionSet()
+    {
+        return optionSet != null;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

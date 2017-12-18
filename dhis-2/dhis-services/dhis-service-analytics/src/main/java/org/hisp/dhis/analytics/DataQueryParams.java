@@ -39,6 +39,7 @@ import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
@@ -96,13 +97,15 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_ORGUNIT_GROUP = "Organisation unit group";
     public static final String DISPLAY_NAME_LONGITUDE = "Longitude";
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
+    
+    public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
 
     public static final int DX_INDEX = 0;
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of( 
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, DataElementCategory.class );
     
-    private static final ImmutableSet<String> DIMENSION_PERMUTATION_IGNORE_DIMS = ImmutableSet.of( 
+    private static final ImmutableSet<String> DIMENSION_PERMUTATION_IGNORE_DIMS = ImmutableSet.of(
         DATA_X_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID );
     public static final ImmutableSet<DimensionType> COMPLETENESS_DIMENSION_TYPES = ImmutableSet.of( 
         DATA_X, PERIOD, ORGANISATION_UNIT, ORGANISATION_UNIT_GROUP_SET, CATEGORY_OPTION_GROUP_SET, CATEGORY );
@@ -305,6 +308,11 @@ public class DataQueryParams
     protected boolean timely;
     
     /**
+     * Current organisation unit levels;
+     */
+    protected List<OrganisationUnitLevel> orgUnitLevels = new ArrayList<>();
+    
+    /**
      * Applies to reporting rates only. Indicates whether only organisation units
      * which opening or closed date spans the aggregation period should be included
      * as reporting rate targets.
@@ -408,6 +416,7 @@ public class DataQueryParams
         params.dataPeriodType = this.dataPeriodType;
         params.skipPartitioning = this.skipPartitioning;
         params.timely = this.timely;
+        params.orgUnitLevels = this.orgUnitLevels;
         params.restrictByOrgUnitOpeningClosedDate = this.restrictByOrgUnitOpeningClosedDate;
         params.restrictByCategoryOptionStartEndDate = this.restrictByCategoryOptionStartEndDate;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
@@ -619,6 +628,17 @@ public class DataQueryParams
     }
     
     /**
+     * Returns the list of organisation unit levels as dimensions.
+     */
+    public List<DimensionalObject> getOrgUnitLevelsAsDimensions()
+    {
+        return orgUnitLevels.stream()
+            .map( l -> new BaseDimensionalObject( PREFIX_ORG_UNIT_LEVEL + l.getLevel(), 
+                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(), Lists.newArrayList() ) )
+            .collect( Collectors.toList() );
+    }
+    
+    /**
      * Indicates whether this query is of the given data type.
      */
     public boolean isDataType( DataType dataType )
@@ -736,7 +756,7 @@ public class DataQueryParams
     {
         int index = dimensions.indexOf( new BaseDimensionalObject( dimension ) );
 
-        return index != -1 ? dimensions.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
+        return index != -1 ? dimensions.get( index ).getItems() : new ArrayList<>( );
     }
     
     /**
@@ -767,7 +787,6 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getFilterOptions( String filter )
     {
-
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
         
         return index != -1 ? filters.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
@@ -875,44 +894,55 @@ public class DataQueryParams
     public List<DimensionalItemObject> getDimensionOrFilterItems( String key )
     {
         List<DimensionalItemObject> dimensionOptions = getDimensionOptions( key );
-        
+
         return !dimensionOptions.isEmpty() ? dimensionOptions : getFilterOptions( key );
     }
-    
-    /**
-     * Retrieves the options for the given dimension identifier. If the "co"
-     * dimension is specified, all category option combinations for the first data 
-     * element is returned. Returns an empty array if the dimension is not present.
-     */
-    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
+
+    private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
     {
         List<DimensionalItemObject> items = new ArrayList<>();
-        
+
         if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> des = getDataElements();
-            
+
             if ( !des.isEmpty() )
             {
                 Set<DataElementCategoryCombo> categoryCombos = Sets.newHashSet();
-                
+
                 for ( DimensionalItemObject de : des )
                 {
                     categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
                 }
-                
+
                 for ( DataElementCategoryCombo cc : categoryCombos )
                 {
                     items.addAll( cc.getSortedOptionCombos() );
-                }                
+                }
             }
         }
         else
         {
             items.addAll( getDimensionOptions( dimension ) );
         }
-        
-        return items.toArray( new DimensionalItemObject[0] );
+
+        return items;
+    }
+
+    /**
+     * Retrieves the options for the given dimension identifier. If the "co"
+     * dimension is specified, all category option combinations for the first data
+     * element is returned. Returns an empty array if the dimension is not present.
+     */
+    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
+    {
+        return getDimensionItemObjects( dimension ).toArray( new DimensionalItemObject[0] );
+    }
+
+    public List<EventReportDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
+    {
+        return getDimensionItemObjects( dimension ).stream()
+            .map( item -> new EventReportDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
     }
     
     /**
@@ -1788,6 +1818,11 @@ public class DataQueryParams
         return timely;
     }
 
+    public List<OrganisationUnitLevel> getOrgUnitLevels()
+    {
+        return orgUnitLevels;
+    }
+
     public boolean isRestrictByOrgUnitOpeningClosedDate()
     {
         return restrictByOrgUnitOpeningClosedDate;
@@ -2414,6 +2449,12 @@ public class DataQueryParams
         public Builder withTimely( boolean timely )
         {
             this.params.timely = timely;
+            return this;
+        }
+        
+        public Builder withOrgUnitLevels( List<OrganisationUnitLevel> orgUnitLevels )
+        {
+            this.params.orgUnitLevels = orgUnitLevels;
             return this;
         }
         

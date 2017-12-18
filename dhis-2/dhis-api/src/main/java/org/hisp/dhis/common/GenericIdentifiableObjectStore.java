@@ -61,7 +61,6 @@ public interface GenericIdentifiableObjectStore<T>
      * Update object. Bypasses the ACL system.
      *
      * @param object Object update
-     * @return the object with the given uid.
      */
     void updateNoAcl( T object );
 
@@ -81,6 +80,14 @@ public interface GenericIdentifiableObjectStore<T>
      */
     T getByCode( String code );
 
+    /**
+     * Retrieves the attribute value associated with the unique attribute and 
+     * the given value.
+     * 
+     * @param attribute the attribute.
+     * @param value the value.
+     * @return the attribute value.
+     */
     T getByUniqueAttributeValue( Attribute attribute, String value );
 
     /**
@@ -94,7 +101,7 @@ public interface GenericIdentifiableObjectStore<T>
      * Retrieves the objects determined by the given first result and max result.
      *
      * @param first the first result object to return.
-     * @param max   the max number of result objects to return.
+     * @param max  the max number of result objects to return.
      * @return list of objects.
      */
     List<T> getAllOrderedName( int first, int max );
@@ -191,7 +198,7 @@ public interface GenericIdentifiableObjectStore<T>
     /**
      * Retrieves a list of objects referenced by the given collection of ids.
      *
-     * @param uids a collection of ids.
+     * @param ids a collection of ids.
      * @return a list of objects.
      */
     List<T> getById( Collection<Integer> ids );
@@ -207,7 +214,7 @@ public interface GenericIdentifiableObjectStore<T>
     /**
      * Retrieves a list of objects referenced by the given collection of codes.
      *
-     * @param uids a collection of codes.
+     * @param codes a collection of codes.
      * @return a list of objects.
      */
     List<T> getByCode( Collection<String> codes );
@@ -215,7 +222,7 @@ public interface GenericIdentifiableObjectStore<T>
     /**
      * Retrieves a list of objects referenced by the given collection of names.
      *
-     * @param uids a collection of names.
+     * @param names a collection of names.
      * @return a list of objects.
      */
     List<T> getByName( Collection<String> names );

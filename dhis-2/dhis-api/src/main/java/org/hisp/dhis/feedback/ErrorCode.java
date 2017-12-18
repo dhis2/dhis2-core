@@ -50,6 +50,7 @@ public enum ErrorCode
     E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
+    E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
 
     /* Metadata Validation Errors */
     E4000( "Missing required property `{0}`." ),
@@ -67,6 +68,8 @@ public enum ErrorCode
     E4012( "Attribute `{0}` contains elements of different period type than the data set it was added to" ),
     E4013( "Invalid Closing date `{0}`, must be after Opening date `{1}`"),
     E4014( "Invalid UID `{0}` for property `{1}`"),
+    E4015( "Property `{0}` refers to an object that does not exist, could not find `{1}`"),
+    E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`"),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),

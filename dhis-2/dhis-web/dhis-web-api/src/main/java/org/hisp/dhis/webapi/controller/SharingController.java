@@ -37,6 +37,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -109,6 +111,9 @@ public class SharingController
 
     @Autowired
     private RenderService renderService;
+
+    @Autowired
+    private SchemaService schemaService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -246,9 +251,19 @@ public class SharingController
         // Ignore publicAccess if user is not allowed to make objects public
         // ---------------------------------------------------------------------
 
+        Schema schema = schemaService.getDynamicSchema( sharingClass );
+
         if ( aclService.canMakePublic( user, object.getClass() ) )
         {
             object.setPublicAccess( sharing.getObject().getPublicAccess() );
+        }
+
+        if ( !schema.isDataShareable() )
+        {
+            if ( AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+            }
         }
 
         if ( object.getUser() == null )
@@ -273,6 +288,14 @@ public class SharingController
             if ( !AccessStringHelper.isValid( sharingUserGroupAccess.getAccess() ) )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "Invalid user group access string: " + sharingUserGroupAccess.getAccess() ) );
+            }
+
+            if ( !schema.isDataShareable() )
+            {
+                if ( AccessStringHelper.hasDataSharing( sharingUserGroupAccess.getAccess() ) )
+                {
+                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                }
             }
 
             userGroupAccess.setAccess( sharingUserGroupAccess.getAccess() );
@@ -305,6 +328,14 @@ public class SharingController
             if ( !AccessStringHelper.isValid( sharingUserAccess.getAccess() ) )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "Invalid user access string: " + sharingUserAccess.getAccess() ) );
+            }
+
+            if ( !schema.isDataShareable() )
+            {
+                if ( AccessStringHelper.hasDataSharing( sharingUserAccess.getAccess() ) )
+                {
+                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                }
             }
 
             userAccess.setAccess( sharingUserAccess.getAccess() );

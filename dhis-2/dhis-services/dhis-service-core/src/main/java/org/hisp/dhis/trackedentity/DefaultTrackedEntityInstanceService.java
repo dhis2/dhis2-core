@@ -61,6 +61,7 @@ import org.hisp.dhis.validation.ValidationCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -141,7 +142,8 @@ public class DefaultTrackedEntityInstanceService
     {
         decideAccess( params );
         validate( params );
-
+        validateSearchScope( params );
+        
         params.setUser( currentUserService.getCurrentUser() );
 
         return trackedEntityInstanceStore.countTrackedEntityInstances( params );
@@ -154,6 +156,7 @@ public class DefaultTrackedEntityInstanceService
     {
         decideAccess( params );
         validate( params );
+        validateSearchScope( params );
         handleAttributes( params );
 
         params.setUser( currentUserService.getCurrentUser() );
@@ -366,12 +369,104 @@ public class DefaultTrackedEntityInstanceService
         {
             violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
         }
-
+        
         if ( violation != null )
         {
             log.warn( "Validation failed: " + violation );
 
             throw new IllegalQueryException( violation );
+        }
+    }
+    
+    @Override
+    public void validateSearchScope( TrackedEntityInstanceQueryParams params )
+        throws IllegalQueryException
+    {
+        if ( params == null )
+        {
+            throw new IllegalQueryException( "Params cannot be null" );
+        }
+        
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user == null )
+        {
+            throw new IllegalQueryException( "User cannot be null" );
+        }
+
+        if ( user.getOrganisationUnits().isEmpty() )
+        {
+            throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
+        }
+        
+        if( !isLocalSearch( params ) )
+        {
+            int maxTeiLimit = 0; // no limit
+            
+            if( params.hasQuery() )
+            {                
+                throw new IllegalQueryException( "Query cannot be used during global search" );
+            }
+            
+            if ( !params.hasProgram() && !params.hasTrackedEntityType() )
+            {
+                throw new IllegalQueryException( "Either program or tracked entity need to be specified" );
+            }
+            
+            if( params.hasFilters() )
+            {
+                List<String> searchableAttributeIds = new ArrayList<>();
+                
+                if( params.hasProgram() )
+                {
+                    searchableAttributeIds.addAll(  params.getProgram().getSearchableAttributeIds()  );
+                }
+                
+                if( params.hasTrackedEntityType() )
+                {
+                    searchableAttributeIds.addAll( params.getTrackedEntityType().getSearchableAttributeIds() );
+                }
+                
+                List<String> violatingAttributes = new ArrayList<>();
+                
+                for ( QueryItem queryItem : params.getFilters() )
+                {
+                    if( !searchableAttributeIds.contains( queryItem.getItemId() ) )
+                    {
+                        violatingAttributes.add(  queryItem.getItemId() );
+                    }
+                }
+                
+                if( !violatingAttributes.isEmpty() )
+                {
+                    throw new IllegalQueryException( "Non-searchable attribute(s) can not be used during global search:  " + violatingAttributes.toString() );
+                }
+            }
+            
+            if( params.hasProgram() )
+            {             
+                maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+                
+                if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch() ) )
+                {
+                    throw new IllegalQueryException( "At least " + params.getProgram().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
+                }
+            }
+            
+            if( params.hasTrackedEntityType() )
+            {   
+                maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
+                
+                if( !params.hasFilters() || ( params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch() ) )
+                {
+                    throw new IllegalQueryException( "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
+                }
+            }
+                        
+            if( maxTeiLimit > 0 && trackedEntityInstanceStore.getTrackedEntityInstanceCount( params ) > maxTeiLimit )
+            {
+                throw new IllegalQueryException( "Too many records, greater than the maximum allowed (" + maxTeiLimit + ") found. Please narrow down your search." );                
+            }
         }
     }
 
@@ -762,5 +857,46 @@ public class DefaultTrackedEntityInstanceService
         // Return null if all criteria are met
 
         return null;
+    }    
+    
+    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
+    {   
+        User user = currentUserService.getCurrentUser();
+        
+        if( user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback()  ) )
+        {
+            return true;
+        }
+        
+        if( params.isOrganisationUnitMode( ALL ) )
+        {
+            return user.getOrganisationUnits().containsAll( organisationUnitService.getRootOrganisationUnits() );
+        }
+        
+        if( params.isOrganisationUnitMode( ACCESSIBLE ) )
+        {            
+            return user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback() );
+        }        
+        
+        for( OrganisationUnit searchOu : params.getOrganisationUnits() )
+        {
+            boolean localSearch = false;
+            
+            for( OrganisationUnit localOu : user.getOrganisationUnits() )
+            {
+                if( searchOu.getPath().indexOf(  localOu.getUid() ) != - 1 )
+                {
+                    localSearch = true;
+                    break;
+                }
+            }
+            
+            if( !localSearch )
+            {
+                return localSearch;
+            }
+        }        
+        
+        return true;
     }
 }

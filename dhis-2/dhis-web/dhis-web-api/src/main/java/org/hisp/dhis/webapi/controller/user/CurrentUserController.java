@@ -738,7 +738,7 @@ public class CurrentUserController
     @RequestMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
     public void getApprovalLevels( HttpServletResponse response ) throws IOException
     {
-        List<DataApprovalLevel> approvalLevels = approvalLevelService.getUserDataApprovalLevels();
+        List<DataApprovalLevel> approvalLevels = approvalLevelService.getUserDataApprovalLevels( currentUserService.getCurrentUser() );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), approvalLevels );

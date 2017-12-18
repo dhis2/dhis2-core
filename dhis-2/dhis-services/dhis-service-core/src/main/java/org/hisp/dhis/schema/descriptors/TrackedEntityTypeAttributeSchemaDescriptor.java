@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataapproval.exceptions;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,19 +28,25 @@ package org.hisp.dhis.dataapproval.exceptions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Jim Grace
- */
-public abstract class DataApprovalException
-    extends RuntimeException
-{
-    public DataApprovalException()
-    {
-        super();
-    }
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
-    public DataApprovalException( String message )
-    {
-        super( message );
+/**
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
+ */
+public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescriptor
+{
+    public static final String SINGULAR = "trackedEntityTypeAttribute";
+
+    public static final String PLURAL = "trackedEntityTypeAttributes";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {        
+        return new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
     }
 }

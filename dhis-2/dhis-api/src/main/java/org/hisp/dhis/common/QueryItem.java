@@ -28,6 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
@@ -39,8 +40,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Class which encapsulates a query parameter and value. Operator and filter
@@ -201,6 +200,23 @@ public class QueryItem
         
         return hasFilter() ? getQueryFilterItems() : 
             IdentifiableObjectUtils.getUids( legendSet.getSortedLegends() );
+    }
+
+    /**
+     * Returns filter items for all filters associated with this
+     * query item. If no filter items are specified, return all
+     * items part of the option set. If not option set is specified,
+     * returns null.
+     */
+    public List<String> getOptionSetFilterItemsOrAll()
+    {
+        if ( !hasOptionSet() )
+        {
+            return null;
+        }
+
+        return hasFilter() ? getQueryFilterItems() :
+            IdentifiableObjectUtils.getUids( optionSet.getOptions() );
     }
     
     /**
