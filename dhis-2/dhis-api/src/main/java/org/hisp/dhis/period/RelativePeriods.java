@@ -441,8 +441,6 @@ public class RelativePeriods
      */
     public PeriodType getHighestFrequencyPeriodType( List<Period> periods )
     {
-        PeriodType periodType = null;
-
         if ( periods != null && !periods.isEmpty() )
         {
             PeriodType lowestFrequencyOrder = periods.get( 0 ).getPeriodType();

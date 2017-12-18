@@ -112,6 +112,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         Model model,
         HttpServletResponse response )
+        throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             value, aggregationType, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta, showHierarchy, sortOrder, limit, outputType,

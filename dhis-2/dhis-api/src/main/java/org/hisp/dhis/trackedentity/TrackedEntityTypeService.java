@@ -78,7 +78,7 @@ public interface TrackedEntityTypeService
     /**
      * Returns a {@link TrackedEntityType}.
      *
-     * @param id the id of the TrackedEntityType to return.
+     * @param uid the identifier of the TrackedEntityType to return.
      *
      * @return the TrackedEntityType with the given id
      */

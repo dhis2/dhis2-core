@@ -103,7 +103,6 @@ public class InternalMapLayer
     
     /**
      * Indicates whether this layer is a data layer.
-     * @return
      */
     public boolean isDataLayer()
     {
@@ -290,10 +289,7 @@ public class InternalMapLayer
      * interval [a:3,c:5] range 3-5 size 2 interval [d:18] range 5-18 size 1
      * interval [g:22] range 18-22 size 1 interval [f:50] range 22-50 size 1
      * 
-     * @param strategy the desired distribution strategy
-     * @param mapLayer the map layer whose map objects to distribute
-     * @param length the number of intervals in the set
-     * @return the created interval set that was applied to this map layer
+     * @param length the number of intervals in the set.
      */
     public void setAutomaticIntervalSet( int length )
     {
@@ -315,9 +311,7 @@ public class InternalMapLayer
      * Creates and applies to the given map layer a fixed length interval set
      * distributing map objects into intervals that has the same range.
      * 
-     * @param mapLayer the map layer whose map objects to distribute
-     * @param length the number of equal sized intervals
-     * @return the created interval set that was applied to this map layer
+     * @param length the number of equal sized intervals.
      */
     public void setEqualRangeIntervalSet( int length )
     {

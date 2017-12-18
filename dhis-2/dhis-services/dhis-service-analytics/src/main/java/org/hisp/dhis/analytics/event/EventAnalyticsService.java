@@ -77,7 +77,8 @@ public interface EventAnalyticsService
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
-    Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows );
+    Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
+        throws Exception;
     
     /**
      * Generates aggregated event data for the given analytical object.

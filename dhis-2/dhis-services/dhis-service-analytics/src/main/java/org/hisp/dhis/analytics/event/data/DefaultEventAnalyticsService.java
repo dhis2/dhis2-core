@@ -30,25 +30,59 @@ package org.hisp.dhis.analytics.event.data;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.event.*;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.AnalyticsUtils;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.EventReportDimensionalItem;
+import org.hisp.dhis.analytics.MetadataItem;
+import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
+import org.hisp.dhis.analytics.event.EventAnalyticsManager;
+import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.analytics.event.EventDataQueryService;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
@@ -129,6 +163,7 @@ public class DefaultEventAnalyticsService
 
     @Override
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
+        throws Exception
     {
         boolean tableLayout = (columns != null && !columns.isEmpty()) || (rows != null && !rows.isEmpty());
 
@@ -150,6 +185,7 @@ public class DefaultEventAnalyticsService
      * @return aggregated data as a Grid object.
      */
     private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+        throws Exception
     {
         params.removeProgramIndicatorItems(); // Not supported as items for aggregate
 
@@ -289,6 +325,9 @@ public class DefaultEventAnalyticsService
         return outputGrid;
     }
 
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
     /**
      * Put elements into the map "table". The elements are fetched from the query parameters.
      *
@@ -299,48 +338,76 @@ public class DefaultEventAnalyticsService
     private void getEventDataObjects( Grid grid, EventQueryParams params,
         Map<String, List<EventReportDimensionalItem>> table,
         String dimension )
+        throws Exception
     {
         List<EventReportDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
         if ( objects.size() == 0 )
         {
+            ValueType valueType = null;
+            OptionSet optionSet = null;
+            LegendSet legendSet = null;
+            String parentUid = "";
+            String displayName = "";
+
             DataElement dataElement = dataElementService.getDataElement( dimension );
-            if ( dataElement.getValueType() == ValueType.BOOLEAN )
+
+            if ( dataElement != null )
+            {
+                valueType = dataElement.getValueType();
+                optionSet = dataElement.getOptionSet();
+                legendSet = dataElement.getLegendSet();
+                parentUid = dataElement.getUid();
+                displayName = dataElement.getDisplayName();
+            }
+            else
+            {
+                TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService
+                    .getTrackedEntityAttribute( dimension );
+                valueType = trackedEntityAttribute.getValueType();
+                optionSet = trackedEntityAttribute.getOptionSet();
+                legendSet = trackedEntityAttribute.getLegendSet();
+                parentUid = trackedEntityAttribute.getUid();
+                displayName = trackedEntityAttribute.getDisplayName();
+            }
+
+            if ( valueType == null )
+            {
+                throw new Exception( "Supplied data dimension is invalid" );
+            }
+
+            if ( valueType == ValueType.BOOLEAN )
             {
                 List<EventReportDimensionalItem> options = new ArrayList<>();
 
                 for ( Option booleanOption : booleanOptions )
                 {
-                    options.add( new EventReportDimensionalItem( booleanOption, dataElement.getUid() ) );
+                    options.add( new EventReportDimensionalItem( booleanOption, parentUid ) );
                 }
                 objects = options;
             }
-            else if ( dataElement.hasOptionSet() )
+            else if ( optionSet != null )
             {
-                OptionSet optionSet = dataElement.getOptionSet();
-                if ( optionSet != null )
+                for ( Option option : optionSet.getOptions() )
                 {
-                    for ( Option option : optionSet.getOptions() )
-                    {
-                        objects.add( new EventReportDimensionalItem( option, dataElement.getUid() ) );
-                    }
+                    objects.add( new EventReportDimensionalItem( option, parentUid ) );
                 }
             }
-            else if ( dataElement.hasLegendSet() )
+            else if ( legendSet != null )
             {
                 List<String> legendOptions = (List<String>) ((HashMap<String, Object>) grid.getMetaData()
                     .get( DIMENSIONS.getKey() )).get( dimension );
 
                 if ( legendOptions.size() == 0 )
                 {
-                    List<Legend> legends = dataElement.getLegendSet().getSortedLegends();
+                    List<Legend> legends = legendSet.getSortedLegends();
 
                     for ( Legend legend : legends )
                     {
                         for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
                         {
                             objects.add(
-                                new EventReportDimensionalItem( new Option( i + "", i + "" ), dataElement.getUid() ) );
+                                new EventReportDimensionalItem( new Option( i + "", i + "" ), parentUid ) );
                         }
                     }
                 }
@@ -352,12 +419,12 @@ public class DefaultEventAnalyticsService
                             .get( ITEMS.getKey() )).get( legend );
 
                         objects.add( new EventReportDimensionalItem( new Option( metadataItem.getName(), legend ),
-                            dataElement.getUid() ) );
+                            parentUid ) );
                     }
                 }
             }
 
-            table.put( dataElement.getDisplayName(), objects );
+            table.put( displayName, objects );
         }
         else
         {

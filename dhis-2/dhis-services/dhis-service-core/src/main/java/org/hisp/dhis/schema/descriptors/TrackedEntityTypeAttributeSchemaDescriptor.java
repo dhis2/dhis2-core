@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,39 +28,25 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
 /**
- * Interface which extends GenericStore and exposes support methods for retrieving
- * criteria.
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
- * @author Lars Helge Overland
  */
-public interface InternalHibernateGenericStore<T>
-    extends GenericStore<T>
+public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescriptor
 {
-    Criteria getCriteria();
+    public static final String SINGULAR = "trackedEntityTypeAttribute";
 
-    Criteria getSharingCriteria();
+    public static final String PLURAL = "trackedEntityTypeAttributes";
 
-    Criteria getDataSharingCriteria();
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    Criteria getSharingCriteria( String access );
-
-    Criteria getSharingCriteria( User user );
-
-    DetachedCriteria getDataSharingDetachedCriteria( User user );
-
-    Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
-
-    DetachedCriteria getSharingDetachedCriteria();
-
-    DetachedCriteria getSharingDetachedCriteria( String access );
-
-    DetachedCriteria getDataSharingDetachedCriteria( String access );
-
-    DetachedCriteria getSharingDetachedCriteria( User user );
+    @Override
+    public Schema getSchema()
+    {        
+        return new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
+    }
 }

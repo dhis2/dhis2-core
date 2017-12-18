@@ -139,8 +139,8 @@ public class NameableObjectUtils
     /**
      * Returns a copy of the given list. Returns an empty list if the argument is null.
      * 
-     * @param objects the objects.
-     * @param a list.
+     * @param objects a list.
+     * @return a list of objects.
      */
     public static <T extends NameableObject> List<T> getCopyNullSafe( List<T> objects )
     {

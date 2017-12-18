@@ -286,8 +286,6 @@ public class TrackedEntityInstanceQueryParams
      * to the given user, and mode CHILDREN is converted to CHILDREN for organisation
      * units including all their children. Mode can be DESCENDANTS, SELECTED, ALL
      * only after invoking this method.
-     *
-     * @param user the user.
      */
     public void handleOrganisationUnits()
     {

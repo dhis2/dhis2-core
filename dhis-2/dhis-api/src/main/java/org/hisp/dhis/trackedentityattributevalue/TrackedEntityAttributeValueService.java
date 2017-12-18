@@ -113,8 +113,8 @@ public interface TrackedEntityAttributeValueService
     List<TrackedEntityAttributeValue> searchTrackedEntityAttributeValue( TrackedEntityAttribute attribute, String searchText );
 
     /**
-     * Check wether the given attribute and value exists
-     * @param attribute {@llink TrackedEntityAttribute} to check
+     * Check whether the given attribute and value exists
+     * @param attribute {@link TrackedEntityAttribute} to check
      * @param value literal value to look for
      * @return true if the same literal value exists for the given attribute
      */

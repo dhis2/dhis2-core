@@ -50,6 +50,7 @@ public interface DataSetCompletenessService
      * 
      * @param periodId the identifier of the Period.
      * @param organisationUnitId the identifier of the root OrganisationUnit.
+     * @param groupIds the organisation unit group identifiers.
      * @return a List of DataSetCompletenessResults.
      */
     List<DataSetCompletenessResult> getDataSetCompleteness( int periodId, int organisationUnitId, Set<Integer> groupIds );
@@ -64,9 +65,9 @@ public interface DataSetCompletenessService
      * OrganisationUnit.
      * 
      * @param periodId the identifier of the Period.
-     * @param parentOrganisationUnitId the identifier of the parent
-     *        OrganisationUnit.
-     * @param dataSetId the identifier of the DataSet.
+     * @param organisationUnitIds the organisation unit identifiers.
+     * @param dataSetId the data set identifier.
+     * @param groupIds the organisation unit group identifiers.
      * @return a List of DataSetCompletenessResults.
      */
     List<DataSetCompletenessResult> getDataSetCompleteness( int periodId,

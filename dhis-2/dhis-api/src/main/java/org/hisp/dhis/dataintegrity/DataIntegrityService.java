@@ -160,7 +160,6 @@ public interface DataIntegrityService
 
     /**
      * Lists all Periods which are duplicates, based on the period type and start date.
-     * @return
      */
     List<Period> getDuplicatePeriods();
     
