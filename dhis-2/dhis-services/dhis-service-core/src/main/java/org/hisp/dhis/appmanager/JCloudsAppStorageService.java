@@ -352,6 +352,10 @@ public class JCloudsAppStorageService
                     {
                         e.printStackTrace();
                     }
+                    catch ( RuntimeException e)
+                    {
+                        e.printStackTrace();
+                    }
                 }
             } );
 
