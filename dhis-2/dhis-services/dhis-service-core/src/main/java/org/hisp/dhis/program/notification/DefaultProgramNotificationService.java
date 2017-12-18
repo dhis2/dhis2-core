@@ -40,10 +40,7 @@ import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -508,16 +505,43 @@ public class DefaultProgramNotificationService
 
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramInstance programInstance, final NotificationTrigger trigger )
     {
-        return programInstance.getProgram().getNotificationTemplates().stream()
-            .filter( t -> t.getNotificationTrigger() == trigger )
-            .collect( Collectors.toSet() );
+        if ( NotificationTrigger.COMPLETION.equals( trigger ) )
+        {
+            return programInstance.getProgram().getNotificationTemplates().stream()
+                .filter( t -> t.getNotificationTrigger() == trigger )
+                .collect( Collectors.toSet() );
+        }
+
+        return getTemplatesTriggeredByProgramRule( programInstance );
     }
 
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
     {
-        return programStageInstance.getProgramStage().getNotificationTemplates().stream()
-            .filter( t -> t.getNotificationTrigger() == trigger )
-            .collect( Collectors.toSet() );
+        if ( NotificationTrigger.COMPLETION.equals( trigger ) )
+        {
+            return programStageInstance.getProgramStage().getNotificationTemplates().stream()
+                .filter( t -> t.getNotificationTrigger() == trigger )
+                .collect( Collectors.toSet() );
+        }
+
+        return getTemplatesTriggeredByProgramRule( programStageInstance.getProgramInstance() );
+    }
+
+    private Set<ProgramNotificationTemplate> getTemplatesTriggeredByProgramRule( ProgramInstance programInstance )
+    {
+        Set<ProgramNotificationTemplate> programNotificationTemplates = new HashSet<>();
+
+        programNotificationTemplates.addAll( programInstance.getProgram().getNotificationTemplates().stream()
+                .filter( t -> t.getNotificationTrigger() == NotificationTrigger.PROGRAM_RULE )
+                .collect( Collectors.toSet() ) );
+
+        programNotificationTemplates.addAll( programInstance.getProgram().getProgramStages().stream()
+                .map( ps -> ps.getNotificationTemplates() ).flatMap( t -> t.stream() )
+                .filter( pnt -> pnt.getNotificationTrigger() == NotificationTrigger.PROGRAM_RULE )
+                .collect( Collectors.toList() ) );
+
+        log.info( "number of PNTs: " + programNotificationTemplates.size() );
+        return programNotificationTemplates;
     }
 
     private DhisMessage createDhisMessage( ProgramStageInstance psi, ProgramNotificationTemplate template )
