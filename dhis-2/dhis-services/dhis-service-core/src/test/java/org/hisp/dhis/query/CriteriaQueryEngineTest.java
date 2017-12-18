@@ -73,26 +73,32 @@ public class CriteriaQueryEngineTest
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.NUMBER );
         dataElementA.setDisplayName( "dataElementA" );
+        dataElementA.setName( "dataElementA" );
 
         DataElement dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.BOOLEAN );
         dataElementB.setDisplayName( "dataElementB" );
+        dataElementB.setName( "dataElementB" );
 
         DataElement dataElementC = createDataElement( 'C' );
         dataElementC.setValueType( ValueType.INTEGER );
         dataElementC.setDisplayName( "dataElementC" );
+        dataElementC.setName( "dataElementC" );
 
         DataElement dataElementD = createDataElement( 'D' );
         dataElementD.setValueType( ValueType.NUMBER );
         dataElementD.setDisplayName( "dataElementD" );
+        dataElementD.setName( "dataElementD" );
 
         DataElement dataElementE = createDataElement( 'E' );
         dataElementE.setValueType( ValueType.BOOLEAN );
         dataElementE.setDisplayName( "dataElementE" );
+        dataElementE.setName( "dataElementE" );
 
         DataElement dataElementF = createDataElement( 'F' );
         dataElementF.setValueType( ValueType.INTEGER );
         dataElementF.setDisplayName( "dataElementF" );
+        dataElementF.setName( "dataElementF" );
 
         dataElementA.setCreated( Year.parseYear( "2001" ).getStart() );
         dataElementB.setCreated( Year.parseYear( "2002" ).getStart() );
@@ -573,6 +579,27 @@ public class CriteriaQueryEngineTest
     @Test
     @Ignore
     public void testIdentifiableSearch7()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ), Junction.Type.OR );
+
+        Restriction nameRestriction = Restrictions.like( "name", "dataElement", MatchMode.ANYWHERE );
+        Restriction uidRestriction = Restrictions.like( "id", "dataElement", MatchMode.ANYWHERE );
+        Restriction codeRestriction = Restrictions.like( "code", "dataElement", MatchMode.ANYWHERE );
+
+        Junction identifiableJunction = new Disjunction( schemaService.getDynamicSchema( DataElement.class ) );
+        identifiableJunction.add( nameRestriction );
+        identifiableJunction.add( uidRestriction );
+        identifiableJunction.add( codeRestriction );
+
+        query.add( identifiableJunction );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 6, objects.size() );
+    }
+
+    @Test
+    @Ignore
+    public void testIdentifiableSearch8()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ), Junction.Type.OR );
 
