@@ -79,8 +79,8 @@ public class LegendSet
      * legend is higher than imageMaxHeight, the height will automatically be
      * set to the height of this legend.
      * 
-     * @param imageMaxHeight
-     * @return
+     * @param format the i18n format.
+     * @return a buffered image.
      */
     public BufferedImage render( I18nFormat format )
     {

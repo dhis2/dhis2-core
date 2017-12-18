@@ -201,7 +201,7 @@
       "valueType": "NUMBER"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "created": "2016-03-11T06:56:14.000+0000",
       "attributeValues": [ ],
@@ -213,7 +213,7 @@
   ],
   "programs": [
     {
-      "trackedEntity": {
+      "trackedEntityType": {
         "id": "vmZxWXOw5CD"
       },
       "notificationTemplates": [ ],

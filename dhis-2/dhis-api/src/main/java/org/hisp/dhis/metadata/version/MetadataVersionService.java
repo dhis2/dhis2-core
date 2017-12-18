@@ -47,19 +47,25 @@ public interface MetadataVersionService
     String METADATAVERSION_NAME_PREFIX = "Version_";
 
     /**
-     * @param version Version object to add.
-     * @return ID of the saved version object.
+     * Adds the metadata version.
+     * 
+     * @param version the metadata version object to add.
+     * @return the identifier of the saved version object.
      */
     int addVersion( MetadataVersion version );
 
     /**
-     * @param version Version object to update.
+     * Updates the metadata version.
+     * 
+     * @param version the metadata version to update.
      */
     void updateVersion( MetadataVersion version );
 
     /**
-     * @param id
-     * @param name
+     * Updates the name of the metadata version with the given identifier and name.
+     * 
+     * @param id the identifier.
+     * @param name the name.
      */
     void updateVersionName( int id, String name );
 
@@ -69,6 +75,8 @@ public interface MetadataVersionService
     void deleteVersion( MetadataVersion version );
 
     /**
+     * Gets the metadata version with the given identifier.
+     * 
      * @param id Key to lookup the value with.
      * @return Version that matched key, or null if there was no match.
      */
@@ -92,43 +100,43 @@ public interface MetadataVersionService
     MetadataVersion getInitialVersion();
 
     /**
-     * Gets all versions between two data ranges on the 'created' date.
+     * Gets all versions between two data ranges on the created date.
      *
-     * @param startDate
-     * @param endDate
-     * @return List of MetadataVersion matching that date range
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return a list of metadata versions matching the date range.
      */
     List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate );
 
     /**
      * Returns the created date of the version given the version name
      *
-     * @param versionName
-     * @return
+     * @param versionName the version name.
+     * @return the created date.
      */
     Date getCreatedDate( String versionName );
 
     /**
-     * Gets the version by name
+     * Gets the metadata version with the given name.
      *
-     * @param versionName
-     * @return
+     * @param versionName the version name.
+     * @return the metadata version.
      */
     MetadataVersion getVersionByName( String versionName );
 
     /**
      * Saves or creates a version given the version type identifier
      *
-     * @param versionType
+     * @param versionType the version type.
      * @return true if created
      */
     boolean saveVersion( VersionType versionType );
 
     /**
-     * Gets the Version data - the actual json snapshot given the version name.
+     * Gets the Version data - the actual JSON snapshot given the version name.
      *
      * @param versionName
-     * @return Json data for the version snapshot
+     * @return JSON data for the version snapshot
      */
     String getVersionData( String versionName );
 
@@ -136,7 +144,7 @@ public interface MetadataVersionService
      * Returns the versions list wrapped as RootNode
      *
      * @param versions
-     * @return
+     * @return the root node.
      */
     RootNode getMetadataVersionsAsNode( List<MetadataVersion> versions );
 
@@ -149,18 +157,18 @@ public interface MetadataVersionService
     void createMetadataVersionInDataStore( String versionName, String versionSnapshot );
 
     /**
-     * Checks the integrity of metadata by checking hashcode
+     * Checks the integrity of metadata by checking hash code.
      *
      * @param version
      * @param versionSnapshot
-     * @return
+     * @return true if the metadata passes the integrity check.
      */
     boolean isMetadataPassingIntegrity( MetadataVersion version, String versionSnapshot );
 
     /**
      * Deletes the entry in Data Store given the versionName
      *
-     * @param nameSpaceKey
+     * @param nameSpaceKey the name space key.
      */
     void deleteMetadataVersionInDataStore( String nameSpaceKey );
 }

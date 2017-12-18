@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute" table="trackedentitytypeattribute">
+
+    <id name="id" column="trackedentitytypeattributeid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;	
+		
+    <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+      column="trackedentitytypeid" foreign-key="fk_trackedentitytypeattribute_trackedentitytypeid" />
+
+    <many-to-one name="trackedEntityAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+      column="trackedentityattributeid" foreign-key="fk_trackedentitytypeattribute_trackedentityattributeid" />      
+    
+    <property name="displayInList" column="displayinlist" />
+
+    <property name="mandatory" column="mandatory" />    
+        
+    <property name="searchable" column="searchable" />
+
+  </class>
+
+</hibernate-mapping>

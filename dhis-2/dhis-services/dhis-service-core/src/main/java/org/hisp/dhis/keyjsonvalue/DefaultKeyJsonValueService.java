@@ -29,7 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
  */
 
 import org.springframework.transaction.annotation.Transactional;
-
+import org.hisp.dhis.system.util.JacksonUtils;
 import java.util.List;
 import java.util.Date;
 
@@ -92,12 +92,53 @@ public class DefaultKeyJsonValueService
     @Override
     public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
     {
-        keyJsonValueStore.save( keyJsonValue );
+        keyJsonValueStore.update( keyJsonValue );
     }
 
     @Override
     public void deleteKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         keyJsonValueStore.delete( keyJsonValue );
+    }
+
+    @Override
+    public <T> T getValue( String namespace, String key, Class<T> clazz )
+    {
+        KeyJsonValue value = getKeyJsonValue( namespace, key );
+
+        if ( value == null || value.getPlainValue() == null )
+        {
+            return null;
+        }
+        
+        return JacksonUtils.fromJson( value.getPlainValue(), clazz );
+    }
+
+    @Override
+    public <T> void addValue( String namespace, String key, T object )
+    {
+        String value = JacksonUtils.toJson( object );
+        
+        KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
+        
+        keyJsonValueStore.save( keyJsonValue );
+    }
+
+    @Override
+    public <T> void updateValue( String namespace, String key, T object )
+    {
+        KeyJsonValue keyJsonValue = getKeyJsonValue( namespace, key );
+        
+        if ( keyJsonValue == null )
+        {
+            throw new IllegalStateException( String.format( 
+                "No object found for namespace '%s' and key '%s'", namespace, key ) );
+        }
+
+        String value = JacksonUtils.toJson( object );
+        
+        keyJsonValue.setValue( value );
+        
+        keyJsonValueStore.update( keyJsonValue );
     }
 }

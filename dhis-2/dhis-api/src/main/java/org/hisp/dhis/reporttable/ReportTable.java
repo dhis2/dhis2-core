@@ -267,20 +267,18 @@ public class ReportTable
     /**
      * Default constructor.
      *
-     * @param name              the name.
-     * @param dataElements      the data elements.
-     * @param indicators        the indicators.
-     * @param reportingRates    the reporting rates.
-     * @param periods           the periods. Cannot have the name property set.
-     * @param relativePeriods   the relative periods. These periods must have the
-     *                          name property set. Not persisted.
+     * @param name the name.
+     * @param dataElements the data elements.
+     * @param indicators the indicators.
+     * @param reportingRates the reporting rates.
+     * @param periods the periods. Cannot have the name property set.
      * @param organisationUnits the organisation units.
-     * @param relativeUnits     the organisation units. Not persisted.
-     * @param doIndicators      indicating whether indicators should be crosstabulated.
-     * @param doPeriods         indicating whether periods should be crosstabulated.
-     * @param doUnits           indicating whether organisation units should be crosstabulated.
-     * @param relatives         the relative periods.
-     * @param i18nFormat        the i18n format. Not persisted.
+     * @param doIndicators indicating whether indicators should be crosstabulated.
+     * @param doPeriods indicating whether periods should be crosstabulated.
+     * @param doUnits indicating whether organisation units should be crosstabulated.
+     * @param relatives the relative periods.
+     * @param reportParams the report parameters.
+     * @param reportingPeriodName the reporting period name.
      */
     public ReportTable( String name, List<DataElement> dataElements, List<Indicator> indicators,
         List<ReportingRate> reportingRates, List<Period> periods,

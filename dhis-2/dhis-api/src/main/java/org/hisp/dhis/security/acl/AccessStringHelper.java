@@ -37,7 +37,8 @@ public class AccessStringHelper
 {
     public enum Permission
     {
-        READ( 'r', 0 ), WRITE( 'w', 1 );
+        READ( 'r', 0 ), WRITE( 'w', 1 ),
+        DATA_READ( 'r', 2 ), DATA_WRITE( 'w', 3 );
 
         private char value;
 
@@ -68,13 +69,33 @@ public class AccessStringHelper
         .enable( Permission.READ )
         .build();
 
+    public static final String DATA_READ = AccessStringHelper.newInstance()
+        .enable( Permission.DATA_READ )
+        .build();
+
     public static final String WRITE = AccessStringHelper.newInstance()
         .enable( Permission.WRITE )
+        .build();
+
+    public static final String DATA_WRITE = AccessStringHelper.newInstance()
+        .enable( Permission.DATA_WRITE )
         .build();
 
     public static final String READ_WRITE = AccessStringHelper.newInstance()
         .enable( Permission.READ )
         .enable( Permission.WRITE )
+        .build();
+
+    public static final String DATA_READ_WRITE = AccessStringHelper.newInstance()
+        .enable( Permission.DATA_READ )
+        .enable( Permission.DATA_WRITE )
+        .build();
+
+    public static final String FULL = AccessStringHelper.newInstance()
+        .enable( Permission.READ )
+        .enable( Permission.WRITE )
+        .enable( Permission.DATA_READ )
+        .enable( Permission.DATA_WRITE )
         .build();
 
     public AccessStringHelper()
@@ -130,19 +151,39 @@ public class AccessStringHelper
         return isEnabled( access, Permission.READ );
     }
 
+    public static boolean canDataRead( String access )
+    {
+        return isEnabled( access, Permission.DATA_READ );
+    }
+
     public static boolean canWrite( String access )
     {
         return isEnabled( access, Permission.WRITE );
     }
 
+    public static boolean canDataWrite( String access )
+    {
+        return isEnabled( access, Permission.DATA_WRITE );
+    }
+
     public static boolean canReadAndWrite( String access )
     {
-        return isEnabled( access, Permission.WRITE ) && isEnabled( access, Permission.READ );
+        return isEnabled( access, Permission.READ ) && isEnabled( access, Permission.WRITE );
+    }
+
+    public static boolean canDataReadAndWrite( String access )
+    {
+        return isEnabled( access, Permission.DATA_READ ) && isEnabled( access, Permission.DATA_WRITE );
     }
 
     public static boolean canReadOrWrite( String access )
     {
-        return isEnabled( access, Permission.WRITE ) || isEnabled( access, Permission.READ );
+        return isEnabled( access, Permission.READ ) || isEnabled( access, Permission.WRITE );
+    }
+
+    public static boolean canDataReadOrWrite( String access )
+    {
+        return isEnabled( access, Permission.DATA_READ ) || isEnabled( access, Permission.DATA_WRITE );
     }
 
     public static boolean isEnabled( String access, Permission permission )
@@ -152,6 +193,27 @@ public class AccessStringHelper
 
     public static boolean isValid( String access )
     {
-        return access == null || DEFAULT.equals( access ) || READ.equals( access ) || WRITE.equals( access ) || READ_WRITE.equals( access );
+        if ( access == null )
+        {
+            return true;
+        }
+
+        if ( access.length() != 8 || !access.endsWith( "----" ) )
+        {
+            return false;
+        }
+
+        byte[] bytes = access.getBytes();
+
+        return (bytes[0] == '-' || bytes[0] == 'r')
+            && (bytes[1] == '-' || bytes[1] == 'w')
+            && (bytes[2] == '-' || bytes[2] == 'r')
+            && (bytes[3] == '-' || bytes[3] == 'w');
+    }
+
+    public static boolean hasDataSharing( String access )
+    {
+        return AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_READ )
+            || AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_WRITE );
     }
 }

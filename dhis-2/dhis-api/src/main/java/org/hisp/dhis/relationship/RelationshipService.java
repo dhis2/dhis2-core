@@ -30,48 +30,43 @@ package org.hisp.dhis.relationship;
 
 import java.util.List;
 
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface RelationshipService
 {
     String ID = RelationshipService.class.getName();
 
     /**
-     * Adds an {@link Program}
+     * Adds an {@link Relationship}
      * 
-     * @param program The to Program add.
-     * 
-     * @return A generated unique id of the added {@link Program}.
+     * @param relationship the relationship.
+     * @return id of the added relationship.
      */
     int addRelationship( Relationship relationship );
 
     /**
-     * Returns a {@link Program}.
+     * Returns a {@link Relationship}.
      * 
-     * @param id the id of the Program to return.
-     * 
-     * @return the Program with the given id
+     * @param relationship the relationship.
      */
     void deleteRelationship( Relationship relationship );
 
     /**
-     * Updates an {@link Program}.
+     * Updates a {@link Relationship}.
      * 
-     * @param program the Program to update.
+     * @param relationship the relationship.
      */
     void updateRelationship( Relationship relationship );
 
     /**
-     * Returns a {@link Program}.
+     * Returns a {@link Relationship}.
      * 
-     * @param id the id of the Program to return.
+     * @param id the id of the relationship to return.
      * 
-     * @return the Program with the given id
+     * @return the relationship with the given identifier.
      */
     Relationship getRelationship( int id );
 
@@ -88,11 +83,11 @@ public interface RelationshipService
     Relationship getRelationship( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB, RelationshipType relationshipType );
     
     /**
-     * Retrieve relationships of a instance
+     * Retrieve relationships of a {@link TrackedEntityInstance}.
      * 
-     * @param instance TrackedEntityInstance
+     * @param instance the tracked entity instance.
      * 
-     * @return Relationship list
+     * @return a list of relationships.
      */
     List<Relationship> getRelationshipsForTrackedEntityInstance( TrackedEntityInstance instance );
 
@@ -102,8 +97,7 @@ public interface RelationshipService
      * 
      * @param entityInstanceA TrackedEntityInstance
      * @param relationshipType RelationshipType
-     * 
-     * @return Relationship list
+     * @return a list of relationships.
      */
     List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA, RelationshipType relationshipType );
 }

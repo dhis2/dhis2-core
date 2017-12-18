@@ -100,22 +100,6 @@ public interface ReportTableService
     List<ReportTable> getAllReportTables();
 
     /**
-     * Retrieves ReportTables with the given uids.
-     * 
-     * @param uids the list of uids.
-     * @return a list of ReportTables.
-     */
-    List<ReportTable> getReportTablesByUid( List<String> uids );
-
-    /**
-     * Retrieves the ReportTable with the given name.
-     *
-     * @param name the name of the ReportTable.
-     * @return the ReportTable.
-     */
-    List<ReportTable> getReportTableByName( String name );
-
-    /**
      * Instantiates and populates a Grid populated with data from the ReportTable
      * with the given identifier.
      *
@@ -129,12 +113,4 @@ public interface ReportTableService
     Grid getReportTableGridByUser( String uid, Date reportingPeriod, String organisationUnitUid, User user );
 
     ReportTable getReportTable( String uid, String mode );
-
-    List<ReportTable> getReportTablesBetween( int first, int max );
-
-    List<ReportTable> getReportTablesBetweenByName( String name, int first, int max );
-
-    int getReportTableCount();
-
-    int getReportTableCountByName( String name );
 }

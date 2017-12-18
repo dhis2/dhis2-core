@@ -53,7 +53,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.validation.ValidationCriteria;
@@ -116,7 +116,7 @@ public class Program
 
     private Program relatedProgram;
 
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     private DataEntryForm dataEntryForm;
 
@@ -168,7 +168,18 @@ public class Program
     /**
      * How many days after an event is completed will this program block modification of the event
      */
-    private int completeEventsExpiryDays;
+    private int completeEventsExpiryDays;    
+    
+    /**
+     * Property indicating minimum number of attributes required to fill
+     * before search is triggered
+     */
+    private int minAttributesRequiredToSearch = 1;
+    
+    /**
+     * Property indicating maximum number of TEI to return after search
+     */
+    private int maxTeiCountToReturn = 0;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -210,6 +221,24 @@ public class Program
 
         organisationUnits.clear();
         organisationUnits.addAll( updates );
+    }
+    
+    /**
+     * Returns IDs of searchable TrackedEntityAttributes.
+     */
+    public List<String> getSearchableAttributeIds()
+    {
+        List<String> searchableAttributes = new ArrayList<>();
+        
+        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
+        {
+            if ( programAttribute.getAttribute().isUnique() || programAttribute.isSearchable() )
+            {
+                searchableAttributes.add( programAttribute.getAttribute().getUid() );
+            }
+        }
+
+        return searchableAttributes;
     }
 
     /**
@@ -663,16 +692,16 @@ public class Program
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
+    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty
@@ -805,5 +834,29 @@ public class Program
     public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
     {
         this.completeEventsExpiryDays = completeEventsExpiryDays;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMinAttributesRequiredToSearch()
+    {
+        return minAttributesRequiredToSearch;
+    }
+
+    public void setMinAttributesRequiredToSearch( int minAttributesRequiredToSearch )
+    {
+        this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMaxTeiCountToReturn()
+    {
+        return maxTeiCountToReturn;
+    }
+
+    public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
+    {
+        this.maxTeiCountToReturn = maxTeiCountToReturn;
     }
 }

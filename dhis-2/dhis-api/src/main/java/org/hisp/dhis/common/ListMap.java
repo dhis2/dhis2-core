@@ -156,4 +156,41 @@ public class ListMap<T, V>
         
         return map;
     }
+
+    /**
+     * Returns a union of two same-type ListMaps. Either or both of the input
+     * ListMaps may be null. The returned ListMap never is.
+     *
+     * @param a one ListMap.
+     * @param b the other ListMap.
+     * @return union of the two ListMaps.
+     */
+    public static <T, V> ListMap<T, V> union( ListMap<T, V> a, ListMap<T, V> b )
+    {
+        if ( a == null || a.isEmpty() )
+        {
+            if ( b == null || b.isEmpty() )
+            {
+                return new ListMap<T, V>();
+            }
+
+            return b;
+        }
+        else if ( b == null || b.isEmpty() )
+        {
+            return a;
+        }
+
+        ListMap<T, V> c = new ListMap<T, V>( a );
+
+        for ( Map.Entry<T, List<V>> entry : b.entrySet() )
+        {
+            for ( V value : entry.getValue() )
+            {
+                c.putValue( entry.getKey(), value );
+            }
+        }
+
+        return c;
+    }
 }

@@ -71,11 +71,16 @@ public class HibernateProgramInstanceStore
     @Override
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
-        String hql = buildProgramInstanceHql( params );
+        String hql = buildCountProgramInstanceHql( params );
         
         Query query = getQuery( hql );
 
         return ((Number) query.iterate().next()).intValue();
+    }
+
+    public String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
+    {
+        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
     }
 
     @Override
@@ -110,9 +115,9 @@ public class HibernateProgramInstanceStore
             hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityInstance().getUid() + "'";
         }
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '" + params.getTrackedEntityType().getUid() + "'";
         }
 
         if ( params.hasOrganisationUnits() )
