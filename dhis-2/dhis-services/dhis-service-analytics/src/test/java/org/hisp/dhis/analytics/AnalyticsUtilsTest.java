@@ -538,9 +538,9 @@ public class AnalyticsUtilsTest
     @Test
     public void testGetLevelFromOrgUnitDimensionName()
     {
-        assertEquals( 3, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel3" ) );
-        assertEquals( 5, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel5" ) );
+        assertEquals( 3, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "oulevel3" ) );
+        assertEquals( 5, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "oulevel5" ) );
         assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "notalevel" ) );
-        assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "orgunitlevel" ) );
+        assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "oulevel" ) );
     }
 }
