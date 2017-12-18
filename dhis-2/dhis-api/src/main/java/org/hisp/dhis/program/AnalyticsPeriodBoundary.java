@@ -1,8 +1,7 @@
 package org.hisp.dhis.program;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.period.PeriodType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,11 +40,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Markus Bekken
  */
 @JacksonXmlRootElement( localName = "analyticsPeriodBoundary", namespace = DxfNamespaces.DXF_2_0 )
-public class AnalyticsPeriodBoundary
-    extends BaseIdentifiableObject implements MetadataObject
+public class AnalyticsPeriodBoundary implements EmbeddedObject
 {
-    private static final long serialVersionUID = -7234226596195371859L;
-
+    private int id;
+    
     private AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType;
     
     private PeriodType offsetPeriodType;
@@ -61,9 +59,10 @@ public class AnalyticsPeriodBoundary
         
     }
     
-    public AnalyticsPeriodBoundary( AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
+    public AnalyticsPeriodBoundary( int id, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
         PeriodType offsetPeriodType, Integer offsetNumberOfPeriods )
     {
+        this.id = id;
         this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
         this.offsetPeriodType = offsetPeriodType;
         this.offsetNumberOfPeriods = offsetNumberOfPeriods;
@@ -72,6 +71,18 @@ public class AnalyticsPeriodBoundary
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
