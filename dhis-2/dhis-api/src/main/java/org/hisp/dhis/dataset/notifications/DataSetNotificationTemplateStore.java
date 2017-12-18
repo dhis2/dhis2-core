@@ -42,5 +42,5 @@ public interface DataSetNotificationTemplateStore
 {
     List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, NotificationTrigger trigger );
 
-    List getScheduledNotifications( NotificationTrigger trigger );
+    List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
 }
