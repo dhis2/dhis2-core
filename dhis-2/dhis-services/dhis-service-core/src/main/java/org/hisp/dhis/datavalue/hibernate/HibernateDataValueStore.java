@@ -28,6 +28,7 @@ package org.hisp.dhis.datavalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.commons.logging.Log;
@@ -567,9 +568,10 @@ public class HibernateDataValueStore
 
                 for ( DataElementOperand deo : deos )
                 {
-                    if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) )
+                    if ( deo.getDataElement().getUid().equals( dataElement ) &&
+                        ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) ) )
                     {
-                        Double existingValue = map.getValue(attributeOptionCombo, deo);
+                        double existingValue = ObjectUtils.firstNonNull( map.getValue(attributeOptionCombo, deo), 0.0 );
 
                         Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, deo );
 
@@ -581,7 +583,7 @@ public class HibernateDataValueStore
                             }
                             else if ( existingPeriodInterval > periodInterval )
                             {
-                                existingValue = null; // Overwrite previous value if for a longer interval
+                                existingValue = 0.0; // Overwrite previous value if for a longer interval
 
                                 if ( lastUpdatedMap != null )
                                 {
@@ -590,12 +592,7 @@ public class HibernateDataValueStore
                             }
                         }
 
-                        if ( existingValue != null )
-                        {
-                            value += existingValue;
-                        }
-
-                        map.putEntry( attributeOptionCombo, deo, value );
+                        map.putEntry( attributeOptionCombo, deo, value + existingValue);
 
                         if ( lastUpdatedMap != null && lastUpdated != null )
                         {
