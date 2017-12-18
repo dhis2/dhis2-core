@@ -512,7 +512,7 @@ public class DefaultProgramNotificationService
                 .collect( Collectors.toSet() );
         }
 
-        return getTemplatesTriggeredByProgramRule( programInstance );
+        return getTemplatesForEntireEvent( programInstance );
     }
 
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
@@ -524,10 +524,10 @@ public class DefaultProgramNotificationService
                 .collect( Collectors.toSet() );
         }
 
-        return getTemplatesTriggeredByProgramRule( programStageInstance.getProgramInstance() );
+        return getTemplatesForEntireEvent( programStageInstance.getProgramInstance() );
     }
 
-    private Set<ProgramNotificationTemplate> getTemplatesTriggeredByProgramRule( ProgramInstance programInstance )
+    private Set<ProgramNotificationTemplate> getTemplatesForEntireEvent( ProgramInstance programInstance )
     {
         Set<ProgramNotificationTemplate> programNotificationTemplates = new HashSet<>();
 
