@@ -663,6 +663,7 @@ public class AnalyticsUtils
         map.putAll( getUidDisplayPropertyMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
         map.putAll( getUidDisplayPropertyMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
         map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
+        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getOptions() ) );
         
         return map;
     }

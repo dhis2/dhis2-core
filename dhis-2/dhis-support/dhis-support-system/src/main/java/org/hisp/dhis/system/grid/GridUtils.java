@@ -28,28 +28,14 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.system.util.PDFUtils.addTableToDocument;
-import static org.hisp.dhis.system.util.PDFUtils.closeDocument;
-import static org.hisp.dhis.system.util.PDFUtils.getEmptyCell;
-import static org.hisp.dhis.system.util.PDFUtils.getItalicCell;
-import static org.hisp.dhis.system.util.PDFUtils.getSubtitleCell;
-import static org.hisp.dhis.system.util.PDFUtils.getTextCell;
-import static org.hisp.dhis.system.util.PDFUtils.getTitleCell;
-import static org.hisp.dhis.system.util.PDFUtils.openDocument;
-import static org.hisp.dhis.system.util.PDFUtils.resetPaddings;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.csvreader.CsvWriter;
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfPTable;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.write.*;
+import jxl.write.Number;
+import net.sf.jasperreports.engine.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -78,23 +64,15 @@ import org.htmlparser.tags.TableRow;
 import org.htmlparser.tags.TableTag;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.csvreader.CsvWriter;
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfPTable;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.system.util.PDFUtils.*;
 
 /**
  * @author Lars Helge Overland
@@ -360,12 +338,8 @@ public class GridUtils
 
         for ( List<Object> row : grid.getRows() )
         {
-            Iterator<Object> columns = row.iterator();
-
-            while ( columns.hasNext() )
+            for ( Object value : row )
             {
-                Object value = columns.next();
-
                 csvWriter.write( value != null ? String.valueOf( value ) : StringUtils.EMPTY );
             }
 
