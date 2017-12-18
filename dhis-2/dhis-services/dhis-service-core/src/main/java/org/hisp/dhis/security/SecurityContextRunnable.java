@@ -66,14 +66,14 @@ public abstract class SecurityContextRunnable
     public abstract void call();
     
     /**
-     * Hook invoked before {@link call()}.
+     * Hook invoked before {@link #call()}.
      */
     public void before()
     {
     }
 
     /**
-     * Hook invoked after {@link call()}.
+     * Hook invoked after {@link #call()}.
      */
     public void after()
     {   

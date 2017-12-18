@@ -127,7 +127,7 @@ public interface DataApprovalService
      * Gets the data approval record if it exists.
      *
      * @param approval the DataApproval object properties to look for
-     * @return
+     * @return a data approval record.
      */
     DataApproval getDataApproval( DataApproval approval );
 
@@ -138,7 +138,7 @@ public interface DataApprovalService
      * @param period Period to check for approval.
      * @param organisationUnit OrganisationUnit to check for approval.
      * @param attributeOptionCombo CategoryOptionCombo (if any) for approval.
-     * @return
+     * @return true if data is approved.
      */
     boolean isApproved( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );

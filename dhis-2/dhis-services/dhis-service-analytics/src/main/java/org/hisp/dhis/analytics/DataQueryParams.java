@@ -98,7 +98,7 @@ public class DataQueryParams
     public static final String DISPLAY_NAME_LONGITUDE = "Longitude";
     public static final String DISPLAY_NAME_LATITUDE = "Latitude";
     
-    public static final String PREFIX_ORG_UNIT_LEVEL = "orgunitlevel";
+    public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
 
     public static final int DX_INDEX = 0;
 

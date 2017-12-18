@@ -36,7 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -828,7 +827,7 @@ public class OrganisationUnit
 
     /**
      * Used by persistence layer. Purpose is to have a column for use in database
-     * queries. For application use see {@link getLevel()} which has better performance.
+     * queries. For application use see {@link #getLevel()} which has better performance.
      */
     public Integer getHierarchyLevel()
     {

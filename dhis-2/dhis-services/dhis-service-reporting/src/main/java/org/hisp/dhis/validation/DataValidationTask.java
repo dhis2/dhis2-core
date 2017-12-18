@@ -301,7 +301,7 @@ public class DataValidationTask
      * @param dataElementOperandsToGet Data element operands to look for.
      * @param periodTypeX The period type extended.
      */
-    void getData( SetMap<String, DataElementOperand> dataElementOperandsToGet,
+    private void getData( SetMap<String, DataElementOperand> dataElementOperandsToGet,
         PeriodTypeExtended periodTypeX )
     {
         lastUpdatedMap = new MapMap<>();
@@ -343,7 +343,7 @@ public class DataValidationTask
     /**
      * Adds any validation results we found to the validation context.
      */
-    void addValidationResultsToContext()
+    private void addValidationResultsToContext()
     {
         if ( validationResults.size() > 0 )
         {

@@ -39,10 +39,16 @@ public interface EmailService
 {
     /**
      * Checks whether email is configured for the system or not.
+     * 
      * @return true if all necessary email configurations are set.
      */
     boolean emailEnabled();
 
+    /**
+     * Indicates whether email is configured.
+     * 
+     * @return true if email is configured.
+     */
     boolean emailConfigured();
 
     /**
@@ -52,12 +58,21 @@ public interface EmailService
      */
     OutboundMessageResponse sendEmail( Email email );
 
-
-    OutboundMessageResponse sendEmail(String subject, String message, Set<String> recipients );
+    /**
+     * Sends an email to the list of recipient users from the sender.
+     *
+     * @param subject the subject.
+     * @param message the message.
+     * @param recipients the recipients.
+     * @return the {@link OutboundMessageResponse}.
+     */
+    OutboundMessageResponse sendEmail( String subject, String message, Set<String> recipients );
 
     /**
      * Sends an automatically generated email message to the current user.
      * Useful for testing the SMTP configuration of the system.
+     * 
+     * @return the {@link OutboundMessageResponse}.
      */
     OutboundMessageResponse sendTestEmail();
     
@@ -66,9 +81,8 @@ public interface EmailService
      * that a valid system notification email address has been specified. Only
      * the subject and text properties of the given email are read.
      * 
-     * @param subject the subject text of the email.
-     * @param text the text (body) of the email.
-     * @return true if an email was sent, false if not.
+     * @param email the email to send.
+     * @return the {@link OutboundMessageResponse}.
      */
     OutboundMessageResponse sendSystemEmail( Email email );
 }

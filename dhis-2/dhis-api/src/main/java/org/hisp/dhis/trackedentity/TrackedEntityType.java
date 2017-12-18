@@ -58,7 +58,7 @@ public class TrackedEntityType
     /**
      * Property indicating maximum number of TEI to return after search
      */
-    private int maxTeiCountToReturn;
+    private int maxTeiCountToReturn = 0;
     
     // -------------------------------------------------------------------------
     // Constructor

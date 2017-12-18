@@ -31,7 +31,6 @@ package org.hisp.dhis.programrule;
 import java.util.List;
 
 /**
- *
  * @author markusbekken
  */
 public interface ProgramRuleActionService
@@ -39,9 +38,9 @@ public interface ProgramRuleActionService
     String ID = ProgramRuleActionService.class.getName();
 
     /**
-     * Adds an {@link ProgramRuleAction}
+     * Adds a {@link ProgramRuleAction}.
      *
-     * @param ProgramRuleAction The to ProgramRuleAction add.
+     * @param programRuleAction The to ProgramRuleAction add.
      * @return A generated unique id of the added {@link ProgramRuleAction}.
      */
     int addProgramRuleAction( ProgramRuleAction programRuleAction );
@@ -49,14 +48,14 @@ public interface ProgramRuleActionService
     /**
      * Deletes a {@link ProgramRuleAction}
      *
-     * @param ProgramRuleAction The ProgramRuleAction to delete.
+     * @param programRuleAction The ProgramRuleAction to delete.
      */
     void deleteProgramRuleAction( ProgramRuleAction programRuleAction );
 
     /**
      * Updates an {@link ProgramRuleAction}.
      *
-     * @param ProgramRuleAction The ProgramRuleAction to update.
+     * @param programRuleAction The ProgramRuleAction to update.
      */
     void updateProgramRuleAction( ProgramRuleAction programRuleAction );
 
@@ -72,15 +71,15 @@ public interface ProgramRuleActionService
      * Returns all {@link ProgramRuleAction}.
      *
      * @return a collection of all ProgramRuleAction, or an empty collection if
-     * there are no ProgramRuleActions.
+     *          there are no ProgramRuleActions.
      */
     List<ProgramRuleAction> getAllProgramRuleAction();
 
     /**
-     * Get validation by {@link ProgramRule}
+     * Get validation by {@link ProgramRule}.
      *
-     * @param program Program
-     * @return ProgramRuleAction list
+     * @param programRule the program rule.
+     * @return a list of ProgramRuleActions.
      */
     List<ProgramRuleAction> getProgramRuleAction( ProgramRule programRule );
 }
