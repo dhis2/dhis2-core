@@ -144,17 +144,17 @@ public class ProgramIndicator
 
     private AnalyticsType analyticsType = AnalyticsType.EVENT;
     
-    private AnalyticsPeriodBoundaryType enrollmentDateLowerBoundary;
+    private AnalyticsPeriodBoundary enrollmentDateLowerBoundary;
     
-    private AnalyticsPeriodBoundaryType enrollmentDateUpperBoundary;
+    private AnalyticsPeriodBoundary enrollmentDateUpperBoundary;
     
-    private AnalyticsPeriodBoundaryType incidentDateLowerBoundary;
+    private AnalyticsPeriodBoundary incidentDateLowerBoundary;
     
-    private AnalyticsPeriodBoundaryType incidentDateUpperBoundary;
+    private AnalyticsPeriodBoundary incidentDateUpperBoundary;
     
-    private AnalyticsPeriodBoundaryType eventDateLowerBoundary;
+    private AnalyticsPeriodBoundary eventDateLowerBoundary;
     
-    private AnalyticsPeriodBoundaryType eventDateUpperBoundary;
+    private AnalyticsPeriodBoundary eventDateUpperBoundary;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -383,72 +383,72 @@ public class ProgramIndicator
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsPeriodBoundaryType getEnrollmentDateLowerBoundary()
+    public AnalyticsPeriodBoundary getEnrollmentDateLowerBoundary()
     {
         return enrollmentDateLowerBoundary;
     }
 
-    public void setEnrollmentDateLowerBoundary( AnalyticsPeriodBoundaryType enrollmentDateLowerBoundary )
+    public void setEnrollmentDateLowerBoundary( AnalyticsPeriodBoundary enrollmentDateLowerBoundary )
     {
         this.enrollmentDateLowerBoundary = enrollmentDateLowerBoundary;
     }
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsPeriodBoundaryType getEnrollmentDateUpperBoundary()
+    public AnalyticsPeriodBoundary getEnrollmentDateUpperBoundary()
     {
         return enrollmentDateUpperBoundary;
     }
 
-    public void setEnrollmentDateUpperBoundary( AnalyticsPeriodBoundaryType enrollmentDateUpperBoundary )
+    public void setEnrollmentDateUpperBoundary( AnalyticsPeriodBoundary enrollmentDateUpperBoundary )
     {
         this.enrollmentDateUpperBoundary = enrollmentDateUpperBoundary;
     }
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsPeriodBoundaryType getIncidentDateLowerBoundary()
+    public AnalyticsPeriodBoundary getIncidentDateLowerBoundary()
     {
         return incidentDateLowerBoundary;
     }
 
-    public void setIncidentDateLowerBoundary( AnalyticsPeriodBoundaryType incidentDateLowerBoundary )
+    public void setIncidentDateLowerBoundary( AnalyticsPeriodBoundary incidentDateLowerBoundary )
     {
         this.incidentDateLowerBoundary = incidentDateLowerBoundary;
     }
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsPeriodBoundaryType getIncidentDateUpperBoundary()
+    public AnalyticsPeriodBoundary getIncidentDateUpperBoundary()
     {
         return incidentDateUpperBoundary;
     }
 
-    public void setIncidentDateUpperBoundary( AnalyticsPeriodBoundaryType incidentDateUpperBoundary )
+    public void setIncidentDateUpperBoundary( AnalyticsPeriodBoundary incidentDateUpperBoundary )
     {
         this.incidentDateUpperBoundary = incidentDateUpperBoundary;
     }
  
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsPeriodBoundaryType getEventDateLowerBoundary()
+    public AnalyticsPeriodBoundary getEventDateLowerBoundary()
     {
         return eventDateLowerBoundary;
     }
 
-    public void setEventDateLowerBoundary( AnalyticsPeriodBoundaryType eventDateLowerBoundary )
+    public void setEventDateLowerBoundary( AnalyticsPeriodBoundary eventDateLowerBoundary )
     {
         this.eventDateLowerBoundary = eventDateLowerBoundary;
     }
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsPeriodBoundaryType getEventDateUpperBoundary()
+    public AnalyticsPeriodBoundary getEventDateUpperBoundary()
     {
         return eventDateUpperBoundary;
     }
 
-    public void setEventDateUpperBoundary( AnalyticsPeriodBoundaryType eventDateUpperBoundary )
+    public void setEventDateUpperBoundary( AnalyticsPeriodBoundary eventDateUpperBoundary )
     {
         this.eventDateUpperBoundary = eventDateUpperBoundary;
     }

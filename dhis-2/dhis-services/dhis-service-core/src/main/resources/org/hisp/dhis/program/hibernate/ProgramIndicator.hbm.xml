@@ -64,7 +64,31 @@
         <param name="type">12</param>
       </type>
     </property>
-
+    
+    <many-to-one name="enrollmentDateLowerBoundary" class="org.hisp.dhis.program.AnalyticsPeriodBoundary" 
+    	column="enrollmentdatelowerboundaryid" cascade="all-delete-orphan" unique="true"
+    	foreign-key="fk_programindicator_analyticsperiodboundary_enrollmentlowerboundaryid" />
+    
+	<many-to-one name="enrollmentDateUpperBoundary" class="org.hisp.dhis.program.AnalyticsPeriodBoundary" 
+		column="enrollmentdateupperboundaryid" cascade="all-delete-orphan" unique="true"
+		foreign-key="fk_programindicator_analyticsperiodboundary_enrollmentupperboundaryid" />
+    
+    <many-to-one name="incidentDateLowerBoundary" class="org.hisp.dhis.program.AnalyticsPeriodBoundary" 
+    	column="incidentdatelowerboundaryid" cascade="all-delete-orphan" unique="true"
+    	foreign-key="fk_programindicator_analyticsperiodboundary_incidentdatelowerboundaryid" />
+    
+    <many-to-one name="incidentDateUpperBoundary" class="org.hisp.dhis.program.AnalyticsPeriodBoundary" 
+    	column="incidentdateupperboundaryid" cascade="all-delete-orphan" unique="true"
+    	foreign-key="fk_programindicator_analyticsperiodboundary_incidentdateupperboundaryid" />
+    
+    <many-to-one name="eventDateLowerBoundary" class="org.hisp.dhis.program.AnalyticsPeriodBoundary" 
+    	column="eventdatelowerboundaryid" cascade="all-delete-orphan" unique="true"
+    	foreign-key="fk_programindicator_analyticsperiodboundary_eventdatelowerboundaryid" />
+    
+    <many-to-one name="eventDateUpperBoundary" class="org.hisp.dhis.program.AnalyticsPeriodBoundary" 
+    	column="eventdateupperboundaryid" cascade="all-delete-orphan" unique="true"
+    	foreign-key="fk_programindicator_analyticsperiodboundary_eventdateupperboundaryid" />
+    
     <!-- Object Translation -->
     <set name="translations" table="programindicatortranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
