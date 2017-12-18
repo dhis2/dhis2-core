@@ -119,6 +119,9 @@ public class DefaultEventAnalyticsService
     private DataElementService dataElementService;
 
     @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
     private EventAnalyticsManager eventAnalyticsManager;
 
     @Autowired
@@ -325,9 +328,6 @@ public class DefaultEventAnalyticsService
         return outputGrid;
     }
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
     /**
      * Put elements into the map "table". The elements are fetched from the query parameters.
      *
@@ -344,11 +344,11 @@ public class DefaultEventAnalyticsService
 
         if ( objects.size() == 0 )
         {
-            ValueType valueType = null;
-            OptionSet optionSet = null;
-            LegendSet legendSet = null;
-            String parentUid = "";
-            String displayName = "";
+            ValueType valueType;
+            OptionSet optionSet;
+            LegendSet legendSet;
+            String parentUid;
+            String displayName;
 
             DataElement dataElement = dataElementService.getDataElement( dimension );
 
