@@ -32,7 +32,9 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.User;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -54,22 +56,25 @@ public interface DataApprovalStore
      * Adds a DataApproval in order to approve data.
      *
      * @param dataApproval the DataApproval to add.
+     * @param user the user doing the adding.
      */
-    void addDataApproval( DataApproval dataApproval );
+    void addDataApproval( DataApproval dataApproval, User user );
 
     /**
      * Updates a DataApproval.
      *
      * @param dataApproval the DataApproval to update.
+     * @param user the user doing the updating.
      */
-    void updateDataApproval( DataApproval dataApproval );
+    void updateDataApproval( DataApproval dataApproval, User user );
 
     /**
      * Deletes a DataApproval in order to un-approve data.
      *
      * @param dataApproval the DataApproval to delete.
+     * @param user the user doing the deleting.
      */
-    void deleteDataApproval( DataApproval dataApproval );
+    void deleteDataApproval( DataApproval dataApproval, User user );
 
     /**
      * Deletes DataApprovals for the given organisation unit.
@@ -101,6 +106,20 @@ public interface DataApprovalStore
         Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
 
     /**
+     * Returns DataApproval objects (if any) for given collections of approval
+     * level, workflow, period, organisation unit, and attribute option combo.
+     *
+     * @param dataApprovalLevels Levels for approval
+     * @param workflows DataApprovalWorkflows for approval
+     * @param periods Periods for approval
+     * @param organisationUnits OrganisationUnits for approval
+     * @param attributeOptionCombos attribute option combos for approval
+     * @return matching DataApproval object, if any
+     */
+     List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
+        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<DataElementCategoryOptionCombo> attributeOptionCombos );
+
+    /**
      * Returns a list of data approval results and corresponding states for
      * a collection of workflows and a given period. The list may be constrained
      * to a given organisation unit, or it may be all the organisation units
@@ -114,14 +133,19 @@ public interface DataApprovalStore
      * no higher than level 3. If data is approved at levels 1 or 2, it will
      * look to a level 3 user only as if it was approved at level 3.
      *
+     * If a list of organisation units is specified, they must all be at the
+     * same hierarchy level.
+     *
      * @param workflow Data approval workflow to check
      * @param period Period to look within
-     * @param orgUnit Organisation unit to look for (null means all)
+     * @param orgUnits Organisation unit to look for (null means all)
+     * @param orgUnitLevel level for all orgUnits specified (if any)
      * @param attributeCombo Attribute category combo to look within
      * @param attributeOptionCombos Attribute option combos (null means all)
      * @return data approval status objects
      */
-    List<DataApprovalStatus> getDataApprovals( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit orgUnit, DataElementCategoryCombo attributeCombo,
+    List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
+        Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
+        DataElementCategoryCombo attributeCombo,
         Set<DataElementCategoryOptionCombo> attributeOptionCombos );
 }

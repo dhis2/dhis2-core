@@ -80,6 +80,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleService;
@@ -561,6 +562,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleDataEntryForm( metadata, program.getDataEntryForm() );
         handleTrackedEntityType( metadata, program.getTrackedEntityType() );
 
+        program.getNotificationTemplates().forEach( template -> handleNotificationTemplate( metadata, template ) );
         program.getProgramStages().forEach( programStage -> handleProgramStage( metadata, programStage ) );
         program.getProgramAttributes().forEach( programTrackedEntityAttribute -> handleProgramTrackedEntityAttribute( metadata, programTrackedEntityAttribute ) );
         program.getProgramIndicators().forEach( programIndicator -> handleProgramIndicator( metadata, programIndicator ) );
@@ -570,6 +572,23 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         programRules.forEach( programRule -> handleProgramRule( metadata, programRule ) );
         programRuleVariables.forEach( programRuleVariable -> handleProgramRuleVariable( metadata, programRuleVariable ) );
+
+        return metadata;
+    }
+
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleNotificationTemplate( SetMap<Class<? extends
+        IdentifiableObject>, IdentifiableObject> metadata, ProgramNotificationTemplate template )
+    {
+        if ( template == null )
+        {
+            return metadata;
+        }
+
+        metadata.putValue( ProgramNotificationTemplate.class, template );
+
+        handleTrackedEntityAttribute( metadata, template.getRecipientProgramAttribute() );
+
+        handleDataElement( metadata, template.getRecipientDataElement() );
 
         return metadata;
     }
@@ -641,6 +660,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         metadata.putValue( ProgramStage.class, programStage );
         handleAttributes( metadata, programStage );
 
+        programStage.getNotificationTemplates().forEach( template -> handleNotificationTemplate( metadata, template ) );
         programStage.getProgramStageDataElements().forEach( programStageDataElement -> handleProgramStageDataElement( metadata, programStageDataElement ) );
         programStage.getProgramStageSections().forEach( programStageSection -> handleProgramStageSection( metadata, programStageSection ) );
 

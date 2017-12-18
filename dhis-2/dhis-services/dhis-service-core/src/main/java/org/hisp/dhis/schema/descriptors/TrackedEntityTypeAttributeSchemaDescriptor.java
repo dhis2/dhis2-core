@@ -1,4 +1,4 @@
-package org.hisp.dhis.servlet.filter;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,34 +28,25 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
 /**
- * Filter which enforces no cache for HTML pages like
- * index pages to prevent stale versions being rendered
- * in clients.
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
- * @author Lars Helge Overland
  */
-public class HttpNoCacheFilter
-    extends HttpUrlPatternFilter
+public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescriptor
 {
-    @Override
-    public final void doHttpFilter( HttpServletRequest request, HttpServletResponse response, FilterChain chain )
-        throws IOException, ServletException
-    {
-        if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
-        {
-            ContextUtils.setNoStore( response );
-        }
+    public static final String SINGULAR = "trackedEntityTypeAttribute";
 
-        chain.doFilter( request, response );
+    public static final String PLURAL = "trackedEntityTypeAttributes";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {        
+        return new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
     }
 }

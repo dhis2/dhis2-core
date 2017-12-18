@@ -145,6 +145,10 @@ public class TableAlteror
         executeSql( "UPDATE program SET displayfrontpagelist=false where displayfrontpagelist is null" );
         executeSql( "UPDATE program SET usefirststageduringregistration=false where usefirststageduringregistration is null" );
         executeSql( "UPDATE program SET capturecoordinates=false where capturecoordinates is null" );
+        executeSql( "UPDATE program SET minAttributesRequiredToSearch=1 where minAttributesRequiredToSearch is null" );
+        executeSql( "UPDATE program SET maxTeiCountToReturn=0 where maxTeiCountToReturn is null" );
+        executeSql( "UPDATE trackedentitytype SET minAttributesRequiredToSearch=1 where minAttributesRequiredToSearch is null" );
+        executeSql( "UPDATE trackedentitytype SET maxTeiCountToReturn=0 where maxTeiCountToReturn is null" );
 
         executeSql( "UPDATE programinstance SET followup=false where followup is null" );
 
