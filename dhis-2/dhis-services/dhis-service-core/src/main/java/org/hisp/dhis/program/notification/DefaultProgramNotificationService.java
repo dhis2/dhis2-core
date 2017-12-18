@@ -540,7 +540,6 @@ public class DefaultProgramNotificationService
                 .filter( pnt -> pnt.getNotificationTrigger() == NotificationTrigger.PROGRAM_RULE )
                 .collect( Collectors.toList() ) );
 
-        log.info( "number of PNTs: " + programNotificationTemplates.size() );
         return programNotificationTemplates;
     }
 
