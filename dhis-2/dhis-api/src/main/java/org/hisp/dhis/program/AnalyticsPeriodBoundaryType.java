@@ -31,33 +31,34 @@ package org.hisp.dhis.program;
 /**
  * @author Markus Bekken
  */
-public enum AnayticsEvaluationBoundaryType
-{
-    START_OF_REPORTING_PERIOD( "start_of_reporting_period" ),
-    END_OF_REPORTING_PERIOD( "end_of_reporting_period" ),
-    EARLIER_RELATIVE_TO_START_OF_REPORTING_PERIOD( "earlier_relative_to_start_of_reporting_period" ),
-    LATER_RELATIVE_TO_START_OF_REPORTING_PERIOD( "later_relative_to_start_of_reporting_period" ),
-    EARLIER_RELATIVE_TO_END_OF_REPORTING_PERIOD( "earlier_relative_to_end_of_reporting_period" ),
-    LATER_RELATIVE_TO_END_OF_REPORTING_PERIOD( "later_relative_to_end_of_reporting_period" ),
-    UNBOUNDED( "unbounded" );
 
+public enum AnalyticsPeriodBoundaryType
+{
+    START_OF_REPORTING_PERIOD( "start_of_reporting_period" ), 
+    END_OF_REPORTING_PERIOD( "end_of_reporting_period" );
+    
     private final String value;
 
-    AnayticsEvaluationBoundaryType( String value )
+    private AnalyticsPeriodBoundaryType( String value )
     {
         this.value = value;
     }
 
-    public static AnayticsEvaluationBoundaryType fromValue( String value )
+    public static AnalyticsPeriodBoundaryType fromValue( String value )
     {
-        for ( AnayticsEvaluationBoundaryType type : AnayticsEvaluationBoundaryType.values() )
+        for ( AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType : AnalyticsPeriodBoundaryType.values() )
         {
-            if ( type.value.equalsIgnoreCase( value ) )
+            if ( analyticsPeriodBoundaryType.getValue().equalsIgnoreCase( value ) )
             {
-                return type;
+                return analyticsPeriodBoundaryType;
             }
         }
 
         return null;
+    }
+    
+    public String getValue()
+    {
+        return value;
     }
 }

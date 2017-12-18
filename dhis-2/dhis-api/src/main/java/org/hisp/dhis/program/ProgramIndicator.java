@@ -43,7 +43,6 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.period.PeriodType;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -145,7 +144,17 @@ public class ProgramIndicator
 
     private AnalyticsType analyticsType = AnalyticsType.EVENT;
     
+    private AnalyticsPeriodBoundaryType enrollmentDateLowerBoundary;
     
+    private AnalyticsPeriodBoundaryType enrollmentDateUpperBoundary;
+    
+    private AnalyticsPeriodBoundaryType incidentDateLowerBoundary;
+    
+    private AnalyticsPeriodBoundaryType incidentDateUpperBoundary;
+    
+    private AnalyticsPeriodBoundaryType eventDateLowerBoundary;
+    
+    private AnalyticsPeriodBoundaryType eventDateUpperBoundary;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -372,4 +381,75 @@ public class ProgramIndicator
         this.analyticsType = analyticsType;
     }
     
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsPeriodBoundaryType getEnrollmentDateLowerBoundary()
+    {
+        return enrollmentDateLowerBoundary;
+    }
+
+    public void setEnrollmentDateLowerBoundary( AnalyticsPeriodBoundaryType enrollmentDateLowerBoundary )
+    {
+        this.enrollmentDateLowerBoundary = enrollmentDateLowerBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsPeriodBoundaryType getEnrollmentDateUpperBoundary()
+    {
+        return enrollmentDateUpperBoundary;
+    }
+
+    public void setEnrollmentDateUpperBoundary( AnalyticsPeriodBoundaryType enrollmentDateUpperBoundary )
+    {
+        this.enrollmentDateUpperBoundary = enrollmentDateUpperBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsPeriodBoundaryType getIncidentDateLowerBoundary()
+    {
+        return incidentDateLowerBoundary;
+    }
+
+    public void setIncidentDateLowerBoundary( AnalyticsPeriodBoundaryType incidentDateLowerBoundary )
+    {
+        this.incidentDateLowerBoundary = incidentDateLowerBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsPeriodBoundaryType getIncidentDateUpperBoundary()
+    {
+        return incidentDateUpperBoundary;
+    }
+
+    public void setIncidentDateUpperBoundary( AnalyticsPeriodBoundaryType incidentDateUpperBoundary )
+    {
+        this.incidentDateUpperBoundary = incidentDateUpperBoundary;
+    }
+ 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsPeriodBoundaryType getEventDateLowerBoundary()
+    {
+        return eventDateLowerBoundary;
+    }
+
+    public void setEventDateLowerBoundary( AnalyticsPeriodBoundaryType eventDateLowerBoundary )
+    {
+        this.eventDateLowerBoundary = eventDateLowerBoundary;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AnalyticsPeriodBoundaryType getEventDateUpperBoundary()
+    {
+        return eventDateUpperBoundary;
+    }
+
+    public void setEventDateUpperBoundary( AnalyticsPeriodBoundaryType eventDateUpperBoundary )
+    {
+        this.eventDateUpperBoundary = eventDateUpperBoundary;
+    }
 }
