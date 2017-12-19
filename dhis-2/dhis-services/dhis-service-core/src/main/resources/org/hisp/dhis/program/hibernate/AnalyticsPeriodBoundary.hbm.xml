@@ -14,6 +14,8 @@
       <generator class="native" />
     </id>
 
+	<property name="boundaryTarget" length="50" />
+
     <property name="analyticsPeriodBoundaryType" length="50">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.AnalyticsPeriodBoundaryType</param>
@@ -24,6 +26,9 @@
     
     <many-to-one name="offsetPeriodType" class="org.hisp.dhis.period.PeriodType"
         column="offsetperiodtypeid" foreign-key="fk_analyticsperiodboundary_periodtype" />
+        
+    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
+        column="programindicatorid" foreign-key="fk_analyticsperiodboundary_programindicator" />
 
     <property name="offsetNumberOfPeriods" />
     

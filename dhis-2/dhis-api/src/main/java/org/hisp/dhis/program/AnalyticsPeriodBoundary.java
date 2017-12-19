@@ -44,11 +44,15 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
 {
     private int id;
     
+    private String boundaryTarget;
+    
     private AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType;
     
     private PeriodType offsetPeriodType;
     
     private Integer offsetNumberOfPeriods;
+    
+    private ProgramIndicator programIndicator;
     
     // -------------------------------------------------------------------------
     // Constructors
@@ -59,10 +63,11 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
         
     }
     
-    public AnalyticsPeriodBoundary( int id, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
-        PeriodType offsetPeriodType, Integer offsetNumberOfPeriods )
+    public AnalyticsPeriodBoundary( int id, String boundaryTarget, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
+        PeriodType offsetPeriodType, Integer offsetNumberOfPeriods, ProgramIndicator programIndicator )
     {
         this.id = id;
+        this.boundaryTarget = boundaryTarget;
         this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
         this.offsetPeriodType = offsetPeriodType;
         this.offsetNumberOfPeriods = offsetNumberOfPeriods;
@@ -72,8 +77,6 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
     // Getters and setters
     // -------------------------------------------------------------------------
     
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getId()
     {
         return id;
@@ -82,6 +85,18 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
     public void setId( int id )
     {
         this.id = id;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getBoundaryTarget()
+    {
+        return boundaryTarget;
+    }
+
+    public void setBoundaryTarget( String boundaryTarget )
+    {
+        this.boundaryTarget = boundaryTarget;
     }
     
     @JsonProperty
@@ -119,4 +134,17 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
     {
         this.offsetNumberOfPeriods = offsetNumberOfPeriods;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramIndicator getProgramIndicator()
+    {
+        return programIndicator;
+    }
+
+    public void setProgramIndicator( ProgramIndicator programIndicator )
+    {
+        this.programIndicator = programIndicator;
+    }
+    
 }

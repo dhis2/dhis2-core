@@ -34,8 +34,10 @@ package org.hisp.dhis.program;
 
 public enum AnalyticsPeriodBoundaryType
 {
-    START_OF_REPORTING_PERIOD( "start_of_reporting_period" ), 
-    END_OF_REPORTING_PERIOD( "end_of_reporting_period" );
+    BEFORE_START_OF_REPORTING_PERIOD( "before_start_of_reporting_period" ), 
+    BEFORE_END_OF_REPORTING_PERIOD( "before_end_of_reporting_period" ),
+    AFTER_START_OF_REPORTING_PERIOD( "after_start_of_reporting_period" ), 
+    AFTER_END_OF_REPORTING_PERIOD( "after_end_of_reporting_period" );
     
     private final String value;
 
