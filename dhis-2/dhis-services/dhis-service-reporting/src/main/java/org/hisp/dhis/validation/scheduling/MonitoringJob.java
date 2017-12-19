@@ -93,7 +93,7 @@ public class MonitoringJob
     {
         notifier.clear( jobConfiguration.getJobId() ).notify( jobConfiguration.getJobId(), "Monitoring data" );
 
-        MonitoringJobParameters jobParams = (MonitoringJobParameters) jobConfiguration.getJobParameters();
+        MonitoringJobParameters monitoringJobParameters = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
         //TODO improve collection usage
         
@@ -102,7 +102,7 @@ public class MonitoringJob
             List<Period> periods = new ArrayList<>();
             List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
             Collection<ValidationRule> validationRules;
-            List<String> groupUIDs = jobParams.getValidationRuleGroups();
+            List<String> groupUIDs = monitoringJobParameters.getValidationRuleGroups();
 
             if ( groupUIDs.isEmpty() )
             {
@@ -119,10 +119,10 @@ public class MonitoringJob
                     .reduce( Sets.newHashSet(), SetUtils::union );
             }
 
-            if ( jobParams.getRelativeStart() != 0 && jobParams.getRelativeEnd() != 0 )
+            if ( monitoringJobParameters.getRelativeStart() != 0 && monitoringJobParameters.getRelativeEnd() != 0 )
             {
-                Date startDate = DateUtils.getDateAfterAddition( new Date(), jobParams.getRelativeStart() );
-                Date endDate = DateUtils.getDateAfterAddition( new Date(), jobParams.getRelativeEnd() );
+                Date startDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeStart() );
+                Date endDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeEnd() );
 
                 periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
@@ -140,8 +140,8 @@ public class MonitoringJob
             ValidationAnalysisParams parameters = validationService
                 .newParamsBuilder( validationRules, organisationUnits, periods )
                 .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
-                .withSendNotifications( jobParams.isSendNotifications() )
-                .withPersistResults( jobParams.isPersistResults() )
+                .withSendNotifications( monitoringJobParameters.isSendNotifications() )
+                .withPersistResults( monitoringJobParameters.isPersistResults() )
                 .build();
 
             validationService.validationAnalysis( parameters );
