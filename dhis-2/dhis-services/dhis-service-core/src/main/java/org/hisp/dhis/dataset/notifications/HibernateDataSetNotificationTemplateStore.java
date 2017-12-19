@@ -49,7 +49,7 @@ public class HibernateDataSetNotificationTemplateStore
     {
         Criteria criteria = getCriteria();
         criteria.createAlias( "dataSets", "dataset" );
-        criteria.add( Restrictions.eq( "notificationTrigger", trigger ) );
+        criteria.add( Restrictions.eq( "dataSetNotificationTrigger", trigger ) );
         criteria.add( Restrictions.eq( "dataset.id", dataSet.getId() ) );
 
         return criteria.list();
@@ -59,7 +59,7 @@ public class HibernateDataSetNotificationTemplateStore
     public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
     {
         Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "notificationTrigger", trigger ) );
+        criteria.add( Restrictions.eq( "dataSetNotificationTrigger", trigger ) );
 
         return criteria.list();
     }

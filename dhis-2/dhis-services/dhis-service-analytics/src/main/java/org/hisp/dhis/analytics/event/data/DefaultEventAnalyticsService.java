@@ -28,31 +28,72 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.event.*;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.AnalyticsUtils;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.EventReportDimensionalItem;
+import org.hisp.dhis.analytics.MetadataItem;
+import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
+import org.hisp.dhis.analytics.event.EventAnalyticsManager;
+import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.analytics.event.EventDataQueryService;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
+import static org.hisp.dhis.reporttable.ReportTable.*;
 
 /**
  * @author Lars Helge Overland
@@ -71,7 +112,15 @@ public class DefaultEventAnalyticsService
     private static final String NAME_CENTER = "Center";
     private static final String NAME_EXTENT = "Extent";
     private static final String NAME_POINTS = "Points";
-        
+
+    private final List<Option> booleanOptions = new ArrayList<>( );
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
     @Autowired
     private EventAnalyticsManager eventAnalyticsManager;
 
@@ -92,7 +141,21 @@ public class DefaultEventAnalyticsService
 
     @Autowired
     private DatabaseInfo databaseInfo;
-    
+
+    DefaultEventAnalyticsService ()
+    {
+        Option t = new Option( );
+        t.setCode( "1" );
+        t.setName( "Yes" );
+
+        Option f = new Option( );
+        f.setCode( "0" );
+        f.setName( "No" );
+
+        booleanOptions.add( t );
+        booleanOptions.add( f );
+    }
+
     // -------------------------------------------------------------------------
     // EventAnalyticsService implementation
     // -------------------------------------------------------------------------
@@ -100,6 +163,375 @@ public class DefaultEventAnalyticsService
     // TODO use [longitude/latitude] format for event points
     // TODO order event analytics tables on execution date to avoid default sort
     // TODO sorting in queries
+
+    @Override
+    public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
+        throws Exception
+    {
+        boolean tableLayout = (columns != null && !columns.isEmpty()) || (rows != null && !rows.isEmpty());
+
+        return tableLayout ?
+            getAggregatedEventDataTableLayout( params, columns, rows ) :
+            getAggregatedEventData( params );
+    }
+
+    /**
+     * Create a grid with table layout for downloading event reports.
+     * The grid is dynamically made from rows and columns input, which refers to the dimensions requested.
+     *
+     * For event reports each option for a dimension will be an {@link EventReportDimensionalItem} and all permutations
+     * will be added to the grid.
+     *
+     * @param params the event query parameters.
+     * @param columns the identifiers of the dimensions to use as columns.
+     * @param rows the identifiers of the dimensions to use as rows.
+     * @return aggregated data as a Grid object.
+     */
+    private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+        throws Exception
+    {
+        params.removeProgramIndicatorItems(); // Not supported as items for aggregate
+
+        Grid grid = getAggregatedEventData( params );
+
+        ListUtils.removeEmptys( columns );
+        ListUtils.removeEmptys( rows );
+
+        Map<String, List<EventReportDimensionalItem>> tableColumns = new LinkedHashMap<>();
+        if ( columns != null )
+        {
+            for ( String dimension : columns )
+            {
+                getEventDataObjects( grid, params, tableColumns, dimension );
+            }
+        }
+
+        Map<String, List<EventReportDimensionalItem>> tableRows = new LinkedHashMap<>();
+        List<String> rowDimensions = new ArrayList<>();
+        if ( rows != null )
+        {
+            for ( String dimension : rows )
+            {
+                rowDimensions.add( dimension );
+                getEventDataObjects( grid, params, tableRows, dimension );
+            }
+        }
+
+        List<Map<String, EventReportDimensionalItem>> rowPermutations = generateEventDataPermutations( tableRows );
+        List<Map<String, EventReportDimensionalItem>> columnPermutations = generateEventDataPermutations( tableColumns );
+
+        return generateOutputGrid( grid,  params, rowPermutations, columnPermutations, rowDimensions );
+    }
+
+    /**
+     * Generate grid based on input parameters
+     *
+     * @param grid the result grid
+     * @param params the event query parameters.
+     * @param rowPermutations the row permutations
+     * @param columnPermutations the column permutations
+     * @param rowDimensions the row dimensions
+     * @return grid with table layout
+     */
+    private Grid generateOutputGrid( Grid grid, EventQueryParams params, List<Map<String, EventReportDimensionalItem>> rowPermutations, List<Map<String, EventReportDimensionalItem>> columnPermutations, List<String> rowDimensions )
+    {
+        Grid outputGrid = new ListGrid();
+        outputGrid.setTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
+
+        for ( String row : rowDimensions )
+        {
+            MetadataItem metadataItem = (MetadataItem) ((HashMap<String, Object>) grid.getMetaData()
+                .get( ITEMS.getKey() )).get( row );
+
+            String name = StringUtils.defaultIfEmpty( metadataItem.getName(), row );
+            String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
+
+            outputGrid
+                .addHeader( new GridHeader( name, col, ValueType.TEXT, String.class.getName(), false, true ) );
+        }
+
+        columnPermutations.forEach( permutation -> {
+            StringBuilder builder = new StringBuilder();
+
+            for ( Map.Entry<String, EventReportDimensionalItem> entry : permutation.entrySet() )
+            {
+                String key = entry.getKey();
+                EventReportDimensionalItem value = entry.getValue();
+
+                if ( !key.equals( ORGUNIT_DIM_ID ) && !key.equals( PERIOD_DIM_ID ) )
+                {
+                    builder.append( key ).append( SPACE );
+                }
+                builder.append( value.getDisplayProperty( params.getDisplayProperty() ) )
+                    .append( DASH_PRETTY_SEPARATOR );
+            }
+
+            String display = builder.length() > 0 ?
+                builder.substring( 0, builder.lastIndexOf( DASH_PRETTY_SEPARATOR ) ) :
+                TOTAL_COLUMN_PRETTY_NAME;
+
+            outputGrid.addHeader( new GridHeader( display, display,
+                ValueType.NUMBER, Double.class.getName(), false, false ) );
+        } );
+
+        Map<String, Object> valueMap = getAggregatedEventDataMapping( grid );
+
+        for ( Map<String, EventReportDimensionalItem> rowCombination : rowPermutations )
+        {
+            outputGrid.addRow();
+            List<List<String>> ids = new ArrayList<>();
+            Map<String, EventReportDimensionalItem> displayObjects = new HashMap<>();
+
+            boolean fillDisplayList = true;
+
+            for ( Map<String, EventReportDimensionalItem> columnCombination : columnPermutations )
+            {
+                List<String> idList = new ArrayList<>();
+
+                boolean finalFillDisplayList = fillDisplayList;
+                rowCombination.forEach( ( key, value ) -> {
+                    idList.add( value.toString() );
+
+                    if ( finalFillDisplayList )
+                    {
+                        displayObjects.put( value.getParentUid(), value );
+                    }
+                } );
+
+                columnCombination.forEach( ( key, value ) -> idList.add( value.toString() ) );
+
+                ids.add( idList );
+                fillDisplayList = false;
+            }
+
+            rowDimensions.forEach( dimension -> outputGrid
+                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+
+            boolean hasValues = false;
+            for ( List<String> idList : ids )
+            {
+                Collections.sort( idList );
+
+                String key = StringUtils.join( idList, DIMENSION_SEP );
+                Object value = valueMap.get( key );
+                hasValues = hasValues || value != null;
+
+                outputGrid.addValue( value );
+            }
+
+            if ( !hasValues )
+            {
+                outputGrid.removeCurrentWriteRow();
+            }
+        }
+
+        return outputGrid;
+    }
+
+    /**
+     * Put elements into the map "table". The elements are fetched from the query parameters.
+     *
+     * @param params the event query parameters.
+     * @param table the map to add elements to
+     * @param dimension the requested dimension
+     */
+    private void getEventDataObjects( Grid grid, EventQueryParams params,
+        Map<String, List<EventReportDimensionalItem>> table,
+        String dimension )
+        throws Exception
+    {
+        List<EventReportDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
+
+        if ( objects.size() == 0 )
+        {
+            ValueType valueType;
+            OptionSet optionSet;
+            LegendSet legendSet;
+            String parentUid;
+            String displayName;
+
+            DataElement dataElement = dataElementService.getDataElement( dimension );
+
+            if ( dataElement != null )
+            {
+                valueType = dataElement.getValueType();
+                optionSet = dataElement.getOptionSet();
+                legendSet = dataElement.getLegendSet();
+                parentUid = dataElement.getUid();
+                displayName = dataElement.getDisplayName();
+            }
+            else
+            {
+                TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService
+                    .getTrackedEntityAttribute( dimension );
+                valueType = trackedEntityAttribute.getValueType();
+                optionSet = trackedEntityAttribute.getOptionSet();
+                legendSet = trackedEntityAttribute.getLegendSet();
+                parentUid = trackedEntityAttribute.getUid();
+                displayName = trackedEntityAttribute.getDisplayName();
+            }
+
+            if ( valueType == null )
+            {
+                throw new Exception( "Supplied data dimension is invalid" );
+            }
+
+            if ( valueType == ValueType.BOOLEAN )
+            {
+                List<EventReportDimensionalItem> options = new ArrayList<>();
+
+                for ( Option booleanOption : booleanOptions )
+                {
+                    options.add( new EventReportDimensionalItem( booleanOption, parentUid ) );
+                }
+                objects = options;
+            }
+            else if ( optionSet != null )
+            {
+                for ( Option option : optionSet.getOptions() )
+                {
+                    objects.add( new EventReportDimensionalItem( option, parentUid ) );
+                }
+            }
+            else if ( legendSet != null )
+            {
+                List<String> legendOptions = (List<String>) ((HashMap<String, Object>) grid.getMetaData()
+                    .get( DIMENSIONS.getKey() )).get( dimension );
+
+                if ( legendOptions.size() == 0 )
+                {
+                    List<Legend> legends = legendSet.getSortedLegends();
+
+                    for ( Legend legend : legends )
+                    {
+                        for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
+                        {
+                            objects.add(
+                                new EventReportDimensionalItem( new Option( i + "", i + "" ), parentUid ) );
+                        }
+                    }
+                }
+                else
+                {
+                    for ( String legend : legendOptions )
+                    {
+                        MetadataItem metadataItem = (MetadataItem) ((HashMap<String, Object>) grid.getMetaData()
+                            .get( ITEMS.getKey() )).get( legend );
+
+                        objects.add( new EventReportDimensionalItem( new Option( metadataItem.getName(), legend ),
+                            parentUid ) );
+                    }
+                }
+            }
+
+            table.put( displayName, objects );
+        }
+        else
+        {
+            table.put( dimension, objects );
+        }
+    }
+
+    /**
+     * Get all combinations from map. Fill the result into list.
+     * @param map the map with all values
+     * @param list the resulting list
+     */
+    public static void combinations( Map<String, List<EventReportDimensionalItem>> map,
+        List<Map<String, EventReportDimensionalItem>> list )
+    {
+        recurse( map, new LinkedList<>( map.keySet() ).listIterator(), new TreeMap<>(), list );
+    }
+
+    /**
+     * A recursive method which finds all permutations of the elements in map.
+     *
+     * @param map the map with all values
+     * @param iter iterator with keys
+     * @param cur the current map
+     * @param list the resulting list
+     */
+    private static void recurse( Map<String, List<EventReportDimensionalItem>> map, ListIterator<String> iter,
+        TreeMap<String, EventReportDimensionalItem> cur, List<Map<String, EventReportDimensionalItem>> list )
+    {
+        if ( !iter.hasNext() )
+        {
+            Map<String, EventReportDimensionalItem> entry = new HashMap<>();
+
+            for ( String key : cur.keySet() )
+            {
+                entry.put( key, cur.get( key ) );
+            }
+
+            list.add( entry );
+        }
+        else
+        {
+            String key = iter.next();
+            List<EventReportDimensionalItem> set = map.get( key );
+
+            for ( EventReportDimensionalItem value : set )
+            {
+                cur.put( key, value );
+                recurse( map, iter, cur, list );
+                cur.remove( key );
+            }
+
+            iter.previous();
+        }
+    }
+
+    /**
+     *  Get all permutations for event report dimensions.
+     *
+     * @param dataOptionMap the map to generate permutations from
+     * @return a list of a map with a permutations
+     */
+    private List<Map<String, EventReportDimensionalItem>> generateEventDataPermutations(
+        Map<String, List<EventReportDimensionalItem>> dataOptionMap )
+    {
+        List<Map<String, EventReportDimensionalItem>> list = new LinkedList<>();
+        combinations( dataOptionMap, list );
+
+        return list;
+    }
+
+    /**
+     * Get event data mapping for values.
+     * @param grid the grid to collect data from
+     * @return map with key and values
+     */
+    private Map<String, Object> getAggregatedEventDataMapping( Grid grid )
+    {
+        Map<String, Object> map = new HashMap<>();
+
+        int metaCols = grid.getWidth() - 1;
+        int valueIndex = grid.getWidth() - 1;
+
+        for ( List<Object> row : grid.getRows() )
+        {
+            List<String> ids = new ArrayList<>();
+
+            for ( int index = 0; index < metaCols; index++ )
+            {
+                Object id = row.get( index );
+
+                if ( id != null )
+                {
+                    ids.add( (String) row.get( index ) );
+                }
+            }
+
+            Collections.sort( ids );
+
+            String key = StringUtils.join( ids, DIMENSION_SEP );
+            Object value = row.get( valueIndex );
+
+            map.put( key, value );
+        }
+
+        return map;
+    }
 
     @Override
     public Grid getAggregatedEventData( EventQueryParams params )
@@ -286,7 +718,7 @@ public class DefaultEventAnalyticsService
         {
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             
-            grid.getMetaData().put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
+            grid.getMetaData().put( PAGER.getKey(), pager );
         }
 
         return grid;
@@ -377,15 +809,14 @@ public class DefaultEventAnalyticsService
             Map<String, Object> metaData = new HashMap<>();
             
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
-            
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
-                metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
-                    Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
+                metaData.put( ITEMS.getKey(), uidNameMap.entrySet().stream().collect(
+                    Collectors.toMap( Map.Entry::getKey, e -> new MetadataItem( e.getValue() ) ) ) );
             }
             else
             {
-                metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+                metaData.put( NAMES.getKey(), uidNameMap );
             }
             
             Map<String, Object> dimensionItems = new HashMap<>();
@@ -404,7 +835,7 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasOptionSet() )
                 {
-                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
                 }
                 else if ( item.hasLegendSet() )
                 {
@@ -420,7 +851,7 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasOptionSet() )
                 {
-                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
                 }
                 else if ( item.hasLegendSet() )
                 {
@@ -434,7 +865,7 @@ public class DefaultEventAnalyticsService
 
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
-                metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
+                metaData.put( DIMENSIONS.getKey(), dimensionItems );
             }
             else
             {
@@ -449,12 +880,12 @@ public class DefaultEventAnalyticsService
             
             if ( params.isHierarchyMeta() )
             {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
             }
 
             if ( params.isShowHierarchy() )
             {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+                metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
             grid.setMetaData( metaData );
