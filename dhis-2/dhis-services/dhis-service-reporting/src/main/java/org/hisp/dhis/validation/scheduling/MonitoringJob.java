@@ -42,6 +42,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,7 +99,6 @@ public class MonitoringJob
         
         try
         {
-
             List<Period> periods = new ArrayList<>();
             List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
             Collection<ValidationRule> validationRules;
@@ -119,12 +119,12 @@ public class MonitoringJob
                     .reduce( Sets.newHashSet(), SetUtils::union );
             }
 
-            // TODO fix with new model
-            /*if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
+            if ( jobParams.getRelativeStart() != 0 && jobParams.getRelativeEnd() != 0 )
             {
-                periods = new RelativePeriods()
-                    .setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
-                    .getRelativePeriods();
+                Date startDate = DateUtils.getDateAfterAddition( new Date(), jobParams.getRelativeStart() );
+                Date endDate = DateUtils.getDateAfterAddition( new Date(), jobParams.getRelativeEnd() );
+
+                periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
                 periods = ListUtils.union( periods, periodService.getIntersectionPeriods( periods ) );
             }
@@ -135,13 +135,7 @@ public class MonitoringJob
                     .distinct()
                     .map( ( vr ) -> Arrays.asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
                     .reduce( Lists.newArrayList(), ListUtils::union );
-            }*/
-
-            periods = validationRules.stream()
-                .map( ValidationRule::getPeriodType )
-                .distinct()
-                .map( ( vr ) -> Arrays.asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
-                .reduce( Lists.newArrayList(), ListUtils::union );
+            }
 
             ValidationAnalysisParams parameters = validationService
                 .newParamsBuilder( validationRules, organisationUnits, periods )
