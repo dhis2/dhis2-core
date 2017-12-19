@@ -4,6 +4,7 @@ import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -36,8 +37,9 @@ public class PredictorJob
         }
 
         List<String> predictors = predictorJobParameters.getPredictors();
-        Date startDate = predictorJobParameters.getStartDate();
-        Date endDate = predictorJobParameters.getEndDate();
+
+        Date startDate = DateUtils.getDateAfterAddition( new Date(), predictorJobParameters.getRelativeStart() );
+        Date endDate = DateUtils.getDateAfterAddition( new Date(), predictorJobParameters.getRelativeEnd() );
 
         predictionService.predictPredictors( predictors, startDate, endDate );
     }

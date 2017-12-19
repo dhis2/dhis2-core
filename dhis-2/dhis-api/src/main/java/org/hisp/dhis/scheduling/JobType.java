@@ -51,16 +51,16 @@ public enum JobType
 
     private final String key;
 
-    private final Class<?> clazz; //TODO use JobParameters type?
+    private final Class<? extends JobParameters> jobParameters;
 
     private final boolean configurable;
 
     ImmutableMap<String, String> relativeApiElements;
 
-    JobType( String key, boolean configurable, Class<?> clazz, ImmutableMap<String, String> relativeApiElements )
+    JobType( String key, boolean configurable, Class<? extends JobParameters> jobParameters, ImmutableMap<String, String> relativeApiElements )
     {
         this.key = key;
-        this.clazz = clazz;
+        this.jobParameters = jobParameters;
         this.configurable = configurable;
         this.relativeApiElements = relativeApiElements;
     }
@@ -70,10 +70,9 @@ public enum JobType
         return key;
     }
 
-    @SuppressWarnings("unchecked")
-    public Class<JobParameters> getClazz()
+    public Class<? extends JobParameters> getJobParameters()
     {
-        return (Class<JobParameters>) clazz;
+        return jobParameters;
     }
 
     public boolean isConfigurable()

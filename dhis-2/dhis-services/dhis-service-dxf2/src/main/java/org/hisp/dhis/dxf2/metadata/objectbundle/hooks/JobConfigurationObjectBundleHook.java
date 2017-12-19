@@ -149,9 +149,8 @@ public class JobConfigurationObjectBundleHook
             return new ArrayList<>();
         }
 
-        List<ErrorReport> errorReports = new ArrayList<>();
         JobConfiguration jobConfiguration = (JobConfiguration) object;
-        errorReports.addAll( validateInternal( jobConfiguration ) );
+        List<ErrorReport> errorReports = new ArrayList<>( validateInternal( jobConfiguration ) );
 
         if ( errorReports.size() == 0 )
         {
