@@ -77,6 +77,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
@@ -164,6 +165,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private AclService aclService;
 
     // Set methods for test purposes
 
@@ -726,6 +730,13 @@ public class DefaultDataValueSetService
         // ---------------------------------------------------------------------
         // Validation
         // ---------------------------------------------------------------------
+
+        if ( !aclService.canDataWrite( currentUserService.getCurrentUser(), dataSet ) )
+        {
+            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have permission to write data to " +
+                "this DataSet " + dataSet.getUid()) );
+            summary.setStatus( ImportStatus.ERROR );
+        }
 
         if ( dataSet == null && trimToNull( dataValueSet.getDataSet() ) != null )
         {

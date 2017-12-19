@@ -38,7 +38,13 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -62,13 +68,19 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserAccessService;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
@@ -113,6 +125,15 @@ public class DataValueSetServiceTest
     @Autowired
     private AttributeService attributeService;
 
+    @Autowired
+    private UserService _userService;
+
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private UserAccessService userAccessService;
+
     private Attribute attribute;
 
     private DataElementCategoryOptionCombo ocDef;
@@ -151,6 +172,7 @@ public class DataValueSetServiceTest
     @Override
     public void setUpTest()
     {
+        userService = _userService;
         mockDataValueBatchHandler = new MockBatchHandler<>();
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
@@ -260,15 +282,29 @@ public class DataValueSetServiceTest
         dsA.addOrganisationUnit( ouA );
         dsA.addOrganisationUnit( ouC );
 
-        dataSetService.addDataSet( dsA );
         periodService.addPeriod( peA );
         periodService.addPeriod( peB );
         periodService.addPeriod( peC );
 
+        dataSetService.addDataSet( dsA );
+
         user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+
+        userService.addUser( user );
+
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         setDependency( dataValueSetService, "currentUserService", currentUserService );
+
+        injectSecurityContext( user );
+
+        UserAccess userAccess = new UserAccess();
+        userAccess.setUser( user );
+        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+
+        dsA.getUserAccesses().add( userAccess );
+
+        dataSetService.updateDataSet( dsA );
     }
 
     // -------------------------------------------------------------------------
@@ -984,6 +1020,31 @@ public class DataValueSetServiceTest
         assertEquals( 2, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deB, okBefore, ouA, ocDef, ocDef ) ) );
         assertTrue( dataValues.contains( new DataValue( deC, okAfter, ouA, ocDef, ocDef ) ) );
+    }
+
+    @Test
+    public void testImportValueWithDataSharingFail() throws IOException
+    {
+        dsA.getUserAccesses().forEach( ua -> userAccessService.deleteUserAccess( ua ) );
+
+        dsA.getUserAccesses().clear();
+
+        UserAccess userAccess = new UserAccess();
+        userAccess.setUser( user );
+        userAccess.setAccess( AccessStringHelper.DATA_READ );
+
+        dsA.getUserAccesses().add( userAccess );
+
+        dataSetService.updateDataSet( dsA );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        System.out.println( "summary = " + summary.getConflicts().toString() );
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.ERROR, summary.getStatus() );
     }
     
     // -------------------------------------------------------------------------

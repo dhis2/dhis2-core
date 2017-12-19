@@ -34,6 +34,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
@@ -42,6 +44,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.version.VersionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.geom.Point2D;
@@ -49,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -70,40 +74,23 @@ public class DefaultOrganisationUnitService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private OrganisationUnitStore organisationUnitStore;
 
-    public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
-    {
-        this.organisationUnitStore = organisationUnitStore;
-    }
-
+    @Autowired
     private OrganisationUnitLevelStore organisationUnitLevelStore;
 
-    public void setOrganisationUnitLevelStore( OrganisationUnitLevelStore organisationUnitLevelStore )
-    {
-        this.organisationUnitLevelStore = organisationUnitLevelStore;
-    }
-
+    @Autowired
     private CurrentUserService currentUserService;
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
+    @Autowired
     private VersionService versionService;
 
-    public void setVersionService( VersionService versionService )
-    {
-        this.versionService = versionService;
-    }
-
+    @Autowired
     private ConfigurationService configurationService;
 
-    public void setConfigurationService( ConfigurationService configurationService )
-    {
-        this.configurationService = configurationService;
-    }
+    @Autowired
+    private DataSetStore dataSetStore;
 
     // -------------------------------------------------------------------------
     // OrganisationUnit
@@ -381,6 +368,8 @@ public class DefaultOrganisationUnitService
 
             set.getOrganisationUnitAssociationSetMap().put( entry.getKey(), index );
             set.getDistinctDataSets().addAll( entry.getValue() );
+
+
         }
 
         return set;
@@ -397,7 +386,9 @@ public class DefaultOrganisationUnitService
 
         if ( currentUser != null && !currentUser.getUserCredentials().isSuper() )
         {
-            Set<String> userDataSets = Sets.newHashSet( getUids( currentUser.getUserCredentials().getAllDataSets() ) );
+            List<DataSet> accessibleDataSets = dataSetStore.getDataAll();
+
+            HashSet<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
 
             for ( Set<String> dataSets : associationMap.values() )
             {
