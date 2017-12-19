@@ -37,6 +37,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupStore;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -103,6 +105,9 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     @Autowired
     protected CurrentUserService currentUserService;
+
+    @Autowired
+    protected DataSetService dataSetService;
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -179,6 +184,9 @@ public class DataApprovalServiceCategoryOptionGroupTest
     private PeriodType periodType;
     
     private Period periodA;
+
+    private DataSet dataSetA;
+    private DataSet dataSetB;
 
     // -------------------------------------------------------------------------
     // Set up/tear down helper methods
@@ -395,6 +403,15 @@ public class DataApprovalServiceCategoryOptionGroupTest
         categoryService.addDataElementCategoryOptionCombo( chinaB2Combo );
         categoryService.addDataElementCategoryOptionCombo( indiaA1Combo );
 
+        mechanismCategoryCombo.getOptionCombos().add( brazilA1Combo );
+        mechanismCategoryCombo.getOptionCombos().add( chinaA1_1Combo );
+        mechanismCategoryCombo.getOptionCombos().add( chinaA1_2Combo );
+        mechanismCategoryCombo.getOptionCombos().add( chinaA2Combo );
+        mechanismCategoryCombo.getOptionCombos().add( chinaB2Combo );
+        mechanismCategoryCombo.getOptionCombos().add( indiaA1Combo );
+
+        categoryService.updateDataElementCategoryCombo( mechanismCategoryCombo );
+
         agencyA = createCategoryOptionGroup( 'A', brazilA1, chinaA1_1, chinaA1_2, chinaA2, indiaA1 );
         agencyB = createCategoryOptionGroup( 'B', chinaB2 );
         partner1 = createCategoryOptionGroup( '1', brazilA1, chinaA1_1, chinaA1_2, indiaA1 );
@@ -455,7 +472,6 @@ public class DataApprovalServiceCategoryOptionGroupTest
         dataApprovalLevelService.addDataApprovalLevel( partnerLevel4, 4 );
 
         periodType = PeriodType.getPeriodTypeByName( "Monthly" );
-        
         periodA = createPeriod( "201801" );
         periodService.addPeriod( periodA );
 
@@ -464,6 +480,15 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         dataApprovalService.addWorkflow( workflowAll );
         dataApprovalService.addWorkflow( workflowAgency );
+
+        dataSetA = createDataSet( 'A', periodType, mechanismCategoryCombo );
+        dataSetB = createDataSet( 'B', periodType, mechanismCategoryCombo );
+
+        dataSetA.setWorkflow( workflowAll );
+        dataSetB.setWorkflow( workflowAgency );
+
+        dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
 
         systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, 0 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true );
@@ -550,7 +575,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     {
         setUser( mockUserService );
 
-        List<DataApprovalLevel> levels = dataApprovalLevelService.getUserDataApprovalLevels();
+        List<DataApprovalLevel> levels = dataApprovalLevelService.getUserDataApprovalLevels( mockUserService.getCurrentUser() );
 
         String names = "";
 

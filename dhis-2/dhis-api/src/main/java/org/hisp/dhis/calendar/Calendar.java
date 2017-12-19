@@ -404,7 +404,7 @@ public interface Calendar
     /**
      * Get start of year as month/day, important especially for Nepali calendar
      *
-     * @return
+     * @return the start of year.
      */
     DateTimeUnit isoStartOfYear( int year );
 

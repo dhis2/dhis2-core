@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -52,6 +53,10 @@ import java.util.Map;
 public class ObjectBundleParams
 {
     private User user;
+
+    private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
+
+    private User overrideUser;
 
     private ObjectBundleMode objectBundleMode = ObjectBundleMode.COMMIT;
 
@@ -90,6 +95,28 @@ public class ObjectBundleParams
     public ObjectBundleParams setUser( User user )
     {
         this.user = user;
+        return this;
+    }
+
+    public UserOverrideMode getUserOverrideMode()
+    {
+        return userOverrideMode;
+    }
+
+    public ObjectBundleParams setUserOverrideMode( UserOverrideMode userOverrideMode )
+    {
+        this.userOverrideMode = userOverrideMode;
+        return this;
+    }
+
+    public User getOverrideUser()
+    {
+        return overrideUser;
+    }
+
+    public ObjectBundleParams setOverrideUser( User overrideUser )
+    {
+        this.overrideUser = overrideUser;
         return this;
     }
 

@@ -37,6 +37,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -72,7 +73,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +119,7 @@ public class EnrollmentController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Date programStartDate,
         @RequestParam( required = false ) Date programEndDate,
-        @RequestParam( required = false ) String trackedEntity,
+        @RequestParam( required = false ) String trackedEntityType,
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String enrollment,
         @RequestParam( required = false ) Integer page,
@@ -133,31 +133,38 @@ public class EnrollmentController
 
         if ( fields.isEmpty() )
         {
-            fields.add( "enrollment,created,lastUpdated,trackedEntity,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
+            fields.add( "enrollment,created,lastUpdated,trackedEntityType,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
         }
 
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
 
-        List<Enrollment> enrollments;
-
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        List listEnrollments;
 
         if ( enrollment == null )
         {
             ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntity, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
+                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
 
-            enrollments = new ArrayList<>( enrollmentService.getEnrollments(
-                programInstanceService.getProgramInstances( params ) ) );
+            Enrollments enrollments =  enrollmentService.getEnrollments( params )  ;
+
+            if ( enrollments.getPager() != null )
+            {
+                rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+            }
+
+            listEnrollments = enrollments.getEnrollments();
         }
         else
         {
             Set<String> enrollmentIds = TextUtils.splitToArray( enrollment, TextUtils.SEMICOLON );
-            enrollments = enrollmentIds != null ? enrollmentIds.stream().map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() ) : null;
+            listEnrollments = enrollmentIds != null ? enrollmentIds.stream().map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() ) : null;
         }
 
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( Enrollment.class, new FieldFilterParams( enrollments, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( Enrollment.class, new FieldFilterParams( listEnrollments, fields ) ) );
 
         return rootNode;
     }

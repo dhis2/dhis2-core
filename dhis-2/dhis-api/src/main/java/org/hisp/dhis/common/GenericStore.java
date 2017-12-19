@@ -139,12 +139,16 @@ public interface GenericStore<T>
      */
     List<T> getAll();
 
+    List<T> getDataAll();
+
     /**
      * Retrieves a paged List of all objects.
      *
      * @return a List of all objects.
      */
     List<T> getAll( int first, int max );
+
+    List<T> getDataAll( int first, int max );
 
     List<T> getAllByAttributes( List<Attribute> attributes );
 

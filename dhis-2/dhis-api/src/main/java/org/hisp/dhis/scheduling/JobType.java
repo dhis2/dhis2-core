@@ -51,7 +51,7 @@ public enum JobType
 
     private final String key;
 
-    private final Class<?> clazz;
+    private final Class<?> clazz; //TODO use JobParameters type?
 
     private final boolean configurable;
 
@@ -70,6 +70,7 @@ public enum JobType
         return key;
     }
 
+    @SuppressWarnings("unchecked")
     public Class<JobParameters> getClazz()
     {
         return (Class<JobParameters>) clazz;

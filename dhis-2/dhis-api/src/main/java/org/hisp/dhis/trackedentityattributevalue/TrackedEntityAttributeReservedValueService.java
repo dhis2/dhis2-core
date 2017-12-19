@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -43,32 +44,33 @@ public interface TrackedEntityAttributeReservedValueService
      * Marks a {@link TrackedEntityAttributeReservedValue} as utilized(used/taken)
      * (Can now be sanitized from the TrackedEntityAttributeReservedValue table)
      * 
-     * @param TrackedEntityInstance that used the value
-     * @param TrackedEntityAttribute that was utilized
+     * @param attribute that was utilized
+     * @param trackedEntityInstance that used the value
      * @param value that was utilized
      * @return the {@link TrackedEntityAttributeReservedValue} that was used, 
-     * null if no reserved value was fount
+     *          null if no reserved value was fount
      */
     TrackedEntityAttributeReservedValue markTrackedEntityAttributeReservedValueAsUtilized(
         TrackedEntityAttribute attribute, TrackedEntityInstance trackedEntityInstance, String value );
         
     /**
      * Gets a list of {@link TrackedEntityAttributeReservedValue} matching the parameters.
+     * 
      * @param attribute {@link TrackedEntityAttribute} to get reserved values for.
      * @param valuesToCreate the number of reserved values to create and return
      * @return a list of {@link TrackedEntityAttributeReservedValue}
      * @throws Exception 
      */
+    @Transactional
     List<TrackedEntityAttributeReservedValue> createTrackedEntityReservedValues( 
         TrackedEntityAttribute attribute, int valuesToCreate );
     
     /**
      * Gets a generated non-taken value for the tracked entity attribute matching the parameters.
-     * The value is not reserved, but was not taken at the time whe it was generated.
-     * @param attribute {@link TrackedEntityAttribute} to get reserved values for
-     * @return String value
-     * @throws TimeoutException 
-     * @throws Exception 
+     * The value is not reserved, but was not taken at the time it was generated.
+     * 
+     * @param attribute the {@link TrackedEntityAttribute} to get reserved values for
+     * @return the value.
      */
     String getGeneratedValue( TrackedEntityAttribute attribute ) 
         throws TimeoutException;

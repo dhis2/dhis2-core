@@ -62,4 +62,28 @@ public class JacksonUtils
             throw new UncheckedIOException( ex );
         }
     }
+    
+    public static <T> T fromJson( String string, Class<T> clazz )
+    {
+        try
+        {
+            return jsonMapper.readValue( string, clazz );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
+    
+    public static <T> String toJson( T object )
+    {
+        try
+        {
+            return jsonMapper.writeValueAsString( object );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
 }

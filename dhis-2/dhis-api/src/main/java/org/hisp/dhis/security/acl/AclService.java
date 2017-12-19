@@ -39,6 +39,14 @@ import java.util.List;
  */
 public interface AclService
 {
+    String LIKE_READ_METADATA = "r%"; // TODO use r_______ ?
+
+    String LIKE_WRITE_METADATA = "_w%"; // TODO use r_______ ?
+
+    String LIKE_READ_DATA = "__r_____";
+
+    String LIKE_WRITE_DATA = "___w____";
+
     /**
      * Is type supported for acl?
      *
@@ -54,6 +62,14 @@ public interface AclService
      * @return true if type is supported
      */
     boolean isSupported( Class<?> klass );
+
+    /**
+     * Is class supported for data acl?
+     *
+     * @param klass Class to check
+     * @return true if type is supported
+     */
+    boolean isDataShareable( Class<?> klass );
 
     /**
      * Is type supported for sharing?
@@ -87,6 +103,15 @@ public interface AclService
     boolean canRead( User user, IdentifiableObject object );
 
     /**
+     * Can user read data this object.
+     *
+     * @param user   User to check against
+     * @param object Object to check
+     * @return Result of test
+     */
+    boolean canDataRead( User user, IdentifiableObject object );
+
+    /**
      * Can user write to this object (create)
      * <p/>
      * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority?
@@ -100,6 +125,15 @@ public interface AclService
      * @return Result of test
      */
     boolean canWrite( User user, IdentifiableObject object );
+
+    /**
+     * Can user write data to this object (create)
+     *
+     * @param user   User to check against
+     * @param object Object to check
+     * @return Result of test
+     */
+    boolean canDataWrite( User user, IdentifiableObject object );
 
     /**
      * Can user update this object
@@ -230,6 +264,8 @@ public interface AclService
      * @param user   User to base ACL on
      */
     <T extends IdentifiableObject> void resetSharing( T object, User user );
+
+    <T extends IdentifiableObject> void clearSharing( T object, User user );
 
     /**
      * Verify that sharing props are correctly set according to user.

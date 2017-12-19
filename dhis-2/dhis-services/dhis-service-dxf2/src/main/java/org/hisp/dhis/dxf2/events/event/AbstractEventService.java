@@ -426,14 +426,18 @@ public abstract class AbstractEventService
             String cacheKey = program.getUid() + "-" + ProgramStatus.ACTIVE;
             List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
 
-            if ( programInstances == null || programInstances.isEmpty() )
-            {
+            if ( programInstances.isEmpty() )
+            {            	
                 // Create PI if it doesn't exist (should only be one)
+            	
+            	String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy() : user.getUsername();            	            	
+            	
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
                 pi.setIncidentDate( new Date() );
                 pi.setProgram( program );
                 pi.setStatus( ProgramStatus.ACTIVE );
+                pi.setStoredBy( storedBy );
 
                 programInstanceService.addProgramInstance( pi );
 
@@ -1357,7 +1361,7 @@ public abstract class AbstractEventService
             if ( programStageInstance == null )
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance, organisationUnit,
-                    dueDate, executionDate, event.getStatus().getValue(), event.getCoordinate(), completedBy,
+                    dueDate, executionDate, event.getStatus().getValue(), event.getCoordinate(), completedBy, storedBy,
                     event.getEvent(), aoc, importOptions );
             }
             else
@@ -1474,7 +1478,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo aoc,
+        String completedBy, String storeBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1488,6 +1492,8 @@ public abstract class AbstractEventService
             programStageInstance.setUid( CodeGenerator.generateUid() );
             programStageInstance.setCode( programStageInstanceIdentifier );
         }
+
+        programStageInstance.setStoredBy( storeBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate, status,
             coordinate, completedBy, programStageInstance, aoc, importOptions );
@@ -1651,8 +1657,7 @@ public abstract class AbstractEventService
     private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
     {
         return activeProgramInstanceCache.get( key, () -> {
-            List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
-            return programInstances.isEmpty() ? null : programInstances;
+            return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
         } );
     }
 

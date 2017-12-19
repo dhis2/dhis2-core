@@ -37,6 +37,11 @@ import com.google.common.base.MoreObjects;
  */
 public class AnalyticsAggregationType
 {
+    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
+    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
+    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
+    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
+    
     /**
      * General aggregation type.
      */
@@ -89,27 +94,20 @@ public class AnalyticsAggregationType
         {
             return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE );
         }
+        else if ( AggregationType.LAST == aggregationType )
+        {
+            return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST );
+        }
+        else if ( AggregationType.LAST_AVERAGE_ORG_UNIT == aggregationType )
+        {
+            return new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
+        }
         else
         {
             return new AnalyticsAggregationType( aggregationType, aggregationType );
         }
     }
     
-    public static AnalyticsAggregationType sum()
-    {
-        return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
-    }
-    
-    public static AnalyticsAggregationType average()
-    {
-        return new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
-    }
-
-    public static AnalyticsAggregationType count()
-    {
-        return new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
-    }
-
     public boolean isAggregationType( AggregationType type )
     {
         return this.aggregationType == type;
@@ -118,6 +116,11 @@ public class AnalyticsAggregationType
     public boolean isPeriodAggregationType( AggregationType type )
     {
         return this.periodAggregationType == type;
+    }
+    
+    public boolean isLastPeriodAggregationType()
+    {
+        return AggregationType.LAST == periodAggregationType;
     }
     
     public boolean isNumericDataType()

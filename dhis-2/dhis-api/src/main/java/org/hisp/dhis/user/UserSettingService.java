@@ -71,7 +71,7 @@ public interface UserSettingService
      *
      * @param key the user setting key.
      * @param value the setting value.
-     * @param username the username of user.
+     * @param user the user.
      */
     void saveUserSetting( UserSettingKey key, Serializable value, User user );
 
@@ -93,7 +93,7 @@ public interface UserSettingService
      * Deletes the user setting with the given name for the given user.
      *
      * @param key the user setting key.
-     * @user the user.
+     * @param user the user.
      */
     void deleteUserSetting( UserSettingKey key, User user );
 

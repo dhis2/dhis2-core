@@ -70,6 +70,7 @@ public interface DataQueryService
      *        together with the name.
      * @param includeNumDen whether to include the numerator and denominator of
      *        values in the response.
+     * @param includeMetadataDetails whether to include metadata details in the response.
      * @param displayProperty the property to display for meta-data.
      * @param outputIdScheme the identifier scheme to use in the query response.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
@@ -81,12 +82,11 @@ public interface DataQueryService
      * @param allowAllPeriods whether to allow all period items, meaning specifying the
      *        period dimension with no period items.
      * @param apiVersion the API version used for the request.
-     * @param format the i18n format.
      * @return a data query parameter object created based on the given URL info.
      */
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
         String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
-        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty,
+        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty,
         IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion );
 
     /**

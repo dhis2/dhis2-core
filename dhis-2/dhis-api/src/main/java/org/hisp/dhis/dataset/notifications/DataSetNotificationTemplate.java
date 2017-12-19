@@ -28,7 +28,6 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -38,10 +37,8 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.notification.NotificationRecipient;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.notification.SendStrategy;
-import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -63,7 +60,7 @@ public class DataSetNotificationTemplate
 
     private Integer relativeScheduledDays = 0;
 
-    private NotificationTrigger notificationTrigger;
+    private DataSetNotificationTrigger dataSetNotificationTrigger;
 
     private DataSetNotificationRecipient notificationRecipient;
 
@@ -80,14 +77,14 @@ public class DataSetNotificationTemplate
     }
 
     public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels, String messageTemplate,
-        DataSetNotificationRecipient notificationRecipient, NotificationTrigger notificationTrigger, String subjectTemplate,
+        DataSetNotificationRecipient notificationRecipient, DataSetNotificationTrigger dataSetNotificationTrigger, String subjectTemplate,
             UserGroup userGroup, Integer relativeScheduledDays, SendStrategy sendStrategy )
     {
         this.dataSets = dataSets;
         this.deliveryChannels = deliveryChannels;
         this.messageTemplate = messageTemplate;
         this.notificationRecipient = notificationRecipient;
-        this.notificationTrigger = notificationTrigger;
+        this.dataSetNotificationTrigger = dataSetNotificationTrigger;
         this.subjectTemplate = subjectTemplate;
         this.recipientUserGroup = userGroup;
         this.relativeScheduledDays = relativeScheduledDays;
@@ -152,7 +149,7 @@ public class DataSetNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationRecipient getNotificationRecipient()
+    public DataSetNotificationRecipient getNotificationRecipient()
     {
         return notificationRecipient;
     }
@@ -164,14 +161,14 @@ public class DataSetNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationTrigger getNotificationTrigger()
+    public DataSetNotificationTrigger getDataSetNotificationTrigger()
     {
-        return notificationTrigger;
+        return dataSetNotificationTrigger;
     }
 
-    public void setNotificationTrigger( NotificationTrigger notificationTrigger )
+    public void setDataSetNotificationTrigger( DataSetNotificationTrigger dataSetNotificationTrigger )
     {
-        this.notificationTrigger = notificationTrigger;
+        this.dataSetNotificationTrigger = dataSetNotificationTrigger;
     }
 
     @JsonProperty

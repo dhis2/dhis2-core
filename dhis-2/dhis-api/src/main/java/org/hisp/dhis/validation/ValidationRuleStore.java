@@ -34,7 +34,6 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
- * @version ValidationRuleStore.java 2010-05-18 17:05:50Z
  */
 public interface ValidationRuleStore
     extends GenericIdentifiableObjectStore<ValidationRule>
@@ -43,14 +42,15 @@ public interface ValidationRuleStore
 
     /**
      * Returns all ValidationRules that should be used for form validation.
-     * @return
+     * 
+     * @return a List of ValidationRules.
      */
     List<ValidationRule> getAllFormValidationRules();
 
     /**
      * Returns all ValidationRules which have associated ValidationNotificationTemplates.
      *
-     * @return a List of ValidationRule.
+     * @return a List of ValidationRules.
      */
     List<ValidationRule> getValidationRulesWithNotificationTemplates();
 }

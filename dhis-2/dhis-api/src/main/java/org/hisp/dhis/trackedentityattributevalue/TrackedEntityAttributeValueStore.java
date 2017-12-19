@@ -38,7 +38,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface TrackedEntityAttributeValueStore
     extends GenericStore<TrackedEntityAttributeValue>
@@ -48,8 +47,7 @@ public interface TrackedEntityAttributeValueStore
     /**
      * Adds a {@link TrackedEntityAttribute}
      * 
-     * @param attribute The to TrackedEntityAttribute add.
-     * 
+     * @param attributeValue The to TrackedEntityAttribute add.
      */
     void saveVoid( TrackedEntityAttributeValue attributeValue );
 
@@ -57,7 +55,6 @@ public interface TrackedEntityAttributeValueStore
      * Deletes all {@link TrackedEntityAttributeValue} of a instance
      * 
      * @param instance {@link TrackedEntityInstance}
-     * 
      * @return The error code. If the code is 0, deleting success
      */
     int deleteByTrackedEntityInstance( TrackedEntityInstance instance );
@@ -66,8 +63,8 @@ public interface TrackedEntityAttributeValueStore
      * Retrieve a {@link TrackedEntityAttributeValue} on a
      * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
      * 
-     * @param attribute {@link TrackedEntityAttribute}
-     * 
+     * @param instance the {@link TrackedEntityInstance}
+     * @param attribute the {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue
      */
     TrackedEntityAttributeValue get( TrackedEntityInstance instance, TrackedEntityAttribute attribute );
@@ -77,7 +74,6 @@ public interface TrackedEntityAttributeValueStore
      * {@link TrackedEntityInstance}
      * 
      * @param instance TrackedEntityInstance
-     * 
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> get( TrackedEntityInstance instance );
@@ -86,8 +82,7 @@ public interface TrackedEntityAttributeValueStore
      * Retrieve {@link TrackedEntityAttributeValue} of a
      * {@link TrackedEntityInstance}
      * 
-     * @param instance TrackedEntityInstance
-     * 
+     * @param attribute the {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute );
@@ -96,7 +91,6 @@ public interface TrackedEntityAttributeValueStore
      * Retrieve {@link TrackedEntityAttributeValue} of a instance list
      * 
      * @param instances TrackedEntityInstance list
-     * 
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> get( Collection<TrackedEntityInstance> instances );
@@ -107,13 +101,13 @@ public interface TrackedEntityAttributeValueStore
      * 
      * @param attribute TrackedEntityAttribute
      * @param searchText A string for searching by attribute values
-     * 
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText );
 
     /**
-     * Gets a list of {@link TrackedEntityAttributeValue} that matches the params
+     * Gets a list of {@link TrackedEntityAttributeValue} that matches the parameters
+     * 
      * @param attribute {@link TrackedEntityAttribute} to get value for
      * @param value literal value to find within the specified {@link TrackedEntityAttribute}
      * @return list of {@link TrackedEntityAttributeValue}
@@ -122,11 +116,10 @@ public interface TrackedEntityAttributeValueStore
     
         
     /**
-     * Retrieve attribute values of an instance by a program
+     * Retrieve attribute values of an instance by a program.
      * 
-     * @param instance TrackedEntityInstance
-     * @param value An attribute value for searching
-     * 
+     * @param instance the TrackedEntityInstance
+     * @param program the Program.
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> get( TrackedEntityInstance instance, Program program );

@@ -41,7 +41,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -96,11 +96,11 @@ public class DefaultDataApprovalLevelService
         this.currentUserService = currentUserService;
     }
 
-    private SecurityService securityService;
+    private AclService aclService;
 
-    public void setSecurityService( SecurityService securityService )
+    public void setAclService( AclService aclService )
     {
-        this.securityService = securityService;
+        this.aclService = aclService;
     }
 
     // -------------------------------------------------------------------------
@@ -149,7 +149,7 @@ public class DefaultDataApprovalLevelService
 
         int levelAboveOrgUnitLevel = 0;
 
-        List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels();
+        List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels( currentUserService.getCurrentUser() );
         
         for ( DataApprovalLevel level : userApprovalLevels )
         {
@@ -245,15 +245,15 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    public List<DataApprovalLevel> getUserDataApprovalLevels()
+    public List<DataApprovalLevel> getUserDataApprovalLevels( User user )
     {
-        return subsetUserDataApprovalLevels( getAllDataApprovalLevels() );
+        return subsetUserDataApprovalLevels( getAllDataApprovalLevels(), user );
     }
 
     @Override
-    public List<DataApprovalLevel> getUserDataApprovalLevels( DataApprovalWorkflow workflow )
+    public List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow )
     {
-        return subsetUserDataApprovalLevels( workflow.getSortedLevels() );
+        return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user );
     }
 
     @Override
@@ -680,7 +680,7 @@ public class DefaultDataApprovalLevelService
         for ( DataApprovalLevel level : approvalLevels )
         {
             if ( level.getOrgUnitLevel() >= userOrgUnitLevel &&
-                securityService.canRead( level ) &&
+                aclService.canRead( user, level ) &&
                 canReadCOGS( user, level.getCategoryOptionGroupSet() ) )
             {
                 userLevel = level;
@@ -721,11 +721,12 @@ public class DefaultDataApprovalLevelService
      * Returns the subset of approval levels that the user is allowed to access.
      *
      * @param approvalLevels the approval levels to test.
+     * @param user the user to test access for.
      * @return the subset of approval levels to which the user has access.
      */
-    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels )
+    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user )
     {
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
+        UserCredentials userCredentials = user.getUserCredentials();
 
         int lowestNumberOrgUnitLevel = getCurrentUsersLowestNumberOrgUnitLevel();
 
@@ -742,9 +743,9 @@ public class DefaultDataApprovalLevelService
             {
                 CategoryOptionGroupSet cogs = approvalLevel.getCategoryOptionGroupSet();
 
-                addLevel = securityService.canRead( approvalLevel ) &&
+                addLevel = aclService.canRead( user, approvalLevel ) &&
                     cogs == null ? canSeeAllDimensions :
-                    ( securityService.canRead( cogs ) && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ) );
+                    ( aclService.canRead( user, cogs ) && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ) );
             }
 
             if ( addLevel )

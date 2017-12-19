@@ -33,43 +33,26 @@ import java.util.Comparator;
 import org.hisp.dhis.period.Period;
 
 /**
- * Sorts periods descending based on the start date, then the end date.
+ * Sorts periods descending based on the end date, then the start date, i.e. the latest period
+ * comes first. The start date and end date properties cannot be null.
  * 
  * @author Lars Helge Overland
  */
-public class PeriodComparator
+public class DescendingPeriodComparator
     implements Comparator<Period>
 {
-    public static final PeriodComparator INSTANCE = new PeriodComparator();
+    public static final DescendingPeriodComparator INSTANCE = new DescendingPeriodComparator();
     
     @Override
     public int compare( Period period1, Period period2 )
     {
-        if ( period1.getStartDate() == null )
-        {
-            return -1;
-        }
+        int endDateCompared = period2.getEndDate().compareTo( period1.getEndDate() );
         
-        if ( period2.getStartDate() == null )
+        if ( endDateCompared != 0 )
         {
-            return 1;
+            return endDateCompared;
         }
-        
-        if ( period1.getStartDate().compareTo( period2.getStartDate() ) != 0 )
-        {
-            return period1.getStartDate().compareTo( period2.getStartDate() ) * -1;
-        }
-        
-        if ( period1.getEndDate() == null )
-        {
-            return -1;
-        }
-        
-        if ( period2.getEndDate() == null )
-        {
-            return 1;
-        }
-        
-        return period1.getEndDate().compareTo( period2.getEndDate() ) * -1;
+
+        return period2.getStartDate().compareTo( period1.getEndDate() );
     }
 }

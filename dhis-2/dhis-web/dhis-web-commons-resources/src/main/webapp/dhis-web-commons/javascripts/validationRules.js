@@ -425,7 +425,7 @@ var validationRules = {
             "rangelength" : [ 2, 160 ]
         }
     },
-    "trackedEntity" : {
+    "trackedEntityType" : {
         "name" : {
             "required" : true,
             "rangelength" : [ 2,160 ]

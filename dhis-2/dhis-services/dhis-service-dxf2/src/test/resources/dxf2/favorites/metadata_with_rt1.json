@@ -41,7 +41,7 @@
       "code": "Gender"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "description": "Person",
       "lastUpdated": "2016-03-16T17:00:00.000+0000",
@@ -474,7 +474,7 @@
       "columnDimensions": [
         "dx"
       ],
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "publicAccess": "rw------",
       "dataDimensionItems": [
         {
@@ -578,7 +578,7 @@
       ],
       "userGroupAccesses": [ ],
       "showHierarchy": false,
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "publicAccess": "rw------",
       "showDimensionLabels": true,
       "dataDimensionItems": [
@@ -718,7 +718,7 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "columnDimensions": [
         "dx"
       ],

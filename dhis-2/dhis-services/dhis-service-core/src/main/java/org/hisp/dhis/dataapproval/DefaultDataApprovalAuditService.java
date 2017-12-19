@@ -102,7 +102,8 @@ public class DefaultDataApprovalAuditService
     {
         if ( !currentUserService.currentUserIsSuper() )
         {
-            Set<DataApprovalLevel> userLevels = new HashSet<>( dataApprovalLevelService.getUserDataApprovalLevels() );
+            Set<DataApprovalLevel> userLevels = new HashSet<>(
+                dataApprovalLevelService.getUserDataApprovalLevels( currentUserService.getCurrentUser() ) );
 
             if ( params.hasLevels() )
             {

@@ -58,7 +58,7 @@ public class Enrollment
 
     private String lastUpdatedAtClient;
 
-    private String trackedEntity;
+    private String trackedEntityType;
 
     private String trackedEntityInstance;
 
@@ -89,6 +89,8 @@ public class Enrollment
     private Coordinate coordinate;
 
     private Boolean deleted;
+    
+    private String storedBy;
 
     public Enrollment()
     {
@@ -156,14 +158,14 @@ public class Enrollment
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntity()
+    public String getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( String trackedEntity )
+    public void setTrackedEntityType( String trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty( required = true )
@@ -347,5 +349,17 @@ public class Enrollment
     public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 }

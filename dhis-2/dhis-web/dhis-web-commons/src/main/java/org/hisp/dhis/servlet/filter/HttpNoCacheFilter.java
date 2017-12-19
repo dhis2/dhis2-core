@@ -29,7 +29,6 @@ package org.hisp.dhis.servlet.filter;
  */
 
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpMethod;
 
 import javax.servlet.FilterChain;
@@ -54,7 +53,7 @@ public class HttpNoCacheFilter
     {
         if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {
-            ContextUtils.setCacheControl( response, CacheControl.noStore().cachePrivate() );
+            ContextUtils.setNoStore( response );
         }
 
         chain.doFilter( request, response );

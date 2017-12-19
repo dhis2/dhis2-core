@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,55 +28,50 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Iterator;
+import java.util.List;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import javax.transaction.Transactional;
+
+import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author markusbekken
+ * @author Lars Helge Overland
  */
-public class ProgramRuleActionDeletionHandler
-    extends DeletionHandler 
+@Transactional
+public class DefaultAnalyticsTableHookService
+    implements AnalyticsTableHookService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    @Autowired
+    private AnalyticsTableHookStore analyticsTableHookStore;
 
-    private ProgramRuleActionService programRuleActionService;
-
-    public void setProgramRuleActionService( ProgramRuleActionService programRuleActionService )
-    {
-        this.programRuleActionService = programRuleActionService;
-    }
-    
-    private ProgramRuleService programRuleService;
-
-    public void setProgramRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
-    }
-    
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-    
     @Override
-    protected String getClassName()
+    public AnalyticsTableHook getByUid( String uid )
     {
-        return ProgramRuleAction.class.getSimpleName();
+        return analyticsTableHookStore.getByUid( uid );
     }
     
     @Override
-    public void deleteProgramRule( ProgramRule programRule )
+    public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {
-        Iterator<ProgramRuleAction> actionIterator = programRuleActionService.getProgramRuleAction( programRule ).iterator();
-        
-        programRule.setProgramRuleActions( null );
-        programRuleService.updateProgramRule( programRule );
-        
-        while ( actionIterator.hasNext() )
-        {   
-            programRuleActionService.deleteProgramRuleAction( actionIterator.next() );
-        }
+        return analyticsTableHookStore.getByPhase( phase );
+    }
+
+    @Override
+    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
+    {
+        return analyticsTableHookStore.getByPhaseAndResourceTableType( phase, resourceTableType );
+    }
+
+    @Override
+    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
+    {
+        return analyticsTableHookStore.getByPhaseAndAnalyticsTableType( phase, analyticsTableType );
+    }
+
+    @Override
+    public void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks )
+    {
+        analyticsTableHookStore.executeAnalyticsTableSqlHooks( hooks );        
     }
 }

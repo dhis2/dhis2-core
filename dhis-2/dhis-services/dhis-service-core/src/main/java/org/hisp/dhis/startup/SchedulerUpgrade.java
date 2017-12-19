@@ -76,12 +76,12 @@ public class SchedulerUpgrade
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    boolean addDefaultJob( String name, List<JobConfiguration> jobConfigurations )
+    private boolean addDefaultJob( String name, List<JobConfiguration> jobConfigurations )
     {
         return jobConfigurations.stream().noneMatch( jobConfiguration -> jobConfiguration.getName().equals( name ) );
     }
 
-    void addAndScheduleJob( JobConfiguration jobConfiguration )
+    private void addAndScheduleJob( JobConfiguration jobConfiguration )
     {
         jobConfigurationService.addJobConfiguration( jobConfiguration );
         schedulingManager.scheduleJob( jobConfiguration );

@@ -698,6 +698,11 @@
         <artifactId>ant-compress</artifactId>
         <version>1.4</version>
       </dependency>
+      <dependency>
+        <groupId>javax.interceptor</groupId>
+        <artifactId>javax.interceptor-api</artifactId>
+        <version>1.2.1</version>
+      </dependency>
 
       <!-- Apache Commons -->
       <dependency>

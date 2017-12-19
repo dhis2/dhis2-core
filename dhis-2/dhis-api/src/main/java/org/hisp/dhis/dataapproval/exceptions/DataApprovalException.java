@@ -38,4 +38,9 @@ public abstract class DataApprovalException
     {
         super();
     }
+
+    public DataApprovalException( String message )
+    {
+        super( message );
+    }
 }

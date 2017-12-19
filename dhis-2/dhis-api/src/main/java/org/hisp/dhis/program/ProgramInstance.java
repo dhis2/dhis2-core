@@ -88,6 +88,8 @@ public class ProgramInstance
     private Double latitude;
 
     private Boolean deleted = false;
+    
+    private String storedBy;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -480,5 +482,17 @@ public class ProgramInstance
     public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
+    }
+    
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 }

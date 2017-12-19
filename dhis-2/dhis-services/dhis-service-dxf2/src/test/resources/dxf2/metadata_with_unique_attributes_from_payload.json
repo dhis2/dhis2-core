@@ -189,7 +189,7 @@
       "teiSearchOrganisationUnits": [ ]
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "created": "2016-04-06T17:00:00.000+0000",
       "code": "Person",

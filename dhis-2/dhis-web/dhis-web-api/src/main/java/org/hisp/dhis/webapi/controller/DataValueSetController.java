@@ -115,6 +115,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_XML );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
@@ -137,6 +138,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException, AdxException
     {
         response.setContentType( CONTENT_TYPE_XML_ADX );
+        setNoStore( response );
 
         DataExportParams params = adxDataService.getFromUrl( dataSet, period,
             startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, limit, idSchemes );
@@ -162,6 +164,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_JSON );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
@@ -189,6 +192,7 @@ public class DataValueSetController
         HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_CSV );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,

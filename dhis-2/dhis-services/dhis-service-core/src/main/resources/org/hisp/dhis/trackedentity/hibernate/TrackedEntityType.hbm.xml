@@ -6,11 +6,11 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentity">
+  <class name="org.hisp.dhis.trackedentity.TrackedEntityType" table="trackedentitytype">
 
     <cache usage="read-write" />
 
-    <id name="id" column="trackedentityid">
+    <id name="id" column="trackedentitytypeid">
       <generator class="native" />
     </id>
     &identifiableProperties;
@@ -18,18 +18,28 @@
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
     <property name="description" type="text" />
+    
+    <property name="minAttributesRequiredToSearch" />
+    
+    <property name="maxTeiCountToReturn" />
+    
+    <list name="trackedEntityTypeAttributes" cascade="all-delete-orphan">
+      <key column="trackedentitytypeid" />
+      <list-index column="sort_order" base="1" />
+      <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute" />
+    </list>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="trackedentityattributevalues" cascade="all-delete-orphan">
+    <set name="attributeValues" table="trackedentitytypeattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="trackedentityid" />
+      <key column="trackedentitytypeid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
     <!-- Object Translation -->
     <set name="translations" table="trackedentitytranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />
-      <key column="trackedentityid" foreign-key="fk_objecttranslation_trackedentityid" />
+      <key column="trackedentitytypeid" foreign-key="fk_objecttranslation_trackedentitytypeid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 

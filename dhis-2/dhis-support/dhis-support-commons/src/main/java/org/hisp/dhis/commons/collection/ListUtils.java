@@ -28,17 +28,9 @@ package org.hisp.dhis.commons.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 /**
  * Utility methods for list operations.
@@ -201,15 +193,7 @@ public class ListUtils
     {
         if ( list != null && !list.isEmpty() )
         {
-            Iterator<String> iterator = list.iterator();
-            
-            while ( iterator.hasNext() )
-            {
-                if ( StringUtils.isEmpty( iterator.next() ) )
-                {
-                    iterator.remove();
-                }
-            }
+            list.removeIf( StringUtils::isEmpty );
         }
     }
     

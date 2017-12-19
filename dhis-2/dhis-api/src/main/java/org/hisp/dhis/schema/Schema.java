@@ -126,6 +126,11 @@ public class Schema implements Ordered, Klass
     private Boolean shareable;
 
     /**
+     * Is data sharing supported for instances of this class.
+     */
+    private boolean dataShareable;
+
+    /**
      * Points to relative Web-API endpoint (if exposed).
      */
     private String relativeApiEndpoint;
@@ -320,6 +325,18 @@ public class Schema implements Ordered, Klass
     public void setShareable( boolean shareable )
     {
         this.shareable = shareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataShareable()
+    {
+        return dataShareable;
+    }
+
+    public void setDataShareable( boolean dataShareable )
+    {
+        this.dataShareable = dataShareable;
     }
 
     @JsonProperty

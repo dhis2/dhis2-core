@@ -64,7 +64,7 @@ public class TrackedEntityInstance
 
     private TrackedEntityInstance representative;
 
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     private Boolean inactive = false;
 
@@ -188,16 +188,16 @@ public class TrackedEntityInstance
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
+    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty

@@ -91,6 +91,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This controller uses both /dataApprovals and /dataAcceptances.
@@ -587,11 +588,23 @@ public class DataApprovalController
 
         List<DataApproval> dataApprovals = new ArrayList<>();
 
+        List<DataElementCategoryOptionCombo> optionCombos = categoryService.getAllDataElementCategoryOptionCombos();
+
+        Map<String, DataElementCategoryOptionCombo> comboMap = optionCombos.stream().collect( Collectors.toMap( DataElementCategoryOptionCombo::getUid, c -> c ) );
+
+        Map<String, OrganisationUnit> ouCache = new HashMap<>();
+
         for ( Approval approval : approvals.getApprovals() )
         {
-            OrganisationUnit unit = getAndValidateOrgUnit( approval.getOu() );
-            DataElementCategoryOptionCombo atributeOptionCombo = categoryService.getDataElementCategoryOptionCombo( approval.getAoc() );
+            DataElementCategoryOptionCombo atributeOptionCombo = comboMap.get( approval.getAoc() );
             atributeOptionCombo = ObjectUtils.firstNonNull( atributeOptionCombo, defaultOptionCombo );
+            OrganisationUnit unit = ouCache.get( approval.getOu() );
+
+            if ( unit == null )
+            {
+                unit = getAndValidateOrgUnit( approval.getOu() );
+                ouCache.put( approval.getOu(), unit );
+            }
 
             for ( DataApprovalWorkflow workflow : workflows )
             {

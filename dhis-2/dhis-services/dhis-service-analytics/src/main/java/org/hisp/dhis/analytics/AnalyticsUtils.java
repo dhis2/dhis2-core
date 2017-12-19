@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.*;
@@ -71,8 +72,8 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 public class AnalyticsUtils
 {
     private static final int DECIMALS_NO_ROUNDING = 10;
-
     private static final String KEY_AGG_VALUE = "[aggregated]";
+    private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)" );
     
     /**
      * Returns an SQL statement for retrieving raw data values for
@@ -219,12 +220,12 @@ public class AnalyticsUtils
     
     /**
      * Converts the data and option combo identifiers to an operand identifier,
-     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link DataElementOperand.TotalType#AOC_ONLY}
+     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link TotalType#AOC_ONLY}
      * a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be inserted after the data
      * item.
      * 
      * @param valueMap the value map to convert.
-     * @param propertyCount the number of properties to collapse into operand key.
+     * @param totalType the {@link TotalType}.
      * @return a value map.
      */
     public static <T> Map<String, T> convertDxToOperand( Map<String, T> valueMap, TotalType totalType )
@@ -515,6 +516,7 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
+
                     map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), period.getDisplayName() );
                 }
                 else
@@ -550,6 +552,8 @@ public class AnalyticsUtils
 
         Calendar calendar = PeriodType.getCalendar();
 
+        Boolean includeMetadataDetails = params.includeMetadataDetails;
+
         for ( DimensionalObject dimension : dimensions )
         {
             for ( DimensionalItemObject item : dimension.getItems() )
@@ -558,12 +562,12 @@ public class AnalyticsUtils
                 {
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
-                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName() ) );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
                 }
                 else
                 {
                     String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
-                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet ) );
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet, includeMetadataDetails ? item : null ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
@@ -572,7 +576,7 @@ public class AnalyticsUtils
                     
                     for ( OrganisationUnit ancestor : unit.getAncestors() )
                     {
-                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ) ) );
+                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? ancestor : null ) );
                     }
                 }
                 
@@ -582,12 +586,12 @@ public class AnalyticsUtils
                     
                     for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                     {
-                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ) ) );
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
                     }
                 }
             }
 
-            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ) ) );
+            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
         }
 
         return map;
@@ -598,7 +602,7 @@ public class AnalyticsUtils
      * for the given query.
      *
      * @param params the data query parameters.
-     * @returns a mapping between identifiers and names.
+     * @return a mapping between identifiers and names.
      */
     public static Map<String, String> getCocNameMap( DataQueryParams params )
     {
@@ -659,6 +663,7 @@ public class AnalyticsUtils
         map.putAll( getUidDisplayPropertyMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
         map.putAll( getUidDisplayPropertyMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
         map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
+        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getOptions() ) );
         
         return map;
     }
@@ -722,7 +727,7 @@ public class AnalyticsUtils
     /**
      * Returns true if the given period occurs less than maxYears before the current date.
      * 
-     * @param period periods to check
+     * @param year the year to check.
      * @param maxYears amount of years back to check
      * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
      */
@@ -736,5 +741,19 @@ public class AnalyticsUtils
         int currentYear = new DateTime().getYear();
         
         return ( currentYear - year ) >= maxYears;
+    }
+    
+    /**
+     * Returns the level from the given org unit level dimension name. Returns -1 if the level
+     * could not be determined.
+     * 
+     * @param dimensionName the given org unit level dimension name.
+     * @return the org unit level, or -1.
+     */
+    public static int getLevelFromOrgUnitDimensionName( String dimensionName )
+    {
+        Set<String> matches = RegexUtils.getMatches( OU_LEVEL_PATTERN, dimensionName, 1 );
+        
+        return matches.size() == 1 ? Integer.valueOf( matches.iterator().next() ) : -1;
     }
 }
