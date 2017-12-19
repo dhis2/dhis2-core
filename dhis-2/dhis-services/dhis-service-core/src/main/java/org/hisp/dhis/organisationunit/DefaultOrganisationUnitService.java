@@ -802,4 +802,9 @@ public class DefaultOrganisationUnitService
 
         return new ArrayList<>();
     }
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 }

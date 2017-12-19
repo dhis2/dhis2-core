@@ -104,13 +104,15 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
@@ -2105,6 +2107,15 @@ public abstract class DhisConvenienceTest
         de.setCode( "DCode" + name );
 
         return new ProgramDataElementDimensionItem( pr, de );
+    }
+
+    protected void enableDataSharing( User user, IdentifiableObject object )
+    {
+        UserAccess userAccess = new UserAccess();
+        userAccess.setUser( user );
+        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+
+        object.getUserAccesses().add( userAccess );
     }
 
 }

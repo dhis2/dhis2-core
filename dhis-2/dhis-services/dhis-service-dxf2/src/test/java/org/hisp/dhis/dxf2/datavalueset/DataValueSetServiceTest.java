@@ -298,12 +298,7 @@ public class DataValueSetServiceTest
 
         injectSecurityContext( user );
 
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
-
-        dsA.getUserAccesses().add( userAccess );
-
+        enableDataSharing( user, dsA );
         dataSetService.updateDataSet( dsA );
     }
 
@@ -1041,7 +1036,6 @@ public class DataValueSetServiceTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        System.out.println( "summary = " + summary.getConflicts().toString() );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );

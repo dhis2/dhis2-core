@@ -28,8 +28,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,15 +45,18 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import java.io.InputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -76,6 +78,9 @@ public class DataValueSetServiceIntegrationTest
     
     @Autowired
     private DataValueService dataValueService;
+
+    @Autowired
+    private UserService _userService;
 
     private DataElement deA;
     private DataElement deB;
@@ -100,6 +105,8 @@ public class DataValueSetServiceIntegrationTest
     @Override
     public void setUpTest()
     {
+        userService = _userService;
+
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
@@ -114,7 +121,7 @@ public class DataValueSetServiceIntegrationTest
         
         ptA = new MonthlyPeriodType();
         
-        dsA = createDataSet( 'A', ptA );        
+        dsA = createDataSet( 'D', ptA );
         dsA.setUid( "pBOMPrpg1QX" );        
         dataSetService.addDataSet( dsA );
         
@@ -138,10 +145,16 @@ public class DataValueSetServiceIntegrationTest
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
 
-        user = createUser( 'A' );
+        user = createUser( 'X' );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB, ouC ) );
+
+        userService.addUser( user );
+
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         setDependency( dataValueSetService, "currentUserService", currentUserService );
+
+        enableDataSharing( user, dsA );
+        dataSetService.updateDataSet( dsA );
     }
 
     @Override
@@ -164,6 +177,8 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 0, dataValueService.getAllDataValues().size() );
         
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
         
