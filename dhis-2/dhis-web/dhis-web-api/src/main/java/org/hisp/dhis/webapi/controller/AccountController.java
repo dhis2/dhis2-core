@@ -318,7 +318,7 @@ public class AccountController
         {
             if ( recapResponse == null )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha response must be specified" ) );
+                throw new WebMessageException( WebMessageUtils.badRequest( "Please verify that you are not a robot" ) );
             }
 
             // ---------------------------------------------------------------------
