@@ -28,16 +28,20 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.security.acl.AclService;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.period.Cal;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -51,10 +55,11 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,6 +88,8 @@ public class DefaultSecurityService
     private static final int RESTORE_CODE_LENGTH = 15;
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
     private static final int LOGIN_LOCKOUT_MINS = 15;
+
+    private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     private final LoadingCache<String, Integer> CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS = Caffeine.newBuilder()
         .expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
@@ -135,6 +142,9 @@ public class DefaultSecurityService
 
     @Autowired
     private AclService aclService;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     // -------------------------------------------------------------------------
     // SecurityService implementation
@@ -616,5 +626,28 @@ public class DefaultSecurityService
         }
 
         return false;
+    }
+
+    @Override
+    public Map<String, Object> verifyRecaptcha( String key, String remoteIp )
+        throws IOException
+    {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+
+        params.add( "secret", (String) systemSettingManager.getSystemSetting( SettingKey.RECAPTCHA_SECRET ) );
+        params.add( "response", key );
+        params.add( "remoteip", remoteIp );
+
+        String result = restTemplate.postForObject( RECAPTCHA_VERIFY_URL, params, String.class );
+
+        log.info( "Recaptcha result: " + result );
+
+        ObjectMapper mapper = new ObjectMapper();
+        TypeReference<HashMap<String, Object>> typeRef
+            = new TypeReference<HashMap<String, Object>>()
+        {
+        };
+
+        return mapper.readValue( result, typeRef );
     }
 }
