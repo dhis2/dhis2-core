@@ -32,9 +32,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.codehaus.jackson.type.TypeReference;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -85,5 +88,17 @@ public class JacksonUtils
         {
             throw new UncheckedIOException( ex );
         }
+    }
+
+    public static Map<String, Object> fromJsonToMap( String object )
+        throws IOException
+    {
+        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
+        TypeReference<HashMap<String, Object>> typeRef
+            = new TypeReference<HashMap<String, Object>>()
+        {
+        };
+
+        return mapper.readValue( object, typeRef );
     }
 }

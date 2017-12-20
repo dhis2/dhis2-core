@@ -283,7 +283,7 @@ public interface SecurityService
     boolean hasAnyAuthority( String... authorities );
 
     /**
-     * Verify recaptcha key against google API
+     * Verify recaptcha V2 key against google API
      *
      * @param key the key to check
      * @return result map from google API call
