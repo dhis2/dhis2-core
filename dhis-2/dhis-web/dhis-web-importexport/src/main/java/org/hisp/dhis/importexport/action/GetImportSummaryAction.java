@@ -30,7 +30,7 @@ package org.hisp.dhis.importexport.action;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
@@ -52,11 +52,11 @@ public class GetImportSummaryAction
     // Input
     // -------------------------------------------------------------------------
     
-    private JobType category;
+    private JobType jobType;
     
-    public void setCategory( JobType category )
+    public void setJobType( JobType jobType )
     {
-        this.category = category;
+        this.jobType = jobType;
     }
 
     // -------------------------------------------------------------------------
@@ -77,9 +77,9 @@ public class GetImportSummaryAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid() );
         
-        summary = (ImportSummary) notifier.getTaskSummary( taskId );
+        summary = (ImportSummary) notifier.getJobSummary( jobId );
         
         return SUCCESS;
     }

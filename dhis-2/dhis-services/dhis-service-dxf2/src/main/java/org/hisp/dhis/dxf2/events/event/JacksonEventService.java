@@ -44,7 +44,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.transaction.annotation.Transactional;
@@ -143,7 +143,7 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, JobId jobId, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseXmlEvents( input );
@@ -158,7 +158,7 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, JobId jobId, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
 
@@ -207,7 +207,7 @@ public class JacksonEventService extends AbstractEventService
         return events;
     }
 
-    private ImportSummaries addEvents( List<Event> events, JobId jobId, ImportOptions importOptions )
+    private ImportSummaries addEvents( List<Event> events, JobConfiguration jobId, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
 
@@ -261,7 +261,7 @@ public class JacksonEventService extends AbstractEventService
         if ( jobId != null )
         {
             notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
-                addTaskSummary( jobId, importSummaries );
+                addJobSummary( jobId, importSummaries );
         }
         else
         {

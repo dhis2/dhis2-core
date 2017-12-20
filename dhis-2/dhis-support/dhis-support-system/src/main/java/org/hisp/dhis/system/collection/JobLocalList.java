@@ -28,37 +28,31 @@ package org.hisp.dhis.system.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
-import org.hisp.dhis.scheduling.JobId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
  */
-public class TaskLocalMap<T, V>
+public class JobLocalList<T>
 {
-    private final Map<JobId, Map<T, V>> internalMap;
+    private final Map<JobConfiguration, List<T>> internalMap;
     
-    public TaskLocalMap()
+    public JobLocalList()
     {
         this.internalMap = new HashMap<>();
     }
-
-    public Map<T, V> get( JobId id )
+    
+    public List<T> get( JobConfiguration id )
     {
-        Map<T, V> map = internalMap.get( id );
-        
-        if ( map == null )
-        {
-            map = new HashMap<>();
-            internalMap.put( id, map );
-        }
-        
-        return map;
+        return internalMap.computeIfAbsent( id, k -> new ArrayList<>() );
     }
-
-    public boolean clear( JobId id )
+    
+    public boolean clear( JobConfiguration id )
     {
         return internalMap.remove( id ) != null;
     }

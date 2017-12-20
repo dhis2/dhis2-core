@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.dataset;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -97,7 +97,7 @@ public interface CompleteDataSetRegistrationExchangeService
      * @param jobId the task (optional).
      * @return a summary of the import process.
      */
-    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobId jobId );
+    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 
 
     /**
@@ -117,5 +117,5 @@ public interface CompleteDataSetRegistrationExchangeService
      * @param jobId the task (optional).
      * @return a summary of the import process.
      */
-    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobId jobId );
+    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 }

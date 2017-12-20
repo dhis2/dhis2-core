@@ -70,14 +70,14 @@ public class DataIntegrityController
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobType.DATA_INTEGRITY, currentUserService.getCurrentUser().getUid() );
-        notifier.clear( jobId );
-
         JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
             false, true );
+        jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
+        notifier.clear( jobConfiguration );
+
         schedulingManager.executeJob( jobConfiguration );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.DATA_INTEGRITY );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + jobConfiguration.getJobType() + "/" + jobConfiguration.getUid() );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 }

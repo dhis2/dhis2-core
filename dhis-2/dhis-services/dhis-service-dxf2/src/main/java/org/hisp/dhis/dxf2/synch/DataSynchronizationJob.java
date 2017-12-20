@@ -76,7 +76,7 @@ public class DataSynchronizationJob
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), "Data synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration, "Data synch failed: " + ex.getMessage() );
         }
         catch ( WebMessageParseException e )
         {
@@ -89,7 +89,7 @@ public class DataSynchronizationJob
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), "Event synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration, "Event synch failed: " + ex.getMessage() );
             
             messageService.sendSystemErrorNotification( "Event synch failed", ex );
         }
@@ -98,7 +98,7 @@ public class DataSynchronizationJob
             log.error("Error while executing event sync task. "+ e.getMessage(), e );
         }
 
-        notifier.notify( jobConfiguration.getJobId(), "Data/Event synch successful" );
+        notifier.notify( jobConfiguration, "Data/Event synch successful" );
     }
 
     @Override

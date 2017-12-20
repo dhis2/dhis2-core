@@ -91,7 +91,7 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -289,7 +289,7 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobId jobId )
+    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
         notifier.clear( jobId ).notify( jobId, "Importing events" );
 
@@ -299,7 +299,7 @@ public abstract class AbstractEventService
 
             if ( jobId != null )
             {
-                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addTaskSummary( jobId,
+                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId,
                     importSummaries );
             }
 

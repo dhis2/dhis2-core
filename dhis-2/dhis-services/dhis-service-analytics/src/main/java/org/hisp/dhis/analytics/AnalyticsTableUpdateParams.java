@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.util.Set;
 
@@ -63,7 +63,7 @@ public class AnalyticsTableUpdateParams
     /**
      * Job ID.
      */
-    private JobId jobId;
+    private JobConfiguration jobId;
     
     // -------------------------------------------------------------------------
     // Get methods
@@ -89,7 +89,7 @@ public class AnalyticsTableUpdateParams
         return skipTableTypes;
     }
 
-    public JobId getJobId()
+    public JobConfiguration getJobId()
     {
         return jobId;
     }
@@ -154,9 +154,9 @@ public class AnalyticsTableUpdateParams
             return this;
         }
         
-        public Builder withTaskId( JobId taskId )
+        public Builder withJobId( JobConfiguration jobId )
         {
-            this.params.jobId = taskId;
+            this.params.jobId = jobId;
             return this;
         }
         

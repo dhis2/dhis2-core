@@ -29,7 +29,7 @@ package org.hisp.dhis.system.notification;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +51,9 @@ public class NotifierTest
 
     private User user = createUser( 'A' );
     
-    private JobId id1 = new JobId( DATAVALUE_IMPORT, user.getUid() );
-    private JobId id2 = new JobId( ANALYTICSTABLE_UPDATE, user.getUid() );
-    private JobId id3 = new JobId( METADATA_IMPORT, user.getUid() );
+    private JobConfiguration id1 = new JobConfiguration( DATAVALUE_IMPORT, user.getUid() );
+    private JobConfiguration id2 = new JobConfiguration( ANALYTICSTABLE_UPDATE, user.getUid() );
+    private JobConfiguration id3 = new JobConfiguration( METADATA_IMPORT, user.getUid() );
     
     @Test
     public void testNotifiy()
@@ -108,8 +108,8 @@ public class NotifierTest
     @Test
     public void testTaskSummary()
     {
-        notifier.addTaskSummary( id1, new Object() );
+        notifier.addJobSummary( id1, new Object() );
         
-        assertNotNull( notifier.getTaskSummary( id1 ) );
+        assertNotNull( notifier.getJobSummary( id1 ) );
     }
 }

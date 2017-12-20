@@ -28,34 +28,34 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
-import org.hisp.dhis.scheduling.JobId;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public interface Notifier
 {
-    Notifier notify( JobId id, String message );
+    Notifier notify( JobConfiguration id, String message );
     
-    Notifier notify( JobId id, NotificationLevel level, String message );
+    Notifier notify( JobConfiguration id, NotificationLevel level, String message );
     
-    Notifier notify( JobId id, NotificationLevel level, String message, boolean completed );
+    Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    Notifier update( JobId id, String message );
+    Notifier update( JobConfiguration id, String message );
 
-    Notifier update( JobId id, NotificationLevel level, String message );
+    Notifier update( JobConfiguration id, NotificationLevel level, String message );
 
-    Notifier update( JobId id, NotificationLevel level, String message, boolean completed );
+    Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    List<Notification> getNotifications( JobId id, String lastUid );
+    List<Notification> getNotifications( JobConfiguration id, String lastUid );
     
-    Notifier clear( JobId id );
+    Notifier clear( JobConfiguration id );
     
-    Notifier addTaskSummary( JobId id, Object taskSummary );
+    Notifier addJobSummary( JobConfiguration id, Object taskSummary );
     
-    Notifier addTaskSummary( JobId id, NotificationLevel level, Object taskSummary );
+    Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary );
     
-    Object getTaskSummary( JobId id );
+    Object getJobSummary( JobConfiguration id );
 }

@@ -56,8 +56,16 @@ public class JobConfiguration
 
     private boolean enabled = true;
 
+    private String userUid;
+
     public JobConfiguration()
     {
+    }
+
+    public JobConfiguration( JobType jobType, String userUid )
+    {
+        this.jobType = jobType;
+        this.userUid = userUid;
     }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
@@ -140,6 +148,11 @@ public class JobConfiguration
         this.enabled = enabled;
     }
 
+    public void setUserUid( String userUid )
+    {
+        this.userUid = userUid;
+    }
+
     @JacksonXmlProperty
     @JsonProperty
     public String getCronExpression()
@@ -218,10 +231,11 @@ public class JobConfiguration
         return enabled;
     }
 
-    public JobId getJobId()
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getUserUid()
     {
-        String user = getLastUpdatedBy() != null ? getLastUpdatedBy().getUid() : "system";
-        return new JobId( jobType, user );
+        return userUid;
     }
 
     @Override

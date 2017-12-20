@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.scheduling.Scheduler;
@@ -47,13 +47,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -87,7 +84,7 @@ public class ResourceTableController
         @RequestParam( required = false ) Integer lastYears,
         HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobType.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( JobType.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
         
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
         
@@ -110,7 +107,7 @@ public class ResourceTableController
         
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .withLastYears( lastYears )
-            .withTaskId( jobId )
+            .withJobId( jobId )
             .withSkipTableTypes( skipTableTypes )
             .withSkipResourceTables( skipResourceTables )
             .build();
@@ -124,7 +121,7 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid() );
 
         scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
 

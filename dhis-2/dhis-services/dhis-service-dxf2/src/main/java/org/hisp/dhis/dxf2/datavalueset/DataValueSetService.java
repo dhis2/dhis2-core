@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -96,11 +96,11 @@ public interface DataValueSetService
 
     ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions );
 
-    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobId jobId );
+    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobId jobId );
+    ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobId id );
+    ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id );
 
-    ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobId id );
+    ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id );
 }

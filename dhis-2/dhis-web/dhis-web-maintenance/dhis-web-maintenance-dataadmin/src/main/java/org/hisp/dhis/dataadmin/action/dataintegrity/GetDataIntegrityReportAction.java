@@ -30,7 +30,7 @@ package org.hisp.dhis.dataadmin.action.dataintegrity;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataintegrity.DataIntegrityReport;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
@@ -73,9 +73,9 @@ public class GetDataIntegrityReportAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( category, currentUserService.getCurrentUser().getUid() );
 
-        dataIntegrityReport = (DataIntegrityReport) notifier.getTaskSummary( taskId );
+        dataIntegrityReport = (DataIntegrityReport) notifier.getJobSummary( jobId );
 
         return SUCCESS;
     }

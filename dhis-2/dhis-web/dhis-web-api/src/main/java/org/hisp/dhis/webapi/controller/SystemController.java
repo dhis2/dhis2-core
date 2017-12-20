@@ -45,7 +45,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
@@ -62,11 +62,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -189,7 +192,7 @@ public class SystemController
         {
             JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid() );
 
             notifications = notifier.getNotifications( jobId, lastId );
         }
@@ -206,9 +209,9 @@ public class SystemController
         {
             JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid() );
 
-            Object summary = notifier.getTaskSummary( jobId );
+            Object summary = notifier.getJobSummary( jobId );
 
             if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
             {

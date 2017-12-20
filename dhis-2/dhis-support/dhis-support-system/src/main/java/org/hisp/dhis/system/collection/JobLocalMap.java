@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.system.collection;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,89 +28,30 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Objects;
+import org.hisp.dhis.scheduling.JobConfiguration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
  */
-public class JobId
-    implements Serializable
+public class JobLocalMap<T, V>
 {
-    private static final long serialVersionUID = -1578879078661100062L;
-
-    private static final String SEPARATOR = "-";
-
-    private JobType category;
-
-    private String userUid;
-
-    protected JobId()
+    private final Map<JobConfiguration, Map<T, V>> internalMap;
+    
+    public JobLocalMap()
     {
+        this.internalMap = new HashMap<>();
     }
 
-    public JobId( JobType category, String userUid )
+    public Map<T, V> get( JobConfiguration id )
     {
-        this.category = category;
-        this.userUid = userUid;
+        return internalMap.computeIfAbsent( id, k -> new HashMap<>() );
     }
 
-    public String getId()
+    public boolean clear( JobConfiguration id )
     {
-        String id = category.toString();
-
-        id += !Objects.equals( userUid, "" ) ? SEPARATOR + userUid : "";
-        
-        /*if ( user != null && user.getUserCredentials() != null )
-        {
-            id += SEPARATOR + user.getUserCredentials().getUsername();
-        }*/
-
-        return id;
-    }
-
-    public JobType getCategory()
-    {
-        return category;
-    }
-
-    public String getUser()
-    {
-        return userUid;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return getId().hashCode();
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
-
-        if ( obj == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != obj.getClass() )
-        {
-            return false;
-        }
-
-        JobId other = (JobId) obj;
-
-        return getId().equals( other.getId() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + getId() + "]";
+        return internalMap.remove( id ) != null;
     }
 }

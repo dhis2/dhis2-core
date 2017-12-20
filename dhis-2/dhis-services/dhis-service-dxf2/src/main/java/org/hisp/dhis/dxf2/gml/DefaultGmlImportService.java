@@ -145,7 +145,7 @@ public class DefaultGmlImportService
         {
             Throwable throwable = preProcessed.throwable;
 
-            notifier.notify( importParams.getJobId(), NotificationLevel.ERROR, createNotifierErrorMessage( throwable ), false );
+            notifier.notify( importParams.getId(), NotificationLevel.ERROR, createNotifierErrorMessage( throwable ), false );
             log.error( "GML import failed: ", throwable );
         }
     }

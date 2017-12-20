@@ -30,10 +30,10 @@ package org.hisp.dhis.system.notification;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.collection.TaskLocalList;
-import org.hisp.dhis.system.collection.TaskLocalMap;
+import org.hisp.dhis.system.collection.JobLocalList;
+import org.hisp.dhis.system.collection.JobLocalMap;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -50,15 +50,15 @@ public class InMemoryNotifier
     
     private static final int MAX_SIZE = 75;
     
-    private TaskLocalList<Notification> notifications;
+    private JobLocalList<Notification> notifications;
     
-    private TaskLocalMap<JobType, Object> taskSummaries;
+    private JobLocalMap<JobType, Object> jobSummaries;
     
     @PostConstruct
     public void init()
     {
-        notifications = new TaskLocalList<>();
-        taskSummaries = new TaskLocalMap<>();
+        notifications = new JobLocalList<>();
+        jobSummaries = new JobLocalMap<>();
     }
 
     // -------------------------------------------------------------------------
@@ -66,23 +66,23 @@ public class InMemoryNotifier
     // -------------------------------------------------------------------------
 
     @Override
-    public Notifier notify( JobId id, String message )
+    public Notifier notify( JobConfiguration id, String message )
     {
         return notify( id, NotificationLevel.INFO, message, false );
     }
     
     @Override
-    public Notifier notify( JobId id, NotificationLevel level, String message )
+    public Notifier notify( JobConfiguration id, NotificationLevel level, String message )
     {
         return notify( id, level, message, false );
     }
 
     @Override
-    public Notifier notify( JobId id, NotificationLevel level, String message, boolean completed )
+    public Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed )
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
-            Notification notification = new Notification( level, id.getCategory(), new Date(), message, completed );
+            Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed );
 
             notifications.get( id ).add( 0, notification );
 
@@ -98,19 +98,19 @@ public class InMemoryNotifier
     }
 
     @Override
-    public Notifier update( JobId id, String message )
+    public Notifier update( JobConfiguration id, String message )
     {
         return update( id, NotificationLevel.INFO, message, false );
     }
 
     @Override
-    public Notifier update( JobId id, NotificationLevel level, String message )
+    public Notifier update( JobConfiguration id, NotificationLevel level, String message )
     {
         return update( id, level, message, false );
     }
 
     @Override
-    public Notifier update( JobId id, NotificationLevel level, String message, boolean completed )
+    public Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed )
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
@@ -126,7 +126,7 @@ public class InMemoryNotifier
     }
 
     @Override
-    public List<Notification> getNotifications( JobId id, String lastUid )
+    public List<Notification> getNotifications( JobConfiguration id, String lastUid )
     {
         List<Notification> list = new ArrayList<>();
         
@@ -147,40 +147,40 @@ public class InMemoryNotifier
     }
     
     @Override
-    public Notifier clear( JobId id )
+    public Notifier clear( JobConfiguration id )
     {
         if ( id != null )
         {
             notifications.clear( id );
-            taskSummaries.get( id ).remove( id.getCategory() );
+            jobSummaries.get( id ).remove( id.getJobType() );
         }
         
         return this;
     }
     
     @Override
-    public Notifier addTaskSummary( JobId id, Object taskSummary )
+    public Notifier addJobSummary( JobConfiguration id, Object jobSummary )
     {
-        return addTaskSummary( id, NotificationLevel.INFO, taskSummary );
+        return addJobSummary( id, NotificationLevel.INFO, jobSummary );
     }
     
     @Override
-    public Notifier addTaskSummary( JobId id, NotificationLevel level, Object taskSummary )
+    public Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary )
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
-            taskSummaries.get( id ).put( id.getCategory(), taskSummary );
+            jobSummaries.get( id ).put( id.getJobType(), jobSummary );
         }
         
         return this;
     }
 
     @Override
-    public Object getTaskSummary( JobId id )
+    public Object getJobSummary( JobConfiguration id )
     {
         if ( id != null )
         {
-            return taskSummaries.get( id ).get( id.getCategory() );
+            return jobSummaries.get( id ).get( id.getJobType() );
         }
         
         return null;
