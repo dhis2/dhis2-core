@@ -639,8 +639,6 @@ public class DefaultSecurityService
 
         String result = restTemplate.postForObject( RECAPTCHA_VERIFY_URL, params, String.class );
 
-        log.info( "Recaptcha result: " + result );
-
         return JacksonUtils.fromJsonToMap( result );
     }
 }
