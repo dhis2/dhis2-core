@@ -62,6 +62,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -206,6 +207,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected QueryService queryService;
+
+    @Autowired
+    protected TrackerAccessManager trackerAccessManager;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -427,11 +431,11 @@ public abstract class AbstractEventService
             List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
 
             if ( programInstances.isEmpty() )
-            {            	
+            {
                 // Create PI if it doesn't exist (should only be one)
-            	
-            	String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy() : user.getUsername();            	            	
-            	
+
+                String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy() : user.getUsername();
+
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
                 pi.setIncidentDate( new Date() );
@@ -685,31 +689,20 @@ public abstract class AbstractEventService
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
 
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
-
+        User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
-        if ( ou != null )
-        {
-            if ( !organisationUnitService.isInUserHierarchy( ou ) )
-            {
-                if ( !userCredentials.isSuper()
-                    && !userCredentials.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
-                {
-                    throw new IllegalQueryException( "User has no access to organisation unit: " + ou.getUid() );
-                }
-            }
+        List<String> errors = trackerAccessManager.canRead( user, programStageInstance );
 
-            event.setOrgUnit( ou.getUid() );
-            event.setOrgUnitName( ou.getName() );
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
         }
+
+        event.setOrgUnit( ou.getUid() );
+        event.setOrgUnitName( ou.getName() );
 
         Program program = programStageInstance.getProgramInstance().getProgram();
-
-        if ( !userCredentials.isSuper() && !userCredentials.getAllPrograms().contains( program ) )
-        {
-            throw new IllegalQueryException( "User has no access to program: " + program.getUid() );
-        }
 
         event.setProgram( program.getUid() );
         event.setEnrollment( programStageInstance.getProgramInstance().getUid() );

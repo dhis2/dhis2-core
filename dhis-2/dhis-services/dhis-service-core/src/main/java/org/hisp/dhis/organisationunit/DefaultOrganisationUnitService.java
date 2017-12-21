@@ -168,7 +168,7 @@ public class DefaultOrganisationUnitService
     @Override
     public OrganisationUnit getOrganisationUnit( int id )
     {
-        return  organisationUnitStore.get( id );
+        return organisationUnitStore.get( id );
     }
 
     @Override
@@ -438,8 +438,12 @@ public class DefaultOrganisationUnitService
     @Override
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
-        User user = currentUserService.getCurrentUser();
+        return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
 
+    @Override
+    public boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit )
+    {
         if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
         {
             return false;
