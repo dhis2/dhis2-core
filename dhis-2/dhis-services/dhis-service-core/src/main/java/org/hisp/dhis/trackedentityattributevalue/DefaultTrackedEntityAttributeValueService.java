@@ -31,6 +31,8 @@ package org.hisp.dhis.trackedentityattributevalue;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
@@ -62,6 +64,9 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Autowired
+    private FileResourceService fileResourceService;
+
+    @Autowired
     private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
     @Autowired
@@ -84,6 +89,7 @@ public class DefaultTrackedEntityAttributeValueService
             attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
         trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+        deleteFileValue( attributeValue );
         attributeValueStore.delete( attributeValue );
     }
 
@@ -139,6 +145,11 @@ public class DefaultTrackedEntityAttributeValueService
 
         attributeValue.setAutoFields();
 
+        if ( attributeValue.getAttribute().getValueType().isFile() && !addFileValue( attributeValue ) )
+        {
+            throw new IllegalQueryException( String.format( "FileResource with id '%s' not found", attributeValue.getValue() ) );
+        }
+
         if ( attributeValue.getValue() != null )
         {
             attributeValueStore.saveVoid( attributeValue );
@@ -151,6 +162,7 @@ public class DefaultTrackedEntityAttributeValueService
     {
         if ( attributeValue != null && StringUtils.isEmpty( attributeValue.getValue() ) )
         {
+            deleteFileValue( attributeValue );
             attributeValueStore.delete( attributeValue );
         }
         else
@@ -188,6 +200,8 @@ public class DefaultTrackedEntityAttributeValueService
     @Override
     public void copyTrackedEntityAttributeValues( TrackedEntityInstance source, TrackedEntityInstance destination )
     {
+        destination.getTrackedEntityAttributeValues().stream()
+            .forEach( value -> deleteFileValue( value ) );
         attributeValueStore.deleteByTrackedEntityInstance( destination );
 
         for ( TrackedEntityAttributeValue attributeValue : getTrackedEntityAttributeValues( source ) )
@@ -197,5 +211,32 @@ public class DefaultTrackedEntityAttributeValueService
 
             addTrackedEntityAttributeValue( value );
         }
+    }
+
+
+    private void deleteFileValue( TrackedEntityAttributeValue value )
+    {
+        if ( !value.getAttribute().getValueType().isFile() || fileResourceService.getFileResource( value.getValue() ) == null )
+        {
+            return;
+        }
+
+        FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
+        fileResource.setAssigned( false );
+        fileResourceService.updateFileResource( fileResource );
+    }
+
+    private boolean addFileValue( TrackedEntityAttributeValue value )
+    {
+        FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
+
+        if ( fileResource == null )
+        {
+            return false;
+        }
+
+        fileResource.setAssigned( true );
+        fileResourceService.updateFileResource( fileResource );
+        return true;
     }
 }

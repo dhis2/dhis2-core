@@ -45,6 +45,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
@@ -127,6 +129,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected TrackerAccessManager trackerAccessManager;
+
+    @Autowired
+    protected FileResourceService fileResourceService;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -785,6 +790,17 @@ public abstract class AbstractTrackedEntityInstanceService
     private List<ImportConflict> checkAttributes( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
+        List<String> fileValues = new ArrayList<>();
+
+        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
+            trackedEntityInstance.getTrackedEntityInstance() );
+
+        if ( entityInstance != null )
+        {
+            entityInstance.getTrackedEntityAttributeValues().stream()
+                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
+                .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
+        }
 
         for ( Attribute attribute : trackedEntityInstance.getAttributes() )
         {
@@ -804,6 +820,13 @@ public abstract class AbstractTrackedEntityInstanceService
             }
 
             importConflicts.addAll( validateAttributeType( attribute, importOptions ) );
+
+            if ( entityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
+            {
+                importConflicts.add( new ImportConflict( "Attribute.value",
+                    String.format( " File Resource with uid '%s' has already been assigned to a different object", attribute.getValue() ) ) );
+            }
+
         }
 
         return importConflicts;
@@ -878,6 +901,12 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return storedBy;
+    }
+
+    private boolean checkAssigned( Attribute attribute, List<String> oldFileValues )
+    {
+        FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
+        return fileResource != null && fileResource.isAssigned() && !oldFileValues.contains( attribute.getValue() );
     }
 }
 
