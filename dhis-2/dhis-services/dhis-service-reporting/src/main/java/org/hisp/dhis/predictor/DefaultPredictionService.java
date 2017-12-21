@@ -30,6 +30,7 @@ package org.hisp.dhis.predictor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -64,6 +65,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,11 +78,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 /**
  * @author Ken Haase
  * @author Jim Grace
  */
+@Transactional
 public class DefaultPredictionService
     implements PredictionService
 {
@@ -128,6 +132,11 @@ public class DefaultPredictionService
     {
         int totalCount = 0;
 
+        if ( CollectionUtils.isEmpty( predictors ) )
+        {
+            predictors = getUids( predictorService.getAllPredictors() );
+        }
+
         for ( String uid : predictors) {
             Predictor predictor = predictorService.getPredictor( uid );
 
@@ -170,10 +179,19 @@ public class DefaultPredictionService
 
         int predictionCount = 0;
 
+        Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
+        String currentUsername = "system-process";
+
+        if ( currentUser != null )
+        {
+            currentUserOrgUnits = currentUser.getOrganisationUnits();
+            currentUsername = currentUser.getUsername();
+        }
+
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
             List<OrganisationUnit> orgUnitsAtLevel = organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
-                Lists.newArrayList( orgUnitLevel ), currentUser.getOrganisationUnits() );
+                Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
 
             if ( orgUnitsAtLevel.size() == 0 )
             {
@@ -238,7 +256,7 @@ public class DefaultPredictionService
 
                                 writeDataValue( outputDataElement, period, orgUnit, outputOptionCombo,
                                     categoryService.getDataElementCategoryOptionCombo( aoc ),
-                                    valueString, currentUser.getUsername() );
+                                    valueString, currentUsername );
 
                                 predictionCount++;
                             }

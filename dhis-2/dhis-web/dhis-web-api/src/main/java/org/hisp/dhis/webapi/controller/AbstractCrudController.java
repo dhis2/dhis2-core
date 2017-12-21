@@ -421,6 +421,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
+
         List<T> entities = getEntity( pvUid, options );
 
         if ( entities.isEmpty() )

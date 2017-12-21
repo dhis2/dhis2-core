@@ -37,12 +37,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,17 +93,16 @@ public class MonitoringJob
     {
         notifier.clear( jobConfiguration.getJobId() ).notify( jobConfiguration.getJobId(), "Monitoring data" );
 
-        MonitoringJobParameters jobParams = (MonitoringJobParameters) jobConfiguration.getJobParameters();
+        MonitoringJobParameters monitoringJobParameters = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
         //TODO improve collection usage
         
         try
         {
-
             List<Period> periods = new ArrayList<>();
             List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
             Collection<ValidationRule> validationRules;
-            List<String> groupUIDs = jobParams.getValidationRuleGroups();
+            List<String> groupUIDs = monitoringJobParameters.getValidationRuleGroups();
 
             if ( groupUIDs.isEmpty() )
             {
@@ -120,11 +119,12 @@ public class MonitoringJob
                     .reduce( Sets.newHashSet(), SetUtils::union );
             }
 
-            if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
+            if ( monitoringJobParameters.getRelativeStart() != 0 && monitoringJobParameters.getRelativeEnd() != 0 )
             {
-                periods = new RelativePeriods()
-                    .setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
-                    .getRelativePeriods();
+                Date startDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeStart() );
+                Date endDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeEnd() );
+
+                periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
                 periods = ListUtils.union( periods, periodService.getIntersectionPeriods( periods ) );
             }
@@ -140,8 +140,8 @@ public class MonitoringJob
             ValidationAnalysisParams parameters = validationService
                 .newParamsBuilder( validationRules, organisationUnits, periods )
                 .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
-                .withSendNotifications( jobParams.isSendNotifications() )
-                .withPersistResults( jobParams.isPersistResults() )
+                .withSendNotifications( monitoringJobParameters.isSendNotifications() )
+                .withPersistResults( monitoringJobParameters.isPersistResults() )
                 .build();
 
             validationService.validationAnalysis( parameters );

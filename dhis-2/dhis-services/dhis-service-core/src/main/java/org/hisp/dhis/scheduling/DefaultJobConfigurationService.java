@@ -88,14 +88,14 @@ public class DefaultJobConfigurationService
 
         for ( JobType jobType : values() )
         {
-            Map<String, Property> jobParameters = Maps.newHashMap();
+            Map<String, Property> jobParameters = new LinkedHashMap<>( );
 
             if ( !jobType.isConfigurable() )
             {
                 continue;
             }
 
-            Class<?> clazz = jobType.getClazz();
+            Class<?> clazz = jobType.getJobParameters();
             if ( clazz == null )
             {
                 propertyMap.put( jobType.name(), null );

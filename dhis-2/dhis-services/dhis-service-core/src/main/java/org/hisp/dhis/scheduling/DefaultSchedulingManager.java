@@ -130,7 +130,7 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
         {
             scheduler.scheduleJob( jobConfiguration );
         }
@@ -139,7 +139,7 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( Date date, JobConfiguration jobConfiguration )
     {
-        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
         {
             scheduler.scheduleJob( date, jobConfiguration );
         }
@@ -154,7 +154,7 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
     {
-        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
         {
             scheduler.scheduleJobWithFixedDelay( jobConfiguration, delay, interval );
         }
@@ -163,7 +163,7 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval )
     {
-        if ( !scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
         {
             scheduler.scheduleJobAtFixedRate( jobConfiguration, interval );
         }
@@ -172,10 +172,13 @@ public class DefaultSchedulingManager
     @Override
     public void stopJob( JobConfiguration jobConfiguration )
     {
-        jobConfiguration.setLastExecutedStatus( JobStatus.STOPPED );
-        jobConfigurationService.updateJobConfiguration( jobConfiguration );
+        if ( scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        {
+            jobConfiguration.setLastExecutedStatus( JobStatus.STOPPED );
+            jobConfigurationService.updateJobConfiguration( jobConfiguration );
 
-        scheduler.stopJob( jobConfiguration.getUid() );
+            scheduler.stopJob( jobConfiguration.getUid() );
+        }
     }
 
     @Override

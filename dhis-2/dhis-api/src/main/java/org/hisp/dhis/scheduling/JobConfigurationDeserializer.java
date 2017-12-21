@@ -24,7 +24,6 @@ public class JobConfigurationDeserializer
     private final String JOB_PARAMETERS = "jobParameters";
     private final String CRON_EXPRESSION = "cronExpression";
 
-
     @Override
     public JobConfiguration deserialize( JsonParser jsonParser,
         DeserializationContext deserializationContext )
@@ -46,9 +45,9 @@ public class JobConfigurationDeserializer
         JobType jobType = JobType.valueOf( root.get( JOB_TYPE ).textValue() );
 
         JobParameters jobParameters = null;
-        if ( root.get( JOB_PARAMETERS ) != null && jobType.getClazz() != null )
+        if ( root.get( JOB_PARAMETERS ) != null && jobType.getJobParameters() != null )
         {
-            jobParameters = mapper.convertValue( root.get( JOB_PARAMETERS ), jobType.getClazz() );
+            jobParameters = mapper.convertValue( root.get( JOB_PARAMETERS ), jobType.getJobParameters() );
         }
 
         boolean enabled = !root.has( ENABLED ) || root.get( ENABLED ).asBoolean();
