@@ -9,7 +9,7 @@
     <version>2.29-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dhis-</artifactId>
+  <artifactId>dhis-web-apps</artifactId>
   <packaging>war</packaging>
   <name>DHIS Web Apps</name>
 

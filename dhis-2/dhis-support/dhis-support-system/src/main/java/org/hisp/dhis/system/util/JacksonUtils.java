@@ -77,15 +77,7 @@ public class JacksonUtils
             throw new UncheckedIOException( ex );
         }
     }
-    
-    public static <T, U> Map<T, U> fromJsonAsMap( String object )
-        throws IOException
-    {
-        TypeReference<HashMap<T, U>> typeRef = new TypeReference<HashMap<T, U>>() {};
         
-        return jsonMapper.readValue( object, typeRef );
-    }
-    
     public static <T> String toJson( T object )
     {
         try
