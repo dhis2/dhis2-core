@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -42,9 +43,14 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CredentialsInfo;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,12 +61,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -69,6 +72,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -82,16 +86,11 @@ public class AccountController
 {
     private static final Log log = LogFactory.getLog( AccountController.class );
 
-    private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/verify";
-    protected static final String PUB_KEY = "6LcM6tcSAAAAANwYsFp--0SYtcnze_WdYn8XwMMk";
-    private static final String KEY = "6LcM6tcSAAAAAFnHo1f3lLstk3rZv3EVinNROfRq";
-    private static final String TRUE = "true";
-    private static final String SPLIT = "\n";
     private static final int MAX_LENGTH = 80;
     private static final int MAX_PHONE_NO_LENGTH = 30;
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private static final String SUCCESS = "success";
+    private static final String ERROR_CODES = "error-codes";
 
     @Autowired
     private UserService userService;
@@ -206,10 +205,10 @@ public class AccountController
         @RequestParam( required = false ) String inviteUsername,
         @RequestParam( required = false ) String inviteToken,
         @RequestParam( required = false ) String inviteCode,
-        @RequestParam( value = "recaptcha_challenge_field", required = false ) String recapChallenge,
-        @RequestParam( value = "recaptcha_response_field", required = false ) String recapResponse,
+        @RequestParam( value = "g-recaptcha-response", required = false ) String recapResponse,
         HttpServletRequest request,
-        HttpServletResponse response ) throws WebMessageException
+        HttpServletResponse response )
+        throws WebMessageException, IOException
     {
         UserCredentials credentials = null;
 
@@ -258,7 +257,6 @@ public class AccountController
         email = StringUtils.trimToNull( email );
         phoneNumber = StringUtils.trimToNull( phoneNumber );
         employer = StringUtils.trimToNull( employer );
-        recapChallenge = StringUtils.trimToNull( recapChallenge );
         recapResponse = StringUtils.trimToNull( recapResponse );
 
         CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, email, true );
@@ -318,36 +316,27 @@ public class AccountController
 
         if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
         {
-            if ( recapChallenge == null )
-            {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha challenge must be specified" ) );
-            }
-
             if ( recapResponse == null )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha response must be specified" ) );
+                throw new WebMessageException( WebMessageUtils.badRequest( "Please verify that you are not a robot" ) );
             }
 
             // ---------------------------------------------------------------------
             // Check result from API, return 500 if not
             // ---------------------------------------------------------------------
 
-            String[] results = checkRecaptcha( KEY, request.getRemoteAddr(), recapChallenge, recapResponse );
-
-            if ( results == null || results.length == 0 )
-            {
-                throw new WebMessageException( WebMessageUtils.error( "Captcha could not be verified due to a server error" ) );
-            }
+            Map<String, Object> resultMap = securityService.verifyRecaptcha( recapResponse, request.getRemoteAddr() );
 
             // ---------------------------------------------------------------------
             // Check if verification was successful, return 400 if not
             // ---------------------------------------------------------------------
 
-            if ( !TRUE.equalsIgnoreCase( results[0] ) )
+            if ( !((boolean) resultMap.get( SUCCESS )) )
             {
-                log.info( "Recaptcha failed with code: " + (results.length > 0 ? results[1] : "") );
+                List<String> errorCodes = (List<String>) resultMap.get( ERROR_CODES );
+                log.info( "Recaptcha failed: " + errorCodes );
 
-                throw new WebMessageException( WebMessageUtils.badRequest( "The characters you entered did not match the word verification, try again" ) );
+                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha failed: " + String.valueOf( errorCodes ) ) );
             }
         }
 
@@ -532,22 +521,6 @@ public class AccountController
     // ---------------------------------------------------------------------
     // Supportive methods
     // ---------------------------------------------------------------------
-
-    private String[] checkRecaptcha( String privateKey, String remoteIp, String challenge, String response )
-    {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-
-        params.add( "privatekey", privateKey );
-        params.add( "remoteip", remoteIp );
-        params.add( "challenge", challenge );
-        params.add( "response", response );
-
-        String result = restTemplate.postForObject( RECAPTCHA_VERIFY_URL, params, String.class );
-
-        log.info( "Recaptcha result: " + result );
-
-        return result != null ? result.split( SPLIT ) : null;
-    }
 
     private void authenticate( String username, String rawPassword, Collection<GrantedAuthority> authorities, HttpServletRequest request )
     {
