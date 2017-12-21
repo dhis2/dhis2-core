@@ -39,6 +39,7 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -144,6 +145,22 @@ public class InMemoryNotifier
         }
         
         return list;
+    }
+
+    @Override
+    public List<Notification> getNotificationsByJobConfigurationUid( String uid )
+    {
+        for (Map.Entry<JobConfiguration, List<Notification>> entry : notifications.getInternalMap().entrySet()) {
+            JobConfiguration key = entry.getKey();
+            List<Notification> notificationList = entry.getValue();
+
+            if ( key.getUid().equals( uid ) )
+            {
+                return notificationList;
+            }
+        }
+
+        return null;
     }
     
     @Override

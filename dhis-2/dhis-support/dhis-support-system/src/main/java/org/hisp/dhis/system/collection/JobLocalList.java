@@ -51,7 +51,12 @@ public class JobLocalList<T>
     {
         return internalMap.computeIfAbsent( id, k -> new ArrayList<>() );
     }
-    
+
+    public Map<JobConfiguration, List<T>> getInternalMap()
+    {
+        return internalMap;
+    }
+
     public boolean clear( JobConfiguration id )
     {
         return internalMap.remove( id ) != null;

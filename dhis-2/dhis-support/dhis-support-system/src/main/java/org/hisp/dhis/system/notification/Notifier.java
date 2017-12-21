@@ -50,6 +50,8 @@ public interface Notifier
     Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
     List<Notification> getNotifications( JobConfiguration id, String lastUid );
+
+    List<Notification> getNotificationsByJobConfigurationUid( String uid );
     
     Notifier clear( JobConfiguration id );
     

@@ -73,6 +73,7 @@ public class DataIntegrityController
         JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
             false, true );
         jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
+        jobConfiguration.setAutoFields();
         notifier.clear( jobConfiguration );
 
         schedulingManager.executeJob( jobConfiguration );

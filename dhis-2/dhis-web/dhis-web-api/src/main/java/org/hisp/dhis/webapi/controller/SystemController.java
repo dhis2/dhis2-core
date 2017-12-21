@@ -202,6 +202,23 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
+    @RequestMapping( value = "/tasks/{category}/{uid}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJsonByUid( @PathVariable( "category" ) String category, @PathVariable( "uid" ) String uid,
+        HttpServletResponse response )
+        throws IOException
+    {
+        List<Notification> notifications = new ArrayList<>();
+
+        if ( category != null )
+        {
+            notifications = notifier.getNotificationsByJobConfigurationUid( uid );
+        }
+
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), notifications );
+    }
+
     @RequestMapping( value = "/taskSummaries/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTaskSummaryJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
     {

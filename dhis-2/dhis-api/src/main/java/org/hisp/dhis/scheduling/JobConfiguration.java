@@ -66,6 +66,7 @@ public class JobConfiguration
     {
         this.jobType = jobType;
         this.userUid = userUid;
+        setAutoFields();
     }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
