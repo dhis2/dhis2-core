@@ -29,10 +29,10 @@ package org.hisp.dhis.system.util;
  */
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.codehaus.jackson.type.TypeReference;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -90,15 +90,11 @@ public class JacksonUtils
         }
     }
 
-    public static Map<String, Object> fromJsonToMap( String object )
+    public static <T, U> Map<T, U> fromJsonToMap( String object )
         throws IOException
     {
-        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
-        TypeReference<HashMap<String, Object>> typeRef
-            = new TypeReference<HashMap<String, Object>>()
-        {
-        };
+        TypeReference<HashMap<T, U>> typeRef = new TypeReference<HashMap<T, U>>() {};
 
-        return mapper.readValue( object, typeRef );
+        return jsonMapper.readValue( object, typeRef );
     }
 }
