@@ -95,12 +95,12 @@ public class DefaultQueryParser implements QueryParser
 
     private Junction handleIdentifiablePath( Schema schema, String operator, Object arg )
     {
-        Restriction nameRestriction = getRestriction( schema, "name", operator, arg );
+        Restriction displayNameRestriction = getRestriction( schema, "displayName", operator, arg );
         Restriction uidRestriction = getRestriction( schema, "id", operator, arg );
         Restriction codeRestriction = getRestriction( schema, "code", operator, arg );
 
         Junction identifiableJunction = new Disjunction( schema );
-        identifiableJunction.add( nameRestriction );
+        identifiableJunction.add( displayNameRestriction );
         identifiableJunction.add( uidRestriction );
         identifiableJunction.add( codeRestriction );
 
