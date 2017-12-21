@@ -92,7 +92,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !organisationUnitService.isInUserHierarchy( ou ) )
+            if ( !organisationUnitService.isInUserHierarchy( user, ou ) )
             {
                 if ( !user.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
                 {
@@ -111,7 +111,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataRead( user, programStage ) )
         {
-            errors.add( "User has no access to program stage: " + programStageInstance.getUid() );
+            errors.add( "User has no access to program stage: " + programStage.getUid() );
         }
 
         return errors;
