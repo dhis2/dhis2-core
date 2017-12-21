@@ -57,9 +57,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
-            return new ArrayList<>();
+            return errors;
         }
 
         OrganisationUnit ou = programInstance.getOrganisationUnit();
@@ -87,9 +87,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
-            return new ArrayList<>();
+            return errors;
         }
 
         return errors;
@@ -100,9 +100,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
-            return new ArrayList<>();
+            return errors;
         }
 
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
@@ -139,9 +139,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
-            return new ArrayList<>();
+            return errors;
         }
 
         return errors;
