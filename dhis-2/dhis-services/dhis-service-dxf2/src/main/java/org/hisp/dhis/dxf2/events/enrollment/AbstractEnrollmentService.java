@@ -35,6 +35,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
@@ -42,6 +43,7 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -135,6 +137,9 @@ public abstract class AbstractEnrollmentService
     @Autowired
     protected EventService eventService;
 
+    @Autowired
+    protected TrackerAccessManager trackerAccessManager;
+
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private CachingMap<String, Program> programCache = new CachingMap<>();
@@ -166,7 +171,7 @@ public abstract class AbstractEnrollmentService
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            
+
             enrollments.setPager( pager );
         }
 
@@ -213,8 +218,14 @@ public abstract class AbstractEnrollmentService
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
         Enrollment enrollment = new Enrollment();
-
         enrollment.setEnrollment( programInstance.getUid() );
+
+        List<String> errors = trackerAccessManager.canRead( currentUserService.getCurrentUser(), programInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
 
         if ( programInstance.getEntityInstance() != null )
         {
@@ -305,7 +316,7 @@ public abstract class AbstractEnrollmentService
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions )
     {
         User user = currentUserService.getCurrentUser();
-    	
+
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
@@ -332,8 +343,8 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user )
     {
-    	String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ? enrollment.getStoredBy() : user.getUsername();
-    	
+        String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ? enrollment.getStoredBy() : user.getUsername();
+
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
@@ -438,7 +449,7 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
         programInstance.setStoredBy( storedBy );
-        
+
 
         programInstanceService.updateProgramInstance( programInstance );
         manager.update( programInstance.getEntityInstance() );
@@ -534,8 +545,8 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         }
-        
-        if ( enrollment.getOrgUnit() != null ) 
+
+        if ( enrollment.getOrgUnit() != null )
         {
             OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
             programInstance.setOrganisationUnit( organisationUnit );

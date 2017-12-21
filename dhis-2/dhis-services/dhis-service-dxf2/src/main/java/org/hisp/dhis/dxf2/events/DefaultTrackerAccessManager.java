@@ -62,6 +62,23 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return new ArrayList<>();
         }
 
+        OrganisationUnit ou = programInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !organisationUnitService.isInUserHierarchy( user, ou ) )
+            {
+                errors.add( "User has no access to organisation unit: " + ou.getUid() );
+            }
+        }
+
+        Program program = programInstance.getProgram();
+
+        if ( !aclService.canDataRead( user, program ) )
+        {
+            errors.add( "User has no access to program: " + program.getUid() );
+        }
+
         return errors;
     }
 
