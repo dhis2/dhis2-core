@@ -77,7 +77,7 @@ public class JacksonUtils
             throw new UncheckedIOException( ex );
         }
     }
-        
+
     public static <T> String toJson( T object )
     {
         try
