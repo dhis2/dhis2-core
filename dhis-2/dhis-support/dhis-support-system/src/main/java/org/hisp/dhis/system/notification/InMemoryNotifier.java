@@ -32,11 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.collection.JobLocalList;
 import org.hisp.dhis.system.collection.JobLocalMap;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,15 +49,15 @@ public class InMemoryNotifier
     
     private static final int MAX_SIZE = 75;
     
-    private JobLocalList<Notification> notifications;
-    
     private JobLocalMap<JobType, Object> jobSummaries;
+
+    private NotificationMap notificationMap;
     
     @PostConstruct
     public void init()
     {
-        notifications = new JobLocalList<>();
         jobSummaries = new JobLocalMap<>();
+        notificationMap = new NotificationMap();
     }
 
     // -------------------------------------------------------------------------
@@ -85,12 +83,7 @@ public class InMemoryNotifier
         {
             Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed );
 
-            notifications.get( id ).add( 0, notification );
-
-            if ( notifications.get( id ).size() > MAX_SIZE )
-            {
-                notifications.get( id ).remove( MAX_SIZE );
-            }
+            notificationMap.add( id, notification );
 
             log.info( notification );
         }
@@ -115,11 +108,6 @@ public class InMemoryNotifier
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
-            if ( notifications.get( id ).size() > 0 )
-            {
-                notifications.get( id ).remove( notifications.get( id ).size() - 1 );
-            }
-
             notify( id, level, message, completed );
         }
 
@@ -127,51 +115,34 @@ public class InMemoryNotifier
     }
 
     @Override
-    public List<Notification> getNotifications( JobConfiguration id, String lastUid )
+    public Map<JobType, Map<String, List<Notification>>> getNotifications( )
     {
-        List<Notification> list = new ArrayList<>();
-        
-        if ( id != null )
-        {
-            for ( Notification notification : notifications.get( id ) )
-            {
-                if ( lastUid != null && lastUid.equals( notification.getUid() ) )
-                {
-                    break;
-                }
-                
-                list.add( notification );
-            }
-        }
-        
-        return list;
+        return notificationMap.getNotifications();
     }
 
     @Override
-    public List<Notification> getNotificationsByJobConfigurationUid( String uid )
+    public List<Notification> getNotifications( JobConfiguration id, String lastId )
     {
-        for (Map.Entry<JobConfiguration, List<Notification>> entry : notifications.getInternalMap().entrySet()) {
-            JobConfiguration key = entry.getKey();
-            List<Notification> notificationList = entry.getValue();
+        return notificationMap.getNotificationsByJobId( id.getJobType(), id.getUid() );
+    }
 
-            if ( key.getUid().equals( uid ) )
-            {
-                return notificationList;
-            }
-        }
+    @Override
+    public List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
+    {
+        return notificationMap.getNotificationsByJobId( jobType, jobId );
+    }
 
-        return null;
+    @Override
+    public Map<String, List<Notification>> getNotificationsByJobType( JobType jobType )
+    {
+        return notificationMap.getNotificationsWithType( jobType );
     }
     
     @Override
     public Notifier clear( JobConfiguration id )
     {
-        if ( id != null )
-        {
-            notifications.clear( id );
-            jobSummaries.get( id ).remove( id.getJobType() );
-        }
-        
+        notificationMap.clear( id );
+
         return this;
     }
     

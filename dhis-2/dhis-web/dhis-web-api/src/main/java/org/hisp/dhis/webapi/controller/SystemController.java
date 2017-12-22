@@ -72,6 +72,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -182,19 +183,25 @@ public class SystemController
         return rootNode;
     }
 
-    @RequestMapping( value = "/tasks/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskJson( @PathVariable( "category" ) String category,
-        @RequestParam( required = false ) String lastId, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTasksJson( HttpServletResponse response )
+        throws IOException
     {
-        List<Notification> notifications = new ArrayList<>();
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
+    }
+
+    @RequestMapping( value = "/tasks/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
+    {
+        Map<String, List<Notification>> notifications = new HashMap<>();
 
         if ( category != null )
         {
             JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid() );
-
-            notifications = notifier.getNotifications( jobId, lastId );
+            notifications = notifier.getNotificationsByJobType( jobType );
         }
 
         setNoStore( response );
@@ -202,8 +209,8 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/tasks/{category}/{uid}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskJsonByUid( @PathVariable( "category" ) String category, @PathVariable( "uid" ) String uid,
+    @RequestMapping( value = "/tasks/{category}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJsonByUid( @PathVariable( "category" ) String category, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
     {
@@ -211,7 +218,9 @@ public class SystemController
 
         if ( category != null )
         {
-            notifications = notifier.getNotificationsByJobConfigurationUid( uid );
+            JobType jobType = JobType.valueOf( category.toUpperCase() );
+
+            notifications = notifier.getNotificationsByJobId( jobType, jobId );
         }
 
         setNoStore( response );

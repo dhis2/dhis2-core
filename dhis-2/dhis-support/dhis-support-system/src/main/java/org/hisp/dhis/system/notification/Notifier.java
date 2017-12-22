@@ -29,8 +29,10 @@ package org.hisp.dhis.system.notification;
  */
 
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -49,9 +51,13 @@ public interface Notifier
 
     Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    List<Notification> getNotifications( JobConfiguration id, String lastUid );
+    Map<JobType, Map<String, List<Notification>>> getNotifications( );
 
-    List<Notification> getNotificationsByJobConfigurationUid( String uid );
+    List<Notification> getNotifications( JobConfiguration id, String lastId );
+
+    List<Notification> getNotificationsByJobId( JobType jobType, String jobId );
+
+    Map<String, List<Notification>> getNotificationsByJobType( JobType jobType );
     
     Notifier clear( JobConfiguration id );
     
