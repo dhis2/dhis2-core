@@ -32,6 +32,9 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 
+import java.io.IOException;
+import java.util.Map;
+
 /**
  * @author Lars Helge Overland
  */
@@ -278,4 +281,13 @@ public interface SecurityService
      * @return true if the current user has any of the given authorities.
      */
     boolean hasAnyAuthority( String... authorities );
+
+    /**
+     * Verify recaptcha V2 key against google API
+     *
+     * @param key the key to check
+     * @return result map from google API call
+     */
+    Map<String, Object> verifyRecaptcha( String key, String remoteIp )
+        throws IOException;
 }
