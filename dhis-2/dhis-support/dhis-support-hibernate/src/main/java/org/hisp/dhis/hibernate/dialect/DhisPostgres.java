@@ -34,6 +34,7 @@ import java.sql.Types;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold <stian@dhis2.org>
  */
 public class DhisPostgres
     extends PostgreSQL95Dialect

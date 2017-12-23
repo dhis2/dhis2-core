@@ -80,8 +80,6 @@ public class StatementDialectFactoryBean
         
         String dialect = hibernateConfiguration.getProperty( KEY_DIALECT );
 
-        System.out.println( "DIALECT!! : " + dialect );
-        
         statementDialect = dialectMap.get( dialect );
         
         if ( statementDialect == null )

@@ -48,6 +48,7 @@ import java.util.Properties;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold <stian@dhis2.org>
  */
 public class JsonBinaryType implements UserType, ParameterizedType
 {
