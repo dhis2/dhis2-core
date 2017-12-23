@@ -291,7 +291,7 @@ public class DefaultSystemService
 
         info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
         info.setSystemMetadataVersion( systemMetadataVersion );
-        info.setIsMetadataSyncEnabled( !StringUtils.isEmpty( metadataSyncCron ) );
+        info.setMetadataSyncEnabled( !StringUtils.isEmpty( metadataSyncCron ) );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 
