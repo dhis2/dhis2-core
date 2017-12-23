@@ -21,6 +21,10 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
+
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 

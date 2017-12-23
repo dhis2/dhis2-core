@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 
 import java.util.ArrayList;
@@ -57,6 +58,10 @@ public class ProgramStageSection
     private List<ProgramIndicator> programIndicators = new ArrayList<>();
 
     private Integer sortOrder;
+
+    private ObjectStyle style;
+
+    private String formName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -154,5 +159,29 @@ public class ProgramStageSection
     public void setSortOrder( Integer sortOrder )
     {
         this.sortOrder = sortOrder;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
     }
 }
