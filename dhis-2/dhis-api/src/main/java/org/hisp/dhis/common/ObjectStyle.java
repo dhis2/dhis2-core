@@ -12,8 +12,6 @@ public class ObjectStyle implements Serializable
 
     private String icon;
 
-    private String cake;
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getColor()
@@ -36,17 +34,5 @@ public class ObjectStyle implements Serializable
     public void setIcon( String icon )
     {
         this.icon = icon;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCake()
-    {
-        return cake;
-    }
-
-    public void setCake( String cake )
-    {
-        this.cake = cake;
     }
 }
