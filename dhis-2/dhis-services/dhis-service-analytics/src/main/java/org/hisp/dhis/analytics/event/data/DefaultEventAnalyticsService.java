@@ -380,10 +380,11 @@ public class DefaultEventAnalyticsService
             {
                 List<EventReportDimensionalItem> options = new ArrayList<>();
 
-                for ( Option booleanOption : booleanOptions )
+                for ( Option boolOption : booleanOptions )
                 {
-                    options.add( new EventReportDimensionalItem( booleanOption, parentUid ) );
+                    options.add( new EventReportDimensionalItem( boolOption, parentUid ) );
                 }
+                
                 objects = options;
             }
             else if ( optionSet != null )
@@ -398,7 +399,7 @@ public class DefaultEventAnalyticsService
                 List<String> legendOptions = (List<String>) ((HashMap<String, Object>) grid.getMetaData()
                     .get( DIMENSIONS.getKey() )).get( dimension );
 
-                if ( legendOptions.size() == 0 )
+                if ( legendOptions.isEmpty() )
                 {
                     List<Legend> legends = legendSet.getSortedLegends();
 
@@ -406,8 +407,7 @@ public class DefaultEventAnalyticsService
                     {
                         for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
                         {
-                            objects.add(
-                                new EventReportDimensionalItem( new Option( i + "", i + "" ), parentUid ) );
+                            objects.add( new EventReportDimensionalItem( new Option( String.valueOf( i ), String.valueOf( i ) ), parentUid ) );
                         }
                     }
                 }
@@ -418,8 +418,7 @@ public class DefaultEventAnalyticsService
                         MetadataItem metadataItem = (MetadataItem) ((HashMap<String, Object>) grid.getMetaData()
                             .get( ITEMS.getKey() )).get( legend );
 
-                        objects.add( new EventReportDimensionalItem( new Option( metadataItem.getName(), legend ),
-                            parentUid ) );
+                        objects.add( new EventReportDimensionalItem( new Option( metadataItem.getName(), legend ), parentUid ) );
                     }
                 }
             }
@@ -437,7 +436,7 @@ public class DefaultEventAnalyticsService
      * @param map the map with all values
      * @param list the resulting list
      */
-    public static void combinations( Map<String, List<EventReportDimensionalItem>> map,
+    public static void getCombinations( Map<String, List<EventReportDimensionalItem>> map,
         List<Map<String, EventReportDimensionalItem>> list )
     {
         recurse( map, new LinkedList<>( map.keySet() ).listIterator(), new TreeMap<>(), list );
@@ -491,13 +490,14 @@ public class DefaultEventAnalyticsService
         Map<String, List<EventReportDimensionalItem>> dataOptionMap )
     {
         List<Map<String, EventReportDimensionalItem>> list = new LinkedList<>();
-        combinations( dataOptionMap, list );
+        getCombinations( dataOptionMap, list );
 
         return list;
     }
 
     /**
      * Get event data mapping for values.
+     * 
      * @param grid the grid to collect data from
      * @return map with key and values
      */
