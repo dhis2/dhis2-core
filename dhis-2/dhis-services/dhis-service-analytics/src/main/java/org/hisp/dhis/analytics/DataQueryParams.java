@@ -1259,7 +1259,7 @@ public class DataQueryParams
     private void setPeriodDimensionWithoutOptions()
     {
         removeDimension( PERIOD_DIM_ID );
-        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, DISPLAY_NAME_PERIOD, Lists.newArrayList() );
+        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, Lists.newArrayList() );
     }
         
     /**
