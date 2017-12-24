@@ -57,6 +57,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.util.Assert;
 
 /**
  * Class responsible for retrieving raw data from the
@@ -83,7 +84,9 @@ public class JdbcRawAnalyticsManager
 
     @Override
     public Grid getRawDataValues( DataQueryParams params, Grid grid )
-    {        
+    {
+        Assert.isTrue( params.hasStartEndDate(), "Start and end dates must be specified" );
+        
         List<DimensionalObject> dimensions = new ArrayList<>();
         dimensions.addAll( params.getDimensions() );
         dimensions.addAll( params.getOrgUnitLevelsAsDimensions() );
@@ -163,12 +166,9 @@ public class JdbcRawAnalyticsManager
             }
         }
         
-        if ( params.hasStartEndDate() )
-        {
-            sql += sqlHelper.whereAnd() + " " +
-                "ps.startdate >= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "' and " +
-                "ps.enddate <= '" + DateUtils.getMediumDateString( params.getEndDate() ) + "' ";
-        }
+        sql += sqlHelper.whereAnd() + " " +
+            "ps.startdate >= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "' and " +
+            "ps.enddate <= '" + DateUtils.getMediumDateString( params.getEndDate() ) + "' ";
         
         return sql;
     }
