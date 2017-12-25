@@ -362,11 +362,12 @@ public class HibernateDataValueStore
 
         String pathsTable = statementBuilder.literalStringTable( paths, "p", "path" );
 
-        String sql = "select dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid, p.path, " +
+        String sql = "select dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path, " +
             "sum( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as value " +
             "from datavalue dv " +
             "join organisationunit o on o.organisationunitid = dv.sourceid " +
             "join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid " +
+            "join categoryoptioncombo aoc on aoc.categoryoptioncomboid = dv.attributeoptioncomboid " +
             "join " + pathsTable + " on o.path like p.path || '%' " +
             "where dv.periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
             "and dv.value is not null " +
@@ -396,6 +397,7 @@ public class HibernateDataValueStore
         {
             Integer dataElementId = rowSet.getInt( 1 );
             String categoryOptionComboUid = rowSet.getString( 2 );
+            String attributeOptionComboUid = rowSet.getString( 3 );
             Integer periodId = rowSet.getInt( 4 );
             String path = rowSet.getString( 5 );
             Double value = rowSet.getDouble( 6 );
@@ -410,14 +412,9 @@ public class HibernateDataValueStore
             {
                 if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid() == categoryOptionComboUid )
                 {
-                    Double existingValue = result.getValue(orgUnit, period, categoryOptionComboUid, deo );
+                    double existingValue = ObjectUtils.firstNonNull( result.getValue(orgUnit, period, attributeOptionComboUid, deo ), 0.0 );
 
-                    if ( existingValue != null )
-                    {
-                        value += existingValue;
-                    }
-
-                    result.putEntry( orgUnit, period, categoryOptionComboUid, deo, value );
+                    result.putEntry( orgUnit, period, attributeOptionComboUid, deo, value + existingValue );
                 }
             }
         }
