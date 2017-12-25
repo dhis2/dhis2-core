@@ -52,8 +52,6 @@ import java.util.Properties;
  */
 public class JsonBinaryType implements UserType, ParameterizedType
 {
-    // ~ Static instance fields
-    // ================================================================================================
 
     public static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -62,17 +60,11 @@ public class JsonBinaryType implements UserType, ParameterizedType
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 
-    // ~ Instance fields
-    // ========================================================================================================
-
     private ObjectWriter writer;
 
     private ObjectReader reader;
 
     private Class returnedClass;
-
-    // ~ Methods
-    // ========================================================================================================
 
     @Override
     public int[] sqlTypes()

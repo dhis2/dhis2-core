@@ -30,12 +30,20 @@ package org.hisp.dhis.hibernate.dialect;
 
 import org.hibernate.dialect.H2Dialect;
 
+import java.sql.Types;
+
 /**
  * @author Lars Helge Overland
  */
 public class DhisH2Dialect
     extends H2Dialect
 {
+
+    public DhisH2Dialect()
+    {
+        registerColumnType( Types.JAVA_OBJECT, "text" );
+    }
+
     @Override
     public String getDropSequenceString( String sequenceName )
     {

@@ -105,7 +105,7 @@ public class DefaultDhisConfigurationProvider
         else
         {
             this.properties = loadDhisConf();
-            this.properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgres" );
+            this.properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
         }
 
         // ---------------------------------------------------------------------

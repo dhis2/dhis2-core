@@ -36,13 +36,10 @@ import java.sql.Types;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Stian Sandvold <stian@dhis2.org>
  */
-public class DhisPostgres
+public class DhisPostgresDialect
     extends PostgreSQL95Dialect
 {
-    // ~ Constructors
-    // ========================================================================================================
-
-    public DhisPostgres()
+    public DhisPostgresDialect()
     {
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
