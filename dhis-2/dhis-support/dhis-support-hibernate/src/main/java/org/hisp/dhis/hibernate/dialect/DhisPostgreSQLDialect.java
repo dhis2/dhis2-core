@@ -9,6 +9,7 @@ public class DhisPostgreSQLDialect extends PostgreSQLDialect{
     
     public DhisPostgreSQLDialect() {
         this.registerColumnType(Types.JAVA_OBJECT, "jsonb");
+        this.registerColumnType(Types.ARRAY, "jsonb[]");
     }
 
 }

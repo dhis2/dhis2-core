@@ -7,10 +7,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
@@ -25,37 +29,76 @@ public class MentionType
     UserType
 {
 
+    private final int[] arrayTypes = new int[] { Types.ARRAY };
+    
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     @Override
     public int[] sqlTypes()
     {
-        return new int[] { Types.JAVA_OBJECT };
+        return arrayTypes;
     }
 
     @Override
-    public Class<Mention> returnedClass()
+    public Class<List> returnedClass()
     {
-        return Mention.class;
+        return List.class;
     }
-    
+
     @Override
     public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner )
         throws HibernateException,
         SQLException
     {
-        final String cellContent = rs.getString( names[0] );
-        if ( cellContent == null )
+        if ( names != null && names.length > 0 && rs != null && rs.getArray( names[0] ) != null )
         {
-            return null;
+            // weirdness causing either hibernate or postgres jdbc driver to
+            // cause both short and
+            // integer types to return.. no idea. Even odder after changing a
+            // smallint array from
+            // {0,1,2} to {0,1,2,4,5} it switch from Integer to Short.
+            Object array = rs.getArray( names[0] ).getArray();
+            List<Mention> mentionList = new ArrayList<Mention>();
+            for ( int i = 0; i < ((String[])array).length; i++ ) {
+                try
+                {
+                    mentionList.add( mapper.readValue( ((String[])array)[i].getBytes( "UTF-8" ), Mention.class ));
+                }
+                catch ( IOException e )
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            
+            
+            return mentionList;
+
         }
-        try
+
+        return null;
+    }
+
+    private String[] convertToText( Mention[] mentions )
+    {
+        String[] mentionsToString = new String[mentions.length];
+        for ( int i = 0; i < mentions.length; i++ )
         {
-            final ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue( cellContent.getBytes( "UTF-8" ), returnedClass() );
+            try
+            {
+                
+                final StringWriter w = new StringWriter();
+                mapper.writeValue( w, mentions[i] );
+                w.flush();
+                mentionsToString[i] = w.toString();
+            }
+            catch ( final Exception ex )
+            {
+                throw new RuntimeException( "Failed to convert Invoice to String: " + ex.getMessage(), ex );
+            }
         }
-        catch ( final Exception ex )
-        {
-            throw new RuntimeException( "Failed to convert String to Invoice: " + ex.getMessage(), ex );
-        }
+
+        return mentionsToString;
     }
 
     @Override
@@ -63,43 +106,33 @@ public class MentionType
         throws HibernateException,
         SQLException
     {
-        if (value == null) {
-            st.setNull(index, Types.OTHER);
-            return;
+        if ( value != null && st != null )
+        {
+            List<Mention> list = (List<Mention>) value;
+            Mention[] castObject = list.toArray( new Mention[list.size()] );
+            Array array = session.connection().createArrayOf( "jsonb", this.convertToText( castObject ));
+            st.setArray( index, array );
         }
-        try {
-            final ObjectMapper mapper = new ObjectMapper();
-            final StringWriter w = new StringWriter();
-            mapper.writeValue(w, value);
-            w.flush();
-            st.setObject(index, w.toString(), Types.OTHER);
-        } catch (final Exception ex) {
-            throw new RuntimeException("Failed to convert Invoice to String: " + ex.getMessage(), ex);
+        else
+        {
+            st.setNull( index, arrayTypes[0] );
         }
-        
+
     }
-    
+
     @Override
     public Object deepCopy( final Object value )
         throws HibernateException
     {
-        try
-        {
-            // use serialization to create a deep copy
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream( bos );
-            oos.writeObject( value );
-            oos.flush();
-            oos.close();
-            bos.close();
+        if ( value == null )
+            return null;
 
-            ByteArrayInputStream bais = new ByteArrayInputStream( bos.toByteArray() );
-            return new ObjectInputStream( bais ).readObject();
-        }
-        catch ( ClassNotFoundException | IOException ex )
-        {
-            throw new HibernateException( ex );
-        }
+        List<Mention> list = (List<Mention>) value;
+        ArrayList<Mention> clone = new ArrayList<Mention>();
+        for ( Object intOn : list )
+            clone.add( (Mention) intOn );
+
+        return clone;
     }
 
     @Override
@@ -146,7 +179,5 @@ public class MentionType
     {
         return obj.hashCode();
     }
-
-   
 
 }

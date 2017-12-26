@@ -30,6 +30,7 @@ package org.hisp.dhis.interpretation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -37,6 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.user.User;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -47,7 +49,7 @@ public class InterpretationComment
 {
     private String text;
     
-    private Mention mention;
+    private List<Mention> mentions;
 
     public InterpretationComment()
     {
@@ -79,18 +81,31 @@ public class InterpretationComment
         this.text = text;
     }
 
-    @JsonProperty
-    @JsonSerialize( as = Mention.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Mention getMention()
+    @JsonProperty( "mentions" )
+    @JacksonXmlElementWrapper( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Mention> getMentions()
     {
-        return mention;
+        return mentions;
     }
 
-    public void setMention( Mention mention )
+    public void setMentions( List<Mention> mentions )
     {
-        this.mention = mention;
+        this.mentions = mentions;
     }
+
+//    @JsonProperty
+//    @JsonSerialize( as = Mention.class )
+//    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+//    public Mention getMention()
+//    {
+//        return mention;
+//    }
+//
+//    public void setMention( Mention mention )
+//    {
+//        this.mention = mention;
+//    }
     
     
     

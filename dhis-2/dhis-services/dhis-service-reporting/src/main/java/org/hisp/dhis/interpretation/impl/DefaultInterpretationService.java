@@ -44,6 +44,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -169,10 +170,13 @@ public class DefaultInterpretationService
         mention.setCreated( new Date() );
         mention.setUserId( 4 );
         
+        List<Mention> mentions = new ArrayList<Mention>();
+        mentions.add( mention );
+        
         InterpretationComment comment = new InterpretationComment( text );
         comment.setLastUpdated( new Date() );
         comment.setUid( CodeGenerator.generateUid() );
-        comment.setMention( mention );
+        comment.setMentions( mentions );
 
         if ( user != null )
         {
