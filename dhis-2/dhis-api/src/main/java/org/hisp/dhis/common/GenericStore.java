@@ -141,6 +141,8 @@ public interface GenericStore<T>
 
     List<T> getDataAll();
 
+    List<T> getDataWriteAll();
+
     /**
      * Retrieves a paged List of all objects.
      *

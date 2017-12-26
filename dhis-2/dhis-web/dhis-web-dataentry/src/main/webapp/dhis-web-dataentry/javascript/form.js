@@ -43,7 +43,7 @@ dhis2.de.dataSetAssociationSets = [];
 
 // Associate array with mapping between organisation unit identifier and data
 // set association set identifier
-dhis2.de.organisationUnitAssociationSetMap = [];
+dhis2.de.organisationUnitAssociationSetMap = null;
 
 // Default category combo uid
 dhis2.de.defaultCategoryCombo = undefined;
@@ -336,9 +336,13 @@ dhis2.de.loadMetaData = function()
 dhis2.de.loadDataSetAssociations = function()
 {
 	var def = $.Deferred();
-	
+
+	dhis2.de.dataSetAssociationSets = null;
+	dhis2.de.organisationUnitAssociationSetMap = null;
+	sessionStorage[dhis2.de.cst.dataSetAssociations] = null;
+
 	$.ajax( {
-    	url: 'getDataSetAssociations.action',
+      url: 'getDataSetAssociations.action',
     	dataType: 'json',
     	success: function( json )
 	    {
@@ -346,10 +350,10 @@ dhis2.de.loadDataSetAssociations = function()
 	    },
 	    complete: function()
 	    {
-	        var metaData = JSON.parse( sessionStorage[dhis2.de.cst.dataSetAssociations] );
-	        dhis2.de.dataSetAssociationSets = metaData.dataSetAssociationSets;
-	        dhis2.de.organisationUnitAssociationSetMap = metaData.organisationUnitAssociationSetMap;	        
-	        def.resolve();
+          var metaData = JSON.parse( sessionStorage[dhis2.de.cst.dataSetAssociations] );
+          dhis2.de.dataSetAssociationSets = metaData.dataSetAssociationSets;
+          dhis2.de.organisationUnitAssociationSetMap = metaData.organisationUnitAssociationSetMap;
+          def.resolve();
 	    }
 	} );
 	
@@ -1106,6 +1110,8 @@ dhis2.de._updateDataSets = function( ou ) {
  * @returns {$.Deferred}
  */
 dhis2.de.getOrFetchDataSetList = function( ou ) {
+
+
     var def = $.Deferred();
 
     var dataSets = getSortedDataSetList(ou);
@@ -1121,6 +1127,9 @@ dhis2.de.getOrFetchDataSetList = function( ou ) {
     }
 
     /* TODO check if data sets are accessible for current user */
+
+
+
     
     return def.promise();
 };

@@ -92,6 +92,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getAll( Class<T> clazz );
 
+    <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> clazz );
+
     <T extends IdentifiableObject> List<T> getAllByName( Class<T> clazz, String name );
 
     <T extends IdentifiableObject> List<T> getAllByNameIgnoreCase( Class<T> clazz, String name );

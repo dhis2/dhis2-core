@@ -368,8 +368,6 @@ public class DefaultOrganisationUnitService
 
             set.getOrganisationUnitAssociationSetMap().put( entry.getKey(), index );
             set.getDistinctDataSets().addAll( entry.getValue() );
-
-
         }
 
         return set;
@@ -386,13 +384,20 @@ public class DefaultOrganisationUnitService
 
         if ( currentUser != null && !currentUser.getUserCredentials().isSuper() )
         {
-            List<DataSet> accessibleDataSets = dataSetStore.getDataAll();
+            List<DataSet> accessibleDataSets = dataSetStore.getDataWriteAll();
 
-            HashSet<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
-
-            for ( Set<String> dataSets : associationMap.values() )
+            if ( accessibleDataSets.isEmpty() )
             {
-                dataSets.retainAll( userDataSets );
+                associationMap.values().iterator().forEachRemaining( Set::clear );
+            }
+            else
+            {
+                HashSet<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
+
+                for ( Set<String> dataSets : associationMap.values() )
+                {
+                    dataSets.retainAll( userDataSets );
+                }
             }
         }
     }
@@ -407,6 +412,8 @@ public class DefaultOrganisationUnitService
     private void filterChildOrganisationUnits( Map<String, Set<String>> associationMap, Integer maxLevels )
     {
         User currentUser = currentUserService.getCurrentUser();
+
+
 
         if ( currentUser != null && currentUser.getOrganisationUnits() != null )
         {

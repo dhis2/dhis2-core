@@ -129,9 +129,6 @@ public class DataValueSetServiceTest
     private UserService _userService;
 
     @Autowired
-    private AclService aclService;
-
-    @Autowired
     private UserAccessService userAccessService;
 
     private Attribute attribute;
@@ -173,6 +170,7 @@ public class DataValueSetServiceTest
     public void setUpTest()
     {
         userService = _userService;
+
         mockDataValueBatchHandler = new MockBatchHandler<>();
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
@@ -255,6 +253,7 @@ public class DataValueSetServiceTest
         categoryService.addDataElementCategoryOptionCombo( ocB );
 
         attributeService.addAttributeValue( deA, createAttributeValue( attribute, "DE1" ) );
+
         dataElementService.addDataElement( deA );
         attributeService.addAttributeValue( deB, createAttributeValue( attribute, "DE2" ) );
         dataElementService.addDataElement( deB );
@@ -290,16 +289,13 @@ public class DataValueSetServiceTest
 
         user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-
         userService.addUser( user );
+        injectSecurityContext( user );
 
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         setDependency( dataValueSetService, "currentUserService", currentUserService );
 
-        injectSecurityContext( user );
-
-        enableDataSharing( user, dsA );
-        dataSetService.updateDataSet( dsA );
+        enableDataWrite();
     }
 
     // -------------------------------------------------------------------------
@@ -307,7 +303,7 @@ public class DataValueSetServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testImportDataValueSetXml()
+    public void testImportDataValueSetXm()
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
@@ -1073,5 +1069,17 @@ public class DataValueSetServiceTest
         Date monthEnd = DateUtils.addDays( DateUtils.addMonths( monthStart, 1 ), -1 );
 
         return createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), monthStart, monthEnd );
+    }
+
+    private void enableDataWrite()
+    {
+        enableDataSharing( user, dsA );
+        enableDataSharing( user, deA );
+        enableDataSharing( user, deB );
+        enableDataSharing( user, deC );
+        enableDataSharing( user, deD );
+        enableDataSharing( user, ocA );
+        enableDataSharing( user, ocB );
+        enableDataSharing( user, ocDef );
     }
 }

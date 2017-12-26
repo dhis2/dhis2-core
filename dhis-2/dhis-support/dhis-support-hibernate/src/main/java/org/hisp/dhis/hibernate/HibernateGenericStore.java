@@ -342,7 +342,7 @@ public class HibernateGenericStore<T>
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
-        if ( !dataSharingEnabled( user ) || user == null )
+        if ( user == null || !dataSharingEnabled( user ) )
         {
             return criteria;
         }
@@ -706,6 +706,11 @@ public class HibernateGenericStore<T>
     public final List<T> getDataAll()
     {
         return getDataSharingCriteria().list();
+    }
+
+    public final List<T> getDataWriteAll()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( AclService.LIKE_WRITE_DATA ) ).list();
     }
 
     @Override
