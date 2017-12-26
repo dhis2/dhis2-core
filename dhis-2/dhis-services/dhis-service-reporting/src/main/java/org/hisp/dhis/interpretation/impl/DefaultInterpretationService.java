@@ -34,6 +34,7 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.interpretation.InterpretationStore;
+import org.hisp.dhis.interpretation.Mention;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -164,9 +165,14 @@ public class DefaultInterpretationService
 
         User user = currentUserService.getCurrentUser();
 
+        Mention mention = new Mention();
+        mention.setCreated( new Date() );
+        mention.setUserId( 4 );
+        
         InterpretationComment comment = new InterpretationComment( text );
         comment.setLastUpdated( new Date() );
         comment.setUid( CodeGenerator.generateUid() );
+        comment.setMention( mention );
 
         if ( user != null )
         {
