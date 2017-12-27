@@ -119,6 +119,8 @@ public class SystemInfo
 
     private String systemMetadataVersion;
 
+    private String instanceBaseUrl;
+    
     private Boolean isMetadataVersionEnabled;
 
     private Date lastMetadataVersionSyncAttempt;
@@ -555,6 +557,18 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getInstanceBaseUrl()
+    {
+        return instanceBaseUrl;
+    }
+
+    public void setInstanceBaseUrl( String instanceBaseUrl )
+    {
+        this.instanceBaseUrl = instanceBaseUrl;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getIsMetadataVersionEnabled()
     {
         return isMetadataVersionEnabled;
@@ -577,16 +591,16 @@ public class SystemInfo
         this.lastMetadataVersionSyncAttempt = lastMetadataVersionSyncAttempt;
     }
 
-    public void setIsMetadataSyncEnabled( boolean isMetadataSyncEnabled )
-    {
-        this.isMetadataSyncEnabled = isMetadataSyncEnabled;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getIsMetadataSyncEnabled()
+    public boolean isMetadataSyncEnabled()
     {
         return isMetadataSyncEnabled;
+    }
+
+    public void setMetadataSyncEnabled( boolean isMetadataSyncEnabled )
+    {
+        this.isMetadataSyncEnabled = isMetadataSyncEnabled;
     }
 
     @JsonProperty

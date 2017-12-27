@@ -29,31 +29,23 @@ package org.hisp.dhis.query.operators;
  */
 
 import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Henning Håkonsen
  */
-public class LikeOperator extends Operator
+public class TokenOperator
+    extends Operator
 {
     private final boolean caseSensitive;
 
-    private final MatchMode matchMode;
+    private final org.hibernate.criterion.MatchMode matchMode;
 
-    public LikeOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    public TokenOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
     {
-        super( "like", Typed.from( String.class ), arg );
-        this.caseSensitive = caseSensitive;
-        this.matchMode = getMatchMode( matchMode );
-    }
-
-    public LikeOperator( String name, Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
-    {
-        super( name, Typed.from( String.class ), arg );
+        super( "token", Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
         this.matchMode = getMatchMode( matchMode );
     }
@@ -61,44 +53,15 @@ public class LikeOperator extends Operator
     @Override
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        if ( caseSensitive )
-        {
-            return Restrictions.like( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
-        }
-        else
-        {
-            return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
-        }
+        String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
+
+        return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex( value ) + "'" );
     }
 
     @Override
     public boolean test( Object value )
     {
-        if ( args.isEmpty() || value == null )
-        {
-            return false;
-        }
-
-        Type type = new Type( value );
-
-        if ( type.isString() )
-        {
-            String s1 = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-            String s2 = caseSensitive ? (String) value : ((String) value).toLowerCase();
-
-            switch ( matchMode )
-            {
-                case EXACT:
-                    return s2.equals( s1 );
-                case START:
-                    return s2.startsWith( s1 );
-                case END:
-                    return s2.endsWith( s1 );
-                case ANYWHERE:
-                    return s2.contains( s1 );
-            }
-        }
-
-        return false;
+        String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
+        return TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
     }
 }

@@ -29,12 +29,15 @@ package org.hisp.dhis.system.util;
  */
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -74,7 +77,7 @@ public class JacksonUtils
             throw new UncheckedIOException( ex );
         }
     }
-    
+
     public static <T> String toJson( T object )
     {
         try
@@ -85,5 +88,13 @@ public class JacksonUtils
         {
             throw new UncheckedIOException( ex );
         }
+    }
+
+    public static <T, U> Map<T, U> fromJsonToMap( String object )
+        throws IOException
+    {
+        TypeReference<HashMap<T, U>> typeRef = new TypeReference<HashMap<T, U>>() {};
+
+        return jsonMapper.readValue( object, typeRef );
     }
 }
