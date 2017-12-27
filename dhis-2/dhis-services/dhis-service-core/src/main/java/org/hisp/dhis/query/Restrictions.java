@@ -42,7 +42,9 @@ import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.query.operators.NotInOperator;
 import org.hisp.dhis.query.operators.NotLikeOperator;
 import org.hisp.dhis.query.operators.NotNullOperator;
+import org.hisp.dhis.query.operators.NotTokenOperator;
 import org.hisp.dhis.query.operators.NullOperator;
+import org.hisp.dhis.query.operators.TokenOperator;
 
 import java.util.Collection;
 
@@ -104,6 +106,16 @@ public final class Restrictions
     public static Restriction notIlike( String path, Object value, MatchMode matchMode )
     {
         return new Restriction( path, new NotLikeOperator( value, false, matchMode ) );
+    }
+
+    public static Restriction token( String path, Object value, MatchMode matchMode )
+    {
+        return new Restriction( path, new TokenOperator( value, false, matchMode ) );
+    }
+
+    public static Restriction notToken( String path, Object value, MatchMode matchMode )
+    {
+        return new Restriction( path, new NotTokenOperator( value, false, matchMode ) );
     }
 
     public static Restriction in( String path, Collection<?> values )

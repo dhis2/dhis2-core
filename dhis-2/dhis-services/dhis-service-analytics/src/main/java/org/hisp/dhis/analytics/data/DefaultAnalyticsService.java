@@ -76,7 +76,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -1140,17 +1139,23 @@ public class DefaultAnalyticsService
         return grid;
     }
     
+    /**
+     * Prepares the given data query parameters.
+     * 
+     * @param params the {@link DataQueryParams}.
+     */
     private DataQueryParams preHandleRawDataQuery( DataQueryParams params )
     {
+        Builder builder = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions();
+        
         if ( params.isShowHierarchy() )
-        {
-            List<OrganisationUnitLevel> orgUnitLevels = organisationUnitService.getFilledOrganisationUnitLevels();
-            
-            params = DataQueryParams.newBuilder( params )
-                .withOrgUnitLevels( orgUnitLevels ).build();
+        {            
+            builder.withOrgUnitLevels( organisationUnitService.getFilledOrganisationUnitLevels() );
         }
         
-        return params;
+        return builder.build();
     }
     
     /**

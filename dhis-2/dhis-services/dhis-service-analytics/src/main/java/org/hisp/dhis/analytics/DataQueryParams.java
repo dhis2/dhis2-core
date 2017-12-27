@@ -1243,6 +1243,26 @@ public class DataQueryParams
     }
     
     /**
+     * Sets the {@code startDate} property to the earliest start date, and the
+     * {@code endDate} property to the latest end date based on periods.
+     */
+    private void setEarliestStartDateLatestEndDate()
+    {
+        this.startDate = getEarliestStartDate();
+        this.endDate = getLatestEndDate();
+    }
+    
+    /**
+     * Adds a period dimension or updates an existing one with no period items. Removes
+     * period filter if present.
+     */
+    private void setPeriodDimensionWithoutOptions()
+    {
+        removeDimension( PERIOD_DIM_ID );
+        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, Lists.newArrayList() );
+    }
+        
+    /**
      * Removes the dimension with the given identifier.
      */
     private DataQueryParams removeDimension( String dimension )
@@ -2527,6 +2547,18 @@ public class DataQueryParams
         public Builder withDataPeriodsForAggregationPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
         {
             this.params.replaceAggregationPeriodsWithDataPeriods( dataPeriodAggregationPeriodMap );
+            return this;
+        }
+        
+        public Builder withEarliestStartDateLatestEndDate()
+        {
+            this.params.setEarliestStartDateLatestEndDate();
+            return this;
+        }
+        
+        public Builder withPeriodDimensionWithoutOptions()
+        {
+            this.params.setPeriodDimensionWithoutOptions();
             return this;
         }
         
