@@ -278,4 +278,20 @@ public interface SecurityService
      * @return true if the current user has any of the given authorities.
      */
     boolean hasAnyAuthority( String... authorities );
+
+    /**
+     * Checks whether current user has permission to write data for given object.
+     *
+     * @param identifiableObject Object to check for data write access.
+     * @return true of false depending on outcome of data write check
+     */
+    boolean canDataWrite( IdentifiableObject identifiableObject );
+
+    /**
+     * Checks whether current user has permission to read data of given object.
+     *
+     * @param identifiableObject Object to check for data read access.
+     * @return true of false depending on outcome of data read check
+     */
+    boolean canDataRead( IdentifiableObject identifiableObject );
 }

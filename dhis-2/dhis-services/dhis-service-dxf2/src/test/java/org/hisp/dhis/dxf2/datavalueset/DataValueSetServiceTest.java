@@ -1018,8 +1018,6 @@ public class DataValueSetServiceTest
     {
         dsA.getUserAccesses().forEach( ua -> userAccessService.deleteUserAccess( ua ) );
 
-        dsA.getUserAccesses().clear();
-
         UserAccess userAccess = new UserAccess();
         userAccess.setUser( user );
         userAccess.setAccess( AccessStringHelper.DATA_READ );

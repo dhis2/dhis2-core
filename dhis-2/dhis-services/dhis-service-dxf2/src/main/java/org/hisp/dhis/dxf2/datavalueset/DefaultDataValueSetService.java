@@ -835,7 +835,7 @@ public class DefaultDataValueSetService
 
             if ( !dataElementMap.isCacheLoaded() && dataElementMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
             {
-                dataElementMap.load( identifiableObjectManager.getDataWriteAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme
+                dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme
                 ) );
 
                 log.info( "Data element cache heated after cache miss threshold reached" );

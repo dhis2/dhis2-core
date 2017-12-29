@@ -195,9 +195,9 @@ public class LoadFormAction
         return orderedCategoryCombos;
     }
 
-    private Map<Integer, Collection<Integer>> sectionCombos = new HashMap<>();
+    private Map<Integer, Collection<DataElementCategoryCombo>> sectionCombos = new HashMap<>();
 
-    public Map<Integer, Collection<Integer>> getSectionCombos()
+    public Map<Integer, Collection<DataElementCategoryCombo>> getSectionCombos()
     {
         return sectionCombos;
     }
@@ -409,18 +409,18 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            Set<Integer> categoryComboIds = new HashSet<>();
+            Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
             
             for( DataElementCategoryCombo categoryCombo : section.getCategoryCombos() )
             {
-                categoryComboIds.add( categoryCombo.getId() );
+                categoryCombos.add( categoryCombo );
                 
                 sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId() , section.getDataElementsByCategoryCombo( categoryCombo ) );
             }
             
-            if( !categoryComboIds.isEmpty() )
+            if( !categoryCombos.isEmpty() )
             {
-                sectionCombos.put( section.getId(), categoryComboIds );
+                sectionCombos.put( section.getId(), categoryCombos );
             }
 
             for ( DataElementOperand operand : section.getGreyedFields() )
