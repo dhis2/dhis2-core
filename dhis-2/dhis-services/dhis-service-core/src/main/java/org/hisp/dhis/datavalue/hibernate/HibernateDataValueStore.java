@@ -565,8 +565,7 @@ public class HibernateDataValueStore
 
                 for ( DataElementOperand deo : deos )
                 {
-                    if ( deo.getDataElement().getUid().equals( dataElement ) &&
-                        ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) ) )
+                    if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) )
                     {
                         double existingValue = ObjectUtils.firstNonNull( map.getValue(attributeOptionCombo, deo), 0.0 );
 
