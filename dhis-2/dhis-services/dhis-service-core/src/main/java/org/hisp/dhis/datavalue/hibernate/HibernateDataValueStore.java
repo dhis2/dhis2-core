@@ -403,7 +403,7 @@ public class HibernateDataValueStore
 
             for ( DataElementOperand deo : deos )
             {
-                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid() == categoryOptionComboUid )
+                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionComboUid ) )
                 {
                     double existingValue = ObjectUtils.firstNonNull( result.getValue(period, categoryOptionComboUid, deo ), 0.0 );
 
