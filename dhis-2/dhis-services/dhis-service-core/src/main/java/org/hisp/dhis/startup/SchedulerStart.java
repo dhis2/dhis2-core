@@ -65,15 +65,18 @@ public class SchedulerStart
     {
         Date now = new Date();
         jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
-            jobConfig.setNextExecutionTime( null );
-            jobConfigurationService.updateJobConfiguration( jobConfig );
-
-            if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
+            if ( jobConfig.isEnabled() )
             {
-                schedulingManager.executeJob( jobConfig );
+                jobConfig.setNextExecutionTime( null );
+                jobConfigurationService.updateJobConfiguration( jobConfig );
+
+                if ( jobConfig.getLastExecutedStatus() == FAILED ||
+                    ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
+                {
+                    schedulingManager.executeJob( jobConfig );
+                }
+                schedulingManager.scheduleJob( jobConfig );
             }
-            schedulingManager.scheduleJob( jobConfig );
         }) );
     }
 }

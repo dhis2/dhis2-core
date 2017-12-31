@@ -4,7 +4,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,10 +15,10 @@ public class PredictorJobParameters
     private static final long serialVersionUID = 5526554074518768146L;
 
     @Property
-    private Date startDate;
+    private int relativeStart;
 
     @Property
-    private Date endDate;
+    private int relativeEnd;
 
     @Property
     private List<String> predictors;
@@ -28,31 +27,31 @@ public class PredictorJobParameters
     {
     }
 
-    public PredictorJobParameters( Date startDate, Date endDate, List<String> predictors )
+    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors )
     {
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.relativeStart = relativeStart;
+        this.relativeEnd = relativeEnd;
         this.predictors = predictors;
     }
 
-    public Date getStartDate()
+    public int getRelativeStart()
     {
-        return startDate;
+        return relativeStart;
     }
 
-    public void setStartDate( Date startDate )
+    public void setRelativeStart( int relativeStart )
     {
-        this.startDate = startDate;
+        this.relativeStart = relativeStart;
     }
 
-    public Date getEndDate()
+    public int getRelativeEnd()
     {
-        return endDate;
+        return relativeEnd;
     }
 
-    public void setEndDate( Date endDate )
+    public void setRelativeEnd( int relativeEnd )
     {
-        this.endDate = endDate;
+        this.relativeEnd = relativeEnd;
     }
 
     public List<String> getPredictors()

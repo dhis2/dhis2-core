@@ -158,22 +158,24 @@ public class SpringScheduler
     public boolean scheduleJob( JobConfiguration jobConfiguration )
     {
         DefaultJobInstance jobInstance = new DefaultJobInstance();
-        if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) ) {
+        if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
+        {
             ScheduledFuture<?> future = jobScheduler
-                    .schedule( () -> {
-                        try
-                        {
-                            jobInstance.execute( jobConfiguration, schedulingManager, messageService );
-                        }
-                        catch ( Exception e )
-                        {
-                            e.printStackTrace();
-                        }
-                    }, new CronTrigger( jobConfiguration.getCronExpression() ));
+                .schedule( () -> {
+                    try
+                    {
+                        jobInstance.execute( jobConfiguration, schedulingManager, messageService );
+                    }
+                    catch ( Exception e )
+                    {
+                        e.printStackTrace();
+                    }
+                }, new CronTrigger( jobConfiguration.getCronExpression() ) );
 
-            futures.put(jobConfiguration.getUid(), future);
+            futures.put( jobConfiguration.getUid(), future );
 
-            log.info("Scheduled job with uid: " + jobConfiguration.getUid() + " and cron: " + jobConfiguration.getCronExpression());
+            log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and cron: " +
+                jobConfiguration.getCronExpression() );
 
             return true;
         }
@@ -257,13 +259,21 @@ public class SpringScheduler
         {
             ScheduledFuture<?> future = futures.get( uid );
 
-            boolean result = future != null && future.cancel( true );
+            if ( future == null )
+            {
+                log.info( "Tried to stop job with key '" + uid + "', but was not found" );
+                return true;
+            }
+            else
+            {
+                boolean result = future.cancel( true );
 
-            futures.remove( uid );
+                futures.remove( uid );
 
-            log.info( "Stopped job with key: " + uid + " successfully: " + result );
+                log.info( "Stopped job with key: " + uid + " successfully: " + result );
 
-            return result;
+                return result;
+            }
         }
 
         return false;
@@ -325,6 +335,12 @@ public class SpringScheduler
         ScheduledFuture<?> future = futures.get( key );
 
         return getStatus( future );
+    }
+
+    @Override
+    public boolean ifJobInSystemStop( String key )
+    {
+        return !isJobInSystem( key ) || stopJob( key );
     }
 
     @Override

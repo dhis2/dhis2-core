@@ -43,7 +43,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-maintenance</artifactId>
-                  <version>2.28-SNAPSHOT</version>
+                  <version>2.29-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maintenance</outputDirectory>
                   <includes>**/*.*</includes>
@@ -88,7 +88,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-settings</artifactId>
-                  <version>2.28-SNAPSHOT</version>
+                  <version>2.29-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-settings</outputDirectory>
                   <includes>**/*.*</includes>
@@ -199,6 +199,15 @@
                   <version>2.27-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-datastore</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Scheduler -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-scheduler</artifactId>
+                  <version>2.29-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-scheduler</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
               </artifactItems>
