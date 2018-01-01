@@ -1,5 +1,7 @@
 package org.hisp.dhis.hibernate.dialect;
 
+import java.sql.Types;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -36,6 +38,11 @@ import org.hibernate.dialect.H2Dialect;
 public class DhisH2Dialect
     extends H2Dialect
 {
+    public DhisH2Dialect() {
+        super();
+        this.registerColumnType(Types.JAVA_OBJECT, "jsonb");
+    }
+    
     @Override
     public String getDropSequenceString( String sequenceName )
     {
