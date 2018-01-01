@@ -86,6 +86,8 @@ public class Interpretation
     private int likes;
 
     private Set<User> likedBy = new HashSet<>();
+    
+    private List<Mention> mentions;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -482,5 +484,18 @@ public class Interpretation
     public void setLikedBy( Set<User> likedBy )
     {
         this.likedBy = likedBy;
+    }
+    
+    @JsonProperty( "mentions" )
+    @JacksonXmlElementWrapper( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Mention> getMentions()
+    {
+        return mentions;
+    }
+
+    public void setMentions( List<Mention> mentions )
+    {
+        this.mentions = mentions;
     }
 }

@@ -93,21 +93,7 @@ public class InterpretationComment
     {
         this.mentions = mentions;
     }
-
-//    @JsonProperty
-//    @JsonSerialize( as = Mention.class )
-//    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-//    public Mention getMention()
-//    {
-//        return mention;
-//    }
-//
-//    public void setMention( Mention mention )
-//    {
-//        this.mention = mention;
-//    }
-    
-    
+   
     
     
 }
