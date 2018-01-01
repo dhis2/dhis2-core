@@ -15,7 +15,7 @@
 	
     <property name="text" column="commenttext" type="text" />
     
-    <property name="mentions" column="mentions" type="org.hisp.dhis.hibernate.MentionType" />
+    <property name="mentions" column="mentions" type="org.hisp.dhis.hibernate.MentionUserType" />
 
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
 		foreign-key="fk_interpretationcomment_userid" not-null="true" />
