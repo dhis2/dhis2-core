@@ -1,5 +1,7 @@
 package org.hisp.dhis.interpretation;
 
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -37,7 +39,8 @@ import org.hisp.dhis.reporttable.ReportTable;
  * @author Lars Helge Overland
  */
 public interface InterpretationStore
-    extends GenericIdentifiableObjectStore<Interpretation>
+    extends
+    GenericIdentifiableObjectStore<Interpretation>
 {
     int countMapInterpretations( Map map );
 
@@ -46,5 +49,7 @@ public interface InterpretationStore
     int countReportTableInterpretations( ReportTable reportTable );
 
     Interpretation getByChartId( int id );
+
+    List<Interpretation> getInterpretationsByMentions( String uid );
 
 }

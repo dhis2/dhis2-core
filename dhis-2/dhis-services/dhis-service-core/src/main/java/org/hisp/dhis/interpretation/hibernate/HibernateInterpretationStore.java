@@ -107,4 +107,9 @@ public class HibernateInterpretationStore
         
         return (Interpretation) query.uniqueResult();
     }
+    
+    @Override
+    public List<Interpretation> getInterpretationsByMentions( String uid ){
+        return null;
+    }
 }

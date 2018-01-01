@@ -43,9 +43,14 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.Order;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.webdomain.WebMetadata;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -60,6 +65,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -74,6 +80,30 @@ public class InterpretationController
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+    
+    
+    @Override
+    @SuppressWarnings( "unchecked" )
+    protected List<Interpretation> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+        throws QueryParserException
+    {
+        
+        
+        //List<Interpretation> entityList = super.getEntityList( metadata, options, filters, orders );
+
+        if (filters.contains( "mentions" )) {
+//            interpretationService.getInterpretationsByMentions("taka");
+            for ( String filter : filters )
+            {
+                System.out.println(filter);
+            }
+        }
+        
+        
+
+        return super.getEntityList( metadata, options, filters, orders );
+    
+    }
 
     // -------------------------------------------------------------------------
     // Intepretation create
@@ -205,7 +235,7 @@ public class InterpretationController
 
         createIntepretation( new Interpretation( dataSet, period, orgUnit, text ), request, response );
     }
-
+    
     /**
      * Returns the organisation unit with the given identifier. If not existing,
      * returns the user organisation unit if the analytical object specifies
@@ -330,7 +360,7 @@ public class InterpretationController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Interpretation does not exist: " + uid ) );
         }
-
+        
         for ( InterpretationComment comment : interpretation.getComments() )
         {
             if ( comment.getUid().equals( cuid ) )
@@ -342,10 +372,12 @@ public class InterpretationController
                 }
 
                 comment.setText( content );
+                comment.setMentions( interpretationService.updateMentions( content ) );
+                interpretationService.updateInterpretation(interpretation);
             }
-        }
+        }  
 
-        interpretationService.updateInterpretation( interpretation );
+        
     }
 
     @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.DELETE )

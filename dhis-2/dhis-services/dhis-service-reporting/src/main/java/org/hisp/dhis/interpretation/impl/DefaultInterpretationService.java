@@ -40,20 +40,26 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
  */
 @Transactional
 public class DefaultInterpretationService
-    implements InterpretationService
+    implements
+    InterpretationService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -109,6 +115,8 @@ public class DefaultInterpretationService
             }
 
             interpretation.updateSharing();
+            
+            interpretation.setMentions(this.updateMentions( interpretation.getText() ));
         }
 
         interpretationStore.save( interpretation );
@@ -160,23 +168,40 @@ public class DefaultInterpretationService
     }
 
     @Override
+    public List<Mention> updateMentions( String text )
+    {
+        List<Mention> mentions = new ArrayList<Mention>();
+
+        Matcher matcher = Pattern.compile( "^[@]\\w+|(?<=\\s)[@]\\w+" ).matcher( text );
+        while ( matcher.find() )
+        {
+            String username = matcher.group().substring( 1 );
+            UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
+            if ( userCredentials != null )
+            {
+                Mention mention = new Mention();
+                mention.setCreated( new Date() );
+                mention.setUsername( username );
+                mention.setUserUid( userCredentials.getUid() );
+                mentions.add( mention );
+
+            }
+        }
+
+        return (mentions.size() > 0) ? mentions : null;
+    }
+
+    @Override
     public InterpretationComment addInterpretationComment( String uid, String text )
     {
         Interpretation interpretation = getInterpretation( uid );
 
         User user = currentUserService.getCurrentUser();
 
-        Mention mention = new Mention();
-        mention.setCreated( new Date() );
-        mention.setUserId( 4 );
-        
-        List<Mention> mentions = new ArrayList<Mention>();
-        mentions.add( mention );
-        
         InterpretationComment comment = new InterpretationComment( text );
         comment.setLastUpdated( new Date() );
         comment.setUid( CodeGenerator.generateUid() );
-        comment.setMentions( mentions );
+        comment.setMentions( this.updateMentions( text ) );
 
         if ( user != null )
         {
@@ -218,24 +243,24 @@ public class DefaultInterpretationService
 
         return count;
     }
-    
+
     @Transactional( isolation = Isolation.REPEATABLE_READ )
     public boolean likeInterpretation( int id )
     {
         Interpretation interpretation = getInterpretation( id );
-        
+
         if ( interpretation == null )
         {
             return false;
         }
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user == null )
         {
             return false;
         }
-        
+
         return interpretation.like( user );
     }
 
@@ -243,22 +268,22 @@ public class DefaultInterpretationService
     public boolean unlikeInterpretation( int id )
     {
         Interpretation interpretation = getInterpretation( id );
-        
+
         if ( interpretation == null )
         {
             return false;
         }
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user == null )
         {
             return false;
         }
-        
+
         return interpretation.unlike( user );
     }
-    
+
     @Override
     public int countMapInterpretations( Map map )
     {
@@ -281,5 +306,11 @@ public class DefaultInterpretationService
     public Interpretation getInterpretationByChart( int id )
     {
         return interpretationStore.getByChartId( id );
+    }
+
+    @Override
+    public List<Interpretation> getInterpretationsByMentions( String uid )
+    {
+        return interpretationStore.getInterpretationsByMentions( uid );
     }
 }
