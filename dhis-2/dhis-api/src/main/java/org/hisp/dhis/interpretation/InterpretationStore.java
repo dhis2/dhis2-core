@@ -50,6 +50,4 @@ public interface InterpretationStore
 
     Interpretation getByChartId( int id );
 
-    List<Interpretation> getInterpretationsByMentions( String uid );
-
 }

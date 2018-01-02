@@ -308,9 +308,4 @@ public class DefaultInterpretationService
         return interpretationStore.getByChartId( id );
     }
 
-    @Override
-    public List<Interpretation> getInterpretationsByMentions( String uid )
-    {
-        return interpretationStore.getInterpretationsByMentions( uid );
-    }
 }

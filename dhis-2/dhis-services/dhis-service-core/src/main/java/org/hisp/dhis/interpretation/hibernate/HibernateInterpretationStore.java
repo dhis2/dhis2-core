@@ -1,5 +1,8 @@
 package org.hisp.dhis.interpretation.hibernate;
 
+import org.apache.xmlbeans.impl.xb.xsdschema.RestrictionDocument.Restriction;
+import org.hibernate.Criteria;
+
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -31,25 +34,32 @@ package org.hisp.dhis.interpretation.hibernate;
 import org.hibernate.Query;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public class HibernateInterpretationStore
-    extends HibernateIdentifiableObjectStore<Interpretation> implements InterpretationStore
+    extends
+    HibernateIdentifiableObjectStore<Interpretation>
+    implements
+    InterpretationStore
 {
-    @SuppressWarnings("unchecked")
+
+    @SuppressWarnings( "unchecked" )
     public List<Interpretation> getInterpretations( User user )
     {
-        String hql = "select distinct i from Interpretation i left join i.comments c " +
-            "where i.user = :user or c.user = :user order by i.lastUpdated desc";
+        String hql = "select distinct i from Interpretation i left join i.comments c "
+            + "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
         Query query = getQuery( hql );
         query.setEntity( "user", user );
@@ -57,11 +67,11 @@ public class HibernateInterpretationStore
         return query.list();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public List<Interpretation> getInterpretations( User user, int first, int max )
     {
-        String hql = "select distinct i from Interpretation i left join i.comments c " +
-            "where i.user = :user or c.user = :user order by i.lastUpdated desc";
+        String hql = "select distinct i from Interpretation i left join i.comments c "
+            + "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
         Query query = getQuery( hql );
         query.setEntity( "user", user );
@@ -92,7 +102,8 @@ public class HibernateInterpretationStore
     @Override
     public int countReportTableInterpretations( ReportTable reportTable )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" );
+        Query query = getQuery(
+            "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" );
         query.setEntity( "reportTable", reportTable );
 
         return ((Long) query.uniqueResult()).intValue();
@@ -102,14 +113,10 @@ public class HibernateInterpretationStore
     public Interpretation getByChartId( int id )
     {
         String hql = "from Interpretation i where i.chart.id = " + id;
-        
+
         Query query = getSession().createQuery( hql );
-        
+
         return (Interpretation) query.uniqueResult();
     }
-    
-    @Override
-    public List<Interpretation> getInterpretationsByMentions( String uid ){
-        return null;
-    }
+
 }

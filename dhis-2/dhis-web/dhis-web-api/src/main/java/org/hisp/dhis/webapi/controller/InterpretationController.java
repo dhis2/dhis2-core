@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -36,6 +37,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -43,9 +45,15 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.DefaultQueryParser;
+import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Query;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -64,7 +72,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.List;
 
 /**
@@ -73,76 +86,115 @@ import java.util.List;
 @Controller
 @RequestMapping( value = InterpretationSchemaDescriptor.API_ENDPOINT )
 public class InterpretationController
-    extends AbstractCrudController<Interpretation>
+    extends
+    AbstractCrudController<Interpretation>
 {
     @Autowired
     private InterpretationService interpretationService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-    
-    
+
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<Interpretation> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<Interpretation> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
-        
-        
-        //List<Interpretation> entityList = super.getEntityList( metadata, options, filters, orders );
 
-        if (filters.contains( "mentions" )) {
-//            interpretationService.getInterpretationsByMentions("taka");
-            for ( String filter : filters )
+        if ( options.isTrue( "includeAllMentions" ) )
+        {
+
+            List<String> mentions = new ArrayList<String>();
+
+            ListIterator<String> filterIterator = filters.listIterator();
+            while ( filterIterator.hasNext() )
             {
-                System.out.println(filter);
+                String[] filterSplit = filterIterator.next().split( ":" );
+                if ( filterSplit[1].equals( "in" )
+                    && (filterSplit[0].equals( "mentions.username" ) || filterSplit[0].equals( "mentions.userId" )
+                        || filterSplit[0].equals( "comments.mentions.username" )
+                        || filterSplit[0].equals( "comments.mentions.comments.userId" )) )
+                {
+                    mentions.add( filterSplit[2] );
+                    filterIterator.remove();
+
+                }
+
             }
+
+            List<Interpretation> entityList;
+            Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+            query.setDefaultOrder();
+            query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+
+            for ( String m : mentions )
+            {
+                Disjunction disjunction = query.disjunction();
+                String[] split = m.substring( 1, m.length() - 1 ).split( "," );
+                List<String> items = Lists.newArrayList( split );
+                disjunction.add( Restrictions.in( "mentions.username", items ) );
+                disjunction.add( Restrictions.in( "comments.mentions.username", items ) );
+                query.add( disjunction );
+            }
+
+            if ( options.getOptions().containsKey( "query" ) )
+            {
+                entityList = Lists
+                    .newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
+            }
+            else
+            {
+                entityList = (List<Interpretation>) queryService.query( query );
+            }
+            return entityList;
+
         }
-        
-        
 
         return super.getEntityList( metadata, options, filters, orders );
-    
+
     }
 
     // -------------------------------------------------------------------------
     // Intepretation create
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeReportTableInterpretation(
-        @PathVariable( "uid" ) String reportTableUid,
+    @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html",
+        "text/plain" } )
+    public void writeReportTableInterpretation( @PathVariable( "uid" ) String reportTableUid,
         @RequestParam( value = "pe", required = false ) String isoPeriod,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid,
-        @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         ReportTable reportTable = idObjectManager.get( ReportTable.class, reportTableUid );
 
         if ( reportTable == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Report table does not exist or is not accessible: " + reportTableUid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Report table does not exist or is not accessible: " + reportTableUid ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, reportTable, currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, reportTable,
+            currentUserService.getCurrentUser() );
 
         createIntepretation( new Interpretation( reportTable, period, orgUnit, text ), request, response );
     }
 
     @RequestMapping( value = "/chart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeChartInterpretation(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid,
-        @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    public void writeChartInterpretation( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         Chart chart = idObjectManager.get( Chart.class, uid );
 
         if ( chart == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Chart does not exist or is not accessible: " + uid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Chart does not exist or is not accessible: " + uid ) );
         }
 
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, chart, currentUserService.getCurrentUser() );
@@ -151,72 +203,76 @@ public class InterpretationController
     }
 
     @RequestMapping( value = "/map/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeMapInterpretation(
-        @PathVariable( "uid" ) String uid,
-        @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    public void writeMapInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         Map map = idObjectManager.get( Map.class, uid );
 
         if ( map == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Map does not exist or is not accessible: " + uid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Map does not exist or is not accessible: " + uid ) );
         }
 
         createIntepretation( new Interpretation( map, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeEventReportInterpretation(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid,
-        @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
+        "text/plain" } )
+    public void writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         EventReport eventReport = idObjectManager.get( EventReport.class, uid );
 
         if ( eventReport == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Event report does not exist or is not accessible: " + uid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Event report does not exist or is not accessible: " + uid ) );
         }
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport, currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport,
+            currentUserService.getCurrentUser() );
 
         createIntepretation( new Interpretation( eventReport, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeEventChartInterpretation(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid,
-        @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html",
+        "text/plain" } )
+    public void writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         EventChart eventChart = idObjectManager.get( EventChart.class, uid );
 
         if ( eventChart == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Event chart does not exist or is not accessible: " + uid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Event chart does not exist or is not accessible: " + uid ) );
         }
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart, currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart,
+            currentUserService.getCurrentUser() );
 
         createIntepretation( new Interpretation( eventChart, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void writeDataSetReportInterpretation(
-        @PathVariable( "uid" ) String dataSetUid,
-        @RequestParam( "pe" ) String isoPeriod,
-        @RequestParam( "ou" ) String orgUnitUid,
-        @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
+        "text/plain" } )
+    public void writeDataSetReportInterpretation( @PathVariable( "uid" ) String dataSetUid,
+        @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         DataSet dataSet = idObjectManager.get( DataSet.class, dataSetUid );
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist or is not accessible: " + dataSetUid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Data set does not exist or is not accessible: " + dataSetUid ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
@@ -230,16 +286,17 @@ public class InterpretationController
 
         if ( orgUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid ) );
         }
 
         createIntepretation( new Interpretation( dataSet, period, orgUnit, text ), request, response );
     }
-    
+
     /**
      * Returns the organisation unit with the given identifier. If not existing,
-     * returns the user organisation unit if the analytical object specifies
-     * a user organisation unit. If not, returns null.
+     * returns the user organisation unit if the analytical object specifies a
+     * user organisation unit. If not, returns null.
      */
     private OrganisationUnit getUserOrganisationUnit( String uid, AnalyticalObject analyticalObject, User user )
         throws WebMessageException
@@ -252,7 +309,8 @@ public class InterpretationController
 
             if ( unit == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + uid ) );
+                throw new WebMessageException(
+                    WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + uid ) );
             }
 
             return unit;
@@ -269,7 +327,8 @@ public class InterpretationController
      * Saves the given interpretation, adds location header and returns a web
      * message response.
      */
-    private void createIntepretation( Interpretation interpretation, HttpServletRequest request, HttpServletResponse response )
+    private void createIntepretation( Interpretation interpretation, HttpServletRequest request,
+        HttpServletResponse response )
     {
         interpretationService.saveInterpretation( interpretation );
 
@@ -285,7 +344,8 @@ public class InterpretationController
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text,
-        HttpServletResponse response ) throws WebMessageException
+        HttpServletResponse response )
+        throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
@@ -294,8 +354,8 @@ public class InterpretationController
             throw new WebMessageException( WebMessageUtils.notFound( "Interpretation does not exist: " + uid ) );
         }
 
-        if ( !currentUserService.getCurrentUser().equals( interpretation.getUser() ) &&
-            !currentUserService.currentUserIsSuper() )
+        if ( !currentUserService.getCurrentUser().equals( interpretation.getUser() )
+            && !currentUserService.currentUserIsSuper() )
         {
             throw new AccessDeniedException( "You are not allowed to update this interpretation." );
         }
@@ -306,7 +366,8 @@ public class InterpretationController
     }
 
     @Override
-    public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
@@ -315,8 +376,8 @@ public class InterpretationController
             throw new WebMessageException( WebMessageUtils.notFound( "Interpretation does not exist: " + uid ) );
         }
 
-        if ( !currentUserService.getCurrentUser().equals( interpretation.getUser() ) &&
-            !currentUserService.currentUserIsSuper() )
+        if ( !currentUserService.getCurrentUser().equals( interpretation.getUser() )
+            && !currentUserService.currentUserIsSuper() )
         {
             throw new AccessDeniedException( "You are not allowed to delete this interpretation." );
         }
@@ -329,9 +390,9 @@ public class InterpretationController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/comments", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
-    public void postComment(
-        @PathVariable( "uid" ) String uid,
-        @RequestBody String text, HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    public void postComment( @PathVariable( "uid" ) String uid, @RequestBody String text, HttpServletResponse response,
+        HttpServletRequest request )
+        throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
@@ -342,8 +403,7 @@ public class InterpretationController
 
         InterpretationComment comment = interpretationService.addInterpretationComment( uid, text );
 
-        String builder = InterpretationSchemaDescriptor.API_ENDPOINT + "/" + uid +
-            "/comments/" + comment.getUid();
+        String builder = InterpretationSchemaDescriptor.API_ENDPOINT + "/" + uid + "/comments/" + comment.getUid();
 
         response.addHeader( "Location", builder );
         webMessageService.send( WebMessageUtils.created( "Commented created" ), response, request );
@@ -351,8 +411,9 @@ public class InterpretationController
 
     @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void updateComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid, HttpServletResponse response,
-        @RequestBody String content ) throws WebMessageException
+    public void updateComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
+        HttpServletResponse response, @RequestBody String content )
+        throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
@@ -360,29 +421,30 @@ public class InterpretationController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Interpretation does not exist: " + uid ) );
         }
-        
+
         for ( InterpretationComment comment : interpretation.getComments() )
         {
             if ( comment.getUid().equals( cuid ) )
             {
-                if ( !currentUserService.getCurrentUser().equals( comment.getUser() ) &&
-                    !currentUserService.currentUserIsSuper() )
+                if ( !currentUserService.getCurrentUser().equals( comment.getUser() )
+                    && !currentUserService.currentUserIsSuper() )
                 {
                     throw new AccessDeniedException( "You are not allowed to update this comment." );
                 }
 
                 comment.setText( content );
                 comment.setMentions( interpretationService.updateMentions( content ) );
-                interpretationService.updateInterpretation(interpretation);
+                interpretationService.updateInterpretation( interpretation );
             }
-        }  
+        }
 
-        
     }
 
     @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid, HttpServletResponse response ) throws WebMessageException
+    public void deleteComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
+        HttpServletResponse response )
+        throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
@@ -399,8 +461,8 @@ public class InterpretationController
 
             if ( comment.getUid().equals( cuid ) )
             {
-                if ( !currentUserService.getCurrentUser().equals( comment.getUser() ) &&
-                    !currentUserService.currentUserIsSuper() )
+                if ( !currentUserService.getCurrentUser().equals( comment.getUser() )
+                    && !currentUserService.currentUserIsSuper() )
                 {
                     throw new AccessDeniedException( "You are not allowed to delete this comment." );
                 }
@@ -417,8 +479,8 @@ public class InterpretationController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/like", method = RequestMethod.POST )
-    public void like( @PathVariable( "uid" ) String uid,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    public void like( @PathVariable( "uid" ) String uid, HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
@@ -435,13 +497,15 @@ public class InterpretationController
         }
         else
         {
-            webMessageService.send( WebMessageUtils.conflict( "Could not add like, user had already liked interpretation" ), response, request );
+            webMessageService.send(
+                WebMessageUtils.conflict( "Could not add like, user had already liked interpretation" ), response,
+                request );
         }
     }
 
     @RequestMapping( value = "/{uid}/like", method = RequestMethod.DELETE )
-    public void unlike( @PathVariable( "uid" ) String uid,
-        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    public void unlike( @PathVariable( "uid" ) String uid, HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
@@ -458,7 +522,9 @@ public class InterpretationController
         }
         else
         {
-            webMessageService.send( WebMessageUtils.conflict( "Could not remove like, user had not previously liked interpretation" ), response, request );
+            webMessageService.send(
+                WebMessageUtils.conflict( "Could not remove like, user had not previously liked interpretation" ),
+                response, request );
         }
     }
 }
