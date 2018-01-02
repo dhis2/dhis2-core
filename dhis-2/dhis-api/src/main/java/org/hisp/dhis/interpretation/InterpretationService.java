@@ -91,7 +91,4 @@ public interface InterpretationService
     int countReportTableInterpretations( ReportTable reportTable );
     
     Interpretation getInterpretationByChart( int id );
-
 }
-
-    

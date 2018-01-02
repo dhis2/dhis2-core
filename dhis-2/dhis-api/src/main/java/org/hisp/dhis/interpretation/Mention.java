@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -52,20 +51,6 @@ public class Mention implements Serializable
         this.username = username;
     }
 
-//    @JsonProperty
-//    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-//    public User getUser() {
-//        User user =  new User();
-//        user.setUid( this.getUserId() );
-//        UserCredentials userCredentials = new UserCredentials();
-//        userCredentials.setUsername( this.getUsername() );
-//        user.setUserCredentials( userCredentials );
-//        
-//        return user;
-//    }
-
-    
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getCreated()
@@ -77,10 +62,4 @@ public class Mention implements Serializable
     {
         this.created = created;
     }
-
-    
-    
-    
-    
-    
 }
