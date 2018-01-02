@@ -751,6 +751,13 @@ public abstract class AbstractEventService
 
         for ( TrackedEntityDataValue dataValue : dataValues )
         {
+            errors = trackerAccessManager.canRead( user, dataValue );
+
+            if ( !errors.isEmpty() )
+            {
+                continue;
+            }
+
             DataValue value = new DataValue();
             value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
             value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );

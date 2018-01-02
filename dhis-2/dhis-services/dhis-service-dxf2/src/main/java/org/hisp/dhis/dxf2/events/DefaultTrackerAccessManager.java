@@ -28,27 +28,27 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
     @Autowired
     private AclService aclService;
 
@@ -57,6 +57,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
+        // always allow if user == null (internal process) or user is superuser
         if ( user == null || user.isSuper() )
         {
             return errors;
@@ -66,9 +67,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !organisationUnitService.isInUserHierarchy( user, ou ) )
+            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
             {
-                errors.add( "User has no access to organisation unit: " + ou.getUid() );
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
@@ -76,7 +77,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataRead( user, program ) )
         {
-            errors.add( "User has no access to program: " + program.getUid() );
+            errors.add( "User has no read access to program: " + program.getUid() );
         }
 
         return errors;
@@ -100,6 +101,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
+        // always allow if user == null (internal process) or user is superuser
         if ( user == null || user.isSuper() )
         {
             return errors;
@@ -109,12 +111,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !organisationUnitService.isInUserHierarchy( user, ou ) )
+            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
             {
-                if ( !user.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
-                {
-                    errors.add( "User has no access to organisation unit: " + ou.getUid() );
-                }
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
@@ -123,12 +122,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataRead( user, program ) )
         {
-            errors.add( "User has no access to program: " + program.getUid() );
+            errors.add( "User has no read access to program: " + program.getUid() );
         }
 
         if ( !aclService.canDataRead( user, programStage ) )
         {
-            errors.add( "User has no access to program stage: " + programStage.getUid() );
+            errors.add( "User has no read access to program stage: " + programStage.getUid() );
+        }
+
+        DataElementCategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
+
+        if ( !aclService.canDataRead( user, attributeOptionCombo ) )
+        {
+            errors.add( "User has no read access to attribute option combo: " + attributeOptionCombo.getUid() );
         }
 
         return errors;
@@ -145,5 +151,45 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         return errors;
+    }
+
+    @Override
+    public List<String> canRead( User user, TrackedEntityDataValue dataValue )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        errors.addAll( canRead( user, dataValue.getProgramStageInstance() ) );
+
+        DataElement dataElement = dataValue.getDataElement();
+
+        if ( !aclService.canDataRead( user, dataElement ) )
+        {
+            errors.add( "User has no read access to data element: " + dataElement.getUid() );
+        }
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canWrite( User user, TrackedEntityDataValue dataValue )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        return errors;
+    }
+
+    private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
+    {
+        return organisationUnit != null && organisationUnits != null && organisationUnit.isDescendant( organisationUnits );
     }
 }
