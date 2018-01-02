@@ -130,12 +130,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no read access to program stage: " + programStage.getUid() );
         }
 
+        /*
         DataElementCategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
 
         if ( !aclService.canDataRead( user, attributeOptionCombo ) )
         {
             errors.add( "User has no read access to attribute option combo: " + attributeOptionCombo.getUid() );
         }
+        */
 
         return errors;
     }
