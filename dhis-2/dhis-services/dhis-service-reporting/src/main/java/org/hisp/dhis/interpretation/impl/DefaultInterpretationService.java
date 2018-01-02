@@ -176,15 +176,12 @@ public class DefaultInterpretationService
         while ( matcher.find() )
         {
             String username = matcher.group().substring( 1 );
-            UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
-            if ( userCredentials != null )
+            if ( userService.getUserCredentialsByUsername( username ) != null )
             {
                 Mention mention = new Mention();
                 mention.setCreated( new Date() );
                 mention.setUsername( username );
-                mention.setUserUid( userCredentials.getUid() );
                 mentions.add( mention );
-
             }
         }
 

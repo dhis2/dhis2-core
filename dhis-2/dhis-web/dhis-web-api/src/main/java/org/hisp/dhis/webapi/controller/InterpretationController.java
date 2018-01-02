@@ -102,56 +102,44 @@ public class InterpretationController
         throws QueryParserException
     {
 
-        if ( options.isTrue( "includeAllMentions" ) )
+        // If mentions:in:[username] in filters -> Remove from filters and add as disjunction
+        List<String> mentions = new ArrayList<String>();
+        ListIterator<String> filterIterator = filters.listIterator();
+        while ( filterIterator.hasNext() )
         {
-
-            List<String> mentions = new ArrayList<String>();
-
-            ListIterator<String> filterIterator = filters.listIterator();
-            while ( filterIterator.hasNext() )
+            String[] filterSplit = filterIterator.next().split( ":" );
+            if ( filterSplit[1].equals( "in" ) && filterSplit[0].equals( "mentions" ) )
             {
-                String[] filterSplit = filterIterator.next().split( ":" );
-                if ( filterSplit[1].equals( "in" )
-                    && (filterSplit[0].equals( "mentions.username" ) || filterSplit[0].equals( "mentions.userId" )
-                        || filterSplit[0].equals( "comments.mentions.username" )
-                        || filterSplit[0].equals( "comments.mentions.comments.userId" )) )
-                {
-                    mentions.add( filterSplit[2] );
-                    filterIterator.remove();
-
-                }
-
+                mentions.add( filterSplit[2] );
+                filterIterator.remove();
             }
-
-            List<Interpretation> entityList;
-            Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
-            query.setDefaultOrder();
-            query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
-
-            for ( String m : mentions )
-            {
-                Disjunction disjunction = query.disjunction();
-                String[] split = m.substring( 1, m.length() - 1 ).split( "," );
-                List<String> items = Lists.newArrayList( split );
-                disjunction.add( Restrictions.in( "mentions.username", items ) );
-                disjunction.add( Restrictions.in( "comments.mentions.username", items ) );
-                query.add( disjunction );
-            }
-
-            if ( options.getOptions().containsKey( "query" ) )
-            {
-                entityList = Lists
-                    .newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
-            }
-            else
-            {
-                entityList = (List<Interpretation>) queryService.query( query );
-            }
-            return entityList;
-
         }
 
-        return super.getEntityList( metadata, options, filters, orders );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+
+        // If mentions:in:[username] in filters -> Add as disjunction including interpretation mentions and comments mentions
+        for ( String m : mentions )
+        {
+            Disjunction disjunction = query.disjunction();
+            String[] split = m.substring( 1, m.length() - 1 ).split( "," );
+            List<String> items = Lists.newArrayList( split );
+            disjunction.add( Restrictions.in( "mentions.username", items ) );
+            disjunction.add( Restrictions.in( "comments.mentions.username", items ) );
+            query.add( disjunction );
+        }
+
+        List<Interpretation> entityList;
+        if ( options.getOptions().containsKey( "query" ) )
+        {
+            entityList = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
+        }
+        else
+        {
+            entityList = (List<Interpretation>) queryService.query( query );
+        }
+        return entityList;
 
     }
 
