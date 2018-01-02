@@ -1049,6 +1049,7 @@ public class TableAlteror
 
         executeSql( "delete from systemsetting where name='dataSyncCron'" );
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
+        
         log.info( "Tables updated" );
     }
 

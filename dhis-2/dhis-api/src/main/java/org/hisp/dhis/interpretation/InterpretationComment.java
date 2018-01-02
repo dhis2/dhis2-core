@@ -93,7 +93,4 @@ public class InterpretationComment
     {
         this.mentions = mentions;
     }
-   
-    
-    
 }
