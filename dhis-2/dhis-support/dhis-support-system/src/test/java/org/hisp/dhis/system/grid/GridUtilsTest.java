@@ -1,9 +1,7 @@
 package org.hisp.dhis.system.grid;
 
-import java.nio.charset.StandardCharsets;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import java.nio.charset.StandardCharsets;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.List;
 
