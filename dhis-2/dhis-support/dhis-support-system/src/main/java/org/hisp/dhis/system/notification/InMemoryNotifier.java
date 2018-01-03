@@ -34,7 +34,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.collection.JobLocalMap;
 
-import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -47,18 +46,9 @@ public class InMemoryNotifier
 {
     private static final Log log = LogFactory.getLog( InMemoryNotifier.class );
     
-    private static final int MAX_SIZE = 75;
-    
-    private JobLocalMap<JobType, Object> jobSummaries;
+    private JobLocalMap<JobType, Object> jobSummaries = new JobLocalMap<>();
 
-    private NotificationMap notificationMap;
-    
-    @PostConstruct
-    public void init()
-    {
-        jobSummaries = new JobLocalMap<>();
-        notificationMap = new NotificationMap();
-    }
+    private NotificationMap notificationMap = new NotificationMap();
 
     // -------------------------------------------------------------------------
     // Notifier implementation
@@ -115,6 +105,12 @@ public class InMemoryNotifier
     }
 
     @Override
+    public List<Notification> getLastNotificationsByJobType( JobType jobType )
+    {
+        return notificationMap.getLastNotificationsByJobType( jobType );
+    }
+
+    @Override
     public Map<JobType, Map<String, List<Notification>>> getNotifications( )
     {
         return notificationMap.getNotifications();
@@ -141,6 +137,7 @@ public class InMemoryNotifier
     @Override
     public Notifier clear( JobConfiguration id )
     {
+        System.out.println(id + ", " +  notificationMap);
         notificationMap.clear( id );
 
         return this;

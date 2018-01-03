@@ -56,20 +56,36 @@ public class JobConfiguration
 
     private boolean enabled = true;
 
+    private boolean inMemoryJob = false;
+
     private String userUid;
 
     public JobConfiguration()
     {
     }
 
-    public JobConfiguration( JobType jobType, String userUid )
+    public JobConfiguration( JobType jobType, String userUid, boolean inMemoryJob )
     {
         this.jobType = jobType;
         this.userUid = userUid;
+        this.inMemoryJob = inMemoryJob;
         setAutoFields();
     }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
+        boolean continuousExecution, boolean enabled )
+    {
+        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
+    }
+
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
+        boolean continuousExecution, boolean enabled, boolean inMemoryJob )
+    {
+        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
+        this.inMemoryJob = inMemoryJob;
+    }
+
+    private void constructor( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled )
     {
         this.name = name;
@@ -147,6 +163,11 @@ public class JobConfiguration
     public void setEnabled( boolean enabled )
     {
         this.enabled = enabled;
+    }
+
+    public void setInMemoryJob( boolean inMemoryJob )
+    {
+        this.inMemoryJob = inMemoryJob;
     }
 
     public void setUserUid( String userUid )
@@ -230,6 +251,11 @@ public class JobConfiguration
     public boolean isEnabled()
     {
         return enabled;
+    }
+
+    public boolean isInMemoryJob()
+    {
+        return inMemoryJob;
     }
 
     @JacksonXmlProperty

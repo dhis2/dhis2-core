@@ -123,7 +123,7 @@ public class GmlImportServiceTest
 
         user = createAndInjectAdminUser();
 
-        id = new JobConfiguration( JobType.METADATA_IMPORT, user.getUid() );
+        id = new JobConfiguration( JobType.METADATA_IMPORT, user.getUid(), true );
 
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );

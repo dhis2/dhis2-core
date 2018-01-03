@@ -195,6 +195,23 @@ public class SystemController
     @RequestMapping( value = "/tasks/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTaskJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
     {
+        List<Notification> notifications = new ArrayList<>( );
+
+        if ( category != null )
+        {
+            JobType jobType = JobType.valueOf( category.toUpperCase() );
+
+            notifications = notifier.getLastNotificationsByJobType( jobType );
+        }
+
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), notifications );
+    }
+
+    @RequestMapping( value = "/tasks/extended/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTasksExtendedJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
+    {
         Map<String, List<Notification>> notifications = new HashMap<>();
 
         if ( category != null )

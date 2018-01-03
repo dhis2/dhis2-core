@@ -53,6 +53,8 @@ public interface Notifier
 
     Map<JobType, Map<String, List<Notification>>> getNotifications( );
 
+    List<Notification> getLastNotificationsByJobType( JobType jobType );
+
     List<Notification> getNotifications( JobConfiguration id, String lastId );
 
     List<Notification> getNotificationsByJobId( JobType jobType, String jobId );

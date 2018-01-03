@@ -71,7 +71,7 @@ public class DataIntegrityController
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
         JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
-            false, true );
+            false, true, true );
         jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
         jobConfiguration.setAutoFields();
         notifier.clear( jobConfiguration );
