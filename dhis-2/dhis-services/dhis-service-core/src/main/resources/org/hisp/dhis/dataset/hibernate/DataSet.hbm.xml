@@ -106,6 +106,8 @@
     <property name="renderAsTabs" />
 
     <property name="renderHorizontally" />
+    
+    <property name="compulsoryFieldsCompleteOnly" />
 
     <list name="legendSets" table="datasetlegendsets">
       <cache usage="read-write" />
