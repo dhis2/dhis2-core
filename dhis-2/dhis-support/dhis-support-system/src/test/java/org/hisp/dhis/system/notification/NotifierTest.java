@@ -103,6 +103,6 @@ public class NotifierTest
     {
         notifier.addJobSummary( id1, new Object() );
         
-        assertNotNull( notifier.getJobSummary( id1 ) );
+        assertNotNull( notifier.getJobSummaryByJobId( id1.getJobType(), id1.getUid() ) );
     }
 }

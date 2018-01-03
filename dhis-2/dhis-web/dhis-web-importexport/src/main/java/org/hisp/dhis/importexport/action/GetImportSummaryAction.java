@@ -79,7 +79,7 @@ public class GetImportSummaryAction
     {
         JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid(), true );
         
-        summary = (ImportSummary) notifier.getJobSummary( jobId );
+        summary = (ImportSummary) notifier.getJobSummary( jobId.getJobType() );
         
         return SUCCESS;
     }

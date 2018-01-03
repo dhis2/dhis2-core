@@ -34,6 +34,7 @@ import org.hisp.dhis.scheduling.JobType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,11 +45,17 @@ public class NotificationMap
 {
     private Map<JobType, Map<String, List<Notification>>> notificationsWithType;
 
+    private Map<JobType, LinkedHashMap<String, Object>> summariesWithType;
+
     NotificationMap()
     {
         notificationsWithType = new HashMap<>();
         Arrays.stream( JobType.values() ).filter( JobType::isExecutable )
             .forEach( jobType -> notificationsWithType.put( jobType, new HashMap<>() ) );
+
+        summariesWithType = new HashMap<>();
+        Arrays.stream( JobType.values() ).filter( JobType::isExecutable )
+            .forEach( jobType -> summariesWithType.put( jobType, new LinkedHashMap<>() ) );
     }
 
     public List<Notification> getLastNotificationsByJobType( JobType jobType )
@@ -120,7 +127,32 @@ public class NotificationMap
         uidNotifications.put( uid, notifications );
 
         notificationsWithType.put( jobConfiguration.getJobType(), uidNotifications );
+    }
 
+    public void addSummary( JobConfiguration jobConfiguration, Object summary )
+    {
+        LinkedHashMap<String, Object> summaries = summariesWithType.get( jobConfiguration.getJobType() );
+
+        summaries.put( jobConfiguration.getUid(), summary );
+    }
+
+    public Object getSummary( JobType jobType )
+    {
+        LinkedHashMap<String, Object> summariesForJobType = summariesWithType.get( jobType );
+
+        if ( summariesForJobType.size() == 0 )
+        {
+            return null;
+        }
+        else
+        {
+            return summariesForJobType.values().toArray()[summariesForJobType.size() - 1];
+        }
+    }
+
+    public Object getSummary( JobType jobType, String jobId )
+    {
+        return summariesWithType.get( jobType ).get( jobId );
     }
 
     public void clear( JobConfiguration jobConfiguration )

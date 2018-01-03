@@ -45,7 +45,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
@@ -252,9 +251,34 @@ public class SystemController
         {
             JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid(), true );
+            Object summary = notifier.getJobSummary( jobType );
 
-            Object summary = notifier.getJobSummary( jobId );
+            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
+            {
+                ImportSummary importSummary = (ImportSummary) summary;
+                renderService.toJson( response.getOutputStream(), importSummary );
+                return;
+            }
+            else
+            {
+                renderService.toJson( response.getOutputStream(), summary );
+                return;
+            }
+        }
+
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), new ImportSummary() );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{category}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskSummaryJson( @PathVariable( "category" ) String category, @PathVariable( "jobId" ) String jobId, HttpServletResponse response ) throws IOException
+    {
+        if ( category != null )
+        {
+            JobType jobType = JobType.valueOf( category.toUpperCase() );
+
+            Object summary = notifier.getJobSummaryByJobId( jobType, jobId );
 
             if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
             {

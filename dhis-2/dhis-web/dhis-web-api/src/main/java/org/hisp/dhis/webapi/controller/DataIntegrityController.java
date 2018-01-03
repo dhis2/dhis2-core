@@ -74,11 +74,11 @@ public class DataIntegrityController
             false, true, true );
         jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
         jobConfiguration.setAutoFields();
-        notifier.clear( jobConfiguration );
 
         schedulingManager.executeJob( jobConfiguration );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + jobConfiguration.getJobType() + "/" + jobConfiguration.getUid() );
+        response.setHeader( "JobID", jobConfiguration.getUid() );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 }

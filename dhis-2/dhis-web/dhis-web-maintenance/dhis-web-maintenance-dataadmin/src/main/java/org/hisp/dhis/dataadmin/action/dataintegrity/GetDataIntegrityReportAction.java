@@ -75,7 +75,7 @@ public class GetDataIntegrityReportAction
     {
         JobConfiguration jobId = new JobConfiguration( category, currentUserService.getCurrentUser().getUid(), true );
 
-        dataIntegrityReport = (DataIntegrityReport) notifier.getJobSummary( jobId );
+        dataIntegrityReport = (DataIntegrityReport) notifier.getJobSummary( jobId.getJobType() );
 
         return SUCCESS;
     }

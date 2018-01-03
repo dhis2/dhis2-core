@@ -1795,59 +1795,64 @@ function changePageSize( event )
 // Notifications
 // -----------------------------------------------------------------------------
 
+function pingNotificationsWithUrl( url, tableId, completedCallback )
+{
+    $.getJSON( url, function( notifications )
+    {
+        var html = '',
+            isComplete = false;
+
+        if ( isDefined( notifications ) && notifications.length ) {
+            $.each( notifications, function( i, notification )
+            {
+                var first = i === 0,
+                    loaderHtml = '';
+
+                if ( first ) {
+                    $( '#' + tableId ).prop( 'lastUid', notification.uid );
+                    loaderHtml = _loading_bar_html;
+                    $( '#loaderSpan' ).replaceWith ( '' ); // Hide previous loader bar
+                }
+
+                var time = '';
+
+                if ( undefined !== notification.time ) {
+                    time = notification.time.replace( 'T', ' ' ).substring( 0, 19 );
+                }
+
+                html += '<tr><td>' + time + '</td><td>' + notification.message + ' &nbsp;';
+
+                if ( notification.level === "ERROR" ) {
+                    html += '<img src="../images/error_small.png">';
+                    isComplete = true;
+                }
+                else if ( notification.completed ) {
+                    html += '<img src="../images/completed.png">';
+                    isComplete = true;
+                }
+                else {
+                    html += loaderHtml;
+                }
+
+                html += '</td></tr>';
+            } );
+
+            $( '#' + tableId ).show().prepend( html );
+
+            if ( isComplete && completedCallback && completedCallback.call ) {
+                completedCallback();
+            }
+        }
+    } );
+}
+
 function pingNotifications( category, tableId, completedCallback )
 {
 	var lastUid = $( '#' + tableId ).prop( 'lastUid' ); // Store on table property
 	
 	var param = ( undefined !== lastUid ) ? '?lastId=' + lastUid : '';
-	
-	$.getJSON( '../api/system/tasks/' + category + param, function( notifications )
-	{
-		var html = '',
-		    isComplete = false;
 
-		if ( isDefined( notifications ) && notifications.length ) {
-			$.each( notifications, function( i, notification )
-			{
-				var first = i == 0,
-					loaderHtml = '';
-
-                if ( first ) {
-					$( '#' + tableId ).prop( 'lastUid', notification.uid );
-					loaderHtml = _loading_bar_html;
-					$( '#loaderSpan' ).replaceWith ( '' ); // Hide previous loader bar
-				}
-				
-				var time = '';
-				
-				if ( undefined !== notification.time ) {
-					time = notification.time.replace( 'T', ' ' ).substring( 0, 19 );
-				}
-				
-				html += '<tr><td>' + time + '</td><td>' + notification.message + ' &nbsp;';
-				
-				if ( notification.level == "ERROR" ) {
-					html += '<img src="../images/error_small.png">';
-					isComplete = true;
-				}
-				else if ( notification.completed ) {
-					html += '<img src="../images/completed.png">';
-					isComplete = true;
-				}
-				else {
-					html += loaderHtml;
-				}
-				
-				html += '</td></tr>';
-			} );
-		
-			$( '#' + tableId ).show().prepend( html );
-		
-			if ( isComplete && completedCallback && completedCallback.call ) {
-				completedCallback();				
-			}
-		}
-	} );
+	pingNotificationsWithUrl('../api/system/tasks/' + category + param, tableId, completedCallback);
 }
 
 //-----------------------------------------------------------------------------

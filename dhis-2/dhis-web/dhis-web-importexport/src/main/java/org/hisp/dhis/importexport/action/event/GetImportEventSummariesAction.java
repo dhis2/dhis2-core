@@ -68,7 +68,7 @@ public class GetImportEventSummariesAction
     {
         JobConfiguration jobId = new JobConfiguration( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        importSummaries = (ImportSummaries) notifier.getJobSummary( jobId );
+        importSummaries = (ImportSummaries) notifier.getJobSummary( jobId.getJobType() );
 
         return SUCCESS;
     }

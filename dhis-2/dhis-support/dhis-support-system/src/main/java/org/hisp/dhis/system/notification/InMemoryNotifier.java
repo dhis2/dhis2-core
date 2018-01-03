@@ -32,7 +32,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.collection.JobLocalMap;
 
 import java.util.Date;
 import java.util.List;
@@ -45,8 +44,6 @@ public class InMemoryNotifier
     implements Notifier
 {
     private static final Log log = LogFactory.getLog( InMemoryNotifier.class );
-    
-    private JobLocalMap<JobType, Object> jobSummaries = new JobLocalMap<>();
 
     private NotificationMap notificationMap = new NotificationMap();
 
@@ -117,12 +114,6 @@ public class InMemoryNotifier
     }
 
     @Override
-    public List<Notification> getNotifications( JobConfiguration id, String lastId )
-    {
-        return notificationMap.getNotificationsByJobId( id.getJobType(), id.getUid() );
-    }
-
-    @Override
     public List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
         return notificationMap.getNotificationsByJobId( jobType, jobId );
@@ -156,20 +147,21 @@ public class InMemoryNotifier
     {
         if ( id != null && !( level != null && level.isOff() ) )
         {
-            jobSummaries.get( id ).put( id.getJobType(), jobSummary );
+            notificationMap.addSummary( id, jobSummary);
         }
         
         return this;
     }
 
     @Override
-    public Object getJobSummary( JobConfiguration id )
+    public Object getJobSummary( JobType jobType )
     {
-        if ( id != null )
-        {
-            return jobSummaries.get( id ).get( id.getJobType() );
-        }
-        
-        return null;
+        return notificationMap.getSummary( jobType );
+    }
+
+    @Override
+    public Object getJobSummaryByJobId( JobType jobType, String jobId )
+    {
+        return notificationMap.getSummary( jobType, jobId );
     }
 }

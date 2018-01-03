@@ -79,7 +79,7 @@ public class GetImportReportAction
     {
         JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid(), true );
 
-        importReport = (ImportReport) notifier.getJobSummary( jobId );
+        importReport = (ImportReport) notifier.getJobSummary( jobId.getJobType() );
 
         return SUCCESS;
     }

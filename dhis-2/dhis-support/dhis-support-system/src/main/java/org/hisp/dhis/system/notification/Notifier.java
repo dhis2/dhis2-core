@@ -55,8 +55,6 @@ public interface Notifier
 
     List<Notification> getLastNotificationsByJobType( JobType jobType );
 
-    List<Notification> getNotifications( JobConfiguration id, String lastId );
-
     List<Notification> getNotificationsByJobId( JobType jobType, String jobId );
 
     Map<String, List<Notification>> getNotificationsByJobType( JobType jobType );
@@ -66,6 +64,8 @@ public interface Notifier
     Notifier addJobSummary( JobConfiguration id, Object taskSummary );
     
     Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary );
-    
-    Object getJobSummary( JobConfiguration id );
+
+    Object getJobSummary( JobType jobType );
+
+    Object getJobSummaryByJobId( JobType jobType, String jobId );
 }
