@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -130,14 +131,15 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no read access to program stage: " + programStage.getUid() );
         }
 
-        /*
         DataElementCategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
 
-        if ( !aclService.canDataRead( user, attributeOptionCombo ) )
+        for ( DataElementCategoryOption categoryOption : attributeOptionCombo.getCategoryOptions() )
         {
-            errors.add( "User has no read access to attribute option combo: " + attributeOptionCombo.getUid() );
+            if ( !aclService.canDataRead( user, categoryOption ) )
+            {
+                errors.add( "User has no read access to attribute option combo: " + categoryOption.getUid() );
+            }
         }
-        */
 
         return errors;
     }
