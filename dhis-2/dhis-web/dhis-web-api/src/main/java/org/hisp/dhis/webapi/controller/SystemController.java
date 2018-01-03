@@ -253,22 +253,27 @@ public class SystemController
 
             Object summary = notifier.getJobSummary( jobType );
 
-            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
-            {
-                ImportSummary importSummary = (ImportSummary) summary;
-                renderService.toJson( response.getOutputStream(), importSummary );
-                return;
-            }
-            else
-            {
-                renderService.toJson( response.getOutputStream(), summary );
-                return;
-            }
+            handleSummary( response, summary );
+            return;
         }
 
         setNoStore( response );
 
         renderService.toJson( response.getOutputStream(), new ImportSummary() );
+    }
+
+    private void handleSummary( HttpServletResponse response, Object summary )
+        throws IOException
+    {
+        if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
+        {
+            ImportSummary importSummary = (ImportSummary) summary;
+            renderService.toJson( response.getOutputStream(), importSummary );
+        }
+        else
+        {
+            renderService.toJson( response.getOutputStream(), summary );
+        }
     }
 
     @RequestMapping( value = "/taskSummaries/{category}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
@@ -280,17 +285,7 @@ public class SystemController
 
             Object summary = notifier.getJobSummaryByJobId( jobType, jobId );
 
-            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
-            {
-                ImportSummary importSummary = (ImportSummary) summary;
-                renderService.toJson( response.getOutputStream(), importSummary );
-                return;
-            }
-            else
-            {
-                renderService.toJson( response.getOutputStream(), summary );
-                return;
-            }
+            handleSummary( response, summary );
         }
 
         setNoStore( response );
