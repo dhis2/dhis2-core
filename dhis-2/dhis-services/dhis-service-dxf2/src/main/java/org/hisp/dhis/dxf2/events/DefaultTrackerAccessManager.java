@@ -39,7 +39,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +49,12 @@ import java.util.Set;
  */
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
-    @Autowired
-    private AclService aclService;
+    private final AclService aclService;
+
+    public DefaultTrackerAccessManager( AclService aclService )
+    {
+        this.aclService = aclService;
+    }
 
     @Override
     public List<String> canRead( User user, ProgramInstance programInstance )
