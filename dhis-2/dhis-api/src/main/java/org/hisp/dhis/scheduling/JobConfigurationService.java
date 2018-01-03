@@ -85,4 +85,11 @@ public interface JobConfigurationService
      * @return map with parameters classes
      */
     Map<String, Map<String, Property>> getJobParametersSchema();
+
+    /**
+     * Get a JobConfiguration based on a name
+     * @param name of the JobConfiguration
+     * @return JobConfiguration or null
+     */
+    JobConfiguration getJobConfigurationByName( String name );
 }
