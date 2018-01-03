@@ -251,13 +251,12 @@ public class ProcessingSendQuickSMSAction
             }
         }
 
-        JobConfiguration jobId = new JobConfiguration( JobType.SMS_SEND, currentUser.getUid() );
-        notifier.clear( jobId );
-
         SmsJobParameters jobParameters = new SmsJobParameters( "", text, recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
 
         JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendQuickSmsAction", JobType.SMS_SEND, null, jobParameters,
-            false, true );
+            false, true, true );
+
+        notifier.clear( processingSendSmsJobConfiguration );
 
         schedulingManager.executeJob( processingSendSmsJobConfiguration );
 

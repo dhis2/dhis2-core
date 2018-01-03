@@ -66,7 +66,7 @@ public class GetImportEventSummariesAction
     @Override
     public String execute()
     {
-        JobConfiguration jobId = new JobConfiguration( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         importSummaries = (ImportSummaries) notifier.getJobSummary( jobId );
 

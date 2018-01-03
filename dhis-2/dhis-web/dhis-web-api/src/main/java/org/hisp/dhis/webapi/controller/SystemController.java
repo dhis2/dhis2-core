@@ -252,7 +252,7 @@ public class SystemController
         {
             JobType jobType = JobType.valueOf( category.toUpperCase() );
 
-            JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid(), true );
 
             Object summary = notifier.getJobSummary( jobId );
 

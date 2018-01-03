@@ -243,14 +243,13 @@ public class ProcessingSendSMSAction
             }
         }
 
-        JobConfiguration jobId = new JobConfiguration( JobType.SMS_SEND, currentUser.getUid() );
-        notifier.clear( jobId );
 
         SmsJobParameters jobParameters = new SmsJobParameters( "", text, recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
 
         JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND, null, jobParameters,
-            false, true );
-        
+            false, true, true );
+        notifier.clear( processingSendSmsJobConfiguration );
+
         schedulingManager.executeJob( processingSendSmsJobConfiguration );
 
         if ( message != null && !message.equals( "success" ) )

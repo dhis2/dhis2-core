@@ -141,7 +141,7 @@ public class ImportEventAction
     @Override
     public String execute() throws Exception
     {
-        JobConfiguration jobId = new JobConfiguration( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         notifier.clear( jobId );
 

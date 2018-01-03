@@ -137,8 +137,10 @@ public class InMemoryNotifier
     @Override
     public Notifier clear( JobConfiguration id )
     {
-        System.out.println(id + ", " +  notificationMap);
-        notificationMap.clear( id );
+        if ( id != null )
+        {
+            notificationMap.clear( id );
+        }
 
         return this;
     }

@@ -154,6 +154,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     @Override
     public ObjectBundleCommitReport commit( ObjectBundle bundle )
     {
+        System.out.println("bundle jobId: " + bundle.getJobId() + ", hasJobId: " + bundle.hasJobId());
         Map<Class<?>, TypeReport> typeReports = new HashMap<>();
         ObjectBundleCommitReport commitReport = new ObjectBundleCommitReport( typeReports );
 
