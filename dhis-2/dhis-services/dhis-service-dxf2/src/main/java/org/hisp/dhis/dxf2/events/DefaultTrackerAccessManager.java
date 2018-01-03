@@ -89,9 +89,27 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
+        // always allow if user == null (internal process) or user is superuser
         if ( user == null || user.isSuper() )
         {
             return errors;
+        }
+
+        OrganisationUnit ou = programInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+            {
+                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+            }
+        }
+
+        Program program = programInstance.getProgram();
+
+        if ( !aclService.canDataWrite( user, program ) )
+        {
+            errors.add( "User has no write access to program: " + program.getUid() );
         }
 
         return errors;
@@ -131,15 +149,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no read access to program stage: " + programStage.getUid() );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
-
-        for ( DataElementCategoryOption categoryOption : attributeOptionCombo.getCategoryOptions() )
-        {
-            if ( !aclService.canDataRead( user, categoryOption ) )
-            {
-                errors.add( "User has no read access to attribute option combo: " + categoryOption.getUid() );
-            }
-        }
+        errors.addAll( canRead( user, programStageInstance.getAttributeOptionCombo() ) );
 
         return errors;
     }
@@ -149,10 +159,36 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
+        // always allow if user == null (internal process) or user is superuser
         if ( user == null || user.isSuper() )
         {
             return errors;
         }
+
+        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+            {
+                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+            }
+        }
+
+        ProgramStage programStage = programStageInstance.getProgramStage();
+        Program program = programStage.getProgram();
+
+        if ( !aclService.canDataWrite( user, program ) )
+        {
+            errors.add( "User has no write access to program: " + program.getUid() );
+        }
+
+        if ( !aclService.canDataWrite( user, programStage ) )
+        {
+            errors.add( "User has no write access to program stage: " + programStage.getUid() );
+        }
+
+        errors.addAll( canWrite( user, programStageInstance.getAttributeOptionCombo() ) );
 
         return errors;
     }
@@ -187,6 +223,57 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         if ( user == null || user.isSuper() )
         {
             return errors;
+        }
+
+        errors.addAll( canWrite( user, dataValue.getProgramStageInstance() ) );
+
+        DataElement dataElement = dataValue.getDataElement();
+
+        if ( !aclService.canDataWrite( user, dataElement ) )
+        {
+            errors.add( "User has no write access to data element: " + dataElement.getUid() );
+        }
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canRead( User user, DataElementCategoryOptionCombo categoryOptionCombo )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
+        {
+            if ( !aclService.canDataRead( user, categoryOption ) )
+            {
+                errors.add( "User has no read access to category option: " + categoryOption.getUid() );
+            }
+        }
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOptionCombo )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
+        {
+            if ( !aclService.canDataWrite( user, categoryOption ) )
+            {
+                errors.add( "User has no write access to category option: " + categoryOption.getUid() );
+            }
         }
 
         return errors;

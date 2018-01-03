@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -51,4 +52,8 @@ public interface TrackerAccessManager
     List<String> canRead( User user, TrackedEntityDataValue dataValue );
 
     List<String> canWrite( User user, TrackedEntityDataValue dataValue );
+
+    List<String> canRead( User user, DataElementCategoryOptionCombo categoryOptionCombo );
+
+    List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOptionCombo );
 }
