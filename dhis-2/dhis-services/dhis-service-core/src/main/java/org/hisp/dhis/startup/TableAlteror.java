@@ -640,6 +640,7 @@ public class TableAlteror
         executeSql( "UPDATE dataset SET novaluerequirescomment = false WHERE novaluerequirescomment IS NULL" );
         executeSql( "UPDATE dataset SET openfutureperiods = 12 where allowfutureperiods is true" );
         executeSql( "UPDATE dataset SET openfutureperiods = 0 where allowfutureperiods is false" );
+        executeSql( "update dataset SET compulsoryfieldscompleteonly = false WHERE compulsoryfieldscompleteonly IS NULL" );
         executeSql( "ALTER TABLE dataset DROP COLUMN allowfutureperiods" );
 
         executeSql( "UPDATE categorycombo SET skiptotal = false WHERE skiptotal IS NULL" );
