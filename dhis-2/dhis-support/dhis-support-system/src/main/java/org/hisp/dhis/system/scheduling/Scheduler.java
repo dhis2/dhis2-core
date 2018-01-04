@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.scheduling;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,6 +148,14 @@ public interface Scheduler
      * @return the job status.
      */
     JobStatus getJobStatus( String key );
+
+    /**
+     * Check if job is in system and stop it if it is
+     *
+     * @param key uid of the job
+     * @return true/false if the execution suceeded
+     */
+    boolean ifJobInSystemStop( String key );
 
     /**
      * Check if jobConfiguration is in system

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,10 @@ import java.util.Set;
  */
 public enum DataSetNotificationTrigger
 {
-    COMPLETION, SCHEDULED;
+    DATA_SET_COMPLETION, SCHEDULED_DAYS;
 
     private static final Set<DataSetNotificationTrigger> SCHEDULED_TRIGGERS =
-        new ImmutableSet.Builder<DataSetNotificationTrigger>().add( SCHEDULED ).build();
+        new ImmutableSet.Builder<DataSetNotificationTrigger>().add( SCHEDULED_DAYS ).build();
 
     public boolean isScheduled()
     {
