@@ -112,7 +112,6 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationCriteria;
@@ -472,15 +471,6 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteUser( User user )
-    {
-        return null;
-    }
-
-    public void deleteUserCredentials( UserCredentials userCredentials )
-    {
-    }
-
-    public String allowDeleteUserCredentials( UserCredentials userCredentials )
     {
         return null;
     }
