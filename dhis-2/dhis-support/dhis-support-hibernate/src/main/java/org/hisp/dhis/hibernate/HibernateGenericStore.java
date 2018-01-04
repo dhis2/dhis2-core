@@ -55,6 +55,8 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -72,6 +74,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -99,6 +102,9 @@ public class HibernateGenericStore<T>
 
     @Autowired
     protected CurrentUserService currentUserService;
+
+    @Autowired
+    protected SchemaService schemaService;
 
     @Autowired
     protected DeletedObjectService deletedObjectService;
@@ -725,8 +731,13 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public List<T> getAllByAttributes( List<Attribute> attributes )
     {
-        //TODO check for presence of attribute values
-        
+        Schema schema = schemaService.getDynamicSchema( getClazz() );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
         query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
@@ -774,6 +785,13 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
+        Schema schema = schemaService.getDynamicSchema( getClazz() );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        {
+            return new ArrayList<>();
+        }
+
         query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
@@ -788,6 +806,13 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
+        Schema schema = schemaService.getDynamicSchema( getClazz() );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        {
+            return null;
+        }
+
         query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );

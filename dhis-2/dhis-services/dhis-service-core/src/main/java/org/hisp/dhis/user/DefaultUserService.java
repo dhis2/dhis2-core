@@ -41,11 +41,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -118,9 +116,6 @@ public class DefaultUserService
         this.passwordManager = passwordManager;
     }
 
-    @Autowired
-    private DeletionManager deletionManager;
-
     // -------------------------------------------------------------------------
     // UserService implementation
     // -------------------------------------------------------------------------
@@ -152,12 +147,7 @@ public class DefaultUserService
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );
 
-        // Invoke deletion manager directly for credentials, not intercepted
-
-        deletionManager.execute( user.getUserCredentials() );
-
-        // Credentials deleted through deletion handler
-
+        userCredentialsStore.delete( user.getUserCredentials() );
         userStore.delete( user );
     }
 
@@ -614,7 +604,8 @@ public class DefaultUserService
             return errors;
         }
 
-        // validate user role
+        // Validate user role
+        
         boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
         user.getUserCredentials().getUserAuthorityGroups().forEach( ur ->
@@ -625,7 +616,8 @@ public class DefaultUserService
             }
         } );
 
-        // validate group
+        // Validate user group
+        
         boolean canAdd = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD );
 
         if ( canAdd )
