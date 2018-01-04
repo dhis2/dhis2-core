@@ -160,7 +160,8 @@ public class ImportDataValueAction
     {
         strategy = strategy != null ? strategy : ImportStrategy.NEW_AND_UPDATES;
 
-        JobConfiguration jobId = new JobConfiguration( JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( null,
+            JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         notifier.clear( jobId );
 

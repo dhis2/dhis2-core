@@ -77,7 +77,7 @@ public class GetImportSummaryAction
     @Override
     public String execute()
     {
-        JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( null, jobType, currentUserService.getCurrentUser().getUid(), true );
 
         summary = (ImportSummary) notifier.getJobSummary( jobId.getJobType() );
 

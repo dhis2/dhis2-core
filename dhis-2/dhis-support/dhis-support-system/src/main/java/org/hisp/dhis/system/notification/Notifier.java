@@ -31,6 +31,7 @@ package org.hisp.dhis.system.notification;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,19 +52,21 @@ public interface Notifier
 
     Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    Map<JobType, Map<String, List<Notification>>> getNotifications( );
+    Map<JobType, Map<String, LinkedList<Notification>>> getNotifications( );
 
-    List<Notification> getLastNotificationsByJobType( JobType jobType );
+    List<Notification> getLastNotificationsByJobType( JobType jobType, String lastId );
 
     List<Notification> getNotificationsByJobId( JobType jobType, String jobId );
 
-    Map<String, List<Notification>> getNotificationsByJobType( JobType jobType );
+    Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType );
     
     Notifier clear( JobConfiguration id );
     
     Notifier addJobSummary( JobConfiguration id, Object taskSummary );
     
     Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary );
+
+    Object getJobSummariesForJobType( JobType jobType );
 
     Object getJobSummary( JobType jobType );
 

@@ -93,9 +93,6 @@ public class DefaultSchedulingManager
 
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
-        runningJobConfigurations.clear();
-        System.out.println(runningJobConfigurations);
-
         return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(
             jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) &&
                 !jobConfig.isContinuousExecution() );

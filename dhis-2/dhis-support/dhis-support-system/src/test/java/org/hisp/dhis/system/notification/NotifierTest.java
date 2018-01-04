@@ -52,9 +52,9 @@ public class NotifierTest
 
     private User user = createUser( 'A' );
     
-    private JobConfiguration id1 = new JobConfiguration( DATAVALUE_IMPORT, user.getUid(), true );
-    private JobConfiguration id2 = new JobConfiguration( ANALYTICS_TABLE, user.getUid(), true );
-    private JobConfiguration id3 = new JobConfiguration( METADATA_IMPORT, user.getUid(), true );
+    private JobConfiguration id1 = new JobConfiguration( null, DATAVALUE_IMPORT, user.getUid(), true );
+    private JobConfiguration id2 = new JobConfiguration( null, ANALYTICS_TABLE, user.getUid(), true );
+    private JobConfiguration id3 = new JobConfiguration( null, METADATA_IMPORT, user.getUid(), true );
     
     @Test
     public void testNotifiy()

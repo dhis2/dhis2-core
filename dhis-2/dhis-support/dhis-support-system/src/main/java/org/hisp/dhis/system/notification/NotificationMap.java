@@ -28,6 +28,7 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,28 +45,29 @@ import java.util.Map;
  */
 public class NotificationMap
 {
-    private Map<JobType, Map<String, List<Notification>>> notificationsWithType;
+    private Map<JobType, Map<String, LinkedList<Notification>>> notificationsWithType;
 
     private Map<JobType, LinkedHashMap<String, Object>> summariesWithType;
 
     NotificationMap()
     {
         notificationsWithType = new HashMap<>();
-        Arrays.stream( JobType.values() ).filter( JobType::isExecutable )
+        Arrays.stream( JobType.values() )
             .forEach( jobType -> notificationsWithType.put( jobType, new HashMap<>() ) );
 
         summariesWithType = new HashMap<>();
-        Arrays.stream( JobType.values() ).filter( JobType::isExecutable )
+        Arrays.stream( JobType.values() )
             .forEach( jobType -> summariesWithType.put( jobType, new LinkedHashMap<>() ) );
     }
 
     public List<Notification> getLastNotificationsByJobType( JobType jobType )
     {
-        Map<String, List<Notification>> jobTypeNotifications = notificationsWithType.get( jobType );
+        Map<String, LinkedList<Notification>> jobTypeNotifications = notificationsWithType.get( jobType );
 
         String lastUid = "";
         Notification lastNotification = null;
-        for (Map.Entry<String, List<Notification>> entry : jobTypeNotifications.entrySet()) {
+        for ( Map.Entry<String, LinkedList<Notification>> entry : jobTypeNotifications.entrySet() )
+        {
             String uid = entry.getKey();
             List<Notification> list = entry.getValue();
 
@@ -75,21 +78,22 @@ public class NotificationMap
             }
         }
 
-        if ( lastUid.equals( "" ) )
+        if ( StringUtils.isBlank( lastUid ) )
         {
-            return new ArrayList<>( );
-        } else
+            return new ArrayList<>();
+        }
+        else
         {
             return jobTypeNotifications.get( lastUid );
         }
     }
 
-    public Map<JobType, Map<String, List<Notification>>> getNotifications( )
+    public Map<JobType, Map<String, LinkedList<Notification>>> getNotifications()
     {
         return notificationsWithType;
     }
 
-    public List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
+    public LinkedList<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
         if ( notificationsWithType.get( jobType ).containsKey( jobId ) )
         {
@@ -97,11 +101,11 @@ public class NotificationMap
         }
         else
         {
-            return new ArrayList<>( );
+            return new LinkedList<>();
         }
     }
 
-    public Map<String, List<Notification>> getNotificationsWithType( JobType jobType )
+    public Map<String, LinkedList<Notification>> getNotificationsWithType( JobType jobType )
     {
         return notificationsWithType.get( jobType );
     }
@@ -110,19 +114,19 @@ public class NotificationMap
     {
         String uid = jobConfiguration.getUid();
 
-        Map<String, List<Notification>> uidNotifications = notificationsWithType.get( jobConfiguration.getJobType() );
+        Map<String, LinkedList<Notification>> uidNotifications = notificationsWithType.get( jobConfiguration.getJobType() );
 
-        List<Notification> notifications;
+        LinkedList<Notification> notifications;
         if ( uidNotifications.containsKey( uid ) )
         {
             notifications = uidNotifications.get( uid );
         }
         else
         {
-            notifications = new ArrayList<>( );
+            notifications = new LinkedList<>();
         }
 
-        notifications.add( notification );
+        notifications.addFirst( notification );
 
         uidNotifications.put( uid, notifications );
 
@@ -153,6 +157,11 @@ public class NotificationMap
     public Object getSummary( JobType jobType, String jobId )
     {
         return summariesWithType.get( jobType ).get( jobId );
+    }
+
+    public Object getJobSummariesForJobType( JobType jobType )
+    {
+        return summariesWithType.get( jobType );
     }
 
     public void clear( JobConfiguration jobConfiguration )

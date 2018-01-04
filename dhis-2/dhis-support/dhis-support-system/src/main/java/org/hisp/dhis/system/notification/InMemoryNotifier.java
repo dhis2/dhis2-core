@@ -33,8 +33,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
-import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +47,7 @@ public class InMemoryNotifier
 {
     private static final Log log = LogFactory.getLog( InMemoryNotifier.class );
 
-    private NotificationMap notificationMap;
-
-    @PostConstruct
-    public void init()
-    {
-        notificationMap = new NotificationMap();
-    }
+    private NotificationMap notificationMap = new NotificationMap();
 
     // -------------------------------------------------------------------------
     // Notifier implementation
@@ -109,13 +104,25 @@ public class InMemoryNotifier
     }
 
     @Override
-    public List<Notification> getLastNotificationsByJobType( JobType jobType )
+    public List<Notification> getLastNotificationsByJobType( JobType jobType, String lastId )
     {
-        return notificationMap.getLastNotificationsByJobType( jobType );
+        List<Notification> list = new ArrayList<>();
+
+        for ( Notification notification : notificationMap.getLastNotificationsByJobType( jobType ) )
+        {
+            if ( lastId != null && lastId.equals( notification.getUid() ))
+            {
+                break;
+            }
+
+            list.add( notification );
+        }
+
+        return list;
     }
 
     @Override
-    public Map<JobType, Map<String, List<Notification>>> getNotifications( )
+    public Map<JobType, Map<String, LinkedList<Notification>>> getNotifications( )
     {
         return notificationMap.getNotifications();
     }
@@ -127,7 +134,7 @@ public class InMemoryNotifier
     }
 
     @Override
-    public Map<String, List<Notification>> getNotificationsByJobType( JobType jobType )
+    public Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType )
     {
         return notificationMap.getNotificationsWithType( jobType );
     }
@@ -158,6 +165,12 @@ public class InMemoryNotifier
         }
         
         return this;
+    }
+
+    @Override
+    public Object getJobSummariesForJobType( JobType jobType )
+    {
+        return notificationMap.getJobSummariesForJobType( jobType );
     }
 
     @Override

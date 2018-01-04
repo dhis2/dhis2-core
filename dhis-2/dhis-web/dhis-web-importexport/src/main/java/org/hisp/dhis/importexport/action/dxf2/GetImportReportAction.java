@@ -77,7 +77,7 @@ public class GetImportReportAction
     @Override
     public String execute()
     {
-        JobConfiguration jobId = new JobConfiguration( jobType, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( null, jobType, currentUserService.getCurrentUser().getUid(), true );
 
         importReport = (ImportReport) notifier.getJobSummary( jobId.getJobType() );
 

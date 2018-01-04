@@ -29,11 +29,12 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.scheduling.*;
-import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -57,9 +58,6 @@ public class DataIntegrityController
     @Autowired
     private SchedulingManager schedulingManager;
 
-    @Autowired
-    private Notifier notifier;
-
     public static final String RESOURCE_PATH = "/dataIntegrity";
 
     //--------------------------------------------------------------------------
@@ -77,8 +75,6 @@ public class DataIntegrityController
 
         schedulingManager.executeJob( jobConfiguration );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + jobConfiguration.getJobType() + "/" + jobConfiguration.getUid() );
-        response.setHeader( "JobID", jobConfiguration.getUid() );
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        JacksonUtils.fromObjectToReponse( response, jobConfiguration );
     }
 }

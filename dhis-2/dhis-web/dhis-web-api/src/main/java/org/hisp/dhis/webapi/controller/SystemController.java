@@ -72,6 +72,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -191,16 +192,15 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
     }
 
-    @RequestMapping( value = "/tasks/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
+        throws IOException
     {
-        List<Notification> notifications = new ArrayList<>( );
+        List<Notification> notifications = new ArrayList<>();
 
-        if ( category != null )
+        if ( jobType != null )
         {
-            JobType jobType = JobType.valueOf( category.toUpperCase() );
-
-            notifications = notifier.getLastNotificationsByJobType( jobType );
+            notifications = notifier.getLastNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ), lastId );
         }
 
         setNoStore( response );
@@ -208,16 +208,14 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/tasks/extended/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTasksExtendedJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/tasks/extended/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
     {
-        Map<String, List<Notification>> notifications = new HashMap<>();
+        Map<String, LinkedList<Notification>> notifications = new HashMap<>();
 
-        if ( category != null )
+        if ( jobType != null )
         {
-            JobType jobType = JobType.valueOf( category.toUpperCase() );
-
-            notifications = notifier.getNotificationsByJobType( jobType );
+            notifications = notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
         }
 
         setNoStore( response );
@@ -225,18 +223,16 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/tasks/{category}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskJsonByUid( @PathVariable( "category" ) String category, @PathVariable( "jobId" ) String jobId,
+    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
     {
         List<Notification> notifications = new ArrayList<>();
 
-        if ( category != null )
+        if ( jobType != null )
         {
-            JobType jobType = JobType.valueOf( category.toUpperCase() );
-
-            notifications = notifier.getNotificationsByJobId( jobType, jobId );
+            notifications = notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
         }
 
         setNoStore( response );
@@ -244,28 +240,57 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/taskSummaries/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskSummaryJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/taskSummaries/extended/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
     {
-        if ( category != null )
+        if ( jobType != null )
         {
-            JobType jobType = JobType.valueOf( category.toUpperCase() );
-
-            Object summary = notifier.getJobSummary( jobType );
+            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
 
             handleSummary( response, summary );
             return;
         }
 
         setNoStore( response );
+    }
 
-        renderService.toJson( response.getOutputStream(), new ImportSummary() );
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummary( JobType.valueOf( jobType.toUpperCase() ) );
+
+            handleSummary( response, summary );
+            return;
+        }
+
+        setNoStore( response );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
+        HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+
+            handleSummary( response, summary );
+        }
+
+        setNoStore( response );
     }
 
     private void handleSummary( HttpServletResponse response, Object summary )
         throws IOException
     {
-        if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
+        if ( summary != null && ImportSummary.class.isInstance( summary ) ) //TODO improve this
         {
             ImportSummary importSummary = (ImportSummary) summary;
             renderService.toJson( response.getOutputStream(), importSummary );
@@ -276,25 +301,10 @@ public class SystemController
         }
     }
 
-    @RequestMapping( value = "/taskSummaries/{category}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskSummaryJson( @PathVariable( "category" ) String category, @PathVariable( "jobId" ) String jobId, HttpServletResponse response ) throws IOException
-    {
-        if ( category != null )
-        {
-            JobType jobType = JobType.valueOf( category.toUpperCase() );
-
-            Object summary = notifier.getJobSummaryByJobId( jobType, jobId );
-
-            handleSummary( response, summary );
-        }
-
-        setNoStore( response );
-
-        renderService.toJson( response.getOutputStream(), new ImportSummary() );
-    }
-
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
+    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
+    public @ResponseBody
+    SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 

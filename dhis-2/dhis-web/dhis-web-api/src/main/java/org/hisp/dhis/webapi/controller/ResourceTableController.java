@@ -28,15 +28,14 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -63,9 +62,6 @@ public class ResourceTableController
     public static final String RESOURCE_PATH = "/resourceTables";
 
     @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
-
-    @Autowired
     private Scheduler scheduler;
 
     @Autowired
@@ -84,8 +80,6 @@ public class ResourceTableController
         @RequestParam( required = false ) Integer lastYears,
         HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration jobId = new JobConfiguration( JobType.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser().getUid(), true );
-        
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
         
         if ( skipAggregate )
@@ -104,39 +98,38 @@ public class ResourceTableController
         {
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
-        
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears( lastYears )
-            .withJobId( jobId )
-            .withSkipTableTypes( skipTableTypes )
-            .withSkipResourceTables( skipResourceTables )
-            .build();
 
-        scheduler.executeJob( () -> analyticsTableGenerator.generateTables( params ) );
-        
-        webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
+        AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes, skipResourceTables );
+
+        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "", analyticsJobParameters, false, true, true );
+        analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
+
+        scheduler.executeJob( analyticsTableJob );
+
+        JacksonUtils.fromObjectToReponse( response, analyticsTableJob );
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration jobId = new JobConfiguration( JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
+            JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
 
-        scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
+        scheduler.executeJob( resourceTableJob );
 
-        webMessageService.send( WebMessageUtils.ok( "Initiated resource table update" ), response, request );
+        JacksonUtils.fromObjectToReponse( response, resourceTableJob );
     }
 
     @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(),
+        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "", new MonitoringJobParameters(),
             false, true, true );
 
         scheduler.executeJob( monitoringJob );
 
-        webMessageService.send( WebMessageUtils.ok( "Initiated data monitoring" ), response, request );
+        JacksonUtils.fromObjectToReponse( response, monitoringJob );
     }
 }

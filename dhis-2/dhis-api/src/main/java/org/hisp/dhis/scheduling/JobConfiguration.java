@@ -92,8 +92,9 @@ public class JobConfiguration
     {
     }
 
-    public JobConfiguration( JobType jobType, String userUid, boolean inMemoryJob )
+    public JobConfiguration( String name, JobType jobType, String userUid, boolean inMemoryJob )
     {
+        this.name = name;
         this.jobType = jobType;
         this.userUid = userUid;
         this.inMemoryJob = inMemoryJob;

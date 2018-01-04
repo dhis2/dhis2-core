@@ -607,7 +607,7 @@ public class CompleteDataSetRegistrationController
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        JobConfiguration jobId = new JobConfiguration( JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( null, JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         scheduler.executeJob(
             new ImportCompleteDataSetRegistrationsTask(

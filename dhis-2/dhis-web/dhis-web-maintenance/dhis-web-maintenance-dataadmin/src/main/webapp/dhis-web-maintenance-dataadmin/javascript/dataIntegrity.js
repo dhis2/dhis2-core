@@ -1,4 +1,4 @@
-var JobID = null;
+var jobID = null;
 
 $( document ).ready( function() {
     showLoader();
@@ -6,8 +6,9 @@ $( document ).ready( function() {
     $.ajax({
         url: '../api/dataIntegrity',
         method: 'POST',
+        type: "json",
         success: function(data, status, xhr) {
-            JobID = xhr.getResponseHeader('JobID');
+            jobID = data['id'];
             pollDataIntegrityCheckFinished()
         },
         error: function( xhr, txtStatus, err ) {
@@ -19,9 +20,9 @@ $( document ).ready( function() {
 
 var checkFinishedTimeout = null;
 
-function pollDataIntegrityCheckFinished( ) {
-    pingNotificationsWithUrl( "../api/system/tasks/DATA_INTEGRITY/" + JobID, "notificationTable", function() {
-        $.getJSON( "../api/system/taskSummaries/DATA_INTEGRITY/" + JobID, {}, function( json ) {
+function pollDataIntegrityCheckFinished() {
+    pingNotifications( 'DATA_INTEGRITY', 'notificationsTable', function() {
+        $.getJSON( "../api/system/taskSummaries/DATA_INTEGRITY/" + jobID, {}, function( json ) {
             hideLoader();
             $( "#di-title" ).hide();
             $( "#di-completed" ).show();

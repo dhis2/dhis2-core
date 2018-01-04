@@ -36,8 +36,6 @@
 
         <property name="enabled" not-null="true" type="boolean" />
 
-        <property name="userUid" type="text" />
-
         <property name="jobParameters" not-null="false" type="serializable" length="65535" />
     </class>
 </hibernate-mapping>
