@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -416,5 +416,48 @@ public class DataQueryParamsTest
         assertEquals( dec_2015, paramsA.getEarliestStartDate() );
         assertEquals( jan_2016.getStartDate(), paramsB.getEarliestStartDate() );
         assertEquals( jan_2016.getStartDate(), paramsC.getEarliestStartDate() );
+    }
+    
+    @Test
+    public void testSetPeriodDimensionWithoutOptionsA()
+    {
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Period apr_2016 = PeriodType.getPeriodFromIsoString( "201604");
+        Period may_2016 = PeriodType.getPeriodFromIsoString( "201605");
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( mar_2016, apr_2016, may_2016 ) ).build();
+        
+        assertEquals( 3, params.getPeriods().size() );
+        
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions()
+            .build();
+
+        assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
+        assertEquals( 0, query.getPeriods().size() );
+        assertEquals( getDate( 2016, 3, 1 ), query.getStartDate() );
+        assertEquals( getDate( 2016, 5, 31 ), query.getEndDate() );        
+    }
+    
+    @Test
+    public void testSetPeriodDimensionWithoutOptionsB()
+    {        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withStartDate( getDate( 2017, 3, 1 ) )
+            .withEndDate( getDate( 2017, 5, 31 ) ).build();
+        
+        assertEquals( 0, params.getPeriods().size() );
+        
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions()
+            .build();
+
+        assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
+        assertEquals( 0, query.getPeriods().size() );
+        assertEquals( getDate( 2017, 3, 1 ), query.getStartDate() );
+        assertEquals( getDate( 2017, 5, 31 ), query.getEndDate() );        
     }
 }

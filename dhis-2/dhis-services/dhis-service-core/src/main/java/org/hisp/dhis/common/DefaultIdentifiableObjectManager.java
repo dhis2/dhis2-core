@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1124,19 +1124,6 @@ public class DefaultIdentifiableObjectManager
         }
 
         return store.getAttributeValueByAttribute( attribute );
-    }
-
-    @Override
-    public List<AttributeValue> getAttributeValueByAttributes( Class<? extends IdentifiableObject> klass, List<Attribute> attributes )
-    {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
-
-        if ( store == null )
-        {
-            return null;
-        }
-
-        return store.getAttributeValueByAttributes( attributes );
     }
 
     @Override

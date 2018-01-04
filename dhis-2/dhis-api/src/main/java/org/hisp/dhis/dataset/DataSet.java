@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -220,6 +220,12 @@ public class DataSet
      * Render multi-organisationUnit forms either with OU vertically or horizontally.
      */
     private boolean renderHorizontally;
+    
+    /**
+    * Property indicating whether all compulsory fields should be filled before completing 
+    * data set
+    */
+    private boolean compulsoryFieldsCompleteOnly;
 
     private ObjectStyle style;
 
@@ -890,4 +896,15 @@ public class DataSet
     {
         this.formName = formName;
     }
+    
+    public boolean isCompulsoryFieldsCompleteOnly()
+    {
+        return compulsoryFieldsCompleteOnly;
+    }
+
+    public void setCompulsoryFieldsCompleteOnly( boolean compulsoryFieldsCompleteOnly )
+    {
+        this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
+    }    
+    
 }
