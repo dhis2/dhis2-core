@@ -249,16 +249,16 @@ public abstract class DeletionHandler
     {
     }
 
+    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    {
+        return null;
+    }
+
     public void deleteProgramMessage( ProgramMessage programMessage )
     {
     }
 
     public String allowDeleteProgramMessage( ProgramMessage programMessage )
-    {
-        return null;
-    }
-
-    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
     {
         return null;
     }
