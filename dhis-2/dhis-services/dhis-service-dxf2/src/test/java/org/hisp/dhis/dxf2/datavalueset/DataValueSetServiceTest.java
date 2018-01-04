@@ -1016,7 +1016,7 @@ public class DataValueSetServiceTest
     @Test
     public void testImportValueWithDataSharingFail() throws IOException
     {
-        dsA.getUserAccesses().forEach( ua -> userAccessService.deleteUserAccess( ua ) );
+        dsA.getUserAccesses().clear();
 
         UserAccess userAccess = new UserAccess();
         userAccess.setUser( user );

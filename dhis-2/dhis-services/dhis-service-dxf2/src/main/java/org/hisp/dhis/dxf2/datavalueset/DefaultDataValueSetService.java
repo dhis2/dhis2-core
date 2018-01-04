@@ -891,12 +891,6 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if ( !aclService.canDataWrite( currentUser, categoryOptionCombo ) )
-            {
-                summary.getConflicts().add( new ImportConflict( dataValue.getAttributeOptionCombo(), "Attribute option combo not writable" ) );
-                continue;
-            }
-
             boolean inUserHierarchy = orgUnitInHierarchyMap.get( orgUnit.getUid(), () -> orgUnit.isDescendant( currentOrgUnits ) );
 
             if ( !inUserHierarchy )
