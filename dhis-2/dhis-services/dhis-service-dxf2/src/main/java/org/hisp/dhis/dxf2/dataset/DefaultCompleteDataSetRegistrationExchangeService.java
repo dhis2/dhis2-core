@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
+
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -46,7 +47,9 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -85,6 +88,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -132,6 +136,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private CurrentUserService currentUserService;
+    
+    @Autowired
+    private CompleteDataSetRegistrationService registrationService; 
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -484,6 +491,29 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             {
                 summary.getConflicts().add( ic.getImportConflict() );
                 continue;
+            }
+            
+            
+            // ---------------------------------------------------------------------
+            // Compulsory fields validation
+            // ---------------------------------------------------------------------
+            
+            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
+                mdProps.orgUnit, mdProps.attrOptCombo, false );
+            
+            
+            if( !missingDataElementOperands.isEmpty() )
+            {
+                for( DataElementOperand dataElementOperand : missingDataElementOperands )
+                {
+                    summary.getConflicts().add(
+                        new ImportConflict( "dataElementOperand", dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
+                }
+                
+                if( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )
+                {
+                    continue;
+                }
             }
 
             // -----------------------------------------------------------------
