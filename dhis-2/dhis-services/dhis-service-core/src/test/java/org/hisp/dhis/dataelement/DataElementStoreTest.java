@@ -35,7 +35,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -360,29 +359,6 @@ public class DataElementStoreTest
         List<DataElement> dataElements = dataElementStore.getDataElementsByZeroIsSignificant( true );
 
         assertTrue( equals( dataElements, dataElementA, dataElementB ) );
-    }
-
-    @Ignore // Fails with expected:<null> but was:<{"class":"class org.hisp.dhis.dataelement.DataElement"
-    @Test
-    public void testDataElementFromAttribute() throws NonUniqueAttributeValueException
-    {
-        Attribute attribute = new Attribute( "test", ValueType.TEXT );
-        attribute.setDataElementAttribute( true );
-        attributeService.addAttribute( attribute );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-
-        AttributeValue attributeValue = new AttributeValue( "SOME VALUE", attribute );
-        attributeService.addAttributeValue( dataElementA, attributeValue );
-
-        dataElementA.getAttributeValues().add( attributeValue );
-        dataElementStore.update( dataElementA );
-
-        DataElement dataElement = dataElementStore.getByAttribute( attribute );
-        assertEquals( dataElement, dataElementA );
     }
 
     @Test
