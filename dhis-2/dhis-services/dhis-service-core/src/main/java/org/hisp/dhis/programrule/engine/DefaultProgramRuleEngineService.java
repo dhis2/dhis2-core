@@ -28,30 +28,75 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
 public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 {
+    private static final Log log = LogFactory.getLog( DefaultProgramRuleEngineService.class );
+
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
     @Autowired
     private ProgramRuleEngine programRuleEngine;
 
+    @Autowired
+    private List<RuleActionImplementer> ruleActionImplementers;
+
     @Override
-    public List<RuleEffect> evaluate( ProgramInstance enrollment )
+    public List<RuleAction> evaluate( ProgramInstance programInstance )
     {
-        return programRuleEngine.evaluateEnrollment( enrollment );
+        log.info( "RuleEngine triggered" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+
+        List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
+
+        for ( RuleAction action : ruleActions )
+        {
+            ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
+            {
+                log.info( String.format( "Invoking %s", i.getClass().getSimpleName() ) );
+
+                i.implement( action, programInstance );
+            } );
+        }
+
+        return ruleActions;
     }
 
     @Override
-    public List<RuleEffect> evaluate( ProgramStageInstance event )
+    public List<RuleAction> evaluate( ProgramStageInstance programStageInstance )
     {
-        return programRuleEngine.evaluateEvent( event );
+        log.info( "RuleEngine triggered" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+
+        List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
+
+        for ( RuleAction action : ruleActions )
+        {
+            ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
+            {
+                log.info( String.format( "Invoking %s", i.getClass().getSimpleName() ) );
+
+                i.implement( action, programStageInstance );
+            } );
+        }
+
+        return ruleActions;
     }
 }

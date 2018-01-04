@@ -32,14 +32,14 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleAction;
 
-import java.util.List;
-
 /**
- * Created by zubair@dhis2.org on 23.10.17.
+ * Created by zubair@dhis2.org on 04.01.18.
  */
-public interface ProgramRuleEngineService
+public interface RuleActionImplementer
 {
-    List<RuleAction> evaluate( ProgramInstance enrollment );
+    boolean accept( RuleAction ruleAction );
 
-    List<RuleAction> evaluate( ProgramStageInstance event );
+    void implement( RuleAction ruleAction, ProgramInstance programInstance );
+
+    void implement( RuleAction ruleAction, ProgramStageInstance programStageInstance );
 }

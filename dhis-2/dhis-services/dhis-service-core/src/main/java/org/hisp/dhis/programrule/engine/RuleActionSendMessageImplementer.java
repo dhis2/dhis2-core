@@ -30,16 +30,50 @@ package org.hisp.dhis.programrule.engine;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.rules.models.RuleAction;
-
-import java.util.List;
+import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Created by zubair@dhis2.org on 23.10.17.
+ * Created by zubair@dhis2.org on 04.01.18.
  */
-public interface ProgramRuleEngineService
+public class RuleActionSendMessageImplementer implements RuleActionImplementer
 {
-    List<RuleAction> evaluate( ProgramInstance enrollment );
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    List<RuleAction> evaluate( ProgramStageInstance event );
+    @Autowired
+    private ProgramNotificationTemplateStore programNotificationTemplateStore;
+
+    @Autowired
+    private ProgramNotificationService programNotificationService;
+
+    @Override
+    public boolean accept( RuleAction ruleAction )
+    {
+        return ruleAction instanceof RuleActionSendMessage;
+    }
+
+    @Override
+    public void implement( RuleAction ruleAction, ProgramInstance programInstance )
+    {
+        programNotificationService.sendProgramRuleTriggeredNotifications( getNotificationTemplate( ruleAction ), programInstance );
+    }
+
+    @Override
+    public void implement( RuleAction ruleAction, ProgramStageInstance programStageInstance )
+    {
+        programNotificationService.sendProgramRuleTriggeredNotifications( getNotificationTemplate( ruleAction ), programStageInstance );
+    }
+
+    private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
+    {
+        RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
+
+        return programNotificationTemplateStore.getByUid( sendMessage.notification() );
+    }
 }

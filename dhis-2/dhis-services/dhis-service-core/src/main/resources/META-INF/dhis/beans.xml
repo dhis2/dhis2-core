@@ -742,6 +742,9 @@
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEntityMapperService" />
 
   <bean id="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" class="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" />
+
+  <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
+
   
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
@@ -1443,8 +1446,6 @@
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
-    <property name="programRuleEngine" ref="org.hisp.dhis.programrule.engine.ProgramRuleEngine"/>
-    <property name="programNotificationTemplateStore" ref="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore"/>
   </bean>
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
