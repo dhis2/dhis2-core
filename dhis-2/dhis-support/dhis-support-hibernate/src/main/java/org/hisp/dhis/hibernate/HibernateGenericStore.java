@@ -155,16 +155,6 @@ public class HibernateGenericStore<T>
         this.cacheable = cacheable;
     }
 
-    protected CriteriaBuilder builder;
-
-    protected CriteriaQuery query;
-
-    @PostConstruct
-    private void initiateCriteriaProperties()
-    {
-        builder = getCriteriaBuilder();
-    }
-
     // -------------------------------------------------------------------------
     // Convenience methods
     // -------------------------------------------------------------------------
