@@ -147,8 +147,6 @@ public class DefaultUserService
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );
 
-        userCredentialsStore.delete( user.getUserCredentials() );
-
         userStore.delete( user );
     }
 
