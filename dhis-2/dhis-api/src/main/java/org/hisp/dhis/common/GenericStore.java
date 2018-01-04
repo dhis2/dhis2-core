@@ -167,8 +167,6 @@ public interface GenericStore<T>
 
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
-    List<AttributeValue> getAttributeValueByAttributes( List<Attribute> attributes );
-
     List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value );
 
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );

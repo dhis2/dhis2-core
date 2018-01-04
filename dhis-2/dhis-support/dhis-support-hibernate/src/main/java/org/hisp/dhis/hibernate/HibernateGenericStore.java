@@ -804,27 +804,6 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<AttributeValue> getAttributeValueByAttributes( List<Attribute> attributes )
-    {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
-        query = getCriteriaQuery();
-
-        Root root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
-        query.select( root.get( "attributeValues" ) );
-        query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
-
-        return sessionFactory.getCurrentSession().createQuery( query ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
         Schema schema = schemaService.getDynamicSchema( getClazz() );
