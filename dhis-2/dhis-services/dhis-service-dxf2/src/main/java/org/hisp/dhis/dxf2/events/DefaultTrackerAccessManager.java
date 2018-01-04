@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -163,7 +162,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        if ( programStageInstance == null || user == null || user.isSuper() )
         {
             return errors;
         }
@@ -250,6 +249,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
+        /*
         for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
             if ( !aclService.canDataRead( user, categoryOption ) )
@@ -257,6 +257,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no read access to category option: " + categoryOption.getUid() );
             }
         }
+        */
 
         return errors;
     }
@@ -271,6 +272,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
+        /*
         for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
             if ( !aclService.canDataWrite( user, categoryOption ) )
@@ -278,6 +280,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no write access to category option: " + categoryOption.getUid() );
             }
         }
+        */
 
         return errors;
     }

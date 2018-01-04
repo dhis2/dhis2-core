@@ -235,8 +235,6 @@ public abstract class AbstractEventService
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
 
-    private Set<Program> accessibleProgramsCache = new HashSet<>();
-
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
     // -------------------------------------------------------------------------
@@ -356,12 +354,6 @@ public abstract class AbstractEventService
         }
 
         Assert.notNull( programStage, "Program stage cannot be null" );
-
-        if ( !canAccess( program, user ) )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Current user does not have permission to access this program" ).setReference( event.getEvent() ).incrementIgnored();
-        }
 
         if ( program.isRegistration() )
         {
@@ -492,6 +484,14 @@ public abstract class AbstractEventService
         }
 
         validateExpiryDays( event, program, null );
+
+        List<String> errors = trackerAccessManager.canWrite( user, new ProgramStageInstance( programInstance, programStage )
+            .setOrganisationUnit( organisationUnit ) );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
 
         return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, user,
             importOptions );
@@ -1274,16 +1274,6 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
-    private boolean canAccess( Program program, User user )
-    {
-        if ( accessibleProgramsCache.isEmpty() )
-        {
-            accessibleProgramsCache = programService.getUserPrograms( user );
-        }
-
-        return accessibleProgramsCache.contains( program );
-    }
-
     private boolean validateDataValue( DataElement dataElement, String value, ImportSummary importSummary )
     {
         String status = ValidationUtils.dataValueIsValid( value, dataElement );
@@ -1814,7 +1804,6 @@ public abstract class AbstractEventService
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
-        accessibleProgramsCache.clear();
 
         dbmsManager.clearSession();
     }
