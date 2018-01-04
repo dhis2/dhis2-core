@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,13 @@ public class InMemoryNotifier
 {
     private static final Log log = LogFactory.getLog( InMemoryNotifier.class );
 
-    private NotificationMap notificationMap = new NotificationMap();
+    private NotificationMap notificationMap;
+
+    @PostConstruct
+    public void init()
+    {
+        notificationMap = new NotificationMap();
+    }
 
     // -------------------------------------------------------------------------
     // Notifier implementation
