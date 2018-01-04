@@ -35,11 +35,12 @@ import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 
 import static org.hisp.dhis.scheduling.JobType.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -65,7 +66,7 @@ public class NotifierTest
         notifier.notify( id2, "Process started" );
         notifier.notify( id2, "Process done" );
         
-        Map<JobType, Map<String, List<Notification>>> notifications = notifier.getNotifications( );
+        Map<JobType, Map<String, LinkedList<Notification>>> notifications = notifier.getNotifications( );
         
         assertNotNull( notifications );
         assertEquals( 3, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
