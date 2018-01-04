@@ -71,7 +71,7 @@ public enum JobType
 
     // To satifisfy code that used the old enum TaskCategory
     DATAVALUE_IMPORT( null, false, null, null ),
-    ANALYTICSTABLE_UPDATE( null, true, null, null ),
+    ANALYTICSTABLE_UPDATE( null, false, null, null ),
     METADATA_IMPORT( null, false, null, null ),
     DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
     EVENT_IMPORT( null, false, null, null ),

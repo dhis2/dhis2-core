@@ -642,7 +642,7 @@ public class EventController
         }
         else
         {
-            JobConfiguration jobId = new JobConfiguration( null,
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
                 JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsXml( inputStream );
 
@@ -690,7 +690,7 @@ public class EventController
         }
         else
         {
-            JobConfiguration jobId = new JobConfiguration( null,
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
                 JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsJson( inputStream );
             scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
@@ -734,7 +734,7 @@ public class EventController
         }
         else
         {
-            JobConfiguration jobId = new JobConfiguration( null,
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
                 JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );

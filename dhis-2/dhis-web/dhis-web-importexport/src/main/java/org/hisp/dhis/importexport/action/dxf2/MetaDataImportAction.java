@@ -149,7 +149,7 @@ public class MetaDataImportAction
 
         User user = currentUserService.getCurrentUser();
 
-        JobConfiguration jobId = new JobConfiguration( null, JobType.METADATA_IMPORT, user.getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryMetadataImport", JobType.METADATA_IMPORT, user.getUid(), true );
 
         notifier.clear( jobId );
 

@@ -37,7 +37,6 @@ import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.fileresource.ExternalFileResource;
@@ -93,7 +92,6 @@ import java.util.Set;
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
-    private static final int HOUR_TO_RUN = 4; // should run at 04:00
 
     private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
 
@@ -306,7 +304,7 @@ public class DefaultPushAnalysisService
     {
         if ( jobId == null )
         {
-            jobId = new JobConfiguration( null, JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid(), true );
+            jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid(), true );
             notifier.clear( jobId );
         }
 
@@ -561,26 +559,4 @@ public class DefaultPushAnalysisService
 
         return true;
     }
-
-    /**
-     * Returns the correct cronExpression for the pushAnalysis
-     *
-     * @param pushAnalysis
-     * @return
-     */
-    private String getPushAnalysisCronExpression( PushAnalysis pushAnalysis )
-    {
-        switch ( pushAnalysis.getSchedulingFrequency() )
-        {
-            case DAILY:
-                return CronUtils.getDailyCronExpression( 0, HOUR_TO_RUN );
-            case WEEKLY:
-                return CronUtils.getWeeklyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-            case MONTHLY:
-                return CronUtils.getMonthlyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-            default:
-                return null;
-        }
-    }
-
 }

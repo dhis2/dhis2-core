@@ -140,7 +140,7 @@ public class PdfFormController
     public void sendFormPdfDataSet( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        JobConfiguration jobId = new JobConfiguration( null,
+        JobConfiguration jobId = new JobConfiguration( "inMemoryDataValueImport",
             JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         notifier.clear( jobId );

@@ -314,7 +314,7 @@ public class DataValueSetController
     {
         InputStream inputStream = saveTmp( request.getInputStream() );
 
-        JobConfiguration jobId = new JobConfiguration( null, DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         scheduler.executeJob(
             new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
                 jobId, format ) );
