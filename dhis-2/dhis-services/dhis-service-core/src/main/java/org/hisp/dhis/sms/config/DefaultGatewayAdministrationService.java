@@ -68,29 +68,6 @@ public class DefaultGatewayAdministrationService
         initializeSmsConfig();
     }
 
-    private void initializeSmsConfig()
-    {
-        SmsConfiguration smsConfiguration = getSmsConfiguration();
-
-        if ( smsConfiguration == null )
-        {
-            log.info( "SMS configuration not found" );
-            return;
-        }
-
-        List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
-
-        if ( gatewayList == null || gatewayList.isEmpty() )
-        {
-            log.info( "Gateway configuration not found" );
-            return;
-        }
-
-        log.info( "Gateway configuration found: " + gatewayList );
-
-        loadGatewayConfigurationMap( smsConfiguration );
-    }
-
     @Override
     public List<SmsGatewayConfig> listGateways()
     {
@@ -290,5 +267,28 @@ public class DefaultGatewayAdministrationService
     private SmsConfiguration getSmsConfiguration()
     {
         return smsConfigurationManager.getSmsConfiguration();
+    }
+
+    private void initializeSmsConfig()
+    {
+        SmsConfiguration smsConfiguration = getSmsConfiguration();
+
+        if ( smsConfiguration == null )
+        {
+            log.info( "SMS configuration not found" );
+            return;
+        }
+
+        List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
+
+        if ( gatewayList == null || gatewayList.isEmpty() )
+        {
+            log.info( "Gateway configuration not found" );
+            return;
+        }
+
+        log.info( "Gateway configuration found: " + gatewayList );
+
+        loadGatewayConfigurationMap( smsConfiguration );
     }
 }
