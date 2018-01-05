@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -160,6 +161,109 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         User user = createUser( "user1" );
+        injectSecurityContext( user );
+
+        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+    }
+
+    /**
+     * program = DATA READ/WRITE
+     * programStage = DATA READ/WRITE
+     * orgUnit = Accessible
+     * status = SUCCESS
+     */
+    @Test
+    public void testAddEventSimpleUserFullAccess1()
+    {
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+
+        manager.update( programA );
+        manager.update( programStageA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+    }
+
+    /**
+     * program = DATA READ
+     * programStage = DATA READ/WRITE
+     * orgUnit = Accessible
+     * status = ERROR
+     */
+    @Test
+    public void testAddEventSimpleUserFullAccess2()
+    {
+        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+
+        manager.update( programA );
+        manager.update( programStageA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+    }
+
+    /**
+     * program = DATA READ/WRITE
+     * programStage = DATA READ
+     * orgUnit = Accessible
+     * status = ERROR
+     */
+    @Test
+    public void testAddEventSimpleUserFullAccess3()
+    {
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
+
+        manager.update( programA );
+        manager.update( programStageA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
+        ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+    }
+
+    /**
+     * program = DATA READ/WRITE
+     * programStage = DATA READ/WRITE
+     * orgUnit = Not Accessible
+     * status = ERROR
+     */
+    @Test
+    public void testAddEventSimpleUserFullAccess4()
+    {
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+
+        manager.update( programA );
+        manager.update( programStageA );
+
+        User user = createUser( "user1" );
+
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
