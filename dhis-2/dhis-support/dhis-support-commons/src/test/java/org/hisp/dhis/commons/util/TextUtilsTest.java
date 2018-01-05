@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 
+import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -118,6 +119,13 @@ public class TextUtilsTest
         assertEquals( "green-red-[n/a]", TextUtils.join( Arrays.asList( "green", "red", null ), "-", "[n/a]" ) );
         assertEquals( "greenred[n/a]", TextUtils.join( Arrays.asList( "green", "red", null ), null, "[n/a]" ) );
         assertEquals( "greenred", TextUtils.join( Arrays.asList( "green", "red", null ), null, null ) );
+    }
+    
+    @Test
+    public void testGetPrettyClassName()
+    {
+        assertEquals( "Array List", TextUtils.getPrettyClassName( ArrayList.class ) );
+        assertEquals( "Abstract Sequential List", TextUtils.getPrettyClassName( AbstractSequentialList.class ) );
     }
     
     @Test

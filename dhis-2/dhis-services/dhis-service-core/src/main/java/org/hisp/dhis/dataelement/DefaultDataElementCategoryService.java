@@ -34,13 +34,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -128,14 +126,7 @@ public class DefaultDataElementCategoryService
     {
         this.aclService = aclService;
     }
-    
-    private DeletionManager deletionManager;
-
-    public void setDeletionManager( DeletionManager deletionManager )
-    {
-        this.deletionManager = deletionManager;
-    }
-    
+        
     // -------------------------------------------------------------------------
     // Category
     // -------------------------------------------------------------------------
@@ -655,11 +646,11 @@ public class DefaultDataElementCategoryService
             {
                 try
                 {
-                    deletionManager.execute( optionCombo );
+                    deleteDataElementCategoryOptionCombo( optionCombo );
                 }
-                catch ( DeleteNotAllowedException ex )
+                catch ( Exception ex )
                 {
-                    log.warn( "Not allowed to delete category option combo: " + optionCombo );
+                    log.warn( "Could not delete category option combo: " + optionCombo );
                     continue;
                 }
 
