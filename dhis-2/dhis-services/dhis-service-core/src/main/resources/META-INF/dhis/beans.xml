@@ -1086,9 +1086,7 @@
     <property name="taskExecutor" ref="taskScheduler" />
   </bean>
 
-  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager" name="schedulingManager" >
-    <property name="scheduler" ref="scheduler" />
-  </bean>
+  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager" />
 
   <bean id="org.hisp.dhis.user.CurrentUserService" class="org.hisp.dhis.user.DefaultCurrentUserService"/>
 

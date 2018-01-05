@@ -42,7 +42,8 @@ import java.util.Date;
 /**
  * @author Henning Håkonsen
  */
-public class DefaultJobInstance implements JobInstance
+public class DefaultJobInstance 
+    implements JobInstance
 {
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
 
