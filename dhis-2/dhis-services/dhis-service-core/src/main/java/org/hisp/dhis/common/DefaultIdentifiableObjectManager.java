@@ -1127,19 +1127,6 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public List<AttributeValue> getAttributeValueByAttributes( Class<? extends IdentifiableObject> klass, List<Attribute> attributes )
-    {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
-
-        if ( store == null )
-        {
-            return null;
-        }
-
-        return store.getAttributeValueByAttributes( attributes );
-    }
-
-    @Override
     public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
     {
         GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
