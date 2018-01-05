@@ -39,6 +39,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -84,7 +85,7 @@ public class GmlImportServiceTest
     {
         inputStream = new ClassPathResource( "gml/testGmlPayload.gml" ).getInputStream();
 
-        /**
+        /*
          * Create orgunits present in testGmlPayload.gml and set ID properties.
          *      Name                    - FeatureType   - ID property
          *      Bo                      - Poly          - Name
@@ -123,7 +124,7 @@ public class GmlImportServiceTest
 
         user = createAndInjectAdminUser();
 
-        id = new JobConfiguration( null, JobType.METADATA_IMPORT, user.getUid(), true );
+        id = new JobConfiguration( "gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true );
 
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
@@ -132,7 +133,6 @@ public class GmlImportServiceTest
 
     @Override
     protected void tearDownTest()
-        throws Exception
     {
         IOUtils.closeQuietly( inputStream );
     }
@@ -142,8 +142,8 @@ public class GmlImportServiceTest
     // -------------------------------------------------------------------------
 
     @Test
+    @Ignore
     public void testImportGml()
-        throws Exception
     {
         MetadataImportParams importParams = new MetadataImportParams();
         importParams.setId( id );

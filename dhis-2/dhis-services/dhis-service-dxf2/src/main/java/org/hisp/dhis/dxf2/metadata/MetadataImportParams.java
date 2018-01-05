@@ -130,7 +130,7 @@ public class MetadataImportParams
     private String filename;
 
     /**
-     * Task id to use for threaded imports.
+     * Job id to use for threaded imports.
      */
     private JobConfiguration id;
 
