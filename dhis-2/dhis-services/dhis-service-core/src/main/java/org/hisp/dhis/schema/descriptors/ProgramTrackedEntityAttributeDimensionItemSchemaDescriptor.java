@@ -28,19 +28,19 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
 public class ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "programTrackedEntityAttribute";
+    public static final String SINGULAR = "ProgramTrackedEntityAttributeDimensionItem";
 
-    public static final String PLURAL = "programTrackedEntityAttributes";
+    public static final String PLURAL = "ProgramTrackedEntityAttributeDimensionItems";
 
     @Override
     public Schema getSchema()
     {
-        return new Schema( ProgramStageDataElement.class, SINGULAR, PLURAL );
+        return new Schema( ProgramTrackedEntityAttributeDimensionItem.class, SINGULAR, PLURAL );
     }
 }
