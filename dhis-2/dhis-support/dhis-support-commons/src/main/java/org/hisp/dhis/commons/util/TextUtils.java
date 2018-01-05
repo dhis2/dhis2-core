@@ -490,6 +490,33 @@ public class TextUtils
     }
     
     /**
+     * Returns a pretty name variant of the given class.
+     * 
+     * @param clazz the class.
+     * @return a pretty class name.
+     */
+    public static String getPrettyClassName( Class<?> clazz )
+    {
+        StringBuilder name = new StringBuilder();
+        
+        String className = clazz.getSimpleName();
+        
+        for ( int i = 0; i < className.length(); i++ )
+        {
+            char c = className.charAt( i );
+            
+            if ( i > 0 && Character.isUpperCase( c ) )
+            {
+                name.append( StringUtils.SPACE );
+            }
+            
+            name.append( c );
+        }
+        
+        return name.toString();
+    }
+    
+    /**
      * Gets the string at the given index of the array produced by splitting
      * the given string on the given separator. Returns null if the given string
      * is null or if the given index is out of bounds of the array.
