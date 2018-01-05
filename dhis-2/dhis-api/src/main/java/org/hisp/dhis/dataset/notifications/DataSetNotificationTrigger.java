@@ -37,10 +37,10 @@ import java.util.Set;
  */
 public enum DataSetNotificationTrigger
 {
-    COMPLETION, SCHEDULED;
+    DATA_SET_COMPLETION, SCHEDULED_DAYS;
 
     private static final Set<DataSetNotificationTrigger> SCHEDULED_TRIGGERS =
-        new ImmutableSet.Builder<DataSetNotificationTrigger>().add( SCHEDULED ).build();
+        new ImmutableSet.Builder<DataSetNotificationTrigger>().add( SCHEDULED_DAYS ).build();
 
     public boolean isScheduled()
     {
