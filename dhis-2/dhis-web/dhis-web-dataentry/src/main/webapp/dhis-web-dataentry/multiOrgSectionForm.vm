@@ -86,10 +86,11 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                         #foreach( $dataElement in $dataElements )
                                             <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
                                             #foreach( $optionCombo in $optionCombos )
+                                                #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                                 #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                 #set( $greyedField = false )
                                                 #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
-                                                #set( $disable = $greyedField || !$hasAccess )
+                                                #set( $disable = !$canWriteOptionCombo || $greyedField || !$hasAccess )
                                                 #if( $dataElement.valueType == "BOOLEAN" )
                                                     <td>
                                                         <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
@@ -170,10 +171,11 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                             #foreach( $organisationUnit in $organisationUnits )
                                                 <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
                                                 #foreach( $optionCombo in $optionCombos )
+                                                    #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                     #set( $greyedField = false )
                                                     #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
-                                                    #set( $disable = $greyedField || !$hasAccess )
+                                                    #set( $disable = !$canWriteOptionCombo || $greyedField || !$hasAccess )
                                                     #if( $dataElement.valueType == "BOOLEAN" )
                                                     <td><select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
                                                       <option value="">[$i18n.getString( "no_value" )]</option>
@@ -198,6 +200,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                     #else
                                         #set( $catIndex = 0 )
                                         #foreach( $optionCombo in $optionCombos )
+                                            #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                             #set( $velocityCount0 = $velocityCount - 1 )
                                             #set( $catPart = $velocityCount0 % $categories.size() )
                                             #if( $catPart == 0 ) #set( $catIndex = $catIndex + 1 ) #end
@@ -224,7 +227,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                     #set( $greyedField = false )
                                                     #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
-                                                    #set( $disable = $greyedField || !$hasAccess )
+                                                    #set( $disable = !$canWriteOptionCombo || $greyedField || !$hasAccess )
                                                     #if( $dataElement.valueType == "BOOLEAN" )
                                                         <td>
                                                             <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
