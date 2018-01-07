@@ -36,8 +36,7 @@ import com.google.common.collect.Maps;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -178,14 +177,9 @@ public class DefaultSchemaService
     @Autowired
     private SessionFactory sessionFactory;
 
-    @Autowired
-    private I18nManager i18nManager;
-
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        I18n i18n = i18nManager.getI18n();
-
         for ( SchemaDescriptor descriptor : descriptors )
         {
             Schema schema = descriptor.getSchema();
@@ -199,11 +193,11 @@ public class DefaultSchemaService
             }
             catch ( MappingException e )
             {
-                // class is not persisted with hibernate
+                // class is not persisted with Hibernate
                 schema.setPersisted( false );
             }
 
-            schema.setDisplayName( i18n.getString( "schema_class_" + schema.getKlass().getName() ) );
+            schema.setDisplayName( TextUtils.getPrettyClassName( schema.getKlass() ) );
 
             if ( schema.getProperties().isEmpty() )
             {

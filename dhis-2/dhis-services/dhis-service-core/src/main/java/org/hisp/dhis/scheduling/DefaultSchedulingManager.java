@@ -62,13 +62,8 @@ public class DefaultSchedulingManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private Scheduler scheduler;
-
     @Autowired
-    public void setScheduler( Scheduler scheduler )
-    {
-        this.scheduler = scheduler;
-    }
+    private Scheduler scheduler;
 
     @PostConstruct
     public void init()
