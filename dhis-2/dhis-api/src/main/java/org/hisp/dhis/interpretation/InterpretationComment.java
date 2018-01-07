@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.user.User;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class InterpretationComment
 {
     private String text;
     
-    private List<Mention> mentions;
+    private List<Mention> mentions = new ArrayList<>();
 
     public InterpretationComment()
     {

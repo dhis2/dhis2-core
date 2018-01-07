@@ -87,7 +87,7 @@ public class Interpretation
 
     private Set<User> likedBy = new HashSet<>();
     
-    private List<Mention> mentions;
+    private List<Mention> mentions = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
