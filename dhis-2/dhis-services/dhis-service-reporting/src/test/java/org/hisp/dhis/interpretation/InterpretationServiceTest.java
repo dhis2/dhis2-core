@@ -61,7 +61,7 @@ public class InterpretationServiceTest
     DhisSpringTest
 {
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private UserGroupService userGroupService;
@@ -78,6 +78,8 @@ public class InterpretationServiceTest
     private User userA;
 
     private User userB;
+    
+    private User userC;
 
     private Chart chartA;
 
@@ -87,18 +89,26 @@ public class InterpretationServiceTest
 
     private Interpretation interpretationC;
 
+    @Override
+    protected void setUpTest() throws Exception
+    {
+        userService = _userService;
+    }
+    
     @Before
     public void beforeTest()
     {
         userA = createUser( 'A' );
         userB = createUser( 'B' );
+        userC = createUser( "C.D-E_F" );
         userService.addUser( userA );
         userService.addUser( userB );
+        userService.addUser( userC );
 
         setDependency( interpretationService, "currentUserService", new MockCurrentUserService( userA ),
             CurrentUserService.class );
         
-        setDependency( interpretationService, "userService", new MockUserService( Arrays.asList(userA, userB) ),
+        setDependency( interpretationService, "userService", new MockUserService( Arrays.asList(userA, userB, userC) ),
             UserService.class );
 
         chartA = createChart( 'A' );
@@ -240,6 +250,13 @@ public class InterpretationServiceTest
         assertNotNull( interpretationA.getMentions() );
         assertEquals( 1, interpretationA.getMentions().size() );
         
+        interpretationA.setText( "Interpration of chart A with Mentions @" + userA.getUsername() + " @" + userB.getUsername() );
+        interpretationService.updateInterpretation( interpretationA );
+        uid = interpretationA.getUid();
+        assertNotNull( uid );
+        assertNotNull( interpretationA.getMentions() );
+        assertEquals( 2, interpretationA.getMentions().size() );
+        
         InterpretationComment interpretationComment = interpretationService.addInterpretationComment( uid, "This interpretation is good @" +  userA.getUsername() + " @" + userB.getUsername());
         assertNotNull( interpretationComment.getMentions() );
         assertEquals( 2, interpretationComment.getMentions().size() );
@@ -248,9 +265,17 @@ public class InterpretationServiceTest
         assertNotNull( interpretationA.getComments() );
         assertEquals( 1, interpretationA.getComments().size() );
         assertNotNull( interpretationA.getMentions() );
-        assertEquals( 1, interpretationA.getMentions().size() );
+        assertEquals( 2, interpretationA.getMentions().size() );
         assertNotNull( interpretationComment.getMentions() );
         assertEquals( 2, interpretationComment.getMentions().size() );
+        
+        InterpretationComment interpretationComment2 = interpretationService.addInterpretationComment( uid, "This interpretation is bad @" +  userA.getUsername() + " @" + userB.getUsername() + " @" + userC.getUsername());
+        assertNotNull( interpretationComment2.getMentions() );
+        assertEquals( 3, interpretationComment2.getMentions().size() );
+        
+        interpretationA = interpretationService.getInterpretation( uid );
+        assertNotNull( interpretationA.getComments() );
+        assertEquals( 2, interpretationA.getComments().size() );
         
     }
 
