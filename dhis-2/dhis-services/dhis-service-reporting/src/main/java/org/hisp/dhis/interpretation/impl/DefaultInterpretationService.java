@@ -140,6 +140,7 @@ public class DefaultInterpretationService
     public void updateInterpretation( Interpretation interpretation )
     {
         interpretation.updateSharing();
+        interpretation.setMentions(this.updateMentions( interpretation.getText() ));
         interpretationStore.update( interpretation );
     }
 
@@ -172,10 +173,12 @@ public class DefaultInterpretationService
     {
         List<Mention> mentions = new ArrayList<Mention>();
 
-        Matcher matcher = Pattern.compile( "^[@]\\w+|(?<=\\s)[@]\\w+" ).matcher( text );
+        Matcher matcher = Pattern.compile( "(?:\\s|^)@([\\w+._-]+)" ).matcher( text );
+        
+        
         while ( matcher.find() )
         {
-            String username = matcher.group().substring( 1 );
+            String username = matcher.group(1);
             if ( userService.getUserCredentialsByUsername( username ) != null )
             {
                 Mention mention = new Mention();
@@ -240,24 +243,24 @@ public class DefaultInterpretationService
 
         return count;
     }
-
+    
     @Transactional( isolation = Isolation.REPEATABLE_READ )
     public boolean likeInterpretation( int id )
     {
         Interpretation interpretation = getInterpretation( id );
-
+        
         if ( interpretation == null )
         {
             return false;
         }
-
+        
         User user = currentUserService.getCurrentUser();
 
         if ( user == null )
         {
             return false;
         }
-
+        
         return interpretation.like( user );
     }
 
@@ -270,17 +273,17 @@ public class DefaultInterpretationService
         {
             return false;
         }
-
+        
         User user = currentUserService.getCurrentUser();
-
+        
         if ( user == null )
         {
             return false;
         }
-
+        
         return interpretation.unlike( user );
     }
-
+    
     @Override
     public int countMapInterpretations( Map map )
     {
