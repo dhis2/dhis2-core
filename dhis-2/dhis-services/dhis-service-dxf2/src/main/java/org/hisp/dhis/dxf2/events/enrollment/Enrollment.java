@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -279,7 +279,7 @@ public class Enrollment
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "notes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Note> getNotes()
     {

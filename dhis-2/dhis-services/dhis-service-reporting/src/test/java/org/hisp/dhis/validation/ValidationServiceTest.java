@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
@@ -393,9 +393,11 @@ public class ValidationServiceTest
         List<ValidationResult> referenceList = orderedList( reference );
         List<ValidationResult> resultsList = orderedList( results );
 
+        StringBuilder sb = new StringBuilder();
+
         if ( !referenceList.equals( resultsList ) )
         {
-            StringBuilder sb = new StringBuilder();
+            sb.append("\n");
 
             StackTraceElement[] e = Thread.currentThread().getStackTrace();
 
@@ -412,7 +414,7 @@ public class ValidationServiceTest
                 .append( getAllValidationRules() );
         }
 
-        assertTrue( referenceList.equals( resultsList ) );
+        assertEquals( "", sb.toString() );
 
         for ( ValidationResult result : results )
         {
@@ -893,6 +895,52 @@ public class ValidationServiceTest
         Collection<ValidationResult> reference = new HashSet<>();
 
         reference.add( new ValidationResult( validationRuleF, periodA, sourceA, defaultCombo, 1.0, 2.0, dayInPeriodA ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidateWithCategoryOptions()
+    {
+        DataElementCategoryOption optionA = new DataElementCategoryOption( "CategoryOptionA" );
+        DataElementCategoryOption optionB = new DataElementCategoryOption( "CategoryOptionB" );
+
+        categoryService.addDataElementCategoryOption( optionA );
+        categoryService.addDataElementCategoryOption( optionB );
+
+        DataElementCategory categoryA = createDataElementCategory( 'A', optionA, optionB );
+
+        categoryService.addDataElementCategory( categoryA );
+
+        DataElementCategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
+
+        categoryService.addDataElementCategoryCombo( categoryComboA );
+
+        DataElementCategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
+        DataElementCategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
+
+        categoryService.addDataElementCategoryOptionCombo( optionComboA );
+        categoryService.addDataElementCategoryOptionCombo( optionComboB );
+
+        useDataValue( dataElementD, periodA, sourceA, "3", optionComboA, optionCombo );
+        useDataValue( dataElementD, periodA, sourceA, "4", optionComboB, optionCombo );
+
+        Expression expressionZ = new Expression( "#{" + dataElementD.getUid() + "." + optionComboA.getUid() + "} * 2"
+            + " + #{" + dataElementD.getUid() + "." + optionComboB.getUid() + "}",
+            "expressionZ", NEVER_SKIP );
+
+        expressionService.addExpression( expressionZ );
+
+        ValidationRule validationRuleZ = createValidationRule( "Z", equal_to, expressionL, expressionZ, periodTypeMonthly );
+
+        validationRuleService.saveValidationRule( validationRuleZ ); // deD[all] = deD.optionComboA * 2 + deD.optionComboB
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+            .build() );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRuleZ, periodA, sourceA, defaultCombo, 7.0, 10.0, dayInPeriodA ) );
 
         assertResultsEquals( reference, results );
     }

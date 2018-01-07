@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.scheduling;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobInstance;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,7 +107,8 @@ public class SpringScheduler
     @Override
     public void executeJob( JobConfiguration jobConfiguration )
     {
-        DefaultJobInstance jobInstance = new DefaultJobInstance();
+        JobInstance jobInstance = new DefaultJobInstance();
+        
         ListenableFuture<?> future = jobExecutor.submitListenable( () -> {
             try
             {
@@ -157,7 +159,8 @@ public class SpringScheduler
     @Override
     public boolean scheduleJob( JobConfiguration jobConfiguration )
     {
-        DefaultJobInstance jobInstance = new DefaultJobInstance();
+        JobInstance jobInstance = new DefaultJobInstance();
+        
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
         {
             ScheduledFuture<?> future = jobScheduler
@@ -186,7 +189,8 @@ public class SpringScheduler
     @Override
     public boolean scheduleJob( Date date, JobConfiguration jobConfiguration )
     {
-        DefaultJobInstance jobInstance = new DefaultJobInstance();
+        JobInstance jobInstance = new DefaultJobInstance();
+        
         if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) && date != null &&
             date.getTime() > new Date().getTime() )
         {
@@ -215,7 +219,8 @@ public class SpringScheduler
     @Override
     public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
     {
-        DefaultJobInstance jobInstance = new DefaultJobInstance();
+        JobInstance jobInstance = new DefaultJobInstance();
+        
         ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> {
             try
             {
@@ -235,7 +240,8 @@ public class SpringScheduler
     @Override
     public void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval )
     {
-        DefaultJobInstance jobInstance = new DefaultJobInstance();
+        JobInstance jobInstance = new DefaultJobInstance();
+        
         ScheduledFuture<?> future = jobScheduler.scheduleAtFixedRate( () -> {
             try
             {
@@ -356,5 +362,4 @@ public class SpringScheduler
 
         return getStatus( future );
     }
-
 }
