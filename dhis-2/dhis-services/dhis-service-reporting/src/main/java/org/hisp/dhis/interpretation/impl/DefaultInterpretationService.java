@@ -255,7 +255,7 @@ public class DefaultInterpretationService
         }
         
         User user = currentUserService.getCurrentUser();
-
+        
         if ( user == null )
         {
             return false;
@@ -268,7 +268,7 @@ public class DefaultInterpretationService
     public boolean unlikeInterpretation( int id )
     {
         Interpretation interpretation = getInterpretation( id );
-
+        
         if ( interpretation == null )
         {
             return false;
@@ -307,5 +307,4 @@ public class DefaultInterpretationService
     {
         return interpretationStore.getByChartId( id );
     }
-
 }
