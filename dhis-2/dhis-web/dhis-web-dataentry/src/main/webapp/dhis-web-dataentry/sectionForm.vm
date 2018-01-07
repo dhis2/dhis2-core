@@ -39,11 +39,9 @@
             <div class="cent sectionDescription">$!encoder.htmlEncode( $description )</div>
         #end
         #set( $categoryComboIds = "null" )
-        #set( $categoryCombos = $sectionCombos.get( $section.id ) )
+        #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
-        #foreach( $categoryCombo in $categoryCombos )
-            #set( $categoryComboId = $categoryCombo.id )
-            #set( $canWriteCategoryCombo = $security.canDataWrite( $categoryCombo ) )
+        #foreach( $categoryComboId in $categoryComboIds )
             #set( $seCbId = "${section.id}-${categoryComboId}" )
             #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
             #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
@@ -106,6 +104,7 @@
                                 <input type="hidden" id="${dataElement.uid}-dataelement-description" value="$!{dataElement.displayDescription}"/>
                             </td>
                             #foreach( $optionCombo in $optionCombos )
+                                #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                 #set( $compulsory = false )
                                 #foreach( $compulsoryDe in $dataSet.compulsoryDataElementOperands )
                                     #if( $dataElement.uid == $compulsoryDe.dataElement.uid && $optionCombo.uid == $compulsoryDe.categoryOptionCombo.uid )
@@ -117,7 +116,7 @@
                                 #set( $rowTotalIds = "${rowTotalIds}-$optionCombo.uid" )
                                 #set( $greyedField = false )
                                 #set( $greyedField = $greyedFields.get( "${dataElement.uid}:${optionCombo.uid}" ) )
-                                #set( $disable = !$canWriteCategoryCombo || $greyedField || !$hasAccess )
+                                #set( $disable = !$canWriteOptionCombo || $greyedField || !$hasAccess )
                                 #if( $dataElement.valueType == "BOOLEAN" )
                                     <td>
                                         <label>

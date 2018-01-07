@@ -11,10 +11,9 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
     <div class="formSection sectionContainer">
         <div class="cent"><h3>$encoder.htmlEncode( $section.displayName ) asdas </h3></div>
         #set( $categoryComboIds = "null" )
-    #set( $categoryCombos = $sectionCombos.get( $section.id ) )
+    #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
-    #foreach( $categoryCombo in $categoryCombos )
-        #set( $categoryComboId = $categoryCombo.id )
+    #foreach( $categoryComboId in $categoryComboIds )
         #set( $canWriteCategoryCombo = $security.canDataWrite( $categoryCombo ) )
         #set( $seCbId = "${section.id}-${categoryComboId}" )
         #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
@@ -90,7 +89,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                                 #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                 #set( $greyedField = false )
                                                 #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
-                                                #set( $disable = !$canWriteCategoryCombo || $greyedField || !$hasAccess )
+                                                #set( $disable = $greyedField || !$hasAccess )
                                                 #if( $dataElement.valueType == "BOOLEAN" )
                                                     <td>
                                                         <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
@@ -174,7 +173,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                     #set( $greyedField = false )
                                                     #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
-                                                    #set( $disable = !$canWriteCategoryCombo || $greyedField || !$hasAccess )
+                                                    #set( $disable = $greyedField || !$hasAccess )
                                                     #if( $dataElement.valueType == "BOOLEAN" )
                                                     <td><select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
                                                       <option value="">[$i18n.getString( "no_value" )]</option>
@@ -225,7 +224,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                     #set( $greyedField = false )
                                                     #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
-                                                    #set( $disable = !$canWriteCategoryCombo || $greyedField || !$hasAccess )
+                                                    #set( $disable = $greyedField || !$hasAccess )
                                                     #if( $dataElement.valueType == "BOOLEAN" )
                                                         <td>
                                                             <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>

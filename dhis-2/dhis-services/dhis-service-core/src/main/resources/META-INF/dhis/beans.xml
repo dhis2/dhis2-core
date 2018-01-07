@@ -165,6 +165,8 @@
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 
+  <bean id="org.hisp.dhis.datavalue.DataAccessManager" class="org.hisp.dhis.datavalue.DefaultAggregateAccessManager"/>
+
   <bean id="org.hisp.dhis.dataapproval.DataApprovalStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore">
     <property name="clazz" value="org.hisp.dhis.dataapproval.DataApproval" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />

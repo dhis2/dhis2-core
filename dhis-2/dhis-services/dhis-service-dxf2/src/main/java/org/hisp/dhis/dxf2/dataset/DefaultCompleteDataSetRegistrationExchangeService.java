@@ -29,8 +29,6 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
-
-import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,10 +44,11 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -81,6 +80,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nonnull;
@@ -90,6 +90,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -138,7 +139,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private CurrentUserService currentUserService;
     
     @Autowired
-    private CompleteDataSetRegistrationService registrationService; 
+    private CompleteDataSetRegistrationService registrationService;
+
+    @Autowired
+    private AggregateAccessManager accessManager;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -523,6 +527,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             CompleteDataSetRegistration internalCdsr = createCompleteDataSetRegistration( cdsr, mdProps, now, storedBy );
 
             CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null : batchHandler.findObject( internalCdsr );
+
+            // ---------------------------------------------------------------------
+            // Data Sharing check
+            // ---------------------------------------------------------------------
+
+            List<String> errors = accessManager.canWrite( currentUserService.getCurrentUser(), internalCdsr.getDataSet() );
+            if ( !errors.isEmpty() )
+            {
+                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
+                continue;
+            }
 
             ImportStrategy strategy = config.strategy;
 
