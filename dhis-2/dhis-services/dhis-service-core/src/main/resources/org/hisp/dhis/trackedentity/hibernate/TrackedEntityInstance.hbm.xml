@@ -20,6 +20,16 @@
 
     <property name="deleted" column="deleted" />
 
+    <property name="featureType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="coordinates" type="text" />
+
     <set name="trackedEntityAttributeValues" inverse="true">
       <key column="trackedentityinstanceid" />
       <one-to-many class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" />
