@@ -340,6 +340,12 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    {
+        return addEnrollment( enrollment, importOptions, currentUserService.getCurrentUser() );
+    }
+
+    @Override
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user )
     {
         String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ? enrollment.getStoredBy() : user.getUsername();
@@ -393,8 +399,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkAttributes( enrollment, importOptions ) );
+        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
 
         importSummary.setConflicts( importConflicts );
 
@@ -407,6 +412,13 @@ public abstract class AbstractEnrollmentService
         }
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
+
+        List<String> errors = trackerAccessManager.canWrite( user, new ProgramInstance( program, entityInstance, organisationUnit ) );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
 
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );

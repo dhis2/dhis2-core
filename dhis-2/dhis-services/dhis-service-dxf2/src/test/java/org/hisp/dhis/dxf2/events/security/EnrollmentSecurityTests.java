@@ -28,27 +28,34 @@ package org.hisp.dhis.dxf2.events.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.HashSet;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,19 +64,10 @@ public class EnrollmentSecurityTests
     extends DhisSpringTest
 {
     @Autowired
-    private EventService eventService;
-
-    @Autowired
-    private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
@@ -165,9 +163,166 @@ public class EnrollmentSecurityTests
         manager.save( femaleB );
     }
 
+    /**
+     * program = DATA READ/WRITE
+     * programStage = DATA READ/WRITE
+     * orgUnit = Accessible
+     * status = SUCCESS
+     */
     @Test
-    public void test()
+    public void testUserWithDataReadWrite()
     {
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageB.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
+        manager.update( programA );
+        manager.update( programStageA );
+        manager.update( programStageB );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+    }
+
+    /**
+     * program = DATA READ/WRITE
+     * programStage = DATA READ/WRITE
+     * orgUnit = Not Accessible
+     * status = ERROR
+     */
+    @Test
+    public void testUserWithDataReadWriteNoOrgUnit()
+    {
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.update( programA );
+
+        User user = createUser( "user1" );
+
+        injectSecurityContext( user );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+    }
+
+    /**
+     * program = DATA READ
+     * orgUnit = Accessible
+     * status = ERROR
+     */
+    @Test
+    public void testUserWithDataReadOrgUnit()
+    {
+        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.update( programA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+    }
+
+    /**
+     * program =
+     * orgUnit = Accessible
+     * status = ERROR
+     */
+    @Test
+    public void testUserNoDataAccessOrgUnit()
+    {
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( programA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+    }
+
+    /**
+     * program =
+     * orgUnit = Not Accessible
+     * status = ERROR
+     */
+    @Test
+    public void testUserNoDataAccessNoOrgUnit()
+    {
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( programA );
+
+        User user = createUser( "user1" );
+
+        injectSecurityContext( user );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+
+        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+    }
+
+    private Enrollment createEnrollment( String program, String person )
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
+        enrollment.setOrgUnit( organisationUnitA.getUid() );
+        enrollment.setProgram( program );
+        enrollment.setTrackedEntityInstance( person );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+
+        return enrollment;
     }
 }
