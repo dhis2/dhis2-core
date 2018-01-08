@@ -135,10 +135,16 @@ public interface DataSetService
     List<DataSet> getDataSetsForMobile( OrganisationUnit source );
 
     /**
-     * Returns the data sets associated with the current user. If the current
+     * Returns the data sets which current user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
      */
-    List<DataSet> getCurrentUserDataSets();
+    List<DataSet> getCurrentUserReadDataSets();
+
+    /**
+     * Returns the data sets which current user have WRITE access. If the current
+     * user has the ALL authority then all data sets are returned.
+     */
+    List<DataSet> getCurrentUserWriteDataSets();
 
     // -------------------------------------------------------------------------
     // DataSet LockExceptions

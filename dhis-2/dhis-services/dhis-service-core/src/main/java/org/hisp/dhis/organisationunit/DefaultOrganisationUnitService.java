@@ -382,7 +382,7 @@ public class DefaultOrganisationUnitService
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( currentUser != null && !currentUser.getUserCredentials().isSuper() )
+        if ( currentUser != null && !currentUser.isSuper() )
         {
             List<DataSet> accessibleDataSets = dataSetStore.getDataWriteAll();
 
@@ -412,8 +412,6 @@ public class DefaultOrganisationUnitService
     private void filterChildOrganisationUnits( Map<String, Set<String>> associationMap, Integer maxLevels )
     {
         User currentUser = currentUserService.getCurrentUser();
-
-
 
         if ( currentUser != null && currentUser.getOrganisationUnits() != null )
         {

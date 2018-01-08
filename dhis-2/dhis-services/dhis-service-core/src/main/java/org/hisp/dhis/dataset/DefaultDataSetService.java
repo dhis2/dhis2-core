@@ -38,7 +38,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -160,10 +160,9 @@ public class DefaultDataSetService
         return dataSetStore.getDataSetsForMobile( source );
     }
 
-    @Override
-    public List<DataSet> getCurrentUserDataSets()
+    public List<DataSet> getCurrentUserReadDataSets()
     {
-        User user = currentUserService.getCurrentUser();
+        UserInfo user = currentUserService.getCurrentUserInfo();
 
         if ( user == null )
         {
@@ -176,7 +175,26 @@ public class DefaultDataSetService
         }
         else
         {
-            return Lists.newArrayList( user.getUserCredentials().getAllDataSets() );
+            return dataSetStore.getDataAll();
+        }
+    }
+
+    public List<DataSet> getCurrentUserWriteDataSets()
+    {
+        UserInfo user = currentUserService.getCurrentUserInfo();
+
+        if ( user == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        if ( user.isSuper() )
+        {
+            return getAllDataSets();
+        }
+        else
+        {
+            return dataSetStore.getDataWriteAll();
         }
     }
 

@@ -33,7 +33,7 @@ dhis2.de.dataElements = [];
 dhis2.de.indicatorFormulas = [];
 
 // Array with associative arrays for each data set, populated in select.vm
-dhis2.de.dataSets = null;
+dhis2.de.dataSets = [];
 
 // Maps input field to optionSet
 dhis2.de.optionSets = {};
