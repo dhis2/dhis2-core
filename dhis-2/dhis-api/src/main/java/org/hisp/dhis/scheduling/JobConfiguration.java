@@ -98,7 +98,7 @@ public class JobConfiguration
         this.jobType = jobType;
         this.userUid = userUid;
         this.inMemoryJob = inMemoryJob;
-        setAutoFields();
+        init();
     }
 
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
@@ -110,8 +110,8 @@ public class JobConfiguration
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled, boolean inMemoryJob )
     {
-        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
         this.inMemoryJob = inMemoryJob;
+        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
     }
 
     private void constructor( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
@@ -124,6 +124,15 @@ public class JobConfiguration
         this.continuousExecution = continuousExecution;
         this.enabled = enabled;
         setJobStatus( enabled ? SCHEDULED : DISABLED );
+        init();
+    }
+
+    private void init()
+    {
+        if ( inMemoryJob )
+        {
+            setAutoFields();
+        }
     }
 
     public void setCronExpression( String cronExpression )
