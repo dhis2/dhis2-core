@@ -113,14 +113,6 @@ public interface TrackedEntityAttributeValueService
     List<TrackedEntityAttributeValue> searchTrackedEntityAttributeValue( TrackedEntityAttribute attribute, String searchText );
 
     /**
-     * Check whether the given attribute and value exists
-     * @param attribute {@link TrackedEntityAttribute} to check
-     * @param value literal value to look for
-     * @return true if the same literal value exists for the given attribute
-     */
-    boolean exists( TrackedEntityAttribute attribute, String value );
-    
-    /**
      * Remove all attribute values of destination instance and copy attribute
      * values of source instance to destination instance
      * 
