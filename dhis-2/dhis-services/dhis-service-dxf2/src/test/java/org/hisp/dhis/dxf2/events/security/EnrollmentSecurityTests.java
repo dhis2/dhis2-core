@@ -32,12 +32,14 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -56,6 +58,7 @@ import java.util.Date;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -165,7 +168,6 @@ public class EnrollmentSecurityTests
 
     /**
      * program = DATA READ/WRITE
-     * programStage = DATA READ/WRITE
      * orgUnit = Accessible
      * status = SUCCESS
      */
@@ -173,12 +175,7 @@ public class EnrollmentSecurityTests
     public void testUserWithDataReadWrite()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageB.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
-        manager.update( programStageA );
-        manager.update( programStageB );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -200,7 +197,6 @@ public class EnrollmentSecurityTests
 
     /**
      * program = DATA READ/WRITE
-     * programStage = DATA READ/WRITE
      * orgUnit = Not Accessible
      * status = ERROR
      */
@@ -311,6 +307,128 @@ public class EnrollmentSecurityTests
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
             createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+    }
+
+    /**
+     * program = DATA READ/WRITE
+     * orgUnit = Accessible
+     * status = SUCCESS
+     */
+    @Test
+    public void testGetEnrollmentUserWithDataReadWrite()
+    {
+        ImportSummary importSummary = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.update( programA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
+        assertNotNull( enrollment );
+        assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
+    }
+
+    /**
+     * program = DATA READ
+     * orgUnit = Accessible
+     * status = SUCCESS
+     */
+    @Test
+    public void testGetEnrollmentUserWithDataRead()
+    {
+        ImportSummary importSummary = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.update( programA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
+        assertNotNull( enrollment );
+        assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
+    }
+
+    /**
+     * program = DATA READ
+     * orgUnit = Not Accessible
+     * status = ERROR
+     */
+    @Test( expected = IllegalQueryException.class )
+    public void testGetEnrollmentUserWithDataReadNoOrgUnit()
+    {
+        ImportSummary importSummary = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.update( programA );
+
+        User user = createUser( "user1" );
+
+        injectSecurityContext( user );
+
+        enrollmentService.getEnrollment( importSummary.getReference() );
+    }
+
+    /**
+     * program = DATA READ/WRITE
+     * orgUnit = Not Accessible
+     * status = ERROR
+     */
+    @Test( expected = IllegalQueryException.class )
+    public void testGetEnrollmentUserWithDataReadWriteNoOrgUnit()
+    {
+        ImportSummary importSummary = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.update( programA );
+
+        User user = createUser( "user1" );
+
+        injectSecurityContext( user );
+
+        enrollmentService.getEnrollment( importSummary.getReference() );
+    }
+
+    /**
+     * program =
+     * orgUnit = Accessible
+     * status = ERROR
+     */
+    @Test( expected = IllegalQueryException.class )
+    public void testGetEnrollmentUserWithNoDataReadWriteOrgUnit()
+    {
+        ImportSummary importSummary = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( programA );
+
+        User user = createUser( "user1" )
+            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        injectSecurityContext( user );
+
+        enrollmentService.getEnrollment( importSummary.getReference() );
     }
 
     private Enrollment createEnrollment( String program, String person )

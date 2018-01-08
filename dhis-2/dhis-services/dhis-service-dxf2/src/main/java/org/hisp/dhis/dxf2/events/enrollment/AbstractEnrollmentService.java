@@ -348,7 +348,8 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user )
     {
-        String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ? enrollment.getStoredBy() : user.getUsername();
+        String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ?
+            enrollment.getStoredBy() : (user != null ? user.getUsername() : "system-process");
 
         if ( importOptions == null )
         {
