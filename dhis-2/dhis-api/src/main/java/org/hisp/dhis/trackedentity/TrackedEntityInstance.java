@@ -35,8 +35,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 import java.util.Date;
@@ -69,6 +72,10 @@ public class TrackedEntityInstance
     private Boolean inactive = false;
 
     private Boolean deleted = false;
+
+    private FeatureType featureType = FeatureType.NONE;
+
+    private String coordinates;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -222,5 +229,30 @@ public class TrackedEntityInstance
     public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.GEOLOCATION )
+    public String getCoordinates()
+    {
+        return coordinates;
+    }
+
+    public void setCoordinates( String coordinates )
+    {
+        this.coordinates = coordinates;
     }
 }
