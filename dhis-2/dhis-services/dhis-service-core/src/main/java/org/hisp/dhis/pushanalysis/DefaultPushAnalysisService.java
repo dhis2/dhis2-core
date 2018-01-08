@@ -178,6 +178,12 @@ public class DefaultPushAnalysisService
     }
 
     @Override
+    public void savePushAnalysis( PushAnalysis pushAnalysis )
+    {
+        pushAnalysisStore.save( pushAnalysis );
+    }
+
+    @Override
     public void runPushAnalysis( String uid, JobId jobId )
     {
         //----------------------------------------------------------------------

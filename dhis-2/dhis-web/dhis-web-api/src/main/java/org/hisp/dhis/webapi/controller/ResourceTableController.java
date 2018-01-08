@@ -30,13 +30,14 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -47,13 +48,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +67,7 @@ public class ResourceTableController
     private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -115,7 +113,7 @@ public class ResourceTableController
             .withSkipResourceTables( skipResourceTables )
             .build();
 
-        scheduler.executeJob( () -> analyticsTableGenerator.generateTables( params ) );
+        schedulingManager.executeJob( () -> analyticsTableGenerator.generateTables( params ) );
         
         webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
     }
@@ -126,7 +124,7 @@ public class ResourceTableController
     {
         JobId jobId = new JobId( JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid() );
 
-        scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
+        schedulingManager.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated resource table update" ), response, request );
     }
@@ -138,7 +136,7 @@ public class ResourceTableController
         JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(),
             false, true );
 
-        scheduler.executeJob( monitoringJob );
+        schedulingManager.executeJob( monitoringJob );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated data monitoring" ), response, request );
     }

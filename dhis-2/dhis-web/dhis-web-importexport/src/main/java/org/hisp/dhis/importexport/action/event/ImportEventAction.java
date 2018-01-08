@@ -36,8 +36,8 @@ import org.hisp.dhis.dxf2.events.event.*;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,7 +63,7 @@ public class ImportEventAction
     // -------------------------------------------------------------------------
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
@@ -153,7 +153,7 @@ public class ImportEventAction
         if ( FORMAT_CSV.equals( payloadFormat ) )
         {
             Events events = csvEventService.readEvents( in, skipFirst );
-            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
+            schedulingManager.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
         }
         else
         {
@@ -168,7 +168,7 @@ public class ImportEventAction
                 events = eventService.getEventsXml( in );
             }
 
-            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
         }
 
         return SUCCESS;

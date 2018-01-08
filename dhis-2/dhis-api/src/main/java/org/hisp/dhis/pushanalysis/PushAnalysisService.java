@@ -55,6 +55,12 @@ public interface PushAnalysisService
     PushAnalysis getByUid( String uid );
 
     /**
+     * Save push analysis object
+     * @param pushAnalysis
+     */
+    void savePushAnalysis( PushAnalysis pushAnalysis );
+
+    /**
      * Returns a String, consisting of HTML representing the PushAnalysis report.
      * This report is generated based on the associated Dashboard, as well as the user supplied
      * @param pushAnalysis PushAnalysis to generate report from

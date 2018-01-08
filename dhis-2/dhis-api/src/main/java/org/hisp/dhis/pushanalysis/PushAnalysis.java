@@ -90,6 +90,11 @@ public class PushAnalysis
      */
     private Integer schedulingDayOfFrequency;
 
+    /**
+     * Key which was used for scheduling.
+     */
+    private String schedulingKey;
+
     public PushAnalysis()
     {
     }
@@ -166,9 +171,13 @@ public class PushAnalysis
         this.enabled = enabled;
     }
 
+    public void setSchedulingKey( String schedulingKey )
+    {
+        this.schedulingKey = schedulingKey;
+    }
     public String getSchedulingKey()
     {
-        return "PushAnalysis:" + getUid();
+        return schedulingKey;
     }
 
     @JsonProperty
