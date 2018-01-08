@@ -86,13 +86,7 @@ public class EventSecurityTests
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
     private UserService _userService;
-
-    @Autowired
-    private TrackerAccessManager trackerAccessManager;
 
     private OrganisationUnit organisationUnitA;
     private DataElement dataElementA;
