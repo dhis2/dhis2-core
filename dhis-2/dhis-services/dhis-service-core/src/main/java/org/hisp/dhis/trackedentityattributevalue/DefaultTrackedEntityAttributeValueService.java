@@ -186,13 +186,6 @@ public class DefaultTrackedEntityAttributeValueService
     }
     
     @Override
-    public boolean exists( TrackedEntityAttribute attribute, String value )
-    {
-        List<TrackedEntityAttributeValue> values = attributeValueStore.get( attribute, value );
-        return values != null && values.size() > 0;
-    }
-
-    @Override
     public void copyTrackedEntityAttributeValues( TrackedEntityInstance source, TrackedEntityInstance destination )
     {
         attributeValueStore.deleteByTrackedEntityInstance( destination );
