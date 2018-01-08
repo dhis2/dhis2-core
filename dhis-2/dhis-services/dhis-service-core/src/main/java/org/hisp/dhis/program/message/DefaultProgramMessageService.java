@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.message;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -81,13 +79,7 @@ public class DefaultProgramMessageService
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
-
-    @Autowired
     private ProgramService programService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
     private OutboundMessageBatchService messageBatchService;
@@ -333,7 +325,7 @@ public class DefaultProgramMessageService
     {
         if ( programMessage.getProgramInstance() != null )
         {
-            return programInstanceService.getProgramInstance( programMessage.getProgramInstance().getUid() );
+            return manager.get( ProgramInstance.class, programMessage.getProgramInstance().getUid() );
         }
 
         return null;
@@ -343,8 +335,7 @@ public class DefaultProgramMessageService
     {
         if ( programMessage.getProgramStageInstance() != null )
         {
-            return programStageInstanceService
-                .getProgramStageInstance( programMessage.getProgramStageInstance().getUid() );
+            return manager.get( ProgramStageInstance.class, programMessage.getProgramStageInstance().getUid() );
         }
 
         return null;

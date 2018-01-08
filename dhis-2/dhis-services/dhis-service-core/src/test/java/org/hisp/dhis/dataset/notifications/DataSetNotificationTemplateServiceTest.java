@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ public class DataSetNotificationTemplateServiceTest
 
     private DataSetNotificationRecipient notificationRecipient;
 
-    private DataSetNotificationTrigger completion = DataSetNotificationTrigger.COMPLETION;
+    private DataSetNotificationTrigger completion = DataSetNotificationTrigger.DATA_SET_COMPLETION;
 
     private DataSetNotificationTemplate templateA;
     private DataSetNotificationTemplate templateB;

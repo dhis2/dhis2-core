@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
+
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -46,7 +47,9 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -85,19 +88,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 public class DefaultCompleteDataSetRegistrationExchangeService
-    implements CompleteDataSetRegistrationExchangeService
+    implements
+    CompleteDataSetRegistrationExchangeService
 {
     private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
 
-    private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen from dxf2 DefaultDataValueSetService
+    private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen
+                                                         // from dxf2
+                                                         // DefaultDataValueSetService
 
-    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME,
+        IdScheme.CODE );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -133,13 +141,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     @Autowired
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private CompleteDataSetRegistrationService registrationService;
+
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
-        Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes )
+    public ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups,
+        Set<String> periods, Date startDate, Date endDate, boolean includeChildren, Date created,
+        String createdDuration, Integer limit, IdSchemes idSchemes )
     {
         ExportParams params = new ExportParams();
 
@@ -150,7 +162,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( orgUnits != null )
         {
-            params.getOrganisationUnits().addAll( idObjManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, orgUnits ) );
+            params.getOrganisationUnits()
+                .addAll( idObjManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, orgUnits ) );
         }
 
         if ( orgUnitGroups != null )
@@ -165,17 +178,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
         else if ( startDate != null && endDate != null )
         {
-            params
-                .setStartDate( startDate )
-                .setEndDate( endDate );
+            params.setStartDate( startDate ).setEndDate( endDate );
         }
 
-        params
-            .setIncludeChildren( includeChildren )
-            .setCreated( created )
-            .setCreatedDuration( createdDuration )
-            .setLimit( limit )
-            .setOutputIdSchemes( idSchemes );
+        params.setIncludeChildren( includeChildren ).setCreated( created ).setCreatedDuration( createdDuration )
+            .setLimit( limit ).setOutputIdSchemes( idSchemes );
 
         return params;
     }
@@ -209,8 +216,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            CompleteDataSetRegistrations completeDataSetRegistrations =
-                new StreamingXmlCompleteDataSetRegistrations( XMLFactory.getXMLReader( in ) );
+            CompleteDataSetRegistrations completeDataSetRegistrations = new StreamingXmlCompleteDataSetRegistrations(
+                XMLFactory.getXMLReader( in ) );
 
             return saveCompleteDataSetRegistrations( importOptions, jobId, completeDataSetRegistrations );
         }
@@ -227,13 +234,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobId jobId )
+    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
+        JobId jobId )
     {
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            CompleteDataSetRegistrations completeDataSetRegistrations =
-                DefaultRenderService.getJsonMapper().readValue( in, CompleteDataSetRegistrations.class );
+            CompleteDataSetRegistrations completeDataSetRegistrations = DefaultRenderService.getJsonMapper()
+                .readValue( in, CompleteDataSetRegistrations.class );
 
             return saveCompleteDataSetRegistrations( importOptions, jobId, completeDataSetRegistrations );
         }
@@ -247,7 +255,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private static void validate( ExportParams params ) throws IllegalQueryException
+    private static void validate( ExportParams params )
+        throws IllegalQueryException
     {
         if ( params == null )
         {
@@ -261,7 +270,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
         {
-            validationError( "At least one valid period, start/end dates, created or created duration must be specified" );
+            validationError(
+                "At least one valid period, start/end dates, created or created duration must be specified" );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
@@ -335,7 +345,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         params.setOutputIdSchemes( schemes );
     }
 
-    private void decideAccess( ExportParams params ) throws IllegalQueryException
+    private void decideAccess( ExportParams params )
+        throws IllegalQueryException
     {
         for ( OrganisationUnit ou : params.getOrganisationUnits() )
         {
@@ -353,19 +364,23 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
     }
 
-    private static void validationError( String message ) throws IllegalQueryException
+    private static void validationError( String message )
+        throws IllegalQueryException
     {
         log.warn( "Validation error: " + message );
 
         throw new IllegalQueryException( message );
     }
 
-    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobId id, CompleteDataSetRegistrations completeRegistrations )
+    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobId id,
+        CompleteDataSetRegistrations completeRegistrations )
     {
-        Clock clock = new Clock( log ).startClock().logTime( "Starting complete data set registration import, options: " + importOptions );
+        Clock clock = new Clock( log ).startClock()
+            .logTime( "Starting complete data set registration import, options: " + importOptions );
         notifier.clear( id ).notify( id, "Process started" );
 
-        // Start here so we can access any outer attributes for the configuration
+        // Start here so we can access any outer attributes for the
+        // configuration
         completeRegistrations.open();
 
         ImportSummary importSummary = new ImportSummary();
@@ -404,8 +419,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         ImportCount count = importSummary.getImportCount();
 
-        clock.logTime( String.format( "Complete data set registration import done, total: %d, imported: %d, updated: %d, deleted: %d",
-            totalCount, count.getImported(), count.getUpdated(), count.getDeleted() ) );
+        clock.logTime( String.format(
+            "Complete data set registration import done, total: %d, imported: %d, updated: %d, deleted: %d", totalCount,
+            count.getImported(), count.getUpdated(), count.getDeleted() ) );
 
         completeRegistrations.close();
 
@@ -422,8 +438,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
         final I18n i18n = i18nManager.getI18n();
 
-        BatchHandler<CompleteDataSetRegistration> batchHandler =
-            batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ).init();
+        BatchHandler<CompleteDataSetRegistration> batchHandler = batchHandlerFactory
+            .createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ).init();
 
         int importCount = 0, updateCount = 0, deleteCount = 0, totalCount = 0;
 
@@ -431,7 +447,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         while ( completeRegistrations.hasNextCompleteDataSetRegistration() )
         {
-            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr = completeRegistrations.getNextCompleteDataSetRegistration();
+            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr = completeRegistrations
+                .getNextCompleteDataSetRegistration();
             totalCount++;
 
             // ---------------------------------------------------------------------
@@ -471,7 +488,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                 if ( config.strictOrgUnits )
                 {
-                    validateDataSetIsAssignedToOrgUnit( mdProps);
+                    validateDataSetIsAssignedToOrgUnit( mdProps );
                 }
 
                 storedBy = cdsr.getStoredBy();
@@ -486,13 +503,36 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 continue;
             }
 
+            // ---------------------------------------------------------------------
+            // Compulsory fields validation
+            // ---------------------------------------------------------------------
+
+            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields(
+                mdProps.dataSet, mdProps.period, mdProps.orgUnit, mdProps.attrOptCombo, false );
+
+            if ( !missingDataElementOperands.isEmpty() )
+            {
+                for ( DataElementOperand dataElementOperand : missingDataElementOperands )
+                {
+                    summary.getConflicts().add( new ImportConflict( "dataElementOperand",
+                        dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
+                }
+
+                if ( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )
+                {
+                    continue;
+                }
+            }
+
             // -----------------------------------------------------------------
             // Create complete data set registration
             // -----------------------------------------------------------------
 
-            CompleteDataSetRegistration internalCdsr = createCompleteDataSetRegistration( cdsr, mdProps, now, storedBy );
+            CompleteDataSetRegistration internalCdsr = createCompleteDataSetRegistration( cdsr, mdProps, now,
+                storedBy );
 
-            CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null : batchHandler.findObject( internalCdsr );
+            CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null
+                : batchHandler.findObject( internalCdsr );
 
             ImportStrategy strategy = config.strategy;
 
@@ -570,7 +610,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         return totalCount;
     }
 
-    private static void finalizeSummary( ImportSummary summary, int totalCount, int importCount, int updateCount, int deleteCount )
+    private static void finalizeSummary( ImportSummary summary, int totalCount, int importCount, int updateCount,
+        int deleteCount )
     {
         int ignores = totalCount - importCount - updateCount - deleteCount;
 
@@ -580,29 +621,24 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private static CompleteDataSetRegistration createCompleteDataSetRegistration(
-        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now, String storedBy )
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now,
+        String storedBy )
     {
-        return new CompleteDataSetRegistration(
-            mdProps.dataSet,
-            mdProps.period,
-            mdProps.orgUnit,
-            mdProps.attrOptCombo,
-            cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now,
-            storedBy
-        );
+        return new CompleteDataSetRegistration( mdProps.dataSet, mdProps.period, mdProps.orgUnit, mdProps.attrOptCombo,
+            cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now, storedBy );
     }
 
-    private static void validateOrgUnitInUserHierarchy(
-        MetaDataCaches mdCaches, MetaDataProperties mdProps, final Set<OrganisationUnit> userOrgUnits, String currentUsername )
+    private static void validateOrgUnitInUserHierarchy( MetaDataCaches mdCaches, MetaDataProperties mdProps,
+        final Set<OrganisationUnit> userOrgUnits, String currentUsername )
         throws ImportConflictException
     {
-        boolean inUserHierarchy =
-            mdCaches.orgUnitInHierarchyMap.get( mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant( userOrgUnits ) );
+        boolean inUserHierarchy = mdCaches.orgUnitInHierarchyMap.get( mdProps.orgUnit.getUid(),
+            () -> mdProps.orgUnit.isDescendant( userOrgUnits ) );
 
         if ( !inUserHierarchy )
         {
-            throw new ImportConflictException(
-                new ImportConflict( mdProps.orgUnit.getUid(), "Organisation unit is not in hierarchy of user: " + currentUsername ) );
+            throw new ImportConflictException( new ImportConflict( mdProps.orgUnit.getUid(),
+                "Organisation unit is not in hierarchy of user: " + currentUsername ) );
         }
     }
 
@@ -615,8 +651,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             if ( config.requireAttrOptionCombos )
             {
-                throw new ImportConflictException(
-                    new ImportConflict( "Attribute option combo", "Attribute option combo is required but is not specified" ) );
+                throw new ImportConflictException( new ImportConflict( "Attribute option combo",
+                    "Attribute option combo is required but is not specified" ) );
             }
             else
             {
@@ -627,12 +663,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         final DataElementCategoryOptionCombo aoc = mdProps.attrOptCombo;
         DateRange range = aoc.getDateRange();
 
-        if ( ( range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0 ) ||
-            ( range.getEndDate() != null && range.getEndDate().compareTo( pe.getEndDate() ) < 0 ) )
+        if ( (range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0)
+            || (range.getEndDate() != null && range.getEndDate().compareTo( pe.getEndDate() ) < 0) )
         {
-            throw new ImportConflictException(
-                new ImportConflict( mdProps.orgUnit.getUid(),
-                String.format( "Period: %s is not within range of attribute option combo: %s", pe.getIsoDate(), aoc.getUid() ) ) );
+            throw new ImportConflictException( new ImportConflict( mdProps.orgUnit.getUid(), String.format(
+                "Period: %s is not within range of attribute option combo: %s", pe.getIsoDate(), aoc.getUid() ) ) );
         }
 
         final String aocOrgUnitKey = aoc.getUid() + mdProps.orgUnit.getUid();
@@ -644,10 +679,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !isOrgUnitValidForAoc )
         {
-            throw new ImportConflictException(
-                new ImportConflict( mdProps.orgUnit.getUid(),
-                String.format( "Organisation unit: %s is not valid for attribute option combo %s", mdProps.orgUnit.getUid(), aoc.getUid() )
-            ) );
+            throw new ImportConflictException( new ImportConflict( mdProps.orgUnit.getUid(),
+                String.format( "Organisation unit: %s is not valid for attribute option combo %s",
+                    mdProps.orgUnit.getUid(), aoc.getUid() ) ) );
         }
     }
 
@@ -673,9 +707,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !aocCC.equals( dsCc ) )
         {
-            throw new ImportConflictException(
-                new ImportConflict( aocCC.getUid(),
-                    String.format( "Attribute option combo: %s must have category combo: %s", aocCC.getUid(), dsCc.getUid() ) ) );
+            throw new ImportConflictException( new ImportConflict( aocCC.getUid(), String
+                .format( "Attribute option combo: %s must have category combo: %s", aocCC.getUid(), dsCc.getUid() ) ) );
         }
     }
 
@@ -688,9 +721,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !dsPeType.equals( peType ) )
         {
-            throw new ImportConflictException(
-                new ImportConflict( props.period.getUid(),
-                    String.format( "Period type of period: %s is not equal to the period type of data set: %s",
+            throw new ImportConflictException( new ImportConflict( props.period.getUid(),
+                String.format( "Period type of period: %s is not equal to the period type of data set: %s",
                     props.period.getIsoDate(), props.dataSet.getPeriodType() ) ) );
         }
     }
@@ -700,10 +732,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     {
         if ( !props.orgUnit.getDataSets().contains( props.dataSet ) )
         {
-            throw new ImportConflictException(
-                new ImportConflict(
-                    props.dataSet.getUid(), String.format( "Data set %s is not assigned to organisation unit %s",
-                    props.dataSet.getUid(), props.orgUnit.getUid() ) ) );
+            throw new ImportConflictException( new ImportConflict( props.dataSet.getUid(),
+                String.format( "Data set %s is not assigned to organisation unit %s", props.dataSet.getUid(),
+                    props.orgUnit.getUid() ) ) );
         }
     }
 
@@ -718,16 +749,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !caches.orgUnits.isCacheLoaded() && exceedsThreshold( caches.orgUnits ) )
         {
-            caches.orgUnits.load( idObjManager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.ouScheme ) );
+            caches.orgUnits.load( idObjManager.getAll( OrganisationUnit.class ),
+                ou -> ou.getPropertyValue( config.ouScheme ) );
 
             log.info( "Org unit cache heated after cache miss threshold reached" );
         }
 
-        // TODO Consider need for checking/re-heating attrOptCombo and period caches
+        // TODO Consider need for checking/re-heating attrOptCombo and period
+        // caches
 
         if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
         {
-            caches.attrOptionCombos.load( idObjManager.getAll( DataElementCategoryOptionCombo.class ), aoc -> aoc.getPropertyValue( config.aocScheme ) );
+            caches.attrOptionCombos.load( idObjManager.getAll( DataElementCategoryOptionCombo.class ),
+                aoc -> aoc.getPropertyValue( config.aocScheme ) );
 
             log.info( "Attribute option combo cache heated after cache miss threshold reached" );
         }
@@ -741,18 +775,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private static MetaDataProperties initMetaDataProperties(
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
     {
-        String
-            ds = StringUtils.trimToNull( cdsr.getDataSet() ),
-            pe = StringUtils.trimToNull( cdsr.getPeriod() ),
+        String ds = StringUtils.trimToNull( cdsr.getDataSet() ), pe = StringUtils.trimToNull( cdsr.getPeriod() ),
             ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
             aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
 
-        return new MetaDataProperties(
-            cache.dataSets.get( ds , callables.dataSetCallable.setId( ds ) ),
+        return new MetaDataProperties( cache.dataSets.get( ds, callables.dataSetCallable.setId( ds ) ),
             cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
             cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),
-            cache.attrOptionCombos.get( aoc, callables.optionComboCallable.setId( aoc ) )
-        );
+            cache.attrOptionCombos.get( aoc, callables.optionComboCallable.setId( aoc ) ) );
     }
 
     private static boolean exceedsThreshold( CachingMap<?, ?> cachingMap )
@@ -767,11 +797,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private static class MetaDataProperties
     {
         final DataSet dataSet;
+
         final Period period;
+
         final OrganisationUnit orgUnit;
+
         DataElementCategoryOptionCombo attrOptCombo;
 
-        MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attrOptCombo )
+        MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit,
+            DataElementCategoryOptionCombo attrOptCombo )
         {
             this.dataSet = dataSet;
             this.period = period;
@@ -784,7 +818,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             if ( dataSet == null )
             {
-                throw new ImportConflictException( new ImportConflict( cdsr.getDataSet(), "Data set not found or not accessible" ) );
+                throw new ImportConflictException(
+                    new ImportConflict( cdsr.getDataSet(), "Data set not found or not accessible" ) );
             }
 
             if ( period == null )
@@ -798,14 +833,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     new ImportConflict( cdsr.getOrganisationUnit(), "Organisation unit not found or not accessible" ) );
             }
 
-            // Ensure AOC is set is required, or is otherwise set to the default COC
+            // Ensure AOC is set is required, or is otherwise set to the default
+            // COC
 
             if ( attrOptCombo == null )
             {
                 if ( config.requireAttrOptionCombos )
                 {
-                    throw new ImportConflictException(
-                        new ImportConflict( "Attribute option combo", "Attribute option combo is required but is not specified" ) );
+                    throw new ImportConflictException( new ImportConflict( "Attribute option combo",
+                        "Attribute option combo is required but is not specified" ) );
                 }
                 else
                 {
@@ -818,14 +854,18 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private class MetaDataCallables
     {
         final IdentifiableObjectCallable<DataSet> dataSetCallable;
+
         final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
+
         final IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallable;
+
         final IdentifiableObjectCallable<Period> periodCallable;
 
         MetaDataCallables( ImportConfig config )
         {
             dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.dsScheme, null );
-            orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.ouScheme, null );
+            orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.ouScheme,
+                null );
             optionComboCallable = new CategoryOptionComboAclCallable( categoryService, config.aocScheme, null );
             periodCallable = new PeriodCallable( periodService, null, null );
         }
@@ -834,25 +874,35 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private static class MetaDataCaches
     {
         CachingMap<String, DataSet> dataSets = new CachingMap<>();
+
         CachingMap<String, OrganisationUnit> orgUnits = new CachingMap<>();
+
         CachingMap<String, Period> periods = new CachingMap<>();
+
         CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
+
         CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
+
         CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
 
         void preheat( IdentifiableObjectManager manager, final ImportConfig config )
         {
             dataSets.load( manager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
             orgUnits.load( manager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.ouScheme ) );
-            attrOptionCombos.load( manager.getAll( DataElementCategoryOptionCombo.class ), oc -> oc.getPropertyValue( config.aocScheme ) );
+            attrOptionCombos.load( manager.getAll( DataElementCategoryOptionCombo.class ),
+                oc -> oc.getPropertyValue( config.aocScheme ) );
         }
     }
 
     private class ImportConfig
     {
         IdScheme dsScheme, ouScheme, aocScheme;
+
         ImportStrategy strategy;
-        boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits, requireAttrOptionCombos;
+
+        boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits,
+            requireAttrOptionCombos;
+
         DataElementCategoryOptionCombo fallbackCatOptCombo;
 
         ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
@@ -861,34 +911,35 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
             aocScheme = IdScheme.from( cdsr.getAttributeOptionComboIdSchemeProperty() );
 
-            log.info(
-                String.format( "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s", dsScheme, ouScheme, aocScheme )
-            );
+            log.info( String.format( "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s",
+                dsScheme, ouScheme, aocScheme ) );
 
-            strategy = cdsr.getStrategy() != null ?
-                ImportStrategy.valueOf( cdsr.getStrategy() ) : options.getImportStrategy();
+            strategy = cdsr.getStrategy() != null ? ImportStrategy.valueOf( cdsr.getStrategy() )
+                : options.getImportStrategy();
 
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
 
             skipExistingCheck = options.isSkipExistingCheck();
 
-            strictPeriods = options.isStrictPeriods() ||
-                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+            strictPeriods = options.isStrictPeriods()
+                || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
-            strictAttrOptionCombos = options.isStrictAttributeOptionCombos() ||
-                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
+            strictAttrOptionCombos = options.isStrictAttributeOptionCombos() || (Boolean) systemSettingManager
+                .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
 
-            strictOrgUnits = options.isStrictOrganisationUnits() ||
-                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+            strictOrgUnits = options.isStrictOrganisationUnits()
+                || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
 
-            requireAttrOptionCombos = options.isRequireAttributeOptionCombo() ||
-                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+            requireAttrOptionCombos = options.isRequireAttributeOptionCombo() || (Boolean) systemSettingManager
+                .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
 
             fallbackCatOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         }
     }
 
-    private static class ImportConflictException extends RuntimeException
+    private static class ImportConflictException
+        extends
+        RuntimeException
     {
         private final ImportConflict importConflict;
 

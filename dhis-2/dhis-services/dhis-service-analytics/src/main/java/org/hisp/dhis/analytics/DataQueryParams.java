@@ -1,9 +1,7 @@
 package org.hisp.dhis.analytics;
 
-import com.google.common.base.MoreObjects;
-
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import com.google.common.base.MoreObjects;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import com.google.common.base.MoreObjects;
 
 import com.google.common.collect.*;
 import org.apache.commons.lang3.StringUtils;
@@ -1242,6 +1242,26 @@ public class DataQueryParams
         }
     }
     
+    /**
+     * Sets the {@code startDate} property to the earliest start date, and the
+     * {@code endDate} property to the latest end date based on periods.
+     */
+    private void setEarliestStartDateLatestEndDate()
+    {
+        this.startDate = getEarliestStartDate();
+        this.endDate = getLatestEndDate();
+    }
+    
+    /**
+     * Adds a period dimension or updates an existing one with no period items. Removes
+     * period filter if present.
+     */
+    private void setPeriodDimensionWithoutOptions()
+    {
+        removeDimension( PERIOD_DIM_ID );
+        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, Lists.newArrayList() );
+    }
+        
     /**
      * Removes the dimension with the given identifier.
      */
@@ -2527,6 +2547,18 @@ public class DataQueryParams
         public Builder withDataPeriodsForAggregationPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
         {
             this.params.replaceAggregationPeriodsWithDataPeriods( dataPeriodAggregationPeriodMap );
+            return this;
+        }
+        
+        public Builder withEarliestStartDateLatestEndDate()
+        {
+            this.params.setEarliestStartDateLatestEndDate();
+            return this;
+        }
+        
+        public Builder withPeriodDimensionWithoutOptions()
+        {
+            this.params.setPeriodDimensionWithoutOptions();
             return this;
         }
         

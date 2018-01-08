@@ -1,7 +1,7 @@
 package org.hisp.dhis.webportal.menu;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,7 @@ package org.hisp.dhis.webportal.menu;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
-import com.opensymphony.xwork2.ActionContext;
+import org.hisp.dhis.util.SessionUtils;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -48,21 +46,12 @@ public class SessionMenuStateManager
     @Override
     public MenuState getMenuState()
     {
-        return (MenuState) getSession().get( SESSION_KEY_MENU_STATE );
+        return (MenuState) SessionUtils.getSessionVar( SESSION_KEY_MENU_STATE );
     }
 
     @Override
     public void setMenuState( MenuState menuState )
     {
-        getSession().put( SESSION_KEY_MENU_STATE, menuState );
-    }
-
-    // -------------------------------------------------------------------------
-    // Support methods
-    // -------------------------------------------------------------------------
-
-    protected Map<String, Object> getSession()
-    {
-        return ActionContext.getContext().getSession();
+        SessionUtils.setSessionVar( SESSION_KEY_MENU_STATE, menuState );
     }
 }
