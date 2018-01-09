@@ -33,11 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -65,6 +61,8 @@ public class DataElementCategoryOption
     private Set<DataElementCategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
     private Set<CategoryOptionGroup> groups = new HashSet<>();
+
+    private ObjectStyle style;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -248,5 +246,17 @@ public class DataElementCategoryOption
     public void setGroups( Set<CategoryOptionGroup> groups )
     {
         this.groups = groups;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
     }
 }
