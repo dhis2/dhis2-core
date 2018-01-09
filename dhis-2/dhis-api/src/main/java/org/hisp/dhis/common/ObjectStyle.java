@@ -1,7 +1,7 @@
-package org.hisp.dhis.hibernate.dialect;
+package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +28,40 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.H2Dialect;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import java.sql.Types;
+import java.io.Serializable;
 
-/**
- * @author Lars Helge Overland
- */
-public class DhisH2Dialect
-    extends H2Dialect
+public class ObjectStyle
+    implements Serializable
 {
 
-    public DhisH2Dialect()
+    private String color;
+
+    private String icon;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getColor()
     {
-        registerColumnType( Types.JAVA_OBJECT, "text" );
+        return color;
     }
 
-    @Override
-    public String getDropSequenceString( String sequenceName )
+    public void setColor( String color )
     {
-        // Adding the "if exists" clause to avoid warnings
-        return "drop sequence if exists " + sequenceName;
+        this.color = color;
     }
 
-    @Override
-    public boolean dropConstraints()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIcon()
     {
-        // No need to drop constraints before dropping tables, leads to error messages
-        return false;
+        return icon;
+    }
+
+    public void setIcon( String icon )
+    {
+        this.icon = icon;
     }
 }

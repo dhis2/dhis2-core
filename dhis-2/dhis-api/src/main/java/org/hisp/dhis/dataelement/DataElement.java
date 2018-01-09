@@ -141,6 +141,8 @@ public class DataElement
      */
     private OptionSet commentOptionSet;
 
+    private ObjectStyle style;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -706,5 +708,17 @@ public class DataElement
     {
         return getDataSets().isEmpty() || getDataSets().stream()
             .anyMatch( dataSet -> dataSet.isDataInputPeriodAndDateAllowed( period, date ) );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
     }
 }

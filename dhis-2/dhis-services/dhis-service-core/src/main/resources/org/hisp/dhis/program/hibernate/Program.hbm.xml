@@ -21,6 +21,8 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
     <property name="version" />
 
     <property name="enrollmentDateLabel" column="enrollmentdatelabel" type="text" />
@@ -66,6 +68,8 @@
     <property name="minAttributesRequiredToSearch" />
     
     <property name="maxTeiCountToReturn" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
 
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />

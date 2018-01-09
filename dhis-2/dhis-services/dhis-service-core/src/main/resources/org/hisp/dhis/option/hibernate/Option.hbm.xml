@@ -26,6 +26,12 @@
 
     <property name="sortOrder" column="sort_order" />
 
+    <property name="description" type="text" />
+
+    <property name="formName" type="text" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
+
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
 
     <!-- Dynamic attribute values -->
