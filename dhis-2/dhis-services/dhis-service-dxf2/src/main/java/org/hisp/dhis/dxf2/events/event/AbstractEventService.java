@@ -94,6 +94,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -210,6 +211,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected TrackerAccessManager trackerAccessManager;
+
+    @Autowired
+    protected AclService aclService;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -798,7 +802,8 @@ public abstract class AbstractEventService
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
         Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
+        User user = currentUserService.getCurrentUser();
+        UserCredentials userCredentials = user.getUserCredentials();
 
         EventSearchParams params = new EventSearchParams();
 
@@ -832,7 +837,7 @@ public abstract class AbstractEventService
             }
         }
 
-        if ( pr != null && !userCredentials.isSuper() && !userCredentials.canAccessProgram( pr ) )
+        if ( pr != null && !userCredentials.isSuper() && !aclService.canDataRead( user, pr ) )
         {
             throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
         }
