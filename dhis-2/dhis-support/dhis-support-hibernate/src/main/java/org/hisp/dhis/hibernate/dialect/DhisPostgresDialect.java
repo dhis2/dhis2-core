@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.dialect;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,20 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.H2Dialect;
+import org.hibernate.dialect.PostgreSQL95Dialect;
 
 import java.sql.Types;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold <stian@dhis2.org>
  */
-public class DhisH2Dialect
-    extends H2Dialect
+public class DhisPostgresDialect
+    extends PostgreSQL95Dialect
 {
-
-    public DhisH2Dialect()
+    public DhisPostgresDialect()
     {
-        registerColumnType( Types.JAVA_OBJECT, "text" );
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
-    }
-
-    @Override
-    public String getDropSequenceString( String sequenceName )
-    {
-        // Adding the "if exists" clause to avoid warnings
-        return "drop sequence if exists " + sequenceName;
-    }
-
-    @Override
-    public boolean dropConstraints()
-    {
-        // No need to drop constraints before dropping tables, leads to error messages
-        return false;
+        registerHibernateType( Types.OTHER, "pg-uuid" );
     }
 }

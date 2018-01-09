@@ -210,6 +210,7 @@ public class DefaultSchedulingManager
         return null;
     }
 
+    @Override
     public Map<String, ScheduledFuture<?>> getAllFutureJobs()
     {
         return scheduler.getAllFutureJobs();

@@ -28,13 +28,13 @@ package org.hisp.dhis.jdbc.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.quick.StatementDialect;
 import org.hibernate.cfg.Configuration;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.hisp.quick.StatementDialect;
 import org.springframework.beans.factory.FactoryBean;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -51,7 +51,7 @@ public class StatementDialectFactoryBean
         dialectMap = new HashMap<>();
         dialectMap.put( "org.hibernate.dialect.MySQLDialect", StatementDialect.MYSQL );
         dialectMap.put( "org.hibernate.dialect.PostgreSQLDialect", StatementDialect.POSTGRESQL );
-        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisPostgreSQLDialect", StatementDialect.POSTGRESQL );
+        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect", StatementDialect.POSTGRESQL );
         dialectMap.put( "org.hibernate.dialect.HSQLDialect", StatementDialect.HSQL );
         dialectMap.put( "org.hibernate.dialect.H2Dialect", StatementDialect.H2 );
         dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisH2Dialect",StatementDialect.H2 );
@@ -79,7 +79,7 @@ public class StatementDialectFactoryBean
         Configuration hibernateConfiguration = hibernateConfigurationProvider.getConfiguration();
         
         String dialect = hibernateConfiguration.getProperty( KEY_DIALECT );
-        
+
         statementDialect = dialectMap.get( dialect );
         
         if ( statementDialect == null )
