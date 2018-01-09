@@ -232,7 +232,7 @@ public class Program
         
         for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
         {
-            if ( programAttribute.getAttribute().isUnique() || programAttribute.isSearchable() )
+            if ( programAttribute.getAttribute().isSystemWideUnique() || programAttribute.isSearchable() )
             {
                 searchableAttributes.add( programAttribute.getAttribute().getUid() );
             }

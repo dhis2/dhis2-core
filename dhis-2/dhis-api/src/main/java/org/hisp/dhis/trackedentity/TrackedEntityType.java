@@ -131,7 +131,7 @@ public class TrackedEntityType
         
         for ( TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes )
         {
-            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isUnique()  )
+            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique()  )
             {
                 searchableAttributes.add( trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid() );
             }

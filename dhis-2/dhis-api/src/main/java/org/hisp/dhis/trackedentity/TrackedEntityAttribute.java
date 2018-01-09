@@ -396,4 +396,9 @@ public class TrackedEntityAttribute
     {
         this.formName = formName;
     }
+    
+    public Boolean isSystemWideUnique()
+    {
+        return isUnique() && !getProgramScope() && !getOrgunitScope();
+    }
 }
