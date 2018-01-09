@@ -38,6 +38,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ProgramStageSectionRenderType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,10 +49,11 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "programStageSection", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageSection
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private String description;
-    
+
     private ProgramStage programStage;
 
     private List<DataElement> dataElements = new ArrayList<>();
@@ -62,6 +65,8 @@ public class ProgramStageSection
     private ObjectStyle style;
 
     private String formName;
+
+    private DeviceRenderTypeMap<ProgramStageSectionRenderType> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -183,5 +188,18 @@ public class ProgramStageSection
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<ProgramStageSectionRenderType> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType(
+        DeviceRenderTypeMap<ProgramStageSectionRenderType> renderType )
+    {
+        this.renderType = renderType;
     }
 }
