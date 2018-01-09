@@ -208,12 +208,12 @@ public class JdbcAnalyticsTableManager
             valueExpression + " as value, " +
             textValueExpression + " as textvalue " +
             "from datavalue dv " +
+            "inner join period pe on dv.periodid=pe.periodid " +
+            "inner join _periodstructure ps on dv.periodid=ps.periodid " +
             "inner join dataelement de on dv.dataelementid=de.dataelementid " +
             "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
             "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
                 "and (pe.startdate >= degs.startdate or degs.startdate is null) and (pe.enddate <= degs.enddate or degs.enddate is null) " +
-            "inner join period pe on dv.periodid=pe.periodid " +
-            "inner join _periodstructure ps on dv.periodid=ps.periodid " +
             "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
             "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
             "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
