@@ -231,7 +231,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "limit 1) as " + quote( "duedate" );        
         columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql ) );
         
-        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case status when 'COMPLETED' then enddate end" ) );
+        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case pi.status when 'COMPLETED' then pi.enddate end" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" ) );

@@ -36,13 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -83,6 +77,8 @@ public class DataSet
     implements VersionedObject, MetadataObject, InterpretableObject
 {
     public static final int NO_EXPIRY = 0;
+
+    private String formName;
 
     /**
      * The PeriodType indicating the frequency that this DataSet should be used
@@ -230,6 +226,8 @@ public class DataSet
     * data set
     */
     private boolean compulsoryFieldsCompleteOnly;
+
+    private ObjectStyle style;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -877,6 +875,28 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+    
     public boolean isCompulsoryFieldsCompleteOnly()
     {
         return compulsoryFieldsCompleteOnly;
@@ -886,4 +906,5 @@ public class DataSet
     {
         this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
     }    
+    
 }
