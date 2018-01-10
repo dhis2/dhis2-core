@@ -118,6 +118,7 @@ public class ValidationUtilsTest
     {
         assertFalse( emailIsValid( "john@doe" ) );
         assertTrue( emailIsValid( "john@doe.com" ) );
+        assertTrue( emailIsValid( "test@test.ngo" ) );
     }
 
     @Test
