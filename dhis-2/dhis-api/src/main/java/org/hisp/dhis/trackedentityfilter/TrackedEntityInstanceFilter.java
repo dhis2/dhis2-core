@@ -52,13 +52,13 @@ public class TrackedEntityInstanceFilter
      * Property indicating description of trackedEntityInstanceFilter
      */
     private String description;
-    
+
     /**
-     * Property indicating the filter's order in tracked entity instance 
-     * search UI
+     * Property indicating the filter's order in tracked entity instance search
+     * UI
      */
     private int sortOrder;
-    
+
     /**
      * Property indicating the filter's rendering style
      */
@@ -75,18 +75,19 @@ public class TrackedEntityInstanceFilter
     private EventStatus eventStatus;
 
     /**
-     * Property indicating whether to filter tracked entity instances 
-     * whose enrollments are marked for followup or not
+     * Property indicating whether to filter tracked entity instances whose
+     * enrollments are marked for followup or not
      */
     private Boolean followup = false;
-    
+
     /**
      * Property to filter tracked entity instances based on enrollment dates
      */
     private FilterPeriod enrollmentCreatedPeriod;
-    
+
     /**
-     * Property to filter tracked entity instances based on event dates and statues
+     * Property to filter tracked entity instances based on event dates and
+     * statues
      */
     private EventFilter eventFilter;
 
@@ -102,14 +103,14 @@ public class TrackedEntityInstanceFilter
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
     {
         return description;
     }
-    
+
     public void setDescription( String description )
     {
         this.description = description;
@@ -120,7 +121,7 @@ public class TrackedEntityInstanceFilter
     public ObjectStyle getStyle()
     {
         return style;
-    }    
+    }
 
     public void setStyle( ObjectStyle style )
     {
@@ -150,7 +151,7 @@ public class TrackedEntityInstanceFilter
     {
         this.enrollmentStatus = enrollmentStatus;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public EventStatus getEventStatus()

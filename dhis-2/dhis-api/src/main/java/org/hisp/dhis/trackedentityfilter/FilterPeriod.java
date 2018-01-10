@@ -1,10 +1,5 @@
 package org.hisp.dhis.trackedentityfilter;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -33,6 +28,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
@@ -40,18 +40,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class FilterPeriod
 {
     private int periodFrom;
-    
+
     private int periodTo;
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-    
+
     public FilterPeriod()
     {
-        
+
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

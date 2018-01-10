@@ -1,7 +1,5 @@
 package org.hisp.dhis.trackedentityfilter;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -15,7 +13,7 @@ import org.hisp.dhis.common.DxfNamespaces;
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ * be used to endorse or promote products derived daysFromToday this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,6 +28,7 @@ import org.hisp.dhis.common.DxfNamespaces;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -43,24 +42,24 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class EventFilter
 {
     private ProgramStage programStage;
-    
+
     private EventStatus eventStatus;
-    
+
     private FilterPeriod eventCreatedPeriod;
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-    
+
     public EventFilter()
     {
-        
+
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStage getProgramStage()
@@ -95,6 +94,6 @@ public class EventFilter
     public void setEventCreatedPeriod( FilterPeriod eventCreatedPeriod )
     {
         this.eventCreatedPeriod = eventCreatedPeriod;
-    }    
-    
+    }
+
 }
