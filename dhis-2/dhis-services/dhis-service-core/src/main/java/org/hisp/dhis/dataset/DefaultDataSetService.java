@@ -161,7 +161,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getCurrentUserDataSets()
+    public List<DataSet> getUserDataSets()
     {
         User user = currentUserService.getCurrentUser();
 
