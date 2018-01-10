@@ -34,6 +34,7 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.Date;
@@ -139,6 +140,12 @@ public interface DataSetService
      * user has the ALL authority then all data sets are returned.
      */
     List<DataSet> getUserDataSets();
+
+    /**
+     * Returns the data sets associated with the current user. If the current
+     * user has the ALL authority then all data sets are returned.
+     */
+    List<DataSet> getUserDataSets( User user );
 
     // -------------------------------------------------------------------------
     // DataSet LockExceptions
