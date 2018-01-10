@@ -138,13 +138,13 @@ public interface DataSetService
      * Returns the data sets which current user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
      */
-    List<DataSet> getCurrentUserReadDataSets();
+    List<DataSet> getDataReadAll();
 
     /**
      * Returns the data sets which current user have WRITE access. If the current
      * user has the ALL authority then all data sets are returned.
      */
-    List<DataSet> getCurrentUserWriteDataSets();
+    List<DataSet> getDataWriteAll();
 
     // -------------------------------------------------------------------------
     // DataSet LockExceptions

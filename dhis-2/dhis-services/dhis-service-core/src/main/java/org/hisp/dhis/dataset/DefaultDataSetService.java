@@ -160,7 +160,8 @@ public class DefaultDataSetService
         return dataSetStore.getDataSetsForMobile( source );
     }
 
-    public List<DataSet> getCurrentUserReadDataSets()
+    @Override
+    public List<DataSet> getDataReadAll()
     {
         UserInfo user = currentUserService.getCurrentUserInfo();
 
@@ -175,11 +176,12 @@ public class DefaultDataSetService
         }
         else
         {
-            return dataSetStore.getDataAll();
+            return dataSetStore.getDataReadAll();
         }
     }
 
-    public List<DataSet> getCurrentUserWriteDataSets()
+    @Override
+    public List<DataSet> getDataWriteAll()
     {
         UserInfo user = currentUserService.getCurrentUserInfo();
 

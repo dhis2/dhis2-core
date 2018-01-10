@@ -234,7 +234,7 @@ public class GetMetaDataAction
 
         expressionService.substituteExpressions( indicators, null );
 
-        dataSets = dataSetService.getCurrentUserWriteDataSets();
+        dataSets = dataSetService.getDataWriteAll();
         
         Set<DataElementCategoryCombo> categoryComboSet = new HashSet<>();
         Set<DataElementCategory> categorySet = new HashSet<>();
