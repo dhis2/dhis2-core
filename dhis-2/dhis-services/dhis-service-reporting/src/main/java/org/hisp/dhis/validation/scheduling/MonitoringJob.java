@@ -100,7 +100,6 @@ public class MonitoringJob
         try
         {
             List<Period> periods = new ArrayList<>();
-            List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
             Collection<ValidationRule> validationRules;
             List<String> groupUIDs = monitoringJobParameters.getValidationRuleGroups();
 
@@ -138,7 +137,8 @@ public class MonitoringJob
             }
 
             ValidationAnalysisParams parameters = validationService
-                .newParamsBuilder( validationRules, organisationUnits, periods )
+                .newParamsBuilder( validationRules, null, periods )
+                .withIncludeOrgUnitDescendants( true )
                 .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
                 .withSendNotifications( monitoringJobParameters.isSendNotifications() )
                 .withPersistResults( monitoringJobParameters.isPersistResults() )

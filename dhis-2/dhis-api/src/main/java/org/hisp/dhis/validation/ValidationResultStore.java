@@ -50,6 +50,6 @@ public interface ValidationResultStore
 
     int count( ValidationResultQuery query );
 
-    List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits, Collection<ValidationRule> validationRules,
-        Collection<Period> periods );
+    List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );
 }
