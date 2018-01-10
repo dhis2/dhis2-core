@@ -655,6 +655,12 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+  
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstance" />
@@ -1484,6 +1490,10 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService" />
+    
+  <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
+    <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
+  </bean>  
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService">
