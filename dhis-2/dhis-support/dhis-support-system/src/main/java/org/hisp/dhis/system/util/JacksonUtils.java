@@ -34,7 +34,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,5 +98,22 @@ public class JacksonUtils
         TypeReference<HashMap<T, U>> typeRef = new TypeReference<HashMap<T, U>>() {};
 
         return jsonMapper.readValue( object, typeRef );
+    }
+
+    public static <T> void fromObjectToReponse( HttpServletResponse response, Object clazz)
+    {
+        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        response.setContentType( "application/json" );
+        PrintWriter jsonResponse;
+        try
+        {
+            jsonResponse = response.getWriter();
+            jsonResponse.print( toJson( clazz ) );
+            jsonResponse.flush();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
     }
 }

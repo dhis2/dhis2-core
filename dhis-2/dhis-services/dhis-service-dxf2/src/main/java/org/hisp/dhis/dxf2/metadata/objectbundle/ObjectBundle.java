@@ -37,7 +37,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
@@ -122,7 +122,7 @@ public class ObjectBundle
     /**
      * Job id to use for threaded imports.
      */
-    private JobId jobId;
+    private JobConfiguration jobId;
 
     /**
      * Current status of object bundle.
@@ -239,7 +239,7 @@ public class ObjectBundle
         return skipValidation;
     }
 
-    public JobId getJobId()
+    public JobConfiguration getJobId()
     {
         return jobId;
     }

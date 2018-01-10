@@ -29,12 +29,14 @@ package org.hisp.dhis.system.notification;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Map;
 
 import static org.hisp.dhis.scheduling.JobType.*;
 import static org.junit.Assert.assertEquals;
@@ -51,9 +53,9 @@ public class NotifierTest
 
     private User user = createUser( 'A' );
     
-    private JobId id1 = new JobId( DATAVALUE_IMPORT, user.getUid() );
-    private JobId id2 = new JobId( ANALYTICSTABLE_UPDATE, user.getUid() );
-    private JobId id3 = new JobId( METADATA_IMPORT, user.getUid() );
+    private JobConfiguration id1 = new JobConfiguration( null, DATAVALUE_IMPORT, user.getUid(), true );
+    private JobConfiguration id2 = new JobConfiguration( null, ANALYTICS_TABLE, user.getUid(), true );
+    private JobConfiguration id3 = new JobConfiguration( null, METADATA_IMPORT, user.getUid(), true );
     
     @Test
     public void testNotifiy()
@@ -64,20 +66,12 @@ public class NotifierTest
         notifier.notify( id2, "Process started" );
         notifier.notify( id2, "Process done" );
         
-        List<Notification> notifications = notifier.getNotifications( id1, null );
+        Map<JobType, Map<String, LinkedList<Notification>>> notifications = notifier.getNotifications( );
         
         assertNotNull( notifications );
-        assertEquals( 3, notifications.size() );
-        
-        notifications = notifier.getNotifications( id2, null );
-        
-        assertNotNull( notifications );
-        assertEquals( 2, notifications.size() );
-
-        notifications = notifier.getNotifications( id3, null );
-        
-        assertNotNull( notifications );
-        assertEquals( 0, notifications.size() );
+        assertEquals( 3, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
+        assertEquals( 2, notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
+        assertEquals( 0, notifier.getNotificationsByJobId( id3.getJobType(), id3.getUid() ).size() );
     }
 
     @Test
@@ -91,25 +85,25 @@ public class NotifierTest
         notifier.notify( id2, "Process started" );
         notifier.notify( id2, "Process done" );
         
-        assertEquals( 3, notifier.getNotifications( id1, null ).size() );
-        assertEquals( 2, notifier.getNotifications( id2, null ).size() );
+        assertEquals( 3, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
+        assertEquals( 2, notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
         
         notifier.clear( id1 );
 
-        assertEquals( 0, notifier.getNotifications( id1, null ).size() );
-        assertEquals( 2, notifier.getNotifications( id2, null ).size() );
+        assertEquals( 0, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
+        assertEquals( 2,  notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
 
         notifier.clear( id2 );
 
-        assertEquals( 0, notifier.getNotifications( id1, null ).size() );
-        assertEquals( 0, notifier.getNotifications( id2, null ).size() );        
+        assertEquals( 0, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
+        assertEquals( 0, notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
     }
     
     @Test
     public void testTaskSummary()
     {
-        notifier.addTaskSummary( id1, new Object() );
+        notifier.addJobSummary( id1, new Object() );
         
-        assertNotNull( notifier.getTaskSummary( id1 ) );
+        assertNotNull( notifier.getJobSummaryByJobId( id1.getJobType(), id1.getUid() ) );
     }
 }
