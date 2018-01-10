@@ -19,6 +19,8 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
     <property name="minDaysFromStart" column="mindaysfromstart" not-null="true" />
 
     <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid"
@@ -71,6 +73,8 @@
     <property name="reportDateToUse" />
 
     <property name="preGenerateUID" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
 
     <property name="hideDueDate" />
 

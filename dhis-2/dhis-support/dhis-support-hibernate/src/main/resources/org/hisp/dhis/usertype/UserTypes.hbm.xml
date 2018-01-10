@@ -12,4 +12,14 @@
     <param name="encryptor">aes128StringEncryptor</param>
   </typedef>
 
+  <!-- Jsonb type -->
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObjectStyle">
+    <param name="clazz">org.hisp.dhis.common.ObjectStyle</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbRenderType">
+    <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
+  </typedef>
+
 </hibernate-mapping>
