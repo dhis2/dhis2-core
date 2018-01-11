@@ -733,6 +733,19 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <!-- ProgramRule Engine -->
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngine" class="org.hisp.dhis.programrule.engine.ProgramRuleEngine" />
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngineService" class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService" />
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEntityMapperService" />
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" class="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" />
+
+  <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
+
+  
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityType" />
@@ -1526,6 +1539,13 @@
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationStore"
     class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore"
+        class="org.hisp.dhis.program.notification.DefaultProgramNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />

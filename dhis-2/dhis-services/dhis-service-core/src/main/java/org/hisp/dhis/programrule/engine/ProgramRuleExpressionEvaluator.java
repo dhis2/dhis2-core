@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,54 +28,17 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.Set;
+import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.rules.RuleExpressionEvaluator;
 
 /**
- * @author Markus Bekken
+ * Created by zubair@dhis2.org on 11.10.17.
  */
-public enum ProgramRuleActionType
+public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
 {
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" ),
-    SENDMESSAGE( "sendmessage" );
-
-    final String value;
-
-    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE ).build(); // Actions having back end implementation
-
-    ProgramRuleActionType( String value )
+    @Override
+    public String evaluate( String expression )
     {
-        this.value = value;
-    }
-
-    public static ProgramRuleActionType fromValue( String value )
-    {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean isImplementable()
-    {
-        return IMPLEMENTED_ACTIONS.contains( this );
+       return ExpressionUtils.evaluate( expression ).toString();
     }
 }

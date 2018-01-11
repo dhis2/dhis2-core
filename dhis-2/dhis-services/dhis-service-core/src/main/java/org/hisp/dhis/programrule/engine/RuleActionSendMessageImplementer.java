@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,85 +28,52 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.Program;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author markusbekken
+ * Created by zubair@dhis2.org on 04.01.18.
  */
-@Transactional
-public class DefaultProgramRuleService
-    implements ProgramRuleService
+public class RuleActionSendMessageImplementer implements RuleActionImplementer
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramRuleStore programRuleStore;
+    @Autowired
+    private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
-    public void setProgramRuleStore( ProgramRuleStore programRuleStore )
-    {
-        this.programRuleStore = programRuleStore;
-    }
-
-    // -------------------------------------------------------------------------
-    // ProgramRule implementation
-    // -------------------------------------------------------------------------
+    @Autowired
+    private ProgramNotificationService programNotificationService;
 
     @Override
-    public int addProgramRule( ProgramRule programRule )
+    public boolean accept( RuleAction ruleAction )
     {
-        programRuleStore.save( programRule );
-        return programRule.getId();
+        return ruleAction instanceof RuleActionSendMessage;
     }
 
     @Override
-    public void deleteProgramRule( ProgramRule programRule )
+    public void implement( RuleAction ruleAction, ProgramInstance programInstance )
     {
-        programRuleStore.delete( programRule );
+        programNotificationService.sendProgramRuleTriggeredNotifications( getNotificationTemplate( ruleAction ), programInstance );
     }
 
     @Override
-    public void updateProgramRule( ProgramRule programRule )
+    public void implement( RuleAction ruleAction, ProgramStageInstance programStageInstance )
     {
-        programRuleStore.update( programRule );
+        programNotificationService.sendProgramRuleTriggeredNotifications( getNotificationTemplate( ruleAction ), programStageInstance );
     }
 
-    @Override
-    public ProgramRule getProgramRule( int id )
+    private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
     {
-        return programRuleStore.get( id );
-    }
+        RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
 
-    @Override
-    public ProgramRule getProgramRule( String uid )
-    {
-        return programRuleStore.getByUid( uid );
-    }
-
-    @Override
-    public ProgramRule getProgramRuleByName( String name, Program program )
-    {
-        return programRuleStore.getByName( name, program );
-    }
-    
-    @Override
-    public List<ProgramRule> getAllProgramRule()
-    {
-        return programRuleStore.getAll();
-    }
-
-    @Override
-    public List<ProgramRule> getProgramRule( Program program )
-    {
-        return programRuleStore.get( program );
-    }
-    
-    @Override
-    public List<ProgramRule> getProgramRules( Program program, String key )
-    {
-        return programRuleStore.get( program, key );
+        return programNotificationTemplateStore.getByUid( sendMessage.notification() );
     }
 }
