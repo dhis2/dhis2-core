@@ -352,6 +352,12 @@ public class DefaultAnalyticsService
                 }
             }
             
+            if ( params.isIncludePeriodStartEndDates() )
+            {
+                grid.addHeader( new GridHeader( PERIOD_START_DATE_ID, PERIOD_START_DATE_NAME, ValueType.DATETIME, Date.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( PERIOD_END_DATE_ID, PERIOD_END_DATE_NAME, ValueType.DATETIME, Date.class.getName(), false, false ) );
+            }
+            
             grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
 
             if ( params.isIncludeNumDen() )
@@ -1148,7 +1154,8 @@ public class DefaultAnalyticsService
     {
         Builder builder = DataQueryParams.newBuilder( params )
             .withEarliestStartDateLatestEndDate()
-            .withPeriodDimensionWithoutOptions();
+            .withPeriodDimensionWithoutOptions()
+            .withIncludePeriodStartEndDates( true );
         
         if ( params.isShowHierarchy() )
         {            
