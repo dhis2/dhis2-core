@@ -41,7 +41,7 @@ import java.util.Date;
  * Created by zubair@dhis2.org on 10.01.18.
  */
 
-@JacksonXmlRootElement( localName = "notificationLogEntry", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "externalNotificationLogEntry", namespace = DxfNamespaces.DXF_2_0 )
 public class ExternalNotificationLogEntry extends BaseIdentifiableObject
     implements Serializable
 {
