@@ -274,41 +274,6 @@ public class UserCredentials
     }
 
     /**
-     * Returns a set of the programs for all user authority groups
-     * of this user credentials.
-     */
-    public Set<Program> getAllPrograms()
-    {
-        Set<Program> programs = new HashSet<>();
-
-        for ( UserAuthorityGroup group : userAuthorityGroups )
-        {
-            programs.addAll( group.getPrograms() );
-        }
-
-        return programs;
-    }
-
-    /**
-     * Indicates if the given program is accessible.
-     *
-     * @param program the program.
-     * @return true if if the given program is accessible.
-     */
-    public boolean canAccessProgram( Program program )
-    {
-        for ( UserAuthorityGroup group : userAuthorityGroups )
-        {
-            if ( group.getPrograms().contains( program ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Indicates whether this user credentials can issue the given user authority
      * group. First the given authority group must not be null. Second this
      * user credentials must not contain the given authority group. Third

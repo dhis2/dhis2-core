@@ -56,6 +56,6 @@ public class ResourceTableJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        analyticsTableGenerator.generateResourceTables( jobConfiguration.getJobId() );
+        analyticsTableGenerator.generateResourceTables( jobConfiguration );
     }
 }

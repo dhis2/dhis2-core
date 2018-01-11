@@ -82,6 +82,7 @@ public class DefaultProgramService
     @Override
     public List<org.hisp.dhis.api.mobile.model.LWUITmodel.Program> getProgramsLWUIT( OrganisationUnit unit )
     {
+        /*
         Collection<org.hisp.dhis.program.Program> programByUnit = programService.getPrograms( unit );
 
         Collection<org.hisp.dhis.program.Program> programByCurrentUser = programService.getUserPrograms();
@@ -94,8 +95,9 @@ public class DefaultProgramService
         {
             programs.add( getProgramLWUIT( program.getId() ) );
         }
+        */
 
-        return programs;
+        return new ArrayList<>(  );
     }
 
     @Override

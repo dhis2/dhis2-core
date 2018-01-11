@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.webapi.controller.type;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,40 +28,25 @@ package org.hisp.dhis.system.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import org.hisp.dhis.scheduling.JobId;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TaskLocalList<T>
+@Controller
+@RequestMapping( "/type/testDefaultV26" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
+public class ApiTypeDefaultV26Controller
 {
-    private final Map<JobId, List<T>> internalMap;
-    
-    public TaskLocalList()
+    @RequestMapping
+    public void test( HttpServletResponse response ) throws IOException
     {
-        this.internalMap = new HashMap<>();
-    }
-    
-    public List<T> get( JobId id )
-    {
-        List<T> list = internalMap.get( id );
-        
-        if ( list == null )
-        {
-            list = new ArrayList<>();
-            internalMap.put( id, list );
-        }
-        
-        return list;
-    }
-    
-    public boolean clear( JobId id )
-    {
-        return internalMap.remove( id ) != null;
+        response.getWriter().println( "TEST" );
     }
 }

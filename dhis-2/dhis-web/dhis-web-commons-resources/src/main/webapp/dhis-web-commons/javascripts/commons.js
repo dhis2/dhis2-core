@@ -1798,9 +1798,9 @@ function changePageSize( event )
 function pingNotifications( category, tableId, completedCallback )
 {
 	var lastUid = $( '#' + tableId ).prop( 'lastUid' ); // Store on table property
-	
+
 	var param = ( undefined !== lastUid ) ? '?lastId=' + lastUid : '';
-	
+
 	$.getJSON( '../api/system/tasks/' + category + param, function( notifications )
 	{
 		var html = '',
@@ -1817,15 +1817,15 @@ function pingNotifications( category, tableId, completedCallback )
 					loaderHtml = _loading_bar_html;
 					$( '#loaderSpan' ).replaceWith ( '' ); // Hide previous loader bar
 				}
-				
+
 				var time = '';
-				
+
 				if ( undefined !== notification.time ) {
 					time = notification.time.replace( 'T', ' ' ).substring( 0, 19 );
 				}
-				
+
 				html += '<tr><td>' + time + '</td><td>' + notification.message + ' &nbsp;';
-				
+
 				if ( notification.level == "ERROR" ) {
 					html += '<img src="../images/error_small.png">';
 					isComplete = true;
@@ -1837,14 +1837,14 @@ function pingNotifications( category, tableId, completedCallback )
 				else {
 					html += loaderHtml;
 				}
-				
+
 				html += '</td></tr>';
 			} );
-		
+
 			$( '#' + tableId ).show().prepend( html );
-		
+
 			if ( isComplete && completedCallback && completedCallback.call ) {
-				completedCallback();				
+				completedCallback();
 			}
 		}
 	} );

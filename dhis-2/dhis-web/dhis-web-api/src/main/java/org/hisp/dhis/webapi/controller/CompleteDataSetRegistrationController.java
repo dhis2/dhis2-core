@@ -28,8 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -38,56 +36,55 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequest;
-import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequests;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.*;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,16 +96,11 @@ public class CompleteDataSetRegistrationController
 {
     public static final String RESOURCE_PATH = "/completeDataSetRegistrations";
 
-    public static final String MULTIPLE_SAVE_RESOURCE_PATH = "/multiple";
-
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
 
     @Autowired
     private DataSetService dataSetService;
-
-    @Autowired
-    private PeriodService periodService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -123,15 +115,6 @@ public class CompleteDataSetRegistrationController
     private InputUtils inputUtils;
 
     @Autowired
-    private I18nManager i18nManager;
-
-    @Autowired
-    private FieldFilterService fieldFilterService;
-
-    @Autowired
-    private ContextService contextService;
-
-    @Autowired
     private DefaultCompleteDataSetRegistrationExchangeService registrationExchangeService;
 
     @Autowired
@@ -142,9 +125,6 @@ public class CompleteDataSetRegistrationController
 
     @Autowired
     private SessionFactory sessionFactory;
-    
-    @Autowired
-    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -204,42 +184,6 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsJson( params, response.getOutputStream() );
     }
 
-    // Legacy (>= V25)
-
-    @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
-    public @ResponseBody
-    RootNode getCompleteDataSetRegistrationsJson(
-        @RequestParam Set<String> dataSet,
-        @RequestParam( required = false ) String period,
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
-        @RequestParam Set<String> orgUnit,
-        @RequestParam( required = false ) boolean children,
-        HttpServletResponse response ) throws IOException
-    {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-            List<String> defaults = new ArrayList<>();
-            defaults.add( "period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id],attributeOptionCombo[code,name,created,lastUpdated,id]" );
-            fields.addAll( defaults );
-        }
-
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        CompleteDataSetRegistrations completeDataSetRegistrations = getCompleteDataSetRegistrations( dataSet, period,
-            startDate, endDate, orgUnit, children );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( CompleteDataSetRegistration.class,
-            new FieldFilterParams( completeDataSetRegistrations.getCompleteDataSetRegistrations(), fields ) ) );
-
-        return rootNode;
-    }
-
     // -------------------------------------------------------------------------
     // POST
     // -------------------------------------------------------------------------
@@ -282,207 +226,6 @@ public class CompleteDataSetRegistrationController
             summary.setImportOptions( importOptions );
             renderService.toJson( response.getOutputStream(), summary );
         }
-    }
-
-    // Legacy (<= V25)
-
-    @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
-    @RequestMapping( method = RequestMethod.POST, produces = CONTENT_TYPE_TEXT )
-    //@ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveCompleteDataSetRegistration(
-        @RequestParam String ds,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        @RequestParam( required = false ) Date cd,
-        @RequestParam( required = false ) String sb,
-        @RequestParam( required = false ) boolean multiOu, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
-    {        
-        DataSet dataSet = dataSetService.getDataSet( ds );
-
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal data set identifier: " + ds ) );
-        }
-
-        Period period = PeriodType.getPeriodFromIsoString( pe );
-
-        if ( period == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
-        }
-
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
-
-        if ( organisationUnit == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
-        }
-
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
-
-        if ( attributeOptionCombo == null )
-        {
-            return;
-        }
-
-        // ---------------------------------------------------------------------
-        // Check locked status
-        // ---------------------------------------------------------------------
-
-        if ( dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null, multiOu ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked: " + ds ) );
-        }                
-        
-        // ---------------------------------------------------------------------
-        // Compulsory fields validation
-        // ---------------------------------------------------------------------
-        
-        List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( dataSet, period,
-            organisationUnit, attributeOptionCombo, multiOu );
-        
-        ImportSummary importSummary = new ImportSummary( dataSet.getUid() );
-        
-        importSummary.setStatus( ImportStatus.SUCCESS );
-        
-        if( !missingDataElementOperands.isEmpty() )
-        {
-            for( DataElementOperand dataElementOperand : missingDataElementOperands )
-            {
-                importSummary.getConflicts().add(
-                    new ImportConflict( "dataElementOperand", dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
-            }
-            
-            if( dataSet.isCompulsoryFieldsCompleteOnly() )
-            {
-                importSummary.setStatus( ImportStatus.ERROR );
-            }
-            else 
-            {
-                importSummary.setStatus( ImportStatus.WARNING );
-            }
-        }
-        
-        // ---------------------------------------------------------------------
-        // Register as completed data set
-        // ---------------------------------------------------------------------
-        
-        String storedBy = (sb == null) ? currentUserService.getCurrentUsername() : sb;
-
-        Date completionDate = (cd == null) ? new Date() : cd;
-
-        Set<OrganisationUnit> children = organisationUnit.getChildren();
-            
-        if( !importSummary.getStatus().equals(  ImportStatus.ERROR ) )
-        {            
-            List<CompleteDataSetRegistration> registrations = new ArrayList<>();
-
-            if ( !multiOu )
-            {
-                CompleteDataSetRegistration completeDataSetRegistration = registerCompleteDataSet( dataSet, period,
-                    organisationUnit, attributeOptionCombo, storedBy, completionDate );
-
-                if ( completeDataSetRegistration != null )
-                {
-                    registrations.add( completeDataSetRegistration );
-                }
-            }
-            else
-            {
-                addRegistrationsForOrgUnits( registrations, Sets.union( children, Sets.newHashSet( organisationUnit ) ), dataSet, period,
-                    attributeOptionCombo, storedBy, completionDate );
-            }
-            
-            registrationService.saveCompleteDataSetRegistrations( registrations, false );
-
-        }    
-        
-        response.setContentType( CONTENT_TYPE_TEXT );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
-    }
-    
-    @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON, value = MULTIPLE_SAVE_RESOURCE_PATH )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveCompleteDataSetRegistration(
-        @RequestBody CompleteDataSetRegistrationRequests completeDataSetRegistrationRequests,
-        HttpServletResponse response ) throws WebMessageException
-    {        
-        List<CompleteDataSetRegistration> registrations = new ArrayList<>();
-
-        for ( CompleteDataSetRegistrationRequest completeDataSetRegistrationRequest : completeDataSetRegistrationRequests )
-        {
-            String ds = completeDataSetRegistrationRequest.getDs();
-            DataSet dataSet = dataSetService.getDataSet( ds );
-
-            if ( dataSet == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Illegal data set identifier: " + ds ) );
-            }
-
-            String pe = completeDataSetRegistrationRequest.getPe();
-            Period period = PeriodType.getPeriodFromIsoString( pe );
-
-            if ( period == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
-            }
-
-            String ou = completeDataSetRegistrationRequest.getOu();
-            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
-
-            if ( organisationUnit == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
-            }
-
-            String cc = completeDataSetRegistrationRequest.getCc();
-            String cp = completeDataSetRegistrationRequest.getCp();
-            DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
-
-            if ( attributeOptionCombo == null )
-            {
-                return;
-            }
-
-            // ---------------------------------------------------------------------
-            // Check locked status
-            // ---------------------------------------------------------------------
-
-            boolean multiOu = completeDataSetRegistrationRequest.isMultiOu();
-
-            if ( dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null, multiOu ) )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked: " + ds ) );
-            }
-
-            // ---------------------------------------------------------------------
-            // Register as completed data set
-            // ---------------------------------------------------------------------
-
-            String sb = completeDataSetRegistrationRequest.getSb();
-
-            String storedBy = (sb == null) ? currentUserService.getCurrentUsername() : sb;
-
-            Date cd = completeDataSetRegistrationRequest.getCd();
-
-            Date completionDate = (cd == null) ? new Date() : cd;
-
-            Set<OrganisationUnit> orgUnits = new HashSet<>();
-
-            orgUnits.add( organisationUnit );
-
-            if ( multiOu )
-            {
-                orgUnits.addAll( organisationUnit.getChildren() );
-            }
-
-            addRegistrationsForOrgUnits( registrations, orgUnits, dataSet, period, attributeOptionCombo, storedBy, completionDate );
-        }
-
-        registrationService.saveCompleteDataSetRegistrations( registrations, false );
     }
 
     // -------------------------------------------------------------------------
@@ -565,31 +308,12 @@ public class CompleteDataSetRegistrationController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void addRegistrationsForOrgUnits( List<CompleteDataSetRegistration> registrations, Set<OrganisationUnit> organisationUnits, DataSet dataSet, Period period,
-        DataElementCategoryOptionCombo attributeOptionCombo, String storedBy, Date completionDate )
-        throws WebMessageException
-    {
-        for ( OrganisationUnit ou : organisationUnits )
-        {
-            if ( ou.getDataSets().contains( dataSet ) )
-            {
-                CompleteDataSetRegistration registration =
-                    registerCompleteDataSet( dataSet, period, ou, attributeOptionCombo, storedBy, completionDate );
-
-                if ( registration != null )
-                {
-                    registrations.add( registration );
-                }
-            }
-        }
-    }
-
     private void asyncImport( ImportOptions importOptions, String format, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        JobId jobId = new JobId( JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( "completeDataSetRegistrationImport", JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         scheduler.executeJob(
             new ImportCompleteDataSetRegistrationsTask(
@@ -616,103 +340,6 @@ public class CompleteDataSetRegistrationController
         }
 
         return Pair.of( new BufferedInputStream( new FileInputStream( tmpFile ) ), tmpFile.toPath() );
-    }
-
-    private CompleteDataSetRegistration registerCompleteDataSet( DataSet dataSet, Period period,
-        OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo, String storedBy, Date completionDate ) throws WebMessageException
-    {
-        I18nFormat format = i18nManager.getI18nFormat();
-
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "dataSet can not be null." ) );
-        }
-
-        if ( period == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "period can not be null" ) );
-        }
-
-        if ( orgUnit == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "organisationUnit can not be null" ) );
-        }
-
-        if ( attributeOptionCombo == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "attributeOptionCombo can not be null" ) );
-        }
-
-        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dataSet, period,
-            orgUnit, attributeOptionCombo );
-
-        if ( registration == null )
-        {
-            registration = new CompleteDataSetRegistration();
-
-            registration.setDataSet( dataSet );
-            registration.setPeriod( period );
-            registration.setSource( orgUnit );
-            registration.setAttributeOptionCombo( attributeOptionCombo );
-
-            registration.setDate( completionDate != null ? completionDate : new Date() );
-            registration.setStoredBy( storedBy != null ? storedBy : currentUserService.getCurrentUsername() );
-            registration.setPeriodName( format.formatPeriod( registration.getPeriod() ) );
-
-            registrationService.saveCompleteDataSetRegistration( registration );
-        }
-        else
-        {
-            registration.setDate( completionDate != null ? completionDate : new Date() );
-            registration.setStoredBy( storedBy != null ? storedBy : currentUserService.getCurrentUsername() );
-            registration.setPeriodName( format.formatPeriod( registration.getPeriod() ) );
-
-            registrationService.updateCompleteDataSetRegistration( registration );
-        }
-
-
-        return registration;
-    }
-
-    private CompleteDataSetRegistrations getCompleteDataSetRegistrations( Set<String> dataSet, String period,
-        Date startDate, Date endDate, Set<String> orgUnit, boolean children )
-    {
-        Set<Period> periods = new HashSet<>();
-        Set<DataSet> dataSets = new HashSet<>();
-        Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-        PeriodType periodType = periodService.getPeriodTypeByName( period );
-
-        if ( periodType != null )
-        {
-            periods.addAll( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
-        }
-        else
-        {
-            periods.addAll( periodService.getPeriodsBetweenDates( startDate, endDate ) );
-        }
-
-        if ( periods.isEmpty() )
-        {
-            return new CompleteDataSetRegistrations();
-        }
-
-        if ( children )
-        {
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnit ) );
-        }
-        else
-        {
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsByUid( orgUnit ) );
-        }
-
-        dataSets.addAll( manager.getByUid( DataSet.class, dataSet ) );
-
-        CompleteDataSetRegistrations completeDataSetRegistrations = new CompleteDataSetRegistrations();
-        completeDataSetRegistrations.setCompleteDataSetRegistrations( new ArrayList<>(
-            registrationService.getCompleteDataSetRegistrations( dataSets, organisationUnits, periods ) ) );
-
-        return completeDataSetRegistrations;
     }
 
     private void unRegisterCompleteDataSet( Set<DataSet> dataSets, Period period,
