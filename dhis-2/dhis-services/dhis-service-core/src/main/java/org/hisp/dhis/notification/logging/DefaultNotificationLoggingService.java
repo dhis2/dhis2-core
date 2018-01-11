@@ -82,4 +82,10 @@ public class DefaultNotificationLoggingService implements NotificationLoggingSer
     {
         return notificationLoggingStore.getByTemplateUid( templateUid );
     }
+
+    @Override
+    public void save( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.save( entry );
+    }
 }

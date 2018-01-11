@@ -28,12 +28,14 @@ package org.hisp.dhis.notification.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericStore;
+
 import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 10.01.18.
  */
-public interface NotificationLoggingStore
+public interface NotificationLoggingStore extends GenericStore<ExternalNotificationLogEntry>
 {
     ExternalNotificationLogEntry getByTemplateUid( String templateUid );
 

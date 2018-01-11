@@ -85,6 +85,10 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
             return;
         }
 
+        //ToDO create factory builder for ExternalNotificationLogEntry
+
+        notificationLoggingService.save( null );
+
         programNotificationService.sendProgramRuleTriggeredNotifications( template, programStageInstance );
     }
 
