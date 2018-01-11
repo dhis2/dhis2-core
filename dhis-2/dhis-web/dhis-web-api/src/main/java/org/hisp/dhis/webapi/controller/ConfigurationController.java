@@ -171,6 +171,7 @@ public class ConfigurationController
     public void setFeedbackRecipients( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         UserGroup group = identifiableObjectManager.get( UserGroup.class, uid );
 
         if ( group == null )
@@ -209,6 +210,7 @@ public class ConfigurationController
     public void setOfflineOrganisationUnitLevel( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         OrganisationUnitLevel organisationUnitLevel = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
 
         if ( organisationUnitLevel == null )
@@ -247,6 +249,7 @@ public class ConfigurationController
     public void setInfrastructuralIndicators( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         IndicatorGroup group = identifiableObjectManager.get( IndicatorGroup.class, uid );
 
         if ( group == null )
@@ -300,6 +303,7 @@ public class ConfigurationController
     public void setInfrastructuralPeriodType( @RequestBody String name )
         throws NotFoundException
     {
+        name = StringUtils.remove( name, "\"" );
         PeriodType periodType = PeriodType.getPeriodTypeByName( name );
 
         if ( periodType == null )
@@ -363,9 +367,11 @@ public class ConfigurationController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @RequestMapping( value = "/selfRegistrationOrgUnit", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setSelfRegistrationOrgUnit( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         OrganisationUnit orgunit = identifiableObjectManager.get( OrganisationUnit.class, uid );
 
         if ( orgunit == null )
