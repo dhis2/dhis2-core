@@ -28,7 +28,7 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -69,7 +69,7 @@ public interface PushAnalysisService
      * @return String containing a HTML report
      * @throws IOException if the upload of report content failed.
      */
-    String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobId jobId )
+    String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
         throws IOException;
 
     /**
@@ -78,7 +78,7 @@ public interface PushAnalysisService
      * @param uid of the PushAnalysis
      * @param jobId to track process
      */
-    void runPushAnalysis( String uid, JobId jobId );
+    void runPushAnalysis( String uid, JobConfiguration jobId );
 
     /**
      * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled

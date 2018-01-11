@@ -1,7 +1,7 @@
-package org.hisp.dhis.webapi.controller.type;
+package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,20 @@ package org.hisp.dhis.webapi.controller.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 16.11.17.
  */
-@Controller
-@RequestMapping( "/type/testV23V24" )
-@ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24 } )
-public class ApiTypeV23V24Controller
+public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
+    implements ProgramNotificationTemplateStore
 {
-    @RequestMapping
-    public void test( HttpServletResponse response ) throws IOException
+    @Override
+    public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger )
     {
-        response.getWriter().println( "TEST" );
+        return getCriteria( Restrictions.eq( "notificationtrigger", trigger ) ).list();
     }
 }

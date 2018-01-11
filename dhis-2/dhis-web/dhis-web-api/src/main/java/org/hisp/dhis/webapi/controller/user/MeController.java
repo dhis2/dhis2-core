@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -45,6 +46,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -87,7 +89,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
 public class MeController
 {
     @Autowired
@@ -125,6 +127,9 @@ public class MeController
 
     @Autowired
     private PasswordValidationService passwordValidationService;
+
+    @Autowired
+    private ProgramService programService;
 
     private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
         UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
@@ -164,6 +169,15 @@ public class MeController
         {
             rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
                 NodeUtils.createSimples( currentUser.getUserCredentials().getAllAuthorities() ) );
+        }
+
+        if ( fieldsContains( "programs", fields ) )
+        {
+            rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
+                NodeUtils.createSimples( programService.getUserPrograms().stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() ) )
+            );
         }
 
         nodeService.serialize( rootNode, "application/json", response.getOutputStream() );

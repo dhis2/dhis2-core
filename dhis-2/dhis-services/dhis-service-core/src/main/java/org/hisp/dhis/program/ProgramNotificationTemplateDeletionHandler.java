@@ -29,7 +29,9 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -37,6 +39,9 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 public class ProgramNotificationTemplateDeletionHandler
     extends DeletionHandler
 {
+    @Autowired
+    private ProgramNotificationTemplateStore programNotificationTemplateStore;
+
     @Override
     protected String getClassName()
     {

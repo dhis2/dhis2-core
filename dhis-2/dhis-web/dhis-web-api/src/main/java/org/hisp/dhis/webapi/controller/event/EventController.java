@@ -46,7 +46,13 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.events.event.*;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.event.ImportEventTask;
+import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -75,7 +81,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
@@ -91,7 +97,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -99,7 +109,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -627,7 +642,8 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsXml( inputStream );
 
             schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
@@ -674,8 +690,10 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsJson( inputStream );
+
             schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
@@ -717,7 +735,8 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             schedulingManager.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );

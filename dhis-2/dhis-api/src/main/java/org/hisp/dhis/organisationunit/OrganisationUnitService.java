@@ -29,6 +29,7 @@ package org.hisp.dhis.organisationunit;
  */
 
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.Date;
@@ -359,6 +360,8 @@ public interface OrganisationUnitService
      * @return true if the given organisation unit is part of the hierarchy.
      */
     boolean isInUserHierarchy( OrganisationUnit organisationUnit );
+
+    boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit );
 
     /**
      * Indicates whether the given organisation unit is part of the hierarchy

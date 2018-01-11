@@ -45,6 +45,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -83,6 +84,9 @@ public class DefaultValidationService
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -177,32 +181,29 @@ public class DefaultValidationService
 
     @Override
     public ValidationAnalysisParams.Builder newParamsBuilder( Collection<ValidationRule> validationRules,
-        Collection<OrganisationUnit> organisationUnits, Collection<Period> periods )
+        OrganisationUnit organisationUnit, Collection<Period> periods )
     {
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnits, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
     }
 
     @Override
     public ValidationAnalysisParams.Builder newParamsBuilder( ValidationRuleGroup validationRuleGroup,
-        Collection<OrganisationUnit> organisationUnits, Date startDate, Date endDate )
+        OrganisationUnit organisationUnit, Date startDate, Date endDate )
     {
-
         Collection<ValidationRule> validationRules = validationRuleGroup != null ? validationRuleGroup.getMembers() : validationRuleService.getAllValidationRules();
         Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnits, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
     }
 
     @Override
     public ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnit,
         Period period )
     {
-
         Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataElements( dataSet.getDataElements() );
-        Collection<OrganisationUnit> organisationUnits = Sets.newHashSet(organisationUnit);
         Collection<Period> periods = Sets.newHashSet(period);
 
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnits, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
     }
 
     // -------------------------------------------------------------------------
@@ -232,21 +233,37 @@ public class DefaultValidationService
     {
         User currentUser = currentUserService.getCurrentUser();
 
+        OrganisationUnit parameterOrgUnit = parameters.getOrgUnit();
+        List<OrganisationUnit> orgUnits;
+        if ( parameterOrgUnit == null )
+        {
+            orgUnits = organisationUnitService.getAllOrganisationUnits();
+        }
+        else if ( parameters.isIncludeOrgUnitDescendants() )
+        {
+            orgUnits = organisationUnitService.getOrganisationUnitWithChildren( parameterOrgUnit.getUid() );
+        }
+        else
+        {
+            orgUnits = Lists.newArrayList( parameterOrgUnit );
+        }
+
         Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap = new HashMap<>();
 
         addPeriodsToContext( periodTypeExtendedMap, parameters.getPeriods() );
         Map<String, DimensionalItemObject> dimensionItemMap = addRulesToContext( periodTypeExtendedMap,
             parameters.getRules() );
         removeAnyUnneededPeriodTypes( periodTypeExtendedMap );
-        addOrgUnitsToContext( periodTypeExtendedMap, parameters.getOrgUnits() );
+        addOrgUnitsToContext( periodTypeExtendedMap, orgUnits );
 
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
             .withPeriodTypeExtendedMap( periodTypeExtendedMap )
-            .withOrgUnits( Lists.newArrayList( parameters.getOrgUnits() ) )
+            .withOrgUnits( orgUnits )
             .withEventItems( getEventItems( dimensionItemMap ) )
             .withConstantMap( constantService.getConstantMap() )
             .withInitialResults( validationResultService
-                .getValidationResults( Lists.newArrayList( parameters.getOrgUnits() ), parameters.getRules(), parameters.getPeriods()) )
+                .getValidationResults( parameterOrgUnit,
+                    parameters.isIncludeOrgUnitDescendants(), parameters.getRules(), parameters.getPeriods()) )
             .withSendNotifications( parameters.isSendNotifications() )
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )

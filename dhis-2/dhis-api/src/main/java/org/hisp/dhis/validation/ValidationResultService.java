@@ -86,6 +86,6 @@ public interface ValidationResultService
 
     int countValidationResults( ValidationResultQuery query );
 
-    List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits, Collection<ValidationRule> validationRules,
-        Collection<Period> periods );
+    List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );
 }

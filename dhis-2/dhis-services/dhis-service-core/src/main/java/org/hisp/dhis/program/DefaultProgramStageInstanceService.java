@@ -33,6 +33,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
@@ -87,6 +88,9 @@ public class DefaultProgramStageInstanceService
 
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
+
+    @Autowired
+    private ProgramRuleEngineService programRuleEngineService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -197,6 +201,8 @@ public class DefaultProgramStageInstanceService
         if ( !skipNotifications )
         {
             programNotificationService.sendCompletionNotifications( programStageInstance );
+
+            programRuleEngineService.evaluate( programStageInstance );
         }
 
         // ---------------------------------------------------------------------

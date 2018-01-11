@@ -393,9 +393,8 @@ public class EventValidationServiceTest
 
         Date startDate = getDate( testYear, 3, 1 );
         Date endDate = getDate( testYear, 4, 30 );
-        List<OrganisationUnit> orgUnits = Arrays.asList( orgUnitA );
 
-        ValidationAnalysisParams params = validationService.newParamsBuilder( null, orgUnits, startDate, endDate ).build();
+        ValidationAnalysisParams params = validationService.newParamsBuilder( null, orgUnitA, startDate, endDate ).build();
 
         Collection<ValidationResult> results = validationService.validationAnalysis( params );
 

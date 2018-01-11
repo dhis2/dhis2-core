@@ -1,7 +1,7 @@
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.hibernate.dialect;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,40 +28,20 @@ package org.hisp.dhis.system.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.hibernate.dialect.PostgreSQL95Dialect;
 
-import org.hisp.dhis.scheduling.JobId;
+import java.sql.Types;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold <stian@dhis2.org>
  */
-public class TaskLocalList<T>
+public class DhisPostgresDialect
+    extends PostgreSQL95Dialect
 {
-    private final Map<JobId, List<T>> internalMap;
-    
-    public TaskLocalList()
+    public DhisPostgresDialect()
     {
-        this.internalMap = new HashMap<>();
-    }
-    
-    public List<T> get( JobId id )
-    {
-        List<T> list = internalMap.get( id );
-        
-        if ( list == null )
-        {
-            list = new ArrayList<>();
-            internalMap.put( id, list );
-        }
-        
-        return list;
-    }
-    
-    public boolean clear( JobId id )
-    {
-        return internalMap.remove( id ) != null;
+        registerColumnType( Types.JAVA_OBJECT, "jsonb" );
+        registerHibernateType( Types.OTHER, "pg-uuid" );
     }
 }
