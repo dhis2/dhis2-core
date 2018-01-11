@@ -30,6 +30,7 @@ package org.hisp.dhis.notification;
 
 import org.hisp.dhis.common.DeliveryChannel;
 
+import java.util.List;
 import java.util.Set;
 
 /**

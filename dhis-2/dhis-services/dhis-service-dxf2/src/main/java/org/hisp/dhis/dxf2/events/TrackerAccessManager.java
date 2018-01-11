@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.method;
+package org.hisp.dhis.dxf2.events;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,32 +28,35 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
+import org.hisp.dhis.user.User;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( "/method/testAllExcludeV23" )
-public class ApiMethodAllExcludeV23Controller
+public interface TrackerAccessManager
 {
-    @RequestMapping( "a" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
-    public void testAllA( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    List<String> canRead( User user, ProgramInstance programInstance );
 
-    @RequestMapping( "b" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
-    public void testAllB( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    List<String> canWrite( User user, ProgramInstance programInstance );
+
+    List<String> canRead( User user, ProgramStageInstance programStageInstance );
+
+    List<String> canWrite( User user, ProgramStageInstance programStageInstance );
+
+    List<String> canRead( User user, TrackedEntityDataValue dataValue );
+
+    List<String> canWrite( User user, TrackedEntityDataValue dataValue );
+
+    List<String> canRead( User user, DataElementCategoryOptionCombo categoryOptionCombo );
+
+    List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOptionCombo );
 }

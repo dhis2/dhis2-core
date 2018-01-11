@@ -1,7 +1,7 @@
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,20 @@ package org.hisp.dhis.system.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
-import org.hisp.dhis.scheduling.JobId;
+import java.util.List;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 16.11.17.
  */
-public class TaskLocalMap<T, V>
+public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
+    implements ProgramNotificationTemplateStore
 {
-    private final Map<JobId, Map<T, V>> internalMap;
-    
-    public TaskLocalMap()
+    @Override
+    public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger )
     {
-        this.internalMap = new HashMap<>();
-    }
-
-    public Map<T, V> get( JobId id )
-    {
-        Map<T, V> map = internalMap.get( id );
-        
-        if ( map == null )
-        {
-            map = new HashMap<>();
-            internalMap.put( id, map );
-        }
-        
-        return map;
-    }
-
-    public boolean clear( JobId id )
-    {
-        return internalMap.remove( id ) != null;
+        return getCriteria( Restrictions.eq( "notificationtrigger", trigger ) ).list();
     }
 }
