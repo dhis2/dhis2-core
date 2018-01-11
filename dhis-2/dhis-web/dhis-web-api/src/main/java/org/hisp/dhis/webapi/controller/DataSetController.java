@@ -374,7 +374,7 @@ public class DataSetController
     }
 
     @RequestMapping( value = "/{uid}/form", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
+    @ApiVersion( value = DhisApiVersion.ALL )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request ) throws WebMessageException
     {
