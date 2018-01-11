@@ -28,7 +28,6 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
@@ -45,7 +44,9 @@ import java.util.Map;
  */
 public class NotificationMap
 {
-    private Map<JobType, Map<String, LinkedList<Notification>>> notificationsWithType;
+    private final static int MAX_POOL_TYPE_SIZE = 100;
+
+    private Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> notificationsWithType;
 
     private Map<JobType, LinkedHashMap<String, Object>> summariesWithType;
 
@@ -53,7 +54,7 @@ public class NotificationMap
     {
         notificationsWithType = new HashMap<>();
         Arrays.stream( JobType.values() )
-            .forEach( jobType -> notificationsWithType.put( jobType, new HashMap<>() ) );
+            .forEach( jobType -> notificationsWithType.put( jobType, new LinkedHashMap<>() ) );
 
         summariesWithType = new HashMap<>();
         Arrays.stream( JobType.values() )
@@ -62,33 +63,19 @@ public class NotificationMap
 
     public List<Notification> getLastNotificationsByJobType( JobType jobType )
     {
-        Map<String, LinkedList<Notification>> jobTypeNotifications = notificationsWithType.get( jobType );
+        LinkedHashMap<String, LinkedList<Notification>> jobTypeNotifications = notificationsWithType.get( jobType );
 
-        String lastUid = "";
-        Notification lastNotification = null;
-        for ( Map.Entry<String, LinkedList<Notification>> entry : jobTypeNotifications.entrySet() )
-        {
-            String uid = entry.getKey();
-            List<Notification> list = entry.getValue();
-
-            if ( lastNotification == null || list.get( list.size() - 1 ).getTime().after( lastNotification.getTime() ) )
-            {
-                lastUid = uid;
-                lastNotification = list.get( list.size() - 1 );
-            }
-        }
-
-        if ( StringUtils.isBlank( lastUid ) )
+        if ( jobTypeNotifications.size() == 0 )
         {
             return new ArrayList<>();
         }
-        else
-        {
-            return jobTypeNotifications.get( lastUid );
-        }
+
+        String key = (String) jobTypeNotifications.keySet().toArray()[jobTypeNotifications.size() - 1];
+
+        return jobTypeNotifications.get( key );
     }
 
-    public Map<JobType, Map<String, LinkedList<Notification>>> getNotifications()
+    public Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications()
     {
         return notificationsWithType;
     }
@@ -114,7 +101,7 @@ public class NotificationMap
     {
         String uid = jobConfiguration.getUid();
 
-        Map<String, LinkedList<Notification>> uidNotifications = notificationsWithType.get( jobConfiguration.getJobType() );
+        LinkedHashMap<String, LinkedList<Notification>> uidNotifications = notificationsWithType.get( jobConfiguration.getJobType() );
 
         LinkedList<Notification> notifications;
         if ( uidNotifications.containsKey( uid ) )
@@ -128,6 +115,12 @@ public class NotificationMap
 
         notifications.addFirst( notification );
 
+        if ( uidNotifications.size() >= MAX_POOL_TYPE_SIZE )
+        {
+            String key = (String) uidNotifications.keySet().toArray()[ 0 ];
+            uidNotifications.remove( key );
+        }
+
         uidNotifications.put( uid, notifications );
 
         notificationsWithType.put( jobConfiguration.getJobType(), uidNotifications );
@@ -136,6 +129,12 @@ public class NotificationMap
     public void addSummary( JobConfiguration jobConfiguration, Object summary )
     {
         LinkedHashMap<String, Object> summaries = summariesWithType.get( jobConfiguration.getJobType() );
+
+        if ( summaries.size() >= MAX_POOL_TYPE_SIZE )
+        {
+            String key = (String) summaries.keySet().toArray()[ 0 ];
+            summaries.remove( key );
+        }
 
         summaries.put( jobConfiguration.getUid(), summary );
     }
@@ -150,7 +149,7 @@ public class NotificationMap
         }
         else
         {
-            return summariesForJobType.values().toArray()[summariesForJobType.size() - 1];
+            return summariesForJobType.values().toArray()[ summariesForJobType.size() -1 ];
         }
     }
 
@@ -167,5 +166,6 @@ public class NotificationMap
     public void clear( JobConfiguration jobConfiguration )
     {
         notificationsWithType.get( jobConfiguration.getJobType() ).remove( jobConfiguration.getUid() );
+        summariesWithType.get( jobConfiguration.getJobType() ).remove( jobConfiguration.getUid() );
     }
 }
