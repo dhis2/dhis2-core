@@ -43,19 +43,6 @@ public class DefaultJobInstance
 {
     private static final Log log = LogFactory.getLog( DefaultJobInstance.class );
 
-    private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
-    {
-        if ( !jobConfiguration.isContinuousExecution() )
-        {
-            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
-        }
-        jobConfiguration.setNextExecutionTime( null );
-        jobConfiguration.setLastExecuted( new Date() );
-        jobConfiguration.setLastRuntimeExecution( clock.time() );
-
-        schedulingManager.jobConfigurationFinished( jobConfiguration );
-    }
-
     public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
         MessageService messageService )
         throws Exception
@@ -102,5 +89,18 @@ public class DefaultJobInstance
         }
 
         setFinishingStatus( clock, schedulingManager, jobConfiguration );
+    }
+
+    private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    {
+        if ( !jobConfiguration.isContinuousExecution() )
+        {
+            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
+        }
+        jobConfiguration.setNextExecutionTime( null );
+        jobConfiguration.setLastExecuted( new Date() );
+        jobConfiguration.setLastRuntimeExecution( clock.time() );
+
+        schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
 }
