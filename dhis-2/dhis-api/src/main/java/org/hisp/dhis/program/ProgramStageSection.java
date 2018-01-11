@@ -39,7 +39,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.type.ProgramStageSectionRenderType;
+import org.hisp.dhis.render.type.ProgramStageSectionRenderingObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +66,7 @@ public class ProgramStageSection
 
     private String formName;
 
-    private DeviceRenderTypeMap<ProgramStageSectionRenderType> renderType;
+    private DeviceRenderTypeMap<ProgramStageSectionRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -192,13 +192,13 @@ public class ProgramStageSection
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DeviceRenderTypeMap<ProgramStageSectionRenderType> getRenderType()
+    public DeviceRenderTypeMap<ProgramStageSectionRenderingObject> getRenderType()
     {
         return renderType;
     }
 
     public void setRenderType(
-        DeviceRenderTypeMap<ProgramStageSectionRenderType> renderType )
+        DeviceRenderTypeMap<ProgramStageSectionRenderingObject> renderType )
     {
         this.renderType = renderType;
     }
