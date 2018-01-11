@@ -49,42 +49,42 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
-            .andExpect( status().isNotFound() );
-    }
-
-    @Test
-    public void testTypeAnnotationDefaultV23() throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testDefaultV23";
-
-        mvc.perform( get( endpoint ).session( session ) )
-            .andExpect( status().isOk() );
-
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
-            .andExpect( status().isOk() );
-
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
     }
 
     @Test
-    public void testTypeAnnotationV23V24() throws Exception
+    public void testTypeAnnotationDefaultV26() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testV23V24";
+        String endpoint = "/type/testDefaultV26";
+
+        mvc.perform( get( endpoint ).session( session ) )
+            .andExpect( status().isOk() );
+
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
+            .andExpect( status().isOk() );
+
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
+            .andExpect( status().isNotFound() );
+    }
+
+    @Test
+    public void testTypeAnnotationV26V27() throws Exception
+    {
+        MockHttpSession session = getSession( "ALL" );
+        String endpoint = "/type/testV26V27";
 
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
     }
 
@@ -97,26 +97,26 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
     }
 
     @Test
-    public void testTypeAnnotationAllExcludeV24() throws Exception
+    public void testTypeAnnotationAllExcludeV27() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testAllExcludeV24";
+        String endpoint = "/type/testAllExcludeV27";
 
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
     }
 
@@ -129,10 +129,10 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
     }
 }

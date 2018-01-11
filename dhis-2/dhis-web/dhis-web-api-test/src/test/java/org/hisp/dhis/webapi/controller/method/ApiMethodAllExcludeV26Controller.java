@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.type;
+package org.hisp.dhis.webapi.controller.method;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -40,12 +40,19 @@ import java.io.IOException;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/type/testV23V24" )
-@ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24 } )
-public class ApiTypeV23V24Controller
+@RequestMapping( "/method/testAllExcludeV26" )
+public class ApiMethodAllExcludeV26Controller
 {
-    @RequestMapping
-    public void test( HttpServletResponse response ) throws IOException
+    @RequestMapping( "a" )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
+    public void testAllA( HttpServletResponse response ) throws IOException
+    {
+        response.getWriter().println( "TEST" );
+    }
+
+    @RequestMapping( "b" )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
+    public void testAllB( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }

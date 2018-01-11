@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.method;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,32 +28,18 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.rules.models.RuleAction;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 23.10.17.
  */
-@Controller
-@RequestMapping( "/method/testAllExcludeV23" )
-public class ApiMethodAllExcludeV23Controller
+public interface ProgramRuleEngineService
 {
-    @RequestMapping( "a" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
-    public void testAllA( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    List<RuleAction> evaluate( ProgramInstance enrollment );
 
-    @RequestMapping( "b" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
-    public void testAllB( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    List<RuleAction> evaluate( ProgramStageInstance event );
 }

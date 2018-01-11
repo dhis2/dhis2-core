@@ -104,7 +104,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  */
 @Controller
 @RequestMapping( value = { CurrentUserController.RESOURCE_PATH, "/me" }, method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
+@ApiVersion( { DhisApiVersion.DEFAULT } )
 public class CurrentUserController
 {
     public static final String RESOURCE_PATH = "/currentUser";
