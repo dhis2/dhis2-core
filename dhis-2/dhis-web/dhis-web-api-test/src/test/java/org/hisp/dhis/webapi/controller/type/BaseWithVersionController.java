@@ -40,7 +40,7 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ApiVersion( DhisApiVersion.V23 )
+@ApiVersion( DhisApiVersion.V26 )
 public abstract class BaseWithVersionController
 {
     @RequestMapping( value = "/{id}", method = RequestMethod.POST )

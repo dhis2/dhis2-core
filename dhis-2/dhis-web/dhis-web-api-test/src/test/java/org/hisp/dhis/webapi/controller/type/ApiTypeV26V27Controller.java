@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.method;
+package org.hisp.dhis.webapi.controller.type;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -32,7 +32,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -41,33 +40,12 @@ import java.io.IOException;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/method/testV23V24" )
-public class ApiMethodV23V24Controller
+@RequestMapping( "/type/testV26V27" )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27 } )
+public class ApiTypeV26V27Controller
 {
-    @RequestMapping( "a" )
-    @ApiVersion( DhisApiVersion.V23 )
-    public void testV23( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( value = "a", method = RequestMethod.POST )
-    @ApiVersion( DhisApiVersion.V23 )
-    public void testPostV23( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( "b" )
-    @ApiVersion( DhisApiVersion.V24 )
-    public void testV24( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( value = "b", method = RequestMethod.PUT )
-    @ApiVersion( DhisApiVersion.V24 )
-    public void testPutV24( HttpServletResponse response ) throws IOException
+    @RequestMapping
+    public void test( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }

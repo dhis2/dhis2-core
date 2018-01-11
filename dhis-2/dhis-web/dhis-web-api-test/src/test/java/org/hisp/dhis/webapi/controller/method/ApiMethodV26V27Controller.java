@@ -32,6 +32,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -40,19 +41,33 @@ import java.io.IOException;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/method/testAllExcludeV23" )
-public class ApiMethodAllExcludeV23Controller
+@RequestMapping( "/method/testV26V27" )
+public class ApiMethodV26V27Controller
 {
     @RequestMapping( "a" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
-    public void testAllA( HttpServletResponse response ) throws IOException
+    @ApiVersion( DhisApiVersion.V26 )
+    public void testV26( HttpServletResponse response ) throws IOException
+    {
+        response.getWriter().println( "TEST" );
+    }
+
+    @RequestMapping( value = "a", method = RequestMethod.POST )
+    @ApiVersion( DhisApiVersion.V26 )
+    public void testPostV26( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
-    public void testAllB( HttpServletResponse response ) throws IOException
+    @ApiVersion( DhisApiVersion.V27 )
+    public void testV27( HttpServletResponse response ) throws IOException
+    {
+        response.getWriter().println( "TEST" );
+    }
+
+    @RequestMapping( value = "b", method = RequestMethod.PUT )
+    @ApiVersion( DhisApiVersion.V27 )
+    public void testPutV27( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
