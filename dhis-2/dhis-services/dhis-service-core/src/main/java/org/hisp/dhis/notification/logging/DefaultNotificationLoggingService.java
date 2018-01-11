@@ -67,14 +67,9 @@ public class DefaultNotificationLoggingService implements NotificationLoggingSer
     @Override
     public boolean isValidForSending( String templateUid )
     {
-        ExternalNotificationLogEntry logEntry = getByTemplateUid( templateUid );
+        ExternalNotificationLogEntry logEntry = getByTemplateUid(templateUid);
 
-        if ( logEntry == null )
-        {
-            return true;
-        }
-
-        return logEntry.isAllowMultiple();
+        return logEntry == null || logEntry.isAllowMultiple();
     }
 
     @Override
