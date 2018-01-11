@@ -101,7 +101,8 @@ public class NotificationMap
     {
         String uid = jobConfiguration.getUid();
 
-        LinkedHashMap<String, LinkedList<Notification>> uidNotifications = notificationsWithType.get( jobConfiguration.getJobType() );
+        LinkedHashMap<String, LinkedList<Notification>> uidNotifications = notificationsWithType
+            .get( jobConfiguration.getJobType() );
 
         LinkedList<Notification> notifications;
         if ( uidNotifications.containsKey( uid ) )
@@ -117,7 +118,7 @@ public class NotificationMap
 
         if ( uidNotifications.size() >= MAX_POOL_TYPE_SIZE )
         {
-            String key = (String) uidNotifications.keySet().toArray()[ 0 ];
+            String key = (String) uidNotifications.keySet().toArray()[0];
             uidNotifications.remove( key );
         }
 
@@ -132,7 +133,7 @@ public class NotificationMap
 
         if ( summaries.size() >= MAX_POOL_TYPE_SIZE )
         {
-            String key = (String) summaries.keySet().toArray()[ 0 ];
+            String key = (String) summaries.keySet().toArray()[0];
             summaries.remove( key );
         }
 
@@ -149,7 +150,7 @@ public class NotificationMap
         }
         else
         {
-            return summariesForJobType.values().toArray()[ summariesForJobType.size() -1 ];
+            return summariesForJobType.values().toArray()[summariesForJobType.size() - 1];
         }
     }
 
