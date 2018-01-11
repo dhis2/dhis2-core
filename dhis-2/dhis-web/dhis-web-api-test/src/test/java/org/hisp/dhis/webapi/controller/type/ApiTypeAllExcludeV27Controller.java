@@ -40,9 +40,9 @@ import java.io.IOException;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/type/testDefaultV23" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
-public class ApiTypeDefaultV23Controller
+@RequestMapping( "/type/testAllExcludeV27" )
+@ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V27 )
+public class ApiTypeAllExcludeV27Controller
 {
     @RequestMapping
     public void test( HttpServletResponse response ) throws IOException
