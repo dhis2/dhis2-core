@@ -41,7 +41,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( "/type/testInheritedFromBase" )
-@ApiVersion( DhisApiVersion.V24 )
+@ApiVersion( DhisApiVersion.V27 )
 public class InheritedFromBaseVersionController extends BaseWithVersionController
 {
     @RequestMapping

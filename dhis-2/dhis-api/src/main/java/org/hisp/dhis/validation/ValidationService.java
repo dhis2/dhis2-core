@@ -69,10 +69,10 @@ public interface ValidationService
         DataElementCategoryOptionCombo attributeOptionCombo );
 
     ValidationAnalysisParams.Builder newParamsBuilder( Collection<ValidationRule> validationRules,
-        Collection<OrganisationUnit> organisationUnits, Collection<Period> periods );
+        OrganisationUnit organisationUnit, Collection<Period> periods );
 
     ValidationAnalysisParams.Builder newParamsBuilder( ValidationRuleGroup validationRuleGroup,
-        Collection<OrganisationUnit> organisationUnits, Date startDate, Date endDate );
+        OrganisationUnit organisationUnit, Date startDate, Date endDate );
 
     ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnits,
         Period period );

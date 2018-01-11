@@ -58,7 +58,10 @@ public class DefaultJobConfigurationService
     @Override
     public int addJobConfiguration( JobConfiguration jobConfiguration )
     {
-        jobConfigurationStore.save( jobConfiguration );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            jobConfigurationStore.save( jobConfiguration );
+        }
         return jobConfiguration.getId( );
     }
 
@@ -71,14 +74,20 @@ public class DefaultJobConfigurationService
     @Override
     public int updateJobConfiguration( JobConfiguration jobConfiguration )
     {
-        jobConfigurationStore.update( jobConfiguration );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            jobConfigurationStore.update( jobConfiguration );
+        }
         return jobConfiguration.getId();
     }
 
     @Override
     public void deleteJobConfiguration( JobConfiguration jobConfiguration )
     {
-        jobConfigurationStore.delete( jobConfigurationStore.getByUid( jobConfiguration.getUid() ) );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            jobConfigurationStore.delete( jobConfigurationStore.getByUid( jobConfiguration.getUid() ) );
+        }
     }
 
     @Override

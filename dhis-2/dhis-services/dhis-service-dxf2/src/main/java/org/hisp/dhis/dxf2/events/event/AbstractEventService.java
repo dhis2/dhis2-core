@@ -62,6 +62,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -91,8 +92,9 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -207,6 +209,12 @@ public abstract class AbstractEventService
     @Autowired
     protected QueryService queryService;
 
+    @Autowired
+    protected TrackerAccessManager trackerAccessManager;
+
+    @Autowired
+    protected AclService aclService;
+
     protected static final int FLUSH_FREQUENCY = 100;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -230,8 +238,6 @@ public abstract class AbstractEventService
     private CachingMap<String, DataElementCategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
-
-    private Set<Program> accessibleProgramsCache = new HashSet<>();
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
@@ -289,7 +295,7 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobId jobId )
+    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
         notifier.clear( jobId ).notify( jobId, "Importing events" );
 
@@ -299,7 +305,7 @@ public abstract class AbstractEventService
 
             if ( jobId != null )
             {
-                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addTaskSummary( jobId,
+                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId,
                     importSummaries );
             }
 
@@ -352,12 +358,6 @@ public abstract class AbstractEventService
         }
 
         Assert.notNull( programStage, "Program stage cannot be null" );
-
-        if ( !canAccess( program, user ) )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Current user does not have permission to access this program" ).setReference( event.getEvent() ).incrementIgnored();
-        }
 
         if ( program.isRegistration() )
         {
@@ -427,11 +427,11 @@ public abstract class AbstractEventService
             List<ProgramInstance> programInstances = getActiveProgramInstances( cacheKey, program );
 
             if ( programInstances.isEmpty() )
-            {            	
+            {
                 // Create PI if it doesn't exist (should only be one)
-            	
-            	String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy() : user.getUsername();            	            	
-            	
+
+                String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy() : user.getUsername();
+
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
                 pi.setIncidentDate( new Date() );
@@ -488,6 +488,14 @@ public abstract class AbstractEventService
         }
 
         validateExpiryDays( event, program, null );
+
+        List<String> errors = trackerAccessManager.canWrite( user, new ProgramStageInstance( programInstance, programStage )
+            .setOrganisationUnit( organisationUnit ) );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
 
         return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, user,
             importOptions );
@@ -685,31 +693,20 @@ public abstract class AbstractEventService
         event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
         event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
 
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
-
+        User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
-        if ( ou != null )
-        {
-            if ( !organisationUnitService.isInUserHierarchy( ou ) )
-            {
-                if ( !userCredentials.isSuper()
-                    && !userCredentials.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
-                {
-                    throw new IllegalQueryException( "User has no access to organisation unit: " + ou.getUid() );
-                }
-            }
+        List<String> errors = trackerAccessManager.canRead( user, programStageInstance );
 
-            event.setOrgUnit( ou.getUid() );
-            event.setOrgUnitName( ou.getName() );
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
         }
+
+        event.setOrgUnit( ou.getUid() );
+        event.setOrgUnitName( ou.getName() );
 
         Program program = programStageInstance.getProgramInstance().getProgram();
-
-        if ( !userCredentials.isSuper() && !userCredentials.getAllPrograms().contains( program ) )
-        {
-            throw new IllegalQueryException( "User has no access to program: " + program.getUid() );
-        }
 
         event.setProgram( program.getUid() );
         event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
@@ -758,6 +755,13 @@ public abstract class AbstractEventService
 
         for ( TrackedEntityDataValue dataValue : dataValues )
         {
+            errors = trackerAccessManager.canRead( user, dataValue );
+
+            if ( !errors.isEmpty() )
+            {
+                continue;
+            }
+
             DataValue value = new DataValue();
             value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
             value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
@@ -798,7 +802,8 @@ public abstract class AbstractEventService
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
         Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
+        User user = currentUserService.getCurrentUser();
+        UserCredentials userCredentials = user.getUserCredentials();
 
         EventSearchParams params = new EventSearchParams();
 
@@ -832,7 +837,7 @@ public abstract class AbstractEventService
             }
         }
 
-        if ( pr != null && !userCredentials.isSuper() && !userCredentials.canAccessProgram( pr ) )
+        if ( pr != null && !userCredentials.isSuper() && !aclService.canDataRead( user, pr ) )
         {
             throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
         }
@@ -1272,16 +1277,6 @@ public abstract class AbstractEventService
         }
 
         return organisationUnits;
-    }
-
-    private boolean canAccess( Program program, User user )
-    {
-        if ( accessibleProgramsCache.isEmpty() )
-        {
-            accessibleProgramsCache = programService.getUserPrograms( user );
-        }
-
-        return accessibleProgramsCache.contains( program );
     }
 
     private boolean validateDataValue( DataElement dataElement, String value, ImportSummary importSummary )
@@ -1814,7 +1809,6 @@ public abstract class AbstractEventService
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
         activeProgramInstanceCache.clear();
-        accessibleProgramsCache.clear();
 
         dbmsManager.clearSession();
     }

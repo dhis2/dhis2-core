@@ -58,17 +58,17 @@ public abstract class SmsGateway
             HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
-            .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
-            .put( HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202 )
-            .put( HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207 )
-            .put( HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400 )
-            .put( HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401 )
-            .put( HttpStatus.PAYMENT_REQUIRED, GatewayResponse.RESULT_CODE_402 )
-            .put( HttpStatus.NOT_FOUND, GatewayResponse.RESULT_CODE_404 )
-            .put( HttpStatus.METHOD_NOT_ALLOWED, GatewayResponse.RESULT_CODE_405 )
-            .put( HttpStatus.GONE, GatewayResponse.RESULT_CODE_410 )
-            .put( HttpStatus.SERVICE_UNAVAILABLE, GatewayResponse.RESULT_CODE_503 )
-            .put( HttpStatus.INTERNAL_SERVER_ERROR, GatewayResponse.RESULT_CODE_504 ).build();
+        .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
+        .put( HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202 )
+        .put( HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207 )
+        .put( HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400 )
+        .put( HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401 )
+        .put( HttpStatus.PAYMENT_REQUIRED, GatewayResponse.RESULT_CODE_402 )
+        .put( HttpStatus.NOT_FOUND, GatewayResponse.RESULT_CODE_404 )
+        .put( HttpStatus.METHOD_NOT_ALLOWED, GatewayResponse.RESULT_CODE_405 )
+        .put( HttpStatus.GONE, GatewayResponse.RESULT_CODE_410 )
+        .put( HttpStatus.SERVICE_UNAVAILABLE, GatewayResponse.RESULT_CODE_503 )
+        .put( HttpStatus.INTERNAL_SERVER_ERROR, GatewayResponse.RESULT_CODE_504 ).build();
 
     @Autowired
     private RestTemplate restTemplate;

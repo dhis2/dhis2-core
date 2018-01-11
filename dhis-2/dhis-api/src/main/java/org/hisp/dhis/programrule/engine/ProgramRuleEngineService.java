@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.type;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,18 @@ package org.hisp.dhis.webapi.controller.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.rules.models.RuleAction;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 23.10.17.
  */
-@Controller
-@RequestMapping( "/type/testDefaultV23" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
-public class ApiTypeDefaultV23Controller
+public interface ProgramRuleEngineService
 {
-    @RequestMapping
-    public void test( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    List<RuleAction> evaluate( ProgramInstance enrollment );
+
+    List<RuleAction> evaluate( ProgramStageInstance event );
 }
