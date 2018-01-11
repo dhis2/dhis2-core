@@ -43,7 +43,5 @@ public interface NotificationLoggingStore extends GenericStore<ExternalNotificat
 
     ExternalNotificationLogEntry get( String uid );
 
-    ExternalNotificationLogEntry get( int id );
-
     List<ExternalNotificationLogEntry> getAll();
 }
