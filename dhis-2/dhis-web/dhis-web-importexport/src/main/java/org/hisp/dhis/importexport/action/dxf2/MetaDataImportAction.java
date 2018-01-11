@@ -41,7 +41,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.importexport.action.util.ImportMetaDataCsvTask;
 import org.hisp.dhis.importexport.action.util.ImportMetaDataGmlTask;
 import org.hisp.dhis.importexport.action.util.ImportMetaDataTask;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -149,7 +149,7 @@ public class MetaDataImportAction
 
         User user = currentUserService.getCurrentUser();
 
-        JobId jobId = new JobId( JobType.METADATA_IMPORT, user.getUid() );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryMetadataImport", JobType.METADATA_IMPORT, user.getUid(), true );
 
         notifier.clear( jobId );
 
@@ -178,10 +178,10 @@ public class MetaDataImportAction
         return SUCCESS;
     }
 
-    private MetadataImportParams createMetadataImportParams( JobId jobId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun )
+    private MetadataImportParams createMetadataImportParams( JobConfiguration jobId, ImportStrategy strategy, AtomicMode atomicMode, boolean dryRun )
     {
         MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setJobId( jobId );
+        importParams.setId( jobId );
         importParams.setImportMode( dryRun ? ObjectBundleMode.VALIDATE : ObjectBundleMode.COMMIT );
         importParams.setAtomicMode( atomicMode );
         importParams.setImportStrategy( strategy );

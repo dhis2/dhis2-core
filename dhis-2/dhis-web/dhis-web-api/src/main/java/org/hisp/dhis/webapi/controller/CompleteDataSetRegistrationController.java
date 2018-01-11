@@ -42,7 +42,11 @@ import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequest;
 import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequests;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.*;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrations;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
@@ -66,7 +70,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
@@ -77,13 +81,27 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
@@ -142,7 +160,7 @@ public class CompleteDataSetRegistrationController
 
     @Autowired
     private SessionFactory sessionFactory;
-    
+
     @Autowired
     private WebMessageService webMessageService;
 
@@ -298,7 +316,7 @@ public class CompleteDataSetRegistrationController
         @RequestParam( required = false ) Date cd,
         @RequestParam( required = false ) String sb,
         @RequestParam( required = false ) boolean multiOu, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
-    {        
+    {
         DataSet dataSet = dataSetService.getDataSet( ds );
 
         if ( dataSet == null )
@@ -334,19 +352,19 @@ public class CompleteDataSetRegistrationController
         if ( dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null, multiOu ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked: " + ds ) );
-        }                
-        
+        }
+
         // ---------------------------------------------------------------------
         // Compulsory fields validation
         // ---------------------------------------------------------------------
-        
+
         List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( dataSet, period,
             organisationUnit, attributeOptionCombo, multiOu );
-        
+
         ImportSummary importSummary = new ImportSummary( dataSet.getUid() );
-        
+
         importSummary.setStatus( ImportStatus.SUCCESS );
-        
+
         if( !missingDataElementOperands.isEmpty() )
         {
             for( DataElementOperand dataElementOperand : missingDataElementOperands )
@@ -354,29 +372,29 @@ public class CompleteDataSetRegistrationController
                 importSummary.getConflicts().add(
                     new ImportConflict( "dataElementOperand", dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
             }
-            
+
             if( dataSet.isCompulsoryFieldsCompleteOnly() )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
             }
-            else 
+            else
             {
                 importSummary.setStatus( ImportStatus.WARNING );
             }
         }
-        
+
         // ---------------------------------------------------------------------
         // Register as completed data set
         // ---------------------------------------------------------------------
-        
+
         String storedBy = (sb == null) ? currentUserService.getCurrentUsername() : sb;
 
         Date completionDate = (cd == null) ? new Date() : cd;
 
         Set<OrganisationUnit> children = organisationUnit.getChildren();
-            
+
         if( !importSummary.getStatus().equals(  ImportStatus.ERROR ) )
-        {            
+        {
             List<CompleteDataSetRegistration> registrations = new ArrayList<>();
 
             if ( !multiOu )
@@ -394,22 +412,22 @@ public class CompleteDataSetRegistrationController
                 addRegistrationsForOrgUnits( registrations, Sets.union( children, Sets.newHashSet( organisationUnit ) ), dataSet, period,
                     attributeOptionCombo, storedBy, completionDate );
             }
-            
+
             registrationService.saveCompleteDataSetRegistrations( registrations, false );
 
-        }    
-        
+        }
+
         response.setContentType( CONTENT_TYPE_TEXT );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
-    
+
     @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON, value = MULTIPLE_SAVE_RESOURCE_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveCompleteDataSetRegistration(
         @RequestBody CompleteDataSetRegistrationRequests completeDataSetRegistrationRequests,
         HttpServletResponse response ) throws WebMessageException
-    {        
+    {
         List<CompleteDataSetRegistration> registrations = new ArrayList<>();
 
         for ( CompleteDataSetRegistrationRequest completeDataSetRegistrationRequest : completeDataSetRegistrationRequests )
@@ -589,7 +607,7 @@ public class CompleteDataSetRegistrationController
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        JobId jobId = new JobId( JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( "completeDataSetRegistrationImport", JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         scheduler.executeJob(
             new ImportCompleteDataSetRegistrationsTask(

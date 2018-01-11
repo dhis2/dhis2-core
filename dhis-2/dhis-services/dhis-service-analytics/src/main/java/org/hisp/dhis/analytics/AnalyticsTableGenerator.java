@@ -28,7 +28,7 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 import javax.annotation.Nullable;
 
@@ -55,7 +55,7 @@ public interface AnalyticsTableGenerator
     /**
      * Generates all resource tables.
      *
-     * @param jobId the task identifier, can be null.
+     * @param jobId the job identifier, can be null.
      */
-    void generateResourceTables( @Nullable JobId jobId );
+    void generateResourceTables( @Nullable JobConfiguration jobId );
 }

@@ -91,7 +91,7 @@ public class MonitoringJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        notifier.clear( jobConfiguration.getJobId() ).notify( jobConfiguration.getJobId(), "Monitoring data" );
+        notifier.clear( jobConfiguration ).notify( jobConfiguration, "Monitoring data" );
 
         MonitoringJobParameters monitoringJobParameters = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
@@ -100,7 +100,6 @@ public class MonitoringJob
         try
         {
             List<Period> periods = new ArrayList<>();
-            List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
             Collection<ValidationRule> validationRules;
             List<String> groupUIDs = monitoringJobParameters.getValidationRuleGroups();
 
@@ -138,7 +137,8 @@ public class MonitoringJob
             }
 
             ValidationAnalysisParams parameters = validationService
-                .newParamsBuilder( validationRules, organisationUnits, periods )
+                .newParamsBuilder( validationRules, null, periods )
+                .withIncludeOrgUnitDescendants( true )
                 .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
                 .withSendNotifications( monitoringJobParameters.isSendNotifications() )
                 .withPersistResults( monitoringJobParameters.isPersistResults() )
@@ -146,11 +146,11 @@ public class MonitoringJob
 
             validationService.validationAnalysis( parameters );
 
-            notifier.notify( jobConfiguration.getJobId(), INFO, "Monitoring process done", true );
+            notifier.notify( jobConfiguration, INFO, "Monitoring process done", true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration, ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
 
