@@ -31,7 +31,6 @@ package org.hisp.dhis.notification.logging;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import java.io.Serializable;
@@ -42,20 +41,24 @@ import java.util.Date;
  */
 
 @JacksonXmlRootElement( localName = "externalNotificationLogEntry", namespace = DxfNamespaces.DXF_2_0 )
-public class ExternalNotificationLogEntry extends BaseIdentifiableObject
+public class ExternalNotificationLogEntry
     implements Serializable
 {
+    private int id;
+
+    private String uid;
+
     private Date lastSentAt;
 
     private int retries;
 
     private String key;
 
+    private String notificationTemplateUid;
+
     private boolean allowMultiple;
 
-    private NotificationTriggerEvent triggerEvent;
-
-    private NotificationSender sender;
+    private NotificationTriggerEvent notificationTriggeredBy;
 
     private Class notificationClassType;
 
@@ -63,6 +66,28 @@ public class ExternalNotificationLogEntry extends BaseIdentifiableObject
 
     public ExternalNotificationLogEntry()
     {
+    }
+
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
     }
 
     @JsonProperty
@@ -103,26 +128,14 @@ public class ExternalNotificationLogEntry extends BaseIdentifiableObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationTriggerEvent getTriggerEvent()
+    public NotificationTriggerEvent getNotificationTriggeredBy()
     {
-        return triggerEvent;
+        return notificationTriggeredBy;
     }
 
-    public void setTriggerEvent( NotificationTriggerEvent triggerEvent )
+    public void setNotificationTriggeredBy( NotificationTriggerEvent notificationTriggeredBy )
     {
-        this.triggerEvent = triggerEvent;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationSender getSender()
-    {
-        return sender;
-    }
-
-    public void setSender( NotificationSender sender )
-    {
-        this.sender = sender;
+        this.notificationTriggeredBy = notificationTriggeredBy;
     }
 
     @JsonProperty
@@ -159,5 +172,17 @@ public class ExternalNotificationLogEntry extends BaseIdentifiableObject
     public void setNotificationClassType( Class notificationClassType )
     {
         this.notificationClassType = notificationClassType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getNotificationTemplateUid()
+    {
+        return notificationTemplateUid;
+    }
+
+    public void setNotificationTemplateUid( String notificationTemplateUid )
+    {
+        this.notificationTemplateUid = notificationTemplateUid;
     }
 }

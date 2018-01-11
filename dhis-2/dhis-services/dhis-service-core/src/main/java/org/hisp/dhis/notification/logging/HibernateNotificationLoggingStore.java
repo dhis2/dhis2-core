@@ -28,12 +28,37 @@ package org.hisp.dhis.notification.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 
 /**
  * Created by zubair@dhis2.org on 10.01.18.
  */
 public class HibernateNotificationLoggingStore
-    extends HibernateIdentifiableObjectStore<ExternalNotificationLogEntry> implements NotificationLoggingStore
+    extends HibernateGenericStore<ExternalNotificationLogEntry> implements NotificationLoggingStore
 {
+    @Override
+    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
+    {
+        Criteria criteria = getCriteria().add( Restrictions.eq( "notificationTemplateUid", templateUid ) );
+
+        return (ExternalNotificationLogEntry) criteria.uniqueResult();
+    }
+
+    @Override
+    public ExternalNotificationLogEntry get( String uid )
+    {
+        Criteria criteria = getCriteria().add( Restrictions.eq( "uid", uid ) );
+
+        return (ExternalNotificationLogEntry) criteria.uniqueResult();
+    }
+
+    @Override
+    public ExternalNotificationLogEntry getByKey( String key )
+    {
+        Criteria criteria = getCriteria().add( Restrictions.eq( "key", key ) );
+
+        return (ExternalNotificationLogEntry) criteria.uniqueResult();
+    }
 }

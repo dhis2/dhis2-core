@@ -41,32 +41,45 @@ public class DefaultNotificationLoggingService implements NotificationLoggingSer
     private NotificationLoggingStore notificationLoggingStore;
 
     @Override
-    public ExternalNotificationLogEntry getNotificationLogEntry(String uid )
+    public ExternalNotificationLogEntry get(String uid )
     {
-        return notificationLoggingStore.getByUid( uid );
+        return notificationLoggingStore.get( uid );
     }
 
     @Override
-    public ExternalNotificationLogEntry getNotificationLogEntry( int id )
+    public ExternalNotificationLogEntry get( int id )
     {
         return notificationLoggingStore.get( id );
     }
 
     @Override
-    public ExternalNotificationLogEntry getNotificationByKey( String key )
+    public ExternalNotificationLogEntry getByKey( String key )
     {
-        return null;
+        return notificationLoggingStore.getByKey( key );
     }
 
     @Override
-    public List<ExternalNotificationLogEntry> getNotificationByTriggerEvent( NotificationTriggerEvent event )
-    {
-        return null;
-    }
-
-    @Override
-    public List<ExternalNotificationLogEntry> getAllNotificationLogEntries()
+    public List<ExternalNotificationLogEntry> getAllLogEntries()
     {
         return notificationLoggingStore.getAll();
+    }
+
+    @Override
+    public boolean isValidForSending( String templateUid )
+    {
+        ExternalNotificationLogEntry logEntry = getByTemplateUid( templateUid );
+
+        if ( logEntry == null )
+        {
+            return true;
+        }
+
+        return logEntry.isAllowMultiple();
+    }
+
+    @Override
+    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
+    {
+        return notificationLoggingStore.getByTemplateUid( templateUid );
     }
 }

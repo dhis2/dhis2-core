@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
@@ -52,6 +53,9 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
     @Autowired
     private ProgramNotificationService programNotificationService;
 
+    @Autowired
+    private NotificationLoggingService notificationLoggingService;
+
     @Override
     public boolean accept( RuleAction ruleAction )
     {
@@ -61,13 +65,27 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
     @Override
     public void implement( RuleAction ruleAction, ProgramInstance programInstance )
     {
-        programNotificationService.sendProgramRuleTriggeredNotifications( getNotificationTemplate( ruleAction ), programInstance );
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleAction );
+
+        if ( !notificationLoggingService.isValidForSending( template.getUid() ) )
+        {
+            return;
+        }
+
+        programNotificationService.sendProgramRuleTriggeredNotifications( template, programInstance );
     }
 
     @Override
     public void implement( RuleAction ruleAction, ProgramStageInstance programStageInstance )
     {
-        programNotificationService.sendProgramRuleTriggeredNotifications( getNotificationTemplate( ruleAction ), programStageInstance );
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleAction );
+
+        if ( !notificationLoggingService.isValidForSending( template.getUid() ) )
+        {
+            return;
+        }
+
+        programNotificationService.sendProgramRuleTriggeredNotifications( template, programStageInstance );
     }
 
     private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
