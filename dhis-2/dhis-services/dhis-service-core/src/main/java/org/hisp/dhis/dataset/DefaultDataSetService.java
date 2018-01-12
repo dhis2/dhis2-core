@@ -171,7 +171,7 @@ public class DefaultDataSetService
     {
         if ( user == null || user.isSuper() )
         {
-            return new ArrayList<>();
+            return getAllDataSets();
         }
 
         return Lists.newArrayList( user.getUserCredentials().getAllDataSets() );
