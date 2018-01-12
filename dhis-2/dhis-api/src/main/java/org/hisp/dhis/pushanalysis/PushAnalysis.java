@@ -152,8 +152,6 @@ public class PushAnalysis
     }
 
     // Deprecated since 2.29
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public SchedulingFrequency getSchedulingFrequency()
     {
         return schedulingFrequency;
@@ -164,8 +162,6 @@ public class PushAnalysis
         this.schedulingFrequency = schedulingFrequency;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getSchedulingDayOfFrequency()
     {
         return schedulingDayOfFrequency;
@@ -176,8 +172,6 @@ public class PushAnalysis
         this.schedulingDayOfFrequency = schedulingDayOfFrequency;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean getEnabled()
     {
         return enabled;
