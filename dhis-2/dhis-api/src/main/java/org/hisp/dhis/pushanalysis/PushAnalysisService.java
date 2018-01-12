@@ -30,8 +30,6 @@ package org.hisp.dhis.pushanalysis;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 
 import java.io.IOException;
 
@@ -41,24 +39,11 @@ import java.io.IOException;
 public interface PushAnalysisService
 {
     /**
-     * Handles populating the scheduler with Push Analysis when ContextRefreshedEvent is broadcast
-     * @param event
-     */
-    @EventListener
-    void handleContextRefresh( ContextRefreshedEvent event);
-
-    /**
      * Returns a PushAnalysis with the given UID
      * @param uid uid of the PushAnalysis
      * @return PushAnalysis
      */
     PushAnalysis getByUid( String uid );
-
-    /**
-     * Save push analysis object
-     * @param pushAnalysis
-     */
-    void savePushAnalysis( PushAnalysis pushAnalysis );
 
     /**
      * Returns a String, consisting of HTML representing the PushAnalysis report.
@@ -79,10 +64,4 @@ public interface PushAnalysisService
      * @param jobId to track process
      */
     void runPushAnalysis( String uid, JobConfiguration jobId );
-
-    /**
-     * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled
-     * @param pushAnalysis
-     */
-    boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis );
 }

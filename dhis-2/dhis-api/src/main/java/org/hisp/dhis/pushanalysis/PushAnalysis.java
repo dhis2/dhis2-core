@@ -37,7 +37,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.user.UserGroup;
 
-import java.util.Date;
 import java.util.Set;
 
 /**
@@ -48,7 +47,8 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0 )
 public class PushAnalysis
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * PushAnalysis uses a dashboard to base it's reports on
@@ -70,45 +70,14 @@ public class PushAnalysis
      */
     private Set<UserGroup> recipientUserGroups;
 
-    /**
-     * Indicates whether or not reports should be generated and sent to users automatically at given intervals
-     */
     private boolean enabled;
 
-    /**
-     * The Date of the last successful run
-     */
-    private Date lastRun;
+    private int schedulingDayOfFrequency;
 
-    /**
-     * The frequency of which the push analysis should run (daily, weekly, monthly)
-     */
     private SchedulingFrequency schedulingFrequency;
-
-    /**
-     * Which day in the frequency the job should run
-     */
-    private Integer schedulingDayOfFrequency;
-
-    /**
-     * Key which was used for scheduling.
-     */
-    private String schedulingKey;
 
     public PushAnalysis()
     {
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastRun()
-    {
-        return lastRun;
-    }
-
-    public void setLastRun( Date lastRun )
-    {
-        this.lastRun = lastRun;
     }
 
     @JsonProperty
@@ -161,56 +130,6 @@ public class PushAnalysis
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getEnabled()
-    {
-        return this.enabled;
-    }
-
-    public void setEnabled( boolean enabled )
-    {
-        this.enabled = enabled;
-    }
-
-    public void setSchedulingKey( String schedulingKey )
-    {
-        this.schedulingKey = schedulingKey;
-    }
-    public String getSchedulingKey()
-    {
-        return schedulingKey;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public SchedulingFrequency getSchedulingFrequency()
-    {
-        return schedulingFrequency;
-    }
-
-    public void setSchedulingFrequency( SchedulingFrequency schedulingFrequency )
-    {
-        this.schedulingFrequency = schedulingFrequency;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getSchedulingDayOfFrequency()
-    {
-        return schedulingDayOfFrequency;
-    }
-
-    public void setSchedulingDayOfFrequency( Integer schedulingDayOfFrequency )
-    {
-        this.schedulingDayOfFrequency = schedulingDayOfFrequency;
-    }
-
-    public boolean canSchedule()
-    {
-        return (schedulingFrequency != null && enabled);
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getTitle()
     {
         return title;
@@ -229,10 +148,38 @@ public class PushAnalysis
             .add( "title", title )
             .add( "message", message )
             .add( "recipientUserGroups", recipientUserGroups )
-            .add( "enabled", enabled )
-            .add( "lastRun", lastRun )
-            .add( "schedulingFrequency", schedulingFrequency )
-            .add( "schedulingDayOfFrequency", schedulingDayOfFrequency )
             .toString();
     }
+
+    // Deprecated since 2.29
+    public SchedulingFrequency getSchedulingFrequency()
+    {
+        return schedulingFrequency;
+    }
+
+    public void setSchedulingFrequency( SchedulingFrequency schedulingFrequency )
+    {
+        this.schedulingFrequency = schedulingFrequency;
+    }
+
+    public int getSchedulingDayOfFrequency()
+    {
+        return schedulingDayOfFrequency;
+    }
+
+    public void setSchedulingDayOfFrequency( int schedulingDayOfFrequency )
+    {
+        this.schedulingDayOfFrequency = schedulingDayOfFrequency;
+    }
+
+    public boolean getEnabled()
+    {
+        return enabled;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
+    }
+
 }

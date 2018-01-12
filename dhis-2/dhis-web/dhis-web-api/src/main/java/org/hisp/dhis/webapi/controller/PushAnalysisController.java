@@ -113,34 +113,7 @@ public class PushAnalysisController
         }
 
         JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",
-            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( "" ), false, true );
+            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), false, true );
         schedulingManager.executeJob( pushAnalysisJobConfiguration );
-
-        pushAnalysis.setSchedulingKey( pushAnalysisJobConfiguration.getUid() );
-        pushAnalysisService.savePushAnalysis( pushAnalysis );
-    }
-
-    @Override
-    protected void preDeleteEntity( PushAnalysis pushAnalysis )
-    {
-        schedulingManager.stopJob( pushAnalysis.getSchedulingKey() );
-    }
-
-    @Override
-    protected void postUpdateEntity( PushAnalysis pushAnalysis )
-    {
-        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
-    }
-
-    @Override
-    protected void postCreateEntity( PushAnalysis pushAnalysis )
-    {
-        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
-    }
-
-    @Override
-    protected void postPatchEntity( PushAnalysis pushAnalysis )
-    {
-        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
     }
 }
