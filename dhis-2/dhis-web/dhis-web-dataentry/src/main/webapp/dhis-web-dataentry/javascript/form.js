@@ -400,7 +400,7 @@ dhis2.de.uploadLocalData = function()
         console.log( 'Uploaded complete data set: ' + key + ', with value: ' + value );
 
         $.ajax( {
-            url: '../api/25/completeDataSetRegistrations',
+            url: '../api/completeDataSetRegistrations',
             data: value,
             dataType: 'json',
             success: function( data, textStatus, jqXHR )
@@ -2099,11 +2099,29 @@ function registerCompleteDataSet()
             params.cp = cp;
         }
 
+        var cdsrs =  {
+            attributeOptionComboIdScheme : 'UID',
+            idScheme:'UID',
+            dataSetIdScheme :'UID',
+            orgUnitIdScheme : 'UID',
+            dryRun : 'false',
+            strategy :'NEW_AND_UPDATES',
+            completeDataSetRegistrations : []
+        };
+
+        var cdsr = {
+            dataSet : params.ds,
+            period : params.pe,
+            organisationUnit : params.ou
+        };
+
+        cdsrs.completeDataSetRegistrations.push(cdsr);
+
         dhis2.de.storageManager.saveCompleteDataSet( params );
 
         $.ajax( {
-            url: '../api/25/completeDataSetRegistrations',
-            data: params,
+            url: '../api/completeDataSetRegistrations',
+            data: JSON.stringify(cdsrs),
             dataType: 'json',
             type: 'post',
             success: function( data, textStatus, xhr )
@@ -2154,7 +2172,7 @@ function undoCompleteDataSet()
     }
 
     $.ajax( {
-        url: '../api/25/completeDataSetRegistrations' + params,
+        url: '../api/completeDataSetRegistrations' + params,
         dataType: 'json',
         type: 'delete',
         success: function( data, textStatus, xhr )
