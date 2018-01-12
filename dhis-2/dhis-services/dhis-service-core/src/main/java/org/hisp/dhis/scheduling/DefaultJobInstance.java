@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.scheduling;
+package org.hisp.dhis.scheduling;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,10 +31,6 @@ package org.hisp.dhis.system.scheduling;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobInstance;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.util.Clock;
 
 import java.util.Date;
@@ -45,7 +41,7 @@ import java.util.Date;
 public class DefaultJobInstance 
     implements JobInstance
 {
-    private static final Log log = LogFactory.getLog( SpringScheduler.class );
+    private static final Log log = LogFactory.getLog( DefaultJobInstance.class );
 
     public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
         MessageService messageService )

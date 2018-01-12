@@ -56,7 +56,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -121,7 +121,7 @@ public class CompleteDataSetRegistrationController
     private RenderService renderService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -315,7 +315,7 @@ public class CompleteDataSetRegistrationController
 
         JobConfiguration jobId = new JobConfiguration( "completeDataSetRegistrationImport", JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        scheduler.executeJob(
+        schedulingManager.executeJob(
             new ImportCompleteDataSetRegistrationsTask(
                 registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format,
                 jobId )

@@ -43,7 +43,7 @@ import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -93,7 +93,7 @@ public class DataValueSetController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -315,7 +315,7 @@ public class DataValueSetController
         InputStream inputStream = saveTmp( request.getInputStream() );
 
         JobConfiguration jobId = new JobConfiguration( "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-        scheduler.executeJob(
+        schedulingManager.executeJob(
             new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
                 jobId, format ) );
 

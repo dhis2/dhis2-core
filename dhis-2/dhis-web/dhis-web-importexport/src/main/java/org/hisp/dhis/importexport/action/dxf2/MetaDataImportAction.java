@@ -43,9 +43,9 @@ import org.hisp.dhis.importexport.action.util.ImportMetaDataGmlTask;
 import org.hisp.dhis.importexport.action.util.ImportMetaDataTask;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +80,7 @@ public class MetaDataImportAction
     private SchemaService schemaService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
@@ -162,17 +162,18 @@ public class MetaDataImportAction
         {
             if ( classKey != null && CsvImportClass.classExists( classKey ) )
             {
-                scheduler.executeJob( new ImportMetaDataCsvTask( importService, csvImportService, schemaService,
+                schedulingManager.executeJob( new ImportMetaDataCsvTask( importService, csvImportService, schemaService,
                     importParams, in, CsvImportClass.valueOf( classKey ) ) );
             }
         }
         else if ( "gml".equals( importFormat ) )
         {
-            scheduler.executeJob( new ImportMetaDataGmlTask( gmlImportService, importParams, in ) );
+            schedulingManager.executeJob( new ImportMetaDataGmlTask( gmlImportService, importParams, in ) );
         }
         else if ( "json".equals( importFormat ) || "xml".equals( importFormat ) )
         {
-            scheduler.executeJob( new ImportMetaDataTask( importService, schemaService, importParams, in, importFormat ) );
+            schedulingManager
+                .executeJob( new ImportMetaDataTask( importService, schemaService, importParams, in, importFormat ) );
         }
 
         return SUCCESS;
