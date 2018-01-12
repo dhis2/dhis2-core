@@ -35,6 +35,7 @@ import org.hisp.dhis.scheduling.JobType;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public class InMemoryNotifier
     }
 
     @Override
-    public Map<JobType, Map<String, LinkedList<Notification>>> getNotifications( )
+    public Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications( )
     {
         return notificationMap.getNotifications();
     }
