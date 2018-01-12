@@ -80,11 +80,21 @@ public class DashboardItem
 
     private List<Document> resources = new ArrayList<>();
 
+    private String text;
+    
     private Boolean messages;
 
     private String appKey;
 
     private DashboardItemShape shape;
+    
+    private Integer x;
+    
+    private Integer y;
+    
+    private Integer height;
+    
+    private Integer width;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -393,6 +403,18 @@ public class DashboardItem
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getText()
+    {
+        return text;
+    }
+
+    public void setText( String text )
+    {
+        this.text = text;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getMessages()
     {
         return messages;
@@ -425,5 +447,53 @@ public class DashboardItem
     public void setShape( DashboardItemShape shape )
     {
         this.shape = shape;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getX()
+    {
+        return x;
+    }
+
+    public void setX( Integer x )
+    {
+        this.x = x;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getY()
+    {
+        return y;
+    }
+
+    public void setY( Integer y )
+    {
+        this.y = y;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getHeight()
+    {
+        return height;
+    }
+
+    public void setHeight( Integer height )
+    {
+        this.height = height;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getWidth()
+    {
+        return width;
+    }
+
+    public void setWidth( Integer width )
+    {
+        this.width = width;
     }
 }
