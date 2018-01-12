@@ -40,8 +40,12 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.CategoryComboMap;
 import org.hisp.dhis.dataelement.CategoryComboMap.CategoryComboMapException;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
@@ -55,7 +59,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -74,8 +78,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedOutputStream;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -228,7 +243,7 @@ public class DefaultAdxDataService
 
     @Override
     @Transactional
-    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobId id )
+    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -242,7 +257,7 @@ public class DefaultAdxDataService
         }
     }
 
-    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, JobId id )
+    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         notifier.clear( id ).notify( id, "ADX parsing process started" );
 
@@ -279,7 +294,7 @@ public class DefaultAdxDataService
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         // For Async runs, give the DXF import a different notification task ID so it doesn't conflict with notifications from this level.
-        JobId dxfJobId = ( id == null ) ? null : new JobId( JobType.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
+        JobConfiguration dxfJobId = ( id == null ) ? null : new JobConfiguration( "dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUser().getUid(), true );
 
         int groupCount = 0;
 
@@ -337,7 +352,7 @@ public class DefaultAdxDataService
 
         executor.shutdown();
 
-        notifier.update( id, INFO, "ADX data import done", true ).addTaskSummary( id, importSummary );
+        notifier.update( id, INFO, "ADX data import done", true ).addJobSummary( id, importSummary );
 
         ImportCount c = importSummary.getImportCount();
         log.info( "ADX data import done, imported: " + c.getImported() + ", updated: " + c.getUpdated() + ", deleted: " + c.getDeleted() + ", ignored: " + c.getIgnored() );

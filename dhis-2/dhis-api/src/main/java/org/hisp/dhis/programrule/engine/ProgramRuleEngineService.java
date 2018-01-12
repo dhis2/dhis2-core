@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.method;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,47 +28,18 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.rules.models.RuleAction;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 23.10.17.
  */
-@Controller
-@RequestMapping( "/method/testV23V24" )
-public class ApiMethodV23V24Controller
+public interface ProgramRuleEngineService
 {
-    @RequestMapping( "a" )
-    @ApiVersion( DhisApiVersion.V23 )
-    public void testV23( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    List<RuleAction> evaluate( ProgramInstance enrollment );
 
-    @RequestMapping( value = "a", method = RequestMethod.POST )
-    @ApiVersion( DhisApiVersion.V23 )
-    public void testPostV23( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( "b" )
-    @ApiVersion( DhisApiVersion.V24 )
-    public void testV24( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
-
-    @RequestMapping( value = "b", method = RequestMethod.PUT )
-    @ApiVersion( DhisApiVersion.V24 )
-    public void testPutV24( HttpServletResponse response ) throws IOException
-    {
-        response.getWriter().println( "TEST" );
-    }
+    List<RuleAction> evaluate( ProgramStageInstance event );
 }

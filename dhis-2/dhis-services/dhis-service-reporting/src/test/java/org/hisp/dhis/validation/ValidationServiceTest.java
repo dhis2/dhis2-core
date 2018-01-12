@@ -28,6 +28,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
@@ -138,8 +139,6 @@ public class ValidationServiceTest
     private OrganisationUnit sourceF;
     private OrganisationUnit sourceG;
 
-    private List<OrganisationUnit> sourcesA = new ArrayList<>();
-
     private Set<OrganisationUnit> allSources = new HashSet<>();
 
     private ValidationRule validationRuleA;
@@ -246,9 +245,6 @@ public class ValidationServiceTest
         sourceE = createOrganisationUnit( 'E', sourceD );
         sourceF = createOrganisationUnit( 'F', sourceD );
         sourceG = createOrganisationUnit( 'G' );
-
-        sourcesA.add( sourceA );
-        sourcesA.add( sourceB );
 
         allSources.add( sourceA );
         allSources.add( sourceB );
@@ -477,16 +473,6 @@ public class ValidationServiceTest
     @Test
     public void testValidateDateDateSources()
     {
-        useDataValue( dataElementA, periodA, sourceA, "1" );
-        useDataValue( dataElementB, periodA, sourceA, "2" );
-        useDataValue( dataElementC, periodA, sourceA, "3" );
-        useDataValue( dataElementD, periodA, sourceA, "4" );
-
-        useDataValue( dataElementA, periodB, sourceA, "1" );
-        useDataValue( dataElementB, periodB, sourceA, "2" );
-        useDataValue( dataElementC, periodB, sourceA, "3" );
-        useDataValue( dataElementD, periodB, sourceA, "4" );
-
         useDataValue( dataElementA, periodA, sourceB, "1" );
         useDataValue( dataElementB, periodA, sourceB, "2" );
         useDataValue( dataElementC, periodA, sourceB, "3" );
@@ -496,6 +482,16 @@ public class ValidationServiceTest
         useDataValue( dataElementB, periodB, sourceB, "2" );
         useDataValue( dataElementC, periodB, sourceB, "3" );
         useDataValue( dataElementD, periodB, sourceB, "4" );
+
+        useDataValue( dataElementA, periodA, sourceC, "1" );
+        useDataValue( dataElementB, periodA, sourceC, "2" );
+        useDataValue( dataElementC, periodA, sourceC, "3" );
+        useDataValue( dataElementD, periodA, sourceC, "4" );
+
+        useDataValue( dataElementA, periodB, sourceC, "1" );
+        useDataValue( dataElementB, periodB, sourceC, "2" );
+        useDataValue( dataElementC, periodB, sourceC, "3" );
+        useDataValue( dataElementD, periodB, sourceC, "4" );
 
         validationRuleService.saveValidationRule( validationRuleA ); // Invalid
         validationRuleService.saveValidationRule( validationRuleB ); // Invalid
@@ -507,28 +503,75 @@ public class ValidationServiceTest
         // insures that if they are the same as the reference results, they will
         // appear in the same order.
 
-        ValidationAnalysisParams parameters = validationService.newParamsBuilder(null, sourcesA, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
-            .build();
+        ValidationAnalysisParams parameters = validationService.newParamsBuilder(null, sourceB, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
+            .withIncludeOrgUnitDescendants( true ).build();
 
         Collection<ValidationResult> results = validationService.validationAnalysis( parameters );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference.add( createValidationResult( validationRuleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
-        reference.add( createValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
         reference.add( createValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( createValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+        reference.add( createValidationResult( validationRuleA, periodA, sourceC, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( createValidationResult( validationRuleA, periodB, sourceC, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
 
-        reference.add( createValidationResult( validationRuleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
-        reference.add( createValidationResult( validationRuleB, periodB, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
         reference.add( createValidationResult( validationRuleB, periodA, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
         reference.add( createValidationResult( validationRuleB, periodB, sourceB, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
+        reference.add( createValidationResult( validationRuleB, periodA, sourceC, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
+        reference.add( createValidationResult( validationRuleB, periodB, sourceC, defaultCombo, -1.0, 4.0, dayInPeriodB ) );
 
         assertResultsEquals( reference, results );
     }
 
     @Test
     public void testValidateDateDateSourcesGroup()
+    {
+        useDataValue( dataElementA, periodA, sourceB, "1" );
+        useDataValue( dataElementB, periodA, sourceB, "2" );
+        useDataValue( dataElementC, periodA, sourceB, "3" );
+        useDataValue( dataElementD, periodA, sourceB, "4" );
+
+        useDataValue( dataElementA, periodB, sourceB, "1" );
+        useDataValue( dataElementB, periodB, sourceB, "2" );
+        useDataValue( dataElementC, periodB, sourceB, "3" );
+        useDataValue( dataElementD, periodB, sourceB, "4" );
+
+        useDataValue( dataElementA, periodA, sourceC, "1" );
+        useDataValue( dataElementB, periodA, sourceC, "2" );
+        useDataValue( dataElementC, periodA, sourceC, "3" );
+        useDataValue( dataElementD, periodA, sourceC, "4" );
+
+        useDataValue( dataElementA, periodB, sourceC, "1" );
+        useDataValue( dataElementB, periodB, sourceC, "2" );
+        useDataValue( dataElementC, periodB, sourceC, "3" );
+        useDataValue( dataElementD, periodB, sourceC, "4" );
+
+        validationRuleService.saveValidationRule( validationRuleA ); // Invalid
+        validationRuleService.saveValidationRule( validationRuleB ); // Invalid
+        validationRuleService.saveValidationRule( validationRuleC ); // Valid
+        validationRuleService.saveValidationRule( validationRuleD ); // Valid
+
+        group.getMembers().add( validationRuleA );
+        group.getMembers().add( validationRuleC );
+
+        validationRuleService.addValidationRuleGroup( group );
+
+        ValidationAnalysisParams params = validationService.newParamsBuilder(group, sourceB, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
+            .withIncludeOrgUnitDescendants( true ).build();
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( params );
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceC, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceC, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidatePeriodsRulesSources()
     {
         useDataValue( dataElementA, periodA, sourceA, "1" );
         useDataValue( dataElementB, periodA, sourceA, "2" );
@@ -550,18 +593,26 @@ public class ValidationServiceTest
         useDataValue( dataElementC, periodB, sourceB, "3" );
         useDataValue( dataElementD, periodB, sourceB, "4" );
 
+        useDataValue( dataElementA, periodA, sourceC, "1" );
+        useDataValue( dataElementB, periodA, sourceC, "2" );
+        useDataValue( dataElementC, periodA, sourceC, "3" );
+        useDataValue( dataElementD, periodA, sourceC, "4" );
+
+        useDataValue( dataElementA, periodB, sourceC, "1" );
+        useDataValue( dataElementB, periodB, sourceC, "2" );
+        useDataValue( dataElementC, periodB, sourceC, "3" );
+        useDataValue( dataElementD, periodB, sourceC, "4" );
+
         validationRuleService.saveValidationRule( validationRuleA ); // Invalid
         validationRuleService.saveValidationRule( validationRuleB ); // Invalid
         validationRuleService.saveValidationRule( validationRuleC ); // Valid
         validationRuleService.saveValidationRule( validationRuleD ); // Valid
 
-        group.getMembers().add( validationRuleA );
-        group.getMembers().add( validationRuleC );
+        List<ValidationRule> validationRules = Lists.newArrayList( validationRuleA, validationRuleC );
+        List<Period> periods = periodService.getPeriodsBetweenDates( getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) );
 
-        validationRuleService.addValidationRuleGroup( group );
-
-        ValidationAnalysisParams params = validationService.newParamsBuilder(group, sourcesA, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
-            .build();
+        ValidationAnalysisParams params = validationService.newParamsBuilder(validationRules, null, periods )
+            .withIncludeOrgUnitDescendants( true ).build();
 
         Collection<ValidationResult> results = validationService.validationAnalysis( params );
         Collection<ValidationResult> reference = new HashSet<>();
@@ -570,6 +621,8 @@ public class ValidationServiceTest
         reference.add( new ValidationResult( validationRuleA, periodB, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
         reference.add( new ValidationResult( validationRuleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( new ValidationResult( validationRuleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
+        reference.add( new ValidationResult( validationRuleA, periodA, sourceC, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( validationRuleA, periodB, sourceC, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
 
         assertResultsEquals( reference, results );
     }

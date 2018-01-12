@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,7 +68,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
@@ -215,7 +216,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobId jobId )
+    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId )
     {
         try
         {
@@ -238,8 +239,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
-        JobId jobId )
+    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId )
     {
         try
         {
@@ -361,7 +361,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private ImportSummary handleImportError( JobId jobId, Throwable ex )
+    private ImportSummary handleImportError( JobConfiguration jobId, Throwable ex )
     {
         log.error( DebugUtils.getStackTrace( ex ) );
         notifier.notify( jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
@@ -376,7 +376,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         throw new IllegalQueryException( message );
     }
 
-    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobId id,
+    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobConfiguration id,
         CompleteDataSetRegistrations completeRegistrations )
     {
         Clock clock = new Clock( log ).startClock()
@@ -419,7 +419,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         int totalCount = batchImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
-        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addTaskSummary( id, importSummary );
+        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary );
 
         ImportCount count = importSummary.getImportCount();
 
@@ -507,14 +507,16 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 continue;
             }
 
+
             // ---------------------------------------------------------------------
             // Compulsory fields validation
             // ---------------------------------------------------------------------
 
-            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields(
-                mdProps.dataSet, mdProps.period, mdProps.orgUnit, mdProps.attrOptCombo, false );
+            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
+                mdProps.orgUnit, mdProps.attrOptCombo, false );
 
-            if ( !missingDataElementOperands.isEmpty() )
+
+            if( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {

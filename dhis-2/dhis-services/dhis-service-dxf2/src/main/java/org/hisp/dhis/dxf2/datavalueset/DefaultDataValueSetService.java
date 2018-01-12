@@ -83,7 +83,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -525,7 +525,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobId id )
+    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -542,7 +542,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobId id )
+    public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -559,7 +559,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobId id )
+    public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -576,7 +576,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobId id )
+    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -613,7 +613,7 @@ public class DefaultDataValueSetService
      * @param dataValueSet
      * @return
      */
-    private ImportSummary saveDataValueSet( ImportOptions importOptions, JobId id, DataValueSet dataValueSet )
+    private ImportSummary saveDataValueSet( ImportOptions importOptions, JobConfiguration id, DataValueSet dataValueSet )
     {
         importOptions = ObjectUtils.firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() );
 
@@ -778,7 +778,7 @@ public class DefaultDataValueSetService
         if ( ImportStatus.ERROR.equals( summary.getStatus() ) )
         {
             summary.setDescription( "Import process was aborted" );
-            notifier.notify( id, WARN, "Import process aborted", true ).addTaskSummary( id, summary );
+            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary );
             dataValueSet.close();
             return summary;
         }
@@ -1245,7 +1245,7 @@ public class DefaultDataValueSetService
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );
-        notifier.notify( id, notificationLevel, "Import done", true ).addTaskSummary( id, notificationLevel, summary );
+        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary );
 
         dataValueSet.close();
 

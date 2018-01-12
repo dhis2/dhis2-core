@@ -124,6 +124,12 @@ public class BaseDimensionalObject
         this.items = new ArrayList<>( items );
     }
 
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String displayName, List<? extends DimensionalItemObject> items )
+    {
+        this( dimension, dimensionType, items );
+        this.displayName = displayName;
+    }
+
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );

@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.webapi.controller.method;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,38 +28,32 @@ package org.hisp.dhis.system.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import org.hisp.dhis.scheduling.JobId;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TaskLocalMap<T, V>
+@Controller
+@RequestMapping( "/method/testAllExcludeV26" )
+public class ApiMethodAllExcludeV26Controller
 {
-    private final Map<JobId, Map<T, V>> internalMap;
-    
-    public TaskLocalMap()
+    @RequestMapping( "a" )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
+    public void testAllA( HttpServletResponse response ) throws IOException
     {
-        this.internalMap = new HashMap<>();
+        response.getWriter().println( "TEST" );
     }
 
-    public Map<T, V> get( JobId id )
+    @RequestMapping( "b" )
+    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V26 )
+    public void testAllB( HttpServletResponse response ) throws IOException
     {
-        Map<T, V> map = internalMap.get( id );
-        
-        if ( map == null )
-        {
-            map = new HashMap<>();
-            internalMap.put( id, map );
-        }
-        
-        return map;
-    }
-
-    public boolean clear( JobId id )
-    {
-        return internalMap.remove( id ) != null;
+        response.getWriter().println( "TEST" );
     }
 }

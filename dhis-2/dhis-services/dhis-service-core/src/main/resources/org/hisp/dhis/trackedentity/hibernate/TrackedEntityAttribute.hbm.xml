@@ -21,6 +21,8 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
     <property name="valueType" column="valuetype" length="36" access="property" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.ValueType</param>
@@ -66,6 +68,8 @@
     <property name="generated" />
 
     <property name="pattern" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
 
     <property name="orgunitScope" />
 

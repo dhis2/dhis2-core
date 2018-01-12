@@ -71,6 +71,8 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
 
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
+
     ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     // -------------------------------------------------------------------------
