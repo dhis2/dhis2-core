@@ -258,7 +258,7 @@ public class SchedulerUpgrade
                 }
             } ) );
 
-            // Handle push analysis
+            log.info("Moving existing Push Analysis jobs." );
 
             pushAnalysisStore
                 .getAll()
