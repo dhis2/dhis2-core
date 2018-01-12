@@ -23,17 +23,12 @@
     
     <property name="style" type="jbObjectStyle" />
     
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" not-null="true" foreign-key="fk_trackedentityinstancefilter_programid" lazy="false" />
+    
     <property name="enrollmentStatus" length="50">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-    
-    <property name="eventStatus" length="50">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.event.EventStatus</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
@@ -43,7 +38,7 @@
     
     <property name="enrollmentCreatedPeriod" type="jbFilterPeriod" />
     
-    <property name="eventFilter" type="jbEventFilter" />
+    <property name="eventFilters" type="jlbEventFilter" />
     
   </class>
 

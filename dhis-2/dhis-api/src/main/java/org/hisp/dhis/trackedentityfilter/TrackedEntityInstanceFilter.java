@@ -1,7 +1,5 @@
 package org.hisp.dhis.trackedentityfilter;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,13 +28,20 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -48,6 +53,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class TrackedEntityInstanceFilter
     extends BaseIdentifiableObject implements MetadataObject
 {
+
+    /**
+     * Property indicating program's of trackedEntityInstanceFilter
+     */
+    private Program program;
+
     /**
      * Property indicating description of trackedEntityInstanceFilter
      */
@@ -70,11 +81,6 @@ public class TrackedEntityInstanceFilter
     private ProgramStatus enrollmentStatus;
 
     /**
-     * Property indicating which event status types to filter
-     */
-    private EventStatus eventStatus;
-
-    /**
      * Property indicating whether to filter tracked entity instances whose
      * enrollments are marked for followup or not
      */
@@ -89,7 +95,7 @@ public class TrackedEntityInstanceFilter
      * Property to filter tracked entity instances based on event dates and
      * statues
      */
-    private EventFilter eventFilter;
+    private List<EventFilter> eventFilters = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -103,6 +109,19 @@ public class TrackedEntityInstanceFilter
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Program getProgram()
+    {
+        return program;
+    }
+
+    public void setProgram( Program program )
+    {
+        this.program = program;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -154,18 +173,6 @@ public class TrackedEntityInstanceFilter
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventStatus getEventStatus()
-    {
-        return eventStatus;
-    }
-
-    public void setEventStatus( EventStatus eventStatus )
-    {
-        this.eventStatus = eventStatus;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isFollowup()
     {
         return followup;
@@ -188,15 +195,16 @@ public class TrackedEntityInstanceFilter
         this.enrollmentCreatedPeriod = enrollmentCreatedPeriod;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventFilter getEventFilter()
+    @JsonProperty( "eventFilters" )
+    @JacksonXmlElementWrapper( localName = "eventFilters", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "eventFilters", namespace = DxfNamespaces.DXF_2_0 )
+    public List<EventFilter> getEventFilters()
     {
-        return eventFilter;
+        return eventFilters;
     }
 
-    public void setEventFilter( EventFilter eventFilter )
+    public void setEventFilters( List<EventFilter> eventFilters )
     {
-        this.eventFilter = eventFilter;
+        this.eventFilters = eventFilters;
     }
 }

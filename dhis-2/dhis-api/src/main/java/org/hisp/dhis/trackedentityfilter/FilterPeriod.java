@@ -32,12 +32,13 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public class FilterPeriod
+public class FilterPeriod implements Serializable
 {
     private int periodFrom;
 

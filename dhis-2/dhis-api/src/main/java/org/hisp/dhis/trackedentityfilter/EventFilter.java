@@ -30,8 +30,8 @@ package org.hisp.dhis.trackedentityfilter;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStage;
 
+import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
@@ -39,9 +39,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public class EventFilter
+public class EventFilter implements Serializable
 {
-    private ProgramStage programStage;
+    private String programStage;
 
     private EventStatus eventStatus;
 
@@ -62,12 +62,12 @@ public class EventFilter
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStage getProgramStage()
+    public String getProgramStage()
     {
         return programStage;
     }
 
-    public void setProgramStage( ProgramStage programStage )
+    public void setProgramStage( String programStage )
     {
         this.programStage = programStage;
     }
