@@ -66,8 +66,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
@@ -82,7 +80,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -128,50 +125,11 @@ public class DefaultPushAnalysisService
     @Qualifier( "emailMessageSender" )
     private MessageSender messageSender;
 
-    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>();
-
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
     public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         this.pushAnalysisStore = pushAnalysisStore;
-    }
-
-    //----------------------------------------------------------------------
-    // Scheduling methods
-    //----------------------------------------------------------------------
-
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent event )
-    {
-        List<PushAnalysis> pushAnalyses = pushAnalysisStore.getAll();
-
-        for ( PushAnalysis pushAnalysis : pushAnalyses )
-        {
-            if ( pushAnalysis.canSchedule() )
-                refreshPushAnalysisScheduling( pushAnalysis );
-        }
-    }
-
-    public boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis )
-    {
-        if ( !pushAnalysis.canSchedule() )
-        {
-            return false;
-        }
-
-        /*HH verify with stian return scheduler.refreshJob(
-            pushAnalysis.getSchedulingKey(),
-            new PushAnalysisJob(
-                new TaskId(
-                    TaskCategory.PUSH_ANALYSIS,
-                    currentUserService.getSender()
-                ),  pushAnalysis.getId()
-            ),
-            getPushAnalysisCronExpression( pushAnalysis )
-        );*/
-
-        return true;
     }
 
     //----------------------------------------------------------------------
@@ -182,12 +140,6 @@ public class DefaultPushAnalysisService
     public PushAnalysis getByUid( String uid )
     {
         return pushAnalysisStore.getByUid( uid );
-    }
-
-    @Override
-    public void savePushAnalysis( PushAnalysis pushAnalysis )
-    {
-        pushAnalysisStore.save( pushAnalysis );
     }
 
     @Override
@@ -206,13 +158,6 @@ public class DefaultPushAnalysisService
         //----------------------------------------------------------------------
 
         log( jobId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
-
-        if ( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
-        {
-            log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with uid '" + uid + "' is already running. Terminating new PushAnalysis job.", true, null );
-            return;
-        }
 
         if ( pushAnalysis == null )
         {
@@ -295,13 +240,6 @@ public class DefaultPushAnalysisService
                         user.getUsername() + "': " + e.getMessage(), false, e );
             }
         }
-
-        // Update lastRun date
-        
-        pushAnalysis.setLastRun( new Date() );
-        pushAnalysisStore.update( pushAnalysis );
-
-        setPushAnalysisIsRunningFlag( pushAnalysis, false );
     }
 
     @Override
@@ -542,27 +480,5 @@ public class DefaultPushAnalysisService
             default:
                 break;
         }
-    }
-
-    /**
-     * synchronized method for claiming and releasing a flag that indicates whether a given
-     * push analysis is currently running. This is to avoid race conditions from multiple api requests.
-     * when setting the flag to true (running), the method will return false if the flag is already set to true,
-     * indicating the push analysis is already running.
-     *
-     * @param pushAnalysis to run
-     * @param running      indicates whether to claim (true) or release (false) flag.
-     * @return true if the flag was claimed or released, false if the flag was already claimed
-     */
-    private synchronized boolean setPushAnalysisIsRunningFlag( PushAnalysis pushAnalysis, boolean running )
-    {
-        if ( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
-        {
-            return false;
-        }
-
-        pushAnalysisIsRunning.put( pushAnalysis, running );
-
-        return true;
     }
 }

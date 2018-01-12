@@ -47,7 +47,8 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0 )
 public class PushAnalysis
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * PushAnalysis uses a dashboard to base it's reports on
@@ -68,6 +69,12 @@ public class PushAnalysis
      * PushAnalysis reports are sent to one or more userGroups
      */
     private Set<UserGroup> recipientUserGroups;
+
+    private boolean enabled;
+
+    private int schedulingDayOfFrequency;
+
+    private SchedulingFrequency schedulingFrequency;
 
     public PushAnalysis()
     {
@@ -121,7 +128,6 @@ public class PushAnalysis
         this.message = message;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getTitle()
@@ -144,4 +150,42 @@ public class PushAnalysis
             .add( "recipientUserGroups", recipientUserGroups )
             .toString();
     }
+
+    // Deprecated since 2.29
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public SchedulingFrequency getSchedulingFrequency()
+    {
+        return schedulingFrequency;
+    }
+
+    public void setSchedulingFrequency( SchedulingFrequency schedulingFrequency )
+    {
+        this.schedulingFrequency = schedulingFrequency;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getSchedulingDayOfFrequency()
+    {
+        return schedulingDayOfFrequency;
+    }
+
+    public void setSchedulingDayOfFrequency( int schedulingDayOfFrequency )
+    {
+        this.schedulingDayOfFrequency = schedulingDayOfFrequency;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean getEnabled()
+    {
+        return enabled;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
+    }
+
 }

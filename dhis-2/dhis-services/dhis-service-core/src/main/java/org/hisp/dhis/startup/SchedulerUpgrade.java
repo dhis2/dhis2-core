@@ -28,32 +28,49 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-
+import com.google.api.client.util.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.commons.util.CronUtils;
+import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.scheduling.DefaultJobConfigurationService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hisp.dhis.scheduling.JobType.*;
+import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.CREDENTIALS_EXPIRY_ALERT;
+import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
+import static org.hisp.dhis.scheduling.JobType.DATA_STATISTICS;
+import static org.hisp.dhis.scheduling.JobType.DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.FILE_RESOURCE_CLEANUP;
+import static org.hisp.dhis.scheduling.JobType.META_DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.MONITORING;
+import static org.hisp.dhis.scheduling.JobType.PROGRAM_NOTIFICATIONS;
+import static org.hisp.dhis.scheduling.JobType.PUSH_ANALYSIS;
+import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
+import static org.hisp.dhis.scheduling.JobType.SEND_SCHEDULED_MESSAGE;
+import static org.hisp.dhis.scheduling.JobType.VALIDATION_RESULTS_NOTIFICATION;
 
 /**
  * Handles porting from the old scheduler to the new.
  *
  * @author Henning Håkonsen
  */
+@Transactional
 public class SchedulerUpgrade
     extends AbstractStartupRoutine
 {
@@ -75,6 +92,13 @@ public class SchedulerUpgrade
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
+
+    public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> store )
+    {
+        this.pushAnalysisStore = store;
+    }
 
     private boolean addDefaultJob( String name, List<JobConfiguration> jobConfigurations )
     {
@@ -156,10 +180,10 @@ public class SchedulerUpgrade
             addAndScheduleJob( dataSetNotification );
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings( "unchecked" )
         ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager
             .getSystemSetting( "keySchedTasks" );
-        
+
         if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) )
         {
             log.info( "Scheduler ported" );
@@ -233,12 +257,42 @@ public class SchedulerUpgrade
                     log.error( "Could not map job type '" + jobType + "' with cron '" + cron + "'" );
                 }
             } ) );
+
+            // Handle push analysis
+
+            pushAnalysisStore
+                .getAll()
+                .forEach( ( pa ) -> {
+                    String cron;
+
+                    log.info("New PA: " + pa);
+
+                    switch ( pa.getSchedulingFrequency() )
+                    {
+                    case DAILY:
+                        cron = CronUtils.getDailyCronExpression( 0, 4 );
+                        break;
+                    case WEEKLY:
+                        cron = CronUtils.getWeeklyCronExpression( 0, 4, pa.getSchedulingDayOfFrequency() );
+                        break;
+                    case MONTHLY:
+                        cron = CronUtils.getMonthlyCronExpression( 0, 4, pa.getSchedulingDayOfFrequency() );
+                        break;
+                    default:
+                        cron = "";
+                        break;
+                    }
+
+                    addAndScheduleJob( new JobConfiguration( "PushAnalysis: " + pa.getUid(), PUSH_ANALYSIS, cron,
+                            new PushAnalysisJobParameters( pa.getUid() ),
+                            true, pa.getEnabled() ) );
+                } );
+
+            ListMap<String, String> emptySystemSetting = new ListMap<>();
+            emptySystemSetting.putValue( "ported", "" );
+
+            log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
+            systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
         }
-
-        ListMap<String, String> emptySystemSetting = new ListMap<>();
-        emptySystemSetting.putValue( "ported", "" );
-
-        log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
-        systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
     }
 }
