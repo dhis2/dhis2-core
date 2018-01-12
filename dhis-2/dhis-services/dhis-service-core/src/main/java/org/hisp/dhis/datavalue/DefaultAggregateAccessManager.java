@@ -33,6 +33,7 @@ package org.hisp.dhis.datavalue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
@@ -76,15 +77,23 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         Set<DataElementCategoryOption> options = new HashSet<>();
 
         DataElementCategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
-        options.addAll( categoryOptionCombo.getCategoryOptions() );
+
+        if ( categoryOptionCombo != null )
+        {
+            options.addAll( categoryOptionCombo.getCategoryOptions() );
+        }
 
         DataElementCategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
-        options.addAll( attributeOptionCombo.getCategoryOptions() );
 
-        options.forEach( attrOption -> {
-            if ( !aclService.canDataWrite( user, attrOption ) )
+        if ( attributeOptionCombo != null )
+        {
+            options.addAll( attributeOptionCombo.getCategoryOptions() );
+        }
+
+        options.forEach( option -> {
+            if ( !option.isDefault() && !aclService.canDataWrite( user, option ) )
             {
-                errors.add( "User has no write access for CategoryOption: " + attrOption.getUid() );
+                errors.add( "User has no data write access for CategoryOption: " + option.getUid() );
             }
         } );
 
@@ -111,15 +120,24 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         Set<DataElementCategoryOption> options = new HashSet<>();
 
         DataElementCategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
-        options.addAll( categoryOptionCombo.getCategoryOptions() );
+
+        if ( categoryOptionCombo != null )
+        {
+            options.addAll( categoryOptionCombo.getCategoryOptions() );
+        }
 
         DataElementCategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
-        options.addAll( attributeOptionCombo.getCategoryOptions() );
 
-        options.forEach( attrOption -> {
-            if ( !aclService.canDataRead( user, attrOption ) )
+        if ( attributeOptionCombo != null )
+        {
+            options.addAll( attributeOptionCombo.getCategoryOptions() );
+        }
+
+        options.forEach( option -> {
+
+            if ( !option.isDefault() && !aclService.canDataRead( user, option ) )
             {
-                errors.add( "User has no read access for CategoryOption: " + attrOption.getUid() );
+                errors.add( "User has no data read access for CategoryOption: " + option.getUid() );
             }
         } );
 
@@ -177,7 +195,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         options.forEach( attrOption -> {
             if ( !aclService.canDataWrite( user, attrOption ) )
             {
-                errors.add( "User has no write access for CategoryOption: " + attrOption.getUid() );
+                errors.add( "User has no data write access for CategoryOption: " + attrOption.getUid() );
             }
         } );
 
@@ -199,10 +217,54 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         options.forEach( attrOption -> {
             if ( !aclService.canDataRead( user, attrOption ) )
             {
-                errors.add( "User has no read access for CategoryOption: " + attrOption.getUid() );
+                errors.add( "User has no data read access for CategoryOption: " + attrOption.getUid() );
             }
         } );
 
         return errors;
     }
+
+    @Override
+    public List<String> canWrite( User user, DataElementOperand dataElementOperand )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        DataElement dataElement = dataElementOperand.getDataElement();
+
+        if ( !aclService.canRead( user, dataElement ) )
+        {
+            errors.add( "User has no read access for DataElement: " + dataElement.getUid() );
+        }
+
+        Set<DataElementCategoryOption> options = new HashSet<>();
+
+        DataElementCategoryOptionCombo categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
+
+        if ( categoryOptionCombo != null )
+        {
+            options.addAll( categoryOptionCombo.getCategoryOptions() );
+        }
+
+        DataElementCategoryOptionCombo attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
+
+        if ( attributeOptionCombo != null )
+        {
+            options.addAll( attributeOptionCombo.getCategoryOptions() );
+        }
+
+        options.forEach( option -> {
+            if ( !option.isDefault() && !aclService.canDataWrite( user, option ) )
+            {
+                errors.add( "User has no data write access for CategoryOption: " + option.getUid() );
+            }
+        } );
+
+        return errors;
+    }
+
 }

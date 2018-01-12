@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.user.User;
 
@@ -47,4 +48,5 @@ public interface AggregateAccessManager
     List<String> canRead( User user, DataSet dataSet );
     List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOption );
     List<String> canRead( User user, DataElementCategoryOptionCombo categoryOption );
+    List<String> canWrite( User user, DataElementOperand dataElementOperand );
 }

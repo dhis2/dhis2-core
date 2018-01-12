@@ -43,6 +43,7 @@ import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequests;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.*;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
@@ -145,6 +146,9 @@ public class CompleteDataSetRegistrationController
     
     @Autowired
     private WebMessageService webMessageService;
+
+    @Autowired
+    private AggregateAccessManager accessManager;
 
     // -------------------------------------------------------------------------
     // GET
@@ -349,6 +353,7 @@ public class CompleteDataSetRegistrationController
         
         if( !missingDataElementOperands.isEmpty() )
         {
+
             for( DataElementOperand dataElementOperand : missingDataElementOperands )
             {
                 importSummary.getConflicts().add(
@@ -364,7 +369,14 @@ public class CompleteDataSetRegistrationController
                 importSummary.setStatus( ImportStatus.WARNING );
             }
         }
-        
+
+        if ( ImportStatus.ERROR.equals( importSummary.getStatus() ) )
+        {
+            response.setContentType( CONTENT_TYPE_TEXT );
+            webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+            return;
+        }
+
         // ---------------------------------------------------------------------
         // Register as completed data set
         // ---------------------------------------------------------------------
@@ -396,8 +408,7 @@ public class CompleteDataSetRegistrationController
             }
             
             registrationService.saveCompleteDataSetRegistrations( registrations, false );
-
-        }    
+        }
         
         response.setContentType( CONTENT_TYPE_TEXT );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );

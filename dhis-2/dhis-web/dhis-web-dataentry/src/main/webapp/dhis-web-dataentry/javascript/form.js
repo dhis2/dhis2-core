@@ -2227,6 +2227,12 @@ dhis2.de.validateCompulsoryDataElements = function ()
     var compulsoryValid = true;
 
     $('[required=required]').each( function() {
+
+        if ( $(this).prop("disabled") )
+        {
+            return;
+        }
+
         if ( $(this).hasClass("entryselect") )
         {
             var entrySelectName =  $(this).attr("name");
@@ -2372,6 +2378,11 @@ dhis2.de.validateCompulsoryCombinations = function()
 
         $( '.entryfield' ).add( '[name="entryselect"]' ).each( function( i )
         {
+            if ( $(this).prop("disabled") )
+            {
+                return;
+            }
+
             var id = $( this ).attr( 'id' );
 
             var split = dhis2.de.splitFieldId( id );
