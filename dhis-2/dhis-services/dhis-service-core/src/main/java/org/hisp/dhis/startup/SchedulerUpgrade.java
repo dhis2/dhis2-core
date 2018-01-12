@@ -265,8 +265,6 @@ public class SchedulerUpgrade
                 .forEach( ( pa ) -> {
                     String cron;
 
-                    log.info("New PA: " + pa);
-
                     switch ( pa.getSchedulingFrequency() )
                     {
                     case DAILY:
