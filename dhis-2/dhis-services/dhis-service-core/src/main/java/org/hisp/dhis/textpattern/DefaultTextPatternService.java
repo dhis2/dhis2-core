@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.textpattern.MethodType.RequiredStatus;
-
 public class DefaultTextPatternService
     implements TextPatternService
 {
@@ -26,22 +24,22 @@ public class DefaultTextPatternService
         throws Exception
     {
         StringBuilder resolvedPattern = new StringBuilder();
-        List<TextPattern.Segment> requiresGeneration = new ArrayList<>();
+        List<TextPatternSegment> requiresGeneration = new ArrayList<>();
 
-        for ( TextPattern.Segment segment : pattern.getSegments() )
+        for ( TextPatternSegment segment : pattern.getSegments() )
         {
-            if ( segment.isRequired() )
+            if ( isRequired( segment ) )
             {
-                resolvedPattern.append( handleRequiredValue( segment, values.get( segment.getSegment() ) ) );
+                resolvedPattern.append( handleRequiredValue( segment, getSegmentValue( segment, values ) ) );
             }
-            else if ( segment.isOptional() )
+            else if ( isOptional( segment ) )
             {
-                if ( segment.getType() instanceof GeneratedMethodType )
+                if ( isGenerated( segment ) )
                 {
                     requiresGeneration.add( segment );
                 }
 
-                resolvedPattern.append( handleOptionalValue( segment, values.get( segment.getSegment() ) ) );
+                resolvedPattern.append( handleOptionalValue( segment, getSegmentValue( segment, values ) ) );
             }
             else
             {
@@ -52,7 +50,7 @@ public class DefaultTextPatternService
         String result = resolvedPattern.toString();
 
         // Generate values
-        for ( TextPattern.Segment segment : requiresGeneration )
+        for ( TextPatternSegment segment : requiresGeneration )
         {
             result = result.replaceAll( segment.getParameter(), reservedValueService
                 .generateAndReserveSequentialValues( pattern.getOwnerUID(), resolvedPattern.toString(),
@@ -63,26 +61,27 @@ public class DefaultTextPatternService
     }
 
     @Override
-    public Map<RequiredStatus, List<String>> getRequiredValues( TextPattern pattern )
+    public Map<String, List<String>> getRequiredValues( TextPattern pattern )
     {
-        return ImmutableMap.<RequiredStatus, List<String>>builder()
-            .put( RequiredStatus.REQUIRED, pattern.getSegments()
+        return ImmutableMap.<String, List<String>>builder()
+            .put( "REQUIRED", pattern.getSegments()
                 .stream()
-                .filter( TextPattern.Segment::isRequired )
-                .map( TextPattern.Segment::getSegment )
+                .filter( this::isRequired )
+                .map( TextPatternSegment::getRawSegment )
                 .collect( Collectors.toList() ) )
-            .put( RequiredStatus.OPTIONAL, pattern.getSegments()
+            .put( "OPTIONAL", pattern.getSegments()
                 .stream()
-                .filter( TextPattern.Segment::isOptional )
-                .map( TextPattern.Segment::getSegment )
+                .filter( this::isOptional )
+                .map( TextPatternSegment::getRawSegment )
                 .collect( Collectors.toList() ) )
             .build();
     }
 
     @Override
-    public boolean validate( TextPattern pattern, String text )
+    public boolean validate( TextPattern textPattern, String text )
     {
-        return pattern.validateText( text );
+        // TODO
+        return TextPatternValidationUtils.validateTextPatternValue( textPattern, text);
     }
 
     @Override
@@ -98,9 +97,9 @@ public class DefaultTextPatternService
         return attribute.getTextPattern();
     }
 
-    private String handleFixedValues( TextPattern.Segment segment )
+    private String handleFixedValues( TextPatternSegment segment )
     {
-        if ( TextPatternMethod.CURRENT_DATE.getType().validatePattern( segment.getSegment() ) )
+        if ( TextPatternMethod.CURRENT_DATE.getType().validatePattern( segment.getRawSegment() ) )
         {
             return new SimpleDateFormat( segment.getParameter() ).format( new Date() );
         }
@@ -110,10 +109,10 @@ public class DefaultTextPatternService
         }
     }
 
-    private String handleOptionalValue( TextPattern.Segment segment, String value )
+    private String handleOptionalValue( TextPatternSegment segment, String value )
         throws Exception
     {
-        if ( value != null && !segment.validateValue( value ) )
+        if ( value != null && !TextPatternValidationUtils.validateSegmentValue( segment, value ) )
         {
             throw new Exception( "Supplied optional value is invalid" );
         }
@@ -123,19 +122,19 @@ public class DefaultTextPatternService
         }
         else
         {
-            if ( segment.getType() instanceof GeneratedMethodType )
+            if ( isGenerated( segment ) )
             {
                 // Put parameter as placeholder, this will be handled after the rest have been resolved
                 return segment.getParameter();
             }
             else
             {
-                throw new Exception( "Trying to generate unknown segment: '" + segment.getSegment() + "'" );
+                throw new Exception( "Trying to generate unknown segment: '" + segment.getMethod().name() + "'" );
             }
         }
     }
 
-    private String handleRequiredValue( TextPattern.Segment segment, String value )
+    private String handleRequiredValue( TextPatternSegment segment, String value )
         throws Exception
     {
         if ( value == null )
@@ -145,18 +144,38 @@ public class DefaultTextPatternService
 
         String res = getFormattedValue( segment, value );
 
-        if ( res == null || !segment.validateValue( res ) )
+        if ( res == null || !TextPatternValidationUtils.validateSegmentValue( segment, res ) )
         {
-            throw new Exception( "Value is invalid" );
+            throw new Exception( "Value is invalid: " + segment.getRawSegment() + " -> " + value );
         }
 
         return res;
     }
 
-    private String getFormattedValue( TextPattern.Segment segment, String value )
+    private String getFormattedValue( TextPatternSegment segment, String value )
     {
-        MethodType methodType = segment.getType();
+        MethodType methodType = segment.getMethod().getType();
 
         return methodType.getFormattedText( segment.getParameter(), value );
+    }
+
+    private String getSegmentValue( TextPatternSegment segment, Map<String, String> values )
+    {
+        return values.get( segment.getRawSegment() );
+    }
+
+    private boolean isRequired( TextPatternSegment segment )
+    {
+        return segment.getMethod().isRequired();
+    }
+
+    private boolean isOptional( TextPatternSegment segment )
+    {
+        return segment.getMethod().isOptional();
+    }
+
+    private boolean isGenerated( TextPatternSegment segment )
+    {
+        return segment.getMethod().isGenerated();
     }
 }

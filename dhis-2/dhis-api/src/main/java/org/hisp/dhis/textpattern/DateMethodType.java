@@ -8,9 +8,9 @@ public class DateMethodType
     extends BaseMethodType
 {
 
-    DateMethodType( Pattern pattern, RequiredStatus requiredStatus )
+    DateMethodType( Pattern pattern )
     {
-        super( pattern, requiredStatus );
+        super( pattern );
     }
 
     @Override

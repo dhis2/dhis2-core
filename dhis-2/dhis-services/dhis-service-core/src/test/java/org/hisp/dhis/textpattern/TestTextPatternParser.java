@@ -165,12 +165,12 @@ public class TestTextPatternParser
         TextPattern textPattern = TextPatternParser.parse( expression );
         assertNotNull( textPattern );
 
-        List<TextPattern.Segment> segments = textPattern.getSegments();
+        List<TextPatternSegment> segments = textPattern.getSegments();
         assertEquals( segments.size(), 3 );
 
-        assertEquals( segments.get( 0 ).getSegment(), TEXT_1 );
-        assertEquals( segments.get( 1 ).getSegment(), SEPARATOR );
-        assertEquals( segments.get( 2 ).getSegment(), SEQUENTIAL );
+        assertEquals( segments.get( 0 ).getMethod(), TextPatternMethod.TEXT );
+        assertEquals( segments.get( 1 ).getMethod(), TextPatternMethod.TEXT );
+        assertEquals( segments.get( 2 ).getMethod(), TextPatternMethod.SEQUENTIAL );
     }
 
     @Test
@@ -204,17 +204,16 @@ public class TestTextPatternParser
         String pattern = "ORG_UNIT_CODE() + CURRENT_DATE(yyyy) + RANDOM(###) + \"-OK\"";
 
         TextPattern textPattern = TextPatternParser.parse( pattern );
-        List<TextPattern.Segment> segments = textPattern.getSegments();
+        List<TextPatternSegment> segments = textPattern.getSegments();
 
-        assertEquals( 4, segments.size());
+        assertEquals( 4, segments.size() );
 
-        assertEquals( segments.get(0).getType(), TextPatternMethod.ORG_UNIT_CODE.getType() );
-        assertEquals( segments.get(1).getType(), TextPatternMethod.CURRENT_DATE.getType() );
-        assertEquals( segments.get(2).getType(), TextPatternMethod.RANDOM.getType() );
-        assertEquals( segments.get(3).getType(), TextPatternMethod.TEXT.getType() );
+        assertEquals( segments.get( 0 ).getMethod(), TextPatternMethod.ORG_UNIT_CODE );
+        assertEquals( segments.get( 1 ).getMethod(), TextPatternMethod.CURRENT_DATE );
+        assertEquals( segments.get( 2 ).getMethod(), TextPatternMethod.RANDOM );
+        assertEquals( segments.get( 3 ).getMethod(), TextPatternMethod.TEXT );
 
     }
-
 
     private void testParseOK( String input, TextPatternMethod method )
         throws TextPatternParser.TextPatternParsingException
@@ -222,10 +221,10 @@ public class TestTextPatternParser
         TextPattern result = TextPatternParser.parse( input );
         assertNotNull( result );
 
-        List<TextPattern.Segment> segments = result.getSegments();
+        List<TextPatternSegment> segments = result.getSegments();
         assertEquals( segments.size(), 1 );
 
-        assertEquals( segments.get( 0 ).getSegment(), input );
-        assertEquals( segments.get( 0 ).getType(), method.getType() );
+        assertEquals( segments.get( 0 ).getRawSegment(), input );
+        assertEquals( segments.get( 0 ).getMethod(), method );
     }
 }

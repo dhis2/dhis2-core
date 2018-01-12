@@ -6,9 +6,9 @@ public class GeneratedMethodType
     extends BaseMethodType
 {
 
-    GeneratedMethodType( Pattern pattern, RequiredStatus requiredStatus )
+    GeneratedMethodType( Pattern pattern )
     {
-        super( pattern, requiredStatus );
+        super( pattern );
     }
 
     @Override

@@ -1,8 +1,8 @@
 package org.hisp.dhis.textpattern;
 
-import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableSet;
 
-import static org.hisp.dhis.textpattern.MethodType.RequiredStatus.*;
+import java.util.regex.Pattern;
 
 public enum TextPatternMethod
 {
@@ -16,14 +16,14 @@ public enum TextPatternMethod
      * <p>
      * This is the only method that has no keyword associated with it.
      */
-    TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ), NONE ) ),
+    TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ) ) ),
 
     /**
      * Generator methods has a required param, that needs to be between 1 and 12 characters.
      * SEQUENTIAL only accepts #'s while RANDOM accepts #Xx's
      */
-    RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ), OPTIONAL ) ),
-    SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ), OPTIONAL ) ),
+    RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx]{1,12})\\)" ) ) ),
+    SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ) ) ),
 
     /**
      * Variable methods has an optional param, that can:
@@ -43,7 +43,7 @@ public enum TextPatternMethod
      * ORG_UNIT_CODE(^..) = "He"
      * ORG_UNIT_CODE(..$) = "ld"
      */
-    ORG_UNIT_CODE( new StringMethodType( Pattern.compile( "ORG_UNIT_CODE\\((.{0}|[\\^]?[.]+?[$]?)\\)" ), REQUIRED ) ),
+    ORG_UNIT_CODE( new StringMethodType( Pattern.compile( "ORG_UNIT_CODE\\((.{0}|[\\^]?[.]+?[$]?)\\)" ) ) ),
 
     /**
      * Date methods has a required param that will be used to format the date.
@@ -52,7 +52,21 @@ public enum TextPatternMethod
      * The param will be used directly as the format in SimpleDateFormat:
      * https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html
      */
-    CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ), NONE ) );
+    CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ) ) );
+
+    public static final ImmutableSet GENERATED = ImmutableSet.of(
+        RANDOM,
+        SEQUENTIAL
+    );
+
+    public static final ImmutableSet REQUIRED = ImmutableSet.of(
+        ORG_UNIT_CODE
+    );
+
+    public static final ImmutableSet OPTIONAL = ImmutableSet.of(
+        RANDOM,
+        SEQUENTIAL
+    );
 
     private MethodType type;
 
@@ -64,5 +78,20 @@ public enum TextPatternMethod
     public MethodType getType()
     {
         return type;
+    }
+
+    public boolean isRequired()
+    {
+        return REQUIRED.contains( this );
+    }
+
+    public boolean isOptional()
+    {
+        return OPTIONAL.contains( this );
+    }
+
+    public boolean isGenerated()
+    {
+        return GENERATED.contains( this );
     }
 }

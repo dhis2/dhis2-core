@@ -11,12 +11,13 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.hisp.dhis.textpattern.MethodType.RequiredStatus.OPTIONAL;
-import static org.hisp.dhis.textpattern.MethodType.RequiredStatus.REQUIRED;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -37,27 +38,31 @@ public class TestDefaultTextPatternService
     @Before
     public void init()
     {
-        pattern = new TextPattern();
+        List<TextPatternSegment> segments = new ArrayList<>();
 
-        pattern.addSegment( "\"TEXT\"", TextPatternMethod.TEXT.getType() );
-        pattern.addSegment( "ORG_UNIT_CODE(...)", TextPatternMethod.ORG_UNIT_CODE.getType() );
-        pattern.addSegment( "SEQUENTIAL(#)", TextPatternMethod.SEQUENTIAL.getType() );
-        pattern.addSegment( "CURRENT_DATE(YYYY)", TextPatternMethod.CURRENT_DATE.getType() );
+        segments.add( new TextPatternSegment( TextPatternMethod.TEXT, "\"TEXT\"" ) );
+        segments.add( new TextPatternSegment( TextPatternMethod.ORG_UNIT_CODE, "ORG_UNIT_CODE(...)" ) );
+        segments.add( new TextPatternSegment( TextPatternMethod.SEQUENTIAL, "SEQUENTIAL(#)" ) );
+        segments.add( new TextPatternSegment( TextPatternMethod.CURRENT_DATE, "CURRENT_DATE(YYYY)" ) );
+
+        pattern = new TextPattern( segments );
 
         values = ImmutableMap.<String, String>builder()
             .put( "ORG_UNIT_CODE(...)", "OSLO" )
             .put( "SEQUENTIAL(#)", "1" )
             .build();
 
-        when(reservedValueService.generateAndReserveSequentialValues( anyString(), anyString(), anyString(), anyInt() )).thenReturn(
-            Lists.newArrayList("1")
-        );
+        when(
+            reservedValueService.generateAndReserveSequentialValues( anyString(), anyString(), anyString(), anyInt() ) )
+            .thenReturn(
+                Lists.newArrayList( "1" )
+            );
     }
 
     @Test
     public void testGetRequiredValues()
     {
-        List<String> required = textPatternService.getRequiredValues( pattern ).get( REQUIRED );
+        List<String> required = textPatternService.getRequiredValues( pattern ).get( "REQUIRED" );
 
         assertFalse( required.contains( "TEXT" ) );
         assertFalse( required.contains( "CURRENT_DATE" ) );
@@ -69,7 +74,7 @@ public class TestDefaultTextPatternService
     @Test
     public void testGetOptionalValues()
     {
-        List<String> optional = textPatternService.getRequiredValues( pattern ).get( OPTIONAL );
+        List<String> optional = textPatternService.getRequiredValues( pattern ).get( "OPTIONAL" );
 
         assertFalse( optional.contains( "TEXT" ) );
         assertFalse( optional.contains( "CURRENT_DATE" ) );

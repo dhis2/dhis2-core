@@ -34,7 +34,7 @@ public class HibernateSequentialNumberCounterStore
             int count;
 
             SequentialNumberCounter counter = (SequentialNumberCounter) session
-                .createQuery( "FROM SequentialNumberCounter WHERE  ownerUID = ? AND key = ?" )
+                .createQuery( "FROM SequentialNumberCounter WHERE ownerUID = ? AND key = ?" )
                 .setParameter( 0, uid )
                 .setParameter( 1, key )
                 .uniqueResult();

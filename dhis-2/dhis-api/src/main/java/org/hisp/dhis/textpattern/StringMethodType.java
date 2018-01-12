@@ -5,9 +5,9 @@ import java.util.regex.Pattern;
 public class StringMethodType
     extends BaseMethodType
 {
-    StringMethodType( Pattern pattern, RequiredStatus requiredStatus )
+    StringMethodType( Pattern pattern )
     {
-        super( pattern, requiredStatus );
+        super( pattern );
     }
 
     @Override

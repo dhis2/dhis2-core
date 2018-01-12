@@ -1,5 +1,7 @@
 package org.hisp.dhis.textpattern;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,7 +27,7 @@ public class TextPatternParser
     public static TextPattern parse( String pattern )
         throws TextPatternParsingException
     {
-        TextPattern result = new TextPattern();
+        List<TextPatternSegment> segments = new ArrayList<>();
 
         // True if we just parsed a Segment, False if we parsed a join or haven't parsed anything.
         boolean segment = false;
@@ -78,7 +80,7 @@ public class TextPatternParser
                     if ( TextPatternMethod.TEXT.getType().validatePattern( method ) )
                     {
                         segment = true;
-                        result.addSegment( method, TextPatternMethod.TEXT.getType() );
+                        segments.add( new TextPatternSegment( TextPatternMethod.TEXT, method ) );
                         continue;
                     }
 
@@ -120,7 +122,7 @@ public class TextPatternParser
                             }
 
                             segment = true;
-                            result.addSegment( method, textPatternMethod.getType() );
+                            segments.add( new TextPatternSegment( textPatternMethod, method ) );
                             continue;
                         }
 
@@ -169,7 +171,7 @@ public class TextPatternParser
             throw new TextPatternParsingException( "Unexpected '+' at the end of the expression", -1 );
         }
 
-        return result;
+        return new TextPattern( segments );
     }
 
     public static class TextPatternParsingException

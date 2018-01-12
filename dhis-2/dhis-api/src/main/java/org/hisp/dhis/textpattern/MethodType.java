@@ -2,16 +2,6 @@ package org.hisp.dhis.textpattern;
 
 public interface MethodType
 {
-    /**
-     * REQUIRED: This method requires a value to be supplied by used
-     * OPTIONAL: This method will have the value generated on the server, but user can override (Example: specific date to override CURRENT_DATE)
-     * NONE: This method cannot be supplied by user (Example: TEXT)
-     */
-    enum RequiredStatus {
-        REQUIRED,
-        OPTIONAL,
-        NONE
-    }
 
     /**
      * Validates the pattern of the type against the string input
@@ -50,15 +40,4 @@ public interface MethodType
      */
     String getFormattedText( String format, String value );
 
-    /**
-     * Returns true if this MethodType is required when injecting values
-     * @return true if REQUIRED RequiredStatus, false if not
-     */
-    boolean isRequired();
-
-    /**
-     * Returns true if this MethodType is optional when injecting values
-     * @return true if OPTIONAL RequiredStatus, false if not
-     */
-    boolean isOptional();
 }

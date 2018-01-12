@@ -8,12 +8,9 @@ public abstract class BaseMethodType
 {
     private Pattern pattern;
 
-    private RequiredStatus requiredStatus;
-
-    BaseMethodType( Pattern pattern, RequiredStatus requiredStatus )
+    BaseMethodType( Pattern pattern )
     {
         this.pattern = pattern;
-        this.requiredStatus = requiredStatus;
     }
 
     @Override
@@ -45,18 +42,6 @@ public abstract class BaseMethodType
     public String getFormattedText( String format, String value )
     {
         return value;
-    }
-
-    @Override
-    public boolean isRequired()
-    {
-        return requiredStatus.equals( RequiredStatus.REQUIRED );
-    }
-
-    @Override
-    public boolean isOptional()
-    {
-        return requiredStatus.equals( RequiredStatus.OPTIONAL );
     }
 
 }

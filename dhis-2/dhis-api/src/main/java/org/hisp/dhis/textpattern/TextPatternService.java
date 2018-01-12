@@ -23,7 +23,7 @@ public interface TextPatternService
      * @param pattern the pattern to check
      * @return a list of method names, or an empty list if no values are rquired
      */
-    Map<MethodType.RequiredStatus, List<String>> getRequiredValues( TextPattern pattern );
+    Map<String, List<String>> getRequiredValues( TextPattern pattern );
 
     boolean validate( TextPattern pattern, String text );
 
