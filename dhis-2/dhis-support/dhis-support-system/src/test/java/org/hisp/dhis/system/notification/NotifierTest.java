@@ -35,6 +35,7 @@ import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -66,7 +67,7 @@ public class NotifierTest
         notifier.notify( id2, "Process started" );
         notifier.notify( id2, "Process done" );
         
-        Map<JobType, Map<String, LinkedList<Notification>>> notifications = notifier.getNotifications( );
+        Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> notifications = notifier.getNotifications( );
         
         assertNotNull( notifications );
         assertEquals( 3, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
