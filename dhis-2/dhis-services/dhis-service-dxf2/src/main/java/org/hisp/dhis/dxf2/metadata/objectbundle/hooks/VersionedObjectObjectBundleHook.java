@@ -89,7 +89,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
             {
                 DataSet dataSet = ((Section) o).getDataSet();
 
-                if ( dataSet.getId() > 0 )
+                if ( dataSet != null && dataSet.getId() > 0 )
                 {
                     dataSets.add( dataSet );
                 }
