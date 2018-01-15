@@ -21,5 +21,13 @@
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbRenderType">
     <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
   </typedef>
+  
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbFilterPeriod">
+    <param name="clazz">org.hisp.dhis.trackedentityfilter.FilterPeriod</param>
+  </typedef>
+  
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventFilter">
+    <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
+  </typedef>
 
 </hibernate-mapping>
