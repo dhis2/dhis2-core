@@ -49,6 +49,9 @@ public class DataElementObjectBundleHook
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
+        /*
+         * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
+         */
         if ( object != null && object.getClass().isAssignableFrom( DataElement.class ) )
         {
             DataElement de = (DataElement) object;

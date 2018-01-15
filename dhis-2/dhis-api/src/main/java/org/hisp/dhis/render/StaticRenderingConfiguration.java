@@ -36,6 +36,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.Set;
 
+/**
+ * This class represents the constraint rules enforced by the application on DataElement, TrackedEntityAttribute, ValueType,
+ * OptionSet and RenderTypes.
+ */
 public class StaticRenderingConfiguration
 {
     public static final Set<ObjectValueTypeRenderingOption> RENDERING_OPTIONS_MAPPING = ImmutableSet.<ObjectValueTypeRenderingOption>builder()

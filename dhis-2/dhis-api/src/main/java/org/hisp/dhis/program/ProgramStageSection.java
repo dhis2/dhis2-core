@@ -62,10 +62,16 @@ public class ProgramStageSection
 
     private Integer sortOrder;
 
+    /**
+     * The style represents how the ProgramStageSection should be presented on the client
+     */
     private ObjectStyle style;
 
     private String formName;
 
+    /**
+     * The renderType defines how the ProgramStageSection should be rendered on the client
+     */
     private DeviceRenderTypeMap<ProgramStageSectionRenderingObject> renderType;
 
     // -------------------------------------------------------------------------

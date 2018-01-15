@@ -37,15 +37,30 @@ import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * This class represents how a class (DataElement or TrackedEntityAttribute), a ValueType or OptionSet can be rendered
+ */
 public class ObjectValueTypeRenderingOption
 {
 
+    /**
+     * The class that should be rendered
+     */
     private Class clazz;
 
+    /**
+     * The ValueType of the class to be rendered
+     */
     private ValueType valueType;
 
+    /**
+     * Does the object repreent an option set?
+     */
     private boolean hasOptionSet;
 
+    /**
+     * A set of renderingTypes available for the combination of clazz valueType and hasOptionSet
+     */
     private Set<ValueTypeRenderingType> renderingTypes;
 
     public ObjectValueTypeRenderingOption( Class clazz, ValueType valueType, boolean hasOptionSet,
@@ -121,7 +136,6 @@ public class ObjectValueTypeRenderingOption
     @Override
     public int hashCode()
     {
-
         return Objects.hash( clazz, valueType, hasOptionSet );
     }
 }

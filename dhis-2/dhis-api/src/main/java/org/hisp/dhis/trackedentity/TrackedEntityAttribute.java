@@ -75,6 +75,9 @@ public class TrackedEntityAttribute
 
     private String pattern;
 
+    /**
+     * The style representing how TrackedEntityAttributes should be presented on the client
+     */
     private ObjectStyle style;
 
     // For Local ID type
@@ -83,6 +86,9 @@ public class TrackedEntityAttribute
 
     private Boolean programScope = false;
 
+    /**
+     * Represents how the client should render the TrackedEntityAttribute
+     */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
     // -------------------------------------------------------------------------

@@ -32,16 +32,39 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 
+/**
+ * This class represents the DataElement/TrackedEntityAttribute ValueType based rendering type
+ *
+ * The min, max, step and decimal properties in this class does not represent the data validation, it only serves as
+ * a guideline on how form elements should be defined (IE: Sliders, spinners, etc)
+ */
 public class ValueTypeRenderingObject
 {
+    /**
+     * The renderingType
+     */
     private ValueTypeRenderingType type;
 
+    // For numerical types
+
+    /**
+     * The minimum value the numerical type can be
+     */
     private Integer min;
 
+    /**
+     * The maximum value the numerical type an be
+     */
     private Integer max;
 
+    /**
+     * The size of each step in the form element
+     */
     private Integer step;
 
+    /**
+     * The number of decimal points that should be considered
+     */
     private Integer decimalPoints;
 
     public ValueTypeRenderingObject()

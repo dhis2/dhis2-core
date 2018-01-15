@@ -28,6 +28,9 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * This class represents the different ways to render a ProgramStageSection
+ */
 public enum ProgramStageSectionRenderType
 {
     LISTING,

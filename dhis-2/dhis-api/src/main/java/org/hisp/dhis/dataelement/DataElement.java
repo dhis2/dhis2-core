@@ -154,8 +154,14 @@ public class DataElement
      */
     private OptionSet commentOptionSet;
 
+    /**
+     * The style defines how the DataElement should be represented on clients
+     */
     private ObjectStyle style;
 
+    /**
+     * The RenderType defines how the DataElement should be rendered
+     */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
