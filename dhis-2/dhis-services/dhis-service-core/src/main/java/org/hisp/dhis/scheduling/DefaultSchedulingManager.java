@@ -32,12 +32,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.concurrent.ListenableFuture;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +62,7 @@ public class DefaultSchedulingManager
     public static final String CONTINOUS_CRON = "* * * * * ?";
     public static final String HOUR_CRON = "0 0 * ? * *";
 
-    private Map<JobType, Job> jobMap = new HashMap<>();
+    private Map<JobType, String> jobMap = new HashMap<>();
 
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
 
@@ -71,6 +71,9 @@ public class DefaultSchedulingManager
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @Autowired
     private JobConfigurationService jobConfigurationService;
@@ -92,22 +95,10 @@ public class DefaultSchedulingManager
         this.jobExecutor = jobExecutor;
     }
 
-    @Autowired
-    private List<Job> jobs;
-
-    @PostConstruct
-    public void init()
+    @Override
+    public void addJob( JobType jobType, String jobId )
     {
-        jobs.forEach( job -> {
-            if ( job == null )
-            {
-                log.fatal( "Scheduling manager tried to add job, but it was null" );
-            }
-            else
-            {
-                jobMap.put( job.getJobType(), job );
-            }
-        } );
+        jobMap.put( jobType, jobId );
     }
 
     // -------------------------------------------------------------------------
@@ -226,7 +217,7 @@ public class DefaultSchedulingManager
 
     public Job getJob( JobType jobType )
     {
-        return jobMap.get( jobType );
+        return (Job) applicationContext.getBean( jobMap.get( jobType ) );
     }
 
     // -------------------------------------------------------------------------

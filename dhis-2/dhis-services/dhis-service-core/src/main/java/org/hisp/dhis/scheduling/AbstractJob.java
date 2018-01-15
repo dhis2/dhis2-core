@@ -29,6 +29,9 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.feedback.ErrorReport;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.PostConstruct;
 
 /**
  * All jobs related to the system extends AbstractJob and can override the validate method.
@@ -38,9 +41,20 @@ import org.hisp.dhis.feedback.ErrorReport;
 public abstract class AbstractJob
     implements Job
 {
+    @Autowired
+    private SchedulingManager schedulingManager;
+
     @Override
     public ErrorReport validate()
     {
         return null;
+    }
+
+    protected abstract String getJobId();
+
+    @PostConstruct
+    public void init( )
+    {
+        schedulingManager.addJob( getJobType(), getJobId() );
     }
 }

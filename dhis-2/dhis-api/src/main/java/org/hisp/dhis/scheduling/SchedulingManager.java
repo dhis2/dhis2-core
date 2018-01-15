@@ -52,6 +52,8 @@ import java.util.concurrent.ScheduledFuture;
  */
 public interface SchedulingManager
 {
+    void addJob( JobType jobType, String jobId );
+
     /**
      * Check if this jobconfiguration is currently running
      *
