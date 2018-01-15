@@ -55,25 +55,27 @@ public class TrackedEntityAttributeObjectBundleHook
             TrackedEntityAttribute attr = (TrackedEntityAttribute) object;
             DeviceRenderTypeMap<ValueTypeRenderingObject> map = attr.getRenderType();
 
-            if ( map != null )
+            if ( map == null )
             {
-                for ( RenderDevice device : map.keySet() )
+                return errorReports;
+            }
+
+            for ( RenderDevice device : map.keySet() )
+            {
+                if ( map.get( device ).getType() == null )
                 {
-                    if ( map.get( device ).getType() == null )
-                    {
-                        errorReports
-                            .add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
-                    }
-
-                    if ( !ValidationUtils
-                        .validateRenderingType( TrackedEntityAttribute.class, attr.getValueType(), attr.hasOptionSet(),
-                            map.get( device ).getType() ) )
-                    {
-                        errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4017,
-                            map.get( device ).getType(), attr.getValueType() ) );
-                    }
-
+                    errorReports
+                        .add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
                 }
+
+                if ( !ValidationUtils
+                    .validateRenderingType( TrackedEntityAttribute.class, attr.getValueType(), attr.hasOptionSet(),
+                        map.get( device ).getType() ) )
+                {
+                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4017,
+                        map.get( device ).getType(), attr.getValueType() ) );
+                }
+
             }
         }
 

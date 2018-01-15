@@ -24,7 +24,7 @@
 
     <property name="style" type="jbObjectStyle" column="style" />
 
-    <property name="renderType" type="jbRenderType" column="renderstyle" />
+    <property name="renderType" type="jbRenderType" column="rendertype" />
 
     <property name="valueType" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
