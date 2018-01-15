@@ -28,12 +28,47 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * This class represents all the different ways ValueTypes can be rendered. constrains is defined in
+ * StaticRenderingConfiguration.java and is enforced in DataElementObjectBundleHook and
+ * TrackedEntityAttributeObjectBundleHook
  */
-public enum ProgramStageSectionRenderType
+public enum ValueTypeRenderingType
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
+    DEFAULT,
+    DROPDOWN,
+    VERTICAL_RADIOBUTTONS,
+    HORIZONTAL_RADIOBUTTONS,
+    VERTICAL_CHECKBOXES,
+    HORIZONTAL_CHECKBOXES,
+    SHARED_HEADER_RADIOBUTTONS,
+    ICONS_AS_BUTTONS,
+    SPINNER,
+    ICON,
+    TOGGLE,
+    VALUE,
+    SLIDER,
+    LINEAR_SCALE;
+
+    /**
+     * RenderingTypes supported by OptionSet ValueTypes
+     */
+    public static final ImmutableSet<ValueTypeRenderingType> OPTION_SET_TYPES = ImmutableSet
+        .of( DEFAULT, DROPDOWN, VERTICAL_RADIOBUTTONS, HORIZONTAL_RADIOBUTTONS, VERTICAL_CHECKBOXES,
+            HORIZONTAL_CHECKBOXES, SHARED_HEADER_RADIOBUTTONS, ICONS_AS_BUTTONS, SPINNER, ICON );
+
+    /**
+     * RenderingTypes supported by boolean ValueTypes
+     */
+    public static final ImmutableSet<ValueTypeRenderingType> BOOLEAN_TYPES = ImmutableSet
+        .of( DEFAULT, VERTICAL_RADIOBUTTONS, HORIZONTAL_RADIOBUTTONS, VERTICAL_CHECKBOXES,
+            HORIZONTAL_CHECKBOXES, TOGGLE );
+
+    /**
+     * RenderingTypes supported by numerical ValueTypes
+     */
+    public static final ImmutableSet<ValueTypeRenderingType> NUMERIC_TYPES = ImmutableSet
+        .of( DEFAULT, VALUE, SLIDER, LINEAR_SCALE, SPINNER );
 }

@@ -28,12 +28,34 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * This class represents the renderingType of a ProgramStageSection
  */
-public enum ProgramStageSectionRenderType
+public class ProgramStageSectionRenderingObject
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
+    /**
+     * The renderingType of the ProgramStageSection
+     */
+    private ProgramStageSectionRenderType type;
+
+    public ProgramStageSectionRenderingObject()
+    {
+        this.type = ProgramStageSectionRenderType.LISTING;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStageSectionRenderType getType()
+    {
+        return type;
+    }
+
+    public void setType( ProgramStageSectionRenderType type )
+    {
+        this.type = type;
+    }
 }
