@@ -1,7 +1,9 @@
 package org.hisp.dhis.reservedvalue;
 
+import org.hisp.dhis.common.GenericStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,6 +13,14 @@ public class DefaultReservedValueService
 
     @Autowired
     private SequentialNumberCounterStore sequentialNumberCounterStore;
+
+    private GenericStore<ReservedValue> reservedValueStore;
+
+    public void setReservedValueStore(
+        GenericStore<ReservedValue> reservedValueStore )
+    {
+        this.reservedValueStore = reservedValueStore;
+    }
 
     @Override
     public List<String> generateAndReserveRandomValues( String uid, String key, String pattern, int num )
@@ -39,9 +49,23 @@ public class DefaultReservedValueService
 
     private void reserveValues( String uid, String key, List<String> values )
     {
+        Calendar expiration = Calendar.getInstance();
+        expiration.add( Calendar.DATE, TIME_TO_LIVE );
 
-
-
+        values.forEach( ( value ) ->
+            reservedValueStore.save( new ReservedValue( uid, key, value, expiration ) )
+        );
     }
 
+    private boolean isAvailable( String uid, String key, List<String> value )
+    {
+
+        // TODO:
+
+        // Check reserved values table
+        // Check actual values table
+
+        return false;
+
+    }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.textpattern;
+package org.hisp.dhis.reservedvalue;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,10 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.regex.Pattern;
+import org.hisp.dhis.common.GenericStore;
 
-public class TextMethodType
-    extends BaseMethodType
+public interface ReservedValueStore
+    extends GenericStore<ReservedValue>
 {
-    TextMethodType( Pattern pattern )
-    {
-        super( pattern );
-    }
-
-    @Override
-    public boolean validateText( String format, String text )
-    {
-        return text.equals( format );
-    }
-
-    @Override
-    public String getValueRegex( String format )
-    {
-        return ".*?";
-    }
+    boolean isValueAvailable( String uid, String key, String value );
 }
