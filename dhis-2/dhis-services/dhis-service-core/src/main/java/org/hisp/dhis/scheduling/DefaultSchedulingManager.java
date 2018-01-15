@@ -39,9 +39,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -184,90 +182,6 @@ public class DefaultSchedulingManager
     }
 
     @Override
-    public void scheduleJob( Date date, JobConfiguration jobConfiguration )
-    {
-        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
-        {
-            JobInstance jobInstance = new DefaultJobInstance();
-
-            if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) && date != null &&
-                date.getTime() > new Date().getTime() )
-            {
-                ScheduledFuture<?> future = jobScheduler
-                    .schedule( () -> {
-                        try
-                        {
-                            jobInstance.execute( jobConfiguration, this, messageService );
-                        }
-                        catch ( Exception e )
-                        {
-                            e.printStackTrace();
-                        }
-                    }, date );
-
-                futures.put( jobConfiguration.getUid(), future );
-
-                log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and execution time: " + date );
-
-            }
-        }
-    }
-
-    @Override
-    public void scheduleJobs( List<JobConfiguration> jobConfigurations )
-    {
-        jobConfigurations.forEach( this::scheduleJob );
-    }
-
-    @Override
-    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
-    {
-        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
-        {
-            JobInstance jobInstance = new DefaultJobInstance();
-
-            ScheduledFuture<?> future = jobScheduler.scheduleWithFixedDelay( () -> {
-                try
-                {
-                    jobInstance.execute( jobConfiguration, this, messageService );
-                }
-                catch ( Exception e )
-                {
-                    e.printStackTrace();
-                }
-            }, delay,interval );
-
-            futures.put( jobConfiguration.getUid(), future );
-
-            log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and first execution time: " + delay );
-        }
-    }
-
-    @Override
-    public void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval )
-    {
-        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
-        {
-            JobInstance jobInstance = new DefaultJobInstance();
-
-            ScheduledFuture<?> future = jobScheduler.scheduleAtFixedRate( () -> {
-                try
-                {
-                    jobInstance.execute( jobConfiguration, this, messageService );
-                }
-                catch ( Exception e )
-                {
-                    e.printStackTrace();
-                }
-            }, interval );
-
-            futures.put( jobConfiguration.getUid(), future );
-
-            log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and fixed rate: " + interval );
-        }
-    }
-
-    @Override
     public void stopJob( JobConfiguration jobConfiguration )
     {
         if ( isJobInSystem( jobConfiguration.getUid() ) )
@@ -276,32 +190,6 @@ public class DefaultSchedulingManager
             jobConfigurationService.updateJobConfiguration( jobConfiguration );
 
             internalStopJob( jobConfiguration.getUid() );
-        }
-    }
-
-    @Override
-    public void stopJob( String jobKey )
-    {
-        JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobKey );
-        stopJob( jobConfiguration );
-    }
-
-    @Override
-    public void stopAllJobs()
-    {
-        Iterator<String> keys = futures.keySet().iterator();
-
-        while ( keys.hasNext() )
-        {
-            String key = keys.next();
-
-            ScheduledFuture<?> future = futures.get( key );
-
-            boolean result = future != null && future.cancel( true );
-
-            keys.remove();
-
-            log.info( "Stopped job with key: " + key + " successfully: " + result );
         }
     }
 
@@ -321,23 +209,9 @@ public class DefaultSchedulingManager
     }
 
     @Override
-    public String getCronForJob( String jobKey )
-    {
-        return null;
-    }
-
-    @Override
     public Map<String, ScheduledFuture<?>> getAllFutureJobs()
     {
         return futures;
-    }
-
-    @Override
-    public JobStatus getJobStatus( String jobKey )
-    {
-        ScheduledFuture<?> future = futures.get( jobKey );
-
-        return getStatus( future );
     }
 
     // -------------------------------------------------------------------------
