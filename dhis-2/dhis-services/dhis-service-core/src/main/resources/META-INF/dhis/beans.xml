@@ -620,6 +620,13 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.program.ProgramSectionStore"
+        class="org.hisp.dhis.program.hibernate.HibernateProgramSectionStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramSection" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.program.ProgramStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStore">
     <property name="clazz" value="org.hisp.dhis.program.Program" />
