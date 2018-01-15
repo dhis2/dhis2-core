@@ -1,5 +1,7 @@
 package org.hisp.dhis.trackedentityfilter;
 
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,58 +30,20 @@ package org.hisp.dhis.trackedentityfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public interface TrackedEntityInstanceFilterService
+public interface TrackedEntityInstanceFilterStore
+    extends GenericIdentifiableObjectStore<TrackedEntityInstanceFilter>
 {
-    String ID = TrackedEntityInstanceFilter.class.getName();
-    
-    /** 
-     * Adds trackedEntityInstanceFilter
-     * 
-     * @param trackedEntityInstanceFilter
-     * @return id of added trackedEntityInstanceFilter
-     */
-    int add( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
-    
     /**
-     * Deletes trackedEntityInstanceFilter
-     * 
-     * @param trackedEntityInstanceFilter
-     */
-    void delete( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
-    
-    /**
-     * Updates trackedEntityInstanceFilter
-     * 
-     * @param trackedEntityInstanceFilter
-     */
-    void update( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
-    
-    /**
-     * Gets trackedEntityInstanceFilter 
-     * @param id id of trackedEntityInstanceFilter to be fetched
-     * @return trackedEntityInstanceFilter
-     */
-    TrackedEntityInstanceFilter get( int id );
-    
-    /**
-     * Gets trackedEntityInstanceFilter
+     * Gets trackedEntityInstanceFilters
      * @param program program of trackedEntityInstanceFilter to be fetched
-     * @return trackedEntityInstanceFilter
-     */
-    List<TrackedEntityInstanceFilter> get( Program program );
-    
-    /**
-     * Gets all trackedEntityInstanceFilters 
      * @return list of trackedEntityInstanceFilters
      */
-    List<TrackedEntityInstanceFilter> getAll();
-
+    List<TrackedEntityInstanceFilter> get( Program program );
 }

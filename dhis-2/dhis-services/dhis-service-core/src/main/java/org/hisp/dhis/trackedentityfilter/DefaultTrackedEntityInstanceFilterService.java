@@ -30,7 +30,7 @@ package org.hisp.dhis.trackedentityfilter;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -43,10 +43,10 @@ public class DefaultTrackedEntityInstanceFilterService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    
+    private TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore;
 
-    private GenericIdentifiableObjectStore<TrackedEntityInstanceFilter> trackedEntityInstanceFilterStore;
-
-    public void setTrackedEntityInstanceFilterStore( GenericIdentifiableObjectStore<TrackedEntityInstanceFilter> trackedEntityInstanceFilterStore )
+    public void setTrackedEntityInstanceFilterStore( TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore )
     {
         this.trackedEntityInstanceFilterStore = trackedEntityInstanceFilterStore;
     }
@@ -56,32 +56,39 @@ public class DefaultTrackedEntityInstanceFilterService
     // -------------------------------------------------------------------------
     
     @Override
-    public void addTrackedEntityInstanceFilter( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
-    {
+    public int add( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
+    {        
         trackedEntityInstanceFilterStore.save( trackedEntityInstanceFilter );
+        return trackedEntityInstanceFilter.getId();
     }
     
     @Override
-    public void deleteTrackedEntityInstanceFilter( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
+    public void delete( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
     {
         trackedEntityInstanceFilterStore.delete( trackedEntityInstanceFilter );
     }
 
     @Override
-    public void updateTrackedEntityInstanceFilter( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
+    public void update( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
     {
         trackedEntityInstanceFilterStore.update( trackedEntityInstanceFilter );
     }
     
     @Override
-    public TrackedEntityInstanceFilter getTrackedEntityInstanceFilter( int id )
+    public TrackedEntityInstanceFilter get( int id )
     {
         return trackedEntityInstanceFilterStore.get( id );
     }
     
     @Override
-    public List<TrackedEntityInstanceFilter> getAllTrackedEntityInstanceFilters()
+    public List<TrackedEntityInstanceFilter> getAll()
     {
         return trackedEntityInstanceFilterStore.getAll();
+    }
+
+    @Override
+    public List<TrackedEntityInstanceFilter> get( Program program )
+    {
+        return trackedEntityInstanceFilterStore.get( program );
     }
 }
