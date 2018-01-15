@@ -86,7 +86,7 @@ public class DashboardController
     @RequestMapping( value = "/q", method = RequestMethod.GET )
     public @ResponseBody DashboardSearchResult searchNoFilter( @RequestParam( required = false ) Set<DashboardItemType> max )
     {
-        return dashboardService.search( "", max );
+        return dashboardService.search( max );
     }
 
     @Override
