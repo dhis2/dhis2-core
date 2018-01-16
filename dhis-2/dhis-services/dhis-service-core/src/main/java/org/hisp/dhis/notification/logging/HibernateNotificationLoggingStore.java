@@ -30,26 +30,19 @@ package org.hisp.dhis.notification.logging;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
 /**
  * Created by zubair@dhis2.org on 10.01.18.
  */
 public class HibernateNotificationLoggingStore
-    extends HibernateGenericStore<ExternalNotificationLogEntry> implements NotificationLoggingStore
+    extends HibernateIdentifiableObjectStore<ExternalNotificationLogEntry>
+    implements NotificationLoggingStore
 {
     @Override
     public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
     {
         Criteria criteria = getCriteria().add( Restrictions.eq( "notificationTemplateUid", templateUid ) );
-
-        return (ExternalNotificationLogEntry) criteria.uniqueResult();
-    }
-
-    @Override
-    public ExternalNotificationLogEntry get( String uid )
-    {
-        Criteria criteria = getCriteria().add( Restrictions.eq( "uid", uid ) );
 
         return (ExternalNotificationLogEntry) criteria.uniqueResult();
     }

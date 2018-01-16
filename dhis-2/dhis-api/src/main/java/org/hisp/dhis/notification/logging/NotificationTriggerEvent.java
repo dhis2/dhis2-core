@@ -33,8 +33,8 @@ package org.hisp.dhis.notification.logging;
  */
 public enum NotificationTriggerEvent
 {
-    PROGRAM_ENROLLMENT,
-    EVENT_COMPLETION,
-    DATASET_COMPLETION,
-    VALIDATION_FAILURE
+    PROGRAM,
+    PROGRAM_STAGE,
+    DATA_SET,
+    VALIDATION_RULE
 }

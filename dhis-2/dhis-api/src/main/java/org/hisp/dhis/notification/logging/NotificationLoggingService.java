@@ -78,5 +78,15 @@ public interface NotificationLoggingService
      */
     boolean isValidForSending( String templateUid );
 
+    /**
+     *
+     * @param entry to be saved.
+     */
     void save( ExternalNotificationLogEntry entry );
+
+    /**
+     *
+     * @param entry to be updated.
+     */
+    void update( ExternalNotificationLogEntry entry );
 }

@@ -31,9 +31,9 @@ package org.hisp.dhis.notification.logging;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -42,12 +42,8 @@ import java.util.Date;
 
 @JacksonXmlRootElement( localName = "externalNotificationLogEntry", namespace = DxfNamespaces.DXF_2_0 )
 public class ExternalNotificationLogEntry
-    implements Serializable
+    extends BaseIdentifiableObject
 {
-    private int id;
-
-    private String uid;
-
     private Date lastSentAt;
 
     private int retries;
@@ -60,34 +56,8 @@ public class ExternalNotificationLogEntry
 
     private NotificationTriggerEvent notificationTriggeredBy;
 
-    private Class notificationClassType;
-
-    private Class notificationClassSubType;
-
     public ExternalNotificationLogEntry()
     {
-    }
-
-    public int getId()
-    {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
     }
 
     @JsonProperty
@@ -152,30 +122,6 @@ public class ExternalNotificationLogEntry
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class getNotificationClassSubType()
-    {
-        return notificationClassSubType;
-    }
-
-    public void setNotificationClassSubType( Class notificationClassSubType )
-    {
-        this.notificationClassSubType = notificationClassSubType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class getNotificationClassType()
-    {
-        return notificationClassType;
-    }
-
-    public void setNotificationClassType( Class notificationClassType )
-    {
-        this.notificationClassType = notificationClassType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getNotificationTemplateUid()
     {
         return notificationTemplateUid;
@@ -184,5 +130,11 @@ public class ExternalNotificationLogEntry
     public void setNotificationTemplateUid( String notificationTemplateUid )
     {
         this.notificationTemplateUid = notificationTemplateUid;
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
     }
 }

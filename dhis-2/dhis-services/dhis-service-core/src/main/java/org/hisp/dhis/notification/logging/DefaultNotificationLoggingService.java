@@ -35,7 +35,8 @@ import java.util.List;
 /**
  * Created by zubair@dhis2.org on 10.01.18.
  */
-public class DefaultNotificationLoggingService implements NotificationLoggingService
+public class DefaultNotificationLoggingService
+    implements NotificationLoggingService
 {
     @Autowired
     private NotificationLoggingStore notificationLoggingStore;
@@ -43,7 +44,7 @@ public class DefaultNotificationLoggingService implements NotificationLoggingSer
     @Override
     public ExternalNotificationLogEntry get(String uid )
     {
-        return notificationLoggingStore.get( uid );
+        return notificationLoggingStore.getByUid( uid );
     }
 
     @Override
@@ -65,9 +66,9 @@ public class DefaultNotificationLoggingService implements NotificationLoggingSer
     }
 
     @Override
-    public boolean isValidForSending( String templateUid )
+    public boolean isValidForSending( String key )
     {
-        ExternalNotificationLogEntry logEntry = getByTemplateUid(templateUid);
+        ExternalNotificationLogEntry logEntry = getByKey( key );
 
         return logEntry == null || logEntry.isAllowMultiple();
     }
@@ -82,5 +83,11 @@ public class DefaultNotificationLoggingService implements NotificationLoggingSer
     public void save( ExternalNotificationLogEntry entry )
     {
         notificationLoggingStore.save( entry );
+    }
+
+    @Override
+    public void update( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.update( entry );
     }
 }
