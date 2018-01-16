@@ -69,10 +69,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -285,6 +283,7 @@ public class DataValueSetServiceTest
         periodService.addPeriod( peB );
         periodService.addPeriod( peC );
 
+
         dataSetService.addDataSet( dsA );
 
         user = createUser( 'A' );
@@ -295,7 +294,9 @@ public class DataValueSetServiceTest
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         setDependency( dataValueSetService, "currentUserService", currentUserService );
 
-        enableDataWrite();
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
     }
 
     // -------------------------------------------------------------------------
@@ -1013,16 +1014,15 @@ public class DataValueSetServiceTest
         assertTrue( dataValues.contains( new DataValue( deC, okAfter, ouA, ocDef, ocDef ) ) );
     }
 
+    /**
+     * User does not have write access for DataSet
+     * Expect fail on data sharing check
+     * @throws IOException
+     */
     @Test
-    public void testImportValueWithDataSharingFail() throws IOException
+    public void testImportValueDataSetWriteFail() throws IOException
     {
-        dsA.getUserAccesses().clear();
-
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ );
-
-        dsA.getUserAccesses().add( userAccess );
+        enableDataSharing( user, dsA, AccessStringHelper.READ );
 
         dataSetService.updateDataSet( dsA );
 
@@ -1034,6 +1034,49 @@ public class DataValueSetServiceTest
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
     }
+
+    /**
+     * User has write access DataSet but not CategoryOption
+     * Expect fail on data sharing check
+     * @throws IOException
+     */
+    @Test
+    public void testImportValueCategoryOptionWriteFail() throws IOException
+    {
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+        dataSetService.updateDataSet( dsA );
+
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ );
+
+
+
+        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.ERROR, summary.getStatus() );
+    }
+
+    @Test
+    public void testImportValueCategoryOptionWriteOk() throws IOException
+    {
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
     
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -1067,17 +1110,5 @@ public class DataValueSetServiceTest
         Date monthEnd = DateUtils.addDays( DateUtils.addMonths( monthStart, 1 ), -1 );
 
         return createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), monthStart, monthEnd );
-    }
-
-    private void enableDataWrite()
-    {
-        enableDataSharing( user, dsA );
-        enableDataSharing( user, deA );
-        enableDataSharing( user, deB );
-        enableDataSharing( user, deC );
-        enableDataSharing( user, deD );
-        enableDataSharing( user, ocA );
-        enableDataSharing( user, ocB );
-        enableDataSharing( user, ocDef );
     }
 }

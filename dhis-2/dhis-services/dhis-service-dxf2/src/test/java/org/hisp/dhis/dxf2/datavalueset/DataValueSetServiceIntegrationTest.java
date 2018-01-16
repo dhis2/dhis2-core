@@ -28,8 +28,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,9 +52,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.io.InputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -216,6 +216,13 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 12, dataValueService.getAllDataValues().size() );
+    }
+
+    public void testImportValueFail() throws IOException
+    {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+
     }
 
     /**

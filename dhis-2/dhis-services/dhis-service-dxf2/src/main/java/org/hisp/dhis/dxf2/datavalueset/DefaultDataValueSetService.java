@@ -55,6 +55,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockExceptionStore;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
@@ -181,6 +182,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     private AclService aclService;
+
+    @Autowired
+    private AggregateAccessManager accessManager;
 
     // Set methods for test purposes
 
@@ -749,16 +753,15 @@ public class DefaultDataValueSetService
         // Validation
         // ---------------------------------------------------------------------
 
-        if ( dataSet != null && !aclService.canDataWrite( currentUser, dataSet ) )
-        {
-            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have permission to write data to " +
-                "this DataSet " + dataSet.getUid()) );
-            summary.setStatus( ImportStatus.ERROR );
-        }
-
         if ( dataSet == null && trimToNull( dataValueSet.getDataSet() ) != null )
         {
             summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "Data set not found or not accessible" ) );
+            summary.setStatus( ImportStatus.ERROR );
+        }
+
+        if ( dataSet != null && !aclService.canDataWrite( currentUser, dataSet ) )
+        {
+            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid()) );
             summary.setStatus( ImportStatus.ERROR );
         }
 
@@ -767,7 +770,6 @@ public class DefaultDataValueSetService
             summary.getConflicts().add( new ImportConflict( dataValueSet.getOrgUnit(), "Org unit not found or not accessible" ) );
             summary.setStatus( ImportStatus.ERROR );
         }
-
 
         if ( outerAttrOptionCombo == null && trimToNull( dataValueSet.getAttributeOptionCombo() ) != null )
         {
@@ -835,8 +837,7 @@ public class DefaultDataValueSetService
 
             if ( !dataElementMap.isCacheLoaded() && dataElementMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
             {
-                dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme
-                ) );
+                dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme ) );
 
                 log.info( "Data element cache heated after cache miss threshold reached" );
             }
@@ -850,9 +851,8 @@ public class DefaultDataValueSetService
 
             if ( !optionComboMap.isCacheLoaded() && optionComboMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
             {
-                optionComboMap.load( identifiableObjectManager.getDataWriteAll( DataElementCategoryOptionCombo.class ), o -> o
-                    .getPropertyValue( categoryOptComboIdScheme
-                ) );
+                optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o.getPropertyValue(
+                    categoryOptComboIdScheme ) );
 
                 log.info( "Category Option Combo cache heated after cache miss threshold reached" );
             }
@@ -885,10 +885,32 @@ public class DefaultDataValueSetService
                 continue;
             }
 
+            if ( categoryOptionCombo != null )
+            {
+                List errors = accessManager.canWrite( currentUser, categoryOptionCombo );
+
+                if ( !errors.isEmpty() )
+                {
+                    summary.getConflicts().addAll( errors );
+                    continue;
+                }
+            }
+
             if ( attrOptionCombo == null && trimToNull( dataValue.getAttributeOptionCombo() ) != null )
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getAttributeOptionCombo(), "Attribute option combo not found or not accessible" ) );
                 continue;
+            }
+
+            if ( attrOptionCombo != null )
+            {
+                List errors = accessManager.canWrite( currentUser, attrOptionCombo );
+
+                if ( !errors.isEmpty() )
+                {
+                    summary.getConflicts().addAll( errors );
+                    continue;
+                }
             }
 
             boolean inUserHierarchy = orgUnitInHierarchyMap.get( orgUnit.getUid(), () -> orgUnit.isDescendant( currentOrgUnits ) );
@@ -1111,6 +1133,14 @@ public class DefaultDataValueSetService
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
+
+            List errors = accessManager.canWrite( currentUser, internalValue );
+
+            if ( !errors.isEmpty() )
+            {
+                summary.getConflicts().addAll( errors );
+                continue;
+            }
 
             // -----------------------------------------------------------------
             // Save, update or delete data value

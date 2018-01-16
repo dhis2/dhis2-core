@@ -53,6 +53,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -217,8 +218,8 @@ public class DataValueSetServiceExportTest
         setDependency( dataValueSetService, "currentUserService", currentUserService );
         setDependency( organisationUnitService, "currentUserService", currentUserService );
 
-        enableDataSharing( user, dsA );
-        enableDataSharing( user, dsB );
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
         dataSetService.updateDataSet( dsB );
     }

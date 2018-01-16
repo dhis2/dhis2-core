@@ -2109,11 +2109,13 @@ public abstract class DhisConvenienceTest
         return new ProgramDataElementDimensionItem( pr, de );
     }
 
-    protected void enableDataSharing( User user, IdentifiableObject object )
+    protected void enableDataSharing( User user, IdentifiableObject object, String access )
     {
+        object.getUserAccesses().clear();
+
         UserAccess userAccess = new UserAccess();
         userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        userAccess.setAccess( access );
 
         object.getUserAccesses().add( userAccess );
     }

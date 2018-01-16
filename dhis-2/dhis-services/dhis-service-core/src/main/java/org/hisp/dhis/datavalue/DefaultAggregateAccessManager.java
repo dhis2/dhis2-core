@@ -193,7 +193,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
         Set<DataElementCategoryOption> options = optionCombo.getCategoryOptions();
 
         options.forEach( attrOption -> {
-            if ( !aclService.canDataWrite( user, attrOption ) )
+            if ( !attrOption.isDefault() && !aclService.canDataWrite( user, attrOption ) )
             {
                 errors.add( "User has no data write access for CategoryOption: " + attrOption.getUid() );
             }
