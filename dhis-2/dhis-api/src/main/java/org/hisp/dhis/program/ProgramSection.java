@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class ProgramSection
 
     private Program program;
 
-    private List<ProgramTrackedEntityAttribute> attributes = new ArrayList<ProgramTrackedEntityAttribute>();
+    private List<TrackedEntityAttribute> attributes = new ArrayList<TrackedEntityAttribute>();
 
     private Integer sortOrder;
 
@@ -69,13 +70,13 @@ public class ProgramSection
     {
     }
 
-    public ProgramSection( String name, List<ProgramTrackedEntityAttribute> attributes )
+    public ProgramSection( String name, List<TrackedEntityAttribute> attributes )
     {
         this.name = name;
         this.attributes = attributes;
     }
 
-    public ProgramSection( String name, List<ProgramTrackedEntityAttribute> attributes, Integer sortOrder )
+    public ProgramSection( String name, List<TrackedEntityAttribute> attributes, Integer sortOrder )
     {
         this( name, attributes );
         this.sortOrder = sortOrder;
@@ -114,12 +115,12 @@ public class ProgramSection
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramTrackedEntityAttribute> getAttributes()
+    public List<TrackedEntityAttribute> getAttributes()
     {
         return attributes;
     }
 
-    public void setAttributes( List<ProgramTrackedEntityAttribute> attributes )
+    public void setAttributes( List<TrackedEntityAttribute> attributes )
     {
         this.attributes = attributes;
     }
