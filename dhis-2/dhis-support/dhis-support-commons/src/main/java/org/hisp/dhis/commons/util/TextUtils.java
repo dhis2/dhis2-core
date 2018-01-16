@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -487,6 +487,33 @@ public class TextUtils
     {
         matcher.appendTail( sb );
         return sb.toString();
+    }
+    
+    /**
+     * Returns a pretty name variant of the given class.
+     * 
+     * @param clazz the class.
+     * @return a pretty class name.
+     */
+    public static String getPrettyClassName( Class<?> clazz )
+    {
+        StringBuilder name = new StringBuilder();
+        
+        String className = clazz.getSimpleName();
+        
+        for ( int i = 0; i < className.length(); i++ )
+        {
+            char c = className.charAt( i );
+            
+            if ( i > 0 && Character.isUpperCase( c ) )
+            {
+                name.append( StringUtils.SPACE );
+            }
+            
+            name.append( c );
+        }
+        
+        return name.toString();
     }
     
     /**

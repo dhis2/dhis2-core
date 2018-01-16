@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,16 @@ package org.hisp.dhis.analytics.table;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
@@ -69,6 +72,9 @@ public class DefaultAnalyticsTableGenerator
 
     @Autowired
     private MessageService messageService;
+    
+    @Autowired
+    private AnalyticsTableHookService tableHookService;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -85,10 +91,11 @@ public class DefaultAnalyticsTableGenerator
     {
         final Date startTime = new Date();
         final Clock clock = new Clock( log ).startClock();
-        final JobId jobId = params.getJobId();
+        final JobConfiguration jobId = params.getJobId();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
-        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.
-            stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
+        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
+            .map( AnalyticsTableService::getAnalyticsTableType )
+            .collect( Collectors.toSet() );
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Skip %d analytics table types: %s", skipTypes.size(), skipTypes ) );
@@ -101,6 +108,9 @@ public class DefaultAnalyticsTableGenerator
             {
                 notifier.notify( jobId, "Updating resource tables" );
                 generateResourceTables();
+                
+                notifier.notify( jobId, "Invoking resource table hooks" );
+                invokeSqlHooks();
             }
 
             for ( AnalyticsTableService service : analyticsTableServices )
@@ -142,7 +152,7 @@ public class DefaultAnalyticsTableGenerator
     }
 
     @Override
-    public void generateResourceTables( JobId jobId )
+    public void generateResourceTables( JobConfiguration jobId )
     {
         final Clock clock = new Clock().startClock();
 
@@ -187,5 +197,11 @@ public class DefaultAnalyticsTableGenerator
         resourceTableService.createAllSqlViews();
 
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );
+    }
+    
+    private void invokeSqlHooks()
+    {
+        List<AnalyticsTableHook> hooks = tableHookService.getByPhase( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED );
+        tableHookService.executeAnalyticsTableSqlHooks( hooks );
     }
 }

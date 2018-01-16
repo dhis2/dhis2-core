@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( AppStoreController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27 } )
 public class AppStoreController
 {
     public static final String RESOURCE_PATH = "/appStore";

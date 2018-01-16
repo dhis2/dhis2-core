@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,15 +65,18 @@ public class SchedulerStart
     {
         Date now = new Date();
         jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
-            jobConfig.setNextExecutionTime( null );
-            jobConfigurationService.updateJobConfiguration( jobConfig );
-
-            if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
+            if ( jobConfig.isEnabled() )
             {
-                schedulingManager.executeJob( jobConfig );
+                jobConfig.setNextExecutionTime( null );
+                jobConfigurationService.updateJobConfiguration( jobConfig );
+
+                if ( jobConfig.getLastExecutedStatus() == FAILED ||
+                    ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
+                {
+                    schedulingManager.executeJob( jobConfig );
+                }
+                schedulingManager.scheduleJob( jobConfig );
             }
-            schedulingManager.scheduleJob( jobConfig );
         }) );
     }
 }

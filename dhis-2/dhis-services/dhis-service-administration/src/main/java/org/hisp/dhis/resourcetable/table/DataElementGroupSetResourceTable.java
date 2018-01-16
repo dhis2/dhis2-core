@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
@@ -49,9 +50,9 @@ public class DataElementGroupSetResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_dataelementgroupsetstructure";
+        return ResourceTableType.DATA_ELEMENT_GROUP_SET_STRUCTURE;
     }
     
     @Override
@@ -59,7 +60,9 @@ public class DataElementGroupSetResourceTable
     {
         String statement = "create table " + getTempTableName() + " (" +
             "dataelementid integer not null, " +
-            "dataelementname varchar(230), ";
+            "dataelementname varchar(230), " +
+            "startdate date, " +
+            "enddate date, ";
         
         for ( DataElementGroupSet groupSet : objects )
         {
@@ -77,7 +80,7 @@ public class DataElementGroupSetResourceTable
     {
         String sql = 
             "insert into " + getTempTableName() + " " +
-            "select d.dataelementid as dataelementid, d.name as dataelementname, ";
+            "select d.dataelementid as dataelementid, d.name as dataelementname, null as startdate, null as enddate, ";
         
         for ( DataElementGroupSet groupSet : objects )
         {

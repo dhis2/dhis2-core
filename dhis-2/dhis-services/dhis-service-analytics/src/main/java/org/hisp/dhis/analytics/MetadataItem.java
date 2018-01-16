@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,7 +92,7 @@ public class MetadataItem
         setDataItem( dimensionalObject );
     }
 
-    public void setDataItem( DimensionalItemObject dimensionalItemObject )
+    private void setDataItem( DimensionalItemObject dimensionalItemObject )
     {
         if ( dimensionalItemObject == null ) {
             return;
@@ -104,7 +104,7 @@ public class MetadataItem
         this.uid = dimensionalItemObject.getUid();
     }
 
-    public void setDataItem( DimensionalObject dimensionalObject )
+    private void setDataItem( DimensionalObject dimensionalObject )
     {
         if ( dimensionalObject == null ) {
             return;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,9 @@ public enum ConfigurationKey
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", "off", false ),
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600", false ),
     SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", "off", false ),
+    SYSTEM_MONITORING_URL( "system.monitoring.url" ),
+    SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
+    SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,14 @@ import java.util.List;
  */
 public interface AclService
 {
+    String LIKE_READ_METADATA = "r%"; // TODO use r_______ ?
+
+    String LIKE_WRITE_METADATA = "_w%"; // TODO use r_______ ?
+
+    String LIKE_READ_DATA = "__r_____";
+
+    String LIKE_WRITE_DATA = "___w____";
+
     /**
      * Is type supported for acl?
      *
@@ -256,6 +264,8 @@ public interface AclService
      * @param user   User to base ACL on
      */
     <T extends IdentifiableObject> void resetSharing( T object, User user );
+
+    <T extends IdentifiableObject> void clearSharing( T object, User user );
 
     /**
      * Verify that sharing props are correctly set according to user.

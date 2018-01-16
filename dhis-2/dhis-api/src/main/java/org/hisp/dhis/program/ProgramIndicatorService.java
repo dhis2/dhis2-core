@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import java.util.List;
 public interface ProgramIndicatorService
 {
     /**
-     * Adds a {@link ProgramIndicator}
+     * Adds a {@link ProgramIndicator}.
      *
      * @param programIndicator The to ProgramIndicator add.
      * @return A generated unique id of the added {@link ProgramIndicator}.
@@ -134,20 +134,20 @@ public interface ProgramIndicatorService
     /**
      * Indicates whether the given program indicator expression is valid.
      * 
-     * @param expression An expression string.
-     * @return the string {@link ProgramIndicator.VALID} if valid, if not any of
-     *         {@link ProgramIndicator.EXPRESSION_NOT_VALID},
-     *         {@link ProgramIndicator.INVALID_VARIABLES_IN_EXPRESSION}.
+     * @param expression an expression string.
+     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
+     *         {@link ProgramIndicator#EXPRESSION_NOT_VALID},
+     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
     String expressionIsValid( String expression );
 
     /**
      * Indicates whether the given program indicator expression is valid.
      * 
-     * @param expression An expression string.
-     * @return the string {@link ProgramIndicator.VALID} if valid, if not any of
-     *         {@link ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
-     *         {@link ProgramIndicator.INVALID_VARIABLES_IN_EXPRESSION}.
+     * @param filter a filter string.
+     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
+     *         {@link ProgramIndicator#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
+     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
     String filterIsValid( String filter );
 

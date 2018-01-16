@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.datavalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.commons.logging.Log;
@@ -361,11 +362,12 @@ public class HibernateDataValueStore
 
         String pathsTable = statementBuilder.literalStringTable( paths, "p", "path" );
 
-        String sql = "select dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid, p.path, " +
+        String sql = "select dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path, " +
             "sum( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as value " +
             "from datavalue dv " +
             "join organisationunit o on o.organisationunitid = dv.sourceid " +
             "join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid " +
+            "join categoryoptioncombo aoc on aoc.categoryoptioncomboid = dv.attributeoptioncomboid " +
             "join " + pathsTable + " on o.path like p.path || '%' " +
             "where dv.periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
             "and dv.value is not null " +
@@ -383,7 +385,7 @@ public class HibernateDataValueStore
                 snippit = "or ";
             }
 
-            sql += ") group by dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid, p.path";
+            sql += ") group by dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -395,6 +397,7 @@ public class HibernateDataValueStore
         {
             Integer dataElementId = rowSet.getInt( 1 );
             String categoryOptionComboUid = rowSet.getString( 2 );
+            String attributeOptionComboUid = rowSet.getString( 3 );
             Integer periodId = rowSet.getInt( 4 );
             String path = rowSet.getString( 5 );
             Double value = rowSet.getDouble( 6 );
@@ -407,16 +410,11 @@ public class HibernateDataValueStore
 
             for ( DataElementOperand deo : deos )
             {
-                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid() == categoryOptionComboUid )
+                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionComboUid ) )
                 {
-                    Double existingValue = result.getValue(orgUnit, period, categoryOptionComboUid, deo );
+                    double existingValue = ObjectUtils.firstNonNull( result.getValue(orgUnit, period, attributeOptionComboUid, deo ), 0.0 );
 
-                    if ( existingValue != null )
-                    {
-                        value += existingValue;
-                    }
-
-                    result.putEntry( orgUnit, period, categoryOptionComboUid, deo, value );
+                    result.putEntry( orgUnit, period, attributeOptionComboUid, deo, value + existingValue );
                 }
             }
         }
@@ -576,7 +574,7 @@ public class HibernateDataValueStore
                 {
                     if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) )
                     {
-                        Double existingValue = map.getValue(attributeOptionCombo, deo);
+                        double existingValue = ObjectUtils.firstNonNull( map.getValue(attributeOptionCombo, deo), 0.0 );
 
                         Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, deo );
 
@@ -588,7 +586,7 @@ public class HibernateDataValueStore
                             }
                             else if ( existingPeriodInterval > periodInterval )
                             {
-                                existingValue = null; // Overwrite previous value if for a longer interval
+                                existingValue = 0.0; // Overwrite previous value if for a longer interval
 
                                 if ( lastUpdatedMap != null )
                                 {
@@ -597,12 +595,7 @@ public class HibernateDataValueStore
                             }
                         }
 
-                        if ( existingValue != null )
-                        {
-                            value += existingValue;
-                        }
-
-                        map.putEntry( attributeOptionCombo, deo, value );
+                        map.putEntry( attributeOptionCombo, deo, value + existingValue);
 
                         if ( lastUpdatedMap != null && lastUpdated != null )
                         {

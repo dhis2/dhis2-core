@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,6 +128,8 @@ public class InitTableAlteror
 
         executeSql( "UPDATE expression SET slidingWindow = FALSE WHERE slidingWindow IS NULL" );
         executeSql( "UPDATE validationResult set notificationsent = false WHERE notificationsent is null" );
+
+        executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
 
     }
 

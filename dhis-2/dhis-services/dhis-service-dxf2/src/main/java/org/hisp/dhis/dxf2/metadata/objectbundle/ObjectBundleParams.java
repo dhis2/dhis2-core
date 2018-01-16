@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,13 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.preheat.PreheatParams;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -52,6 +53,10 @@ import java.util.Map;
 public class ObjectBundleParams
 {
     private User user;
+
+    private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
+
+    private User overrideUser;
 
     private ObjectBundleMode objectBundleMode = ObjectBundleMode.COMMIT;
 
@@ -75,7 +80,7 @@ public class ObjectBundleParams
 
     private boolean skipValidation;
 
-    private JobId jobId;
+    private JobConfiguration jobId;
 
     public ObjectBundleParams()
     {
@@ -90,6 +95,28 @@ public class ObjectBundleParams
     public ObjectBundleParams setUser( User user )
     {
         this.user = user;
+        return this;
+    }
+
+    public UserOverrideMode getUserOverrideMode()
+    {
+        return userOverrideMode;
+    }
+
+    public ObjectBundleParams setUserOverrideMode( UserOverrideMode userOverrideMode )
+    {
+        this.userOverrideMode = userOverrideMode;
+        return this;
+    }
+
+    public User getOverrideUser()
+    {
+        return overrideUser;
+    }
+
+    public ObjectBundleParams setOverrideUser( User overrideUser )
+    {
+        this.overrideUser = overrideUser;
         return this;
     }
 
@@ -203,12 +230,12 @@ public class ObjectBundleParams
         return this;
     }
 
-    public JobId getJobId()
+    public JobConfiguration getJobId()
     {
         return jobId;
     }
 
-    public ObjectBundleParams setJobId( JobId jobId )
+    public ObjectBundleParams setJobId( JobConfiguration jobId )
     {
         this.jobId = jobId;
         return this;

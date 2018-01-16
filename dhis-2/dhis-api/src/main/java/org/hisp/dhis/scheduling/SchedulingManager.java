@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,12 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.util.concurrent.ListenableFuture;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
 /**
@@ -117,14 +120,14 @@ public interface SchedulingManager
     void stopJob( JobConfiguration jobConfiguration );
 
     /**
+     * Stops one job.
+     */
+    void stopJob( String jobKey );
+
+    /**
      * Stops all jobs.
      */
     void stopAllJobs();
-
-    /**
-     * Refreshes the given job
-     */
-    void refreshJob( JobConfiguration jobConfiguration );
 
     /**
      * Execute the job.
@@ -139,6 +142,15 @@ public interface SchedulingManager
      * @param job The job to be executed
      */
     void executeJob( Runnable job );
+
+    /**
+     * Execute the given job immediately and return a ListenableFuture.
+     *
+     * @param callable the job to execute.
+     * @param <T> return type of the supplied callable.
+     * @return a ListenableFuture representing the result of the job.
+     */
+    <T> ListenableFuture<T> executeJob( Callable<T> callable );
 
     /**
      * Resolve the cron expression mapped for the given task key, or null if none.

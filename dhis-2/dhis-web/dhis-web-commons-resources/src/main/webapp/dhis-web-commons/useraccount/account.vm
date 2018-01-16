@@ -8,7 +8,7 @@
     <script type="text/javascript" src="../javascripts/useraccount/account.js"></script>
     <script type="text/javascript" src="../i18nJavaScript.action"></script>
     #if( !$keySelfRegistrationNoRecaptcha )
-    <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     #end
     <script type="text/javascript" >
 
@@ -80,14 +80,14 @@
         <td style="padding-bottom: 5px"><input type="text" id="employer" name="employer"></td>
     </tr>
     #if( !$keySelfRegistrationNoRecaptcha )
-    <tr>
-    	<td><label id="label_recaptchaDiv">$i18n.getString( "prove_you_are_not_a_robot" )</label></td>
-    	<td style="padding-bottom: 5px"><div id="recaptchaDiv"></div></td>
+    <td>
+        <td style="padding-bottom: 5px">
+            <form action="?" method="POST">
+                <div class="g-recaptcha" data-sitekey=$recaptchaSite></div>
+                <br/>
+            </form>
+        </td>
 	</tr>
-    <tr>
-        <td></td>
-        <td><a id="cant_read_words" href="javascript:reloadRecaptcha()">$i18n.getString( "cant_read_the_words_try_another_one" )</a></span></td>
-    </tr>
     #end
 	<tr>
 		<td></td>

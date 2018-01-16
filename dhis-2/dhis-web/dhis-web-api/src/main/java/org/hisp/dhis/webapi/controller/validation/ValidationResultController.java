@@ -1,6 +1,6 @@
 package org.hisp.dhis.webapi.controller.validation;
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.List;
 
@@ -101,7 +101,7 @@ public class ValidationResultController
 
         rootNode.addChild( fieldFilterService.toCollectionNode( ValidationResult.class, new FieldFilterParams( validationResults, fields ) ) );
 
-        setNoCache( response );
+        setNoStore( response );
         return rootNode;
     }
 

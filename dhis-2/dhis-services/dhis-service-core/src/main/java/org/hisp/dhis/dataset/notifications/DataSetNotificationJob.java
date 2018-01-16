@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,17 +72,17 @@ public class DataSetNotificationJob
     {
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobConfiguration.getJobId(), "Sending scheduled dataset notifications" );
+        notifier.notify( jobConfiguration, "Sending scheduled dataset notifications" );
 
         try
         {
             send();
 
-            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.INFO, "Sent scheduled dataset notifications: " + clock.time(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.INFO, "Sent scheduled dataset notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Scheduled dataset notifications failed", ex );
 

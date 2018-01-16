@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
@@ -62,18 +61,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoCache;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -130,7 +134,7 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         return rootNode;
     }
@@ -174,62 +178,133 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         return rootNode;
     }
 
-    @RequestMapping( value = "/tasks/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskJson( @PathVariable( "category" ) String category,
-        @RequestParam( required = false ) String lastId, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTasksJson( HttpServletResponse response )
+        throws IOException
+    {
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
+    }
+
+    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
+        throws IOException
     {
         List<Notification> notifications = new ArrayList<>();
 
-        if ( category != null )
+        if ( jobType != null )
         {
-            JobType jobType = JobType.valueOf( category.toUpperCase() );
-
-            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
-
-            notifications = notifier.getNotifications( jobId, lastId );
+            notifications = notifier.getLastNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ), lastId );
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/taskSummaries/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskSummaryJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/tasks/extended/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
     {
-        if ( category != null )
+        Map<String, LinkedList<Notification>> notifications = new HashMap<>();
+
+        if ( jobType != null )
         {
-            JobType jobType = JobType.valueOf( category.toUpperCase() );
-
-            JobId jobId = new JobId(jobType, currentUserService.getCurrentUser().getUid() );
-
-            Object summary = notifier.getTaskSummary( jobId );
-
-            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
-            {
-                ImportSummary importSummary = (ImportSummary) summary;
-                renderService.toJson( response.getOutputStream(), importSummary );
-                return;
-            }
-            else
-            {
-                renderService.toJson( response.getOutputStream(), summary );
-                return;
-            }
+            notifications = notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
-        renderService.toJson( response.getOutputStream(), new ImportSummary() );
+        renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
+    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
+        HttpServletResponse response )
+        throws IOException
+    {
+        List<Notification> notifications = new ArrayList<>();
+
+        if ( jobType != null )
+        {
+            notifications = notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+        }
+
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), notifications );
+    }
+
+    @RequestMapping( value = "/taskSummaries/extended/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
+
+            handleSummary( response, summary );
+            return;
+        }
+
+        setNoStore( response );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummary( JobType.valueOf( jobType.toUpperCase() ) );
+
+            handleSummary( response, summary );
+            return;
+        }
+
+        setNoStore( response );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
+        HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+
+            handleSummary( response, summary );
+        }
+
+        setNoStore( response );
+    }
+
+    private void handleSummary( HttpServletResponse response, Object summary )
+        throws IOException
+    {
+        if ( summary != null && ImportSummary.class.isInstance( summary ) ) //TODO improve this
+        {
+            ImportSummary importSummary = (ImportSummary) summary;
+            renderService.toJson( response.getOutputStream(), importSummary );
+        }
+        else
+        {
+            renderService.toJson( response.getOutputStream(), summary );
+        }
+    }
+
+    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
+    public @ResponseBody
+    SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 
@@ -241,7 +316,7 @@ public class SystemController
             info.clearSensitiveInfo();
         }
 
-        setNoCache( response );
+        setNoStore( response );
 
         return info;
     }
@@ -261,14 +336,14 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+    @ApiVersion( exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET )
-    @ApiVersion( exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
+    @ApiVersion( exclude = { DhisApiVersion.DEFAULT } )
     public @ResponseBody String ping()
     {
         return "pong";

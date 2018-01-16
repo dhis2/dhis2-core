@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,8 +79,8 @@ public interface OrganisationUnitGroupService
     /**
      * Returns the OrganisationUnitGroups with the given UIDs.
      * 
-     * @param uids the collection of UIDs.
-     * @return the OrganisationUnitGroups with the given UIDs.
+     * @param uids collection of UIDs.
+     * @return a list OrganisationUnitGroups with the given UIDs.
      */
     List<OrganisationUnitGroup> getOrganisationUnitGroupsByUid( Collection<String> uids );
     
@@ -113,11 +113,10 @@ public interface OrganisationUnitGroupService
     /**
      * Returns the OrganisationUnitGroup with the given short name.
      *
-     * @param short name the short name.
+     * @param shortName the short name.
      * @return the OrganisationUnitGroup with the given short name, or null if no match.
      */
     OrganisationUnitGroup getOrganisationUnitGroupByShortName( String shortName );
-
     
     /**
      * Returns all OrganisationUnitGroups.

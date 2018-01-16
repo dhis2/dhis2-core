@@ -36,9 +36,11 @@
                     <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "program_completion" )</option>
                     <option value="SCHEDULED_DAYS_INCIDENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_INCIDENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_incident_date" )</option>
                     <option value="SCHEDULED_DAYS_ENROLLMENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_ENROLLMENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_enrollment_date" )</option>
+                    <option value="PROGRAM_RULE" #if ( $trigger == "PROGRAM_RULE" ) selected #end>$i18n.getString( "program_rule" )</option>
                 </select>
             </td>
         </tr>
+
         <tr id="daysContainer" #if ( $template.notificationTrigger.isImmediate() ) style="display: none;" #end>
             <td>
                 <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>
@@ -65,7 +67,7 @@
                 <select type="text" id="notificationRecipient" name="notificationRecipient">
                     <option value="ORGANISATION_UNIT_CONTACT" #if ( $rcpt == "ORGANISATION_UNIT_CONTACT" ) selected #end>$i18n.getString( "orgunit_contact" )</option>
                     <option value="USERS_AT_ORGANISATION_UNIT" #if ( $rcpt == "USERS_AT_ORGANISATION_UNIT" ) selected #end>$i18n.getString( "users_at_orgunit" )</option>
-                    <option value="USER_GROUP" #if ( $rcpt == "USER_GROUP" ) forselected #end>$i18n.getString( "user_group" )</option>
+                    <option value="USER_GROUP" #if ( $rcpt == "USER_GROUP" ) selected #end>$i18n.getString( "user_group" )</option>
                     <option value="PROGRAM_ATTRIBUTE" #if ( $rcpt == "PROGRAM_ATTRIBUTE" ) selected #end>$i18n.getString( "program_attributes" )</option>
                 </select>
             </td>

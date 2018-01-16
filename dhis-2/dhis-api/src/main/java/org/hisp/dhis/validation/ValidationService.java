@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,10 +69,10 @@ public interface ValidationService
         DataElementCategoryOptionCombo attributeOptionCombo );
 
     ValidationAnalysisParams.Builder newParamsBuilder( Collection<ValidationRule> validationRules,
-        Collection<OrganisationUnit> organisationUnits, Collection<Period> periods );
+        OrganisationUnit organisationUnit, Collection<Period> periods );
 
     ValidationAnalysisParams.Builder newParamsBuilder( ValidationRuleGroup validationRuleGroup,
-        Collection<OrganisationUnit> organisationUnits, Date startDate, Date endDate );
+        OrganisationUnit organisationUnit, Date startDate, Date endDate );
 
     ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnits,
         Period period );

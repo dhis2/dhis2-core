@@ -1,7 +1,7 @@
 package org.hisp.dhis.importexport.action.dxf2;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.importexport.action.dxf2;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.common.ImportSummary;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
@@ -52,11 +52,11 @@ public class GetImportSummaryAction
     // Input
     // -------------------------------------------------------------------------
 
-    private JobType category;
+    private JobType jobType;
 
-    public void setCategory( JobType category )
+    public void setJobType( JobType jobType )
     {
-        this.category = category;
+        this.jobType = jobType;
     }
 
     // -------------------------------------------------------------------------
@@ -77,9 +77,9 @@ public class GetImportSummaryAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( null, jobType, currentUserService.getCurrentUser().getUid(), true );
 
-        summary = (ImportSummary) notifier.getTaskSummary( taskId );
+        summary = (ImportSummary) notifier.getJobSummary( jobId.getJobType() );
 
         return SUCCESS;
     }

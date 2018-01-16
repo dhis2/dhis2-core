@@ -1,7 +1,7 @@
 package org.hisp.dhis.interceptor;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ public class NoCacheInterceptor
         
         if ( !headerSet && HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {
-            ContextUtils.setNoCache( response );
+            ContextUtils.setNoStore( response );
         }
                 
         return invocation.invoke();

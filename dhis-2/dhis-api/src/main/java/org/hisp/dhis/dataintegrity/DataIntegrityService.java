@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -160,7 +160,6 @@ public interface DataIntegrityService
 
     /**
      * Lists all Periods which are duplicates, based on the period type and start date.
-     * @return
      */
     List<Period> getDuplicatePeriods();
     

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,17 +69,17 @@ public class ProgramNotificationJob
     {
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobConfiguration.getJobId(), "Generating and sending scheduled program notifications" );
+        notifier.notify( jobConfiguration, "Generating and sending scheduled program notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
 
