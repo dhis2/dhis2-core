@@ -33,6 +33,9 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Item part of meta data analytics response.
@@ -49,9 +52,13 @@ public class MetadataItem
 
     private String code;
 
+    private String description;
+
     private DimensionItemType dimensionItemType;
 
     private DimensionType dimensionType;
+
+    private ValueType valueType;
 
     private AggregationType aggregationType;
 
@@ -60,10 +67,9 @@ public class MetadataItem
         this.name = name;
     }
 
-    public MetadataItem( String name, String legendSet )
+    public MetadataItem( String name, String uid, String code )
     {
         this.name = name;
-        this.legendSet = legendSet;
     }
 
     public MetadataItem( String name, String legendSet, DimensionalItemObject dimensionalItemObject )
@@ -73,7 +79,7 @@ public class MetadataItem
         setDataItem( dimensionalItemObject );
     }
 
-    public MetadataItem( String name, String legendSet,DimensionalObject dimensionalObject )
+    public MetadataItem( String name, String legendSet, DimensionalObject dimensionalObject )
     {
         this.name = name;
         this.legendSet = legendSet;
@@ -92,26 +98,58 @@ public class MetadataItem
         setDataItem( dimensionalObject );
     }
 
+    public MetadataItem( String name, Program program )
+    {
+        this.name = name;
+
+        if ( program == null )
+        {
+            return;
+        }
+
+        this.uid = program.getUid();
+        this.code = program.getCode();
+        this.description = program.getDescription();
+    }
+
+    public MetadataItem( String name, ProgramStage programStage )
+    {
+        this.name = name;
+
+        if ( programStage == null )
+        {
+            return;
+        }
+
+        this.uid = programStage.getUid();
+        this.code = programStage.getCode();
+        this.description = programStage.getDescription();
+    }
+
     private void setDataItem( DimensionalItemObject dimensionalItemObject )
     {
-        if ( dimensionalItemObject == null ) {
+        if ( dimensionalItemObject == null )
+        {
             return;
         }
 
         this.code = dimensionalItemObject.getCode();
         this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
+        this.description = dimensionalItemObject.getDescription();
         this.aggregationType = dimensionalItemObject.getAggregationType();
         this.uid = dimensionalItemObject.getUid();
     }
 
     private void setDataItem( DimensionalObject dimensionalObject )
     {
-        if ( dimensionalObject == null ) {
+        if ( dimensionalObject == null )
+        {
             return;
         }
 
         this.code = dimensionalObject.getCode();
         this.dimensionType = dimensionalObject.getDimensionType();
+        this.description = dimensionalObject.getDescription();
         this.aggregationType = dimensionalObject.getAggregationType();
         this.uid = dimensionalObject.getUid();
     }
@@ -136,6 +174,17 @@ public class MetadataItem
     public void setCode( String code )
     {
         this.code = code;
+    }
+
+    @JsonProperty
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
     }
 
     @JsonProperty
@@ -191,5 +240,16 @@ public class MetadataItem
     public void setLegendSet( String legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    public ValueType getValueType()
+    {
+        return valueType;
+    }
+
+    public void setValueType( ValueType valueType )
+    {
+        this.valueType = valueType;
     }
 }
