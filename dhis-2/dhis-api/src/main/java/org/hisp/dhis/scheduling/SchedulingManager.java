@@ -106,7 +106,7 @@ public interface SchedulingManager
      *
      * @param jobConfiguration The configuration of the job to be executed
      */
-    void executeJob( JobConfiguration jobConfiguration );
+    boolean executeJob( JobConfiguration jobConfiguration );
 
     /**
      * Execute an actual job without validation

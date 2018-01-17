@@ -185,11 +185,16 @@ public class DefaultSchedulingManager
     }
 
     @Override
-    public void executeJob( JobConfiguration jobConfiguration )
+    public boolean executeJob( JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getUid() ) )
         {
             internalExecuteJobConfiguration( jobConfiguration );
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 

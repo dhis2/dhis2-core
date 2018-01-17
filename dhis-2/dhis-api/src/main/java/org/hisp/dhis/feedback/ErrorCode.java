@@ -79,6 +79,7 @@ public enum ErrorCode
     E7003( "Failed to add/update job configuration - Given job type '{0}' is not configurable" ),
     E7004( "Failed to add/update job configuration - Cron Expression must not be null " ),
     E7005( "Failed to add/update job configuration - Failed to validate cron expression: {0} " ),
+    E7006( "Failed to execute job with uid '{0}'." ),
 
     /* Job specific scheduling errors */
     E7010( "Failed to validate job runtime - {0}" ),
