@@ -52,8 +52,7 @@ import java.util.List;
  */
 @Transactional
 public class DefaultCompleteDataSetRegistrationService
-    implements
-    CompleteDataSetRegistrationService
+    implements CompleteDataSetRegistrationService
 {
     // -------------------------------------------------------------------------
     // Dependencies
