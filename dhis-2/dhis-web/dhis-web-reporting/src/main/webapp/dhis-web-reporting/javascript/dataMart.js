@@ -34,6 +34,6 @@ var url = '../api/resourceTables/analytics';
 
 function pingNotificationsTimeout()
 {
-	pingNotifications( 'ANALYTICSTABLE_UPDATE', 'notificationTable' );
+	pingNotifications( 'ANALYTICS_TABLE', 'notificationTable' );
 	setTimeout( "pingNotificationsTimeout()", 2500 );
 }
