@@ -111,6 +111,12 @@ public class SendScheduledMessageJob
         return super.validate();
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "sendScheduledMessageJob";
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

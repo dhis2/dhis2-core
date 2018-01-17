@@ -26,6 +26,10 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataElementObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PredictorObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SectionObjectBundleHook" />

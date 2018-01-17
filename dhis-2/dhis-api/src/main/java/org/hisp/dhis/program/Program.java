@@ -80,6 +80,8 @@ public class Program
 
     private Set<ProgramStage> programStages = new HashSet<>();
 
+    private Set<ProgramSection> programSections = new HashSet<>();
+
     private Set<ValidationCriteria> validationCriteria = new HashSet<>();
 
     private ProgramType programType;
@@ -882,5 +884,19 @@ public class Program
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty( "programSections" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programSections", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programSection", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramSection> getProgramSections()
+    {
+        return programSections;
+    }
+
+    public void setProgramSections( Set<ProgramSection> programSections )
+    {
+        this.programSections = programSections;
     }
 }

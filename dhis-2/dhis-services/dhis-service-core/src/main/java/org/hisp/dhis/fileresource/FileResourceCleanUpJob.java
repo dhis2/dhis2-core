@@ -90,12 +90,17 @@ public class FileResourceCleanUpJob
 
         StringBuilder sb = new StringBuilder( "[ " );
 
-        list.forEach( pair -> sb.append( pair.getLeft() ).append( " , uid: " ).append( pair.getRight() ).append( ", " ) );
+        list.forEach(
+            pair -> sb.append( pair.getLeft() ).append( " , uid: " ).append( pair.getRight() ).append( ", " ) );
 
         sb.deleteCharAt( sb.lastIndexOf( "," ) ).append( "]" );
 
         return sb.toString();
     }
 
-
+    @Override
+    protected String getJobId()
+    {
+        return "fileResourceCleanUpJob";
+    }
 }
