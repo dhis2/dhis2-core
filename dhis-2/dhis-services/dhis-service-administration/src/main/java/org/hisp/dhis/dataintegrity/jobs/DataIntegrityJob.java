@@ -89,4 +89,10 @@ public class DataIntegrityJob
                 .addJobSummary( jobConfiguration, report );
         }
     }
+
+    @Override
+    protected String getJobId()
+    {
+        return "dataIntegrityJob";
+    }
 }
