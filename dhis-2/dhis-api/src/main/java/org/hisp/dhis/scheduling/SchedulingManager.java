@@ -30,8 +30,6 @@ package org.hisp.dhis.scheduling;
 
 import org.springframework.util.concurrent.ListenableFuture;
 
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
@@ -54,6 +52,8 @@ import java.util.concurrent.ScheduledFuture;
  */
 public interface SchedulingManager
 {
+    void addJob( JobType jobType, String jobId );
+
     /**
      * Check if this jobconfiguration is currently running
      *
@@ -96,38 +96,10 @@ public interface SchedulingManager
      */
     void scheduleJob( JobConfiguration jobConfiguration );
 
-    void scheduleJob( Date date, JobConfiguration jobConfiguration );
-
-    /**
-     * Schedule a collection of jobs
-     *
-     * @param jobConfigurations the jobs to schedule
-     */
-    void scheduleJobs( List<JobConfiguration> jobConfigurations );
-
-    /**
-     * Schedules a job with the given job configuration with a fixed delay
-     *
-     * @param jobConfiguration the job to schedule.
-     */
-    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval );
-
-    void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval );
-
     /**
      * Stops one job.
      */
     void stopJob( JobConfiguration jobConfiguration );
-
-    /**
-     * Stops one job.
-     */
-    void stopJob( String jobKey );
-
-    /**
-     * Stops all jobs.
-     */
-    void stopAllJobs();
 
     /**
      * Execute the job.
@@ -153,24 +125,11 @@ public interface SchedulingManager
     <T> ListenableFuture<T> executeJob( Callable<T> callable );
 
     /**
-     * Resolve the cron expression mapped for the given task key, or null if none.
-     *
-     * @param jobKey the key of the job, not null.
-     * @return the cron for the job or null.
-     */
-    String getCronForJob( final String jobKey );
-
-    /**
      * Returns a list of all scheduled jobs sorted based on cron expression and the current time.
      *
      * @return list of jobs
      */
     Map<String, ScheduledFuture<?>> getAllFutureJobs();
-
-    /**
-     * Gets the job status.
-     */
-    JobStatus getJobStatus( String jobKey );
 
     /**
      * Returns the status of the currently executing job.
