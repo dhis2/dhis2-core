@@ -34,6 +34,11 @@
       <one-to-many class="org.hisp.dhis.program.ProgramStage" />
     </set>
 
+    <set name="programSections" order-by="sortOrder">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramSection" />
+    </set>
+
     <set name="organisationUnits" table="program_organisationunits">
       <cache usage="read-write" />
       <key column="programid" foreign-key="fk_program_organisationunits_programid" />

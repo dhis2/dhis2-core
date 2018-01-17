@@ -1,4 +1,4 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,12 +28,27 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public enum ProgramStageSectionRenderType
+public class TrackedEntityInstanceFilterSchemaDescriptor implements SchemaDescriptor
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
+
+    public static final String SINGULAR = "trackedEntityInstanceFilter";
+
+    public static final String PLURAL = "trackedEntityInstanceFilters";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        return new Schema( TrackedEntityInstanceFilter.class, SINGULAR, PLURAL );
+    }
+
 }

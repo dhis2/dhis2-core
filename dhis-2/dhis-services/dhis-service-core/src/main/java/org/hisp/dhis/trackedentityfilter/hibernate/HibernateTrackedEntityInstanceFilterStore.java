@@ -1,4 +1,12 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.trackedentityfilter.hibernate;
+
+import java.util.List;
+
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,11 +37,17 @@ package org.hisp.dhis.render.type;
  */
 
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public enum ProgramStageSectionRenderType
+public class HibernateTrackedEntityInstanceFilterStore
+    extends HibernateIdentifiableObjectStore<TrackedEntityInstanceFilter> implements TrackedEntityInstanceFilterStore
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<TrackedEntityInstanceFilter> get( Program program )
+    {
+        return getCriteria( Restrictions.eq( "program", program ) ).list();
+    }
 }

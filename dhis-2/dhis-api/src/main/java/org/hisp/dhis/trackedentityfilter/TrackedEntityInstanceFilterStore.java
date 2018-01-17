@@ -1,4 +1,6 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.trackedentityfilter;
+
+import java.util.List;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,12 +30,20 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public enum ProgramStageSectionRenderType
+public interface TrackedEntityInstanceFilterStore
+    extends GenericIdentifiableObjectStore<TrackedEntityInstanceFilter>
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
+    /**
+     * Gets trackedEntityInstanceFilters
+     * @param program program of trackedEntityInstanceFilter to be fetched
+     * @return list of trackedEntityInstanceFilters
+     */
+    List<TrackedEntityInstanceFilter> get( Program program );
 }

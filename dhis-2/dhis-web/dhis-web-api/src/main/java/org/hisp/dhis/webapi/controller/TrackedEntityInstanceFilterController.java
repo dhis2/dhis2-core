@@ -1,4 +1,4 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,12 +28,18 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceFilterSchemaDescriptor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public enum ProgramStageSectionRenderType
+@Controller
+@RequestMapping( value = TrackedEntityInstanceFilterSchemaDescriptor.API_ENDPOINT )
+public class TrackedEntityInstanceFilterController
+    extends AbstractCrudController<TrackedEntityInstanceFilter>
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
 }

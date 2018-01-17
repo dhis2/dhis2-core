@@ -1,4 +1,4 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,12 +28,13 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Henning Håkonsen
  */
-public enum ProgramStageSectionRenderType
+public interface ProgramSectionStore
+    extends GenericIdentifiableObjectStore<ProgramSection>
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
 }

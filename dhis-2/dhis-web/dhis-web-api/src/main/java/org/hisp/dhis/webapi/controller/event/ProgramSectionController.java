@@ -1,4 +1,4 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.webapi.controller.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,12 +28,18 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramSection;
+import org.hisp.dhis.schema.descriptors.ProgramSectionSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Henning Håkonsen
  */
-public enum ProgramStageSectionRenderType
+@Controller
+@RequestMapping( value = ProgramSectionSchemaDescriptor.API_ENDPOINT )
+public class ProgramSectionController
+    extends AbstractCrudController<ProgramSection>
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
 }

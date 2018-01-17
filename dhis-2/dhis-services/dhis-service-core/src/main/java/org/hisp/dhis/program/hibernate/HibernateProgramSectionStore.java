@@ -1,4 +1,4 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.program.hibernate;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,12 +28,16 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.program.ProgramSection;
+import org.hisp.dhis.program.ProgramSectionStore;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Henning Håkonsen
  */
-public enum ProgramStageSectionRenderType
+public class HibernateProgramSectionStore
+    extends HibernateIdentifiableObjectStore<ProgramSection>
+    implements ProgramSectionStore
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
 }
