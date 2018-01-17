@@ -70,6 +70,8 @@ public class MetadataItem
     public MetadataItem( String name, String uid, String code )
     {
         this.name = name;
+        this.uid = uid;
+        this.code = code;
     }
 
     public MetadataItem( String name, String legendSet, DimensionalItemObject dimensionalItemObject )
@@ -77,13 +79,6 @@ public class MetadataItem
         this.name = name;
         this.legendSet = legendSet;
         setDataItem( dimensionalItemObject );
-    }
-
-    public MetadataItem( String name, String legendSet, DimensionalObject dimensionalObject )
-    {
-        this.name = name;
-        this.legendSet = legendSet;
-        setDataItem( dimensionalObject );
     }
 
     public MetadataItem( String name, DimensionalItemObject dimensionalItemObject )
