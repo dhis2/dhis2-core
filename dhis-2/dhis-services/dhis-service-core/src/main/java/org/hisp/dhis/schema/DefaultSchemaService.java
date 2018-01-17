@@ -121,6 +121,7 @@ public class DefaultSchemaService
         add( new ProgramStageDataElementSchemaDescriptor() ).
         add( new ProgramStageSchemaDescriptor() ).
         add( new ProgramStageSectionSchemaDescriptor() ).
+        add( new ProgramSectionSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() ).
         add( new ProgramNotificationTemplateSchemaDescriptor() ).
@@ -131,6 +132,7 @@ public class DefaultSchemaService
         add( new SqlViewSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
+        add( new TrackedEntityInstanceFilterSchemaDescriptor() ).
         add( new TrackedEntityTypeSchemaDescriptor() ).
         add( new TrackedEntityTypeAttributeSchemaDescriptor() ).
         add( new TrackedEntityDataElementDimensionSchemaDescriptor() ).

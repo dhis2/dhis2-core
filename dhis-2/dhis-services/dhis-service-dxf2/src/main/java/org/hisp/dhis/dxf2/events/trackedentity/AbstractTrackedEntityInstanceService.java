@@ -368,6 +368,9 @@ public abstract class AbstractTrackedEntityInstanceService
         updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
 
+        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
+        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
+
         teiService.updateTrackedEntityInstance( entityInstance );
 
         importSummary.setReference( entityInstance.getUid() );
