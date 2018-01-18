@@ -30,7 +30,6 @@ package org.hisp.dhis.dataset.notifications;
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.EventListener;
 
 /**
