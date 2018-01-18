@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 
 /**
  *
@@ -82,9 +83,8 @@ public class SchedulerStart
                 Date oldExecutionTime = jobConfig.getNextExecutionTime();
 
                 jobConfig.setNextExecutionTime( null );
+                jobConfig.setJobStatus( SCHEDULED );
                 jobConfigurationService.updateJobConfiguration( jobConfig );
-
-                System.out.println(jobConfig.getUid() + ", last: " + jobConfig.getLastExecutedStatus() + "," + jobConfig.isContinuousExecution() + ", " + jobConfig.getNextExecutionTime() + ", " + now + ", " + oldExecutionTime);
 
                 if ( jobConfig.getLastExecutedStatus() == FAILED ||
                     ( !jobConfig.isContinuousExecution() && oldExecutionTime.compareTo( now ) < 0 ) )

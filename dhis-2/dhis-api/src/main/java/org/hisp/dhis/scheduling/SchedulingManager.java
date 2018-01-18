@@ -130,10 +130,4 @@ public interface SchedulingManager
      * @return list of jobs
      */
     Map<String, ScheduledFuture<?>> getAllFutureJobs();
-
-    /**
-     * Returns the status of the currently executing job.
-     */
-    boolean isJobInProgress( String jobKey );
-
 }

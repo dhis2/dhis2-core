@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -166,8 +165,7 @@ public class DefaultSchedulingManager
 
                 futures.put( jobConfiguration.getUid(), future );
 
-                log.info( "Scheduled job with uid: " + jobConfiguration.getUid() + " and cron: " +
-                    jobConfiguration.getCronExpression() );
+                log.info( "Scheduled job:\n" + jobConfiguration + "\n");
             }
         }
     }
@@ -187,7 +185,7 @@ public class DefaultSchedulingManager
     @Override
     public boolean executeJob( JobConfiguration jobConfiguration )
     {
-        if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getUid() ) )
+        if ( jobConfiguration != null && !isJobConfigurationRunning( jobConfiguration ) )
         {
             internalExecuteJobConfiguration( jobConfiguration );
             return true;
@@ -213,12 +211,6 @@ public class DefaultSchedulingManager
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean isJobInProgress( String jobKey )
-    {
-        return JobStatus.RUNNING == getCurrentJobStatus( jobKey );
-    }
 
     public Job getJob( JobType jobType )
     {
@@ -250,6 +242,8 @@ public class DefaultSchedulingManager
             }
         } );
         currentTasks.put( jobConfiguration.getUid(), future );
+
+        log.info( "Scheduler initiated execute of job:\n" + jobConfiguration + "\n");
     }
 
     private boolean internalStopJob( String uid )
@@ -278,27 +272,7 @@ public class DefaultSchedulingManager
         return false;
     }
 
-    private JobStatus getStatus( Future<?> future )
-    {
-        if ( future == null )
-        {
-            return JobStatus.SCHEDULED;
-        }
-        else if ( future.isCancelled() )
-        {
-            return JobStatus.STOPPED;
-        }
-        else if ( future.isDone() )
-        {
-            return JobStatus.COMPLETED;
-        }
-        else
-        {
-            return JobStatus.RUNNING;
-        }
-    }
-
-   private boolean ifJobInSystemStop( String jobKey )
+    private boolean ifJobInSystemStop( String jobKey )
     {
         return !isJobInSystem( jobKey ) || internalStopJob( jobKey );
     }
@@ -306,12 +280,5 @@ public class DefaultSchedulingManager
     private boolean isJobInSystem( String jobKey )
     {
         return futures.get( jobKey ) != null || currentTasks.get( jobKey ) != null;
-    }
-
-    private JobStatus getCurrentJobStatus( String jobKey )
-    {
-        ListenableFuture<?> future = currentTasks.get( jobKey );
-
-        return getStatus( future );
     }
 }

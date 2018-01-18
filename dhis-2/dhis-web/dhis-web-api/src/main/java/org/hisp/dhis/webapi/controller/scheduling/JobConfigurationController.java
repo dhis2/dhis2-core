@@ -39,9 +39,9 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,8 +69,8 @@ public class JobConfigurationController
         return jobConfigurationService.getJobParametersSchema();
     }
 
-    @RequestMapping( value = "/execute/{uid}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public ObjectReport executeJobConfiguration( @RequestParam String uid )
+    @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
     {
         JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
 
@@ -80,7 +80,7 @@ public class JobConfigurationController
 
         if ( !success )
         {
-            objectReport.addErrorReport( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E7006, jobConfiguration.getUid() ) ) );
+            objectReport.addErrorReport( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E7006, jobConfiguration.getName() ) ) );
         }
 
         return objectReport;
