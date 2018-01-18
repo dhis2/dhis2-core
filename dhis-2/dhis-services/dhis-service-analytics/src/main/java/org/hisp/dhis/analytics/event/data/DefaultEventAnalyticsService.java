@@ -83,7 +83,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -807,18 +806,38 @@ public class DefaultEventAnalyticsService
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
             Map<String, Object> metaData = new HashMap<>();
-            
+
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+            boolean includeMetadataDetails = params.isIncludeMetadataDetails();
+
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
-                metaData.put( ITEMS.getKey(), uidNameMap.entrySet().stream().collect(
-                    Collectors.toMap( Map.Entry::getKey, e -> new MetadataItem( e.getValue() ) ) ) );
+                Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+
+                if ( params.hasValueDimension() )
+                {
+                    metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
+                }
+
+                params.getLegends().forEach( legend -> {
+                    metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, includeMetadataDetails ? legend.getCode() : null ) );
+                } );
+
+                params.getOptions().forEach( option -> {
+                    metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, includeMetadataDetails ? option.getCode() : null ) );
+                } );
+
+                params.getItems().forEach( item -> {
+                    metadataItemMap.put( item.getItemId(),  new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
+                } );
+
+                metaData.put( ITEMS.getKey(), metadataItemMap );
             }
             else
             {
                 metaData.put( NAMES.getKey(), uidNameMap );
             }
-            
+
             Map<String, Object> dimensionItems = new HashMap<>();
             
             dimensionItems.put( PERIOD_DIM_ID, periodUids );
