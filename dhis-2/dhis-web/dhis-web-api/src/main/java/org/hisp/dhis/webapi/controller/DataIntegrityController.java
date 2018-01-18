@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,12 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.scheduling.*;
-import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -57,9 +58,6 @@ public class DataIntegrityController
     @Autowired
     private SchedulingManager schedulingManager;
 
-    @Autowired
-    private Notifier notifier;
-
     public static final String RESOURCE_PATH = "/dataIntegrity";
 
     //--------------------------------------------------------------------------
@@ -70,14 +68,13 @@ public class DataIntegrityController
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobType.DATA_INTEGRITY, currentUserService.getCurrentUser().getUid() );
-        notifier.clear( jobId );
-
         JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
-            false, true );
+            false, true, true );
+        jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
+        jobConfiguration.setAutoFields();
+
         schedulingManager.executeJob( jobConfiguration );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.DATA_INTEGRITY );
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        JacksonUtils.fromObjectToReponse( response, jobConfiguration );
     }
 }

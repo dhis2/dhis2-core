@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.operators;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,6 +123,22 @@ public abstract class Operator
 
     public abstract boolean test( Object value );
 
+    org.hibernate.criterion.MatchMode getMatchMode( org.hisp.dhis.query.operators.MatchMode matchMode )
+    {
+        switch ( matchMode )
+        {
+        case EXACT:
+            return org.hibernate.criterion.MatchMode.EXACT;
+        case START:
+            return org.hibernate.criterion.MatchMode.START;
+        case END:
+            return org.hibernate.criterion.MatchMode.END;
+        case ANYWHERE:
+            return org.hibernate.criterion.MatchMode.ANYWHERE;
+        default:
+            return null;
+        }
+    }
 
     @Override
     public String toString()

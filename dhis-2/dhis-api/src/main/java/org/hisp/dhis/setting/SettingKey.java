@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ public enum SettingKey
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
-    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_PERIOD_OCTOBER, AnalyticsFinancialYearStartKey.class ),
+    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
@@ -92,6 +92,8 @@ public enum SettingKey
     CREDENTIALS_EXPIRES( "credentialsExpires", 0, Integer.class ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlert", false, Boolean.class ),
     SELF_REGISTRATION_NO_RECAPTCHA( "keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class ),
+    RECAPTCHA_SECRET( "recaptchaSecret", "6LcVwT0UAAAAAAtMWnPoerWwLx_DSwrcEncHCiWu", String.class ),
+    RECAPTCHA_SITE( "recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", String.class ),
     OPENID_PROVIDER( "keyOpenIdProvider" ),
     OPENID_PROVIDER_LABEL( "keyOpenIdProviderLabel" ),
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
@@ -136,9 +138,6 @@ public enum SettingKey
     REMOTE_INSTANCE_URL( "keyRemoteInstanceUrl", "", String.class ),
     REMOTE_INSTANCE_USERNAME( "keyRemoteInstanceUsername", "", String.class ),
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true ),
-    SYSTEM_MONITORING_URL( "keySystemMonitoringUrl", "", String.class ),
-    SYSTEM_MONITORING_USERNAME( "keySystemMonitoringUsername", "", String.class ),
-    SYSTEM_MONITORING_PASSWORD( "keySystemMonitoringPassword", "", String.class, true ),
     MAPZEN_SEARCH_API_KEY( "keyMapzenSearchApiKey", "search-Se1CFzK", String.class ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
@@ -245,6 +244,10 @@ public enum SettingKey
             else if ( Cacheability.class.isAssignableFrom( settingClazz ) )
             {
                 return Cacheability.valueOf( value );
+            }
+            else if ( AnalyticsFinancialYearStartKey.class.isAssignableFrom( settingClazz ) )
+            {
+                return AnalyticsFinancialYearStartKey.valueOf( value );
             }
 
             //TODO handle Dates

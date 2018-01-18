@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.program.notification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -208,8 +209,22 @@ public class ProgramNotificationTemplate
         return recipientDataElement;
     }
 
-    public void setRecipientDataElement( DataElement recipientDataElement )
+    public void setRecipientDataElement( DataElement dataElement )
     {
-        this.recipientDataElement = recipientDataElement;
+        this.recipientDataElement = dataElement;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "uid", uid )
+            .add( "name", name )
+            .add( "notificationTrigger", notificationTrigger )
+            .add( "notificationRecipient", notificationRecipient )
+            .add( "deliveryChannels", deliveryChannels )
+            .add( "messageTemplate", messageTemplate )
+            .add( "subjectTemplate", subjectTemplate )
+            .toString();
     }
 }

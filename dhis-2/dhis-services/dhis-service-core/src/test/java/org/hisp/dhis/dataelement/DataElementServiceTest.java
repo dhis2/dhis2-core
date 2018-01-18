@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -372,7 +372,7 @@ public class DataElementServiceTest
     @Test
     public void testDataElementUrl()
     {
-        DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.DEFAULT );
+        DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.SUM );
 
         int id = dataElementService.addDataElement( de );
 

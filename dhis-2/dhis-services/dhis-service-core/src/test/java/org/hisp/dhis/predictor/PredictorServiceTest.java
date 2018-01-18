@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -74,9 +73,6 @@ public class PredictorServiceTest
     @Autowired
     private ExpressionService expressionService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
     private OrganisationUnitLevel orgUnitLevel1;
     
     private DataElement dataElementA;
@@ -100,7 +96,6 @@ public class PredictorServiceTest
     private Expression expressionA;
     private Expression expressionB;
     private Expression expressionC;
-    private Expression expressionD;
 
     private PeriodType periodTypeMonthly;
 

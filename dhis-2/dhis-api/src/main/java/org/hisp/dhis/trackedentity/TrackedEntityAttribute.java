@@ -5,18 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +49,13 @@ public class TrackedEntityAttribute
 {
     private String description;
 
+    private String formName;
+
     private ValueType valueType;
 
     private Boolean inherit = false;
 
     private OptionSet optionSet;
-
-    private TrackedEntity trackedEntity;
 
     private String expression;
 
@@ -78,11 +75,21 @@ public class TrackedEntityAttribute
 
     private String pattern;
 
+    /**
+     * The style representing how TrackedEntityAttributes should be presented on the client
+     */
+    private ObjectStyle style;
+
     // For Local ID type
 
     private Boolean orgunitScope = false;
 
-    private Boolean programScope = false;    
+    private Boolean programScope = false;
+
+    /**
+     * Represents how the client should render the TrackedEntityAttribute
+     */
+    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -363,20 +370,7 @@ public class TrackedEntityAttribute
     {
         this.optionSet = optionSet;
     }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
-    {
-        return trackedEntity;
-    }
-
-    public void setTrackedEntity( TrackedEntity trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getConfidential()
@@ -387,5 +381,47 @@ public class TrackedEntityAttribute
     public void setConfidential( Boolean confidential )
     {
         this.confidential = confidential;
-    }    
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+    
+    public Boolean isSystemWideUnique()
+    {
+        return isUnique() && !getProgramScope() && !getOrgunitScope();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType(
+        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
+    {
+        this.renderType = renderType;
+    }
 }

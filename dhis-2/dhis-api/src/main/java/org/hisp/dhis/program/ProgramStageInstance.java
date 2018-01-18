@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -207,9 +207,10 @@ public class ProgramStageInstance
         return organisationUnit;
     }
 
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    public ProgramStageInstance setOrganisationUnit( OrganisationUnit organisationUnit )
     {
         this.organisationUnit = organisationUnit;
+        return this;
     }
 
     public DataElementCategoryOptionCombo getAttributeOptionCombo()

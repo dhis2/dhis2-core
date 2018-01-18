@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * @author Chau Thu Tran
@@ -82,9 +82,9 @@ public class HibernateProgramStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<Program> getByTrackedEntity( TrackedEntity trackedEntity )
+    public List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        return getCriteria( Restrictions.eq( "trackedEntity", trackedEntity ) ).list();
+        return getCriteria( Restrictions.eq( "trackedEntityType", trackedEntityType ) ).list();
     }
 
     @Override

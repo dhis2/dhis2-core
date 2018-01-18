@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -64,7 +65,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.junit.Assert.assertEquals;
@@ -75,7 +75,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Jim Grace
  */
-
 public class ValidationResultStoreTest
     extends DhisTest
 {
@@ -123,6 +122,7 @@ public class ValidationResultStoreTest
     private Expression expressionB;
 
     private ValidationRule validationRuleA;
+    private ValidationRule validationRuleB;
 
     private ValidationResult validationResultAA;
     private ValidationResult validationResultAB;
@@ -130,11 +130,14 @@ public class ValidationResultStoreTest
     private ValidationResult validationResultBA;
     private ValidationResult validationResultBB;
     private ValidationResult validationResultBC;
+    private ValidationResult validationResultCA;
 
     private Period periodA;
+    private Period periodB;
 
     private OrganisationUnit sourceA;
     private OrganisationUnit sourceB;
+    private OrganisationUnit sourceC;
 
     private CurrentUserService superUserService;
     private CurrentUserService userAService;
@@ -224,12 +227,16 @@ public class ValidationResultStoreTest
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
         periodA = createPeriod( new MonthlyPeriodType(), getDate( 2017, 1, 1 ), getDate( 2017, 1, 31 ) );
+        periodB = createPeriod( new MonthlyPeriodType(), getDate( 2017, 2, 1 ), getDate( 2017, 2, 28 ) );
         periodService.addPeriod( periodA );
+        periodService.addPeriod( periodB );
 
         sourceA = createOrganisationUnit( 'A' );
         sourceB = createOrganisationUnit( 'B', sourceA );
+        sourceC = createOrganisationUnit( 'C' );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
+        organisationUnitService.addOrganisationUnit( sourceC );
 
         superUserService = getMockCurrentUserService( "SuperUser", true, sourceA, UserAuthorityGroup.AUTHORITY_ALL );
         userAService = getMockCurrentUserService( "UserA", false, sourceA );
@@ -296,14 +303,17 @@ public class ValidationResultStoreTest
         expressionService.addExpression( expressionA );
 
         validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        validationRuleB = createValidationRule( 'B', equal_to, expressionB, expressionA, periodType );
         validationRuleStore.save( validationRuleA );
+        validationRuleStore.save( validationRuleB );
 
         validationResultAA = new ValidationResult( validationRuleA, periodA, sourceA, optionComboA, 1.0, 2.0, 3 );
         validationResultAB = new ValidationResult( validationRuleA, periodA, sourceA, optionComboB, 1.0, 2.0, 3 );
         validationResultAC = new ValidationResult( validationRuleA, periodA, sourceA, optionComboC, 1.0, 2.0, 3 );
-        validationResultBA = new ValidationResult( validationRuleA, periodA, sourceB, optionComboA, 1.0, 2.0, 3 );
-        validationResultBB = new ValidationResult( validationRuleA, periodA, sourceB, optionComboB, 1.0, 2.0, 3 );
-        validationResultBC = new ValidationResult( validationRuleA, periodA, sourceB, optionComboC, 1.0, 2.0, 3 );
+        validationResultBA = new ValidationResult( validationRuleB, periodB, sourceB, optionComboA, 1.0, 2.0, 3 );
+        validationResultBB = new ValidationResult( validationRuleB, periodB, sourceB, optionComboB, 1.0, 2.0, 3 );
+        validationResultBC = new ValidationResult( validationRuleB, periodB, sourceB, optionComboC, 1.0, 2.0, 3 );
+        validationResultCA = new ValidationResult( validationRuleB, periodB, sourceC, optionComboA, 1.0, 2.0, 3 );
 
         validationResultAB.setNotificationSent( true );
     }
@@ -557,5 +567,49 @@ public class ValidationResultStoreTest
         setMockUserService( userDService );
         count = validationResultStore.count( validationResultQuery );
         assertEquals( 1, count );
+    }
+
+    @Test
+    public void testGetValidationResults() throws Exception
+    {
+        validationResultStore.save( validationResultAA );
+        validationResultStore.save( validationResultBA );
+        validationResultStore.save( validationResultCA );
+
+        List<ValidationRule> rulesA = Lists.newArrayList( validationRuleA );
+        List<ValidationRule> rulesAB = Lists.newArrayList( validationRuleA, validationRuleB );
+
+        List<Period> periodsB = Lists.newArrayList( periodB );
+        List<Period> periodsAB = Lists.newArrayList( periodA, periodB );
+
+        List<ValidationResult> results;
+
+        results = validationResultStore.getValidationResults( null, false, rulesA, periodsAB );
+        assertEquals( 1, results.size() );
+        assertTrue( results.contains( validationResultAA ) );
+
+        results = validationResultStore.getValidationResults( null, true, rulesAB, periodsB );
+        assertEquals( 2, results.size() );
+        assertTrue( results.contains( validationResultBA ) );
+        assertTrue( results.contains( validationResultCA ) );
+
+        results = validationResultStore.getValidationResults( null, true, rulesAB, periodsAB );
+        assertEquals( 3, results.size() );
+        assertTrue( results.contains( validationResultAA ) );
+        assertTrue( results.contains( validationResultBA ) );
+        assertTrue( results.contains( validationResultCA ) );
+
+        results = validationResultStore.getValidationResults( sourceA, true, rulesAB, periodsAB );
+        assertEquals( 2, results.size() );
+        assertTrue( results.contains( validationResultAA ) );
+        assertTrue( results.contains( validationResultBA ) );
+
+        results = validationResultStore.getValidationResults( sourceA, false, rulesAB, periodsAB );
+        assertEquals( 1, results.size() );
+        assertTrue( results.contains( validationResultAA ) );
+
+        results = validationResultStore.getValidationResults( sourceB, false, rulesAB, periodsAB );
+        assertEquals( 1, results.size() );
+        assertTrue( results.contains( validationResultBA ) );
     }
 }

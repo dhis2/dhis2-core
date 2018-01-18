@@ -73,7 +73,12 @@
         notificationTrigger.addEventListener( "change", function( e ) {
             if ( notificationTrigger.value === 'ENROLLMENT' || notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
-            } else {
+
+            } else if ( notificationTrigger.value === 'PROGRAM_RULE' )
+            {
+                daysContainer.style.display = 'none';
+            }
+            else {
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
             }

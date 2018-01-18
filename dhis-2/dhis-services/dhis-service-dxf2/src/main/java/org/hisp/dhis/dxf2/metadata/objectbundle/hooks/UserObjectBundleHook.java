@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-/*
- * Copyright (c) 2004-2017, University of Oslo
+    /*
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
@@ -99,7 +99,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
         if ( !StringUtils.isEmpty( userCredentials.getPassword() ) )
         {
-            userService.encodeAndSetPassword( userCredentials, userCredentials.getPassword() );
+            userService.encodeAndSetPassword( persistedUserCredentials, userCredentials.getPassword() );
         }
 
         mergeService.merge( new MergeParams<>( userCredentials, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );

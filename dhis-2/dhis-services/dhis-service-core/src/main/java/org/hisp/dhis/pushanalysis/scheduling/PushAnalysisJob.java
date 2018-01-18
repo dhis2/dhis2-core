@@ -1,6 +1,6 @@
 package org.hisp.dhis.pushanalysis.scheduling;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,12 @@ public class PushAnalysisJob
     {
         PushAnalysisJobParameters parameters = (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
 
-        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration.getJobId() );
+        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "pushAnalysis";
     }
 }

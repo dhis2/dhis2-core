@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,8 @@ public interface DashboardService
     DashboardSearchResult search( String query );
 
     DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes );
+    
+    DashboardSearchResult search( Set<DashboardItemType> maxTypes );
 
     DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid );
 

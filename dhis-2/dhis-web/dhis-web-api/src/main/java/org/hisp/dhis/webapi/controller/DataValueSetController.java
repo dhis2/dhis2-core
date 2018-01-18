@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobId;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -56,7 +56,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Set;
 
@@ -88,7 +93,7 @@ public class DataValueSetController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -115,6 +120,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_XML );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
@@ -137,6 +143,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException, AdxException
     {
         response.setContentType( CONTENT_TYPE_XML_ADX );
+        setNoStore( response );
 
         DataExportParams params = adxDataService.getFromUrl( dataSet, period,
             startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, limit, idSchemes );
@@ -162,6 +169,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_JSON );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
@@ -189,6 +197,7 @@ public class DataValueSetController
         HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_CSV );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
@@ -305,9 +314,10 @@ public class DataValueSetController
     {
         InputStream inputStream = saveTmp( request.getInputStream() );
 
-        JobId jobId = new JobId( DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
-        scheduler.executeJob( new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
-            jobId, format ) );
+        JobConfiguration jobId = new JobConfiguration( "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        schedulingManager.executeJob(
+            new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
+                jobId, format ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + DATAVALUE_IMPORT );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );

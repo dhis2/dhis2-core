@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -35,12 +34,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.event.Coordinate;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -134,6 +136,9 @@ public abstract class AbstractEnrollmentService
     @Autowired
     protected EventService eventService;
 
+    @Autowired
+    protected TrackerAccessManager trackerAccessManager;
+
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private CachingMap<String, Program> programCache = new CachingMap<>();
@@ -145,6 +150,38 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
+
+    public Enrollments getEnrollments( ProgramInstanceQueryParams params )
+    {
+        Enrollments enrollments = new Enrollments();
+
+        if ( !params.isPaging() && !params.isSkipPaging() )
+        {
+            params.setDefaultPaging();
+        }
+
+        if ( params.isPaging() )
+        {
+            int count = 0;
+
+            if ( params.isTotalPages() )
+            {
+                count = programInstanceService.countProgramInstances( params );
+            }
+
+            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+
+            enrollments.setPager( pager );
+        }
+
+        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
+
+        List listEnrollments = getEnrollments( programInstances );
+
+        enrollments.setEnrollments( listEnrollments );
+
+        return enrollments;
+    }
 
     @Override
     public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
@@ -180,12 +217,18 @@ public abstract class AbstractEnrollmentService
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
         Enrollment enrollment = new Enrollment();
-
         enrollment.setEnrollment( programInstance.getUid() );
+
+        List<String> errors = trackerAccessManager.canRead( currentUserService.getCurrentUser(), programInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
 
         if ( programInstance.getEntityInstance() != null )
         {
-            enrollment.setTrackedEntity( programInstance.getEntityInstance().getTrackedEntity().getUid() );
+            enrollment.setTrackedEntityType( programInstance.getEntityInstance().getTrackedEntityType().getUid() );
             enrollment.setTrackedEntityInstance( programInstance.getEntityInstance().getUid() );
         }
 
@@ -272,7 +315,7 @@ public abstract class AbstractEnrollmentService
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions )
     {
         User user = currentUserService.getCurrentUser();
-    	
+
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
@@ -297,10 +340,17 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    {
+        return addEnrollment( enrollment, importOptions, currentUserService.getCurrentUser() );
+    }
+
+    @Override
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user )
     {
-    	String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ? enrollment.getStoredBy() : user.getUsername();
-    	
+        String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ?
+            enrollment.getStoredBy() : (user != null ? user.getUsername() : "system-process");
+
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
@@ -350,8 +400,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkAttributes( enrollment, importOptions ) );
+        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
 
         importSummary.setConflicts( importConflicts );
 
@@ -364,6 +413,13 @@ public abstract class AbstractEnrollmentService
         }
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
+
+        List<String> errors = trackerAccessManager.canWrite( user, new ProgramInstance( program, entityInstance, organisationUnit ) );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
 
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
@@ -405,7 +461,7 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
         programInstance.setStoredBy( storedBy );
-        
+
 
         programInstanceService.updateProgramInstance( programInstance );
         manager.update( programInstance.getEntityInstance() );
@@ -501,8 +557,8 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         }
-        
-        if ( enrollment.getOrgUnit() != null ) 
+
+        if ( enrollment.getOrgUnit() != null )
         {
             OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
             programInstance.setOrganisationUnit( organisationUnit );

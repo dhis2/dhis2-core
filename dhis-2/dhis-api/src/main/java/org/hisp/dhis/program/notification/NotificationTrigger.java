@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,11 @@ public enum NotificationTrigger
     COMPLETION,
 
     /**
+     * Triggered by ProgramRule.
+     */
+    PROGRAM_RULE,
+
+    /**
      * Scheduled days relative to the dueDate of the ProgramStageInstance (event) and DataSet completion.
      */
     SCHEDULED_DAYS_DUE_DATE,
@@ -67,7 +72,7 @@ public enum NotificationTrigger
 
     private static final Set<NotificationTrigger> IMMEDIATE_TRIGGERS =
         new ImmutableSet.Builder<NotificationTrigger>()
-            .add( ENROLLMENT, COMPLETION ).build();
+            .add( ENROLLMENT, COMPLETION, PROGRAM_RULE ).build();
 
     private static final Set<NotificationTrigger> SCHEDULED_TRIGGERS =
         new ImmutableSet.Builder<NotificationTrigger>()

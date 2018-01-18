@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -124,6 +124,11 @@ public class Schema implements Ordered, Klass
      * Is sharing supported for instances of this class.
      */
     private Boolean shareable;
+
+    /**
+     * Is data sharing supported for instances of this class.
+     */
+    private boolean dataShareable;
 
     /**
      * Points to relative Web-API endpoint (if exposed).
@@ -320,6 +325,18 @@ public class Schema implements Ordered, Klass
     public void setShareable( boolean shareable )
     {
         this.shareable = shareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataShareable()
+    {
+        return dataShareable;
+    }
+
+    public void setDataShareable( boolean dataShareable )
+    {
+        this.dataShareable = dataShareable;
     }
 
     @JsonProperty

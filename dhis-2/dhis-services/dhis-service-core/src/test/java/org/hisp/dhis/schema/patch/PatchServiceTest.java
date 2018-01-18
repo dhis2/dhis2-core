@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.patch;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.schema.patch;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -382,7 +381,7 @@ public class PatchServiceTest
         deB.getUserGroupAccesses().add( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getUserAccesses().add( new UserAccess( adminUser, "rw------" ) );
 
-        Patch patch = patchService.diff( new PatchParams( deA, deB ) );
+        patchService.diff( new PatchParams( deA, deB ) );
     }
 
     @Test
@@ -453,7 +452,7 @@ public class PatchServiceTest
     public void testPatchFromJsonNode3()
     {
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/complex.json" );
-        Patch patch = patchService.diff( new PatchParams( jsonNode ) );
+        patchService.diff( new PatchParams( jsonNode ) );
     }
 
     private JsonNode loadJsonNodeFromFile( String path )
@@ -481,7 +480,7 @@ public class PatchServiceTest
             {
                 if ( Collection.class.isInstance( mutation.getValue() ) )
                 {
-                    count += ((Collection) mutation.getValue()).size();
+                    count += ((Collection<?>) mutation.getValue()).size();
                 }
                 else
                 {

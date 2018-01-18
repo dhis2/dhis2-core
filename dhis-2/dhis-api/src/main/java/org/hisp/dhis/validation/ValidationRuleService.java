@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,6 @@ public interface ValidationRuleService
      * Update a ValidationRule to the database.
      *
      * @param validationRule the ValidationRule to update.
-     * @return the generated unique identifier for the ValidationRule.
      */
     void updateValidationRule( ValidationRule validationRule );
 

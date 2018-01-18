@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -177,8 +177,6 @@ public interface IdentifiableObjectManager
     void evict( Object object );
 
     <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute );
-
-    List<AttributeValue> getAttributeValueByAttributes( Class<? extends IdentifiableObject> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
 

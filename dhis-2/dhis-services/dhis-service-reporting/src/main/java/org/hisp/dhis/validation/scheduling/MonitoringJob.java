@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.scheduling;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +33,27 @@ import com.google.api.client.util.Sets;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.validation.*;
+import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
+import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -56,7 +62,6 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
-@Transactional
 public class MonitoringJob
     extends AbstractJob
 {
@@ -68,9 +73,6 @@ public class MonitoringJob
 
     @Autowired
     private PeriodService periodService;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private Notifier notifier;
@@ -89,21 +91,20 @@ public class MonitoringJob
     }
 
     @Override
+    @Transactional
     public void execute( JobConfiguration jobConfiguration )
     {
-        notifier.clear( jobConfiguration.getJobId() ).notify( jobConfiguration.getJobId(), "Monitoring data" );
+        notifier.clear( jobConfiguration ).notify( jobConfiguration, "Monitoring data" );
 
-        MonitoringJobParameters jobParams = (MonitoringJobParameters) jobConfiguration.getJobParameters();
+        MonitoringJobParameters monitoringJobParameters = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
         //TODO improve collection usage
         
         try
         {
-
-            List<Period> periods = new ArrayList<>();
-            List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
+            List<Period> periods;
             Collection<ValidationRule> validationRules;
-            List<String> groupUIDs = jobParams.getValidationRuleGroups();
+            List<String> groupUIDs = monitoringJobParameters.getValidationRuleGroups();
 
             if ( groupUIDs.isEmpty() )
             {
@@ -120,11 +121,12 @@ public class MonitoringJob
                     .reduce( Sets.newHashSet(), SetUtils::union );
             }
 
-            if ( jobParams.getRelativePeriods() != null && !jobParams.getRelativePeriods().isEmpty() )
+            if ( monitoringJobParameters.getRelativeStart() != 0 && monitoringJobParameters.getRelativeEnd() != 0 )
             {
-                periods = new RelativePeriods()
-                    .setRelativePeriodsFromEnums( jobParams.getRelativePeriods() )
-                    .getRelativePeriods();
+                Date startDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeStart() );
+                Date endDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeEnd() );
+
+                periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
                 periods = ListUtils.union( periods, periodService.getIntersectionPeriods( periods ) );
             }
@@ -138,23 +140,30 @@ public class MonitoringJob
             }
 
             ValidationAnalysisParams parameters = validationService
-                .newParamsBuilder( validationRules, organisationUnits, periods )
+                .newParamsBuilder( validationRules, null, periods )
+                .withIncludeOrgUnitDescendants( true )
                 .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
-                .withSendNotifications( jobParams.isSendNotifications() )
-                .withPersistResults( jobParams.isPersistResults() )
+                .withSendNotifications( monitoringJobParameters.isSendNotifications() )
+                .withPersistResults( monitoringJobParameters.isPersistResults() )
                 .build();
 
             validationService.validationAnalysis( parameters );
 
-            notifier.notify( jobConfiguration.getJobId(), INFO, "Monitoring process done", true );
+            notifier.notify( jobConfiguration, INFO, "Monitoring process done", true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration, ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
 
             throw ex;
         }
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "monitoringJob";
     }
 }

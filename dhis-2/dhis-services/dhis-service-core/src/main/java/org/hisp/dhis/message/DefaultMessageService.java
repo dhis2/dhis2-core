@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,9 +195,8 @@ public class DefaultMessageService
         String footer = getMessageFooter( conversation );
 
         // Send messages to users using the messageSenders
-        params.getRecipients().forEach(
-            ( recipient ) -> invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
-                params.getRecipients(), params.isForceNotification() ) );
+        invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
+            params.getRecipients(), params.isForceNotification() );
 
         return saveMessageConversation( conversation );
     }

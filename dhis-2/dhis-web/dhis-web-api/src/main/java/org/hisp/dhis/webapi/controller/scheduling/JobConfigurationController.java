@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.scheduling;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,18 @@ package org.hisp.dhis.webapi.controller.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -54,9 +60,29 @@ public class JobConfigurationController
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
+    @Autowired
+    private SchedulingManager schedulingManager;
+
     @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended()
     {
         return jobConfigurationService.getJobParametersSchema();
+    }
+
+    @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
+    {
+        JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
+
+        ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
+
+        boolean success = schedulingManager.executeJob( jobConfiguration );
+
+        if ( !success )
+        {
+            objectReport.addErrorReport( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E7006, jobConfiguration.getName() ) ) );
+        }
+
+        return objectReport;
     }
 }

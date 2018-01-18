@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,10 +88,13 @@ public class DefaultProgramInstanceService
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private ProgramNotificationService programNotificationService;
+
+    @Autowired
+    private ProgramRuleEngineService programRuleEngineService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -149,7 +153,7 @@ public class DefaultProgramInstanceService
 
     @Override
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
-        Date programStartDate, Date programEndDate, String trackedEntity, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging )
+        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
 
@@ -175,9 +179,9 @@ public class DefaultProgramInstanceService
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
 
-        TrackedEntity te = trackedEntity != null ? trackedEntityService.getTrackedEntity( trackedEntity ) : null;
+        TrackedEntityType te = trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
 
-        if ( trackedEntity != null && te == null )
+        if ( trackedEntityType != null && te == null )
         {
             throw new IllegalQueryException( "Tracked entity does not exist: " + program );
         }
@@ -195,7 +199,7 @@ public class DefaultProgramInstanceService
         params.setLastUpdated( lastUpdated );
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
-        params.setTrackedEntity( te );
+        params.setTrackedEntityType( te );
         params.setTrackedEntityInstance( tei );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );
@@ -300,7 +304,7 @@ public class DefaultProgramInstanceService
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
         }
 
-        if ( params.hasProgram() && params.hasTrackedEntity() )
+        if ( params.hasProgram() && params.hasTrackedEntityType() )
         {
             violation = "Program and tracked entity cannot be specified simultaneously";
         }
@@ -367,7 +371,7 @@ public class DefaultProgramInstanceService
         // Add program instance
         // ---------------------------------------------------------------------
 
-        if ( program.getTrackedEntity() != null && !program.getTrackedEntity().equals( trackedEntityInstance.getTrackedEntity() ) )
+        if ( program.getTrackedEntityType() != null && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException( "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
         }
@@ -403,6 +407,7 @@ public class DefaultProgramInstanceService
         // -----------------------------------------------------------------
 
         programNotificationService.sendEnrollmentNotifications( programInstance );
+        programRuleEngineService.evaluate( programInstance );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -442,6 +447,7 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
 
         programNotificationService.sendCompletionNotifications( programInstance );
+        programRuleEngineService.evaluate( programInstance );
 
         // -----------------------------------------------------------------
         // Update program-instance

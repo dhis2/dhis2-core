@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -125,7 +125,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
-    private final CachingMap<String, TrackedEntity> trackedEntityCache = new CachingMap<>();
+    private final CachingMap<String, TrackedEntityType> trackedEntityCache = new CachingMap<>();
 
     private final CachingMap<String, TrackedEntityAttribute> trackedEntityAttributeCache = new CachingMap<>();
 
@@ -184,12 +184,14 @@ public abstract class AbstractTrackedEntityInstanceService
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( entityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( entityInstance.getOrganisationUnit().getUid() );
-        trackedEntityInstance.setTrackedEntity( entityInstance.getTrackedEntity().getUid() );
+        trackedEntityInstance.setTrackedEntityType( entityInstance.getTrackedEntityType().getUid() );
         trackedEntityInstance.setCreated( DateUtils.getIso8601NoTz( entityInstance.getCreated() ) );
         trackedEntityInstance.setCreatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setLastUpdated( DateUtils.getIso8601NoTz( entityInstance.getLastUpdated() ) );
         trackedEntityInstance.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setInactive( entityInstance.isInactive() );
+        trackedEntityInstance.setFeatureType( entityInstance.getFeatureType() );
+        trackedEntityInstance.setCoordinates( entityInstance.getCoordinates() );
 
         if ( params.isIncludeRelationships() )
         {
@@ -267,15 +269,15 @@ public abstract class AbstractTrackedEntityInstanceService
 
         entityInstance.setOrganisationUnit( organisationUnit );
 
-        TrackedEntity trackedEntity = getTrackedEntity( importOptions.getIdSchemes(), trackedEntityInstance.getTrackedEntity() );
+        TrackedEntityType trackedEntityType = getTrackedEntityType( importOptions.getIdSchemes(), trackedEntityInstance.getTrackedEntityType() );
 
-        if ( trackedEntity == null )
+        if ( trackedEntityType == null )
         {
-            importSummary.getConflicts().add( new ImportConflict( trackedEntityInstance.getTrackedEntityInstance(), "Invalid tracked entity ID: " + trackedEntityInstance.getTrackedEntity() ) );
+            importSummary.getConflicts().add( new ImportConflict( trackedEntityInstance.getTrackedEntityInstance(), "Invalid tracked entity ID: " + trackedEntityInstance.getTrackedEntityType() ) );
             return null;
         }
 
-        entityInstance.setTrackedEntity( trackedEntity );
+        entityInstance.setTrackedEntityType( trackedEntityType );
         entityInstance.setUid( CodeGenerator.isValidUid( trackedEntityInstance.getTrackedEntityInstance() ) ?
             trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
 
@@ -341,7 +343,7 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.trimValuesToNull();
 
         Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkTrackedEntity( trackedEntityInstance, importOptions ) );
+        importConflicts.addAll( checkTrackedEntityType( trackedEntityInstance, importOptions ) );
         importConflicts.addAll( checkAttributes( trackedEntityInstance, importOptions ) );
 
         importSummary.setConflicts( importConflicts );
@@ -365,6 +367,9 @@ public abstract class AbstractTrackedEntityInstanceService
         updateRelationships( trackedEntityInstance, entityInstance );
         updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
+
+        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
+        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
 
         teiService.updateTrackedEntityInstance( entityInstance );
 
@@ -471,6 +476,8 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         entityInstance.setInactive( trackedEntityInstance.isInactive() );
+        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
+        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
 
         removeRelationships( entityInstance );
         removeAttributeValues( entityInstance );
@@ -542,7 +549,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         for ( Enrollment enrollment : trackedEntityInstanceDTO.getEnrollments() )
         {
-            enrollment.setTrackedEntity( trackedEntityInstanceDTO.getTrackedEntity() );
+            enrollment.setTrackedEntityType( trackedEntityInstanceDTO.getTrackedEntityType() );
             enrollment.setTrackedEntityInstance( trackedEntityInstance.getUid() );
 
             if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
@@ -620,9 +627,9 @@ public abstract class AbstractTrackedEntityInstanceService
         return organisationUnitCache.get( id, () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
 
-    private TrackedEntity getTrackedEntity( IdSchemes idSchemes, String id )
+    private TrackedEntityType getTrackedEntityType( IdSchemes idSchemes, String id )
     {
-        return trackedEntityCache.get( id, () -> manager.getObject( TrackedEntity.class, idSchemes.getTrackedEntityIdScheme(), id ) );
+        return trackedEntityCache.get( id, () -> manager.getObject( TrackedEntityType.class, idSchemes.getTrackedEntityIdScheme(), id ) );
     }
 
     private TrackedEntityAttribute getTrackedEntityAttribute( IdSchemes idSchemes, String id )
@@ -742,22 +749,22 @@ public abstract class AbstractTrackedEntityInstanceService
         return importConflicts;
     }
 
-    private List<ImportConflict> checkTrackedEntity( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    private List<ImportConflict> checkTrackedEntityType( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
 
-        if ( trackedEntityInstance.getTrackedEntity() == null )
+        if ( trackedEntityInstance.getTrackedEntityType() == null )
         {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntity", "Missing required property trackedEntity" ) );
+            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Missing required property trackedEntityType" ) );
             return importConflicts;
         }
 
-        TrackedEntity trackedEntity = getTrackedEntity( importOptions.getIdSchemes(), trackedEntityInstance.getTrackedEntity() );
+        TrackedEntityType trackedEntityType = getTrackedEntityType( importOptions.getIdSchemes(), trackedEntityInstance.getTrackedEntityType() );
 
-        if ( trackedEntity == null )
+        if ( trackedEntityType == null )
         {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntity", "Invalid trackedEntity" +
-                trackedEntityInstance.getTrackedEntity() ) );
+            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType" +
+                trackedEntityInstance.getTrackedEntityType() ) );
         }
 
         return importConflicts;

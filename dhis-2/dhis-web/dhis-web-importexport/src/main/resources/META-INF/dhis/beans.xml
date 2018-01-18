@@ -11,7 +11,7 @@
   <bean id="org.hisp.dhis.importexport.action.GetImportSummaryAction"
     class="org.hisp.dhis.importexport.action.GetImportSummaryAction"
     scope="prototype">
-    <property name="category" value="DATAVALUE_IMPORT" />
+    <property name="jobType" value="DATAVALUE_IMPORT" />
   </bean>
 
   <!-- Data value export -->
@@ -41,12 +41,12 @@
 
   <bean id="org.hisp.dhis.importexport.action.dxf2.GetImportSummaryAction"
     class="org.hisp.dhis.importexport.action.dxf2.GetImportSummaryAction" scope="prototype">
-    <property name="category" value="METADATA_IMPORT" />
+    <property name="jobType" value="METADATA_IMPORT" />
   </bean>
 
   <bean id="org.hisp.dhis.importexport.action.dxf2.GetImportReportAction"
     class="org.hisp.dhis.importexport.action.dxf2.GetImportReportAction" scope="prototype">
-    <property name="category" value="METADATA_IMPORT" />
+    <property name="jobType" value="METADATA_IMPORT" />
   </bean>
 
   <bean id="org.hisp.dhis.importexport.action.event.GetImportEventSummariesAction"

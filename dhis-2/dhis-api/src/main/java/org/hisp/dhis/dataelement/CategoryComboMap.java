@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,10 +134,10 @@ public class CategoryComboMap
     }
 
     /**
-     * Look up the categoryoptioncombo based on a composite identifier
+     * Look up the category option combo based on a composite identifier.
      * 
-     * @param compositeIdentifier
-     * @return
+     * @param compositeIdentifier the composite identifier.
+     * @return a category option combo.
      */
     public DataElementCategoryOptionCombo getCategoryOptionCombo( String compositeIdentifier )
     {
@@ -147,10 +147,10 @@ public class CategoryComboMap
     /**
      * Create a composite identifier from a list of identifiers
      * 
-     * Note: identifiers must be in same order as list of categories in the map
+     * Note: identifiers must be in same order as list of categories in the map.
      * 
-     * @param identifiers
-     * @return
+     * @param identifiers the list of identifiers.
+     * @return a composite identifier.
      */
     public String getKey( List<String> identifiers )
     {

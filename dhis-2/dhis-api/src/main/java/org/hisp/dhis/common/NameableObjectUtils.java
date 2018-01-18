@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,8 +139,8 @@ public class NameableObjectUtils
     /**
      * Returns a copy of the given list. Returns an empty list if the argument is null.
      * 
-     * @param objects the objects.
-     * @param a list.
+     * @param objects a list.
+     * @return a list of objects.
      */
     public static <T extends NameableObject> List<T> getCopyNullSafe( List<T> objects )
     {

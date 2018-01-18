@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
@@ -62,6 +62,17 @@ public class MetadataImportParams
      * User to use for import job (important for threaded imports).
      */
     private User user;
+
+    /**
+     * How should the user property be handled, by default it is left as is. You can override this
+     * to use current user, or a selected user instead (not yet supported).
+     */
+    private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
+
+    /**
+     * User to use for override, can be current or a selected user.
+     */
+    private User overrideUser;
 
     /**
      * Should import be imported or just validated.
@@ -119,9 +130,9 @@ public class MetadataImportParams
     private String filename;
 
     /**
-     * Task id to use for threaded imports.
+     * Job id to use for threaded imports.
      */
-    private JobId jobId;
+    private JobConfiguration id;
 
     /**
      * Objects to import.
@@ -153,6 +164,29 @@ public class MetadataImportParams
     {
         this.user = user;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserOverrideMode getUserOverrideMode()
+    {
+        return userOverrideMode;
+    }
+
+    public MetadataImportParams setUserOverrideMode( UserOverrideMode userOverrideMode )
+    {
+        this.userOverrideMode = userOverrideMode;
+        return this;
+    }
+
+    public User getOverrideUser()
+    {
+        return overrideUser;
+    }
+
+    public void setOverrideUser( User overrideUser )
+    {
+        this.overrideUser = overrideUser;
     }
 
     @JsonProperty
@@ -296,20 +330,20 @@ public class MetadataImportParams
         return this;
     }
 
-    public JobId getJobId()
+    public JobConfiguration getId()
     {
-        return jobId;
+        return id;
     }
 
-    public MetadataImportParams setJobId( JobId jobId )
+    public MetadataImportParams setId( JobConfiguration id )
     {
-        this.jobId = jobId;
+        this.id = id;
         return this;
     }
 
     public boolean hasJobId()
     {
-        return jobId != null;
+        return id != null;
     }
 
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects()
@@ -389,9 +423,11 @@ public class MetadataImportParams
     {
         ObjectBundleParams params = new ObjectBundleParams();
         params.setUser( user );
+        params.setUserOverrideMode( userOverrideMode );
+        params.setOverrideUser( overrideUser );
         params.setSkipSharing( skipSharing );
         params.setSkipValidation( skipValidation );
-        params.setJobId( jobId );
+        params.setJobId( id );
         params.setImportStrategy( importStrategy );
         params.setAtomicMode( atomicMode );
         params.setObjects( objects );

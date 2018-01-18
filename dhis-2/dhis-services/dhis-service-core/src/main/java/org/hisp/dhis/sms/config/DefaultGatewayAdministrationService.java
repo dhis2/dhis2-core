@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,12 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +47,7 @@ import java.util.Map;
 public class DefaultGatewayAdministrationService
     implements GatewayAdministrationService
 {
+    private static final Log log = LogFactory.getLog( DefaultGatewayAdministrationService.class );
 
     private Map<String, SmsGatewayConfig> gatewayConfigurationMap = new HashMap<>();
 
@@ -56,6 +61,12 @@ public class DefaultGatewayAdministrationService
     // -------------------------------------------------------------------------
     // GatewayAdministrationService implementation
     // -------------------------------------------------------------------------
+
+    @EventListener
+    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
+    {
+        initializeSmsConfig();
+    }
 
     @Override
     public List<SmsGatewayConfig> listGateways()
@@ -92,9 +103,9 @@ public class DefaultGatewayAdministrationService
     @Override
     public boolean addOrUpdateGateway( SmsGatewayConfig payLoad, Class<?> klass )
     {
-        SmsConfiguration smsConfig = getSmsConfiguration();
+        SmsConfiguration smsConfiguration = getSmsConfiguration();
 
-        if ( smsConfig != null )
+        if ( smsConfiguration != null )
         {
             SmsGatewayConfig gatewayConfig = smsConfigurationManager.checkInstanceOfGateway( klass );
 
@@ -102,31 +113,32 @@ public class DefaultGatewayAdministrationService
 
             if ( gatewayConfig != null )
             {
-                index = smsConfig.getGateways().indexOf( gatewayConfig );
+                index = smsConfiguration.getGateways().indexOf( gatewayConfig );
             }
 
             payLoad.setUid( CodeGenerator.generateCode( 10 ) );
             gatewayConfig = payLoad;
 
-            if ( smsConfig.getGateways() == null || smsConfig.getGateways().isEmpty() )
+            if ( smsConfiguration.getGateways() == null || smsConfiguration.getGateways().isEmpty() )
             {
                 gatewayConfig.setDefault( true );
             }
 
             if ( index >= 0 )
             {
-                smsConfig.getGateways().set( index, gatewayConfig );
+                smsConfiguration.getGateways().set( index, gatewayConfig );
 
                 gatewayConfigurationMap.put( gatewayConfig.getName(), gatewayConfig );
             }
             else
             {
-                smsConfig.getGateways().add( gatewayConfig );
+                smsConfiguration.getGateways().add( gatewayConfig );
 
                 gatewayConfigurationMap.put( gatewayConfig.getName(), gatewayConfig );
             }
 
-            smsConfigurationManager.updateSmsConfiguration( smsConfig );
+            smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
+            initializeSmsConfig();
 
             return true;
         }
@@ -150,6 +162,7 @@ public class DefaultGatewayAdministrationService
                 gatewayConfigurationMap.remove( gateway.getName() );
 
                 smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
+                initializeSmsConfig();
 
                 return true;
             }
@@ -254,5 +267,28 @@ public class DefaultGatewayAdministrationService
     private SmsConfiguration getSmsConfiguration()
     {
         return smsConfigurationManager.getSmsConfiguration();
+    }
+
+    private void initializeSmsConfig()
+    {
+        SmsConfiguration smsConfiguration = getSmsConfiguration();
+
+        if ( smsConfiguration == null )
+        {
+            log.info( "SMS configuration not found" );
+            return;
+        }
+
+        List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
+
+        if ( gatewayList == null || gatewayList.isEmpty() )
+        {
+            log.info( "Gateway configuration not found" );
+            return;
+        }
+
+        log.info( "Gateway configuration found: " + gatewayList );
+
+        loadGatewayConfigurationMap( smsConfiguration );
     }
 }

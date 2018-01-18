@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,10 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.CodeGenerator;
@@ -94,6 +98,9 @@ public abstract class AbstractJdbcTableManager
     
     @Autowired
     protected ResourceTableService resourceTableService;
+    
+    @Autowired
+    private AnalyticsTableHookService tableHookService;
     
     @Autowired
     protected StatementBuilder statementBuilder;
@@ -218,7 +225,15 @@ public abstract class AbstractJdbcTableManager
 
         return null;
     }
-
+    
+    @Override
+    public void invokeAnalyticsTableSqlHooks()
+    {
+        AnalyticsTableType type = getAnalyticsTableType();        
+        List<AnalyticsTableHook> hooks = tableHookService.getByPhaseAndAnalyticsTableType( AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type );
+        tableHookService.executeAnalyticsTableSqlHooks( hooks );
+    }
+    
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------

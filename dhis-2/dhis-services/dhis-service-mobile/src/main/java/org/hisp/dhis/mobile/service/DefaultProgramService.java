@@ -1,7 +1,7 @@
 package org.hisp.dhis.mobile.service;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,6 +82,7 @@ public class DefaultProgramService
     @Override
     public List<org.hisp.dhis.api.mobile.model.LWUITmodel.Program> getProgramsLWUIT( OrganisationUnit unit )
     {
+        /*
         Collection<org.hisp.dhis.program.Program> programByUnit = programService.getPrograms( unit );
 
         Collection<org.hisp.dhis.program.Program> programByCurrentUser = programService.getUserPrograms();
@@ -94,8 +95,9 @@ public class DefaultProgramService
         {
             programs.add( getProgramLWUIT( program.getId() ) );
         }
+        */
 
-        return programs;
+        return new ArrayList<>(  );
     }
 
     @Override
@@ -193,9 +195,9 @@ public class DefaultProgramService
         pr.setVersion( program.getVersion() );
         pr.setDateOfEnrollmentDescription( program.getEnrollmentDateLabel() );
         pr.setDateOfIncidentDescription( program.getIncidentDateLabel() );
-        if ( program.getTrackedEntity() != null && program.getTrackedEntity().getName() != null )
+        if ( program.getTrackedEntityType() != null && program.getTrackedEntityType().getName() != null )
         {
-            pr.setTrackedEntityName( program.getTrackedEntity().getName() );
+            pr.setTrackedEntityName( program.getTrackedEntityType().getName() );
         }
 
         List<org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramStage> prStgs = new ArrayList<>();

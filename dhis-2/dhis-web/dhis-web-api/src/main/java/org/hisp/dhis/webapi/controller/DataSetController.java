@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -374,7 +374,7 @@ public class DataSetController
     }
 
     @RequestMapping( value = "/{uid}/form", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
+    @ApiVersion( value = DhisApiVersion.ALL )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request ) throws WebMessageException
     {
