@@ -997,6 +997,8 @@ public class TableAlteror
         //TODO: remove - not needed in release 2.26.
         executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
+       
+        updateDimensionFilterToText();
 
         log.info( "Tables updated" );
     }
@@ -1699,5 +1701,12 @@ public class TableAlteror
 
         sql = " drop table maplegendsetmaplegend";
         executeSql( sql );
+    }
+    
+    private void updateDimensionFilterToText()
+    {
+        executeSql( "alter table trackedentityattributedimension alter column \"filter\" type text;" );
+        executeSql( "alter table trackedentitydataelementdimension alter column \"filter\" type text;" );
+        executeSql( "alter table trackedentityprogramindicatordimension alter column \"filter\" type text;" );
     }
 }
