@@ -52,6 +52,12 @@ import java.util.concurrent.ScheduledFuture;
  */
 public interface SchedulingManager
 {
+    /**
+     * Method which lets jobs subscribe to the scheduling manger.
+     *
+     * @param jobType job type {@link JobType}
+     * @param jobId the bean id of the job
+     */
     void addJob( JobType jobType, String jobId );
 
     /**
@@ -106,7 +112,7 @@ public interface SchedulingManager
      *
      * @param jobConfiguration The configuration of the job to be executed
      */
-    void executeJob( JobConfiguration jobConfiguration );
+    boolean executeJob( JobConfiguration jobConfiguration );
 
     /**
      * Execute an actual job without validation
@@ -130,10 +136,4 @@ public interface SchedulingManager
      * @return list of jobs
      */
     Map<String, ScheduledFuture<?>> getAllFutureJobs();
-
-    /**
-     * Returns the status of the currently executing job.
-     */
-    boolean isJobInProgress( String jobKey );
-
 }
