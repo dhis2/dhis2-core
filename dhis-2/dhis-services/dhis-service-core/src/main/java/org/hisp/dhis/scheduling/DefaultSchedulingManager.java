@@ -272,7 +272,7 @@ public class DefaultSchedulingManager
         return false;
     }
 
-    private boolean ifJobInSystemStop( String jobKey )
+   private boolean ifJobInSystemStop( String jobKey )
     {
         return !isJobInSystem( jobKey ) || internalStopJob( jobKey );
     }

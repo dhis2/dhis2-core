@@ -52,6 +52,12 @@ import java.util.concurrent.ScheduledFuture;
  */
 public interface SchedulingManager
 {
+    /**
+     * Method which lets jobs subscribe to the scheduling manger.
+     *
+     * @param jobType job type {@link JobType}
+     * @param jobId the bean id of the job
+     */
     void addJob( JobType jobType, String jobId );
 
     /**
