@@ -819,7 +819,6 @@ public class DefaultEventAnalyticsService
                     metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
                 }
 
-
                 params.getLegends().forEach( legend -> {
                     metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, includeMetadataDetails ? legend.getCode() : null ) );
                 } );
