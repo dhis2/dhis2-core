@@ -28,30 +28,12 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
-public class ProgramNotificationPublisher
+public enum  ProgramNotificationEventType
 {
-    @Autowired
-    private ApplicationEventPublisher publisher;
-
-    public void sendEnrollmentNotification( ProgramInstance programInstance, ProgramNotificationEventType eventType )
-    {
-        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programInstance, eventType );
-
-        publisher.publishEvent( event );
-    }
-
-    public void sendEventNotification( ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
-    {
-        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programStageInstance, eventType );
-
-        publisher.publishEvent( event );
-    }
+    PROGRAM_ENROLLMENT,
+    PROGRAM_COMPLETION,
+    PROGRAM_STAGE_COMPLETION
 }

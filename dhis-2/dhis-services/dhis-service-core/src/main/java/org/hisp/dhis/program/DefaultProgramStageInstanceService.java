@@ -32,6 +32,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationEventType;
+import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.system.util.DateUtils;
@@ -79,18 +81,14 @@ public class DefaultProgramStageInstanceService
         this.currentUserService = currentUserService;
     }
 
-    private ProgramNotificationService programNotificationService;
-
-    public void setProgramNotificationService( ProgramNotificationService programNotificationService )
-    {
-        this.programNotificationService = programNotificationService;
-    }
-
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
 
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
+
+    @Autowired
+    private ProgramNotificationPublisher programNotificationPublisher;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -200,7 +198,7 @@ public class DefaultProgramStageInstanceService
 
         if ( !skipNotifications )
         {
-            programNotificationService.sendCompletionNotifications( programStageInstance );
+            programNotificationPublisher.sendEventNotification( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
 
             programRuleEngineService.evaluate( programStageInstance );
         }

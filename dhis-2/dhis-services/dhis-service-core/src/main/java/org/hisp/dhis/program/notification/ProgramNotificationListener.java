@@ -28,21 +28,40 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
 public class ProgramNotificationListener
-    implements ApplicationListener<ProgramNotificationEvent>
 {
     @Autowired
     private ProgramNotificationService programNotificationService;
 
-    @Override
-    public void onApplicationEvent( ProgramNotificationEvent event )
+    @EventListener( condition = "#event.eventType == PROGRAM_ENROLLMENT" )
+    public void onEnrollment( ProgramNotificationEvent event )
     {
-        
+        ProgramInstance programInstance = event.getProgramInstance();
+
+        programNotificationService.sendEnrollmentNotifications( programInstance );
+    }
+
+    @EventListener( condition = "##event.eventType == PROGRAM_COMPLETION" )
+    public void onCompletion( ProgramNotificationEvent event )
+    {
+        ProgramInstance programInstance = event.getProgramInstance();
+
+        programNotificationService.sendCompletionNotifications( programInstance );
+    }
+
+    @EventListener( condition = "#event.eventType == PROGRAM_STAGE_COMPLETION" )
+    public void onEvent( ProgramNotificationEvent event )
+    {
+        ProgramStageInstance programStageInstance = event.getProgramStageInstance();
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
     }
 }

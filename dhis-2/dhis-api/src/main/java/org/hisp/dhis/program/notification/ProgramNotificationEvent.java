@@ -41,18 +41,20 @@ public class ProgramNotificationEvent extends ApplicationEvent
 
     private ProgramStageInstance programStageInstance;
 
-    private ProgramNotificationTemplate template;
+    private ProgramNotificationEventType eventType;
 
-    public ProgramNotificationEvent( Object source, ProgramInstance programInstance )
+    public ProgramNotificationEvent( Object source, ProgramInstance programInstance, ProgramNotificationEventType eventType )
     {
         super(source);
         this.programInstance = programInstance;
+        this.eventType = eventType;
     }
 
-    public ProgramNotificationEvent( Object source, ProgramStageInstance programStageInstance )
+    public ProgramNotificationEvent( Object source, ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
     {
         super(source);
         this.programStageInstance = programStageInstance;
+        this.eventType = eventType;
     }
 
     public ProgramInstance getProgramInstance()
@@ -65,8 +67,8 @@ public class ProgramNotificationEvent extends ApplicationEvent
         return programStageInstance;
     }
 
-    public ProgramNotificationTemplate getTemplate()
+    public ProgramNotificationEventType getEventType()
     {
-        return template;
+        return eventType;
     }
 }
