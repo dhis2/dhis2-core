@@ -31,18 +31,18 @@ package org.hisp.dhis.dataset.notifications;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
 
 public class DataSetNotificationEventListener
-    implements ApplicationListener<DataSetNotificationEvent>
 {
     @Autowired
     private DataSetNotificationService dataSetNotificationService;
 
-    @Override
+    @EventListener
     public void onApplicationEvent( DataSetNotificationEvent event )
     {
         CompleteDataSetRegistration registration = event.getRegistration();
