@@ -32,6 +32,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
@@ -41,7 +42,8 @@ public class ProgramNotificationListener
     @Autowired
     private ProgramNotificationService programNotificationService;
 
-    @EventListener( condition = "#event.eventType == PROGRAM_ENROLLMENT" )
+    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
+    @Async
     public void onEnrollment( ProgramNotificationEvent event )
     {
         ProgramInstance programInstance = event.getProgramInstance();
@@ -49,7 +51,8 @@ public class ProgramNotificationListener
         programNotificationService.sendEnrollmentNotifications( programInstance );
     }
 
-    @EventListener( condition = "##event.eventType == PROGRAM_COMPLETION" )
+    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
+    @Async
     public void onCompletion( ProgramNotificationEvent event )
     {
         ProgramInstance programInstance = event.getProgramInstance();
@@ -57,7 +60,8 @@ public class ProgramNotificationListener
         programNotificationService.sendCompletionNotifications( programInstance );
     }
 
-    @EventListener( condition = "#event.eventType == PROGRAM_STAGE_COMPLETION" )
+    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
+    @Async
     public void onEvent( ProgramNotificationEvent event )
     {
         ProgramStageInstance programStageInstance = event.getProgramStageInstance();
