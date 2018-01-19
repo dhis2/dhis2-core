@@ -30,14 +30,14 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.hisp.dhis.schema.audit.MetadataAuditQuery;
+import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,25 +51,25 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
-@RequestMapping( value = "/deletedObjects" )
+@RequestMapping( value = "/metadataAudits" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DeletedObjectController
+public class MetadataAuditController
 {
+    private final MetadataAuditService auditService;
     private final FieldFilterService fieldFilterService;
-    private final DeletedObjectService deletedObjectService;
     private final ContextService contextService;
 
-    public DeletedObjectController( FieldFilterService fieldFilterService, DeletedObjectService deletedObjectService,
+    public MetadataAuditController( MetadataAuditService auditService, FieldFilterService fieldFilterService,
         ContextService contextService )
     {
+        this.auditService = auditService;
         this.fieldFilterService = fieldFilterService;
-        this.deletedObjectService = deletedObjectService;
         this.contextService = contextService;
     }
 
     @GetMapping
     @PreAuthorize( "hasRole('ALL')" )
-    public RootNode getDeletedObjects( DeletedObjectQuery query )
+    public RootNode query( MetadataAuditQuery query )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -78,17 +78,17 @@ public class DeletedObjectController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects( query );
+        List<MetadataAudit> audits = auditService.query( query );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
         if ( !query.isSkipPaging() )
         {
-            query.setTotal( deletedObjectService.countDeletedObjects( query ) );
+            query.setTotal( auditService.count( query ) );
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( DeletedObject.class, new FieldFilterParams( deletedObjects, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( MetadataAudit.class, new FieldFilterParams( audits, fields ) ) );
 
         return rootNode;
     }

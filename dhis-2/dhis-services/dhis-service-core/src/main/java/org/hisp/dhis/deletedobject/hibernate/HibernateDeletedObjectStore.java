@@ -33,6 +33,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deletedobject.DeletedObject;
@@ -82,24 +83,27 @@ public class HibernateDeletedObjectStore
     @Override
     public int count( DeletedObjectQuery query )
     {
-        Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
-
-        if ( !query.getKlass().isEmpty() )
-        {
-            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
-        }
-
-        if ( query.getDeletedAt() != null )
-        {
-            criteria.add( Restrictions.ge( "deletedAt", query.getDeletedAt() ) );
-        }
-
-        return criteria.list().size();
+        Criteria criteria = buildCriteria( query );
+        return ((Number) criteria.setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public List<DeletedObject> query( DeletedObjectQuery query )
+    {
+        Criteria criteria = buildCriteria( query );
+
+        if ( !query.isSkipPaging() )
+        {
+            Pager pager = query.getPager();
+            criteria.setFirstResult( pager.getOffset() );
+            criteria.setMaxResults( pager.getPageSize() );
+        }
+
+        return criteria.list();
+    }
+
+    private Criteria buildCriteria( DeletedObjectQuery query )
     {
         Criteria criteria = getCurrentSession().createCriteria( DeletedObject.class );
 
@@ -151,14 +155,7 @@ public class HibernateDeletedObjectStore
             criteria.add( Restrictions.ge( "deletedAt", query.getDeletedAt() ) );
         }
 
-        if ( !query.isSkipPaging() )
-        {
-            Pager pager = query.getPager();
-            criteria.setFirstResult( pager.getOffset() );
-            criteria.setMaxResults( pager.getPageSize() );
-        }
-
-        return criteria.list();
+        return criteria;
     }
 
     private Session getCurrentSession()
