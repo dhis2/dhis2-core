@@ -40,6 +40,7 @@ import org.hisp.dhis.schema.audit.MetadataAuditQuery;
 import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,6 +68,7 @@ public class MetadataAuditController
     }
 
     @GetMapping
+    @PreAuthorize( "hasRole('ALL')" )
     public RootNode query( MetadataAuditQuery query )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
