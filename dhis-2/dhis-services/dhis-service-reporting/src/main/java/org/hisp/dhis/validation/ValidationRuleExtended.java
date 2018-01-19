@@ -54,7 +54,9 @@ public class ValidationRuleExtended
 {
     private ValidationRule rule;
 
-    private Set<DimensionalItemObject> dimensionalItemObjects = new HashSet<>();
+    private Set<DimensionalItemObject> eventItems = new HashSet<>();
+
+    private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
 
     private Set<DataElementOperand> dataElementOperands = new HashSet<>();
 
@@ -69,7 +71,7 @@ public class ValidationRuleExtended
     {
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
             .append( "rule", rule )
-            .append( "dimensionalItemObjects", dimensionalItemObjects )
+            .append( "eventItems", eventItems )
             .append( "dataElementOperands", dataElementOperands )
             .append( "dataElements", dataElements ).toString();
     }
@@ -83,14 +85,14 @@ public class ValidationRuleExtended
         return rule;
     }
 
-    public Set<DimensionalItemObject> getDimensionalItemObjects()
+    public Set<DimensionalItemObject> getEventItems()
     {
-        return dimensionalItemObjects;
+        return eventItems;
     }
 
-    public void setDimensionalItemObjects( Set<DimensionalItemObject> dimensionalItemObjects )
+    public Set<DimensionalItemObject> getEventItemsWithoutAttributeOptions()
     {
-        this.dimensionalItemObjects = dimensionalItemObjects;
+        return eventItemsWithoutAttributeOptions;
     }
 
     public Set<DataElementOperand> getDataElementOperands()
@@ -98,18 +100,8 @@ public class ValidationRuleExtended
         return dataElementOperands;
     }
 
-    public void setDataElementOperands( Set<DataElementOperand> dataElementOperands )
-    {
-        this.dataElementOperands = dataElementOperands;
-    }
-
     public Set<DataElement> getDataElements()
     {
         return dataElements;
-    }
-
-    public void setDataElements( Set<DataElement> dataElements )
-    {
-        this.dataElements = dataElements;
     }
 }

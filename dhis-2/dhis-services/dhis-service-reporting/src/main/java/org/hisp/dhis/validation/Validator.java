@@ -28,12 +28,14 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -62,12 +64,17 @@ public class Validator
         int threadPoolSize = getThreadPoolSize( context );
         ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
 
-        for ( OrganisationUnit orgUnit : context.getOrgUnits() )
+        for ( ValidationSubContext subContext : context.getSubContexts() )
         {
-            ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
-            task.init( orgUnit, context );
+            List<List<OrganisationUnit>> orgUnitLists = Lists.partition( subContext.getOrgUnits(), 500 );
 
-            executor.execute( task );
+            for ( List<OrganisationUnit> orgUnits : orgUnitLists )
+            {
+                ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
+                task.init( orgUnits, subContext, context );
+
+                executor.execute( task );
+            }
         }
 
         executor.shutdown();
@@ -101,12 +108,14 @@ public class Validator
             threadPoolSize--;
         }
 
-        if ( threadPoolSize > context.getCountOfSourcesToValidate() )
+        int numberOfTasks = context.getNumberOfTasks();
+
+        if ( threadPoolSize > numberOfTasks )
         {
-            threadPoolSize = context.getCountOfSourcesToValidate();
+            threadPoolSize = numberOfTasks;
         }
 
-	return threadPoolSize;
+        return threadPoolSize;
     }
 
     /**

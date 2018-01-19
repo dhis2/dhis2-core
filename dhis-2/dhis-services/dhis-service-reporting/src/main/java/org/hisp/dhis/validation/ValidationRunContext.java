@@ -49,15 +49,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class ValidationRunContext
 {
+    public static final int ORG_UNITS_PER_TASK = 500;
+
     private Queue<ValidationResult> validationResults;
 
-    private Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap;
+    private Map<PeriodType, PeriodTypeExtended> periodTypeXMap;
 
     private Map<String, Double> constantMap;
 
-    private Set<DimensionalItemObject> eventItems;
-
-    private List<OrganisationUnit> orgUnits;
+    private List<ValidationSubContext> subContexts;
 
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
@@ -68,6 +68,8 @@ public class ValidationRunContext
     // -------------------------------------------------------------------------
 
     private DataElementCategoryOptionCombo attributeCombo;
+
+    private DataElementCategoryOptionCombo defaultAttributeCombo;
 
     private int maxResults = 0;
 
@@ -91,34 +93,29 @@ public class ValidationRunContext
         return attributeCombo;
     }
 
+    public DataElementCategoryOptionCombo getDefaultAttributeCombo()
+    {
+        return defaultAttributeCombo;
+    }
+
     public int getMaxResults()
     {
         return maxResults;
     }
 
-    public int getCountOfSourcesToValidate()
-    {
-        return orgUnits.size();
-    }
-
     public Map<PeriodType, PeriodTypeExtended> getPeriodTypeExtendedMap()
     {
-        return periodTypeExtendedMap;
-    }
-
-    public Set<DimensionalItemObject> getEventItems()
-    {
-        return eventItems;
-    }
-
-    public List<OrganisationUnit> getOrgUnits()
-    {
-        return orgUnits;
+        return periodTypeXMap;
     }
 
     public Map<String, Double> getConstantMap()
     {
         return constantMap;
+    }
+
+    public List<ValidationSubContext> getSubContexts()
+    {
+        return subContexts;
     }
 
     public Set<CategoryOptionGroup> getCogDimensionConstraints()
@@ -146,10 +143,13 @@ public class ValidationRunContext
         return validationResults;
     }
 
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
     public boolean skipValidationOfTuple( OrganisationUnit organisationUnit, ValidationRule validationRule,
         Period period, String attributeOptionCombo, int dayInPeriod )
     {
-
         List<ValidationResult> validationResultList = initialValidationResults
             .getValue( organisationUnit, validationRule, period );
 
@@ -169,6 +169,23 @@ public class ValidationRunContext
 
     }
 
+    public int getNumberOfTasks()
+    {
+        int numberOfTasks = 0;
+
+        for ( ValidationSubContext subContext : subContexts )
+        {
+            numberOfTasks += 1 + subContext.getOrgUnits().size() / ORG_UNITS_PER_TASK;
+        }
+
+        return numberOfTasks;
+    }
+
+    public boolean isAnalysisComplete()
+    {
+        return validationResults.size() >= maxResults;
+    }
+
     // -------------------------------------------------------------------------
     // Builder
     // -------------------------------------------------------------------------
@@ -176,11 +193,6 @@ public class ValidationRunContext
     public static Builder newBuilder()
     {
         return new Builder();
-    }
-
-    public boolean isAnalysisComplete()
-    {
-        return validationResults.size() >= maxResults;
     }
 
     public static class Builder
@@ -200,10 +212,10 @@ public class ValidationRunContext
         public ValidationRunContext build()
         {
             Validate
-                .notNull( this.context.periodTypeExtendedMap, "Missing required property 'periodTypeExtendedMap'" );
+                .notNull( this.context.periodTypeXMap, "Missing required property 'periodTypeXMap'" );
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
-            Validate.notNull( this.context.eventItems, "Missing required property 'eventItems'" );
-            Validate.notEmpty( this.context.orgUnits, "Missing required property 'orgUnits'" );
+            Validate.notNull( this.context.subContexts, "Missing required property 'subContexts'" );
+            Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
 
             return this.context;
         }
@@ -212,10 +224,10 @@ public class ValidationRunContext
         // Setter methods
         // -------------------------------------------------------------------------
 
-        public Builder withPeriodTypeExtendedMap(
-            Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap )
+        public Builder withPeriodTypeXMap(
+            Map<PeriodType, PeriodTypeExtended> periodTypeXMap )
         {
-            this.context.periodTypeExtendedMap = periodTypeExtendedMap;
+            this.context.periodTypeXMap = periodTypeXMap;
             return this;
         }
 
@@ -225,15 +237,9 @@ public class ValidationRunContext
             return this;
         }
 
-        public Builder withEventItems( Set<DimensionalItemObject> eventItems )
+        public Builder withSubContexts( List<ValidationSubContext> subContexts )
         {
-            this.context.eventItems = eventItems;
-            return this;
-        }
-
-        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
-        {
-            this.context.orgUnits = orgUnits;
+            this.context.subContexts = subContexts;
             return this;
         }
 
@@ -245,6 +251,17 @@ public class ValidationRunContext
         public Builder withAttributeCombo( DataElementCategoryOptionCombo attributeCombo )
         {
             this.context.attributeCombo = attributeCombo;
+            return this;
+        }
+
+        /**
+         * This is the default attributeOptionCombo which should always be present
+         *
+         * @param defaultAttributeCombo
+         */
+        public Builder withDefaultAttributeCombo( DataElementCategoryOptionCombo defaultAttributeCombo )
+        {
+            this.context.defaultAttributeCombo = defaultAttributeCombo;
             return this;
         }
 
@@ -297,7 +314,7 @@ public class ValidationRunContext
                 
                 if ( res == null )
                 {
-                    res = new ArrayList<ValidationResult>();
+                    res = new ArrayList<>();
                 }
 
                 res.add( validationResult );

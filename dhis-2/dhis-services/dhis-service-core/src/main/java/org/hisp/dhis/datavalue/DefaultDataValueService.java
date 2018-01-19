@@ -34,8 +34,7 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -357,13 +356,12 @@ public class DefaultDataValueService
     }
 
     @Override
-    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        SetMap<String, DataElementOperand> dataElementOperandsToGet, Date date, OrganisationUnit source,
+    public MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+        Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
         Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<String, DataElementOperand, Date> lastUpdatedMap )
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
     {
-        return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperandsToGet, date, source,
-            periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints, lastUpdatedMap );
+        return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperands, date, orgUnits,
+            periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints );
     }
 }

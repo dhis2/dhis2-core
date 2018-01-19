@@ -30,8 +30,10 @@ package org.hisp.dhis.validation;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+import java.util.List;
+
 public interface ValidationTask
     extends Runnable
 {
-    void init( OrganisationUnit orgUnit, ValidationRunContext context );
+    void init( List<OrganisationUnit> orgUnits, ValidationSubContext subContext, ValidationRunContext context );
 }
