@@ -1,4 +1,4 @@
-package org.hisp.dhis.datastatistics;
+package org.hisp.dhis.dataset.notifications;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,49 +28,24 @@ package org.hisp.dhis.datastatistics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Yrjan A. F. Fraschetti
- * @author Julie Hill Roa
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-public class DataStatisticsJob
-    extends AbstractJob
+public class DataSetNotificationEvent extends ApplicationEvent
 {
-    private static final Log log = LogFactory.getLog( DataStatisticsJob.class );
-    
-    @Autowired
-    private DataStatisticsService dataStatisticsService;
+    private CompleteDataSetRegistration registration;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public JobType getJobType()
+    public DataSetNotificationEvent( Object source, CompleteDataSetRegistration registration )
     {
-        return JobType.DATA_STATISTICS;
+        super(source);
+        this.registration = registration;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public CompleteDataSetRegistration getRegistration()
     {
-        int id = dataStatisticsService.saveDataStatisticsSnapshot();
-
-        if ( id > 0 )
-        {
-            log.info( "Saved data statistics snapshot" );
-        }
-    }
-
-    @Override
-    protected String getJobId()
-    {
-        return "dataStatisticsJob";
+        return registration;
     }
 }

@@ -840,8 +840,7 @@
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
 
   <bean id="fileResourceCleanUpJob"
-    class="org.hisp.dhis.fileresource.FileResourceCleanUpJob"
-    scope="prototype" />
+    class="org.hisp.dhis.fileresource.FileResourceCleanUpJob" />
 
   <!-- Service definitions -->
 
@@ -935,7 +934,6 @@
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="dataSetNotificationService" ref="org.hisp.dhis.dataset.notifications.DataSetNotificationService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.SectionService" class="org.hisp.dhis.dataset.DefaultSectionService">
@@ -1154,6 +1152,10 @@
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationService" />
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationTemplateService" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" />
 
   <bean id="scheduledDataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
@@ -1669,6 +1671,7 @@
   <bean id="schedulerStart" class="org.hisp.dhis.startup.SchedulerStart">
     <property name="jobConfigurationService" ref="jobConfigurationService" />
     <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="runlevel" value="14" />
     <property name="skipInTests" value="true" />
   </bean>

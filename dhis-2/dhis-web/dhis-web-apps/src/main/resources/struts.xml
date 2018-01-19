@@ -56,6 +56,12 @@
         </action>
     </package>
 
+    <package name="dhis-web-maps" extends="dhis-web-commons" namespace="/dhis-web-maps">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
+
     <package name="dhis-web-mapping" extends="dhis-web-commons" namespace="/dhis-web-mapping">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">#</result>

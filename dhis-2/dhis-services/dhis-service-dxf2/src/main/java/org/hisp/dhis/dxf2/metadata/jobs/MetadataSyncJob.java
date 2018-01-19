@@ -143,6 +143,12 @@ public class MetadataSyncJob
         return super.validate();
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "metadataSyncJob";
+    }
+
     public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException, DhisVersionMismatchException
     {
         metadataSyncPreProcessor.setUp( context );

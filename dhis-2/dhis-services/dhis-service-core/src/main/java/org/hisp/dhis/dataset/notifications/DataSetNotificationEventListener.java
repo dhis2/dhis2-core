@@ -1,4 +1,4 @@
-package org.hisp.dhis.cofiguration;
+package org.hisp.dhis.dataset.notifications;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,58 +28,27 @@ package org.hisp.dhis.cofiguration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.configuration.Configuration;
-import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.*;
+import org.springframework.context.event.EventListener;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-public class ConfigurationServiceTest
-    extends DhisSpringTest
+
+public class DataSetNotificationEventListener
 {
     @Autowired
-    private UserService userService;
-    
-    @Autowired
-    private UserGroupService userGroupService;
-    
-    @Autowired
-    private ConfigurationService configurationService;
-    
-    @Test
-    public void testConfiguration()
+    private DataSetNotificationService dataSetNotificationService;
+
+    @EventListener
+    public void onApplicationEvent( DataSetNotificationEvent event )
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        
-        UserGroup group = new UserGroup( "UserGroupA" );
-        group.getMembers().add( userA );
-        group.getMembers().add(  userB );
-        
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userGroupService.addUserGroup( group );
-        
-        Configuration config = configurationService.getConfiguration();
-        
-        assertNull( config.getFeedbackRecipients() );
-        
-        config.setFeedbackRecipients( group );
-        
-        configurationService.setConfiguration( config );
-        
-        config = configurationService.getConfiguration();
-        
-        assertNotNull( config.getFeedbackRecipients() );
-        assertEquals( group, config.getFeedbackRecipients() );
+        CompleteDataSetRegistration registration = event.getRegistration();
+
+        if ( registration != null )
+        {
+            dataSetNotificationService.sendCompleteDataSetNotifications( registration );
+        }
     }
 }

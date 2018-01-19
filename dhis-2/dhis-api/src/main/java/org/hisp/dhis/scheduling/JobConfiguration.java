@@ -181,7 +181,9 @@ public class JobConfiguration
         }
 
         if ( nextExecutionTime != null )
+        {
             this.nextExecutionTime = nextExecutionTime;
+        }
         else
         {
             this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
