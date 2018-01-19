@@ -108,7 +108,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
             return;
         }
 
-        String key = generateKey( template, programStageInstance );
+        String key = generateKey( template, programStageInstance.getProgramInstance() );
 
         if ( !notificationLoggingService.isValidForSending( key ) )
         {
@@ -135,9 +135,9 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
         return programNotificationTemplateStore.getByUid( sendMessage.notification() );
     }
 
-    private String generateKey( ProgramNotificationTemplate template, IdentifiableObject object )
+    private String generateKey( ProgramNotificationTemplate template, ProgramInstance programInstance )
     {
-        return template.getUid()+object.getUid();
+        return template.getUid() + programInstance.getUid();
     }
 
     private ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
