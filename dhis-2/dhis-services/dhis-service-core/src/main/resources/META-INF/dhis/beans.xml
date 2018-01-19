@@ -815,6 +815,10 @@
 
   <!-- Service definitions -->
 
+  <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
+    <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataelement.DataElementGroupService" class="org.hisp.dhis.dataelement.DefaultDataElementGroupService" />
 
   <bean id="org.hisp.dhis.indicator.IndicatorGroupService" class="org.hisp.dhis.indicator.DefaultIndicatorGroupService">

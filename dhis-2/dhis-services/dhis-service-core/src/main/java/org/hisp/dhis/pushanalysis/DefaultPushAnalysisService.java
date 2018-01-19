@@ -49,6 +49,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
@@ -56,7 +57,6 @@ import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -69,6 +69,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,6 +133,9 @@ public class DefaultPushAnalysisService
     private I18nManager i18nManager;
 
     @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
     @Qualifier( "emailMessageSender" )
     private MessageSender messageSender;
 
@@ -175,7 +179,7 @@ public class DefaultPushAnalysisService
                     TaskCategory.PUSH_ANALYSIS,
                     currentUserService.getCurrentUser()
                 ),
-                this
+                (PushAnalysisService) applicationContext.getBean( "org.hisp.dhis.pushanalysis.PushAnalysisService" )
             ),
             getPushAnalysisCronExpression( pushAnalysis )
         );

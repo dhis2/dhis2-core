@@ -4,12 +4,6 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
 
-  <!-- PushAnalysis -->
-
-  <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
-    <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
-  </bean>
-
   <!-- DataStatistics -->
 
   <bean id="org.hisp.dhis.datastatistics.DataStatisticsEventStore" class="org.hisp.dhis.datastatistics.hibernate.HibernateDataStatisticsEventStore">
