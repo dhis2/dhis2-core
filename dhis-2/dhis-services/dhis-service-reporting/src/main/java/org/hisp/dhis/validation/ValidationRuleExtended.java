@@ -33,9 +33,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 
 /**
  * Holds information for each validation rule that is needed during a validation
@@ -54,26 +51,27 @@ public class ValidationRuleExtended
 {
     private ValidationRule rule;
 
-    private Set<DimensionalItemObject> eventItems = new HashSet<>();
+    private Set<Integer> organisationUnitLevels;
 
-    private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
+    private boolean leftSlidingWindow;
 
-    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
-
-    private Set<DataElement> dataElements = new HashSet<>();
+    private boolean rightSlidingWindow;
 
     public ValidationRuleExtended( ValidationRule rule )
     {
         this.rule = rule;
+        this.organisationUnitLevels = new HashSet<>( rule.getOrganisationUnitLevels() );
+        this.leftSlidingWindow = rule.getLeftSide().getSlidingWindow();
+        this.rightSlidingWindow = rule.getRightSide().getSlidingWindow();
     }
 
     public String toString()
     {
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
             .append( "rule", rule )
-            .append( "eventItems", eventItems )
-            .append( "dataElementOperands", dataElementOperands )
-            .append( "dataElements", dataElements ).toString();
+            .append( "organisationUnitLevels", organisationUnitLevels )
+            .append( "leftSlidingWindow", leftSlidingWindow )
+            .append( "rightSlidingWindow", rightSlidingWindow ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -85,23 +83,18 @@ public class ValidationRuleExtended
         return rule;
     }
 
-    public Set<DimensionalItemObject> getEventItems()
+    public Set<Integer> getOrganisationUnitLevels()
     {
-        return eventItems;
+        return organisationUnitLevels;
     }
 
-    public Set<DimensionalItemObject> getEventItemsWithoutAttributeOptions()
+    public boolean getLeftSlidingWindow()
     {
-        return eventItemsWithoutAttributeOptions;
+        return leftSlidingWindow;
     }
 
-    public Set<DataElementOperand> getDataElementOperands()
+    public boolean getRightSlidingWindow()
     {
-        return dataElementOperands;
-    }
-
-    public Set<DataElement> getDataElements()
-    {
-        return dataElements;
+        return rightSlidingWindow;
     }
 }

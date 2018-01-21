@@ -193,9 +193,9 @@ public interface DataValueStore
      * @param orgUnits OrganisationUnits for which to fetch the values
      * @param periodTypes allowable period types in which to find the data
      * @param attributeCombo the attribute combo to check (if restricted)
-     * @return map of values by attribute option combo UID, then DataElementOperand
+     * @return map of values by org unit ID, attribute option combo UID, and DataElementOperand
      */
-    MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+    MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
         Set<DataElementOperand> dataElementOperands, Date date,
         List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints );

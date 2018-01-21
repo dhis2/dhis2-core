@@ -36,9 +36,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -46,7 +44,6 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,24 +89,24 @@ public class DataValidationTask
     private ValidationResultService validationResultService;
 
     private List<OrganisationUnit> orgUnits;
-    private ValidationSubContext subContext;
     private ValidationRunContext context;
 
     private Set<ValidationResult> validationResults;
 
-    private Period period;            // Current period.
-    private OrganisationUnit orgUnit; // Current organisation unit.
-    private ValidationRule rule;      // Current rule.
+    private PeriodTypeExtended periodTypeX; // Current period type extended.
+    private Period period;                  // Current period.
+    private OrganisationUnit orgUnit;       // Current organisation unit.
+    private int orgUnitId;                  // Current organisation unit id.
+    private ValidationRuleExtended ruleX;   // Current rule extended.
 
     // Data for current period and all rules being evaluated:
-    private MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> dataMap;
-    private MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> eventMap;
-    private MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> slidingWindowEventMap;
+    private MapMapMap<Integer, String, DimensionalItemObject, Double> dataMap;
+    private MapMapMap<Integer, String, DimensionalItemObject, Double> eventMap;
+    private MapMapMap<Integer, String, DimensionalItemObject, Double> slidingWindowEventMap;
 
-    public void init( List<OrganisationUnit> orgUnits, ValidationSubContext subContext, ValidationRunContext context )
+    public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context )
     {
         this.orgUnits = orgUnits;
-        this.subContext = subContext;
         this.context = context;
     }
 
@@ -146,21 +143,27 @@ public class DataValidationTask
 
         validationResults = new HashSet<>();
 
-        for ( Period p : subContext.getPeriodTypeX().getPeriods() )
+        for ( PeriodTypeExtended ptx : context.getPeriodTypeXs() )
         {
-            period = p;
+            periodTypeX = ptx;
 
-            getData();
-
-            for ( OrganisationUnit ou : orgUnits )
+            for ( Period p : periodTypeX.getPeriods() )
             {
-                orgUnit = ou;
+                period = p;
 
-                for ( ValidationRule r : subContext.getRules() )
+                getData();
+
+                for ( OrganisationUnit ou : orgUnits )
                 {
-                    rule = r;
+                    orgUnit = ou;
+                    orgUnitId = ou.getId();
 
-                    validateRule();
+                    for ( ValidationRuleExtended r : periodTypeX.getRuleXs() )
+                    {
+                        ruleX = r;
+
+                        validateRule();
+                    }
                 }
             }
         }
@@ -175,22 +178,16 @@ public class DataValidationTask
     private void validateRule()
     {
         // Skip validation if org unit level does not match
-        if ( !rule.getOrganisationUnitLevels().isEmpty() &&
-            !rule.getOrganisationUnitLevels().contains( orgUnit.getLevel() ) )
+        if ( !ruleX.getOrganisationUnitLevels().isEmpty() &&
+            !ruleX.getOrganisationUnitLevels().contains( orgUnit.getLevel() ) )
         {
             return;
         }
 
-        if ( log.isTraceEnabled() )
-        {
-            log.trace( "Validation rule " + rule.getUid() + " " + rule.getName() );
-        }
+        Map<String, Double> leftSideValues = getValuesForExpression( ruleX.getRule().getLeftSide(), ruleX.getLeftSlidingWindow() );
+        Map<String, Double> rightSideValues = getValuesForExpression( ruleX.getRule().getRightSide(), ruleX.getRightSlidingWindow() );
 
-        Map<String, Double> leftSideValues = getValuesForExpression( rule.getLeftSide() );
-        Map<String, Double> rightSideValues = getValuesForExpression( rule.getRightSide() );
-
-        Set<String> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
-        attributeOptionCombos.addAll( rightSideValues.keySet() );
+        Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
         for ( String optionCombo : attributeOptionCombos )
         {
@@ -215,7 +212,7 @@ public class DataValidationTask
     private void validateOptionCombo( String optionCombo, Double leftSide, Double rightSide )
     {
         // Skipping any results we already know
-        if ( context.skipValidationOfTuple( orgUnit, rule, period, optionCombo,
+        if ( context.skipValidationOfTuple( orgUnit, ruleX.getRule(), period, optionCombo,
             periodService.getDayInPeriod( period, new Date() ) ) )
         {
             return;
@@ -228,21 +225,11 @@ public class DataValidationTask
         if ( violation )
         {
             validationResults.add( new ValidationResult(
-                rule, period, orgUnit,
+                ruleX.getRule(), period, orgUnit,
                 categoryService.getDataElementCategoryOptionCombo( optionCombo ),
                 roundSignificant( zeroIfNull( leftSide ) ),
                 roundSignificant( zeroIfNull( rightSide ) ),
                 periodService.getDayInPeriod( period, new Date() ) ) );
-        }
-
-        if ( log.isDebugEnabled() )
-        {
-            log.debug( "Evaluated " + rule.getName() + ", combo id " + optionCombo
-                + ": " + ( violation ? "violation" : "OK" ) + " "
-                + ( leftSide == null ? "(null)" : leftSide.toString() ) + " "
-                + rule.getOperator() + " "
-                + ( rightSide == null ? "(null)" : rightSide.toString() ) + " ("
-                + context.getValidationResults().size() + " results)" );
         }
     }
 
@@ -255,19 +242,19 @@ public class DataValidationTask
      */
     private boolean isViolation( Double leftSide, Double rightSide )
     {
-        if ( Operator.compulsory_pair.equals( rule.getOperator() ) )
+        if ( Operator.compulsory_pair.equals( ruleX.getRule().getOperator() ) )
         {
             return ( leftSide == null ) != ( rightSide == null );
         }
 
-        if ( Operator.exclusive_pair.equals( rule.getOperator() ) )
+        if ( Operator.exclusive_pair.equals( ruleX.getRule().getOperator() ) )
         {
             return ( leftSide != null ) && ( rightSide != null );
         }
 
         if ( leftSide == null )
         {
-            if ( rule.getLeftSide().getMissingValueStrategy() == NEVER_SKIP )
+            if ( ruleX.getRule().getLeftSide().getMissingValueStrategy() == NEVER_SKIP )
             {
                 leftSide = 0d;
             }
@@ -279,7 +266,7 @@ public class DataValidationTask
 
         if ( rightSide == null )
         {
-            if ( rule.getRightSide().getMissingValueStrategy() == NEVER_SKIP )
+            if ( ruleX.getRule().getRightSide().getMissingValueStrategy() == NEVER_SKIP )
             {
                 rightSide = 0d;
             }
@@ -289,7 +276,7 @@ public class DataValidationTask
             }
         }
 
-        return !expressionIsTrue( leftSide, rule.getOperator(), rightSide );
+        return !expressionIsTrue( leftSide, ruleX.getRule().getOperator(), rightSide );
     }
 
     /**
@@ -299,13 +286,13 @@ public class DataValidationTask
     {
         getDataMap();
 
-        slidingWindowEventMap = getEventMapForSlidingWindow( true, subContext.getEventItems() );
-        slidingWindowEventMap.putMap ( getEventMapForSlidingWindow( false, subContext.getEventItemsWithoutAttributeOptions() ) );
+        slidingWindowEventMap = getEventMapForSlidingWindow( true, periodTypeX.getEventItems() );
+        slidingWindowEventMap.putMap ( getEventMapForSlidingWindow( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
 
         slidingWindowEventMap.putMap( dataMap );
 
-        eventMap = getEventMap( true, subContext.getEventItems() );
-        eventMap.putMap ( getEventMap( false, subContext.getEventItemsWithoutAttributeOptions() ) );
+        eventMap = getEventMap( true, periodTypeX.getEventItems() );
+        eventMap.putMap ( getEventMap( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
 
         dataMap.putMap( eventMap );
     }
@@ -315,15 +302,16 @@ public class DataValidationTask
      * (grouped by attribute option combo).
      *
      * @param expression left or right side expression.
+     * @param slidingWindow whether to use sliding window.
      * @return the values grouped by attribute option combo.
      */
-    private Map<String, Double> getValuesForExpression( Expression expression )
+    private Map<String, Double> getValuesForExpression( Expression expression, boolean slidingWindow )
     {
         if ( expression == null )
         {
             return new HashMap<>();
         }
-        else if ( expression.getSlidingWindow() )
+        else if ( slidingWindow )
         {
             return getExpressionValueMap( expression, slidingWindowEventMap );
         }
@@ -358,14 +346,14 @@ public class DataValidationTask
      * @return map of values.
      */
     private Map<String, Double> getExpressionValueMap( Expression expression,
-        MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> valueMap )
+        MapMapMap<Integer, String, DimensionalItemObject, Double> valueMap )
     {
         Map<String, Double> expressionValueMap = new HashMap<>();
 
-        Map<DimensionalItemObject, Double> nonAocValues = valueMap.get( orgUnit ) == null
-            ? null : valueMap.get( orgUnit ).get( NON_AOC );
+        Map<DimensionalItemObject, Double> nonAocValues = valueMap.get( orgUnitId ) == null
+            ? null : valueMap.get( orgUnitId ).get( NON_AOC );
 
-        MapMap<String, DimensionalItemObject, Double> aocValues = valueMap.get( orgUnit );
+        MapMap<String, DimensionalItemObject, Double> aocValues = valueMap.get( orgUnitId );
 
         if ( aocValues == null )
         {
@@ -407,8 +395,8 @@ public class DataValidationTask
     private void getDataMap()
     {
         dataMap = dataValueService.getDataValueMapByAttributeCombo(
-            subContext.getDataItems(), period.getStartDate(), orgUnits,
-            subContext.getAllowedPeriodTypes(),
+            periodTypeX.getDataItems(), period.getStartDate(), orgUnits,
+            periodTypeX.getAllowedPeriodTypes(),
             context.getAttributeCombo(), context.getCogDimensionConstraints(),
             context.getCoDimensionConstraints() );
     }
@@ -418,7 +406,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> getEventMap(
+    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventMap(
         boolean hasAttributeOptions, Set<DimensionalItemObject> eventItems )
     {
         if ( eventItems.isEmpty() )
@@ -445,7 +433,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
+    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
         boolean hasAttributeOptions, Set<DimensionalItemObject> eventItems )
     {
         if ( eventItems.isEmpty() )
@@ -495,10 +483,10 @@ public class DataValidationTask
      * @param hasAttributeOptions whether the event data has attribute options.
      * @return event data.
      */
-    private MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> getEventData(
+    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventData(
         DataQueryParams params, boolean hasAttributeOptions )
     {
-        MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> map = new MapMapMap<>();
+        MapMapMap<Integer, String, DimensionalItemObject, Double> map = new MapMapMap<>();
 
         Grid grid = analyticsService.getAggregatedDataValues( params );
 
@@ -508,7 +496,7 @@ public class DataValidationTask
         int vlInx = grid.getWidth() - 1;
 
         Map<String, OrganisationUnit> ouLookup = orgUnits.stream().collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
-        Map<String, DimensionalItemObject> dxLookup = subContext.getEventItems().stream().collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
+        Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream().collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
 
         for ( List<Object> row : grid.getRows() )
         {
@@ -520,7 +508,7 @@ public class DataValidationTask
             OrganisationUnit orgUnit = ouLookup.get( ou );
             DimensionalItemObject eventItem = dxLookup.get( dx );
 
-            map.putEntry( orgUnit, ao, eventItem, vl );
+            map.putEntry( orgUnit.getId(), ao, eventItem, vl );
         }
 
         return map;

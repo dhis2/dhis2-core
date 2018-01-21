@@ -504,14 +504,14 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+    public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
         Set<DataElementOperand> dataElementOperands, Date date,
         List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
     {
         SetMap<DataElement, DataElementOperand> deosByDataElement = getDeosByDataElement( dataElementOperands );
 
-        MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> map = new MapMapMap<>();
+        MapMapMap<Integer, String, DimensionalItemObject, Double> map = new MapMapMap<>();
 
         if ( dataElementOperands.isEmpty() || periodTypes.isEmpty()
             || ( cogDimensionConstraints != null && cogDimensionConstraints.isEmpty() )
@@ -550,17 +550,16 @@ public class HibernateDataValueStore
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        MapMapMap<OrganisationUnit, String, DataElementOperand, Long> checkForDuplicates = new MapMapMap<>();
+        MapMapMap<Integer, String, DataElementOperand, Long> checkForDuplicates = new MapMapMap<>();
 
         int rowCount = 0;
 
-        Map<Integer, OrganisationUnit> orgUnitsById = orgUnits.stream().collect( Collectors.toMap( o -> o.getId(), o -> o ) );
         Map<Integer, DataElement> dataElementsById = IdentifiableObjectUtils.getIdentifierMap( deosByDataElement.keySet() );
 
         while ( rowSet.next() )
         {
             rowCount++;
-            int sourceId = rowSet.getInt( 1 );
+            int orgUnitId = rowSet.getInt( 1 );
             int dataElementId = rowSet.getInt( 2 );
             String categoryOptionCombo = rowSet.getString( 3 );
             String attributeOptionCombo = rowSet.getString( 4 );
@@ -568,7 +567,6 @@ public class HibernateDataValueStore
             Date periodStartDate = rowSet.getDate( 6 );
             Date periodEndDate = rowSet.getDate( 7 );
             long periodInterval = periodEndDate.getTime() - periodStartDate.getTime();
-            OrganisationUnit orgUnit = orgUnitsById.get( sourceId );
             DataElement dataElement = dataElementsById.get( dataElementId );
 
             if ( value != null )
@@ -579,9 +577,9 @@ public class HibernateDataValueStore
                 {
                     if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) )
                     {
-                        double existingValue = ObjectUtils.firstNonNull( map.getValue(orgUnit, attributeOptionCombo, deo), 0.0 );
+                        double existingValue = ObjectUtils.firstNonNull( map.getValue(orgUnitId, attributeOptionCombo, deo), 0.0 );
 
-                        Long existingPeriodInterval = checkForDuplicates.getValue( orgUnit, attributeOptionCombo, deo );
+                        Long existingPeriodInterval = checkForDuplicates.getValue( orgUnitId, attributeOptionCombo, deo );
 
                         if ( existingPeriodInterval != null )
                         {
@@ -595,9 +593,9 @@ public class HibernateDataValueStore
                             }
                         }
 
-                        map.putEntry( orgUnit, attributeOptionCombo, deo, value + existingValue);
+                        map.putEntry( orgUnitId, attributeOptionCombo, deo, value + existingValue);
 
-                        checkForDuplicates.putEntry( orgUnit, attributeOptionCombo, deo, periodInterval );
+                        checkForDuplicates.putEntry( orgUnitId, attributeOptionCombo, deo, periodInterval );
                     }
                 }
             }

@@ -29,14 +29,12 @@ package org.hisp.dhis.validation;
  */
 
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -53,11 +51,11 @@ public class ValidationRunContext
 
     private Queue<ValidationResult> validationResults;
 
-    private Map<PeriodType, PeriodTypeExtended> periodTypeXMap;
+    private List<OrganisationUnit> orgUnits;
+
+    private List<PeriodTypeExtended> periodTypeXs;
 
     private Map<String, Double> constantMap;
-
-    private List<ValidationSubContext> subContexts;
 
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
@@ -103,19 +101,19 @@ public class ValidationRunContext
         return maxResults;
     }
 
-    public Map<PeriodType, PeriodTypeExtended> getPeriodTypeExtendedMap()
+    public List<OrganisationUnit> getOrgUnits()
     {
-        return periodTypeXMap;
+        return orgUnits;
+    }
+
+    public List<PeriodTypeExtended> getPeriodTypeXs()
+    {
+        return periodTypeXs;
     }
 
     public Map<String, Double> getConstantMap()
     {
         return constantMap;
-    }
-
-    public List<ValidationSubContext> getSubContexts()
-    {
-        return subContexts;
     }
 
     public Set<CategoryOptionGroup> getCogDimensionConstraints()
@@ -171,14 +169,7 @@ public class ValidationRunContext
 
     public int getNumberOfTasks()
     {
-        int numberOfTasks = 0;
-
-        for ( ValidationSubContext subContext : subContexts )
-        {
-            numberOfTasks += 1 + subContext.getOrgUnits().size() / ORG_UNITS_PER_TASK;
-        }
-
-        return numberOfTasks;
+        return ( orgUnits.size() + ORG_UNITS_PER_TASK - 1 ) / ORG_UNITS_PER_TASK;
     }
 
     public boolean isAnalysisComplete()
@@ -212,9 +203,9 @@ public class ValidationRunContext
         public ValidationRunContext build()
         {
             Validate
-                .notNull( this.context.periodTypeXMap, "Missing required property 'periodTypeXMap'" );
+                .notNull( this.context.periodTypeXs, "Missing required property 'periodTypeXs'" );
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
-            Validate.notNull( this.context.subContexts, "Missing required property 'subContexts'" );
+            Validate.notNull( this.context.orgUnits, "Missing required property 'orgUnits'" );
             Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
 
             return this.context;
@@ -224,22 +215,22 @@ public class ValidationRunContext
         // Setter methods
         // -------------------------------------------------------------------------
 
-        public Builder withPeriodTypeXMap(
-            Map<PeriodType, PeriodTypeExtended> periodTypeXMap )
+        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
         {
-            this.context.periodTypeXMap = periodTypeXMap;
+            this.context.orgUnits = orgUnits;
+            return this;
+        }
+
+        public Builder withPeriodTypeXs(
+            List<PeriodTypeExtended> periodTypeXs )
+        {
+            this.context.periodTypeXs = periodTypeXs;
             return this;
         }
 
         public Builder withConstantMap( Map<String, Double> constantMap )
         {
             this.context.constantMap = constantMap;
-            return this;
-        }
-
-        public Builder withSubContexts( List<ValidationSubContext> subContexts )
-        {
-            this.context.subContexts = subContexts;
             return this;
         }
 

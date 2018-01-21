@@ -55,26 +55,29 @@ public class Validator
      * 
      * @return a collection of any validations that were found
      */
-    public static Collection<ValidationResult> validate( ValidationRunContext context, 
+    public static Collection<ValidationResult> validate( ValidationRunContext context,
         ApplicationContext applicationContext )
     {
         DataElementCategoryService categoryService = (DataElementCategoryService)
             applicationContext.getBean( DataElementCategoryService.class );
                 
         int threadPoolSize = getThreadPoolSize( context );
+
+        if ( threadPoolSize == 0 )
+        {
+            return context.getValidationResults();
+        }
+
         ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
 
-        for ( ValidationSubContext subContext : context.getSubContexts() )
+        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(), ValidationRunContext.ORG_UNITS_PER_TASK );
+
+        for ( List<OrganisationUnit> orgUnits : orgUnitLists )
         {
-            List<List<OrganisationUnit>> orgUnitLists = Lists.partition( subContext.getOrgUnits(), 500 );
+            ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
+            task.init( orgUnits, context );
 
-            for ( List<OrganisationUnit> orgUnits : orgUnitLists )
-            {
-                ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
-                task.init( orgUnits, subContext, context );
-
-                executor.execute( task );
-            }
+            executor.execute( task );
         }
 
         executor.shutdown();

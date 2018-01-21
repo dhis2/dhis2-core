@@ -28,15 +28,13 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
@@ -61,6 +59,14 @@ public class PeriodTypeExtended
 
     private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
+    private Set<PeriodType> allowedPeriodTypes = new HashSet<>();
+
+    private Set<DimensionalItemObject> eventItems = new HashSet<>();
+
+    private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
+
+    private Set<DataElementOperand> dataItems = new HashSet<>();
+
     public PeriodTypeExtended( PeriodType periodType )
     {
         this.periodType = periodType;
@@ -71,7 +77,11 @@ public class PeriodTypeExtended
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
             .append( "periodType", periodType )
             .append( "periods", periods )
-            .append( "rules", ruleXs.toArray() ).toString();
+            .append( "ruleXs", ruleXs.toArray() )
+            .append( "eventItems", eventItems )
+            .append( "eventItemsWithoutAttributeOptions", eventItemsWithoutAttributeOptions )
+            .append( "dataItems", dataItems )
+            .append( "allowedPeriodTypes", allowedPeriodTypes ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -96,5 +106,25 @@ public class PeriodTypeExtended
     public Set<ValidationRuleExtended> getRuleXs()
     {
         return ruleXs;
+    }
+
+    public Set<DimensionalItemObject> getEventItems()
+    {
+        return eventItems;
+    }
+
+    public Set<DimensionalItemObject> getEventItemsWithoutAttributeOptions()
+    {
+        return eventItemsWithoutAttributeOptions;
+    }
+
+    public Set<DataElementOperand> getDataItems()
+    {
+        return dataItems;
+    }
+
+    public Set<PeriodType> getAllowedPeriodTypes()
+    {
+        return allowedPeriodTypes;
     }
 }

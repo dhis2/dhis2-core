@@ -35,5 +35,5 @@ import java.util.List;
 public interface ValidationTask
     extends Runnable
 {
-    void init( List<OrganisationUnit> orgUnits, ValidationSubContext subContext, ValidationRunContext context );
+    void init( List<OrganisationUnit> orgUnits, ValidationRunContext context );
 }

@@ -356,7 +356,7 @@ public class DefaultDataValueService
     }
 
     @Override
-    public MapMapMap<OrganisationUnit, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+    public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
         Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
         Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
