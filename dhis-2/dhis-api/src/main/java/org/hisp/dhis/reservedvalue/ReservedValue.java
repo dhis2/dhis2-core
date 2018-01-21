@@ -32,48 +32,55 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import java.util.Calendar;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
 
+/**
+ * @author Stian Sandvold
+ */
 public class ReservedValue
+    implements Serializable
 {
-    private int id;
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 334738541365949298L;
 
-    private String ownerUID;
+    private String clazz;
+
+    private String ownerUid;
 
     private String key;
 
     private String value;
 
-    private Calendar expires;
+    private Date expires;
 
-    public ReservedValue( String ownerUID, String key, String value, Calendar expires )
+    public ReservedValue()
     {
-        this.ownerUID = ownerUID;
+
+    }
+
+    public ReservedValue( String clazz, String ownerUid, String key, String value, Date expires )
+    {
+        this.clazz = clazz;
+        this.ownerUid = ownerUid;
         this.key = key;
         this.value = value;
         this.expires = expires;
     }
 
-    public int getId()
-    {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOwnerUID()
+    public String getOwnerUid()
     {
-        return ownerUID;
+        return ownerUid;
     }
 
-    public void setOwnerUID( String ownerUID )
+    public void setOwnerUid( String ownerUid )
     {
-        this.ownerUID = ownerUID;
+        this.ownerUid = ownerUid;
     }
 
     @JsonProperty
@@ -102,13 +109,58 @@ public class ReservedValue
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Calendar getExpires()
+    public Date getExpires()
     {
         return expires;
     }
 
-    public void setExpires( Calendar expires )
+    public void setExpires( Date expires )
     {
         this.expires = expires;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getClazz()
+    {
+        return clazz;
+    }
+
+    public void setClazz( String clazz )
+    {
+        this.clazz = clazz;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        ReservedValue that = (ReservedValue) o;
+        return Objects.equals( clazz, that.clazz ) &&
+            Objects.equals( ownerUid, that.ownerUid ) &&
+            Objects.equals( key, that.key ) &&
+            Objects.equals( value, that.value );
+    }
+
+    @Override
+    public int hashCode()
+    {
+
+        return Objects.hash( clazz, ownerUid, key, value );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ReservedValue{" +
+            "clazz='" + clazz + '\'' +
+            ", ownerUid='" + ownerUid + '\'' +
+            ", key='" + key + '\'' +
+            ", value='" + value + '\'' +
+            ", expires=" + expires +
+            '}';
     }
 }

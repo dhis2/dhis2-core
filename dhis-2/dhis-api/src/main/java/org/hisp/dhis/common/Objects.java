@@ -59,7 +59,8 @@ public enum Objects
     MAP( "map" ),
     DASHBOARD( "dashboard" ),
     PROGRAM( "program" ),
-    PROGRAMSTAGEINSTANCE( "programStageInstance" );
+    PROGRAMSTAGEINSTANCE( "programStageInstance" ),
+    TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute");
 
     private String value;
 

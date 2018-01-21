@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.textpattern.MethodType.RequiredStatus;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -45,7 +44,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
@@ -120,7 +124,7 @@ public class TrackedEntityAttributeController
         TextPattern textPattern = textPatternService.getTextPattern( attribute );
         List<String> missingValues = textPatternService
             .getRequiredValues( textPattern )
-            .get( RequiredStatus.REQUIRED );
+            .get( "REQUIRED" );
 
         if ( missingValues.size() > 0 )
         {
@@ -157,7 +161,7 @@ public class TrackedEntityAttributeController
         values = (values == null ? new HashMap<>() : values);
         List<String> missingValues = textPatternService
             .getRequiredValues( textPattern )
-            .get( RequiredStatus.REQUIRED );
+            .get( "REQUIRED" );
 
         missingValues.removeAll( values.keySet() );
 
@@ -173,7 +177,7 @@ public class TrackedEntityAttributeController
 
     @RequestMapping( value = "/{id}/requiredValues", method = RequestMethod.GET )
     public @ResponseBody
-    Map<RequiredStatus, List<String>> getRequiredValues( @PathVariable String id )
+    Map<String, List<String>> getRequiredValues( @PathVariable String id )
         throws Exception
     {
         TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );

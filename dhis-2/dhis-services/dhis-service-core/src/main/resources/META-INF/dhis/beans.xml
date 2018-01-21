@@ -252,6 +252,11 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateReservedValueStore">
+    <property name="clazz" value="org.hisp.dhis.reservedvalue.ReservedValue" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
   <!--DataSetNotifications-->
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
@@ -813,11 +818,6 @@
 
   <bean id="org.hisp.dhis.pushanalysis.PushAnalysisStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.pushanalysis.PushAnalysis" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reservedvalue.ReservedValueStore" class="org.hisp.dhis.hibernate.HibernateGenericStore">
-    <property name="clazz" value="org.hisp.dhis.reservedvalue.ReservedValue" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -1466,7 +1466,6 @@
   <bean id="org.hisp.dhis.textpattern.TextPatternService" class="org.hisp.dhis.textpattern.DefaultTextPatternService" />
 
   <bean id="org.hisp.dhis.reservedvalue.ReservedValueService" class="org.hisp.dhis.reservedvalue.DefaultReservedValueService">
-    <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
   </bean>
 
   <!-- Outbound messaging services -->

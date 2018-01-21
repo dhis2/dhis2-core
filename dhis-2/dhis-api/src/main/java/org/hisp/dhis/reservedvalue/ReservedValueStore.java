@@ -30,8 +30,16 @@ package org.hisp.dhis.reservedvalue;
 
 import org.hisp.dhis.common.GenericStore;
 
+import java.util.List;
+
 public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {
-    boolean isValueAvailable( String uid, String key, String value );
+
+    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+
+    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+
+    void removeExpiredReservations();
+
 }

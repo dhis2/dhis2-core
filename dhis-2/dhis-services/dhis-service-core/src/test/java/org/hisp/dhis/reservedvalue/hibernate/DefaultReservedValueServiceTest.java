@@ -50,8 +50,10 @@ public class DefaultReservedValueServiceTest
         assertEquals( 1, reservedValueService.generateAndReserveSequentialValues( "ABC", "ABC-#", "#", 1 ).size() );
         assertEquals( 3, reservedValueService.generateAndReserveSequentialValues( "ABC", "ABC-#", "#", 3 ).size() );
         assertEquals( "1", reservedValueService.generateAndReserveSequentialValues( "ABC", "ABC-#", "#", 1 ).get( 0 ) );
-        assertEquals( "01", reservedValueService.generateAndReserveSequentialValues( "ABC", "ABC-##", "##", 1 ).get( 0 ) );
-        assertEquals( "0001", reservedValueService.generateAndReserveSequentialValues( "ABC", "ABC-####", "####", 1 ).get( 0 ) );
+        assertEquals( "01",
+            reservedValueService.generateAndReserveSequentialValues( "ABC", "ABC-##", "##", 1 ).get( 0 ) );
+        assertEquals( "0001",
+            reservedValueService.generateAndReserveSequentialValues( "ABC", "ABC-####", "####", 1 ).get( 0 ) );
 
     }
 
