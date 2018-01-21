@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataadmin.action.dataintegrity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.dataadmin.action.dataintegrity;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataintegrity.DataIntegrityReport;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
@@ -73,9 +73,9 @@ public class GetDataIntegrityReportAction
     @Override
     public String execute()
     {
-        JobId taskId = new JobId( category, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( null, category, currentUserService.getCurrentUser().getUid(), true );
 
-        dataIntegrityReport = (DataIntegrityReport) notifier.getTaskSummary( taskId );
+        dataIntegrityReport = (DataIntegrityReport) notifier.getJobSummary( jobId.getJobType() );
 
         return SUCCESS;
     }

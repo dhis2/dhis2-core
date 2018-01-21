@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -165,17 +165,7 @@ public interface GenericStore<T>
 
     int getCountNoAcl();
 
-    /**
-     * Get object where an attribute value of a certain attribute exists.
-     *
-     * @param attribute Attribute
-     * @return Object if object.attributeValues.attribute=attribute exists
-     */
-    T getByAttribute( Attribute attribute );
-
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
-
-    List<AttributeValue> getAttributeValueByAttributes( List<Attribute> attributes );
 
     List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value );
 

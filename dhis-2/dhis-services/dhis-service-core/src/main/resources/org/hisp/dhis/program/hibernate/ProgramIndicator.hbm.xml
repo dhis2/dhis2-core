@@ -21,6 +21,10 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
+
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programindicator_program" not-null="true" />
 

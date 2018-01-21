@@ -32,6 +32,7 @@
                 <select type="text" id="notificationTrigger" name="notificationTrigger">
                     <option value="COMPLETION">$i18n.getString( "program_stage_completion" )</option>
                     <option value="SCHEDULED_DAYS_DUE_DATE">$i18n.getString( "days_scheduled_due_date" )</option>
+                    <option value="PROGRAM_RULE">$i18n.getString( "program_rule" )</option>
                 </select>
             </td>
         </tr>
@@ -50,6 +51,7 @@
                 <input type="hidden" id="relativeScheduledDays" name="relativeScheduledDays" />
             </td>
         </tr>
+
         <tr>
             <td>
                 <label for="notificationRecipient">$i18n.getString( "recipients" )</label>

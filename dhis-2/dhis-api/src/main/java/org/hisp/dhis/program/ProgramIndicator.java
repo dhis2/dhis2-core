@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.BaseDataDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.common.*;
 
 import java.util.HashSet;
 import java.util.List;
@@ -134,6 +129,8 @@ public class ProgramIndicator
 
     private String filter;
 
+    private String formName;
+
     /**
      * Number of decimals to use for indicator value, null implies default.
      */
@@ -146,6 +143,8 @@ public class ProgramIndicator
     private AnalyticsType analyticsType = AnalyticsType.EVENT;
     
     private Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries;
+
+    private ObjectStyle style;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -395,5 +394,30 @@ public class ProgramIndicator
     public void setAnalyticsPeriodBoundaries( Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries )
     {
         this.analyticsPeriodBoundaries = analyticsPeriodBoundaries;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
     }
 }

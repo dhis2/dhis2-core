@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,12 +90,17 @@ public class FileResourceCleanUpJob
 
         StringBuilder sb = new StringBuilder( "[ " );
 
-        list.forEach( pair -> sb.append( pair.getLeft() ).append( " , uid: " ).append( pair.getRight() ).append( ", " ) );
+        list.forEach(
+            pair -> sb.append( pair.getLeft() ).append( " , uid: " ).append( pair.getRight() ).append( ", " ) );
 
         sb.deleteCharAt( sb.lastIndexOf( "," ) ).append( "]" );
 
         return sb.toString();
     }
 
-
+    @Override
+    protected String getJobId()
+    {
+        return "fileResourceCleanUpJob";
+    }
 }

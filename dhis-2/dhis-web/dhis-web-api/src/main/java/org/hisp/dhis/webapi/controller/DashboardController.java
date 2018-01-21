@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,11 +79,14 @@ public class DashboardController
 
     @RequestMapping( value = "/q/{query}", method = RequestMethod.GET )
     public @ResponseBody DashboardSearchResult search( @PathVariable String query, @RequestParam( required = false ) Set<DashboardItemType> max )
-        throws Exception
     {
-        DashboardSearchResult dashboardSearchResult = dashboardService.search( query, max );
+        return dashboardService.search( query, max );
+    }
 
-        return dashboardSearchResult;
+    @RequestMapping( value = "/q", method = RequestMethod.GET )
+    public @ResponseBody DashboardSearchResult searchNoFilter( @RequestParam( required = false ) Set<DashboardItemType> max )
+    {
+        return dashboardService.search( max );
     }
 
     @Override

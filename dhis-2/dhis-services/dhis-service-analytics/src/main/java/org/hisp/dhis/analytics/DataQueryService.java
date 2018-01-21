@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,36 +57,36 @@ public interface DataQueryService
      * @param skipMeta whether to skip the meta data part of the response.
      * @param skipData whether to skip the data part of the response.
      * @param skipRounding whether to skip rounding and provide full precision
-     *        for values.
+     *         for values.
      * @param completedOnly whether to only include completed events.
      * @param hierarchyMeta whether to include meta data about the organisation
-     *        units in the hierarchy.
+     *         units in the hierarchy.
      * @param ignoreLimit whether to ignore the max number of cells limit.
      * @param hideEmptyRows whether to hide rows without data values, applies to
-     *        table layout.
+     *         table layout.
      * @param hideEmptyColumns whether to hide columns without data values, applies
-     *        to table layout.
+     *         to table layout.
      * @param showHierarchy whether to show the organisation unit hierarchy
-     *        together with the name.
+     *         together with the name.
      * @param includeNumDen whether to include the numerator and denominator of
-     *        values in the response.
+     *         values in the response.
      * @param includeMetadataDetails whether to include metadata details in the response.
      * @param displayProperty the property to display for meta-data.
      * @param outputIdScheme the identifier scheme to use in the query response.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
      * @param duplicatesOnly whether to include duplicate data values only,
-     *        applies to data value set format only.
+     *         applies to data value set format only.
      * @param approvalLevel the approval level identifier.
      * @param relativePeriodDate the date to use as basis for relative periods.
      * @param userOrgUnit the user organisation unit to use, overrides current user.
      * @param allowAllPeriods whether to allow all period items, meaning specifying the
-     *        period dimension with no period items.
+     *         period dimension with no period items.
      * @param apiVersion the API version used for the request.
      * @return a data query parameter object created based on the given URL info.
      */
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
         String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
-        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty,
+        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, 
         IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion );
 
     /**

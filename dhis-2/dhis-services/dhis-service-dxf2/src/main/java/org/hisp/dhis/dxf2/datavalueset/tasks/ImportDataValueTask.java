@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset.tasks;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.dxf2.datavalueset.tasks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.scheduling.JobId;
 
 import java.io.InputStream;
 
@@ -60,14 +60,14 @@ public class ImportDataValueTask
 
     private final ImportOptions importOptions;
 
-    private final JobId jobId;
+    private final JobConfiguration jobId;
 
     private final String format;
 
     // TODO: Re-factor as bean to avoid injecting session factory / dependencies
     
     public ImportDataValueTask( DataValueSetService dataValueSetService, AdxDataService adxDataService, SessionFactory sessionFactory,
-        InputStream inputStream, ImportOptions importOptions, JobId jobId, String format )
+        InputStream inputStream, ImportOptions importOptions, JobConfiguration jobId, String format )
     {
         this.dataValueSetService = dataValueSetService;
         this.adxDataService = adxDataService;

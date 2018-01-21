@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ public class AnalyticsJobParameters
     private static final long serialVersionUID = 4613054056442242637L;
 
     @Property
-    private Integer lastYears = null;
+    private Integer lastYears = 0;
 
     @Property
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>( );

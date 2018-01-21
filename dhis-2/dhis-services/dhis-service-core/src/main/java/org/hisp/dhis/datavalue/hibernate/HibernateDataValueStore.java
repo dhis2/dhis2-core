@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -385,7 +385,7 @@ public class HibernateDataValueStore
                 snippit = "or ";
             }
 
-            sql += ") group by dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid, p.path";
+            sql += ") group by dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 

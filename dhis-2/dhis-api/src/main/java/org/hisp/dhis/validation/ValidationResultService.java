@@ -1,6 +1,6 @@
 package org.hisp.dhis.validation;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,6 +86,6 @@ public interface ValidationResultService
 
     int countValidationResults( ValidationResultQuery query );
 
-    List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits, Collection<ValidationRule> validationRules,
-        Collection<Period> periods );
+    List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );
 }

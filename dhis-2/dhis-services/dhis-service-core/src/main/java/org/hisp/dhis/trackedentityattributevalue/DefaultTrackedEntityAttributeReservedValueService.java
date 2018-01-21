@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public class DefaultTrackedEntityAttributeReservedValueService
     private TrackedEntityAttributeReservedValueStore trackedEntityAttributeReservedValueStore;
     
     @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+    private TrackedEntityAttributeValueStore trackedEntityAttributeValueStore;
 
     @Override
     public TrackedEntityAttributeReservedValue markTrackedEntityAttributeReservedValueAsUtilized(
@@ -111,7 +111,7 @@ public class DefaultTrackedEntityAttributeReservedValueService
         {
             String candidate = generateRandomValueInPattern( trackedEntityAttribute.getPattern() );
             
-            if ( !trackedEntityAttributeValueService.exists( trackedEntityAttribute, candidate ) )
+            if ( !exists( trackedEntityAttribute, candidate ) )
             {
                 //The generated ID was available. Check that it is not already reserved
                 if ( findTrackedEntityAttributeReservedValue( trackedEntityAttribute, candidate ) == null ) 
@@ -144,7 +144,13 @@ public class DefaultTrackedEntityAttributeReservedValueService
         
         return null;
     }
-    
+
+    private boolean exists( TrackedEntityAttribute attribute, String value )
+    {
+        List<TrackedEntityAttributeValue> values = trackedEntityAttributeValueStore.get( attribute, value );
+        return values != null && values.size() > 0;
+    }
+
     private String generateRandomValueInPattern( String pattern ) 
     {   
         if ( pattern.isEmpty() || ( pattern.matches( " *(#+|[0-9]+) *" ) && pattern.length() > 0 ) )

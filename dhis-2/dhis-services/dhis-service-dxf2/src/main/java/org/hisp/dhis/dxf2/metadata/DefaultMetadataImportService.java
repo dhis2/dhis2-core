@@ -1,32 +1,32 @@
 package org.hisp.dhis.dxf2.metadata;
 
     /*
-     * Copyright (c) 2004-2017, University of Oslo
-     * All rights reserved.
-     *
-     * Redistribution and use in source and binary forms, with or without
-     * modification, are permitted provided that the following conditions are met:
-     * Redistributions of source code must retain the above copyright notice, this
-     * list of conditions and the following disclaimer.
-     *
-     * Redistributions in binary form must reproduce the above copyright notice,
-     * this list of conditions and the following disclaimer in the documentation
-     * and/or other materials provided with the distribution.
-     * Neither the name of the HISP project nor the names of its contributors may
-     * be used to endorse or promote products derived from this software without
-     * specific prior written permission.
-     *
-     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-     * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-     * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-     * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-     */
+ * Copyright (c) 2004-2018, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
@@ -52,15 +52,13 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +67,6 @@ import org.springframework.util.StringUtils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,9 +95,6 @@ public class DefaultMetadataImportService implements MetadataImportService
     @Autowired
     private Notifier notifier;
 
-    @Autowired
-    private IdentifiableObjectManager objectManager;
-
     @Override
     public ImportReport importMetadata( MetadataImportParams params )
     {
@@ -125,7 +119,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( params.hasJobId() )
         {
-            notifier.notify( params.getJobId(), message );
+            notifier.notify( params.getId(), message );
         }
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
@@ -165,7 +159,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), NotificationLevel.INFO, message, true )
-                .addTaskSummary( bundle.getJobId(), importReport );
+                .addJobSummary( bundle.getJobId(), importReport );
         }
 
         if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
@@ -227,9 +221,9 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( getBooleanWithDefault( parameters, "async", false ) )
         {
-            JobId jobId = new JobId( JobType.METADATA_IMPORT, params.getUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( "metadataImport", JobType.METADATA_IMPORT, params.getUser().getUid(), true );
             notifier.clear( jobId );
-            params.setJobId( jobId );
+            params.setId( jobId );
         }
 
         if ( params.getUserOverrideMode() == UserOverrideMode.SELECTED )
@@ -299,61 +293,21 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, bundle.getUser() );
         }
 
-        if ( object.getUser() == null || objectManager.get( object.getUser().getUid() ) == null )
+        if ( object.getUser() == null || manager.get( object.getUser().getUid() ) == null )
         {
             object.setUser( bundle.getUser() );
         }
 
-        object.setUserAccesses( prepareUserAccess( object ) );
+        if ( object.getUserAccesses() == null )
+        {
+            object.setUserAccesses( new HashSet<>() );
+        }
 
-        object.setUserGroupAccesses( prepareUserGroupAccesses( object ) );
+        if ( object.getUserGroupAccesses() == null )
+        {
+            object.setUserGroupAccesses( new HashSet<>() );
+        }
 
         object.setLastUpdatedBy( bundle.getUser() );
-    }
-
-    private Set<UserAccess> prepareUserAccess( BaseIdentifiableObject object )
-    {
-        Set<UserAccess> userAccesses = object.getUserAccesses();
-
-        if ( userAccesses == null )
-        {
-            return new HashSet<>();
-        }
-
-        Set<UserAccess> returnUserAccess = new HashSet<>();
-
-        userAccesses.forEach( ua -> {
-            UserAccess persisted = objectManager.get( ua.getUid() );
-
-            if ( persisted != null )
-            {
-                returnUserAccess.add( persisted );
-            }
-        } );
-
-        return returnUserAccess;
-    }
-
-    private Set<UserGroupAccess> prepareUserGroupAccesses( BaseIdentifiableObject object )
-    {
-        Set<UserGroupAccess> userGroupAccesses = object.getUserGroupAccesses();
-
-        if ( userGroupAccesses == null )
-        {
-            return new HashSet<>();
-        }
-
-        Set<UserGroupAccess> returnUserGroupAccess = new HashSet<>();
-
-        userGroupAccesses.forEach( uga -> {
-            UserGroupAccess persisted = objectManager.get( uga.getUid() );
-
-            if ( persisted != null )
-            {
-                returnUserGroupAccess.add( persisted );
-            }
-        } );
-
-        return returnUserGroupAccess;
     }
 }

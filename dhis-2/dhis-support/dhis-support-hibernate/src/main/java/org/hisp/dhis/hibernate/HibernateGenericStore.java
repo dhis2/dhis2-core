@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -783,24 +783,6 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public T getByAttribute( Attribute attribute )
-    {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return null;
-        }
-
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "attributeValues", "av" );
-        criteria.add( Restrictions.eq( "av.attribute", attribute ) );
-
-        return (T) criteria.uniqueResult();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
         Schema schema = schemaService.getDynamicSchema( getClazz() );
@@ -816,27 +798,6 @@ public class HibernateGenericStore<T>
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
         query.select( root.get( "attributeValues" ) );
         query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
-
-        return sessionFactory.getCurrentSession().createQuery( query ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<AttributeValue> getAttributeValueByAttributes( List<Attribute> attributes )
-    {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
-        query = getCriteriaQuery();
-
-        Root root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
-        query.select( root.get( "attributeValues" ) );
-        query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
 
         return sessionFactory.getCurrentSession().createQuery( query ).list();
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,7 @@ public enum ErrorCode
     E4014( "Invalid UID `{0}` for property `{1}`"),
     E4015( "Property `{0}` refers to an object that does not exist, could not find `{1}`"),
     E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`"),
+    E4017( "RenderingType `{0}` is not supported for ValueType `{1}`"),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
@@ -77,10 +78,11 @@ public enum ErrorCode
     E7002( "Failed to add/update job configuration - Uid does not exist" ),
     E7003( "Failed to add/update job configuration - Given job type '{0}' is not configurable" ),
     E7004( "Failed to add/update job configuration - Cron Expression must not be null " ),
-    E7005( "Failed to add/update job configuration - Failed to validate cron expression: {0} " ),
+    E7005( "Failed to add/update job configuration - Failed to validate cron expression: `{0}` " ),
+    E7006( "Failed to execute job `{0}`." ),
 
     /* Job specific scheduling errors */
-    E7010( "Failed to validate job runtime - {0}" ),
+    E7010( "Failed to validate job runtime - `{0}`" ),
 
     /* Preheat Errors */
     E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

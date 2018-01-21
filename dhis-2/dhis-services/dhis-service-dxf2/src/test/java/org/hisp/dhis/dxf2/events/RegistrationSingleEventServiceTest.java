@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ public class RegistrationSingleEventServiceTest
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+    private IdentifiableObjectManager manager;
 
     @Autowired
     private UserService _userService;
@@ -114,8 +114,8 @@ public class RegistrationSingleEventServiceTest
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
-        identifiableObjectManager.save( organisationUnitA );
-        identifiableObjectManager.save( organisationUnitB );
+        manager.save( organisationUnitA );
+        manager.save( organisationUnitB );
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
@@ -130,23 +130,23 @@ public class RegistrationSingleEventServiceTest
         femaleA.setTrackedEntityType( trackedEntityType );
         femaleB.setTrackedEntityType( trackedEntityType );
 
-        identifiableObjectManager.save( maleA );
-        identifiableObjectManager.save( maleB );
-        identifiableObjectManager.save( femaleA );
-        identifiableObjectManager.save( femaleB );
+        manager.save( maleA );
+        manager.save( maleB );
+        manager.save( femaleA );
+        manager.save( femaleB );
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
         dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
-        identifiableObjectManager.save( dataElementA );
+        manager.save( dataElementA );
 
         programStageA = createProgramStage( 'A', 0 );
-        identifiableObjectManager.save( programStageA );
+        manager.save( programStageA );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        identifiableObjectManager.save( programA );
+        manager.save( programA );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
@@ -157,8 +157,8 @@ public class RegistrationSingleEventServiceTest
         programStageA.setProgram( programA );
         programA.getProgramStages().add( programStageA );
 
-        identifiableObjectManager.update( programStageA );
-        identifiableObjectManager.update( programA );
+        manager.update( programStageA );
+        manager.update( programA );
 
         createUserAndInjectSecurityContext( true );
     }

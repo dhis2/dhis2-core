@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.type;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( "/type/testInheritedFromBase" )
-@ApiVersion( DhisApiVersion.V24 )
+@ApiVersion( DhisApiVersion.V27 )
 public class InheritedFromBaseVersionController extends BaseWithVersionController
 {
     @RequestMapping

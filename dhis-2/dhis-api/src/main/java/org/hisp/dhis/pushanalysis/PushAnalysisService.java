@@ -1,7 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,8 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 
 import java.io.IOException;
 
@@ -40,13 +38,6 @@ import java.io.IOException;
  */
 public interface PushAnalysisService
 {
-    /**
-     * Handles populating the scheduler with Push Analysis when ContextRefreshedEvent is broadcast
-     * @param event
-     */
-    @EventListener
-    void handleContextRefresh( ContextRefreshedEvent event);
-
     /**
      * Returns a PushAnalysis with the given UID
      * @param uid uid of the PushAnalysis
@@ -63,7 +54,7 @@ public interface PushAnalysisService
      * @return String containing a HTML report
      * @throws IOException if the upload of report content failed.
      */
-    String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobId jobId )
+    String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
         throws IOException;
 
     /**
@@ -72,11 +63,5 @@ public interface PushAnalysisService
      * @param uid of the PushAnalysis
      * @param jobId to track process
      */
-    void runPushAnalysis( String uid, JobId jobId );
-
-    /**
-     * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled
-     * @param pushAnalysis
-     */
-    boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis );
+    void runPushAnalysis( String uid, JobConfiguration jobId );
 }

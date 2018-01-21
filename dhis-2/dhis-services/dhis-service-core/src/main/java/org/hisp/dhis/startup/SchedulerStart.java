@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,17 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 
 /**
  *
@@ -59,24 +63,49 @@ public class SchedulerStart
         this.schedulingManager = schedulingManager;
     }
 
+    private MessageService messageService;
+
+    public void setMessageService( MessageService messageService )
+    {
+        this.messageService = messageService;
+    }
+
     @Override
     public void execute( )
         throws Exception
     {
         Date now = new Date();
+        List<String> unexecutedJobs = new ArrayList<>( );
+
         jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
             if ( jobConfig.isEnabled() )
             {
+                Date oldExecutionTime = jobConfig.getNextExecutionTime();
+
                 jobConfig.setNextExecutionTime( null );
+                jobConfig.setJobStatus( SCHEDULED );
                 jobConfigurationService.updateJobConfiguration( jobConfig );
 
                 if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                    ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
+                    ( !jobConfig.isContinuousExecution() && oldExecutionTime.compareTo( now ) < 0 ) )
                 {
-                    schedulingManager.executeJob( jobConfig );
+                    unexecutedJobs.add( "Job [" + jobConfig.getUid() + ", " + jobConfig.getName() + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: " + oldExecutionTime );
                 }
+
                 schedulingManager.scheduleJob( jobConfig );
             }
         }) );
+
+        if ( unexecutedJobs.size() > 0 )
+        {
+            StringBuilder jobs = new StringBuilder();
+
+            for ( String unexecutedJob : unexecutedJobs )
+            {
+                jobs.append( unexecutedJob ).append( "\n" );
+            }
+
+            messageService.sendSystemErrorNotification( "Scheduler startup", new Exception( "Scheduler started with one or more unexecuted jobs:\n" + jobs ) );
+        }
     }
 }

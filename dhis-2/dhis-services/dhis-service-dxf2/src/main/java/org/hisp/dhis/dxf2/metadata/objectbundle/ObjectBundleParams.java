@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.preheat.PreheatParams;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public class ObjectBundleParams
 
     private boolean skipValidation;
 
-    private JobId jobId;
+    private JobConfiguration jobId;
 
     public ObjectBundleParams()
     {
@@ -230,12 +230,12 @@ public class ObjectBundleParams
         return this;
     }
 
-    public JobId getJobId()
+    public JobConfiguration getJobId()
     {
         return jobId;
     }
 
-    public ObjectBundleParams setJobId( JobId jobId )
+    public ObjectBundleParams setJobId( JobConfiguration jobId )
     {
         this.jobId = jobId;
         return this;

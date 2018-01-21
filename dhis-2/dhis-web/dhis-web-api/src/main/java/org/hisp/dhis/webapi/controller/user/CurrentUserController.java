@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,7 +104,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  */
 @Controller
 @RequestMapping( value = { CurrentUserController.RESOURCE_PATH, "/me" }, method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
+@ApiVersion( { DhisApiVersion.DEFAULT } )
 public class CurrentUserController
 {
     public static final String RESOURCE_PATH = "/currentUser";

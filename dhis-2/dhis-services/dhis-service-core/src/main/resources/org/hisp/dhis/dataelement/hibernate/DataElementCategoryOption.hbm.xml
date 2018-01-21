@@ -23,6 +23,8 @@
 
     <property name="endDate" type="date" />
 
+    <property name="style" type="jbObjectStyle" column="style" />
+
     <set name="organisationUnits" table="categoryoption_organisationunits">
       <cache usage="read-write" />
       <key column="categoryoptionid" foreign-key="fk_categoryoption_organisationunits_categoryoptionid" />

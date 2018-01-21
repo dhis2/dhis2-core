@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -350,6 +350,12 @@ public class DefaultAnalyticsService
                 {
                     grid.addHeader( new GridHeader( level.getDimension(), level.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
                 }
+            }
+            
+            if ( params.isIncludePeriodStartEndDates() )
+            {
+                grid.addHeader( new GridHeader( PERIOD_START_DATE_ID, PERIOD_START_DATE_NAME, ValueType.DATETIME, Date.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( PERIOD_END_DATE_ID, PERIOD_END_DATE_NAME, ValueType.DATETIME, Date.class.getName(), false, false ) );
             }
             
             grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
@@ -1148,7 +1154,8 @@ public class DefaultAnalyticsService
     {
         Builder builder = DataQueryParams.newBuilder( params )
             .withEarliestStartDateLatestEndDate()
-            .withPeriodDimensionWithoutOptions();
+            .withPeriodDimensionWithoutOptions()
+            .withIncludePeriodStartEndDates( true );
         
         if ( params.isShowHierarchy() )
         {            

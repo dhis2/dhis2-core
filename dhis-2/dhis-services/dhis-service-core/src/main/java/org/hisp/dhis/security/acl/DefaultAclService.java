@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -144,7 +144,9 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
         {
-            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ ) )
+            if ( schema.isDataShareable() &&
+                (checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ )
+                    || checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE )) )
             {
                 return true;
             }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,10 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
+
 /**
  * @author Markus Bekken
  */
@@ -44,9 +48,13 @@ public enum ProgramRuleActionType
     SHOWERROR( "showerror" ),
     ERRORONCOMPLETE( "erroroncomplete" ),
     CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" );
+    SETMANDATORYFIELD( "setmandatoryfield" ),
+    SENDMESSAGE( "sendmessage" );
 
     final String value;
+
+    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
+        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE ).build(); // Actions having back end implementation
 
     ProgramRuleActionType( String value )
     {
@@ -64,5 +72,10 @@ public enum ProgramRuleActionType
         }
 
         return null;
+    }
+
+    public boolean isImplementable()
+    {
+        return IMPLEMENTED_ACTIONS.contains( this );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.analytics.DataQueryParams.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.RawAnalyticsManager;import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -58,6 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
+
+import com.google.api.client.util.Lists;
 
 /**
  * Class responsible for retrieving raw data from the
@@ -90,6 +93,12 @@ public class JdbcRawAnalyticsManager
         List<DimensionalObject> dimensions = new ArrayList<>();
         dimensions.addAll( params.getDimensions() );
         dimensions.addAll( params.getOrgUnitLevelsAsDimensions() );
+        
+        if ( params.isIncludePeriodStartEndDates() )
+        {
+            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, Lists.newArrayList() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, Lists.newArrayList() ) ); 
+        }
         
         String sql = getSelectStatement( params, dimensions );
         

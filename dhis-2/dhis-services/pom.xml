@@ -44,6 +44,10 @@
       <artifactId>dhis-support-test</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp.dhis.rules</groupId>
+      <artifactId>rule-engine</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.cronutils</groupId>
       <artifactId>cron-utils</artifactId>
       <version>6.0.2</version>

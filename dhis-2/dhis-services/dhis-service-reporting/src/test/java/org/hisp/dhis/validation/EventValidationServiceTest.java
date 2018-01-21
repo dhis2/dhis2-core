@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -393,9 +393,8 @@ public class EventValidationServiceTest
 
         Date startDate = getDate( testYear, 3, 1 );
         Date endDate = getDate( testYear, 4, 30 );
-        List<OrganisationUnit> orgUnits = Arrays.asList( orgUnitA );
 
-        ValidationAnalysisParams params = validationService.newParamsBuilder( null, orgUnits, startDate, endDate ).build();
+        ValidationAnalysisParams params = validationService.newParamsBuilder( null, orgUnitA, startDate, endDate ).build();
 
         Collection<ValidationResult> results = validationService.validationAnalysis( params );
 

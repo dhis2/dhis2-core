@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,18 +68,18 @@ public class ValidationResultNotificationJob
     {
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobConfiguration.getJobId(), "Sending new validation result notifications" );
+        notifier.notify( jobConfiguration, "Sending new validation result notifications" );
 
         try
         {
             runInternal();
 
-            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.INFO,
+            notifier.notify( jobConfiguration, NotificationLevel.INFO,
                 "Sent validation result notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService
                 .sendSystemErrorNotification( "Sending validation result notifications failed", ex );
@@ -92,5 +92,11 @@ public class ValidationResultNotificationJob
     void runInternal()
     {
         notificationService.sendUnsentNotifications();
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "validationResultNotificationJob";
     }
 }

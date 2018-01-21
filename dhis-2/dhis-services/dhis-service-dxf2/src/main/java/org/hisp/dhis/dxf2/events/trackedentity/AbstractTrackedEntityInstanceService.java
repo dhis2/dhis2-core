@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -190,6 +190,8 @@ public abstract class AbstractTrackedEntityInstanceService
         trackedEntityInstance.setLastUpdated( DateUtils.getIso8601NoTz( entityInstance.getLastUpdated() ) );
         trackedEntityInstance.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( entityInstance.getLastUpdatedAtClient() ) );
         trackedEntityInstance.setInactive( entityInstance.isInactive() );
+        trackedEntityInstance.setFeatureType( entityInstance.getFeatureType() );
+        trackedEntityInstance.setCoordinates( entityInstance.getCoordinates() );
 
         if ( params.isIncludeRelationships() )
         {
@@ -366,6 +368,9 @@ public abstract class AbstractTrackedEntityInstanceService
         updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
 
+        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
+        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
+
         teiService.updateTrackedEntityInstance( entityInstance );
 
         importSummary.setReference( entityInstance.getUid() );
@@ -471,6 +476,8 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         entityInstance.setInactive( trackedEntityInstance.isInactive() );
+        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
+        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
 
         removeRelationships( entityInstance );
         removeAttributeValues( entityInstance );

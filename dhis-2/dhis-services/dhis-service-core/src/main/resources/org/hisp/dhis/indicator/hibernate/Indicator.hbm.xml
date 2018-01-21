@@ -21,6 +21,8 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
     <property name="annualized" column="annualized" not-null="true" />
 
     <property name="decimals" />
@@ -37,6 +39,8 @@
     <property name="denominatorDescription" column="denominatordescription" type="text" />
 
     <property name="url" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
 
     <set name="groups" table="indicatorgroupmembers" inverse="true">
       <cache usage="read-write" />

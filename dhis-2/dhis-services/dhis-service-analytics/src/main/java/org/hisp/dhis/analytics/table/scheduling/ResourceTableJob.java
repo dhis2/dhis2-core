@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table.scheduling;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,12 @@ public class ResourceTableJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        analyticsTableGenerator.generateResourceTables( jobConfiguration.getJobId() );
+        analyticsTableGenerator.generateResourceTables( jobConfiguration );
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "resourceTableJob";
     }
 }

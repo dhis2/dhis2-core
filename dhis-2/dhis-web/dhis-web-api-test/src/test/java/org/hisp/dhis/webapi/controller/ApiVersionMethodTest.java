@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,36 +41,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ApiVersionMethodTest extends DhisWebSpringTest
 {
     @Test
-    public void testMethodV23V24() throws Exception
+    public void testMethodV26V27() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/method/testV23V24";
+        String endpoint = "/method/testV26V27";
 
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint + "/a" ).session( session ) )
+        mvc.perform( get( "/26" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( post( "/23" + endpoint + "/a" ).session( session ) )
+        mvc.perform( post( "/26" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( put( "/23" + endpoint + "/a" ).session( session ) )
+        mvc.perform( put( "/26" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( get( "/24" + endpoint + "/b" ).session( session ) )
+        mvc.perform( get( "/27" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( post( "/24" + endpoint + "/b" ).session( session ) )
+        mvc.perform( post( "/27" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( put( "/24" + endpoint + "/b" ).session( session ) )
+        mvc.perform( put( "/27" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isOk() );
     }
 
@@ -83,44 +83,44 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint + "/a" ).session( session ) )
+        mvc.perform( get( "/26" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/24" + endpoint + "/b" ).session( session ) )
+        mvc.perform( get( "/27" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isOk() );
     }
 
     @Test
-    public void testMethodAllExcludeV23() throws Exception
+    public void testMethodAllExcludeV26() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/method/testAllExcludeV23";
+        String endpoint = "/method/testAllExcludeV26";
 
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint + "/a" ).session( session ) )
+        mvc.perform( get( "/26" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint + "/b" ).session( session ) )
+        mvc.perform( get( "/26" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint + "/a" ).session( session ) )
+        mvc.perform( get( "/27" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/24" + endpoint + "/b" ).session( session ) )
+        mvc.perform( get( "/27" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isOk() );
     }
 
@@ -133,16 +133,16 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
         mvc.perform( get( endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint + "/a" ).session( session ) )
+        mvc.perform( get( "/26" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint + "/b" ).session( session ) )
+        mvc.perform( get( "/27" + endpoint + "/b" ).session( session ) )
             .andExpect( status().isNotFound() );
 
         mvc.perform( get( endpoint + "/a" ).session( session ) )

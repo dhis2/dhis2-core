@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -91,6 +92,9 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ProgramNotificationService programNotificationService;
+
+    @Autowired
+    private ProgramRuleEngineService programRuleEngineService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -403,6 +407,7 @@ public class DefaultProgramInstanceService
         // -----------------------------------------------------------------
 
         programNotificationService.sendEnrollmentNotifications( programInstance );
+        programRuleEngineService.evaluate( programInstance );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -442,6 +447,7 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
 
         programNotificationService.sendCompletionNotifications( programInstance );
+        programRuleEngineService.evaluate( programInstance );
 
         // -----------------------------------------------------------------
         // Update program-instance

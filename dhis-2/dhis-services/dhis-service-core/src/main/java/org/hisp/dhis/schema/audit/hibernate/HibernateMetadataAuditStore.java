@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.audit.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +26,16 @@ package org.hisp.dhis.schema.audit.hibernate;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditQuery;
 import org.hisp.dhis.schema.audit.MetadataAuditStore;
@@ -60,15 +65,91 @@ public class HibernateMetadataAuditStore
     }
 
     @Override
-    public int count( MetadataAuditQuery auditQuery )
+    public int count( MetadataAuditQuery query )
     {
-        return 0;
+        Criteria criteria = buildCriteria( query );
+        return ((Number) criteria.setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<MetadataAudit> query( MetadataAuditQuery query )
     {
-        return null;
+        Criteria criteria = buildCriteria( query );
+
+        if ( !query.isSkipPaging() )
+        {
+            Pager pager = query.getPager();
+            criteria.setFirstResult( pager.getOffset() );
+            criteria.setMaxResults( pager.getPageSize() );
+        }
+
+        return criteria.list();
+    }
+
+    private Criteria buildCriteria( MetadataAuditQuery query )
+    {
+        Criteria criteria = getCurrentSession().createCriteria( MetadataAudit.class );
+
+        if ( query.getKlass().isEmpty() )
+        {
+            Disjunction disjunction = Restrictions.disjunction();
+
+            if ( !query.getUid().isEmpty() )
+            {
+                disjunction.add( Restrictions.in( "uid", query.getUid() ) );
+            }
+
+            if ( !query.getCode().isEmpty() )
+            {
+                disjunction.add( Restrictions.in( "code", query.getCode() ) );
+            }
+
+            criteria.add( disjunction );
+        }
+        else if ( query.getUid().isEmpty() && query.getCode().isEmpty() )
+        {
+            criteria.add( Restrictions.in( "klass", query.getKlass() ) );
+        }
+        else
+        {
+            Disjunction disjunction = Restrictions.disjunction();
+
+            if ( !query.getUid().isEmpty() )
+            {
+                Conjunction conjunction = Restrictions.conjunction();
+                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
+                conjunction.add( Restrictions.in( "uid", query.getUid() ) );
+                disjunction.add( conjunction );
+            }
+
+            if ( !query.getCode().isEmpty() )
+            {
+                Conjunction conjunction = Restrictions.conjunction();
+                conjunction.add( Restrictions.in( "klass", query.getKlass() ) );
+                conjunction.add( Restrictions.in( "code", query.getCode() ) );
+                disjunction.add( conjunction );
+            }
+
+            criteria.add( disjunction );
+        }
+
+        if ( query.getCreatedAt() != null )
+        {
+            criteria.add( Restrictions.ge( "createdAt", query.getCreatedAt() ) );
+        }
+
+        if ( query.getCreatedBy() != null )
+        {
+            criteria.add( Restrictions.eq( "createdBy", query.getCreatedBy() ) );
+        }
+
+        if ( query.getType() != null )
+        {
+            criteria.add( Restrictions.eq( "type", query.getType() ) );
+        }
+
+        return criteria;
     }
 
     private Session getCurrentSession()

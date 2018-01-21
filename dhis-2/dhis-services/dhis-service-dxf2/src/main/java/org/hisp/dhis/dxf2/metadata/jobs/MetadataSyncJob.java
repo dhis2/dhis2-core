@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,6 +141,12 @@ public class MetadataSyncJob
         }
 
         return super.validate();
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "metadataSyncJob";
     }
 
     public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException, DhisVersionMismatchException
