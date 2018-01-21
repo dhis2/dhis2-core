@@ -140,6 +140,7 @@ public class ProgramIndicatorServiceTest
     private ProgramIndicator indicatorD;
 
     private ProgramIndicator indicatorE;
+    
 
     @Override
     public void setUpTest()
@@ -406,7 +407,7 @@ public class ProgramIndicatorServiceTest
     {
         String expected = "coalesce(\"" + deA.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid() + "\"::numeric,0) > 10";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( indicatorE.getFilter(), AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( indicatorE.getFilter(), indicatorE, new Date(), new Date() ) );
     }
 
     @Test
@@ -414,7 +415,7 @@ public class ProgramIndicatorServiceTest
     {
         String expected = "\"" + deA.getUid() + "\" + \"" + atA.getUid() + "\" > 10";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( indicatorE.getFilter(), AnalyticsType.EVENT, false, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( indicatorE.getFilter(), indicatorE, false, new Date(), new Date() ) );
     }
     
     @Test
@@ -430,7 +431,7 @@ public class ProgramIndicatorServiceTest
             "#{OXXcwl6aPCQ.GCyeKSqlpdk} + " +
             "V{zero_pos_value_count}";
         
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
 
     @Test
@@ -440,7 +441,7 @@ public class ProgramIndicatorServiceTest
         String expected = "coalesce(case when " + col + " < 0 then 0 else " + col + " end, 0)";
         String expression = "d2:zing(" + col + ")";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
     
     @Test
@@ -456,7 +457,7 @@ public class ProgramIndicatorServiceTest
             "d2:zing(#{OXXcwl6aPCQ.GCyeKSqlpdk}) + " +
             "d2:zing(#{OXXcwl6aPCQ.hsCmEqBcU23})";
         
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
 
     @Test
@@ -466,7 +467,7 @@ public class ProgramIndicatorServiceTest
         String expected = "coalesce(case when " + col + " >= 0 then 1 else 0 end, 0)";
         String expression = "d2:oizp(" + col + ")";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
     
     @Test
@@ -480,7 +481,7 @@ public class ProgramIndicatorServiceTest
         
         String expression = "d2:zpvc(#{OXXcwl6aPCQ.EZq9VbPWgML},#{OXXcwl6aPCQ.GCyeKSqlpdk})";
         
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
 
     @Test
@@ -491,7 +492,7 @@ public class ProgramIndicatorServiceTest
         String expected = "(cast(" + col2 + " as date) - cast(" + col1 + " as date))";
         String expression = "d2:daysBetween(" + col1 + "," + col2 + ")";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
 
     @Test
@@ -501,7 +502,7 @@ public class ProgramIndicatorServiceTest
         String expected = "case when (" + col1 + " > 3) then 10 else 5 end";
         String expression = "d2:condition('" + col1 + " > 3',10,5)";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
     
     @Test
@@ -519,7 +520,7 @@ public class ProgramIndicatorServiceTest
             "d2:condition(\"#{OXXcwl6aPCQ.GCyeKSqlpdk} > 70\",100,50) + " +
             "d2:condition('#{OXXcwl6aPCQ.HihhUWBeg7I} < 30',20,100)";
         
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
     
     @Test
@@ -552,7 +553,7 @@ public class ProgramIndicatorServiceTest
         String expected = "case when " + col + " >= 0 then 1 else " + col + " end";
         String expression = "d2:xyza(" + col + ")";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
 
     @Test
@@ -561,7 +562,7 @@ public class ProgramIndicatorServiceTest
         String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (executiondate - enrollmentdate)";
         String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (V{execution_date} - V{enrollment_date})";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
     
     @Test
@@ -570,7 +571,7 @@ public class ProgramIndicatorServiceTest
         String expected = "coalesce(\"EZq9VbPWgML\",'') == '' ";
         String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == ''";
         
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.EVENT, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, null, filter ), new Date(), new Date() ) );
     }
     
     @Test
@@ -579,7 +580,7 @@ public class ProgramIndicatorServiceTest
         String expected = "coalesce(\"OXXcwl6aPCQ_EZq9VbPWgML\"::numeric,0) == 0 ";
         String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == 0";
         
-        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.ENROLLMENT, new Date(), new Date() ) );        
+        assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, null, filter ), new Date(), new Date() ) );        
     }
     
     @Test
@@ -591,7 +592,7 @@ public class ProgramIndicatorServiceTest
         
         String filter = "#{OXXcwl6aPCQ.GCyeKSqlpdk} == 1 or " + 
         "(#{OXXcwl6aPCQ.GCyeKSqlpdk}  == ''   and A{kts5J79K9gA}== 0)";
-        String actual = programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.ENROLLMENT, true, new Date(), new Date() );
+        String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, null, filter ), true, new Date(), new Date() );
         assertEquals( expected, actual );        
     }
     
@@ -603,7 +604,7 @@ public class ProgramIndicatorServiceTest
         
         String filter = "d2:yearsBetween(V{enrollment_date}, V{analytics_period_start}) < 1 " + 
             "and d2:yearsBetween(V{enrollment_date}, V{analytics_period_end}) >= 1";
-        String actual = programIndicatorService.getAnalyticsSQl( filter, AnalyticsType.EVENT, true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
+        String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
         assertEquals( expected, actual );        
     }
     

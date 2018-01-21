@@ -42,6 +42,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "analyticsPeriodBoundary", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsPeriodBoundary implements EmbeddedObject
 {
+    public static String EVENT_DATE = "EVENT_DATE";
+    public static String ENROLLMENT_DATE = "ENROLLMENT_DATE";
+    public static String INCIDENT_DATE = "INCIDENT_DATE";
+    
     private int id;
     
     private String boundaryTarget;
@@ -67,6 +71,15 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
         PeriodType offsetPeriodType, Integer offsetNumberOfPeriods, ProgramIndicator programIndicator )
     {
         this.id = id;
+        this.boundaryTarget = boundaryTarget;
+        this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
+        this.offsetPeriodType = offsetPeriodType;
+        this.offsetNumberOfPeriods = offsetNumberOfPeriods;
+    }
+    
+    public AnalyticsPeriodBoundary( String boundaryTarget, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
+        PeriodType offsetPeriodType, Integer offsetNumberOfPeriods, ProgramIndicator programIndicator )
+    {
         this.boundaryTarget = boundaryTarget;
         this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
         this.offsetPeriodType = offsetPeriodType;

@@ -270,6 +270,19 @@ public class ProgramIndicator
             addProgramIndicatorGroup( group );
         }
     }
+    
+    public AnalyticsPeriodBoundary getEndEventDate()
+    {
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.getBoundaryTarget() == AnalyticsPeriodBoundary.EVENT_DATE )
+            {
+                //TODO Complete implementation                
+            }
+        }
+
+        return null;
+    }
 
     // -------------------------------------------------------------------------
     // DimensionalItemObject

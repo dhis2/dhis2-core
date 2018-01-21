@@ -283,25 +283,25 @@ public class DefaultProgramIndicatorService
         return description.toString();
     }
 
-    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
+    public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
-        return getAnalyticsSQl( expression, analyticsType, true, startDate, endDate );
+        return getAnalyticsSQl( expression, programIndicator, true, startDate, endDate );
     }
 
-    public String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate )
+    public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
             return null;
-        }
+        } 
 
         expression = TextUtils.removeNewlines( expression );
         
-        expression = getSubstitutedVariablesForAnalyticsSql( expression, analyticsType, startDate, endDate );
+        expression = getSubstitutedVariablesForAnalyticsSql( expression, programIndicator, startDate, endDate );
 
-        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, analyticsType );
+        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicator );
         
-        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, analyticsType );
+        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicator );
 
         return expression;
     }
@@ -356,7 +356,7 @@ public class DefaultProgramIndicatorService
     }
 
     private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues, 
-        AnalyticsType analyticsType )
+        ProgramIndicator programIndicator )
     {
         if ( expression == null )
         {
@@ -378,7 +378,7 @@ public class DefaultProgramIndicatorService
 
                 for ( int i = 0; i < args.length; i++ )
                 {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, analyticsType );
+                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator );
                     args[i] = arg;
                 }
 
@@ -398,7 +398,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedVariablesForAnalyticsSql( String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
+    private String getSubstitutedVariablesForAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -413,7 +413,7 @@ public class DefaultProgramIndicatorService
         {
             String var = matcher.group( 1 );
 
-            String sql = getVariableAsSql( var, expression, analyticsType, startDate, endDate );
+            String sql = getVariableAsSql( var, expression, programIndicator.getAnalyticsType(), startDate, endDate );
 
             if ( sql != null )
             {
@@ -424,7 +424,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, AnalyticsType analyticsType  )
+    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, ProgramIndicator programIndicator  )
     {
         if ( expression == null )
         {
@@ -449,8 +449,8 @@ public class DefaultProgramIndicatorService
                 
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
-                    columnName = AnalyticsType.ENROLLMENT == analyticsType ? 
-                        getLatestDataValueInEnrollmentSql( el2, el1 ) : statementBuilder.columnQuote( el2 );
+                    columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? 
+                        getLatestDataValueInEnrollmentSql( el2, el1, programIndicator ) : statementBuilder.columnQuote( el2 );
                 }
                 else // ProgramIndicator.KEY_ATTRIBUTE
                 {                    
@@ -486,7 +486,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
     
-    private String getLatestDataValueInEnrollmentSql( String dataElementUid, String programStageUid )
+    private String getLatestDataValueInEnrollmentSql( String dataElementUid, String programStageUid, ProgramIndicator programIndicator )
     {
         String eventTableName = "analytics_event_" + programStageUid;
         String columnName = "\"" + dataElementUid + "\"";
