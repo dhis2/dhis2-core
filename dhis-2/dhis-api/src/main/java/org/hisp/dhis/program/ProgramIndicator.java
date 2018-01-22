@@ -385,7 +385,8 @@ public class ProgramIndicator
     }
     
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "analyticsPeriodBoundaries", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "analyticsPeriodBoundary", namespace = DxfNamespaces.DXF_2_0 )
     public Set<AnalyticsPeriodBoundary> getAnalyticsPeriodBoundaries()
     {
         return analyticsPeriodBoundaries;

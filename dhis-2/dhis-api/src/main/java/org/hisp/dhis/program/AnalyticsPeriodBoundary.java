@@ -1,8 +1,10 @@
 package org.hisp.dhis.program;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -40,13 +42,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Markus Bekken
  */
 @JacksonXmlRootElement( localName = "analyticsPeriodBoundary", namespace = DxfNamespaces.DXF_2_0 )
-public class AnalyticsPeriodBoundary implements EmbeddedObject
+public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements EmbeddedObject
 {
     public static String EVENT_DATE = "EVENT_DATE";
     public static String ENROLLMENT_DATE = "ENROLLMENT_DATE";
     public static String INCIDENT_DATE = "INCIDENT_DATE";
-    
-    private int id;
     
     private String boundaryTarget;
     
@@ -67,18 +67,8 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
         
     }
     
-    public AnalyticsPeriodBoundary( int id, String boundaryTarget, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
-        PeriodType offsetPeriodType, Integer offsetNumberOfPeriods, ProgramIndicator programIndicator )
-    {
-        this.id = id;
-        this.boundaryTarget = boundaryTarget;
-        this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
-        this.offsetPeriodType = offsetPeriodType;
-        this.offsetNumberOfPeriods = offsetNumberOfPeriods;
-    }
-    
     public AnalyticsPeriodBoundary( String boundaryTarget, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
-        PeriodType offsetPeriodType, Integer offsetNumberOfPeriods, ProgramIndicator programIndicator )
+        PeriodType offsetPeriodType, Integer offsetNumberOfPeriods )
     {
         this.boundaryTarget = boundaryTarget;
         this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
@@ -89,16 +79,6 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-    
-    public int getId()
-    {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
-    }
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -148,8 +128,7 @@ public class AnalyticsPeriodBoundary implements EmbeddedObject
         this.offsetNumberOfPeriods = offsetNumberOfPeriods;
     }
     
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( owner = Property.Value.FALSE )
     public ProgramIndicator getProgramIndicator()
     {
         return programIndicator;
