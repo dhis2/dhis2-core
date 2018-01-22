@@ -40,6 +40,9 @@ public interface ReservedValueStore
 
     List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
 
+    int getNumberOfUsedValues( ReservedValue reservedValue );
+
     void removeExpiredReservations();
 
+    boolean useReservedValue( String ownerUID, String value );
 }

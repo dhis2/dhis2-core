@@ -32,10 +32,8 @@ public class TextPatternParser
         // True if we just parsed a Segment, False if we parsed a join or haven't parsed anything.
         boolean segment = false;
 
-        // You can have multiple random segments, but not combined with sequence
-        // You can only have a single sequence and no random
-        boolean sequenceSegmentPresent = false;
-        boolean randomSegmentPresent = false;
+        // You can only have 1 generated segment
+        boolean hasGeneratedSegment = false;
 
         boolean invalidExpression = true;
 
@@ -94,30 +92,22 @@ public class TextPatternParser
                     try
                     {
                         TextPatternMethod textPatternMethod = TextPatternMethod.valueOf( methodName );
+
                         // Only add if valid syntax, else it will throw exception after if-else.
                         if ( textPatternMethod.getType().validatePattern( method ) )
                         {
 
                             if ( textPatternMethod.getType() instanceof GeneratedMethodType )
                             {
-
-                                // Sequence method can only appear once, and only when no Random method is present
-                                if ( textPatternMethod.equals( TextPatternMethod.SEQUENTIAL ) &&
-                                    !randomSegmentPresent &&
-                                    !sequenceSegmentPresent )
+                                if ( hasGeneratedSegment )
                                 {
-                                    sequenceSegmentPresent = true;
-                                }
-                                else if ( textPatternMethod.equals( TextPatternMethod.RANDOM ) &&
-                                    !sequenceSegmentPresent )
-                                {
-                                    randomSegmentPresent = true;
+                                    throw new TextPatternParsingException(
+                                        "Pattern can not contain multiple sequence methods or random methods: '" +
+                                            pattern + "'", m.start( "Segment" ) );
                                 }
                                 else
                                 {
-                                    throw new TextPatternParsingException(
-                                        "Pattern can not contain multiple sequence methods or both sequence and random methods: '" +
-                                            pattern + "'", m.start( "Segment" ) );
+                                    hasGeneratedSegment = true;
                                 }
                             }
 

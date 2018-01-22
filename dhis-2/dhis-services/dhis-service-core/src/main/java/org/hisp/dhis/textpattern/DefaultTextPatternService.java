@@ -1,12 +1,9 @@
 package org.hisp.dhis.textpattern;
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -15,16 +12,11 @@ import java.util.stream.Collectors;
 public class DefaultTextPatternService
     implements TextPatternService
 {
-
-    @Autowired
-    private ReservedValueService reservedValueService;
-
     @Override
     public String resolvePattern( TextPattern pattern, Map<String, String> values )
         throws Exception
     {
         StringBuilder resolvedPattern = new StringBuilder();
-        List<TextPatternSegment> requiresGeneration = new ArrayList<>();
 
         for ( TextPatternSegment segment : pattern.getSegments() )
         {
@@ -34,11 +26,6 @@ public class DefaultTextPatternService
             }
             else if ( isOptional( segment ) )
             {
-                if ( isGenerated( segment ) )
-                {
-                    requiresGeneration.add( segment );
-                }
-
                 resolvedPattern.append( handleOptionalValue( segment, getSegmentValue( segment, values ) ) );
             }
             else
@@ -47,17 +34,7 @@ public class DefaultTextPatternService
             }
         }
 
-        String result = resolvedPattern.toString();
-
-        // Generate values
-        for ( TextPatternSegment segment : requiresGeneration )
-        {
-            result = result.replaceAll( segment.getParameter(), reservedValueService
-                .generateAndReserveSequentialValues( pattern.getOwnerUID(), resolvedPattern.toString(),
-                    segment.getParameter(), 1 ).get( 0 ) );
-        }
-
-        return result;
+        return resolvedPattern.toString();
     }
 
     @Override
@@ -81,7 +58,7 @@ public class DefaultTextPatternService
     public boolean validate( TextPattern textPattern, String text )
     {
         // TODO
-        return TextPatternValidationUtils.validateTextPatternValue( textPattern, text);
+        return TextPatternValidationUtils.validateTextPatternValue( textPattern, text );
     }
 
     @Override
@@ -122,15 +99,7 @@ public class DefaultTextPatternService
         }
         else
         {
-            if ( isGenerated( segment ) )
-            {
-                // Put parameter as placeholder, this will be handled after the rest have been resolved
-                return segment.getParameter();
-            }
-            else
-            {
-                throw new Exception( "Trying to generate unknown segment: '" + segment.getMethod().name() + "'" );
-            }
+            return segment.getRawSegment();
         }
     }
 
@@ -172,10 +141,5 @@ public class DefaultTextPatternService
     private boolean isOptional( TextPatternSegment segment )
     {
         return segment.getMethod().isOptional();
-    }
-
-    private boolean isGenerated( TextPatternSegment segment )
-    {
-        return segment.getMethod().isGenerated();
     }
 }

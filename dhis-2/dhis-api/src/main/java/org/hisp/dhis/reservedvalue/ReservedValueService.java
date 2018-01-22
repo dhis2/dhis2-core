@@ -1,13 +1,15 @@
 package org.hisp.dhis.reservedvalue;
 
+import org.hisp.dhis.textpattern.TextPattern;
+
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public interface ReservedValueService
 {
+    List<String> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
+        throws Exception;
 
-    int TIME_TO_LIVE = 30;
-
-    List<String> generateAndReserveRandomValues(String uid, String key, String pattern, int length);
-    List<String> generateAndReserveSequentialValues(String uid, String key, String pattern, int length);
-
+    boolean useReservedValue( TextPattern textPattern, String value );
 }

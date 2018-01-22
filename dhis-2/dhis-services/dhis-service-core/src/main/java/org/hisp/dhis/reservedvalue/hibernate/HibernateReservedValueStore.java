@@ -33,14 +33,17 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.batchhandler.ReservedValueBatchHandler;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@org.springframework.transaction.annotation.Transactional
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
@@ -91,9 +94,40 @@ public class HibernateReservedValueStore
     }
 
     @Override
+    public int getNumberOfUsedValues( ReservedValue reservedValue )
+    {
+        int count = (int) getQuery( "SELECT count(ReservedValue) FROM ReservedValue WHERE uid = :uid AND key = :key" )
+            .setParameter( "uid", reservedValue.getOwnerUid() )
+            .setParameter( "key", reservedValue.getKey() )
+            .getSingleResult();
+
+        if ( reservedValue.getClazz().equals( TrackedEntityAttributeValue.class.getSimpleName() ) )
+        {
+            count += (int) getQuery(
+                "SELECT count(TrackedEntityAttributeValue) FROM TrackedEntityAttributeValue WHERE uid = :uid AND value = :value " )
+                .setParameter( "uid", reservedValue.getOwnerUid() )
+                .setParameter( "value", reservedValue.getValue() )
+                .getSingleResult();
+        }
+
+        return count;
+    }
+
+    @Override
     public void removeExpiredReservations()
     {
-        getQuery( "DELETE FROM ReservedValue WHERE expires < current_time" );
+        getQuery( "DELETE FROM ReservedValue WHERE expires < :now" )
+            .setParameter( "now", new Date() )
+            .executeUpdate();
+    }
+
+    @Override
+    public boolean useReservedValue( String ownerUID, String value )
+    {
+        return getQuery( "DELETE FROM ReservedValue WHERE uid = :uid AND value = :value" )
+            .setParameter( "uid", ownerUID )
+            .setParameter( "value", value )
+            .executeUpdate() == 1;
     }
 
     // Helper methods:
@@ -104,11 +138,14 @@ public class HibernateReservedValueStore
             .map( ReservedValue::getValue )
             .collect( Collectors.toList() ) );
 
-        values.removeAll( getSqlQuery(
-            "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
-            .setParameter( 1, reservedValue.getOwnerUid() )
-            .setParameter( 2, values )
-            .list() );
+        if ( reservedValue.getClazz().equals( TrackedEntityAttributeValue.class.getSimpleName() ) )
+        {
+            values.removeAll( getSqlQuery(
+                "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
+                .setParameter( 1, reservedValue.getOwnerUid() )
+                .setParameter( 2, values )
+                .list() );
+        }
 
         return values;
 

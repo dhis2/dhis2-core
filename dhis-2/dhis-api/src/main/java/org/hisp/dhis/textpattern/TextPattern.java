@@ -21,6 +21,8 @@ public class TextPattern
 {
     private ImmutableList<TextPatternSegment> segments;
 
+    private String clazz;
+
     private String ownerUID;
 
     TextPattern()
@@ -48,6 +50,16 @@ public class TextPattern
         this.segments = ImmutableList.copyOf( segments );
     }
 
+    public String getClazz()
+    {
+        return clazz;
+    }
+
+    public void setClazz( String clazz )
+    {
+        this.clazz = clazz;
+    }
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TextPatternSegment> getSegments()

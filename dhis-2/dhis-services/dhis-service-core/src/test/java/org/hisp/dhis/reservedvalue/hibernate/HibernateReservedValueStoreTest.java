@@ -44,6 +44,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -58,11 +59,13 @@ public class HibernateReservedValueStoreTest
 
     private final ReservedValue RESERVED_VALUE = new ReservedValue( TrackedEntityAttribute.class.getSimpleName(), "A",
         "00X", "001",
-        new Date() );
+        null );
 
     private final ReservedValue USED_VALUE = new ReservedValue( TrackedEntityAttribute.class.getSimpleName(), "A",
         "00X", "002",
-        new Date() );
+        null );
+
+    private Date futureDate;
 
     @Autowired
     private ReservedValueStore reservedValueStore;
@@ -82,6 +85,12 @@ public class HibernateReservedValueStoreTest
     @Override
     protected void setUpTest()
     {
+        Calendar future = Calendar.getInstance();
+        future.add( Calendar.DATE, 10 );
+        futureDate = future.getTime();
+        RESERVED_VALUE.setExpires( futureDate );
+        USED_VALUE.setExpires( futureDate );
+
         reservedValueStore.save( RESERVED_VALUE );
 
         OrganisationUnit ou = createOrganisationUnit( "OU" );
@@ -96,7 +105,7 @@ public class HibernateReservedValueStoreTest
 
         TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
         teav.setValue( "002" );
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue(  teav );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
 
     }
 
@@ -201,6 +210,35 @@ public class HibernateReservedValueStoreTest
         assertEquals( 1, res.size() );
     }
 
+    @Test
+    public void removeExpiredReservationsRemovesExpiredReservation()
+    {
+        Calendar pastDate = Calendar.getInstance();
+        pastDate.add( Calendar.DATE, -1 );
+        ReservedValue expired = getFreeReservedValue();
+        expired.setExpires( pastDate.getTime() );
+        reservedValueStore.reserveValues( expired, Lists.newArrayList( expired.getValue() ) );
+
+        assertEquals( expired,
+            reservedValueStore.getIfReservedValues( expired, Lists.newArrayList( expired.getValue() ) ).get( 0 ) );
+
+        reservedValueStore.removeExpiredReservations();
+
+        assertTrue(
+            !reservedValueStore.getIfReservedValues( expired, Lists.newArrayList( expired.getValue() ) )
+                .contains( expired ) );
+    }
+
+    @Test
+    public void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired()
+    {
+        int num = reservedValueStore.getCount();
+
+        reservedValueStore.removeExpiredReservations();
+
+        assertEquals( num, reservedValueStore.getCount() );
+    }
+
     // Helper methods
 
     private ReservedValue getFreeReservedValue()
@@ -210,7 +248,7 @@ public class HibernateReservedValueStoreTest
             "FREE",
             "00X",
             String.format( "%03d", counter++ ),
-            new Date()
+            futureDate
         );
     }
 
