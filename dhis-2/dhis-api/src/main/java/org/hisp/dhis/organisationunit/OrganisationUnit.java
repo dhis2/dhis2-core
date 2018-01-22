@@ -54,9 +54,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
-import org.postgresql.geometric.PGpoint;
-import org.postgresql.geometric.PGpolygon;
-import org.postgresql.util.PGobject;
 
 import java.util.ArrayList;
 import java.util.Collection;
