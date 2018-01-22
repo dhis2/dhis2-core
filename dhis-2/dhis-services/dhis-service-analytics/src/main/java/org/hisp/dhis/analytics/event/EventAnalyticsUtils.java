@@ -169,12 +169,12 @@ public class EventAnalyticsUtils
     public static void addEventReportDimensionalItems( EventDataItem eventDataItem, List<EventReportDimensionalItem> objects, Grid grid, String dimension )
         throws Exception
     {
-        String parentUid = eventDataItem.getParentUid();
-
         if ( eventDataItem.isInvalid() )
         {
-            throw new Exception( "Supplied data dimension is invalid" );
+            throw new Exception( "Supplied data dimension '" + dimension + "' is invalid" );
         }
+
+        String parentUid = eventDataItem.getParentUid();
 
         if ( eventDataItem.getValueType() == ValueType.BOOLEAN )
         {
