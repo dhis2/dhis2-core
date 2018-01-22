@@ -43,7 +43,8 @@
 #end
 "openFuturePeriods":${dataSet.openFuturePeriods},"fieldCombinationRequired":${dataSet.fieldCombinationRequired},
 "dataInputPeriods":[#foreach( $dip in ${dataSet.dataInputPeriods} ) {"period":{"periodType":"${dip.period.periodType.getName()}", "startDate":"${dip.period.startDate}", "endDate":"${dip.period.endDate}", "isoPeriod":"${dip.period.getIsoDate()}"}, "openingDate":"$!{dip.openingDate}", "closingDate":"$!{dip.closingDate}"}#if( $foreach.hasNext ),#end #end],
-"validCompleteOnly":${dataSet.validCompleteOnly},"skipOffline":${dataSet.skipOffline}, "renderAsTabs":${dataSet.renderAsTabs}, "renderHorizontally":${dataSet.renderHorizontally}}#if( $velocityCount < $size ),#end
+"validCompleteOnly":${dataSet.validCompleteOnly},"compulsoryFieldsCompleteOnly":${dataSet.compulsoryFieldsCompleteOnly},"skipOffline":${dataSet.skipOffline}, "renderAsTabs":${dataSet.renderAsTabs}, "renderHorizontally":${dataSet.renderHorizontally},
+"compulsoryDataElementOperands":[#foreach( $cdo in ${dataSet.compulsoryDataElementOperands} ) {"id":"${cdo.uid}","displayName":"$encoder.jsonEncode( ${cdo.displayName} )"}#if( $foreach.hasNext ),#end #end]}#if( $velocityCount < $size ),#end
 #end },
 
 "defaultCategoryCombo":"${defaultCategoryCombo.uid}",
