@@ -408,7 +408,7 @@ public class DefaultProgramInstanceService
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
 
-        programNotificationPublisher.sendEnrollmentNotification( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
+        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
 
         programRuleEngineService.evaluate( programInstance );
 
@@ -449,7 +449,7 @@ public class DefaultProgramInstanceService
         // Send sms-message when to completed the program
         // ---------------------------------------------------------------------
 
-        programNotificationPublisher.sendEnrollmentNotification( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
+        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
 
         programRuleEngineService.evaluate( programInstance );
 

@@ -28,8 +28,6 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -46,26 +44,34 @@ public class ProgramNotificationListener
     @Async
     public void onEnrollment( ProgramNotificationEvent event )
     {
-        ProgramInstance programInstance = event.getProgramInstance();
-
-        programNotificationService.sendEnrollmentNotifications( programInstance );
+        programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
     @Async
     public void onCompletion( ProgramNotificationEvent event )
     {
-        ProgramInstance programInstance = event.getProgramInstance();
+        programNotificationService.sendCompletionNotifications( event.getProgramInstance() );
+    }
 
-        programNotificationService.sendCompletionNotifications( programInstance );
+    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
+    @Async
+    public void onProgramRuleEnrollment( ProgramNotificationEvent event )
+    {
+        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
     @EventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
     @Async
     public void onEvent( ProgramNotificationEvent event )
     {
-        ProgramStageInstance programStageInstance = event.getProgramStageInstance();
+        programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
+    }
 
-        programNotificationService.sendCompletionNotifications( programStageInstance );
+    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
+    @Async
+    public void onProgramRuleEvent( ProgramNotificationEvent event )
+    {
+        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );
     }
 }

@@ -36,9 +36,7 @@ import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.program.notification.*;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +58,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
     @Autowired
-    private ProgramNotificationService programNotificationService;
+    private ProgramNotificationPublisher publisher;
 
     @Autowired
     private NotificationLoggingService notificationLoggingService;
@@ -94,7 +92,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
 
         notificationLoggingService.save( entry );
 
-        programNotificationService.sendProgramRuleTriggeredNotifications( template, programInstance );
+        publisher.publishEnrollment( template, programInstance, ProgramNotificationEventType.PROGRAM_RULE_ENROLLMENT );
     }
 
     @Override
@@ -120,7 +118,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
 
         notificationLoggingService.save( entry );
 
-        programNotificationService.sendProgramRuleTriggeredNotifications( template, programStageInstance );
+        publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
     }
 
     private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )

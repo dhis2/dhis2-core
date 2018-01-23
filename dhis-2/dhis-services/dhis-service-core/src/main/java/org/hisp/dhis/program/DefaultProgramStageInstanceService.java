@@ -198,7 +198,7 @@ public class DefaultProgramStageInstanceService
 
         if ( !skipNotifications )
         {
-            programNotificationPublisher.sendEventNotification( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
+            programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
 
             programRuleEngineService.evaluate( programStageInstance );
         }

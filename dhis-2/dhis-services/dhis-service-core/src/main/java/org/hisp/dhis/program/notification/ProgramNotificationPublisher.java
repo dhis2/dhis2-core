@@ -41,16 +41,30 @@ public class ProgramNotificationPublisher
     @Autowired
     private ApplicationEventPublisher publisher;
 
-    public void sendEnrollmentNotification( ProgramInstance programInstance, ProgramNotificationEventType eventType )
+    public void publishEnrollment( ProgramInstance programInstance, ProgramNotificationEventType eventType )
     {
         ProgramNotificationEvent event = new ProgramNotificationEvent( this, programInstance, eventType );
 
         publisher.publishEvent( event );
     }
 
-    public void sendEventNotification( ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
+    public void publishEnrollment( ProgramNotificationTemplate template, ProgramInstance programInstance, ProgramNotificationEventType type )
+    {
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programInstance, type );
+
+        publisher.publishEvent( event );
+    }
+
+    public void publishEvent( ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
     {
         ProgramNotificationEvent event = new ProgramNotificationEvent( this, programStageInstance, eventType );
+
+        publisher.publishEvent( event );
+    }
+
+    public void publishEvent( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance, ProgramNotificationEventType type )
+    {
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programStageInstance, type );
 
         publisher.publishEvent( event );
     }
