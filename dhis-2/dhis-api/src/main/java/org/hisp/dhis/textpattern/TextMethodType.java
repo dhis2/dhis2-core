@@ -30,6 +30,9 @@ package org.hisp.dhis.textpattern;
 
 import java.util.regex.Pattern;
 
+/**
+ * @author Stian Sandvold
+ */
 public class TextMethodType
     extends BaseMethodType
 {

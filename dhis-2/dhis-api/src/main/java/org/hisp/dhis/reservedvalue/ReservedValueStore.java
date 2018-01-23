@@ -32,6 +32,9 @@ import org.hisp.dhis.common.GenericStore;
 
 import java.util.List;
 
+/**
+ * @author Stian Sandvold
+ */
 public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {

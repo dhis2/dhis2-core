@@ -33,7 +33,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.batchhandler.ReservedValueBatchHandler;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +43,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author Stian Sandvold
+ */
 @org.springframework.transaction.annotation.Transactional
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
@@ -101,7 +104,7 @@ public class HibernateReservedValueStore
             .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
-        if ( reservedValue.getClazz().equals( TrackedEntityAttributeValue.class.getSimpleName() ) )
+        if ( reservedValue.getClazz().equals( TrackedEntityAttribute.class.getSimpleName() ) )
         {
             count += (int) getQuery(
                 "SELECT count(TrackedEntityAttributeValue) FROM TrackedEntityAttributeValue WHERE uid = :uid AND value = :value " )
@@ -138,7 +141,7 @@ public class HibernateReservedValueStore
             .map( ReservedValue::getValue )
             .collect( Collectors.toList() ) );
 
-        if ( reservedValue.getClazz().equals( TrackedEntityAttributeValue.class.getSimpleName() ) )
+        if ( reservedValue.getClazz().equals( TrackedEntityAttribute.class.getSimpleName() ) )
         {
             values.removeAll( getSqlQuery(
                 "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
