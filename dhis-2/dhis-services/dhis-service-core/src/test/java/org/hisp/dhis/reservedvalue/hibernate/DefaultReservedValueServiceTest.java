@@ -4,19 +4,16 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.reservedvalue.DefaultReservedValueService;
 import org.hisp.dhis.reservedvalue.ReservedValue;
-import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternMethod;
+import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.textpattern.TextPatternSegment;
-import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -25,14 +22,8 @@ import java.util.HashMap;
 public class DefaultReservedValueServiceTest
     extends DhisSpringTest
 {
-    @InjectMocks
+    @Autowired
     private DefaultReservedValueService reservedValueService;
-
-    @Mock
-    private ReservedValueStore reservedValueStore;
-
-    @Mock
-    private TextPatternService textPatternService;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -71,11 +62,6 @@ public class DefaultReservedValueServiceTest
         reservedValue = new ReservedValue( simplePattern.getClazz(), simplePattern.getOwnerUID(), TEST_STRING,
             TEST_STRING, future );
 
-        Mockito.when( textPatternService
-            .resolvePattern( Mockito.any( TextPattern.class ), Mockito.anyMapOf( String.class, String.class ) ) )
-            .thenReturn( TEST_STRING );
-        Mockito.when( reservedValueStore.getNumberOfUsedValues( reservedValue ) ).thenReturn( 0 );
-        Mockito.when( reservedValueStore.reserveValues( Mockito.any( ReservedValue.class ), Mockito.anyListOf( String.class ) ) ).thenCallRealMethod();
     }
 
     @Test
@@ -83,8 +69,6 @@ public class DefaultReservedValueServiceTest
         throws Exception
     {
         reservedValueService.reserve( simplePattern, 1, new HashMap<>(), future );
-
-        Mockito.verify( reservedValueStore ).reserveValues( reservedValue, Lists.newArrayList( TEST_STRING ) );
     }
 
     @Test
@@ -101,8 +85,11 @@ public class DefaultReservedValueServiceTest
         throws Exception
     {
         reservedValueService.reserve( randomPattern, 1, new HashMap<>(), future );
+    }
 
-        Mockito.verify( reservedValueStore )
-            .reserveValues( Mockito.any( ReservedValue.class ), Mockito.anyListOf( String.class ) );
+    private TextPattern createTextPattern( String pattern )
+        throws TextPatternParser.TextPatternParsingException
+    {
+        return TextPatternParser.parse( pattern );
     }
 }
