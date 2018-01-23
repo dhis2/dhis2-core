@@ -247,6 +247,7 @@ public class DataValueSetServiceTest
         categoryService.addDataElementCategoryOption( categoryOptionB );
         categoryService.addDataElementCategory( categoryA );
         categoryService.addDataElementCategoryCombo( categoryComboA );
+
         categoryService.addDataElementCategoryOptionCombo( ocA );
         categoryService.addDataElementCategoryOptionCombo( ocB );
 
@@ -1036,22 +1037,68 @@ public class DataValueSetServiceTest
     }
 
     /**
-     * User has write access DataSet but not CategoryOption
-     * Expect fail on data sharing check
+     * User has data write access for DataSet
+     * Input DataValue use default category combo
      * @throws IOException
      */
     @Test
-    public void testImportValueCategoryOptionWriteFail() throws IOException
+    public void testImportValueDefaultCatComboOk() throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
 
-        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ );
-        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ );
-
-
-
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
+    @Test
+    public void testImportValueCatComboFail() throws IOException
+    {
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.READ );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.READ );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.WARNING, summary.getStatus() );
+    }
+
+    @Test
+    public void testImportValueCatComboOk() throws IOException
+    {
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
+    @Test
+    public void testImportValueCatComboFailDS() throws IOException
+    {
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ );
+
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
