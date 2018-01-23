@@ -400,7 +400,7 @@ dhis2.de.uploadLocalData = function()
         console.log( 'Uploaded complete data set: ' + key + ', with value: ' + value );
 
         $.ajax( {
-            url: '../api/25/completeDataSetRegistrations',
+            url: '../api/26/completeDataSetRegistrations',
             data: value,
             dataType: 'json',
             success: function( data, textStatus, jqXHR )
