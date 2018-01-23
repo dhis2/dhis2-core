@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,21 +28,15 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public interface MetadataAuditService
+public interface NotificationLoggingStore
+    extends GenericIdentifiableObjectStore<ExternalNotificationLogEntry>
 {
-    /**
-     * Persists the given MetadataAudit instance.
-     *
-     * @param audit Instance to add
-     */
-    void addMetadataAudit( MetadataAudit audit );
+    ExternalNotificationLogEntry getByTemplateUid( String templateUid );
 
-    int count( MetadataAuditQuery query );
-
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    ExternalNotificationLogEntry getByKey( String key );
 }

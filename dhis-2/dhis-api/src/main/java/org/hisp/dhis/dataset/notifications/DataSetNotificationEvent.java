@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.dataset.notifications;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,21 +28,24 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-public interface MetadataAuditService
+public class DataSetNotificationEvent extends ApplicationEvent
 {
-    /**
-     * Persists the given MetadataAudit instance.
-     *
-     * @param audit Instance to add
-     */
-    void addMetadataAudit( MetadataAudit audit );
+    private CompleteDataSetRegistration registration;
 
-    int count( MetadataAuditQuery query );
+    public DataSetNotificationEvent( Object source, CompleteDataSetRegistration registration )
+    {
+        super(source);
+        this.registration = registration;
+    }
 
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    public CompleteDataSetRegistration getRegistration()
+    {
+        return registration;
+    }
 }

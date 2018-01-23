@@ -16,6 +16,8 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
+    
+    <property name="description" type="text" />
 
     <list name="items" table="dashboard_items" cascade="save-update">
       <key column="dashboardid" foreign-key="fk_dashboard_items_dashboardid" />

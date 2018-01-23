@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,21 +28,13 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public interface MetadataAuditService
+public enum NotificationTriggerEvent
 {
-    /**
-     * Persists the given MetadataAudit instance.
-     *
-     * @param audit Instance to add
-     */
-    void addMetadataAudit( MetadataAudit audit );
-
-    int count( MetadataAuditQuery query );
-
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    PROGRAM,
+    PROGRAM_STAGE,
+    DATA_SET,
+    VALIDATION_RULE
 }

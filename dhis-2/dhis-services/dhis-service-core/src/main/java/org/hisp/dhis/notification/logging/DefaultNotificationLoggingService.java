@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,21 +28,66 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public interface MetadataAuditService
+public class DefaultNotificationLoggingService
+    implements NotificationLoggingService
 {
-    /**
-     * Persists the given MetadataAudit instance.
-     *
-     * @param audit Instance to add
-     */
-    void addMetadataAudit( MetadataAudit audit );
+    @Autowired
+    private NotificationLoggingStore notificationLoggingStore;
 
-    int count( MetadataAuditQuery query );
+    @Override
+    public ExternalNotificationLogEntry get(String uid )
+    {
+        return notificationLoggingStore.getByUid( uid );
+    }
 
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    @Override
+    public ExternalNotificationLogEntry get( int id )
+    {
+        return notificationLoggingStore.get( id );
+    }
+
+    @Override
+    public ExternalNotificationLogEntry getByKey( String key )
+    {
+        return notificationLoggingStore.getByKey( key );
+    }
+
+    @Override
+    public List<ExternalNotificationLogEntry> getAllLogEntries()
+    {
+        return notificationLoggingStore.getAll();
+    }
+
+    @Override
+    public boolean isValidForSending( String key )
+    {
+        ExternalNotificationLogEntry logEntry = getByKey( key );
+
+        return logEntry == null || logEntry.isAllowMultiple();
+    }
+
+    @Override
+    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
+    {
+        return notificationLoggingStore.getByTemplateUid( templateUid );
+    }
+
+    @Override
+    public void save( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.save( entry );
+    }
+
+    @Override
+    public void update( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.update( entry );
+    }
 }

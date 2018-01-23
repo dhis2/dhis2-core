@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,18 +31,62 @@ package org.hisp.dhis.schema.audit;
 import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public interface MetadataAuditService
+public interface NotificationLoggingService
 {
-    /**
-     * Persists the given MetadataAudit instance.
+    /***
      *
-     * @param audit Instance to add
+     * @param uid of the log entry
+     * @return log entry if exists otherwise null.
      */
-    void addMetadataAudit( MetadataAudit audit );
+    ExternalNotificationLogEntry get( String uid );
 
-    int count( MetadataAuditQuery query );
+    /**
+     *
+     * @param templateUid is the uid for the notification template which this log entry is associated to.
+     * @return log entry if exists otherwise null.
+     */
+    ExternalNotificationLogEntry getByTemplateUid( String templateUid );
 
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    /**
+     *
+     * @param id of the log entry
+     * @return log entry if exists otherwise null.
+     */
+    ExternalNotificationLogEntry get( int id );
+
+    /**
+     *
+     * @param key unique identifier for the log entry.
+     * @return log entry if exists otherwise null.
+     */
+
+    ExternalNotificationLogEntry getByKey( String key );
+
+    /**
+     * Get all log entries.
+     *
+     * @return A list containing all notification log entries.
+     */
+    List<ExternalNotificationLogEntry> getAllLogEntries();
+
+    /**
+     *
+     * @param templateUid Uid of the template which needs to be sent.
+     * @return true in case there is no log entry for this template uid or template is eligible for sending more then once. Otherwise false.
+     */
+    boolean isValidForSending( String templateUid );
+
+    /**
+     *
+     * @param entry to be saved.
+     */
+    void save( ExternalNotificationLogEntry entry );
+
+    /**
+     *
+     * @param entry to be updated.
+     */
+    void update( ExternalNotificationLogEntry entry );
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,21 +28,30 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public interface MetadataAuditService
+public class HibernateNotificationLoggingStore
+    extends HibernateIdentifiableObjectStore<ExternalNotificationLogEntry>
+    implements NotificationLoggingStore
 {
-    /**
-     * Persists the given MetadataAudit instance.
-     *
-     * @param audit Instance to add
-     */
-    void addMetadataAudit( MetadataAudit audit );
+    @Override
+    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
+    {
+        Criteria criteria = getCriteria().add( Restrictions.eq( "notificationTemplateUid", templateUid ) );
 
-    int count( MetadataAuditQuery query );
+        return (ExternalNotificationLogEntry) criteria.uniqueResult();
+    }
 
-    List<MetadataAudit> query( MetadataAuditQuery query );
+    @Override
+    public ExternalNotificationLogEntry getByKey( String key )
+    {
+        Criteria criteria = getCriteria().add( Restrictions.eq( "key", key ) );
+
+        return (ExternalNotificationLogEntry) criteria.uniqueResult();
+    }
 }
