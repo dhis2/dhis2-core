@@ -33,14 +33,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.EventReportDimensionalItem;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
+import org.hisp.dhis.analytics.EventDimensionalItemObject;
 import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsUtils;
-import org.hisp.dhis.analytics.event.EventDataItem;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -58,13 +58,13 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
@@ -157,7 +157,7 @@ public class DefaultEventAnalyticsService
      * Create a grid with table layout for downloading event reports.
      * The grid is dynamically made from rows and columns input, which refers to the dimensions requested.
      *
-     * For event reports each option for a dimension will be an {@link EventReportDimensionalItem} and all permutations
+     * For event reports each option for a dimension will be an {@link EventAnalyticsDimensionalItem} and all permutations
      * will be added to the grid.
      *
      * @param params the event query parameters.
@@ -175,7 +175,7 @@ public class DefaultEventAnalyticsService
         ListUtils.removeEmptys( columns );
         ListUtils.removeEmptys( rows );
 
-        Map<String, List<EventReportDimensionalItem>> tableColumns = new LinkedHashMap<>();
+        Map<String, List<EventAnalyticsDimensionalItem>> tableColumns = new LinkedHashMap<>();
         if ( columns != null )
         {
             for ( String dimension : columns )
@@ -184,7 +184,7 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        Map<String, List<EventReportDimensionalItem>> tableRows = new LinkedHashMap<>();
+        Map<String, List<EventAnalyticsDimensionalItem>> tableRows = new LinkedHashMap<>();
         List<String> rowDimensions = new ArrayList<>();
         if ( rows != null )
         {
@@ -195,10 +195,10 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        List<Map<String, EventReportDimensionalItem>> rowPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableRows );
-        List<Map<String, EventReportDimensionalItem>> columnPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableColumns );
+        List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableRows );
+        List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableColumns );
 
-        return generateOutputGrid( grid,  params, rowPermutations, columnPermutations, rowDimensions );
+        return generateOutputGrid( grid, params, rowPermutations, columnPermutations, rowDimensions );
     }
 
     /**
@@ -212,7 +212,7 @@ public class DefaultEventAnalyticsService
      * @return grid with table layout
      */
     @SuppressWarnings( "unchecked" )
-    private Grid generateOutputGrid( Grid grid, EventQueryParams params, List<Map<String, EventReportDimensionalItem>> rowPermutations, List<Map<String, EventReportDimensionalItem>> columnPermutations, List<String> rowDimensions )
+    private Grid generateOutputGrid( Grid grid, EventQueryParams params, List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations, List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations, List<String> rowDimensions )
     {
         Grid outputGrid = new ListGrid();
         outputGrid.setTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
@@ -232,18 +232,14 @@ public class DefaultEventAnalyticsService
         columnPermutations.forEach( permutation -> {
             StringBuilder builder = new StringBuilder();
 
-            for ( Map.Entry<String, EventReportDimensionalItem> entry : permutation.entrySet() )
-            {
-                String key = entry.getKey();
-                EventReportDimensionalItem value = entry.getValue();
-
+            permutation.forEach( ( key, value ) -> {
                 if ( !key.equals( ORGUNIT_DIM_ID ) && !key.equals( PERIOD_DIM_ID ) )
                 {
                     builder.append( key ).append( SPACE );
                 }
                 builder.append( value.getDisplayProperty( params.getDisplayProperty() ) )
                     .append( DASH_PRETTY_SEPARATOR );
-            }
+            } );
 
             String display = builder.length() > 0 ?
                 builder.substring( 0, builder.lastIndexOf( DASH_PRETTY_SEPARATOR ) ) :
@@ -253,15 +249,15 @@ public class DefaultEventAnalyticsService
                 ValueType.NUMBER, Double.class.getName(), false, false ) );
         } );
 
-        for ( Map<String, EventReportDimensionalItem> rowCombination : rowPermutations )
+        for ( Map<String, EventAnalyticsDimensionalItem> rowCombination : rowPermutations )
         {
             outputGrid.addRow();
             List<List<String>> ids = new ArrayList<>();
-            Map<String, EventReportDimensionalItem> displayObjects = new HashMap<>();
+            Map<String, EventAnalyticsDimensionalItem> displayObjects = new HashMap<>();
 
             boolean fillDisplayList = true;
 
-            for ( Map<String, EventReportDimensionalItem> columnCombination : columnPermutations )
+            for ( Map<String, EventAnalyticsDimensionalItem> columnCombination : columnPermutations )
             {
                 List<String> idList = new ArrayList<>();
 
@@ -298,27 +294,104 @@ public class DefaultEventAnalyticsService
      * @param dimension the requested dimension
      */
     private void getEventDataObjects( Grid grid, EventQueryParams params,
-        Map<String, List<EventReportDimensionalItem>> table,
+        Map<String, List<EventAnalyticsDimensionalItem>> table,
         String dimension )
         throws Exception
     {
-        List<EventReportDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
+        List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
         if ( objects.size() == 0 )
         {
-            DataElement dataElement = dataElementService.getDataElement( dimension );
-            TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService
-                .getTrackedEntityAttribute( dimension );
+            EventDimensionalItemObject eventDimensionalItemObject = dataElementService.getDataElement( dimension );
 
-            EventDataItem eventDataItem = new EventDataItem( dataElement, trackedEntityAttribute );
+            if ( eventDimensionalItemObject == null )
+            {
+                eventDimensionalItemObject = trackedEntityAttributeService
+                    .getTrackedEntityAttribute( dimension );
+            }
 
-            EventAnalyticsUtils.addEventReportDimensionalItems( eventDataItem, objects, grid, dimension );
+            addEventReportDimensionalItems( eventDimensionalItemObject, objects, grid, dimension );
 
-            table.put( eventDataItem.getDisplayName(), objects );
+            table.put( eventDimensionalItemObject.getDisplayProperty( params.getDisplayProperty() ), objects );
         }
         else
         {
             table.put( dimension, objects );
+        }
+    }
+
+    /**
+     * Send in a list of {@link EventAnalyticsDimensionalItem} and add properties from {@link EventDimensionalItemObject} parameter.
+     *
+     * @param eventDimensionalItemObject object to get properties from
+     * @param objects the list with objects. We are adding objects to this list as well.
+     * @param grid the grid from the event analytics request
+     * @param dimension the dimension we are looking at
+     * @throws Exception throws exception if the given dimension is invalid
+     */
+    @SuppressWarnings( "unchecked" )
+    private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
+        throws Exception
+    {
+
+        if ( eventDimensionalItemObject == null )
+        {
+            throw new Exception( "Supplied data dimension '" + dimension + "' is invalid" );
+        }
+
+        String parentUid = eventDimensionalItemObject.getUid();
+
+        if ( eventDimensionalItemObject.getValueType() == ValueType.BOOLEAN )
+        {
+            Option t = new Option();
+            t.setCode( "1" );
+            t.setName( "Yes" );
+
+            Option f = new Option();
+            f.setCode( "0" );
+            f.setName( "No" );
+
+            objects.add( new EventAnalyticsDimensionalItem( t, parentUid ) );
+            objects.add( new EventAnalyticsDimensionalItem( f, parentUid ) );
+        }
+
+        if ( eventDimensionalItemObject.hasOptionSet() )
+        {
+            for ( Option option : eventDimensionalItemObject.getOptionSet().getOptions() )
+            {
+                objects.add( new EventAnalyticsDimensionalItem( option, parentUid ) );
+            }
+        }
+        else if ( eventDimensionalItemObject.hasLegendSet() )
+        {
+            List<String> legendOptions = (List<String>) ((Map<String, Object>) grid.getMetaData()
+                .get( DIMENSIONS.getKey() )).get( dimension );
+
+            if ( legendOptions.isEmpty() )
+            {
+                List<Legend> legends = eventDimensionalItemObject.getLegendSet().getSortedLegends();
+
+                for ( Legend legend : legends )
+                {
+                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
+                    {
+                        objects.add(
+                            new EventAnalyticsDimensionalItem( new Option( String.valueOf( i ), String.valueOf( i ) ),
+                                parentUid ) );
+                    }
+                }
+            }
+            else
+            {
+                for ( String legend : legendOptions )
+                {
+                    MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
+                        .get( ITEMS.getKey() )).get( legend );
+
+                    objects.add(
+                        new EventAnalyticsDimensionalItem( new Option( metadataItem.getName(), legend ), parentUid ) );
+                }
+            }
         }
     }
 

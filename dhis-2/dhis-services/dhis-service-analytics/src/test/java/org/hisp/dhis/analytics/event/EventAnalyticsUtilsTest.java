@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.EventReportDimensionalItem;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,48 +51,40 @@ public class EventAnalyticsUtilsTest
     @Test
     public void testGenerateEventDataPermutations()
     {
-        Map<String, List<EventReportDimensionalItem>> tableRows = new LinkedHashMap<>();
+        Map<String, List<EventAnalyticsDimensionalItem>> tableRows = new LinkedHashMap<>();
+
+        Grid grid = new ListGrid( );
 
         DataElement deA = createDataElement( 'A' );
         deA.setValueType( ValueType.BOOLEAN );
+
+        grid.addMetaData( deA.getUid(), deA );
 
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'B' );
         OptionSet optionSet = new OptionSet( );
         optionSet.addOption( new Option( "name", "code" ) );
         trackedEntityAttribute.setOptionSet( optionSet );
 
-        List<EventReportDimensionalItem> objects = new ArrayList<>( );
-        Grid grid = new ListGrid( );
+        grid.addMetaData( trackedEntityAttribute.getUid(), trackedEntityAttribute );
 
-        EventDataItem edi1 = new EventDataItem( deA, null );
-        grid.addMetaData( edi1.getParentUid(), edi1 );
+        List<EventAnalyticsDimensionalItem> objects = new ArrayList<>( );
+        Option t = new Option();
+        t.setCode( "1" );
+        t.setName( "Yes" );
 
-        try
-        {
-            EventAnalyticsUtils.addEventReportDimensionalItems( edi1, objects, grid, edi1.getParentUid() );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+        Option f = new Option();
+        f.setCode( "0" );
+        f.setName( "No" );
 
-        tableRows.put( edi1.getParentUid(), objects );
+        objects.add( new EventAnalyticsDimensionalItem( t, deA.getUid() ) );
+        objects.add( new EventAnalyticsDimensionalItem( f, deA.getUid() ) );
 
-        EventDataItem edi2 = new EventDataItem( null, trackedEntityAttribute );
-        grid.addMetaData( edi2.getParentUid(), edi2 );
+        objects.add( new EventAnalyticsDimensionalItem( new Option( "name", "code" ), trackedEntityAttribute.getUid() ) );
 
-        try
-        {
-            EventAnalyticsUtils.addEventReportDimensionalItems( edi2, objects, grid, edi2.getParentUid() );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+        tableRows.put( deA.getUid(), objects );
+        tableRows.put( trackedEntityAttribute.getDimensionItem(), objects);
 
-        tableRows.put( edi2.getParentUid(), objects );
-
-        List<Map<String, EventReportDimensionalItem>> rowPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableRows );
+        List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableRows );
 
         assertEquals( 9, rowPermutations.size() );
     }

@@ -35,7 +35,7 @@ import org.hisp.dhis.option.Option;
 /**
  * @author Henning Håkonsen
  */
-public class EventReportDimensionalItem
+public class EventAnalyticsDimensionalItem
 {
     private String parentUid;
 
@@ -43,26 +43,26 @@ public class EventReportDimensionalItem
 
     private DimensionalItemObject dimensionalItemObject;
 
-    public EventReportDimensionalItem( Option option, String parentUid )
+    public EventAnalyticsDimensionalItem( Option option, String parentUid )
     {
         this.option = option;
         this.parentUid = parentUid;
     }
 
-    EventReportDimensionalItem( DimensionalItemObject dimensionalItemObject, String parentUid )
+    EventAnalyticsDimensionalItem( DimensionalItemObject dimensionalItemObject, String parentUid )
     {
         this.dimensionalItemObject = dimensionalItemObject;
         this.parentUid = parentUid;
     }
 
+    public String getParentUid()
+    {
+        return parentUid;
+    }
+
     public Option getOption()
     {
         return option;
-    }
-
-    public String getParentUid()
-    {
-       return parentUid;
     }
 
     public String getDisplayProperty( DisplayProperty displayProperty )

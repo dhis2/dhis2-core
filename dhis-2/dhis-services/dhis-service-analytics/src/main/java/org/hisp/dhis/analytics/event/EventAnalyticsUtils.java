@@ -29,12 +29,8 @@ package org.hisp.dhis.analytics.event;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.EventReportDimensionalItem;
-import org.hisp.dhis.analytics.MetadataItem;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.option.Option;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,8 +41,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 /**
@@ -60,8 +54,8 @@ public class EventAnalyticsUtils
      * @param map the map with all values
      * @param list the resulting list
      */
-    private static void getCombinations( Map<String, List<EventReportDimensionalItem>> map,
-        List<Map<String, EventReportDimensionalItem>> list )
+    private static void getCombinations( Map<String, List<EventAnalyticsDimensionalItem>> map,
+        List<Map<String, EventAnalyticsDimensionalItem>> list )
     {
         recurse( map, new LinkedList<>( map.keySet() ).listIterator(), new TreeMap<>(), list );
     }
@@ -74,12 +68,12 @@ public class EventAnalyticsUtils
      * @param cur the current map
      * @param list the resulting list
      */
-    public static void recurse( Map<String, List<EventReportDimensionalItem>> map, ListIterator<String> iter,
-        TreeMap<String, EventReportDimensionalItem> cur, List<Map<String, EventReportDimensionalItem>> list )
+    public static void recurse( Map<String, List<EventAnalyticsDimensionalItem>> map, ListIterator<String> iter,
+        TreeMap<String, EventAnalyticsDimensionalItem> cur, List<Map<String, EventAnalyticsDimensionalItem>> list )
     {
         if ( !iter.hasNext() )
         {
-            Map<String, EventReportDimensionalItem> entry = new HashMap<>();
+            Map<String, EventAnalyticsDimensionalItem> entry = new HashMap<>();
 
             for ( String key : cur.keySet() )
             {
@@ -91,9 +85,9 @@ public class EventAnalyticsUtils
         else
         {
             String key = iter.next();
-            List<EventReportDimensionalItem> set = map.get( key );
+            List<EventAnalyticsDimensionalItem> set = map.get( key );
 
-            for ( EventReportDimensionalItem value : set )
+            for ( EventAnalyticsDimensionalItem value : set )
             {
                 cur.put( key, value );
                 recurse( map, iter, cur, list );
@@ -110,10 +104,10 @@ public class EventAnalyticsUtils
      * @param dataOptionMap the map to generate permutations from
      * @return a list of a map with a permutations
      */
-    public static List<Map<String, EventReportDimensionalItem>> generateEventDataPermutations(
-        Map<String, List<EventReportDimensionalItem>> dataOptionMap )
+    public static List<Map<String, EventAnalyticsDimensionalItem>> generateEventDataPermutations(
+        Map<String, List<EventAnalyticsDimensionalItem>> dataOptionMap )
     {
-        List<Map<String, EventReportDimensionalItem>> list = new LinkedList<>();
+        List<Map<String, EventAnalyticsDimensionalItem>> list = new LinkedList<>();
         getCombinations( dataOptionMap, list );
         return list;
     }
@@ -154,82 +148,6 @@ public class EventAnalyticsUtils
         }
 
         return map;
-    }
-
-    /**
-     * Send in a list of {@link EventReportDimensionalItem} and add properties from {@link EventDataItem} parameter.
-     *
-     * @param eventDataItem object to get properties from
-     * @param objects the list with objects. We are adding objects to this list as well.
-     * @param grid the grid from the event analytics request
-     * @param dimension the dimension we are looking at
-     * @throws Exception throws exception if the given dimension is invalid
-     */
-    @SuppressWarnings( "unchecked" )
-    public static void addEventReportDimensionalItems( EventDataItem eventDataItem, List<EventReportDimensionalItem> objects, Grid grid, String dimension )
-        throws Exception
-    {
-        if ( eventDataItem.isInvalid() )
-        {
-            throw new Exception( "Supplied data dimension '" + dimension + "' is invalid" );
-        }
-
-        String parentUid = eventDataItem.getParentUid();
-
-        if ( eventDataItem.getValueType() == ValueType.BOOLEAN )
-        {
-            Option t = new Option();
-            t.setCode( "1" );
-            t.setName( "Yes" );
-
-            Option f = new Option();
-            f.setCode( "0" );
-            f.setName( "No" );
-
-            objects.add( new EventReportDimensionalItem( t, parentUid ) );
-            objects.add( new EventReportDimensionalItem( f, parentUid ) );
-        }
-
-        if ( eventDataItem.hasOptionSet() )
-        {
-            for ( Option option : eventDataItem.getOptionSet().getOptions() )
-            {
-                objects.add( new EventReportDimensionalItem( option, parentUid ) );
-            }
-        }
-
-        if ( eventDataItem.hasLegendSet() )
-        {
-            List<String> legendOptions = (List<String>) ((Map<String, Object>) grid.getMetaData()
-                .get( DIMENSIONS.getKey() )).get( dimension );
-
-            if ( legendOptions.isEmpty() )
-            {
-
-                List<Legend> legends = eventDataItem.getLegendSet().getSortedLegends();
-
-                for ( Legend legend : legends )
-                {
-                    for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
-                    {
-                        objects.add(
-                            new EventReportDimensionalItem( new Option( String.valueOf( i ), String.valueOf( i ) ),
-                                parentUid ) );
-                    }
-                }
-            }
-            else
-            {
-                for ( String legend : legendOptions )
-                {
-                    MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
-                        .get( ITEMS.getKey() )).get( legend );
-
-                    objects.add(
-                        new EventReportDimensionalItem( new Option( metadataItem.getName(), legend ), parentUid ) );
-                }
-            }
-        }
     }
 
     public static void addValues( List<List<String>> ids, Grid grid, Grid outputGrid )
