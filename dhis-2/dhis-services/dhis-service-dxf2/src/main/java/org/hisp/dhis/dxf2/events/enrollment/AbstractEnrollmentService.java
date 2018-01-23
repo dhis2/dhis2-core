@@ -528,19 +528,51 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
+        User user = currentUserService.getCurrentUser();
+        List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
+
         ImportSummaries importSummaries = new ImportSummaries();
-        int counter = 0;
 
-        for ( Enrollment enrollment : enrollments )
+        for ( List<Enrollment> _enrollments : partitions )
         {
-            importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions ) );
+            // prepare caches
+            Collection<String> orgUnits = _enrollments.stream().map( Enrollment::getOrgUnit ).collect( Collectors.toSet() );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( !orgUnits.isEmpty() )
             {
-                clearSession();
+                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", orgUnits ) );
+                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
-            counter++;
+            Collection<String> programs = _enrollments.stream().map( Enrollment::getProgram ).collect( Collectors.toSet() );
+
+            if ( !programs.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( Program.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", programs ) );
+                queryService.query( query ).forEach( pr -> programCache.put( pr.getUid(), (Program) pr ) );
+            }
+
+            Collection<String> trackedEntityAttributes = new HashSet<>();
+            _enrollments.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+            if ( !trackedEntityAttributes.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+            }
+
+            for ( Enrollment enrollment : _enrollments )
+            {
+                importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions ) );
+            }
+
+            clearSession();
         }
 
         return importSummaries;
