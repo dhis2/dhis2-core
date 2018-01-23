@@ -88,13 +88,13 @@ public class EventAnalyticsDimensionalItem
     @Override
     public String toString()
     {
-        if ( option == null )
+        if ( option != null )
         {
-            return dimensionalItemObject.getDimensionItem();
+            return option.getCode();
         }
         else
         {
-            return option.getCode();
+            return dimensionalItemObject.getDimensionItem();
         }
     }
 }

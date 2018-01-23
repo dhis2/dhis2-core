@@ -333,7 +333,6 @@ public class DefaultEventAnalyticsService
     private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
         throws Exception
     {
-
         if ( eventDimensionalItemObject == null )
         {
             throw new Exception( "Supplied data dimension '" + dimension + "' is invalid" );
