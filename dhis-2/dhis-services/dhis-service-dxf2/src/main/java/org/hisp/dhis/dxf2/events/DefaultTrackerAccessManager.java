@@ -36,6 +36,8 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 
@@ -53,6 +55,68 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     public DefaultTrackerAccessManager( AclService aclService )
     {
         this.aclService = aclService;
+    }
+
+    @Override
+    public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance )
+    {
+        List<String> errors = new ArrayList<>();
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
+            {
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
+            }
+        }
+
+        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+
+        if ( !aclService.canDataRead( user, trackedEntityType ) )
+        {
+            errors.add( "User has no read access to program: " + trackedEntityType.getUid() );
+        }
+
+        return errors;
+    }
+
+    @Override
+    public List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance )
+    {
+        List<String> errors = new ArrayList<>();
+
+        // always allow if user == null (internal process) or user is superuser
+        if ( user == null || user.isSuper() )
+        {
+            return errors;
+        }
+
+        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
+
+        if ( ou != null )
+        { // ou should never be null, but needs to be checked for legacy reasons
+            if ( !isInHierarchy( ou, user.getOrganisationUnits() ) )
+            {
+                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
+            }
+        }
+
+        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+
+        if ( !aclService.canDataWrite( user, trackedEntityType ) )
+        {
+            errors.add( "User has no write access to tracked entity: " + trackedEntityType.getUid() );
+        }
+
+        return errors;
     }
 
     @Override
