@@ -1618,6 +1618,16 @@
 
   <bean id="dataSetNotificationMessageRenderer" class="org.hisp.dhis.notification.DataSetNotificationMessageRenderer" />
 
+  <!-- Notification loggin -->
+
+  <bean id="org.hisp.dhis.notification.logging.NotificationLoggingStore" class="org.hisp.dhis.notification.logging.HibernateNotificationLoggingStore">
+    <property name="clazz" value="org.hisp.dhis.notification.logging.ExternalNotificationLogEntry" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.notification.logging.NotificationLoggingService" class="org.hisp.dhis.notification.logging.DefaultNotificationLoggingService" />
 
   <!-- I18n UI -->
 

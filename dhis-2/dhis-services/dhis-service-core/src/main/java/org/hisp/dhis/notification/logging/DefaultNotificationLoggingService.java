@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,36 +28,66 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public class TrackedEntityTypeSchemaDescriptor implements SchemaDescriptor
+public class DefaultNotificationLoggingService
+    implements NotificationLoggingService
 {
-    public static final String SINGULAR = "trackedEntityType";
-
-    public static final String PLURAL = "trackedEntityTypes";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @Autowired
+    private NotificationLoggingStore notificationLoggingStore;
 
     @Override
-    public Schema getSchema()
+    public ExternalNotificationLogEntry get(String uid )
     {
-        Schema schema = new Schema( TrackedEntityType.class, SINGULAR, PLURAL );
-        schema.setDataShareable( true );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1480 );
+        return notificationLoggingStore.getByUid( uid );
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_TRACKED_ENTITY_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.UPDATE, Lists.newArrayList( "F_TRACKED_ENTITY_UPDATE" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_TRACKED_ENTITY_DELETE" ) ) );
+    @Override
+    public ExternalNotificationLogEntry get( int id )
+    {
+        return notificationLoggingStore.get( id );
+    }
 
-        return schema;
+    @Override
+    public ExternalNotificationLogEntry getByKey( String key )
+    {
+        return notificationLoggingStore.getByKey( key );
+    }
+
+    @Override
+    public List<ExternalNotificationLogEntry> getAllLogEntries()
+    {
+        return notificationLoggingStore.getAll();
+    }
+
+    @Override
+    public boolean isValidForSending( String key )
+    {
+        ExternalNotificationLogEntry logEntry = getByKey( key );
+
+        return logEntry == null || logEntry.isAllowMultiple();
+    }
+
+    @Override
+    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
+    {
+        return notificationLoggingStore.getByTemplateUid( templateUid );
+    }
+
+    @Override
+    public void save( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.save( entry );
+    }
+
+    @Override
+    public void update( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.update( entry );
     }
 }

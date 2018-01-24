@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,37 +28,65 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.user.User;
-
 import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public interface TrackerAccessManager
+public interface NotificationLoggingService
 {
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
+    /***
+     *
+     * @param uid of the log entry
+     * @return log entry if exists otherwise null.
+     */
+    ExternalNotificationLogEntry get( String uid );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
+    /**
+     *
+     * @param templateUid is the uid for the notification template which this log entry is associated to.
+     * @return log entry if exists otherwise null.
+     */
+    ExternalNotificationLogEntry getByTemplateUid( String templateUid );
 
-    List<String> canRead( User user, ProgramInstance programInstance );
+    /**
+     *
+     * @param id of the log entry
+     * @return log entry if exists otherwise null.
+     */
+    ExternalNotificationLogEntry get( int id );
 
-    List<String> canWrite( User user, ProgramInstance programInstance );
+    /**
+     *
+     * @param key unique identifier for the log entry.
+     * @return log entry if exists otherwise null.
+     */
 
-    List<String> canRead( User user, ProgramStageInstance programStageInstance );
+    ExternalNotificationLogEntry getByKey( String key );
 
-    List<String> canWrite( User user, ProgramStageInstance programStageInstance );
+    /**
+     * Get all log entries.
+     *
+     * @return A list containing all notification log entries.
+     */
+    List<ExternalNotificationLogEntry> getAllLogEntries();
 
-    List<String> canRead( User user, TrackedEntityDataValue dataValue );
+    /**
+     *
+     * @param templateUid Uid of the template which needs to be sent.
+     * @return true in case there is no log entry for this template uid or template is eligible for sending more then once. Otherwise false.
+     */
+    boolean isValidForSending( String templateUid );
 
-    List<String> canWrite( User user, TrackedEntityDataValue dataValue );
+    /**
+     *
+     * @param entry to be saved.
+     */
+    void save( ExternalNotificationLogEntry entry );
 
-    List<String> canRead( User user, DataElementCategoryOptionCombo categoryOptionCombo );
-
-    List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOptionCombo );
+    /**
+     *
+     * @param entry to be updated.
+     */
+    void update( ExternalNotificationLogEntry entry );
 }

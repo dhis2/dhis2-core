@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,36 +28,19 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.option.OptionSet;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Henning Håkonsen
  */
-public class TrackedEntityTypeSchemaDescriptor implements SchemaDescriptor
+public interface EventDimensionalItemObject
+    extends DimensionalItemObject
 {
-    public static final String SINGULAR = "trackedEntityType";
+    boolean hasOptionSet();
 
-    public static final String PLURAL = "trackedEntityTypes";
+    OptionSet getOptionSet();
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( TrackedEntityType.class, SINGULAR, PLURAL );
-        schema.setDataShareable( true );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1480 );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_TRACKED_ENTITY_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.UPDATE, Lists.newArrayList( "F_TRACKED_ENTITY_UPDATE" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_TRACKED_ENTITY_DELETE" ) ) );
-
-        return schema;
-    }
+    ValueType getValueType();
 }

@@ -36,9 +36,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -60,7 +60,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "dashboardItem", namespace = DxfNamespaces.DXF_2_0 )
 public class DashboardItem
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject implements EmbeddedObject
 {
     public static final int MAX_CONTENT = 8;
 
@@ -74,14 +74,14 @@ public class DashboardItem
 
     private EventReport eventReport;
 
+    private String text;
+    
     private List<User> users = new ArrayList<>();
 
     private List<Report> reports = new ArrayList<>();
 
     private List<Document> resources = new ArrayList<>();
 
-    private String text;
-    
     private Boolean messages;
 
     private String appKey;
@@ -137,6 +137,10 @@ public class DashboardItem
         else if ( eventReport != null )
         {
             return DashboardItemType.EVENT_REPORT;
+        }
+        else if ( text != null )
+        {
+            return DashboardItemType.TEXT;
         }
         else if ( !users.isEmpty() )
         {
@@ -243,6 +247,7 @@ public class DashboardItem
         count += map != null ? 1 : 0;
         count += reportTable != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
+        count += text != null ? 1: 0;
         count += users.size();
         count += reports.size();
         count += resources.size();
@@ -359,6 +364,18 @@ public class DashboardItem
         this.eventReport = eventReport;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getText()
+    {
+        return text;
+    }
+
+    public void setText( String text )
+    {
+        this.text = text;
+    }
+
     @JsonProperty( "users" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "users", namespace = DxfNamespaces.DXF_2_0 )
@@ -399,18 +416,6 @@ public class DashboardItem
     public void setResources( List<Document> resources )
     {
         this.resources = resources;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getText()
-    {
-        return text;
-    }
-
-    public void setText( String text )
-    {
-        this.text = text;
     }
 
     @JsonProperty
