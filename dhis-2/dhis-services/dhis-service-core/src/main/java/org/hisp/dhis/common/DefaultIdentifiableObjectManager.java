@@ -36,6 +36,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -47,6 +48,10 @@ import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.ImmutableMap;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -70,8 +76,15 @@ public class DefaultIdentifiableObjectManager
 {
     private static final Log log = LogFactory.getLog( DefaultIdentifiableObjectManager.class );
 
-    private final Map<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULTS = new HashMap<>();
-
+    /**
+     * Cache for default category objects. Disabled during test phase.
+     */
+    private static final Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
+        .expireAfterAccess( 2, TimeUnit.HOURS )
+        .initialCapacity( 4 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 10 )
+        .build();
+    
     @Autowired
     private Set<GenericIdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -1155,16 +1168,13 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
-    {
-        if ( DEFAULTS.isEmpty() )
-        {
-            DEFAULTS.put( DataElementCategory.class, getByName( DataElementCategory.class, "default" ) );
-            DEFAULTS.put( DataElementCategoryCombo.class, getByName( DataElementCategoryCombo.class, "default" ) );
-            DEFAULTS.put( DataElementCategoryOption.class, getByName( DataElementCategoryOption.class, "default" ) );
-            DEFAULTS.put( DataElementCategoryOptionCombo.class, getByName( DataElementCategoryOptionCombo.class, "default" ) );
-        }
-
-        return DEFAULTS;
+    {        
+        return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
+            .put( DataElementCategory.class, DEFAULT_OBJECT_CACHE.get( DataElementCategory.class, key -> getByName( DataElementCategory.class, "default" ) ) )
+            .put( DataElementCategoryCombo.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryCombo.class, key -> getByName( DataElementCategoryCombo.class, "default" ) ) )
+            .put( DataElementCategoryOption.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryCombo.class, key -> getByName( DataElementCategoryOption.class, "default" ) ) )
+            .put( DataElementCategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryOptionCombo.class, key -> getByName( DataElementCategoryOptionCombo.class, "default" ) ) )
+            .build();
     }
 
     //--------------------------------------------------------------------------

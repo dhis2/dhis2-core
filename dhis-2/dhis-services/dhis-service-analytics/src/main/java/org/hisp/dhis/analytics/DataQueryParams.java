@@ -950,10 +950,10 @@ public class DataQueryParams
         return getDimensionItemObjects( dimension ).toArray( new DimensionalItemObject[0] );
     }
 
-    public List<EventReportDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
+    public List<EventAnalyticsDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
     {
         return getDimensionItemObjects( dimension ).stream()
-            .map( item -> new EventReportDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
+            .map( item -> new EventAnalyticsDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
     }
     
     /**
