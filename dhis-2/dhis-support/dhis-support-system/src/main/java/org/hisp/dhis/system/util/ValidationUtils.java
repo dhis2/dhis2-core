@@ -603,7 +603,7 @@ public class ValidationUtils
      * @param type the RenderingType to validate
      * @return true if RenderingType is supported, false if not.
      */
-    public static boolean validateRenderingType( Class clazz, ValueType valueType, boolean optionSet, ValueTypeRenderingType type )
+    public static boolean validateRenderingType( Class<?> clazz, ValueType valueType, boolean optionSet, ValueTypeRenderingType type )
     {
         if ( valueType != null && type.equals( ValueTypeRenderingType.DEFAULT ))
         {
