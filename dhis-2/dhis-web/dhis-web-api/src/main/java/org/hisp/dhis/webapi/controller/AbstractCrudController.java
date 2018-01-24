@@ -226,6 +226,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         postProcessEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false, currentUser );
+        handleFavoriteStatus( entities, currentUser );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -488,6 +489,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         entities = (List<T>) queryService.query( query );
 
         handleLinksAndAccess( entities, fields, true, user );
+        handleFavoriteStatus( entities, user );
 
         for ( T entity : entities )
         {
@@ -630,6 +632,52 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return null;
     }
 
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_HTML_VALUE } )
+    @ResponseStatus( HttpStatus.OK )
+    public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        List<T> entity = getEntity( pvUid );
+        
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T object = entity.get( 0 );
+        
+        User user = currentUserService.getCurrentUser();
+        
+        object.getFavorites().add( user );
+        manager.updateNoAcl( object );
+        
+        String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
+        
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_HTML_VALUE } )
+    @ResponseStatus( HttpStatus.OK )
+    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        List<T> entity = getEntity( pvUid );
+        
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T object = entity.get( 0 );
+        
+        User user = currentUserService.getCurrentUser();
+        
+        object.getFavorites().remove( user );        
+        manager.updateNoAcl( object );
+        
+        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
+        
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+    
     //--------------------------------------------------------------------------
     // PUT
     //--------------------------------------------------------------------------
@@ -1113,6 +1161,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( generateAccess && aclService.isSupported( getEntityClass() ) )
         {
             addAccessProperties( entityList, user );
+        }
+    }
+    
+    protected void handleFavoriteStatus( List<T> entityList, User user )
+    {
+        Schema schema = getSchema();
+        
+        if ( !schema.isFavoritable() )
+        {
+            return;
+        }
+        
+        for ( T entity : entityList )
+        {
+            entity.setFavoriteStatus( user );
         }
     }
 

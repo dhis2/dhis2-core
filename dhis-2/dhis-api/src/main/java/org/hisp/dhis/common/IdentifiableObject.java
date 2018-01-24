@@ -68,7 +68,11 @@ public interface IdentifiableObject
     Set<AttributeValue> getAttributeValues();
 
     Set<ObjectTranslation> getTranslations();
+    
+    Set<User> getFavorites();
 
+    boolean isFavorite();
+    
     //-----------------------------------------------------------------------------
     // Sharing
     //-----------------------------------------------------------------------------
@@ -91,4 +95,7 @@ public interface IdentifiableObject
 
     @JsonIgnore
     String getPropertyValue( IdScheme idScheme );
+
+    @JsonIgnore
+    void setFavoriteStatus( User user );
 }

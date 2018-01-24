@@ -52,7 +52,7 @@ public class Dashboard
     private String description;
 
     private List<DashboardItem> items = new ArrayList<>();
-
+    
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
