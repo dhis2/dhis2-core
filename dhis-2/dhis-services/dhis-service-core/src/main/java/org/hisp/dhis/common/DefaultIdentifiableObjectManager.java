@@ -76,6 +76,9 @@ public class DefaultIdentifiableObjectManager
 {
     private static final Log log = LogFactory.getLog( DefaultIdentifiableObjectManager.class );
 
+    /**
+     * Cache for default category objects. Disabled during test phase.
+     */
     private static final Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
         .expireAfterAccess( 2, TimeUnit.HOURS )
         .initialCapacity( 4 )
