@@ -2,11 +2,15 @@ package datasummary;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.Objects;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * DataSummary object to transfer System Statistics
+ *
+ * @author Joao Antunes
+ */
 @JacksonXmlRootElement
 public class DataSummary
 {
