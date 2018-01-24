@@ -37,8 +37,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 
@@ -59,9 +57,6 @@ public class ProgramNotificationTemplateObjectBundleHook
         .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
         .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
         .build();
-
-    @Autowired
-    private ProgramRuleService programRuleService;
 
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )

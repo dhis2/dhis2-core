@@ -842,6 +842,11 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
         }
 
+        if ( ps != null && !userCredentials.isSuper() && !aclService.canDataRead( user, ps ) )
+        {
+            throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
+        }
+
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
 
         if ( StringUtils.isNotEmpty( trackedEntityInstance ) && tei == null )
