@@ -28,72 +28,19 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.option.Option;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.option.OptionSet;
 
 /**
  * @author Henning Håkonsen
  */
-public class EventReportDimensionalItem
+public interface EventDimensionalItemObject
+    extends DimensionalItemObject
 {
-    private String parentUid;
+    boolean hasOptionSet();
 
-    private Option option;
+    OptionSet getOptionSet();
 
-    private DimensionalItemObject dimensionalItemObject;
-
-    public EventReportDimensionalItem( Option option, String parentUid )
-    {
-        this.option = option;
-        this.parentUid = parentUid;
-    }
-
-    EventReportDimensionalItem( DimensionalItemObject dimensionalItemObject, String parentUid )
-    {
-        this.dimensionalItemObject = dimensionalItemObject;
-        this.parentUid = parentUid;
-    }
-
-    public Option getOption()
-    {
-        return option;
-    }
-
-    public String getParentUid()
-    {
-       return parentUid;
-    }
-
-    public String getDisplayProperty( DisplayProperty displayProperty )
-    {
-        if ( option != null )
-        {
-            return option.getDisplayName();
-        }
-        else
-        {
-            if ( displayProperty == DisplayProperty.NAME )
-            {
-                return dimensionalItemObject.getName();
-            }
-            else
-            {
-                return dimensionalItemObject.getShortName();
-            }
-        }
-
-    }
-
-    @Override
-    public String toString()
-    {
-        if ( option == null )
-        {
-            return dimensionalItemObject.getDimensionItem();
-        }
-        else
-        {
-            return option.getCode();
-        }
-    }
+    ValueType getValueType();
 }
