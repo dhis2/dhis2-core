@@ -165,7 +165,7 @@ public class DefaultSchedulingManager
 
                 futures.put( jobConfiguration.getUid(), future );
 
-                log.info( "Scheduled job:\n" + jobConfiguration + "\n");
+                log.info( "Scheduled job: " + jobConfiguration );
             }
         }
     }
@@ -243,7 +243,7 @@ public class DefaultSchedulingManager
         } );
         currentTasks.put( jobConfiguration.getUid(), future );
 
-        log.info( "Scheduler initiated execute of job:\n" + jobConfiguration + "\n");
+        log.info( "Scheduler initiated execute of job: " + jobConfiguration );
     }
 
     private boolean internalStopJob( String uid )
