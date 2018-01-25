@@ -142,7 +142,7 @@ public class ProgramIndicator
 
     private AnalyticsType analyticsType = AnalyticsType.EVENT;
     
-    private Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries;
+    private Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries = new HashSet<>();
 
     private ObjectStyle style;
 
