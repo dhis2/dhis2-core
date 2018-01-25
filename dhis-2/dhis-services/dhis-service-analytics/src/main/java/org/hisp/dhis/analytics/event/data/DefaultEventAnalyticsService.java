@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.analytics.event.EventAnalyticsUtils;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -78,12 +79,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -217,8 +214,8 @@ public class DefaultEventAnalyticsService
             }
         }
 
-        List<Map<String, EventReportDimensionalItem>> rowPermutations = generateEventDataPermutations( tableRows );
-        List<Map<String, EventReportDimensionalItem>> columnPermutations = generateEventDataPermutations( tableColumns );
+        List<Map<String, EventReportDimensionalItem>> rowPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableRows );
+        List<Map<String, EventReportDimensionalItem>> columnPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableColumns );
 
         return generateOutputGrid( grid,  params, rowPermutations, columnPermutations, rowDimensions );
     }
@@ -274,7 +271,7 @@ public class DefaultEventAnalyticsService
                 ValueType.NUMBER, Double.class.getName(), false, false ) );
         } );
 
-        Map<String, Object> valueMap = getAggregatedEventDataMapping( grid );
+        Map<String, Object> valueMap = EventAnalyticsUtils.getAggregatedEventDataMapping( grid );
 
         for ( Map<String, EventReportDimensionalItem> rowCombination : rowPermutations )
         {
@@ -429,108 +426,6 @@ public class DefaultEventAnalyticsService
         {
             table.put( dimension, objects );
         }
-    }
-
-    /**
-     * Get all combinations from map. Fill the result into list.
-     * @param map the map with all values
-     * @param list the resulting list
-     */
-    public static void getCombinations( Map<String, List<EventReportDimensionalItem>> map,
-        List<Map<String, EventReportDimensionalItem>> list )
-    {
-        recurse( map, new LinkedList<>( map.keySet() ).listIterator(), new TreeMap<>(), list );
-    }
-
-    /**
-     * A recursive method which finds all permutations of the elements in map.
-     *
-     * @param map the map with all values
-     * @param iter iterator with keys
-     * @param cur the current map
-     * @param list the resulting list
-     */
-    private static void recurse( Map<String, List<EventReportDimensionalItem>> map, ListIterator<String> iter,
-        TreeMap<String, EventReportDimensionalItem> cur, List<Map<String, EventReportDimensionalItem>> list )
-    {
-        if ( !iter.hasNext() )
-        {
-            Map<String, EventReportDimensionalItem> entry = new HashMap<>();
-
-            for ( String key : cur.keySet() )
-            {
-                entry.put( key, cur.get( key ) );
-            }
-
-            list.add( entry );
-        }
-        else
-        {
-            String key = iter.next();
-            List<EventReportDimensionalItem> set = map.get( key );
-
-            for ( EventReportDimensionalItem value : set )
-            {
-                cur.put( key, value );
-                recurse( map, iter, cur, list );
-                cur.remove( key );
-            }
-
-            iter.previous();
-        }
-    }
-
-    /**
-     *  Get all permutations for event report dimensions.
-     *
-     * @param dataOptionMap the map to generate permutations from
-     * @return a list of a map with a permutations
-     */
-    private List<Map<String, EventReportDimensionalItem>> generateEventDataPermutations(
-        Map<String, List<EventReportDimensionalItem>> dataOptionMap )
-    {
-        List<Map<String, EventReportDimensionalItem>> list = new LinkedList<>();
-        getCombinations( dataOptionMap, list );
-
-        return list;
-    }
-
-    /**
-     * Get event data mapping for values.
-     * 
-     * @param grid the grid to collect data from
-     * @return map with key and values
-     */
-    private Map<String, Object> getAggregatedEventDataMapping( Grid grid )
-    {
-        Map<String, Object> map = new HashMap<>();
-
-        int metaCols = grid.getWidth() - 1;
-        int valueIndex = grid.getWidth() - 1;
-
-        for ( List<Object> row : grid.getRows() )
-        {
-            List<String> ids = new ArrayList<>();
-
-            for ( int index = 0; index < metaCols; index++ )
-            {
-                Object id = row.get( index );
-
-                if ( id != null )
-                {
-                    ids.add( (String) row.get( index ) );
-                }
-            }
-
-            Collections.sort( ids );
-
-            String key = StringUtils.join( ids, DIMENSION_SEP );
-            Object value = row.get( valueIndex );
-
-            map.put( key, value );
-        }
-
-        return map;
     }
 
     @Override
@@ -807,18 +702,38 @@ public class DefaultEventAnalyticsService
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
             Map<String, Object> metaData = new HashMap<>();
-            
+
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+            boolean includeMetadataDetails = params.isIncludeMetadataDetails();
+
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
-                metaData.put( ITEMS.getKey(), uidNameMap.entrySet().stream().collect(
-                    Collectors.toMap( Map.Entry::getKey, e -> new MetadataItem( e.getValue() ) ) ) );
+                Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+
+                if ( params.hasValueDimension() )
+                {
+                    metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
+                }
+
+                params.getLegends().forEach( legend -> {
+                    metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, includeMetadataDetails ? legend.getCode() : null ) );
+                } );
+
+                params.getOptions().forEach( option -> {
+                    metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, includeMetadataDetails ? option.getCode() : null ) );
+                } );
+
+                params.getItems().forEach( item -> {
+                    metadataItemMap.put( item.getItemId(),  new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
+                } );
+
+                metaData.put( ITEMS.getKey(), metadataItemMap );
             }
             else
             {
                 metaData.put( NAMES.getKey(), uidNameMap );
             }
-            
+
             Map<String, Object> dimensionItems = new HashMap<>();
             
             dimensionItems.put( PERIOD_DIM_ID, periodUids );

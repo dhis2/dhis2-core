@@ -5,7 +5,7 @@ import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationService;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.message.MessageService;
@@ -55,8 +55,7 @@ import java.util.List;
  */
 @Transactional
 public class DefaultCompleteDataSetRegistrationService
-    implements
-    CompleteDataSetRegistrationService
+    implements CompleteDataSetRegistrationService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -83,18 +82,14 @@ public class DefaultCompleteDataSetRegistrationService
         this.categoryService = categoryService;
     }
 
-    private DataSetNotificationService dataSetNotificationService;
+    @Autowired
+    private DataValueService dataValueService;
 
-    public void setDataSetNotificationService( DataSetNotificationService dataSetNotificationService )
-    {
-        this.dataSetNotificationService = dataSetNotificationService;
-    }
+    @Autowired
+    private DataSetNotificationEventPublisher notificationEventPublisher;
 
     @Autowired
     private AggregateAccessManager accessManager;
-
-    @Autowired
-    private DataValueService dataValueService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -129,7 +124,7 @@ public class DefaultCompleteDataSetRegistrationService
                 messageService.sendCompletenessMessage( registration );
             }
 
-            dataSetNotificationService.sendCompleteDataSetNotifications( registration );
+            notificationEventPublisher.publishEvent( registration );
         }
     }
 

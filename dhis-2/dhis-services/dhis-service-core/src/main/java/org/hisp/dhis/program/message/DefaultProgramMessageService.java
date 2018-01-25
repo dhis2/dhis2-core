@@ -31,6 +31,7 @@ package org.hisp.dhis.program.message;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -41,6 +42,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -92,6 +94,9 @@ public class DefaultProgramMessageService
 
     @Autowired
     private List<MessageBatchCreatorService> batchCreators;
+
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -193,15 +198,16 @@ public class DefaultProgramMessageService
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
         List<ProgramMessage> populatedProgramMessages = programMessages.stream()
+            .filter( this::hasDataWriteAccess )
             .map( this::setAttributesBasedOnStrategy )
             .collect( Collectors.toList() );
 
         List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
         BatchResponseStatus status = new BatchResponseStatus( messageBatchService.sendBatches( batches ) );
-        
+
         saveProgramMessages( programMessages, status );
-        
+
         return status;
     }
 
@@ -295,12 +301,42 @@ public class DefaultProgramMessageService
     // Supportive Methods
     // ---------------------------------------------------------------------
 
+    private boolean hasDataWriteAccess( ProgramMessage message )
+    {
+        IdentifiableObject object = null;
+
+        boolean isAuthorized;
+
+            if ( message.hasProgramInstance() )
+            {
+                object = message.getProgramInstance();
+            }
+            else if( message.hasProgramStageInstance() )
+            {
+                object = message.getProgramStageInstance();
+            }
+
+            if ( object != null )
+            {
+                isAuthorized = aclService.canDataWrite( currentUserService.getCurrentUser(), object );
+
+                if ( !isAuthorized )
+                {
+                    log.error( String.format( "Sending message failed. User does not have write access for %s.", object.getName() ) );
+
+                    return false;
+                }
+            }
+
+        return true;
+    }
+
     private void saveProgramMessages( List<ProgramMessage> messageBatch, BatchResponseStatus status )
     {
         messageBatch.parallelStream()
-            .filter( pm -> pm.isStoreCopy() )
+            .filter( ProgramMessage::isStoreCopy )
             .map( pm -> setParameters( pm, status ) )
-            .map( pm -> saveProgramMessage( pm ) );
+            .map( this::saveProgramMessage );
     }
 
     private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )

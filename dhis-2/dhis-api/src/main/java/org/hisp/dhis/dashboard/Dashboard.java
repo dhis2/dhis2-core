@@ -48,6 +48,8 @@ public class Dashboard
     extends BaseIdentifiableObject implements MetadataObject
 {
     public static final int MAX_ITEMS = 40;
+    
+    private String description;
 
     private List<DashboardItem> items = new ArrayList<>();
 
@@ -155,6 +157,18 @@ public class Dashboard
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 
     @JsonProperty( "dashboardItems" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )

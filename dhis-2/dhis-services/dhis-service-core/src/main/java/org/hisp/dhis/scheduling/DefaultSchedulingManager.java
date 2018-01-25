@@ -30,11 +30,19 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.util.concurrent.ListenableFuture;
 
-import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -48,36 +56,48 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 public class DefaultSchedulingManager
     implements SchedulingManager
 {
-    @Autowired
-    private JobConfigurationService jobConfigurationService;
-
-    @Autowired
-    private List<Job> jobs;
-
-    private Map<JobType, Job> jobMap = new HashMap<>();
-
     private static final Log log = LogFactory.getLog( DefaultSchedulingManager.class );
+
+    public static final String CONTINOUS_CRON = "* * * * * ?";
+    public static final String HOUR_CRON = "0 0 * ? * *";
+
+    private Map<JobType, String> jobMap = new HashMap<>();
+
+    private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
+
+    private Map<String, ListenableFuture<?>> currentTasks = new HashMap<>();
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     @Autowired
-    private Scheduler scheduler;
+    private ApplicationContext applicationContext;
 
-    @PostConstruct
-    public void init()
+    @Autowired
+    private JobConfigurationService jobConfigurationService;
+
+    @Autowired
+    private MessageService messageService;
+
+    private TaskScheduler jobScheduler;
+
+    public void setTaskScheduler( TaskScheduler JobScheduler )
     {
-        jobs.forEach( job -> {
-            if ( job == null )
-            {
-                log.fatal( "Scheduling manager tried to add job, but it was null" );
-            }
-            else
-            {
-                jobMap.put( job.getJobType(), job );
-            }
-        } );
+        this.jobScheduler = JobScheduler;
+    }
+
+    private AsyncListenableTaskExecutor jobExecutor;
+
+    public void setTaskExecutor( AsyncListenableTaskExecutor jobExecutor )
+    {
+        this.jobExecutor = jobExecutor;
+    }
+
+    @Override
+    public void addJob( JobType jobType, String jobId )
+    {
+        jobMap.put( jobType, jobId );
     }
 
     // -------------------------------------------------------------------------
@@ -125,115 +145,140 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
+        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
         {
-            scheduler.scheduleJob( jobConfiguration );
-        }
-    }
+            JobInstance jobInstance = new DefaultJobInstance();
 
-    @Override
-    public void scheduleJob( Date date, JobConfiguration jobConfiguration )
-    {
-        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
-        {
-            scheduler.scheduleJob( date, jobConfiguration );
-        }
-    }
+            if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
+            {
+                ScheduledFuture<?> future = jobScheduler
+                    .schedule( () -> {
+                        try
+                        {
+                            jobInstance.execute( jobConfiguration, this, messageService );
+                        }
+                        catch ( Exception e )
+                        {
+                            e.printStackTrace();
+                        }
+                    }, new CronTrigger( jobConfiguration.getCronExpression() ) );
 
-    @Override
-    public void scheduleJobs( List<JobConfiguration> jobConfigurations )
-    {
-        jobConfigurations.forEach( this::scheduleJob );
-    }
+                futures.put( jobConfiguration.getUid(), future );
 
-    @Override
-    public void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval )
-    {
-        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
-        {
-            scheduler.scheduleJobWithFixedDelay( jobConfiguration, delay, interval );
-        }
-    }
-
-    @Override
-    public void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval )
-    {
-        if ( scheduler.ifJobInSystemStop( jobConfiguration.getUid() ) )
-        {
-            scheduler.scheduleJobAtFixedRate( jobConfiguration, interval );
+                log.info( "Scheduled job:\n" + jobConfiguration + "\n");
+            }
         }
     }
 
     @Override
     public void stopJob( JobConfiguration jobConfiguration )
     {
-        if ( scheduler.isJobInSystem( jobConfiguration.getUid() ) )
+        if ( isJobInSystem( jobConfiguration.getUid() ) )
         {
             jobConfiguration.setLastExecutedStatus( JobStatus.STOPPED );
             jobConfigurationService.updateJobConfiguration( jobConfiguration );
 
-            scheduler.stopJob( jobConfiguration.getUid() );
+            internalStopJob( jobConfiguration.getUid() );
         }
     }
 
     @Override
-    public void stopAllJobs()
+    public boolean executeJob( JobConfiguration jobConfiguration )
     {
-        scheduler.stopAllJobs();
-    }
-
-    @Override
-    public void refreshJob( JobConfiguration jobConfiguration )
-    {
-        scheduler.stopJob( jobConfiguration.getUid() );
-        scheduleJob( jobConfiguration );
-    }
-
-    @Override
-    public void executeJob( JobConfiguration jobConfiguration )
-    {
-        if ( jobConfiguration != null && !isJobInProgress( jobConfiguration.getUid() ) )
+        if ( jobConfiguration != null && !isJobConfigurationRunning( jobConfiguration ) )
         {
-            scheduler.executeJob( jobConfiguration );
+            internalExecuteJobConfiguration( jobConfiguration );
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
     @Override
     public void executeJob( Runnable job )
     {
-        scheduler.executeJob( job );
-    }
-
-    @Override
-    public String getCronForJob( String jobKey )
-    {
-        return null;
+        jobExecutor.execute( job );
     }
 
     @Override
     public Map<String, ScheduledFuture<?>> getAllFutureJobs()
     {
-        return scheduler.getAllFutureJobs();
-    }
-
-    @Override
-    public JobStatus getJobStatus( String jobKey )
-    {
-        return scheduler.getJobStatus( jobKey );
+        return futures;
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean isJobInProgress( String jobKey )
-    {
-        return JobStatus.RUNNING == scheduler.getCurrentJobStatus( jobKey );
-    }
-
     public Job getJob( JobType jobType )
     {
-        return jobMap.get( jobType );
+        return (Job) applicationContext.getBean( jobMap.get( jobType ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Spring execution/scheduling
+    // -------------------------------------------------------------------------
+
+    @Override
+    public <T> ListenableFuture<T> executeJob( Callable<T> callable )
+    {
+        return jobExecutor.submitListenable( callable );
+    }
+
+    private void internalExecuteJobConfiguration( JobConfiguration jobConfiguration )
+    {
+        JobInstance jobInstance = new DefaultJobInstance();
+
+        ListenableFuture<?> future = jobExecutor.submitListenable( () -> {
+            try
+            {
+                jobInstance.execute( jobConfiguration, this, messageService );
+            }
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+            }
+        } );
+        currentTasks.put( jobConfiguration.getUid(), future );
+
+        log.info( "Scheduler initiated execute of job:\n" + jobConfiguration + "\n");
+    }
+
+    private boolean internalStopJob( String uid )
+    {
+        if ( uid != null )
+        {
+            ScheduledFuture<?> future = futures.get( uid );
+
+            if ( future == null )
+            {
+                log.info( "Tried to stop job with key '" + uid + "', but was not found" );
+                return true;
+            }
+            else
+            {
+                boolean result = future.cancel( true );
+
+                futures.remove( uid );
+
+                log.info( "Stopped job with key: " + uid + " successfully: " + result );
+
+                return result;
+            }
+        }
+
+        return false;
+    }
+
+   private boolean ifJobInSystemStop( String jobKey )
+    {
+        return !isJobInSystem( jobKey ) || internalStopJob( jobKey );
+    }
+
+    private boolean isJobInSystem( String jobKey )
+    {
+        return futures.get( jobKey ) != null || currentTasks.get( jobKey ) != null;
     }
 }

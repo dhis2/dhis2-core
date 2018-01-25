@@ -83,9 +83,9 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -137,7 +137,7 @@ public class EventController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private EventService eventService;
@@ -646,7 +646,7 @@ public class EventController
                 JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsXml( inputStream );
 
-            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
@@ -693,7 +693,8 @@ public class EventController
             JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
                 JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsJson( inputStream );
-            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
@@ -736,7 +737,7 @@ public class EventController
         {
             JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
                 JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
+            schedulingManager.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }

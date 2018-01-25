@@ -400,7 +400,7 @@ dhis2.de.uploadLocalData = function()
         console.log( 'Uploaded complete data set: ' + key + ', with value: ' + value );
 
         $.ajax( {
-            url: '../api/completeDataSetRegistrations',
+            url: '../api/26/completeDataSetRegistrations',
             data: value,
             dataType: 'json',
             success: function( data, textStatus, jqXHR )
@@ -2119,13 +2119,31 @@ function registerCompleteDataSet()
 
         dhis2.de.storageManager.saveCompleteDataSet( params );
 
-        $.ajax( {
-            url: '../api/completeDataSetRegistrations',
-            data: JSON.stringify(cdsrs),
-            dataType: 'json',
-            type: 'post',
-            success: function( data, textStatus, xhr )
+        var cdsr = {completeDataSetRegistrations: []};
+
+        if( params.multiOu )
+        {
+            $.each( organisationUnitList, function( idx, item )
             {
+                if( item.uid )
+                {
+                    cdsr.completeDataSetRegistrations.push( {cc: params.cc, cp: params.cp, dataSet: params.ds,period: params.pe, organisationUnit: item.uid} );
+                }
+            } );
+        }
+        else
+        {
+            cdsr.completeDataSetRegistrations.push( {cc: params.cc, cp: params.cp, dataSet: params.ds,period: params.pe, organisationUnit: params.ou} );
+        }
+
+	    $.ajax( {
+	    	url: '../api/completeDataSetRegistrations',
+	    	data: JSON.stringify( cdsr ),
+            contentType: "application/json; charset=utf-8",
+	        dataType: 'json',
+	        type: 'post',
+	    	success: function( data, textStatus, xhr )
+	        {
                 $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
                 disableCompleteButton();
                 dhis2.de.storageManager.clearCompleteDataSet( params );
@@ -2172,10 +2190,10 @@ function undoCompleteDataSet()
     }
 
     $.ajax( {
-        url: '../api/completeDataSetRegistrations' + params,
-        dataType: 'json',
-        type: 'delete',
-        success: function( data, textStatus, xhr )
+    	url: '../api/completeDataSetRegistrations' + params,
+    	dataType: 'json',
+    	type: 'delete',
+    	success: function( data, textStatus, xhr )
         {
             $( document ).trigger( dhis2.de.event.uncompleted, dhis2.de.currentDataSetId );
             disableUndoButton();
@@ -2292,17 +2310,26 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
 
     var compulsoryDataElementsValid = dhis2.de.validateCompulsoryDataElements();
 
-    // Check for compulsory combinations and return false if violated
+    var compulsoryFieldsCompleteOnly = dhis2.de.dataSets[dhis2.de.currentDataSetId].compulsoryFieldsCompleteOnly;
 
-    if ( !compulsoryCombinationsValid || !compulsoryDataElementsValid )
-    {
-        var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
-            '<p class="bold">' + i18n_all_values_for_data_element_must_be_filled + '</p>';
+	// Check for compulsory combinations and return false if violated
 
-        dhis2.de.displayValidationDialog( html, 300 );
+	if ( !compulsoryCombinationsValid || !compulsoryDataElementsValid )
+	{
+        if( !compulsoryDataElementsValid && !compulsoryFieldsCompleteOnly )
+        {
+            setHeaderDelayMessage( i18n_complete_compulsory_notification );
+        }
+        else
+        {
+            var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
+        	'<p class="bold">' + i18n_all_values_for_data_element_must_be_filled + '</p>';
 
-        return false;
-    }
+            dhis2.de.displayValidationDialog( html, 300 );
+
+            return false;
+        }
+	}
 
     // Check for validation rules and whether complete is only allowed if valid
 

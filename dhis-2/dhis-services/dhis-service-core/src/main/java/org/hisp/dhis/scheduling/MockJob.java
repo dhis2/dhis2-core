@@ -52,4 +52,10 @@ public class MockJob
             e.printStackTrace();
         }
     }
+
+    @Override
+    protected String getJobId()
+    {
+        return "mockJob";
+    }
 }

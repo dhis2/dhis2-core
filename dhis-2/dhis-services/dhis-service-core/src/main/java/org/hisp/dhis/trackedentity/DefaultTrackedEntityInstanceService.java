@@ -465,7 +465,7 @@ public class DefaultTrackedEntityInstanceService
                         
             if( maxTeiLimit > 0 && trackedEntityInstanceStore.getTrackedEntityInstanceCount( params ) > maxTeiLimit )
             {
-                throw new IllegalQueryException( "Too many records, greater than the maximum allowed (" + maxTeiLimit + ") found. Please narrow down your search." );                
+                throw new IllegalQueryException( "maxteicountreached" );                
             }
         }
     }

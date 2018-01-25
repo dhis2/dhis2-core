@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.configuration;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,61 +28,58 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageStore;
-import org.hisp.dhis.program.ProgramStore;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ProgramRuleStoreTest
+import static org.junit.Assert.*;
+
+/**
+ * @author Lars Helge Overland
+ */
+public class ConfigurationServiceTest
     extends DhisSpringTest
 {
-    private Program programA;
-    
-    private ProgramStage programStageA;
+    @Autowired
+    private UserService userService;
     
     @Autowired
-    private ProgramStore programStore;
+    private UserGroupService userGroupService;
     
     @Autowired
-    private ProgramStageStore programStageStore;
-    
-    @Autowired
-    private ProgramRuleStore variableStore;
-    
-    @Override
-    public void setUpTest()
-    {
-        programA = createProgram('A', null, null );
-        programStageA = createProgramStage( 'A', 0 );
-        
-        programStore.save( programA );
-        programStageStore.save( programStageA );        
-    }
+    private ConfigurationService configurationService;
     
     @Test
-    public void testGetByProgram()
+    public void testConfiguration()
     {
-        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-        ProgramRule ruleB = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "$a < 1", 1 );
-        ProgramRule ruleC = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "($a < 1 && $a > -10) && !$b", 0 );
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
         
-        variableStore.save( ruleA );
-        variableStore.save( ruleB );
-        variableStore.save( ruleC );
+        UserGroup group = new UserGroup( "UserGroupA" );
+        group.getMembers().add( userA );
+        group.getMembers().add(  userB );
         
-        List<ProgramRule> vars = variableStore.get( programA );
+        userService.addUser( userA );
+        userService.addUser( userB );
+        userGroupService.addUserGroup( group );
         
-        assertEquals( 3, vars.size() );
-        assertTrue( vars.contains( ruleA ) );
-        assertTrue( vars.contains( ruleB ) );
-        assertTrue( vars.contains( ruleC ) );
+        Configuration config = configurationService.getConfiguration();
+        
+        assertNull( config.getFeedbackRecipients() );
+        
+        config.setFeedbackRecipients( group );
+        
+        configurationService.setConfiguration( config );
+        
+        config = configurationService.getConfiguration();
+        
+        assertNotNull( config.getFeedbackRecipients() );
+        assertEquals( group, config.getFeedbackRecipients() );
     }
 }

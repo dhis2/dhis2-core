@@ -111,6 +111,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -1498,6 +1499,17 @@ public abstract class DhisConvenienceTest
         section.setSortOrder( sortOrder );
 
         return section;
+    }
+    
+    public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
+    {
+        TrackedEntityInstanceFilter trackedEntityInstanceFilter = new TrackedEntityInstanceFilter();
+        trackedEntityInstanceFilter.setAutoFields();
+        trackedEntityInstanceFilter.setName( "TrackedEntityType" + uniqueChar );
+        trackedEntityInstanceFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
+        trackedEntityInstanceFilter.setProgram( program );
+
+        return trackedEntityInstanceFilter;
     }
 
     public static TrackedEntityType createTrackedEntityType( char uniqueChar )

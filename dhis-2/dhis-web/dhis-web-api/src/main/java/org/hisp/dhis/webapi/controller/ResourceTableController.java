@@ -30,11 +30,12 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -62,7 +63,7 @@ public class ResourceTableController
     public static final String RESOURCE_PATH = "/resourceTables";
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -104,9 +105,9 @@ public class ResourceTableController
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "", analyticsJobParameters, false, true, true );
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
-        scheduler.executeJob( analyticsTableJob );
-
-        JacksonUtils.fromObjectToReponse( response, analyticsTableJob );
+        schedulingManager.executeJob( analyticsTableJob );
+        
+        webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -116,7 +117,7 @@ public class ResourceTableController
         JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
             JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
 
-        scheduler.executeJob( resourceTableJob );
+        schedulingManager.executeJob( resourceTableJob );
 
         JacksonUtils.fromObjectToReponse( response, resourceTableJob );
     }
@@ -128,7 +129,7 @@ public class ResourceTableController
         JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "", new MonitoringJobParameters(),
             false, true, true );
 
-        scheduler.executeJob( monitoringJob );
+        schedulingManager.executeJob( monitoringJob );
 
         JacksonUtils.fromObjectToReponse( response, monitoringJob );
     }

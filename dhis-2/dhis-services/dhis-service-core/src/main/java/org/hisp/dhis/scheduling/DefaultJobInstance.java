@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.scheduling;
+package org.hisp.dhis.scheduling;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,10 +31,6 @@ package org.hisp.dhis.system.scheduling;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobInstance;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.util.Clock;
 
 import java.util.Date;
@@ -45,49 +41,7 @@ import java.util.Date;
 public class DefaultJobInstance 
     implements JobInstance
 {
-    private static final Log log = LogFactory.getLog( SpringScheduler.class );
-
-    private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
-    {
-        if ( jobConfiguration.isInMemoryJob() )
-        {
-            return;
-        }
-
-        if ( !jobConfiguration.isContinuousExecution() )
-        {
-            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
-        }
-        jobConfiguration.setNextExecutionTime( null );
-        jobConfiguration.setLastExecuted( new Date() );
-        jobConfiguration.setLastRuntimeExecution( clock.time() );
-
-        schedulingManager.jobConfigurationFinished( jobConfiguration );
-    }
-
-    private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
-        MessageService messageService, Clock clock )
-        throws Exception
-    {
-        try
-        {
-            log.info( "Job '" + jobConfiguration.getName() + "' started" );
-
-            schedulingManager.getJob( jobConfiguration.getJobType() ).execute( jobConfiguration );
-
-            log.info( "Job '" + jobConfiguration.getName() + "' executed successfully" );
-        }
-        catch ( Exception ex )
-        {
-            messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
-            log.error( "Job '" + jobConfiguration.getName() + "' failed", ex );
-
-            jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
-
-            setFinishingStatus( clock, schedulingManager, jobConfiguration );
-            throw ex;
-        }
-    }
+    private static final Log log = LogFactory.getLog( DefaultJobInstance.class );
 
     public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
         MessageService messageService )
@@ -119,5 +73,61 @@ public class DefaultJobInstance
         }
 
         setFinishingStatus( clock, schedulingManager, jobConfiguration );
+    }
+
+    /**
+     * Set status properties of job after finish. If the job was executed manually and the job is disabled we want
+     * to set the status back to DISABLED.
+     *
+     * @param clock Clock for keeping track of time usage
+     * @param schedulingManager reference to scheduling manager
+     * @param jobConfiguration the job configuration
+     */
+    private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
+    {
+        if ( jobConfiguration.isInMemoryJob() )
+        {
+            return;
+        }
+
+        if ( !jobConfiguration.isContinuousExecution() )
+        {
+            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
+        }
+
+        if ( !jobConfiguration.isEnabled() )
+        {
+            jobConfiguration.setJobStatus( JobStatus.DISABLED );
+        }
+
+        jobConfiguration.setNextExecutionTime( null );
+        jobConfiguration.setLastExecuted( new Date() );
+        jobConfiguration.setLastRuntimeExecution( clock.time() );
+
+        schedulingManager.jobConfigurationFinished( jobConfiguration );
+    }
+
+    private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
+        MessageService messageService, Clock clock )
+        throws Exception
+    {
+        try
+        {
+            log.info( "Job '" + jobConfiguration.getName() + "' started" );
+
+            schedulingManager.getJob( jobConfiguration.getJobType() ).execute( jobConfiguration );
+
+            log.info( "Job '" + jobConfiguration.getName() + "' executed successfully" );
+        }
+        catch ( Exception ex )
+        {
+            messageService.sendSystemErrorNotification( "Job '" + jobConfiguration.getName() + "' failed", ex );
+            log.error( "Job '" + jobConfiguration.getName() + "' failed", ex );
+
+            jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
+
+            setFinishingStatus( clock, schedulingManager, jobConfiguration );
+            throw ex;
+        }
     }
 }

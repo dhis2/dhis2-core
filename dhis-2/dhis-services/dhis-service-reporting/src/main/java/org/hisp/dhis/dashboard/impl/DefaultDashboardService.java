@@ -131,6 +131,22 @@ public class DefaultDashboardService
     }
 
     @Override
+    public DashboardSearchResult search( Set<DashboardItemType> maxTypes )
+    {
+        DashboardSearchResult result = new DashboardSearchResult();
+
+        result.setCharts( objectManager.getBetweenSorted( Chart.class, 0, getMax( DashboardItemType.CHART, maxTypes ) ) );
+        result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes ) ) );
+        result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes ) ) );
+        result.setReportTables( objectManager.getBetweenSorted( ReportTable.class, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes ) ) );
+        result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes ) ) );
+        result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes ) ) );
+        result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes ) ) );
+        
+        return result;
+    }
+
+    @Override
     public DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid )
     {
         Dashboard dashboard = getDashboard( dashboardUid );

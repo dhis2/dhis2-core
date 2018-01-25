@@ -57,6 +57,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -145,6 +146,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
+    
+    @Autowired
+    private InputUtils inputUtils;
 
     @Autowired
     private AggregateAccessManager accessManager;
@@ -633,8 +637,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         int ignores = totalCount - importCount - updateCount - deleteCount;
 
         summary.setImportCount( new ImportCount( importCount, updateCount, ignores, deleteCount ) );
-        summary.setStatus( ImportStatus.SUCCESS );
-        summary.setDescription( "Import process completed successfully" );
+        summary.setStatus( totalCount == ignores ? ImportStatus.ERROR : ImportStatus.SUCCESS );
+        summary.setDescription( "Import process complete." );
     }
 
     private static CompleteDataSetRegistration createCompleteDataSetRegistration(
@@ -789,13 +793,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private static MetaDataProperties initMetaDataProperties(
+    public MetaDataProperties initMetaDataProperties(
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
     {
         String ds = StringUtils.trimToNull( cdsr.getDataSet() ), pe = StringUtils.trimToNull( cdsr.getPeriod() ),
             ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
-            aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
-
+            aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );    
+        
+        if( aoc == null )
+        {
+            DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
+            aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
+        }
+        
         return new MetaDataProperties( cache.dataSets.get( ds, callables.dataSetCallable.setId( ds ) ),
             cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
             cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),
