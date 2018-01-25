@@ -42,11 +42,59 @@ import java.util.List;
  */
 public interface AggregateAccessManager
 {
+    /**
+     * Check if given User has DATA_WRITE access for given DataValue
+     * @param user
+     * @param dataValue
+     * @return List of errors
+     */
     List<String> canWrite( User user, DataValue dataValue );
+
+    /**
+     * Check if given User has DATA_READ access for given DataValue
+     * @param user
+     * @param dataValue
+     * @return List of errors
+     */
     List<String> canRead( User user, DataValue dataValue );
+
+    /**
+     * Check if given user has DATA_WRITE
+     * @param user
+     * @param dataSet
+     * @return List of errors
+     */
     List<String> canWrite( User user, DataSet dataSet );
+
+    /**
+     * Check if given User has DATA_READ access for given DataSet
+     * @param user
+     * @param dataSet
+     * @return List of errors
+     */
     List<String> canRead( User user, DataSet dataSet );
+
+    /**
+     * Check if given User has DATA_WRITE access for given CategoryOptionCombo
+     * @param user
+     * @param categoryOption
+     * @return List of errors
+     */
     List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOption );
+
+    /**
+     * Check if given User has DATA_READ access for given CategoryOptionCombo
+     * @param user
+     * @param categoryOption
+     * @return
+     */
     List<String> canRead( User user, DataElementCategoryOptionCombo categoryOption );
+
+    /**
+     * Check if given User has DATA_WRITE access for give DataElementOperand
+     * @param user
+     * @param dataElementOperand
+     * @return List of errors
+     */
     List<String> canWrite( User user, DataElementOperand dataElementOperand );
 }

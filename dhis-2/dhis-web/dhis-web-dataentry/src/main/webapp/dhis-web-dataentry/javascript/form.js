@@ -12,11 +12,11 @@ dhis2.util.namespace( 'dhis2.de.cst' );
  * category with matching identifier values of the selected option.
  */
 dhis2.de.api.getSelections = function() {
-    var sel = dhis2.de.getCurrentCategorySelections();
-    sel["ds"] = $( '#selectedDataSetId' ).val(),
-        sel["pe"] = $( '#selectedPeriodId').val(),
-        sel["ou"] = dhis2.de.currentOrganisationUnitId;
-    return sel;
+	var sel = dhis2.de.getCurrentCategorySelections();
+	sel["ds"] = $( '#selectedDataSetId' ).val(),
+	sel["pe"] = $( '#selectedPeriodId').val(),
+	sel["ou"] = dhis2.de.currentOrganisationUnitId;
+	return sel;
 }
 
 // whether current user has any organisation units
@@ -181,7 +181,7 @@ $(document).bind('dhis2.online', function( event, loggedIn ) {
     if( loggedIn ) {
         if( dhis2.de.storageManager.hasLocalData() ) {
             var message = i18n_need_to_sync_notification
-                + ' <button id="sync_button" type="button">' + i18n_sync_now + '</button>';
+              + ' <button id="sync_button" type="button">' + i18n_sync_now + '</button>';
 
             setHeaderMessage(message);
 
@@ -243,8 +243,8 @@ $( document ).ready( function()
         console.log( 'Ouwt loaded' );
 
         $.when( dhis2.de.getMultiOrgUnitSetting(), dhis2.de.loadMetaData(), dhis2.de.loadDataSetAssociations() ).done( function() {
-            dhis2.de.setMetaDataLoaded();
-            organisationUnitSelected( ids, names );
+        	dhis2.de.setMetaDataLoaded();
+          organisationUnitSelected( ids, names );
         } );
     } );
 } );
@@ -269,16 +269,16 @@ dhis2.de.shouldFetchDataSets = function( ids ) {
 
 dhis2.de.getMultiOrgUnitSetting = function()
 {
-    return $.ajax({
-        url: '../api/systemSettings/multiOrganisationUnitForms',
-        dataType: 'json',
-        async: false,
-        type: 'GET',
-        success: function( data ) {
-            dhis2.de.multiOrganisationUnitEnabled = data;
-            selection.setIncludeChildren(data);
-        }
-    });
+  return $.ajax({
+    url: '../api/systemSettings/multiOrganisationUnitForms',
+    dataType: 'json',
+    async: false,
+    type: 'GET',
+    success: function( data ) {
+      dhis2.de.multiOrganisationUnitEnabled = data;
+      selection.setIncludeChildren(data);
+    }
+  });
 };
 
 dhis2.de.ajaxLogin = function()
@@ -308,52 +308,52 @@ dhis2.de.loadMetaData = function()
     var def = $.Deferred();
 
     $.ajax( {
-        url: 'getMetaData.action',
-        dataType: 'json',
-        success: function( json )
-        {
-            sessionStorage[dhis2.de.cst.metaData] = JSON.stringify( json.metaData );
-        },
-        complete: function()
-        {
-            var metaData = JSON.parse( sessionStorage[dhis2.de.cst.metaData] );
-            dhis2.de.emptyOrganisationUnits = metaData.emptyOrganisationUnits;
-            dhis2.de.significantZeros = metaData.significantZeros;
-            dhis2.de.dataElements = metaData.dataElements;
-            dhis2.de.indicatorFormulas = metaData.indicatorFormulas;
-            dhis2.de.dataSets = metaData.dataSets;
-            dhis2.de.optionSets = metaData.optionSets;
-            dhis2.de.defaultCategoryCombo = metaData.defaultCategoryCombo;
-            dhis2.de.categoryCombos = metaData.categoryCombos;
-            dhis2.de.categories = metaData.categories;
-            def.resolve();
-        }
-    } );
+    	url: 'getMetaData.action',
+    	dataType: 'json',
+    	success: function( json )
+	    {
+	        sessionStorage[dhis2.de.cst.metaData] = JSON.stringify( json.metaData );
+	    },
+	    complete: function()
+	    {
+	        var metaData = JSON.parse( sessionStorage[dhis2.de.cst.metaData] );
+	        dhis2.de.emptyOrganisationUnits = metaData.emptyOrganisationUnits;
+	        dhis2.de.significantZeros = metaData.significantZeros;
+	        dhis2.de.dataElements = metaData.dataElements;
+	        dhis2.de.indicatorFormulas = metaData.indicatorFormulas;
+	        dhis2.de.dataSets = metaData.dataSets;
+	        dhis2.de.optionSets = metaData.optionSets;
+	        dhis2.de.defaultCategoryCombo = metaData.defaultCategoryCombo;
+	        dhis2.de.categoryCombos = metaData.categoryCombos;
+	        dhis2.de.categories = metaData.categories;
+	        def.resolve();
+	    }
+	} );
 
     return def.promise();
 };
 
 dhis2.de.loadDataSetAssociations = function()
 {
-    var def = $.Deferred();
+	var def = $.Deferred();
 
-    $.ajax( {
-        url: 'getDataSetAssociations.action',
-        dataType: 'json',
-        success: function( json )
-        {
-            sessionStorage[dhis2.de.cst.dataSetAssociations] = JSON.stringify( json.dataSetAssociations );
-        },
-        complete: function()
-        {
-            var metaData = JSON.parse( sessionStorage[dhis2.de.cst.dataSetAssociations] );
-            dhis2.de.dataSetAssociationSets = metaData.dataSetAssociationSets ;
-            dhis2.de.organisationUnitAssociationSetMap = metaData.organisationUnitAssociationSetMap;
-            def.resolve();
-        }
-    } );
+	$.ajax( {
+    	url: 'getDataSetAssociations.action',
+    	dataType: 'json',
+    	success: function( json )
+	    {
+	        sessionStorage[dhis2.de.cst.dataSetAssociations] = JSON.stringify( json.dataSetAssociations );
+	    },
+	    complete: function()
+	    {
+	        var metaData = JSON.parse( sessionStorage[dhis2.de.cst.dataSetAssociations] );
+	        dhis2.de.dataSetAssociationSets = metaData.dataSetAssociationSets;
+	        dhis2.de.organisationUnitAssociationSetMap = metaData.organisationUnitAssociationSetMap;
+	        def.resolve();
+	    }
+	} );
 
-    return def.promise();
+	return def.promise();
 };
 
 dhis2.de.setMetaDataLoaded = function()
@@ -405,7 +405,7 @@ dhis2.de.uploadLocalData = function()
             dataType: 'json',
             success: function( data, textStatus, jqXHR )
             {
-                dhis2.de.storageManager.clearCompleteDataSet( value );
+            	dhis2.de.storageManager.clearCompleteDataSet( value );
                 console.log( 'Successfully saved complete dataset with value: ' + value );
                 ( array = array.slice( 1 ) ).length && pushCompleteDataSets( array );
 
@@ -416,14 +416,14 @@ dhis2.de.uploadLocalData = function()
             },
             error: function( jqXHR, textStatus, errorThrown )
             {
-                if ( 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
-                {
-                    // Ignore value for now TODO needs better handling for locking
+            	if ( 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
+            	{
+            		// Ignore value for now TODO needs better handling for locking
 
-                    dhis2.de.storageManager.clearCompleteDataSet( value );
-                }
-                else // Connection lost during upload
-                {
+            		dhis2.de.storageManager.clearCompleteDataSet( value );
+            	}
+            	else // Connection lost during upload
+        		{
                     var message = i18n_sync_failed
                         + ' <button id="sync_button" type="button">' + i18n_sync_now + '</button>'
                         + ' <button id="discard_button" type="button">' + i18n_discard + '</button>';
@@ -432,7 +432,7 @@ dhis2.de.uploadLocalData = function()
 
                     $( '#sync_button' ).bind( 'click', dhis2.de.uploadLocalData );
                     $( '#discard_button' ).bind( 'click', dhis2.de.discardLocalData );
-                }
+        		}
             }
         } );
     }
@@ -465,7 +465,7 @@ dhis2.de.uploadLocalData = function()
             type: 'post',
             success: function( data, textStatus, xhr )
             {
-                dhis2.de.storageManager.clearDataValueJSON( value );
+            	dhis2.de.storageManager.clearDataValueJSON( value );
                 console.log( 'Successfully saved data value with value: ' + value );
                 ( array = array.slice( 1 ) ).length && pushDataValues( array );
 
@@ -480,23 +480,23 @@ dhis2.de.uploadLocalData = function()
             },
             error: function( xhr, textStatus, errorThrown )
             {
-                if ( 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
-                {
-                    // Ignore value for now TODO needs better handling for locking
+            	if ( 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
+            	{
+            		// Ignore value for now TODO needs better handling for locking
 
-                    dhis2.de.storageManager.clearDataValueJSON( value );
-                }
-                else // Connection lost during upload
-                {
-                    var message = i18n_sync_failed
-                        + ' <button id="sync_button" type="button">' + i18n_sync_now + '</button>'
-                        + ' <button id="discard_button" type="button">' + i18n_discard + '</button>';
+            		dhis2.de.storageManager.clearDataValueJSON( value );
+            	}
+            	else // Connection lost during upload
+            	{
+	                var message = i18n_sync_failed
+                    + ' <button id="sync_button" type="button">' + i18n_sync_now + '</button>'
+                    + ' <button id="discard_button" type="button">' + i18n_discard + '</button>';
 
-                    setHeaderMessage( message );
+	                setHeaderMessage( message );
 
-                    $( '#sync_button' ).bind( 'click', dhis2.de.uploadLocalData );
-                    $( '#discard_button' ).bind( 'click', dhis2.de.discardLocalData );
-                }
+	                $( '#sync_button' ).bind( 'click', dhis2.de.uploadLocalData );
+                  $( '#discard_button' ).bind( 'click', dhis2.de.discardLocalData );
+            	}
             }
         } );
     } )( dataValuesArray );
@@ -687,31 +687,31 @@ dhis2.de.clearEntryForm = function()
 
 dhis2.de.loadForm = function()
 {
-    var dataSetId = dhis2.de.currentDataSetId;
+	var dataSetId = dhis2.de.currentDataSetId;
 
-    dhis2.de.currentOrganisationUnitId = selection.getSelected()[0];
+	dhis2.de.currentOrganisationUnitId = selection.getSelected()[0];
 
     if ( !dhis2.de.multiOrganisationUnit  )
     {
         dhis2.de.storageManager.formExists( dataSetId ).done( function( value )
         {
-            if ( value )
-            {
-                console.log( 'Loading form locally: ' + dataSetId );
+	    	if ( value )
+	    	{
+	            console.log( 'Loading form locally: ' + dataSetId );
 
-                dhis2.de.storageManager.getForm( dataSetId ).done( function( html )
-                {
-                    $( '#contentDiv' ).html( html );
+	            dhis2.de.storageManager.getForm( dataSetId ).done( function( html )
+	            {
+	                $( '#contentDiv' ).html( html );
 
-                    if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
-                    {
-                        $( "#tabs" ).tabs();
-                    }
+	                if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
+	                {
+	                    $( "#tabs" ).tabs();
+	                }
 
-                    dhis2.de.enableSectionFilter();
-                    $( document ).trigger( dhis2.de.event.formLoaded, dhis2.de.currentDataSetId );
+	                dhis2.de.enableSectionFilter();
+	                $( document ).trigger( dhis2.de.event.formLoaded, dhis2.de.currentDataSetId );
 
-                    loadDataValues();
+	                loadDataValues();
                     var table = $( '.sectionTable' );
                     table.floatThead({
                         position: 'absolute',
@@ -721,31 +721,31 @@ dhis2.de.loadForm = function()
 
 
 
-                    dhis2.de.insertOptionSets();
-                    dhis2.de.enableDEDescriptionEvent();
+                  dhis2.de.insertOptionSets();
+                  dhis2.de.enableDEDescriptionEvent();
 
-                } );
-            }
-            else {
+	            } );
+	        }
+	    	else {
                 dhis2.de.storageManager.formExistsRemotely( dataSetId ).done( function( value ) {
                     console.log( 'Loading form remotely: ' + dataSetId );
 
-                    dhis2.de.storageManager.getForm( dataSetId ).done( function( html )
-                    {
-                        $( '#contentDiv' ).html( html );
+       	            dhis2.de.storageManager.getForm( dataSetId ).done( function( html )
+       	            {
+       	                $( '#contentDiv' ).html( html );
 
-                        if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
-                        {
-                            $( "#tabs" ).tabs();
-                        }
+       	                if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
+       	                {
+       	                    $( "#tabs" ).tabs();
+       	                }
 
-                        dhis2.de.enableSectionFilter();
-                        $( document ).trigger( dhis2.de.event.formLoaded, dhis2.de.currentDataSetId );
+       	                dhis2.de.enableSectionFilter();
+       	                $( document ).trigger( dhis2.de.event.formLoaded, dhis2.de.currentDataSetId );
 
-                        loadDataValues();
-                        dhis2.de.insertOptionSets();
+       	                loadDataValues();
+       	                dhis2.de.insertOptionSets();
                         dhis2.de.enableDEDescriptionEvent();
-                    } );
+       	            } );
                 });
             }
         } );
@@ -755,30 +755,30 @@ dhis2.de.loadForm = function()
         console.log( 'Loading form remotely: ' + dataSetId );
 
         $( '#contentDiv' ).load( 'loadForm.action',
+        {
+            dataSetId : dataSetId,
+            multiOrganisationUnit: dhis2.de.multiOrganisationUnit ? dhis2.de.getCurrentOrganisationUnit() : ''
+        },
+        function()
+        {
+            if ( !dhis2.de.multiOrganisationUnit )
             {
-                dataSetId : dataSetId,
-                multiOrganisationUnit: dhis2.de.multiOrganisationUnit ? dhis2.de.getCurrentOrganisationUnit() : ''
-            },
-            function()
-            {
-                if ( !dhis2.de.multiOrganisationUnit )
+                if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
                 {
-                    if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
-                    {
-                        $( "#tabs" ).tabs();
-                    }
-
-                    dhis2.de.enableSectionFilter();
-                }
-                else
-                {
-                    $( '#currentOrganisationUnit' ).html( i18n_no_organisationunit_selected );
+                    $( "#tabs" ).tabs();
                 }
 
-                dhis2.de.insertOptionSets();
+                dhis2.de.enableSectionFilter();
+            }
+            else
+            {
+                $( '#currentOrganisationUnit' ).html( i18n_no_organisationunit_selected );
+            }
 
-                loadDataValues();
-            } );
+            dhis2.de.insertOptionSets();
+
+            loadDataValues();
+        } );
     }
 }
 
@@ -904,39 +904,39 @@ function refreshZebraStripes( $tbody )
 
 function getDataElementType( dataElementId )
 {
-    if ( dhis2.de.dataElements[dataElementId] != null )
-    {
-        return dhis2.de.dataElements[dataElementId];
-    }
+	if ( dhis2.de.dataElements[dataElementId] != null )
+	{
+		return dhis2.de.dataElements[dataElementId];
+	}
 
-    console.log( 'Data element not present in data set, falling back to default type: ' + dataElementId );
-    return dhis2.de.cst.defaultType;
+	console.log( 'Data element not present in data set, falling back to default type: ' + dataElementId );
+	return dhis2.de.cst.defaultType;
 }
 
 function getDataElementName( dataElementId )
 {
-    var span = $( '#' + dataElementId + '-dataelement' );
+	var span = $( '#' + dataElementId + '-dataelement' );
 
-    if ( span != null )
-    {
-        return span.text();
-    }
+	if ( span != null )
+	{
+		return span.text();
+	}
 
     console.log( 'Data element not present in form, falling back to default name: ' + dataElementId );
-    return dhis2.de.cst.defaultName;
+	return dhis2.de.cst.defaultName;
 }
 
 function getOptionComboName( optionComboId )
 {
-    var span = $( '#' + optionComboId + '-optioncombo' );
+	var span = $( '#' + optionComboId + '-optioncombo' );
 
-    if ( span != null )
-    {
-        return span.text();
-    }
+	if ( span != null )
+	{
+		return span.text();
+	}
 
     console.log( 'Category option combo not present in form, falling back to default name: ' + optionComboId );
-    return dhis2.de.cst.defaultName;
+	return dhis2.de.cst.defaultName;
 }
 
 // ----------------------------------------------------------------------------
@@ -948,20 +948,20 @@ function getOptionComboName( optionComboId )
  */
 function organisationUnitSelected( orgUnits, orgUnitNames, children )
 {
-    if ( dhis2.de.metaDataIsLoaded == false )
-    {
-        return false;
-    }
+	if ( dhis2.de.metaDataIsLoaded == false )
+	{
+	    return false;
+	}
 
-    if( dhis2.de.shouldFetchDataSets(orgUnits) ) {
-        dhis2.de.fetchDataSets( orgUnits[0] ).always(function() {
-            selection.responseReceived();
-        });
+  if( dhis2.de.shouldFetchDataSets(orgUnits) ) {
+    dhis2.de.fetchDataSets( orgUnits[0] ).always(function() {
+      selection.responseReceived();
+    });
 
-        return false;
-    }
+    return false;
+  }
 
-    dhis2.de.currentOrganisationUnitId = orgUnits[0];
+	dhis2.de.currentOrganisationUnitId = orgUnits[0];
     var organisationUnitName = orgUnitNames[0];
 
     $( '#selectedOrganisationUnit' ).val( organisationUnitName );
@@ -983,15 +983,15 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
 
         $.safeEach( dataSetList, function( idx, item )
         {
-            if ( item )
-            {
-                addOptionById( 'selectedDataSetId', item.id, item.name );
+        	if ( item )
+        	{
+	            addOptionById( 'selectedDataSetId', item.id, item.name );
 
-                if ( dataSetId == item.id )
-                {
-                    dataSetValid = true;
-                }
-            }
+	            if ( dataSetId == item.id )
+	            {
+	                dataSetValid = true;
+	            }
+        	}
         } );
 
         if ( children )
@@ -1030,7 +1030,7 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
             dataSetSelected();
         }
         else {
-            dhis2.de.multiOrganisationUnit = false;
+        	dhis2.de.multiOrganisationUnit = false;
             dhis2.de.currentDataSetId = null;
 
             dhis2.de.clearSectionFilters();
@@ -1111,7 +1111,7 @@ dhis2.de.getOrFetchDataSetList = function( ou ) {
     var dataSets = getSortedDataSetList(ou);
     ou = ou || dhis2.de.getCurrentOrganisationUnit();
 
-    if ( dataSets.length > 0 ) {
+    if (dataSets.length > 0) {
         def.resolve(dataSets);
     }
     else {
@@ -1121,9 +1121,6 @@ dhis2.de.getOrFetchDataSetList = function( ou ) {
     }
 
     /* TODO check if data sets are accessible for current user */
-
-
-
 
     return def.promise();
 };
@@ -1145,12 +1142,12 @@ function getSortedDataSetList( orgUnit )
 
         if ( dhis2.de.dataSets[dataSetId] )
         {
-            var dataSetName = dhis2.de.dataSets[dataSetId].name;
+	        var dataSetName = dhis2.de.dataSets[dataSetId].name;
 
-            var row = [];
-            row['id'] = dataSetId;
-            row['name'] = dataSetName;
-            dataSetList[idx] = row;
+	        var row = [];
+	        row['id'] = dataSetId;
+	        row['name'] = dataSetName;
+	        dataSetList[idx] = row;
         }
     } );
 
@@ -1242,9 +1239,9 @@ function dataSetSelected()
         }
         else
         {
-            dhis2.de.currentPeriodOffset = 0;
-            displayPeriods();
-            dhis2.de.clearSectionFilters();
+        	dhis2.de.currentPeriodOffset = 0;
+        	displayPeriods();
+        	dhis2.de.clearSectionFilters();
             dhis2.de.clearEntryForm();
         }
     }
@@ -1299,11 +1296,11 @@ function periodSelected()
  */
 function nextPeriodsSelected()
 {
-    var openFuturePeriods = !!( dhis2.de.currentDataSetId && dhis2.de.dataSets[dhis2.de.currentDataSetId].openFuturePeriods );
+	var openFuturePeriods = !!( dhis2.de.currentDataSetId && dhis2.de.dataSets[dhis2.de.currentDataSetId].openFuturePeriods );
 
     if ( dhis2.de.currentPeriodOffset < 0 || openFuturePeriods )
     {
-        dhis2.de.currentPeriodOffset++;
+    	dhis2.de.currentPeriodOffset++;
         displayPeriods();
     }
 }
@@ -1313,7 +1310,7 @@ function nextPeriodsSelected()
  */
 function previousPeriodsSelected()
 {
-    dhis2.de.currentPeriodOffset--;
+	dhis2.de.currentPeriodOffset--;
     displayPeriods();
 }
 
@@ -1346,11 +1343,11 @@ function displayPeriods()
 
     if ( periods.length > 0 )
     {
-        addOptionById( 'selectedPeriodId', "", '[ ' + i18n_select_period + ' ]' );
+    	addOptionById( 'selectedPeriodId', "", '[ ' + i18n_select_period + ' ]' );
     }
     else
     {
-        addOptionById( 'selectedPeriodId', "", i18n_no_periods_click_prev_year_button );
+    	addOptionById( 'selectedPeriodId', "", i18n_no_periods_click_prev_year_button );
     }
 
     dhis2.de.periodChoices = [];
@@ -1367,28 +1364,28 @@ function displayPeriods()
 //------------------------------------------------------------------------------
 
 /**
- * Returns an array of category objects for the given data set identifier. Categories
- * are looked up using the category combo of the data set. Null is returned if
- * the given data set has the default category combo.
- */
+* Returns an array of category objects for the given data set identifier. Categories
+* are looked up using the category combo of the data set. Null is returned if
+* the given data set has the default category combo.
+*/
 dhis2.de.getCategories = function( dataSetId )
 {
-    var dataSet = dhis2.de.dataSets[dataSetId];
+	var dataSet = dhis2.de.dataSets[dataSetId];
 
-    if ( !dataSet || !dataSet.categoryCombo || dhis2.de.defaultCategoryCombo === dataSet.categoryCombo ) {
-        return null;
-    }
+	if ( !dataSet || !dataSet.categoryCombo || dhis2.de.defaultCategoryCombo === dataSet.categoryCombo ) {
+		return null;
+	}
 
-    var categoryCombo = dhis2.de.categoryCombos[dataSet.categoryCombo];
+	var categoryCombo = dhis2.de.categoryCombos[dataSet.categoryCombo];
 
-    var categories = [];
+	var categories = [];
 
-    $.safeEach( categoryCombo.categories, function( idx, cat ) {
-        var category = dhis2.de.categories[cat];
-        categories.push( category );
-    } );
+	$.safeEach( categoryCombo.categories, function( idx, cat ) {
+		var category = dhis2.de.categories[cat];
+		categories.push( category );
+	} );
 
-    return categories;
+	return categories;
 };
 
 /**
@@ -1398,57 +1395,57 @@ dhis2.de.getCategories = function( dataSetId )
  */
 dhis2.de.categoriesSelected = function()
 {
-    if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 ) {
-        return true; // No categories present which can be selected
-    }
+	if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 ) {
+		return true; // No categories present which can be selected
+	}
 
-    var options = dhis2.de.getCurrentCategoryOptions();
+	var options = dhis2.de.getCurrentCategoryOptions();
 
-    if ( !options || options.length < dhis2.de.currentCategories.length ) {
-        return false; // Less selected options than categories present
-    }
+	if ( !options || options.length < dhis2.de.currentCategories.length ) {
+		return false; // Less selected options than categories present
+	}
 
-    return true;
+	return true;
 };
 
 /**
- * Returns attribute category combo identifier. Based on the dhis2.de.currentDataSetId
- * global variable. Returns null if there is no current data set or if current
- * data set has the default category combo.
- */
+* Returns attribute category combo identifier. Based on the dhis2.de.currentDataSetId
+* global variable. Returns null if there is no current data set or if current
+* data set has the default category combo.
+*/
 dhis2.de.getCurrentCategoryCombo = function()
 {
-    var dataSet = dhis2.de.dataSets[dhis2.de.currentDataSetId];
+	var dataSet = dhis2.de.dataSets[dhis2.de.currentDataSetId];
 
-    if ( !dataSet || !dataSet.categoryCombo || dhis2.de.defaultCategoryCombo === dataSet.categoryCombo ) {
-        return null;
-    }
+	if ( !dataSet || !dataSet.categoryCombo || dhis2.de.defaultCategoryCombo === dataSet.categoryCombo ) {
+		return null;
+	}
 
-    return dataSet.categoryCombo;
+	return dataSet.categoryCombo;
 };
 
 /**
- * Returns an array of the currently selected attribute category option identifiers.
- * Based on the dhis2.de.currentCategories global variable. Returns null if there
- * are no current categories.
- */
+* Returns an array of the currently selected attribute category option identifiers.
+* Based on the dhis2.de.currentCategories global variable. Returns null if there
+* are no current categories.
+*/
 dhis2.de.getCurrentCategoryOptions = function()
 {
-    if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 ) {
-        return null;
-    }
+	if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 ) {
+		return null;
+	}
 
-    var options = [];
+	var options = [];
 
-    $.safeEach( dhis2.de.currentCategories, function( idx, category ) {
-        var option = $( '#category-' + category.id ).val();
+	$.safeEach( dhis2.de.currentCategories, function( idx, category ) {
+		var option = $( '#category-' + category.id ).val();
 
-        if ( option && option != -1 ) {
-            options.push( option );
-        }
-    } );
+		if ( option && option != -1 ) {
+			options.push( option );
+		}
+	} );
 
-    return options;
+	return options;
 };
 
 /**
@@ -1459,21 +1456,21 @@ dhis2.de.getCurrentCategoryOptions = function()
  */
 dhis2.de.getCurrentCategorySelections = function()
 {
-    var selections = {};
+	var selections = {};
 
-    if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 ) {
-        return selections;
-    }
+	if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 ) {
+		return selections;
+	}
 
-    $.safeEach( dhis2.de.currentCategories, function( idx, category ) {
-        var option = $( '#category-' + category.id ).val();
+	$.safeEach( dhis2.de.currentCategories, function( idx, category ) {
+		var option = $( '#category-' + category.id ).val();
 
-        if ( option && option != -1 ) {
-            selections[category.id] = option;
-        }
-    } );
+		if ( option && option != -1 ) {
+			selections[category.id] = option;
+		}
+	} );
 
-    return selections;
+	return selections;
 }
 
 /**
@@ -1482,21 +1479,21 @@ dhis2.de.getCurrentCategorySelections = function()
  */
 dhis2.de.getCurrentCategoryOptionsQueryValue = function()
 {
-    if ( !dhis2.de.getCurrentCategoryOptions() ) {
-        return null;
-    }
+	if ( !dhis2.de.getCurrentCategoryOptions() ) {
+		return null;
+	}
 
-    var value = '';
+	var value = '';
 
-    $.safeEach( dhis2.de.getCurrentCategoryOptions(), function( idx, option ) {
-        value += option + ';';
-    } );
+	$.safeEach( dhis2.de.getCurrentCategoryOptions(), function( idx, option ) {
+		value += option + ';';
+	} );
 
-    if ( value ) {
-        value = value.slice( 0, -1 );
-    }
+	if ( value ) {
+		value = value.slice( 0, -1 );
+	}
 
-    return value;
+	return value;
 }
 
 /**
@@ -1541,41 +1538,41 @@ dhis2.de.setAttributesMarkup = function()
 }
 
 /**
- * Returns markup for drop down boxes to be put in the selection box for the
- * given categories. The empty string is returned if no categories are given.
- *
- * TODO check for category option validity for selected organisation unit.
- */
+* Returns markup for drop down boxes to be put in the selection box for the
+* given categories. The empty string is returned if no categories are given.
+*
+* TODO check for category option validity for selected organisation unit.
+*/
 dhis2.de.getAttributesMarkup = function()
 {
-    var html = '';
+	var html = '';
 
     var period = $( '#selectedPeriodId' ).val();
 
     var options = dhis2.de.getCurrentCategoryOptions();
 
-    if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 || !period ) {
-        return html;
-    }
+	if ( !dhis2.de.currentCategories || dhis2.de.currentCategories.length == 0 || !period ) {
+		return html;
+	}
 
-    $.safeEach( dhis2.de.currentCategories, function( idx, category ) {
-        html += '<div class="selectionBoxRow">';
-        html += '<div class="selectionLabel">' + category.name + '</div>&nbsp;';
-        html += '<select id="category-' + category.id + '" class="selectionBoxSelect" onchange="dhis2.de.attributeSelected(\'' + category.id + '\')">';
-        html += '<option value="-1">[ ' + i18n_select_option + ' ]</option>';
+	$.safeEach( dhis2.de.currentCategories, function( idx, category ) {
+		html += '<div class="selectionBoxRow">';
+		html += '<div class="selectionLabel">' + category.name + '</div>&nbsp;';
+		html += '<select id="category-' + category.id + '" class="selectionBoxSelect" onchange="dhis2.de.attributeSelected(\'' + category.id + '\')">';
+		html += '<option value="-1">[ ' + i18n_select_option + ' ]</option>';
 
-        $.safeEach( category.options, function( idx, option ) {
-            if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {
-                var selected = ( $.inArray( option.id, options ) != -1 ) || category.options.length == 1 ? " selected" : "";
-                html += '<option value="' + option.id + '"' + selected + '>' + option.name + '</option>';
-            }
-        } );
+		$.safeEach( category.options, function( idx, option ) {
+			if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {
+                                var selected = ( $.inArray( option.id, options ) != -1 ) || category.options.length == 1 ? " selected" : "";
+				html += '<option value="' + option.id + '"' + selected + '>' + option.name + '</option>';
+			}
+		} );
 
-        html += '</select>';
-        html += '</div>';
-    } );
+		html += '</select>';
+		html += '</div>';
+	} );
 
-    return html;
+	return html;
 };
 
 /**
@@ -1583,7 +1580,7 @@ dhis2.de.getAttributesMarkup = function()
  */
 dhis2.de.clearAttributes = function()
 {
-    $( '#attributeComboDiv' ).html( '' );
+	$( '#attributeComboDiv' ).html( '' );
 };
 
 /**
@@ -1591,7 +1588,7 @@ dhis2.de.clearAttributes = function()
  */
 dhis2.de.attributeSelected = function( categoryId )
 {
-    if ( dhis2.de.inputSelected() ) {
+	if ( dhis2.de.inputSelected() ) {
         showLoader();
 
         if ( dhis2.de.dataEntryFormIsLoaded ) {
@@ -1619,15 +1616,15 @@ dhis2.de.inputSelected = function()
     var dataSetId = $( '#selectedDataSetId' ).val();
     var periodId = $( '#selectedPeriodId').val();
 
-    if (
-        dhis2.de.currentOrganisationUnitId &&
-        dataSetId && dataSetId != -1 &&
-        periodId && periodId != "" &&
-        dhis2.de.categoriesSelected() ) {
-        return true;
-    }
+	if (
+	    dhis2.de.currentOrganisationUnitId &&
+	    dataSetId && dataSetId != -1 &&
+	    periodId && periodId != "" &&
+	    dhis2.de.categoriesSelected() ) {
+		return true;
+	}
 
-    return false;
+	return false;
 };
 
 function loadDataValues()
@@ -1681,7 +1678,7 @@ function getAndInsertDataValues()
     $( '.entryfield' ).filter( ':disabled' ).css( 'background-color', dhis2.de.cst.colorGrey );
 
     var params = {
-        periodId : periodId,
+		periodId : periodId,
         dataSetId : dataSetId,
         organisationUnitId : dhis2.de.getCurrentOrganisationUnit(),
         multiOrganisationUnit: dhis2.de.multiOrganisationUnit
@@ -1692,26 +1689,26 @@ function getAndInsertDataValues()
 
     if ( cc && cp )
     {
-        params.cc = cc;
-        params.cp = cp;
+    	params.cc = cc;
+    	params.cp = cp;
     }
 
     $.ajax( {
-        url: 'getDataValues.action',
-        data: params,
-        dataType: 'json',
-        error: function() // offline
-        {
-            $( '#completenessDiv' ).show();
-            $( '#infoDiv' ).hide();
+    	url: 'getDataValues.action',
+    	data: params,
+	    dataType: 'json',
+	    error: function() // offline
+	    {
+	    	$( '#completenessDiv' ).show();
+	    	$( '#infoDiv' ).hide();
 
-            var json = getOfflineDataValueJson( params );
+	    	var json = getOfflineDataValueJson( params );
 
-            insertDataValues( json );
-        },
-        success: function( json ) // online
-        {
-            insertDataValues( json );
+	    	insertDataValues( json );
+	    },
+	    success: function( json ) // online
+	    {
+	    	insertDataValues( json );
         },
         complete: function()
         {
@@ -1723,32 +1720,32 @@ function getAndInsertDataValues()
             dhis2.de.populateRowTotals();
             dhis2.de.populateColumnTotals();
         }
-    } );
+	} );
 }
 
 function getOfflineDataValueJson( params )
 {
-    var dataValues = dhis2.de.storageManager.getDataValuesInForm( params );
-    var complete = dhis2.de.storageManager.hasCompleteDataSet( params );
+	var dataValues = dhis2.de.storageManager.getDataValuesInForm( params );
+	var complete = dhis2.de.storageManager.hasCompleteDataSet( params );
 
-    var json = {};
-    json.dataValues = new Array();
-    json.locked = false;
-    json.complete = complete;
-    json.date = "";
-    json.storedBy = "";
+	var json = {};
+	json.dataValues = new Array();
+	json.locked = false;
+	json.complete = complete;
+	json.date = "";
+	json.storedBy = "";
 
-    for ( var i = 0; i < dataValues.length; i++ )
-    {
-        var dataValue = dataValues[i];
+	for ( var i = 0; i < dataValues.length; i++ )
+	{
+		var dataValue = dataValues[i];
 
-        json.dataValues.push( {
-            'id': dataValue.de + '-' + dataValue.co,
-            'val': dataValue.value
-        } );
-    }
+		json.dataValues.push( {
+			'id': dataValue.de + '-' + dataValue.co,
+			'val': dataValue.value
+		} );
+	}
 
-    return json;
+	return json;
 }
 
 function insertDataValues( json )
@@ -1756,17 +1753,17 @@ function insertDataValues( json )
     var dataValueMap = []; // Reset
     dhis2.de.currentMinMaxValueMap = []; // Reset
 
-    if ( json.locked )
-    {
-        dhis2.de.lockForm();
-        setHeaderDelayMessage( i18n_dataset_is_locked );
-    }
-    else
-    {
+	if ( json.locked )
+	{
+		dhis2.de.lockForm();
+		setHeaderDelayMessage( i18n_dataset_is_locked );
+	}
+	else
+	{
         $( '#contentDiv input' ).removeAttr( 'readonly' );
         $( '#contentDiv textarea' ).removeAttr( 'readonly' );
-        $( '#completenessDiv' ).show();
-    }
+		$( '#completenessDiv' ).show();
+	}
 
     // Set the data-disabled attribute on any file upload fields
     $( '#contentDiv .entryfileresource' ).data( 'disabled', json.locked );
@@ -1777,37 +1774,37 @@ function insertDataValues( json )
 
     if ( !dhis2.de.multiOrganisationUnit  )
     {
-        if ( period )
-        {
-            if ( dhis2.de.validateOrgUnitOpening( organisationUnits[dhis2.de.getCurrentOrganisationUnit()], period ) )
-            {
-                dhis2.de.lockForm();
-                setHeaderDelayMessage( i18n_orgunit_is_closed );
-                return;
-            }
-        }
+    	if ( period )
+		{
+    		if ( dhis2.de.validateOrgUnitOpening( organisationUnits[dhis2.de.getCurrentOrganisationUnit()], period ) )
+    		{
+    			dhis2.de.lockForm();
+            setHeaderDelayMessage( i18n_orgunit_is_closed );
+    	        return;
+    		}
+    	}
     }
 
     else{
 
-        var orgUnitClosed = false;
+    	var orgUnitClosed = false;
 
-        $.each( organisationUnitList, function( idx, item )
+    	$.each( organisationUnitList, function( idx, item )
         {
-            orgUnitClosed = dhis2.de.validateOrgUnitOpening( organisationUnits[item.uid], period ) ;
+    		orgUnitClosed = dhis2.de.validateOrgUnitOpening( organisationUnits[item.uid], period ) ;
 
-            if( orgUnitClosed )
-            {
-                return;
-            }
+    		if( orgUnitClosed )
+    		{
+    			return;
+    		}
         } );
 
-        if ( orgUnitClosed )
-        {
-            dhis2.de.lockForm();
-            setHeaderDelayMessage( i18n_orgunit_is_closed );
-            return;
-        }
+    	if ( orgUnitClosed )
+		{
+    		dhis2.de.lockForm();
+	        setHeaderDelayMessage( i18n_orgunit_is_closed );
+	        return;
+		}
 
     }
 
@@ -1833,11 +1830,11 @@ function insertDataValues( json )
 
                 if( value.val == 'true' )
                 {
-                    $('input[id=' + fId + ']')[0].click();
+                  $('input[id=' + fId + ']')[0].click();
                 }
                 else if ( value.val == 'false')
                 {
-                    $('input[id=' + fId + ']')[1].click();
+                  $('input[id=' + fId + ']')[1].click();
                 }
                 else{
                     $('input[id=' + fId + ']')[0].prop('checked',false);
@@ -1935,7 +1932,7 @@ function insertDataValues( json )
             var dataValue = dataValueMap[value.id];
 
             if ( dataValue && ( ( value.min && new Number( dataValue ) < new Number(
-                    value.min ) ) || ( value.max && new Number( dataValue ) > new Number( value.max ) ) ) )
+                value.min ) ) || ( value.max && new Number( dataValue ) > new Number( value.max ) ) ) )
             {
                 $( valFieldId ).css( 'background-color', dhis2.de.cst.colorOrange );
             }
@@ -2029,7 +2026,7 @@ function keyPress( event, field )
     var key = event.keyCode || event.charCode || event.which;
 
     var focusField = ( key == 13 || key == 40 ) ? getNextEntryField( field )
-        : ( key == 38 ) ? getPreviousEntryField( field ) : false;
+            : ( key == 38 ) ? getPreviousEntryField( field ) : false;
 
     if ( focusField )
     {
@@ -2081,12 +2078,12 @@ function getPreviousEntryField( field )
 
 function registerCompleteDataSet()
 {
-    if ( !confirm( i18n_confirm_complete ) )
-    {
-        return false;
+	if ( !confirm( i18n_confirm_complete ) )
+	{
+		return false;
     }
 
-    dhis2.de.validate( true, function()
+	dhis2.de.validate( true, function()
     {
         var params = dhis2.de.storageManager.getCurrentCompleteDataSetParams();
 
@@ -2095,27 +2092,9 @@ function registerCompleteDataSet()
 
         if ( cc && cp )
         {
-            params.cc = cc;
-            params.cp = cp;
+        	params.cc = cc;
+        	params.cp = cp;
         }
-
-        var cdsrs =  {
-            attributeOptionComboIdScheme : 'UID',
-            idScheme:'UID',
-            dataSetIdScheme :'UID',
-            orgUnitIdScheme : 'UID',
-            dryRun : 'false',
-            strategy :'NEW_AND_UPDATES',
-            completeDataSetRegistrations : []
-        };
-
-        var cdsr = {
-            dataSet : params.ds,
-            period : params.pe,
-            organisationUnit : params.ou
-        };
-
-        cdsrs.completeDataSetRegistrations.push(cdsr);
 
         dhis2.de.storageManager.saveCompleteDataSet( params );
 
@@ -2145,32 +2124,32 @@ function registerCompleteDataSet()
 	    	success: function( data, textStatus, xhr )
 	        {
                 $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                disableCompleteButton();
-                dhis2.de.storageManager.clearCompleteDataSet( params );
-            },
-            error:  function( xhr, textStatus, errorThrown )
-            {
-                if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
-                {
-                    setHeaderMessage( xhr.responseText );
-                }
-                else // Offline, keep local value
-                {
+	    		disableCompleteButton();
+	    		dhis2.de.storageManager.clearCompleteDataSet( params );
+	        },
+		    error:  function( xhr, textStatus, errorThrown )
+		    {
+		    	if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
+	        	{
+	        		setHeaderMessage( xhr.responseText );
+	        	}
+	        	else // Offline, keep local value
+	        	{
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                    disableCompleteButton();
-                    setHeaderMessage( i18n_offline_notification );
-                }
-            }
-        } );
-    } );
+	        		disableCompleteButton();
+	        		setHeaderMessage( i18n_offline_notification );
+	        	}
+		    }
+	    } );
+	} );
 }
 
 function undoCompleteDataSet()
 {
-    if ( !confirm( i18n_confirm_undo ) )
-    {
-        return false;
-    }
+	if ( !confirm( i18n_confirm_undo ) )
+	{
+		return false;
+	}
 
     var params = dhis2.de.storageManager.getCurrentCompleteDataSetParams();
 
@@ -2178,15 +2157,15 @@ function undoCompleteDataSet()
     var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
 
     var params =
-        '?ds=' + params.ds +
-        '&pe=' + params.pe +
-        '&ou=' + params.ou +
-        '&multiOu=' + params.multiOu;
+    	'?ds=' + params.ds +
+    	'&pe=' + params.pe +
+    	'&ou=' + params.ou +
+    	'&multiOu=' + params.multiOu;
 
     if ( cc && cp )
     {
-        params += '&cc=' + cc;
-        params += '&cp=' + cp;
+    	params += '&cc=' + cc;
+    	params += '&cp=' + cp;
     }
 
     $.ajax( {
@@ -2195,24 +2174,24 @@ function undoCompleteDataSet()
     	type: 'delete',
     	success: function( data, textStatus, xhr )
         {
-            $( document ).trigger( dhis2.de.event.uncompleted, dhis2.de.currentDataSetId );
-            disableUndoButton();
-            dhis2.de.storageManager.clearCompleteDataSet( params );
+          $( document ).trigger( dhis2.de.event.uncompleted, dhis2.de.currentDataSetId );
+          disableUndoButton();
+          dhis2.de.storageManager.clearCompleteDataSet( params );
         },
         error: function( xhr, textStatus, errorThrown )
         {
-            if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
-            {
-                setHeaderMessage( xhr.responseText );
-            }
-            else // Offline, keep local value
-            {
+        	if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
+        	{
+        		setHeaderMessage( xhr.responseText );
+        	}
+        	else // Offline, keep local value
+        	{
                 $( document ).trigger( dhis2.de.event.uncompleted, dhis2.de.currentDataSetId );
-                disableUndoButton();
-                setHeaderMessage( i18n_offline_notification );
-            }
+        		disableUndoButton();
+        		setHeaderMessage( i18n_offline_notification );
+        	}
 
-            dhis2.de.storageManager.clearCompleteDataSet( params );
+    		dhis2.de.storageManager.clearCompleteDataSet( params );
         }
     } );
 }
@@ -2231,27 +2210,27 @@ function disableCompleteButton()
 
 function displayUserDetails()
 {
-    if ( dhis2.de.currentCompletedByUser )
-    {
-        var url = '../dhis-web-commons-ajax-json/getUser.action';
+	if ( dhis2.de.currentCompletedByUser )
+	{
+		var url = '../dhis-web-commons-ajax-json/getUser.action';
 
-        $.getJSON( url, { username: dhis2.de.currentCompletedByUser }, function( json )
-        {
-            $( '#userFullName' ).html( json.user.firstName + ' ' + json.user.surname );
-            $( '#userUsername' ).html( json.user.username );
-            $( '#userEmail' ).html( json.user.email );
-            $( '#userPhoneNumber' ).html( json.user.phoneNumber );
-            $( '#userOrganisationUnits' ).html( joinNameableObjects( json.user.organisationUnits ) );
-            $( '#userUserRoles' ).html( joinNameableObjects( json.user.roles ) );
+		$.getJSON( url, { username: dhis2.de.currentCompletedByUser }, function( json )
+		{
+			$( '#userFullName' ).html( json.user.firstName + ' ' + json.user.surname );
+			$( '#userUsername' ).html( json.user.username );
+			$( '#userEmail' ).html( json.user.email );
+			$( '#userPhoneNumber' ).html( json.user.phoneNumber );
+			$( '#userOrganisationUnits' ).html( joinNameableObjects( json.user.organisationUnits ) );
+			$( '#userUserRoles' ).html( joinNameableObjects( json.user.roles ) );
 
-            $( '#completedByDiv' ).dialog( {
-                modal : true,
-                width : 350,
-                height : 350,
-                title : 'User'
-            } );
-        } );
-    }
+			$( '#completedByDiv' ).dialog( {
+	        	modal : true,
+	        	width : 350,
+	        	height : 350,
+	        	title : 'User'
+	    	} );
+		} );
+	}
 }
 
 // -----------------------------------------------------------------------------
@@ -2260,7 +2239,7 @@ function displayUserDetails()
 
 dhis2.de.validateCompulsoryDataElements = function ()
 {
-    var compulsoryValid = true;
+  var compulsoryValid = true;
 
     $('[required=required]').each( function() {
 
@@ -2291,10 +2270,10 @@ dhis2.de.validateCompulsoryDataElements = function ()
                 $(this).css( 'background-color', dhis2.de.cst.colorRed );
             }
 
-            compulsoryValid = false;
-        }
-    }) ;
-    return compulsoryValid;
+      compulsoryValid = false;
+    }
+  }) ;
+  return compulsoryValid;
 }
 
 /**
@@ -2306,7 +2285,7 @@ dhis2.de.validateCompulsoryDataElements = function ()
  */
 dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
 {
-    var compulsoryCombinationsValid = dhis2.de.validateCompulsoryCombinations();
+	var compulsoryCombinationsValid = dhis2.de.validateCompulsoryCombinations();
 
     var compulsoryDataElementsValid = dhis2.de.validateCompulsoryDataElements();
 
@@ -2331,12 +2310,12 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
         }
 	}
 
-    // Check for validation rules and whether complete is only allowed if valid
+	// Check for validation rules and whether complete is only allowed if valid
 
-    var successHtml = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/success_small.png"></h3>' +
-        '<p class="bold">' + i18n_successful_validation + '</p>';
+	var successHtml = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/success_small.png"></h3>' +
+		'<p class="bold">' + i18n_successful_validation + '</p>';
 
-    var validCompleteOnly = dhis2.de.dataSets[dhis2.de.currentDataSetId].validCompleteOnly;
+	var validCompleteOnly = dhis2.de.dataSets[dhis2.de.currentDataSetId].validCompleteOnly;
 
     var cc = dhis2.de.getCurrentCategoryCombo();
     var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
@@ -2350,7 +2329,7 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
     }
 
     $( '#validationDiv' ).load( 'validate.action', params, function( response, status, xhr ) {
-        var success = null;
+    	var success = null;
 
         if ( status == 'error' && !ignoreValidationSuccess )
         {
@@ -2359,32 +2338,32 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
         }
         else
         {
-            var hasViolations = isDefined( response ) && $.trim( response ).length > 0;
-            var success = !( hasViolations && validCompleteOnly );
+        	var hasViolations = isDefined( response ) && $.trim( response ).length > 0;
+        	var success = !( hasViolations && validCompleteOnly );
 
-            if ( hasViolations )
-            {
-                dhis2.de.displayValidationDialog( response, 500 );
-            }
-            else if ( !ignoreValidationSuccess )
-            {
-                dhis2.de.displayValidationDialog( successHtml, 200 );
-            }
+        	if ( hasViolations )
+        	{
+        		dhis2.de.displayValidationDialog( response, 500 );
+        	}
+        	else if ( !ignoreValidationSuccess )
+        	{
+        		dhis2.de.displayValidationDialog( successHtml, 200 );
+        	}
         }
 
         if ( success && $.isFunction( successCallback ) )
         {
-            successCallback.call();
+        	successCallback.call();
         }
 
         if ( success )
         {
-            $( document ).trigger( dhis2.de.event.validationSucces, dhis2.de.currentDataSetId );
+        	$( document ).trigger( dhis2.de.event.validationSucces, dhis2.de.currentDataSetId );
         }
         else
-        {
-            $( document ).trigger( dhis2.de.event.validationError, dhis2.de.currentDataSetId );
-        }
+    	{
+        	$( document ).trigger( dhis2.de.event.validationError, dhis2.de.currentDataSetId );
+    	}
     } );
 }
 
@@ -2396,9 +2375,9 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
  */
 dhis2.de.displayValidationDialog = function( html, height )
 {
-    height = isDefined( height ) ? height : 500;
+	height = isDefined( height ) ? height : 500;
 
-    $( '#validationDiv' ).html( html );
+	$( '#validationDiv' ).html( html );
 
     $( '#validationDiv' ).dialog( {
         modal: true,
@@ -2415,7 +2394,7 @@ dhis2.de.displayValidationDialog = function( html, height )
  */
 dhis2.de.validateCompulsoryCombinations = function()
 {
-    var fieldCombinationRequired = dhis2.de.dataSets[dhis2.de.currentDataSetId].fieldCombinationRequired;
+	var fieldCombinationRequired = dhis2.de.dataSets[dhis2.de.currentDataSetId].fieldCombinationRequired;
 
     if ( fieldCombinationRequired )
     {
@@ -2436,8 +2415,8 @@ dhis2.de.validateCompulsoryCombinations = function()
 
             if ( hasValue )
             {
-                $selector = $( '[name="entryfield"][id^="' + dataElementId + '-"]' ).
-                add( '[name="entryselect"][id^="' + dataElementId + '-"]' );
+            	$selector = $( '[name="entryfield"][id^="' + dataElementId + '-"]' ).
+            		add( '[name="entryselect"][id^="' + dataElementId + '-"]' );
 
                 $selector.each( function( i )
                 {
@@ -2457,34 +2436,34 @@ dhis2.de.validateCompulsoryCombinations = function()
         }
     }
 
-    return true;
+	return true;
 };
 
 dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
 {
-    var iso8601 = $.calendars.instance( 'gregorian' );
-    var odate, cdate;
+  var iso8601 = $.calendars.instance( 'gregorian' );
+  var odate, cdate;
 
-    if ( organisationUnit.odate ) {
-        odate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.odate ).toJD() );
-    }
+  if ( organisationUnit.odate ) {
+    odate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.odate ).toJD() );
+  }
 
-    if ( organisationUnit.cdate ) {
-        cdate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.cdate ).toJD() );
-    }
+  if ( organisationUnit.cdate ) {
+    cdate = dhis2.period.calendar.fromJD( iso8601.parseDate( "yyyy-mm-dd", organisationUnit.cdate ).toJD() );
+  }
 
-    var startDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.startDate );
-    var endDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.endDate );
+  var startDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.startDate );
+  var endDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.endDate );
 
-    if ( odate && startDate.compareTo( odate ) == -1 || cdate && endDate.compareTo( cdate ) == 1 ) {
-        $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
-        $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
-        $( '.entrytrueonly' ).attr( 'onclick', 'return false;');
-        $( '.entrytrueonly' ).attr( 'onkeydown', 'return false;');
-        return true;
-    }
+  if ( odate && startDate.compareTo( odate ) == -1 || cdate && endDate.compareTo( cdate ) == 1 ) {
+    $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
+    $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
+    $( '.entrytrueonly' ).attr( 'onclick', 'return false;');
+    $( '.entrytrueonly' ).attr( 'onkeydown', 'return false;');
+    return true;
+  }
 
-    return false;
+  return false;
 };
 
 // -----------------------------------------------------------------------------
@@ -2505,41 +2484,41 @@ function viewHist( dataElementId, optionComboId )
 {
     var periodId = $( '#selectedPeriodId').val();
 
-    if ( dataElementId && optionComboId && periodId && periodId != -1 )
-    {
-        var dataElementName = getDataElementName( dataElementId );
-        var optionComboName = getOptionComboName( optionComboId );
-        var operandName = dataElementName + ' ' + optionComboName;
+	if ( dataElementId && optionComboId && periodId && periodId != -1 )
+	{
+	    var dataElementName = getDataElementName( dataElementId );
+	    var optionComboName = getOptionComboName( optionComboId );
+	    var operandName = dataElementName + ' ' + optionComboName;
 
-        var params = {
-            dataElementId : dataElementId,
-            optionComboId : optionComboId,
-            periodId : periodId,
-            organisationUnitId : dhis2.de.getCurrentOrganisationUnit()
-        };
+	    var params = {
+    		dataElementId : dataElementId,
+	        optionComboId : optionComboId,
+	        periodId : periodId,
+	        organisationUnitId : dhis2.de.getCurrentOrganisationUnit()
+	    };
 
-        var cc = dhis2.de.getCurrentCategoryCombo();
-        var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
+	    var cc = dhis2.de.getCurrentCategoryCombo();
+	    var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
 
-        if ( cc && cp )
-        {
-            params.cc = cc;
-            params.cp = cp;
-        }
+	    if ( cc && cp )
+	    {
+	    	params.cc = cc;
+	    	params.cp = cp;
+	    }
 
-        $( '#historyDiv' ).load( 'viewHistory.action', params,
-            function( response, status, xhr )
-            {
-                if ( status == 'error' )
-                {
-                    window.alert( i18n_operation_not_available_offline );
-                }
-                else
-                {
-                    displayHistoryDialog( operandName );
-                }
-            } );
-    }
+	    $( '#historyDiv' ).load( 'viewHistory.action', params,
+	    function( response, status, xhr )
+	    {
+	        if ( status == 'error' )
+	        {
+	            window.alert( i18n_operation_not_available_offline );
+	        }
+	        else
+	        {
+	            displayHistoryDialog( operandName );
+	        }
+	    } );
+	}
 }
 
 function closeCurrentSelection()
@@ -2559,9 +2538,9 @@ function updateForms()
         .then(downloadRemoteForms)
         .then(dhis2.de.loadOptionSets)
         .done( function() {
-            dhis2.availability.startAvailabilityCheck();
-            console.log( 'Started availability check' );
-            selection.responseReceived();
+        	dhis2.availability.startAvailabilityCheck();
+        	console.log( 'Started availability check' );
+          selection.responseReceived();
         } );
 }
 
@@ -2577,7 +2556,7 @@ function purgeLocalForms()
             if ( dhis2.de.dataSets[item] == null )
             {
                 keys.push(item);
-                dhis2.de.storageManager.deleteFormVersion( item );
+            	dhis2.de.storageManager.deleteFormVersion( item );
                 console.log( 'Deleted locally stored form: ' + item );
             }
         } );
@@ -2771,9 +2750,9 @@ function StorageManager()
         $.ajax( {
             url: 'loadForm.action',
             data:
-                {
-                    dataSetId : dataSetId
-                },
+            {
+                dataSetId : dataSetId
+            },
             dataSetId: dataSetId,
             formVersion: formVersion,
             dataType: 'text',
@@ -2790,7 +2769,7 @@ function StorageManager()
                     def.resolve();
                 });
 
-                dhis2.de.storageManager.saveFormVersion( this.dataSetId, this.formVersion );
+            	dhis2.de.storageManager.saveFormVersion( this.dataSetId, this.formVersion );
             }
         } );
 
@@ -2818,11 +2797,11 @@ function StorageManager()
         {
             localStorage[KEY_FORM_VERSIONS] = JSON.stringify( formVersions );
 
-            console.log( 'Successfully stored form version: ' + dataSetId );
+          console.log( 'Successfully stored form version: ' + dataSetId );
         }
         catch ( e )
         {
-            console.log( 'Max local storage quota reached, ignored form version: ' + dataSetId );
+          console.log( 'Max local storage quota reached, ignored form version: ' + dataSetId );
         }
     };
 
@@ -2852,7 +2831,7 @@ function StorageManager()
      */
     this.deleteFormVersion = function( dataSetId )
     {
-        if ( localStorage[KEY_FORM_VERSIONS] != null )
+    	if ( localStorage[KEY_FORM_VERSIONS] != null )
         {
             var formVersions = JSON.parse( localStorage[KEY_FORM_VERSIONS] );
 
@@ -2877,7 +2856,7 @@ function StorageManager()
     this.saveDataValue = function( dataValue )
     {
         var id = this.getDataValueIdentifier( dataValue.de,
-            dataValue.co, dataValue.pe, dataValue.ou );
+        		dataValue.co, dataValue.pe, dataValue.ou );
 
         var dataValues = {};
 
@@ -2892,11 +2871,11 @@ function StorageManager()
         {
             localStorage[KEY_DATAVALUES] = JSON.stringify( dataValues );
 
-            console.log( 'Successfully stored data value' );
+          console.log( 'Successfully stored data value' );
         }
         catch ( e )
         {
-            console.log( 'Max local storage quota reached, not storing data value locally' );
+          console.log( 'Max local storage quota reached, not storing data value locally' );
         }
     };
 
@@ -2933,20 +2912,20 @@ function StorageManager()
      */
     this.getDataValuesInForm = function( json )
     {
-        var dataValues = this.getDataValuesAsArray();
-        var valuesInForm = new Array();
+    	var dataValues = this.getDataValuesAsArray();
+    	var valuesInForm = new Array();
 
-        for ( var i = 0; i < dataValues.length; i++ )
-        {
-            var val = dataValues[i];
+		for ( var i = 0; i < dataValues.length; i++ )
+		{
+			var val = dataValues[i];
 
-            if ( val.pe == json.periodId && val.ou == json.organisationUnitId )
-            {
-                valuesInForm.push( val );
-            }
-        }
+			if ( val.pe == json.periodId && val.ou == json.organisationUnitId )
+			{
+				valuesInForm.push( val );
+			}
+		}
 
-        return valuesInForm;
+    	return valuesInForm;
     }
 
     /**
@@ -2957,7 +2936,7 @@ function StorageManager()
     this.clearDataValueJSON = function( dataValue )
     {
         this.clearDataValue( dataValue.de, dataValue.co, dataValue.pe,
-            dataValue.ou );
+                dataValue.ou );
     };
 
     /**
@@ -3003,23 +2982,23 @@ function StorageManager()
      */
     this.getDataValuesAsArray = function()
     {
-        var values = new Array();
-        var dataValues = this.getAllDataValues();
+    	var values = new Array();
+    	var dataValues = this.getAllDataValues();
 
-        if ( undefined === dataValues )
-        {
-            return values;
-        }
+    	if ( undefined === dataValues )
+    	{
+    		return values;
+    	}
 
-        for ( i in dataValues )
-        {
-            if ( dataValues.hasOwnProperty( i ) && undefined !== dataValues[i] )
-            {
-                values.push( dataValues[i] );
-            }
-        }
+    	for ( i in dataValues )
+    	{
+    		if ( dataValues.hasOwnProperty( i ) && undefined !== dataValues[i] )
+    		{
+    			values.push( dataValues[i] );
+    		}
+    	}
 
-        return values;
+    	return values;
     }
 
     /**
@@ -3092,13 +3071,13 @@ function StorageManager()
 
         try
         {
-            localStorage[KEY_COMPLETEDATASETS] = JSON.stringify( completeDataSets );
+        	localStorage[KEY_COMPLETEDATASETS] = JSON.stringify( completeDataSets );
 
-            log( 'Successfully stored complete registration' );
+        	log( 'Successfully stored complete registration' );
         }
         catch ( e )
         {
-            log( 'Max local storage quota reached, not storing complete registration locally' );
+        	log( 'Max local storage quota reached, not storing complete registration locally' );
         }
     };
 
@@ -3110,15 +3089,15 @@ function StorageManager()
      */
     this.hasCompleteDataSet = function( json )
     {
-        var id = this.getCompleteDataSetId( json );
-        var registrations = this.getCompleteDataSets();
+    	var id = this.getCompleteDataSetId( json );
+    	var registrations = this.getCompleteDataSets();
 
         if ( null != registrations && undefined !== registrations && undefined !== registrations[id] )
         {
             return true;
         }
 
-        return false;
+    	return false;
     }
 
     /**
@@ -3194,27 +3173,27 @@ function StorageManager()
  */
 dhis2.de.setOptionNameInField = function( fieldId, value )
 {
-    var id = value.id;
+  var id = value.id;
 
-    if(value.id.split("-").length == 3)
-    {
-        id = id.substr(12);
-    }
+  if(value.id.split("-").length == 3)
+  {
+    id = id.substr(12);
+  }
 
-    var optionSetUid = dhis2.de.optionSets[id].uid;
+	var optionSetUid = dhis2.de.optionSets[id].uid;
 
-    DAO.store.get( 'optionSets', optionSetUid ).done( function( obj ) {
-        if ( obj && obj.optionSet && obj.optionSet.options ) {
-            $.each( obj.optionSet.options, function( inx, option ) {
-                if ( option && option.code == value.val ) {
-                    option.id = option.code;
-                    option.text = option.displayName;
-                    $( fieldId ).select2('data', option);
-                    return false;
-                }
-            } );
-        }
-    } );
+	DAO.store.get( 'optionSets', optionSetUid ).done( function( obj ) {
+		if ( obj && obj.optionSet && obj.optionSet.options ) {
+			$.each( obj.optionSet.options, function( inx, option ) {
+				if ( option && option.code == value.val ) {
+			          option.id = option.code;
+			          option.text = option.displayName;
+			          $( fieldId ).select2('data', option);
+			          return false;
+				}
+			} );
+		}
+	} );
 };
 
 /**
@@ -3225,7 +3204,7 @@ dhis2.de.setOptionNameInField = function( fieldId, value )
  */
 dhis2.de.searchOptionSet = function( uid, query, success )
 {
-    var noneVal = '[No value]';
+	var noneVal = '[No value]';
 
     if ( window.DAO !== undefined && window.DAO.store !== undefined ) {
         DAO.store.get( 'optionSets', uid ).done( function ( obj ) {
@@ -3252,7 +3231,7 @@ dhis2.de.searchOptionSet = function( uid, query, success )
                 }
 
                 if ( options && options.length > 0 ) {
-                    options.push( { name: noneVal, code: '' } );
+                	options.push( { name: noneVal, code: '' } );
                 }
 
                 success( $.map( options, function ( item ) {
@@ -3373,15 +3352,15 @@ dhis2.de.insertOptionSets = function()
         var dataElementId = split.dataElementId;
         var optionComboId = split.optionComboId;
 
-        var optionSetKey = dhis2.de.splitFieldId( item.id );
+    	var optionSetKey = dhis2.de.splitFieldId( item.id );
         var s2prefix = 's2id_';
         optionSetKey.dataElementId = optionSetKey.dataElementId.indexOf(s2prefix) != -1 ? optionSetKey.dataElementId.substring(s2prefix.length, optionSetKey.dataElementId.length) : optionSetKey.dataElementId;
 
         if ( dhis2.de.multiOrganisationUnit ) {
-            item = optionSetKey.organisationUnitId + '-' + optionSetKey.dataElementId + '-' + optionSetKey.optionComboId;
+        	item = optionSetKey.organisationUnitId + '-' + optionSetKey.dataElementId + '-' + optionSetKey.optionComboId;
         }
         else {
-            item = optionSetKey.dataElementId + '-' + optionSetKey.optionComboId;
+        	item = optionSetKey.dataElementId + '-' + optionSetKey.optionComboId;
         }
 
         item = item + '-val';
@@ -3389,23 +3368,23 @@ dhis2.de.insertOptionSets = function()
         var optionSetUid = dhis2.de.optionSets[optionSetKey].uid;
 
         DAO.store.get( 'optionSets', optionSetUid ).done( function( obj ) {
-            if ( obj && obj.optionSet && obj.optionSet.options ) {
+		if ( obj && obj.optionSet && obj.optionSet.options ) {
 
-                $.each( obj.optionSet.options, function( inx, option ) {
-                    option.text = option.displayName;
-                    option.id = option.code;
-                } );
+                    $.each( obj.optionSet.options, function( inx, option ) {
+                        option.text = option.displayName;
+                        option.id = option.code;
+                    } );
 
-                $("#" + item).select2({
-                    placeholder: i18n_select_option ,
-                    allowClear: true,
-                    dataType: 'json',
-                    data: obj.optionSet.options
-                }).on("change", function(e){
-                    saveVal( dataElementId, optionComboId, fieldId );
-                });
-            }
-        } );
+                    $("#" + item).select2({
+                        placeholder: i18n_select_option ,
+                        allowClear: true,
+                        dataType: 'json',
+                        data: obj.optionSet.options
+                    }).on("change", function(e){
+                        saveVal( dataElementId, optionComboId, fieldId );
+                    });
+		}
+	} );
     } );
 };
 
@@ -3574,7 +3553,7 @@ dhis2.de.populateColumnTotals = function(){
 
 function printBlankForm()
 {
-    $( '#contentDiv input, select' ).css( 'display', 'none' );
-    window.print();
-    $( '#contentDiv input, select' ).css( 'display', '' );
+	$( '#contentDiv input, select' ).css( 'display', 'none' );
+	window.print();
+	$( '#contentDiv input, select' ).css( 'display', '' );
 }

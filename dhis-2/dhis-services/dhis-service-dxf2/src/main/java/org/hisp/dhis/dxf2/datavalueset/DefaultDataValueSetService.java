@@ -716,12 +716,9 @@ public class DefaultDataValueSetService
 
         if ( importOptions.isPreheatCacheDefaultFalse() )
         {
-            dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue(
-                dataElementIdScheme ) );
+            dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme ) );
             orgUnitMap.load( identifiableObjectManager.getAll( OrganisationUnit.class ), o -> o.getPropertyValue( orgUnitIdScheme ) );
-
-            optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o
-                .getPropertyValue( categoryOptComboIdScheme ) );
+            optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o.getPropertyValue( categoryOptComboIdScheme ) );
         }
 
         // ---------------------------------------------------------------------
@@ -1133,6 +1130,10 @@ public class DefaultDataValueSetService
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
+
+            // -----------------------------------------------------------------
+            // Check if current user has permission to save this value
+            // -----------------------------------------------------------------
 
             List errors = accessManager.canWrite( currentUser, internalValue );
 

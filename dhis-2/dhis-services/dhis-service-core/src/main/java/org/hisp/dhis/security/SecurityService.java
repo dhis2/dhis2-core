@@ -292,18 +292,18 @@ public interface SecurityService
         throws IOException;
 
     /**
-     * Checks whether current user has permission to write data for given object.
+     * Check if current user has DATA_WRITE access for given object.
      *
      * @param identifiableObject Object to check for data write access.
-     * @return true of false depending on outcome of data write check
+     * @return true of false depending on outcome of DATA_WRITE check
      */
     boolean canDataWrite( IdentifiableObject identifiableObject );
 
     /**
-     * Checks whether current user has permission to read data of given object.
+     * Check if current user has DATA_READ for given object.
      *
      * @param identifiableObject Object to check for data read access.
-     * @return true of false depending on outcome of data read check
+     * @return true of false depending on outcome of DATA_READ check
      */
     boolean canDataRead( IdentifiableObject identifiableObject );
 }

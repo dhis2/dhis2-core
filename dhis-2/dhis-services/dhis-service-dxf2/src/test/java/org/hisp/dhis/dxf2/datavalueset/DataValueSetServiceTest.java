@@ -284,7 +284,6 @@ public class DataValueSetServiceTest
         periodService.addPeriod( peB );
         periodService.addPeriod( peC );
 
-
         dataSetService.addDataSet( dsA );
 
         user = createUser( 'A' );
@@ -1016,7 +1015,7 @@ public class DataValueSetServiceTest
     }
 
     /**
-     * User does not have write access for DataSet
+     * User does not have data write access for DataSet
      * Expect fail on data sharing check
      * @throws IOException
      */
@@ -1038,7 +1037,8 @@ public class DataValueSetServiceTest
 
     /**
      * User has data write access for DataSet
-     * Input DataValue use default category combo
+     * DataValue use default category combo
+     * Expect success
      * @throws IOException
      */
     @Test
@@ -1056,6 +1056,12 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
     }
 
+    /**
+     * User has data write access for DataSet
+     * and data read access for categoryOptions
+     * Expect fail
+     * @throws IOException
+     */
     @Test
     public void testImportValueCatComboFail() throws IOException
     {
@@ -1073,6 +1079,12 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
 
+    /**
+     * User has data write access for DataSet
+     * and also categoryOptions
+     * Expect success
+     * @throws IOException
+     */
     @Test
     public void testImportValueCatComboOk() throws IOException
     {
@@ -1090,6 +1102,11 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
     }
 
+    /**
+     * User does not have data write access for DataSet
+     * Expect fail
+     * @throws IOException
+     */
     @Test
     public void testImportValueCatComboFailDS() throws IOException
     {
@@ -1107,6 +1124,10 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
     }
 
+    /**
+     * User has data write access for DataSet and CategoryOption
+     * @throws IOException
+     */
     @Test
     public void testImportValueCategoryOptionWriteOk() throws IOException
     {

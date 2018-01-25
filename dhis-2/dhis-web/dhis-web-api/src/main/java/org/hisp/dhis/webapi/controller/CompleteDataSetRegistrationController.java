@@ -41,9 +41,6 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.*;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
@@ -128,9 +125,6 @@ public class CompleteDataSetRegistrationController
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Autowired
-    private AggregateAccessManager accessManager;
 
     // -------------------------------------------------------------------------
     // GET

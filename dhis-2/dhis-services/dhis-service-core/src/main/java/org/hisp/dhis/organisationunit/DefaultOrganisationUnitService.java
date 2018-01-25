@@ -394,10 +394,7 @@ public class DefaultOrganisationUnitService
             {
                 HashSet<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
 
-                for ( Set<String> dataSets : associationMap.values() )
-                {
-                    dataSets.retainAll( userDataSets );
-                }
+                associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
             }
         }
     }

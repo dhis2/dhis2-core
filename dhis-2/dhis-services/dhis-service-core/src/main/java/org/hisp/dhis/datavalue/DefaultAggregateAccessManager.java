@@ -46,8 +46,6 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public class DefaultAggregateAccessManager implements AggregateAccessManager
 {
     private final AclService aclService;
@@ -266,5 +264,4 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
 
         return errors;
     }
-
 }

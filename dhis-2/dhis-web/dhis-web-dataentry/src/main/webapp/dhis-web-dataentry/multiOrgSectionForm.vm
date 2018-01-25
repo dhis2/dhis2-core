@@ -14,7 +14,6 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
     #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
     #foreach( $categoryComboId in $categoryComboIds )
-        #set( $canWriteCategoryCombo = $security.canDataWrite( $categoryCombo ) )
         #set( $seCbId = "${section.id}-${categoryComboId}" )
         #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
     
