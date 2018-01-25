@@ -1,5 +1,6 @@
 package org.hisp.dhis.program;
 
+import java.util.Date;
 import java.util.Objects;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -81,6 +82,32 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
         this.offsetPeriodType = offsetPeriodType;
         this.offsetNumberOfPeriods = offsetNumberOfPeriods;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+ 
+    public Date getBoundaryDate( Date reportingStartDate, Date reportingEndDate )
+    {
+        Date returnDate = null;
+        
+        if ( analyticsPeriodBoundaryType == AnalyticsPeriodBoundaryType.AFTER_END_OF_REPORTING_PERIOD 
+            || analyticsPeriodBoundaryType == AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD )
+        {
+            returnDate = reportingEndDate;
+        }
+        else
+        {
+            returnDate = reportingStartDate;
+        }
+        
+        if ( offsetNumberOfPeriods > 0 && offsetPeriodType != null )
+        {
+           //TODO: CHeck with Lars whether we have some smart mechanism to use already
+        }
+        
+        return returnDate;
     }
     
     // -------------------------------------------------------------------------

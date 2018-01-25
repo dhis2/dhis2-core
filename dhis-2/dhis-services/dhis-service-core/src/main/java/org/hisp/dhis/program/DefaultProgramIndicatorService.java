@@ -424,7 +424,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, ProgramIndicator programIndicator  )
+    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, ProgramIndicator programIndicator, Date startDate, Date endDate  )
     {
         if ( expression == null )
         {
@@ -450,7 +450,7 @@ public class DefaultProgramIndicatorService
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
                     columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? 
-                        getLatestDataValueInEnrollmentSql( el2, el1, programIndicator ) : statementBuilder.columnQuote( el2 );
+                        getLatestDataValueInEnrollmentSql( el2, el1, programIndicator, startDate, endDate ) : statementBuilder.columnQuote( el2 );
                 }
                 else // ProgramIndicator.KEY_ATTRIBUTE
                 {                    
@@ -486,7 +486,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
     
-    private String getLatestDataValueInEnrollmentSql( String dataElementUid, String programStageUid, ProgramIndicator programIndicator )
+    private String getLatestDataValueInEnrollmentSql( String dataElementUid, String programStageUid, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
         String eventTableName = "analytics_event_" + programStageUid;
         String columnName = "\"" + dataElementUid + "\"";
@@ -494,8 +494,10 @@ public class DefaultProgramIndicatorService
             " where " + eventTableName + ".pi = enrollmenttable.pi " +
             "and " + eventTableName + ".ps = 'WZbXY0S00lP' " + 
             "and " + columnName + " is not null " +
-            "and executiondate < '2019-04-30' " + 
-            "and executiondate > '2010-04-30' " + 
+            programIndicator.hasEndEventBoundary() != null ? 
+                "and executiondate < '" + programIndicator.getEndEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " : "" + 
+            programIndicator.hasStartEventBoundary() != null ?
+                "and executiondate > '" + programIndicator.getStartEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " : "" + 
             "order by executiondate " +
             "desc limit 1 ) ";
     }

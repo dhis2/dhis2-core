@@ -39,6 +39,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -269,13 +270,62 @@ public class ProgramIndicator
         }
     }
     
-    public AnalyticsPeriodBoundary getEndEventDate()
+    public Boolean hasEndEventBoundary()
+    {
+        return getEndEventBoundary() != null;
+    }
+    
+    public Date getEndEventBoundaryDate( Date reportingStartDate, Date reportingEndDate )
+    {
+        AnalyticsPeriodBoundary boundary = getEndEventBoundary();
+        if ( boundary != null ) 
+        {
+            return boundary.getBoundaryDate( reportingStartDate, reportingEndDate );
+        }
+        
+        return null;
+    }
+    
+    private AnalyticsPeriodBoundary getEndEventBoundary()
     {
         for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
         {
-            if ( boundary.getBoundaryTarget() == AnalyticsPeriodBoundary.EVENT_DATE )
+            if ( boundary.getBoundaryTarget() == AnalyticsPeriodBoundary.EVENT_DATE
+                && ( boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD
+                || boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.BEFORE_START_OF_REPORTING_PERIOD ) )
             {
-                //TODO Complete implementation                
+                return boundary;                
+            }
+        }
+
+        return null;
+    }
+    
+    public Boolean hasStartEventBoundary()
+    {
+        return getStartEventBoundary() != null;
+    }
+    
+    public Date getStartEventBoundaryDate( Date reportingStartDate, Date reportingEndDate )
+    {
+        AnalyticsPeriodBoundary boundary = getStartEventBoundary();
+        if ( boundary != null ) 
+        {
+            return boundary.getBoundaryDate( reportingStartDate, reportingEndDate );
+        }
+        
+        return null;
+    }
+    
+    private AnalyticsPeriodBoundary getStartEventBoundary()
+    {
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.getBoundaryTarget() == AnalyticsPeriodBoundary.EVENT_DATE
+                && ( boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.AFTER_END_OF_REPORTING_PERIOD
+                || boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) )
+            {
+                return boundary;                
             }
         }
 
