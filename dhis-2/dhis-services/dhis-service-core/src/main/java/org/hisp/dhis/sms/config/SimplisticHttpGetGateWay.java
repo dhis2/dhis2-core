@@ -80,7 +80,7 @@ public class SimplisticHttpGetGateWay
 {
     private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
 
-    public static final ImmutableMap<Integer, GatewayResponse> SIMPLISTIC_GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<Integer, GatewayResponse>()
+    private static final ImmutableMap<Integer, GatewayResponse> SIMPLISTIC_GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<Integer, GatewayResponse>()
         .put( HttpURLConnection.HTTP_OK, GatewayResponse.RESULT_CODE_0 )
         .put( HttpURLConnection.HTTP_CREATED, GatewayResponse.RESULT_CODE_0 )
         .put( HttpURLConnection.HTTP_ACCEPTED, GatewayResponse.RESULT_CODE_0 )
@@ -111,11 +111,11 @@ public class SimplisticHttpGetGateWay
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
-        GenericHttpGatewayConfig genericHttpConfiguraiton = (GenericHttpGatewayConfig) config;
+        GenericHttpGatewayConfig genericHttpGatewayConfig = (GenericHttpGatewayConfig) config;
 
         OutboundMessageResponse status = new OutboundMessageResponse();
 
-        UriComponentsBuilder uri = buildUrl( genericHttpConfiguraiton, text, recipients );
+        UriComponentsBuilder uri = buildUrl( genericHttpGatewayConfig, text, recipients );
 
         BufferedReader reader = null;
 
@@ -125,7 +125,7 @@ public class SimplisticHttpGetGateWay
 
             URLConnection conn = requestURL.openConnection();
 
-            conn = getRequestHeaderParameters( conn, genericHttpConfiguraiton.getParameters() );
+            conn = getRequestHeaderParameters( conn, genericHttpGatewayConfig.getParameters() );
 
             reader = new BufferedReader( new InputStreamReader( conn.getInputStream() ) );
 
@@ -188,7 +188,7 @@ public class SimplisticHttpGetGateWay
 
     private URLConnection getRequestHeaderParameters( URLConnection urlConnection, List<GenericGatewayParameter> parameters )
     {
-        parameters.stream().filter( p -> p.isHeader() ).forEach( p -> urlConnection.setRequestProperty( p.getKey(), p.getValue() ) );
+        parameters.stream().filter( GenericGatewayParameter::isHeader ).forEach(p -> urlConnection.setRequestProperty( p.getKey(), p.getValue() ) );
 
         return urlConnection;
     }
