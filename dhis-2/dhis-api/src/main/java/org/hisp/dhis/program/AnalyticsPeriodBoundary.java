@@ -1,5 +1,7 @@
 package org.hisp.dhis.program;
 
+import java.util.Objects;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -80,6 +82,40 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         this.offsetPeriodType = offsetPeriodType;
         this.offsetNumberOfPeriods = offsetNumberOfPeriods;
     }
+    
+    // -------------------------------------------------------------------------
+    // Overrides
+    // -------------------------------------------------------------------------
+  
+    @Override
+    public int hashCode()
+    {
+        return 31 * super.hashCode() + Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, this.offsetNumberOfPeriods );
+    }
+
+    @Override
+    public boolean equals( Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null || getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        if ( !super.equals( obj ) )
+        {
+            return false;
+        }
+
+        final AnalyticsPeriodBoundary other = (AnalyticsPeriodBoundary) obj;
+
+        return Objects.equals( this.boundaryTarget, other.boundaryTarget )
+            && Objects.equals( this.analyticsPeriodBoundaryType, other.analyticsPeriodBoundaryType )
+            && Objects.equals( this.offsetPeriodType, other.offsetPeriodType )
+            && Objects.equals( this.offsetNumberOfPeriods, other.offsetNumberOfPeriods );
+    }
 
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -146,5 +182,4 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     {
         this.programIndicator = programIndicator;
     }
-    
 }
