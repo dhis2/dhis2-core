@@ -934,7 +934,6 @@
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="dataSetNotificationService" ref="org.hisp.dhis.dataset.notifications.DataSetNotificationService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.SectionService" class="org.hisp.dhis.dataset.DefaultSectionService">
@@ -1153,6 +1152,10 @@
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationService" />
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationTemplateService" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" />
 
   <bean id="scheduledDataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
@@ -1615,6 +1618,16 @@
 
   <bean id="dataSetNotificationMessageRenderer" class="org.hisp.dhis.notification.DataSetNotificationMessageRenderer" />
 
+  <!-- Notification loggin -->
+
+  <bean id="org.hisp.dhis.notification.logging.NotificationLoggingStore" class="org.hisp.dhis.notification.logging.HibernateNotificationLoggingStore">
+    <property name="clazz" value="org.hisp.dhis.notification.logging.ExternalNotificationLogEntry" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.notification.logging.NotificationLoggingService" class="org.hisp.dhis.notification.logging.DefaultNotificationLoggingService" />
 
   <!-- I18n UI -->
 

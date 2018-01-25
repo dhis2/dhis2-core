@@ -42,12 +42,7 @@ public interface MetadataAuditService
      */
     void addMetadataAudit( MetadataAudit audit );
 
-    /**
-     * Removes the given MetadataAudit instance.
-     *
-     * @param audit Instance to remove
-     */
-    void deleteMetadataAudit( MetadataAudit audit );
+    int count( MetadataAuditQuery query );
 
-    List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query );
+    List<MetadataAudit> query( MetadataAuditQuery query );
 }
