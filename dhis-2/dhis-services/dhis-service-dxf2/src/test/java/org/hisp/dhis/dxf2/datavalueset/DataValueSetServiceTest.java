@@ -71,7 +71,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,9 +124,6 @@ public class DataValueSetServiceTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private UserAccessService userAccessService;
 
     private Attribute attribute;
 

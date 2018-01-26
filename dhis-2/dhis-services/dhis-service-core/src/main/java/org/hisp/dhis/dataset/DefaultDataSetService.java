@@ -39,7 +39,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInfo;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
