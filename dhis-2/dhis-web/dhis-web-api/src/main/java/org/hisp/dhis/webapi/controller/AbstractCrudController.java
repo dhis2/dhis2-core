@@ -641,8 +641,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        T object = entity.get( 0 );
-        
+        T object = entity.get( 0 );        
         User user = currentUserService.getCurrentUser();
         
         object.getFavorites().add( user );
@@ -653,29 +652,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_HTML_VALUE } )
-    @ResponseStatus( HttpStatus.OK )
-    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        List<T> entity = getEntity( pvUid );
-        
-        if ( entity.isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
-        }
-
-        T object = entity.get( 0 );
-        
-        User user = currentUserService.getCurrentUser();
-        
-        object.getFavorites().remove( user );        
-        manager.updateNoAcl( object );
-        
-        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
-        
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
-    }
-    
     //--------------------------------------------------------------------------
     // PUT
     //--------------------------------------------------------------------------
@@ -805,6 +781,28 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
     }
 
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_HTML_VALUE } )
+    @ResponseStatus( HttpStatus.OK )
+    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        List<T> entity = getEntity( pvUid );
+        
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T object = entity.get( 0 );        
+        User user = currentUserService.getCurrentUser();
+        
+        object.getFavorites().remove( user );        
+        manager.updateNoAcl( object );
+        
+        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
+        
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+    
     //--------------------------------------------------------------------------
     // Identifiable object collections add, delete
     //--------------------------------------------------------------------------
