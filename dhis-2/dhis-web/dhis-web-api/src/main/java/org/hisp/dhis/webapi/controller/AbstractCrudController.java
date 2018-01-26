@@ -641,8 +641,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        T object = entity.get( 0 );        
+        T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
+        
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
         
         object.getFavorites().add( user );
         manager.updateNoAcl( object );
@@ -792,9 +797,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        T object = entity.get( 0 );        
-        User user = currentUserService.getCurrentUser();
-        
+        T object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();  
+
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
+              
         object.getFavorites().remove( user );        
         manager.updateNoAcl( object );
         
