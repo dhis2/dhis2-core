@@ -63,9 +63,6 @@ public class TextPatternParser
         // True if we just parsed a Segment, False if we parsed a join or haven't parsed anything.
         boolean segment = false;
 
-        // You can only have 1 generated segment
-        boolean hasGeneratedSegment = false;
-
         boolean invalidExpression = true;
 
         Matcher m;
@@ -82,7 +79,7 @@ public class TextPatternParser
         /*
          * We go trough all matches. Matches can be one of the following:
          * a TEXT method ("..")
-         * any TextPatternMethod (Exluding TEXT) (method(param))
+         * any TextPatternMethod (Excluding TEXT) (method(param))
          * a join ( + )
          *
          * Matches that are invalid includes methods with unknown method names
@@ -127,21 +124,6 @@ public class TextPatternParser
                         // Only add if valid syntax, else it will throw exception after if-else.
                         if ( textPatternMethod.getType().validatePattern( method ) )
                         {
-
-                            if ( textPatternMethod.getType() instanceof GeneratedMethodType )
-                            {
-                                if ( hasGeneratedSegment )
-                                {
-                                    throw new TextPatternParsingException(
-                                        "Pattern can not contain multiple sequence methods or random methods: '" +
-                                            pattern + "'", m.start( "Segment" ) );
-                                }
-                                else
-                                {
-                                    hasGeneratedSegment = true;
-                                }
-                            }
-
                             segment = true;
                             segments.add( new TextPatternSegment( textPatternMethod, method ) );
                             continue;
@@ -173,10 +155,6 @@ public class TextPatternParser
                     segment = false;
                 }
 
-            }
-            else
-            {
-                throw new TextPatternParsingException( "Unknown input: '" + m.group( "Segment" ) + "'", -1 );
             }
         }
 

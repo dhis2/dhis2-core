@@ -46,7 +46,6 @@ import java.util.stream.IntStream;
 public class HibernateSequentialNumberCounterStore
     implements SequentialNumberCounterStore
 {
-
     protected SessionFactory sessionFactory;
 
     public void setSessionFactory( SessionFactory sessionFactory )
@@ -59,31 +58,24 @@ public class HibernateSequentialNumberCounterStore
     {
         Session session = sessionFactory.getCurrentSession();
 
-        try
+        int count;
+
+        SequentialNumberCounter counter = (SequentialNumberCounter) session
+            .createQuery( "FROM SequentialNumberCounter WHERE owneruid = ? AND key = ?" )
+            .setParameter( 0, uid )
+            .setParameter( 1, key )
+            .uniqueResult();
+
+        if ( counter == null )
         {
-            int count;
-
-            SequentialNumberCounter counter = (SequentialNumberCounter) session
-                .createQuery( "FROM SequentialNumberCounter WHERE ownerUID = ? AND key = ?" )
-                .setParameter( 0, uid )
-                .setParameter( 1, key )
-                .uniqueResult();
-
-            if ( counter == null )
-            {
-                counter = new SequentialNumberCounter( uid, key, 1 );
-            }
-
-            count = counter.getCounter();
-            counter.setCounter( count + length );
-            session.saveOrUpdate( counter );
-
-            return IntStream.range( count, count + length ).boxed().collect( Collectors.toList() );
+            counter = new SequentialNumberCounter( uid, key, 1 );
         }
-        catch ( RuntimeException e )
-        {
-            throw e;
-        }
+
+        count = counter.getCounter();
+        counter.setCounter( count + length );
+        session.saveOrUpdate( counter );
+
+        return IntStream.range( count, count + length ).boxed().collect( Collectors.toList() );
 
     }
 
@@ -93,7 +85,7 @@ public class HibernateSequentialNumberCounterStore
         Session session = sessionFactory.getCurrentSession();
 
         sessionFactory.getCurrentSession()
-            .createQuery( "FROM SequentialNumberCounter WHERE ownerUID = ?" )
+            .createQuery( "FROM SequentialNumberCounter WHERE owneruid = ?" )
             .setParameter( 0, uid )
             .list()
             .stream()

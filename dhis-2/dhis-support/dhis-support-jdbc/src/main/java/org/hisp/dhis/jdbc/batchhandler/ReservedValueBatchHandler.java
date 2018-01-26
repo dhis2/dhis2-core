@@ -28,6 +28,7 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
@@ -69,26 +70,26 @@ public class ReservedValueBatchHandler
     @Override
     public List<String> getIdentifierColumns()
     {
-        return getStringList( "clazz", "ownerUid", "key", "value" );
+        return getStringList( "ownerobject", "owneruid", "key", "value" );
     }
 
     @Override
     public List<Object> getIdentifierValues( ReservedValue object )
     {
-        return getObjectList( object.getClazz(), object.getOwnerUid(), object.getKey(), object.getValue() );
+        return getObjectList( object.getOwnerObject(), object.getOwnerUid(), object.getKey(), object.getValue() );
     }
 
     @Override
     public List<String> getUniqueColumns()
     {
-        return getStringList( "clazz", "owneruid", "key", "value" );
+        return getStringList( "ownerobject", "owneruid", "key", "value" );
     }
 
     @Override
     public List<Object> getUniqueValues( ReservedValue object )
     {
         return getObjectList(
-            object.getClazz(),
+            object.getOwnerObject().name(),
             object.getOwnerUid(),
             object.getKey(),
             object.getValue()
@@ -98,14 +99,14 @@ public class ReservedValueBatchHandler
     @Override
     public List<String> getColumns()
     {
-        return getStringList( "clazz", "ownerUid", "key", "value", "expires" );
+        return getStringList( "ownerobject", "owneruid", "key", "value", "expires" );
     }
 
     @Override
     public List<Object> getValues( ReservedValue object )
     {
         return getObjectList(
-            object.getClazz(),
+            object.getOwnerObject().name(),
             object.getOwnerUid(),
             object.getKey(),
             object.getValue(),
@@ -122,7 +123,8 @@ public class ReservedValueBatchHandler
         ReservedValue rv = new ReservedValue();
 
         expires.setTime( resultSet.getDate( "expires" ) );
-        rv.setClazz( resultSet.getString( "clazz" ) );
+
+        rv.setOwnerObject( Objects.valueOf( resultSet.getString( "ownerobject" ) ) );
         rv.setOwnerUid( resultSet.getString( "ownerUid" ) );
         rv.setKey( resultSet.getString( "key" ) );
         rv.setValue( resultSet.getString( "value" ) );

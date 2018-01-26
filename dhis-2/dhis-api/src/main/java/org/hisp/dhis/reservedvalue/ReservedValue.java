@@ -47,7 +47,7 @@ public class ReservedValue
      */
     private static final long serialVersionUID = 334738541365949298L;
 
-    private String clazz;
+    private org.hisp.dhis.common.Objects ownerObject;
 
     private String ownerUid;
 
@@ -62,13 +62,25 @@ public class ReservedValue
 
     }
 
-    public ReservedValue( String clazz, String ownerUid, String key, String value, Date expires )
+    public ReservedValue( org.hisp.dhis.common.Objects ownerObject, String ownerUid, String key, String value, Date expires )
     {
-        this.clazz = clazz;
+        this.ownerObject = ownerObject;
         this.ownerUid = ownerUid;
         this.key = key;
         this.value = value;
         this.expires = expires;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public org.hisp.dhis.common.Objects getOwnerObject()
+    {
+        return ownerObject;
+    }
+
+    public void setOwnerObject( org.hisp.dhis.common.Objects ownerObject )
+    {
+        this.ownerObject = ownerObject;
     }
 
     @JsonProperty
@@ -119,18 +131,6 @@ public class ReservedValue
         this.expires = expires;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getClazz()
-    {
-        return clazz;
-    }
-
-    public void setClazz( String clazz )
-    {
-        this.clazz = clazz;
-    }
-
     @Override
     public boolean equals( Object o )
     {
@@ -139,7 +139,7 @@ public class ReservedValue
         if ( o == null || getClass() != o.getClass() )
             return false;
         ReservedValue that = (ReservedValue) o;
-        return Objects.equals( clazz, that.clazz ) &&
+        return Objects.equals( ownerObject, that.ownerObject ) &&
             Objects.equals( ownerUid, that.ownerUid ) &&
             Objects.equals( key, that.key ) &&
             Objects.equals( value, that.value );
@@ -149,14 +149,14 @@ public class ReservedValue
     public int hashCode()
     {
 
-        return Objects.hash( clazz, ownerUid, key, value );
+        return Objects.hash( ownerObject, ownerUid, key, value );
     }
 
     @Override
     public String toString()
     {
         return "ReservedValue{" +
-            "clazz='" + clazz + '\'' +
+            "ownerObject='" + ownerObject + '\'' +
             ", ownerUid='" + ownerUid + '\'' +
             ", key='" + key + '\'' +
             ", value='" + value + '\'' +

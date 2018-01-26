@@ -30,6 +30,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.reservedvalue.ReservedValue;
@@ -57,11 +58,11 @@ public class HibernateReservedValueStoreTest
 
     private static int counter = 1;
 
-    private final ReservedValue RESERVED_VALUE = new ReservedValue( TrackedEntityAttribute.class.getSimpleName(), "A",
+    private final ReservedValue RESERVED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE, "A",
         "00X", "001",
         null );
 
-    private final ReservedValue USED_VALUE = new ReservedValue( TrackedEntityAttribute.class.getSimpleName(), "A",
+    private final ReservedValue USED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE, "A",
         "00X", "002",
         null );
 
@@ -244,7 +245,7 @@ public class HibernateReservedValueStoreTest
     private ReservedValue getFreeReservedValue()
     {
         return new ReservedValue(
-            TrackedEntityAttribute.class.getSimpleName(),
+            Objects.TRACKEDENTITYATTRIBUTE,
             "FREE",
             "00X",
             String.format( "%03d", counter++ ),

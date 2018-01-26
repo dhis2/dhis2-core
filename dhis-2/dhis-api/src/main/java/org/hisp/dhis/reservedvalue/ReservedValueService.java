@@ -29,6 +29,7 @@ package org.hisp.dhis.reservedvalue;
  */
 
 import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternService;
 
 import java.util.Date;
 import java.util.List;
@@ -40,7 +41,16 @@ import java.util.Map;
 public interface ReservedValueService
 {
     List<String> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
-        throws Exception;
+        throws ReserveValueException, TextPatternService.TextPatternGenerationException;
 
     boolean useReservedValue( TextPattern textPattern, String value );
+
+    class ReserveValueException
+        extends Exception
+    {
+        ReserveValueException( String message )
+        {
+            super( "Could not reserve value: "+ message );
+        }
+    }
 }

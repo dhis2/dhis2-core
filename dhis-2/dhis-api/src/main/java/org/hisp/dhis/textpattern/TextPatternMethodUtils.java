@@ -41,12 +41,12 @@ public class TextPatternMethodUtils
     /**
      * Returns a random String based on the format. The format (As specified in TextPatternMethod) can contain '#' digits,
      * 'X' capital letters and 'x' lower case letters.
+     * @param random a Random object to generate random numbers
      * @param format the format (as specified in TextPatternMethod)
      * @return the string generated
      */
-    public static String generateRandom( String format )
+    public static String generateRandom( Random random, String format )
     {
-        Random random = new Random();
         StringBuilder result = new StringBuilder();
 
         for ( char c : format.toCharArray() )

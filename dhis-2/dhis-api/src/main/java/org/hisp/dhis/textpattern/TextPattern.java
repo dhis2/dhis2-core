@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Objects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,7 @@ public class TextPattern
 {
     private ImmutableList<TextPatternSegment> segments;
 
-    private String clazz;
+    private Objects ownerObject;
 
     private String ownerUID;
 
@@ -78,14 +79,14 @@ public class TextPattern
         this.segments = ImmutableList.copyOf( segments );
     }
 
-    public String getClazz()
+    public Objects getOwnerObject()
     {
-        return clazz;
+        return ownerObject;
     }
 
-    public void setClazz( String clazz )
+    public void setOwnerObject( Objects ownerObject )
     {
-        this.clazz = clazz;
+        this.ownerObject = ownerObject;
     }
     
     @JsonProperty

@@ -53,7 +53,8 @@ public class TextPatternValidationUtils
 
             if ( generatedSegment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
             {
-                return (int) Math.pow( 10, generatedSegment.getParameter().length() );
+                // Subtract by 1 since we don't use all zeroes.
+                return ((int) Math.pow( 10, generatedSegment.getParameter().length() )) - 1;
             }
             else if ( generatedSegment.getMethod().equals( TextPatternMethod.RANDOM ) )
             {

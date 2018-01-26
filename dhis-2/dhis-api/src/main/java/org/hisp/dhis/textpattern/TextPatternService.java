@@ -46,7 +46,7 @@ public interface TextPatternService
      * @return a string represeting the pattern with values
      */
     String resolvePattern( TextPattern pattern, Map<String, String> values )
-        throws Exception;
+        throws TextPatternGenerationException;
 
     /**
      * Returns a list of values that are required to resolve the pattern
@@ -60,4 +60,13 @@ public interface TextPatternService
 
     TextPattern getTextPattern( TrackedEntityAttribute attribute )
         throws Exception;
+
+    class TextPatternGenerationException
+        extends Exception
+    {
+        TextPatternGenerationException( String message )
+        {
+            super( "Could not generate value: "+ message );
+        }
+    }
 }

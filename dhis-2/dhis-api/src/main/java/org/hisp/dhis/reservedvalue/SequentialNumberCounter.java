@@ -35,7 +35,7 @@ public class SequentialNumberCounter
 {
     private int id;
 
-    private String ownerUID;
+    private String ownerUid;
 
     private String key;
 
@@ -43,12 +43,12 @@ public class SequentialNumberCounter
 
     public SequentialNumberCounter()
     {
-
+        counter = 0;
     }
 
-    public SequentialNumberCounter( String ownerUID, String key, int counter )
+    public SequentialNumberCounter( String ownerUid, String key, int counter )
     {
-        this.ownerUID = ownerUID;
+        this.ownerUid = ownerUid;
         this.key = key;
         this.counter = counter;
     }
@@ -63,14 +63,14 @@ public class SequentialNumberCounter
         this.id = id;
     }
 
-    public String getOwnerUID()
+    public String getOwnerUid()
     {
-        return ownerUID;
+        return ownerUid;
     }
 
-    public void setOwnerUID( String ownerUID )
+    public void setOwnerUid( String ownerUID )
     {
-        this.ownerUID = ownerUID;
+        this.ownerUid = ownerUid;
     }
 
     public String getKey()

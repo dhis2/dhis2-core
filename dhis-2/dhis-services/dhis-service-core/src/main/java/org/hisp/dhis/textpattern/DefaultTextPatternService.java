@@ -45,7 +45,7 @@ public class DefaultTextPatternService
 {
     @Override
     public String resolvePattern( TextPattern pattern, Map<String, String> values )
-        throws Exception
+        throws TextPatternGenerationException
     {
         StringBuilder resolvedPattern = new StringBuilder();
 
@@ -118,11 +118,11 @@ public class DefaultTextPatternService
     }
 
     private String handleOptionalValue( TextPatternSegment segment, String value )
-        throws Exception
+        throws TextPatternGenerationException
     {
         if ( value != null && !TextPatternValidationUtils.validateSegmentValue( segment, value ) )
         {
-            throw new Exception( "Supplied optional value is invalid" );
+            throw new TextPatternGenerationException( "Supplied optional value is invalid" );
         }
         else if ( value != null )
         {
@@ -135,18 +135,18 @@ public class DefaultTextPatternService
     }
 
     private String handleRequiredValue( TextPatternSegment segment, String value )
-        throws Exception
+        throws TextPatternGenerationException
     {
         if ( value == null )
         {
-            throw new Exception( "Missing required value" );
+            throw new TextPatternGenerationException( "Missing required value '" + segment.getRawSegment() + "'" );
         }
 
         String res = getFormattedValue( segment, value );
 
         if ( res == null || !TextPatternValidationUtils.validateSegmentValue( segment, res ) )
         {
-            throw new Exception( "Value is invalid: " + segment.getRawSegment() + " -> " + value );
+            throw new TextPatternGenerationException( "Value is invalid: " + segment.getRawSegment() + " -> " + value );
         }
 
         return res;

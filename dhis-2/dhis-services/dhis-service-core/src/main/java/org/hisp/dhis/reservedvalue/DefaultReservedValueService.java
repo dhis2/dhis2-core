@@ -30,6 +30,7 @@ package org.hisp.dhis.reservedvalue;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.sun.javafx.binding.StringFormatter;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternMethod;
 import org.hisp.dhis.textpattern.TextPatternMethodUtils;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -63,38 +65,36 @@ public class DefaultReservedValueService
     @Override
     public List<String> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
         Date expires )
-        throws Exception
+        throws ReserveValueException, TextPatternService.TextPatternGenerationException
     {
         int attemptsLeft = 10;
 
         List<String> resultList = new ArrayList<>();
 
-        String key = textPatternService.resolvePattern( textPattern, values );
-
-        ReservedValue reservedValue = new ReservedValue( textPattern.getClazz(), textPattern.getOwnerUID(), key, null,
-            expires );
-
         TextPatternSegment generatedSegment = getGeneratedSegment( textPattern );
 
-        if ( !hasEnoughValuesLeft( reservedValue, TextPatternValidationUtils.getTotalValuesPotential( generatedSegment ),
+        String key = textPatternService.resolvePattern( textPattern, values );
+
+        // Used for searching value tables
+        String valueKey = (generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key);
+
+        ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject(), textPattern.getOwnerUID(), key,
+            valueKey,
+            expires );
+
+        if ( !hasEnoughValuesLeft( reservedValue,
+            TextPatternValidationUtils.getTotalValuesPotential( generatedSegment ),
             numberOfReservations ) )
         {
-            throw new Exception( "Not enough values left to reserve " + numberOfReservations + " values." );
+            throw new ReserveValueException( "Not enough values left to reserve " + numberOfReservations + " values." );
         }
 
-        if ( generatedSegment == null )
+        if ( generatedSegment == null && numberOfReservations == 1 )
         {
-            if ( numberOfReservations == 1 )
-            {
-                reservedValue.setValue( key );
-                reservedValueStore.reserveValues( reservedValue, Lists.newArrayList( key ) );
+            reservedValue.setValue( key );
+            reservedValueStore.reserveValues( reservedValue, Lists.newArrayList( key ) );
 
-                return Lists.newArrayList( key );
-            }
-            else
-            {
-                throw new Exception( "Trying to reserve multiple values based on pattern with no generated segment." );
-            }
+            return Lists.newArrayList( key );
         }
 
         while ( attemptsLeft-- > 0 && resultList.size() < numberOfReservations )
@@ -148,14 +148,14 @@ public class DefaultReservedValueService
             generatedValues.addAll( sequentialNumberCounterStore
                 .getNextValues( textPattern.getOwnerUID(), segment.getParameter(), numberOfValues )
                 .stream()
-                .map( Object::toString )
+                .map( ( n ) -> StringFormatter.format( "%0" + segment.getParameter().length() + "d", n ).getValue() )
                 .collect( Collectors.toList() ) );
         }
         else if ( segment.getMethod().equals( TextPatternMethod.RANDOM ) )
         {
             for ( int i = 0; i < numberOfValues; i++ )
             {
-                generatedValues.add( TextPatternMethodUtils.generateRandom( segment.getParameter() ) );
+                generatedValues.add( TextPatternMethodUtils.generateRandom( new Random(), segment.getParameter() ) );
             }
         }
 

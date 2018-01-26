@@ -327,6 +327,7 @@ public class HibernateDbmsManager
         dropTable( "_dataapprovalminlevel" );
 
         emptyTable( "reservedvalue" );
+        emptyTable( "sequentialnumbercounter" );
 
         log.debug( "Cleared database contents" );
 

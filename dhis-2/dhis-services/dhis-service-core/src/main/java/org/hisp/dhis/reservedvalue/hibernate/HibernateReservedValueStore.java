@@ -33,7 +33,6 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.batchhandler.ReservedValueBatchHandler;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
 /**
  * @author Stian Sandvold
@@ -68,11 +69,12 @@ public class HibernateReservedValueStore
 
         availableValues.forEach( ( value ) -> {
             ReservedValue rv = new ReservedValue(
-                reservedValue.getClazz(),
+                reservedValue.getOwnerObject(),
                 reservedValue.getOwnerUid(),
                 reservedValue.getKey(),
                 value,
-                reservedValue.getExpires() );
+                reservedValue.getExpires()
+            );
 
             batchHandler.addObject( rv );
             toAdd.add( rv );
@@ -89,7 +91,7 @@ public class HibernateReservedValueStore
         List<String> values )
     {
         return (List<ReservedValue>) getCriteria()
-            .add( Restrictions.eq( "clazz", reservedValue.getClazz() ) )
+            .add( Restrictions.eq( "ownerObject", reservedValue.getOwnerObject() ) )
             .add( Restrictions.eq( "ownerUid", reservedValue.getOwnerUid() ) )
             .add( Restrictions.eq( "key", reservedValue.getKey() ) )
             .add( Restrictions.in( "value", values ) )
@@ -99,21 +101,26 @@ public class HibernateReservedValueStore
     @Override
     public int getNumberOfUsedValues( ReservedValue reservedValue )
     {
-        int count = (int) getQuery( "SELECT count(ReservedValue) FROM ReservedValue WHERE uid = :uid AND key = :key" )
+        Long count = (long) getQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key" )
             .setParameter( "uid", reservedValue.getOwnerUid() )
             .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
-        if ( reservedValue.getClazz().equals( TrackedEntityAttribute.class.getSimpleName() ) )
+        if ( reservedValue.getOwnerObject().equals( TRACKEDENTITYATTRIBUTE ) )
         {
-            count += (int) getQuery(
-                "SELECT count(TrackedEntityAttributeValue) FROM TrackedEntityAttributeValue WHERE uid = :uid AND value = :value " )
+            count += (long) getQuery(
+                "SELECT count(*) " +
+                    "FROM TrackedEntityAttributeValue " +
+                    "WHERE attribute = " +
+                        "( FROM TrackedEntityAttribute " +
+                        "WHERE uid = :uid ) " +
+                    "AND value LIKE :value " )
                 .setParameter( "uid", reservedValue.getOwnerUid() )
                 .setParameter( "value", reservedValue.getValue() )
                 .getSingleResult();
         }
 
-        return count;
+        return count.intValue();
     }
 
     @Override
@@ -127,7 +134,7 @@ public class HibernateReservedValueStore
     @Override
     public boolean useReservedValue( String ownerUID, String value )
     {
-        return getQuery( "DELETE FROM ReservedValue WHERE uid = :uid AND value = :value" )
+        return getQuery( "DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value" )
             .setParameter( "uid", ownerUID )
             .setParameter( "value", value )
             .executeUpdate() == 1;
@@ -141,7 +148,7 @@ public class HibernateReservedValueStore
             .map( ReservedValue::getValue )
             .collect( Collectors.toList() ) );
 
-        if ( reservedValue.getClazz().equals( TrackedEntityAttribute.class.getSimpleName() ) )
+        if ( reservedValue.getOwnerObject().equals( TRACKEDENTITYATTRIBUTE ) )
         {
             values.removeAll( getSqlQuery(
                 "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )

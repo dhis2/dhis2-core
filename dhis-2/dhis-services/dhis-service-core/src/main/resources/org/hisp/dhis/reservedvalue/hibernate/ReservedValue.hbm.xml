@@ -7,7 +7,13 @@
     <class name="org.hisp.dhis.reservedvalue.ReservedValue" table="reservedvalue">
 
         <composite-id>
-            <key-property name="clazz" />
+            <key-property name="ownerObject" column="ownerobject">
+                <type name="org.hibernate.type.EnumType">
+                    <param name="enumClass">org.hisp.dhis.common.Objects</param>
+                    <param name="useNamed">true</param>
+                    <param name="type">12</param>
+                </type>
+            </key-property>
             <key-property name="ownerUid" />
             <key-property name="key" />
             <key-property name="value" />
@@ -16,5 +22,4 @@
         <property name="expires" not-null="true"/>
 
     </class>
-
 </hibernate-mapping>
