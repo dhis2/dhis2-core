@@ -653,7 +653,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         manager.updateNoAcl( object );
         
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
-        
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
@@ -808,8 +807,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         object.getFavorites().remove( user );        
         manager.updateNoAcl( object );
         
-        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
-        
+        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );        
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
     
