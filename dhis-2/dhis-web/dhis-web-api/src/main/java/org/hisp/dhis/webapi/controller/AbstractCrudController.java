@@ -1159,7 +1159,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             addAccessProperties( entityList, user );
         }
     }
-    
+
     private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
     {
         if ( inclusionStrategy != null )
