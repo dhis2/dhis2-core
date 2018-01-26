@@ -630,7 +630,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return null;
     }
 
-    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_HTML_VALUE } )
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
     public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
@@ -785,7 +785,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_HTML_VALUE } )
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
     public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
