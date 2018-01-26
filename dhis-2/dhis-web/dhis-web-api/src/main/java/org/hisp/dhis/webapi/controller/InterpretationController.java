@@ -69,10 +69,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -405,12 +407,16 @@ public class InterpretationController
                 }
 
                 comment.setText( content );
-                comment.setMentions( interpretationService.updateMentions( content ) );
+                Set<User> users = interpretationService.getMentionedUsers( content ); 
+                comment.setMentions(  users );
+                interpretationService.updateSharingForMentions(interpretation, users);
                 interpretationService.updateInterpretation( interpretation );
+                interpretationService.sendNotifications(interpretation, comment, users);
+                
             }
         }
 
-        interpretationService.updateInterpretation( interpretation );
+//        interpretationService.updateInterpretation( interpretation );
     }
 
     @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.DELETE )

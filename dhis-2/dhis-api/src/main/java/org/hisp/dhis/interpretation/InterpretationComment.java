@@ -40,6 +40,7 @@ import org.hisp.dhis.user.User;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -93,5 +94,18 @@ public class InterpretationComment
     public void setMentions( List<Mention> mentions )
     {
         this.mentions = mentions;
+    }
+    
+    public void setMentions( Set<User> users )
+    {
+        List<Mention> mentions = new ArrayList<Mention>();
+        for ( User user : users )
+        {
+            Mention mention = new Mention();
+            mention.setCreated( new Date() );
+            mention.setUsername( user.getUsername() );
+            mentions.add( mention );
+        }
+        this.mentions =  (mentions.size() > 0) ? mentions : null;
     }
 }
