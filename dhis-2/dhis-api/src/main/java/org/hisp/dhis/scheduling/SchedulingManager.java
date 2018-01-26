@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,10 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
+import org.springframework.util.concurrent.ListenableFuture;
+
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
 /**
@@ -52,6 +53,14 @@ import java.util.concurrent.ScheduledFuture;
 public interface SchedulingManager
 {
     /**
+     * Method which lets jobs subscribe to the scheduling manger.
+     *
+     * @param jobType job type {@link JobType}
+     * @param jobId the bean id of the job
+     */
+    void addJob( JobType jobType, String jobId );
+
+    /**
      * Check if this jobconfiguration is currently running
      *
      * @param jobConfiguration the job to check
@@ -67,6 +76,13 @@ public interface SchedulingManager
 
     /**
      * Set up default behavior for a finished job.
+     *
+     * A special case is if a job is disabled when running, but the job does not stop. The job wil run normally one last time and
+     * try to set finished status. Since the job is disabled we manually set these parameters in this method so that the
+     * job is not automatically rescheduled.
+     *
+     * Also we dont want to update a job configuration of the job is deleted.
+     *
      * @param jobConfiguration the job which started
      */
     void jobConfigurationFinished( JobConfiguration jobConfiguration );
@@ -86,45 +102,17 @@ public interface SchedulingManager
      */
     void scheduleJob( JobConfiguration jobConfiguration );
 
-    void scheduleJob( Date date, JobConfiguration jobConfiguration );
-
-    /**
-     * Schedule a collection of jobs
-     *
-     * @param jobConfigurations the jobs to schedule
-     */
-    void scheduleJobs( List<JobConfiguration> jobConfigurations );
-
-    /**
-     * Schedules a job with the given job configuration with a fixed delay
-     *
-     * @param jobConfiguration the job to schedule.
-     */
-    void scheduleJobWithFixedDelay( JobConfiguration jobConfiguration, Date delay, int interval );
-
-    void scheduleJobAtFixedRate( JobConfiguration jobConfiguration, int interval );
-
     /**
      * Stops one job.
      */
     void stopJob( JobConfiguration jobConfiguration );
 
     /**
-     * Stops all jobs.
-     */
-    void stopAllJobs();
-
-    /**
-     * Refreshes the given job
-     */
-    void refreshJob( JobConfiguration jobConfiguration );
-
-    /**
      * Execute the job.
      *
      * @param jobConfiguration The configuration of the job to be executed
      */
-    void executeJob( JobConfiguration jobConfiguration );
+    boolean executeJob( JobConfiguration jobConfiguration );
 
     /**
      * Execute an actual job without validation
@@ -134,12 +122,13 @@ public interface SchedulingManager
     void executeJob( Runnable job );
 
     /**
-     * Resolve the cron expression mapped for the given task key, or null if none.
+     * Execute the given job immediately and return a ListenableFuture.
      *
-     * @param jobKey the key of the job, not null.
-     * @return the cron for the job or null.
+     * @param callable the job to execute.
+     * @param <T> return type of the supplied callable.
+     * @return a ListenableFuture representing the result of the job.
      */
-    String getCronForJob( final String jobKey );
+    <T> ListenableFuture<T> executeJob( Callable<T> callable );
 
     /**
      * Returns a list of all scheduled jobs sorted based on cron expression and the current time.
@@ -147,15 +136,4 @@ public interface SchedulingManager
      * @return list of jobs
      */
     Map<String, ScheduledFuture<?>> getAllFutureJobs();
-
-    /**
-     * Gets the job status.
-     */
-    JobStatus getJobStatus( String jobKey );
-
-    /**
-     * Returns the status of the currently executing job.
-     */
-    boolean isJobInProgress( String jobKey );
-
 }

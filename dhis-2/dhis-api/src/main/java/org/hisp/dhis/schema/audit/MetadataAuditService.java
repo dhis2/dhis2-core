@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.audit;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.schema.audit;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import java.util.List;
@@ -43,12 +42,7 @@ public interface MetadataAuditService
      */
     void addMetadataAudit( MetadataAudit audit );
 
-    /**
-     * Removes the given MetadataAudit instance.
-     *
-     * @param audit Instance to remove
-     */
-    void deleteMetadataAudit( MetadataAudit audit );
+    int count( MetadataAuditQuery query );
 
-    List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query );
+    List<MetadataAudit> query( MetadataAuditQuery query );
 }

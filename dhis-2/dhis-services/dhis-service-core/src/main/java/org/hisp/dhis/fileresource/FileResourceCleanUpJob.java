@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,11 +47,10 @@ import java.util.List;
  * @author Halvdan Hoem Grelland
  */
 public class FileResourceCleanUpJob
-    implements Job
+    extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( FileResourceCleanUpJob.class );
 
-    // HH verify that autowiring works
     @Autowired
     private FileResourceService fileResourceService;
 
@@ -91,12 +90,17 @@ public class FileResourceCleanUpJob
 
         StringBuilder sb = new StringBuilder( "[ " );
 
-        list.forEach( pair -> sb.append( pair.getLeft() ).append( " , uid: " ).append( pair.getRight() ).append( ", " ) );
+        list.forEach(
+            pair -> sb.append( pair.getLeft() ).append( " , uid: " ).append( pair.getRight() ).append( ", " ) );
 
         sb.deleteCharAt( sb.lastIndexOf( "," ) ).append( "]" );
 
         return sb.toString();
     }
 
-
+    @Override
+    protected String getJobId()
+    {
+        return "fileResourceCleanUpJob";
+    }
 }

@@ -1,30 +1,76 @@
 package org.hisp.dhis.startup;
 
-import com.google.common.collect.Sets;
+/*
+ * Copyright (c) 2004-2018, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import com.google.api.client.util.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.commons.util.CronUtils;
+import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.scheduling.DefaultJobConfigurationService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hisp.dhis.scheduling.JobType.*;
+import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.CREDENTIALS_EXPIRY_ALERT;
+import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
+import static org.hisp.dhis.scheduling.JobType.DATA_STATISTICS;
+import static org.hisp.dhis.scheduling.JobType.DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.FILE_RESOURCE_CLEANUP;
+import static org.hisp.dhis.scheduling.JobType.META_DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.MONITORING;
+import static org.hisp.dhis.scheduling.JobType.PROGRAM_NOTIFICATIONS;
+import static org.hisp.dhis.scheduling.JobType.PUSH_ANALYSIS;
+import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
+import static org.hisp.dhis.scheduling.JobType.SEND_SCHEDULED_MESSAGE;
+import static org.hisp.dhis.scheduling.JobType.VALIDATION_RESULTS_NOTIFICATION;
 
 /**
  * Handles porting from the old scheduler to the new.
  *
  * @author Henning Håkonsen
  */
+@Transactional
 public class SchedulerUpgrade
     extends AbstractStartupRoutine
 {
@@ -47,12 +93,19 @@ public class SchedulerUpgrade
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    boolean addDefaultJob( String name, List<JobConfiguration> jobConfigurations )
+    private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
+
+    public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> store )
+    {
+        this.pushAnalysisStore = store;
+    }
+
+    private boolean addDefaultJob( String name, List<JobConfiguration> jobConfigurations )
     {
         return jobConfigurations.stream().noneMatch( jobConfiguration -> jobConfiguration.getName().equals( name ) );
     }
 
-    void addAndScheduleJob( JobConfiguration jobConfiguration )
+    private void addAndScheduleJob( JobConfiguration jobConfiguration )
     {
         jobConfigurationService.addJobConfiguration( jobConfiguration );
         schedulingManager.scheduleJob( jobConfiguration );
@@ -127,8 +180,10 @@ public class SchedulerUpgrade
             addAndScheduleJob( dataSetNotification );
         }
 
+        @SuppressWarnings( "unchecked" )
         ListMap<String, String> scheduledSystemSettings = (ListMap<String, String>) systemSettingManager
             .getSystemSetting( "keySchedTasks" );
+
         if ( scheduledSystemSettings != null && scheduledSystemSettings.containsKey( "ported" ) )
         {
             log.info( "Scheduler ported" );
@@ -144,8 +199,7 @@ public class SchedulerUpgrade
                 (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
 
             JobConfiguration analytics = new JobConfiguration( "Analytics", ANALYTICS_TABLE, null,
-                new AnalyticsJobParameters( null, Sets
-                    .newHashSet(), false ), false, true );
+                new AnalyticsJobParameters( null, Sets.newHashSet(), false ), false, true );
             analytics.setLastExecuted(
                 (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulAnalyticsTablesUpdate" ) );
 
@@ -203,12 +257,40 @@ public class SchedulerUpgrade
                     log.error( "Could not map job type '" + jobType + "' with cron '" + cron + "'" );
                 }
             } ) );
+
+            log.info("Moving existing Push Analysis jobs." );
+
+            pushAnalysisStore
+                .getAll()
+                .forEach( ( pa ) -> {
+                    String cron;
+
+                    switch ( pa.getSchedulingFrequency() )
+                    {
+                    case DAILY:
+                        cron = CronUtils.getDailyCronExpression( 0, 4 );
+                        break;
+                    case WEEKLY:
+                        cron = CronUtils.getWeeklyCronExpression( 0, 4, pa.getSchedulingDayOfFrequency() );
+                        break;
+                    case MONTHLY:
+                        cron = CronUtils.getMonthlyCronExpression( 0, 4, pa.getSchedulingDayOfFrequency() );
+                        break;
+                    default:
+                        cron = "";
+                        break;
+                    }
+
+                    addAndScheduleJob( new JobConfiguration( "PushAnalysis: " + pa.getUid(), PUSH_ANALYSIS, cron,
+                            new PushAnalysisJobParameters( pa.getUid() ),
+                            true, pa.getEnabled() ) );
+                } );
+
+            ListMap<String, String> emptySystemSetting = new ListMap<>();
+            emptySystemSetting.putValue( "ported", "" );
+
+            log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
+            systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
         }
-
-        ListMap<String, String> emptySystemSetting = new ListMap<>();
-        emptySystemSetting.putValue( "ported", "" );
-
-        log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
-        systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
     }
 }

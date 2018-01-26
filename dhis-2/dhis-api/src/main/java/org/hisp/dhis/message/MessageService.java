@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,10 +94,10 @@ public interface MessageService
     List<UserMessage> getLastRecipients( int first, int max );
 
     /**
-     * Returns true is user is part of the feedbackRecipients group
+     * Returns true if user is part of the feedback recipients group.
      *
      * @param user user to check
-     * @return
+     * @return true if user is part of the feedback recipients group.
      */
     boolean hasAccessToManageFeedbackMessages( User user );
 }

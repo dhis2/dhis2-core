@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.monitoring;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@ package org.hisp.dhis.dxf2.monitoring;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
@@ -66,7 +66,7 @@ public class DefaultMonitoringService
     private SystemService systemService;
     
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    private DhisConfigurationProvider config;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -77,20 +77,26 @@ public class DefaultMonitoringService
     @PostConstruct
     public void init()
     {
-        // HH schedule to the new scheduler
         Date date = new DateTime().plus( PUSH_INITIAL_DELAY ).toDate();
         
-        scheduler.scheduleWithFixedDelay( () -> pushMonitoringInfo(), date, PUSH_INTERVAL );
+        String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
         
-        log.info( "Scheduled monitoring push service" );
+        if ( StringUtils.isNotBlank( url ) )
+        {
+            log.info( String.format( "Monitoring service configured, URL: %s", url ) );
+        }
+        
+        scheduler.scheduleWithFixedDelay( this::pushMonitoringInfo, date, PUSH_INTERVAL );
+        
+        log.info( "Scheduled monitoring service" );
     }
     
     @Override
     public void pushMonitoringInfo()
     {
-        String url = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_URL );
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_MONITORING_PASSWORD );
+        String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
+        String username = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_USERNAME );
+        String password = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
         
         if ( StringUtils.isBlank( url ) )
         {
@@ -127,7 +133,7 @@ public class DefaultMonitoringService
         }
         catch ( HttpClientErrorException | HttpServerErrorException ex )
         {
-            log.warn( "Monitoring request failed, status code: " + sc, ex );
+            log.warn( String.format( "Monitoring request failed, status code: %s", sc ), ex );
             return;
         }
         catch ( ResourceAccessException ex )
@@ -138,11 +144,11 @@ public class DefaultMonitoringService
         
         if ( response != null && sc != null && sc.is2xxSuccessful() )
         {
-            log.debug( "Monitoring request successfully sent" );
+            log.debug( String.format( "Monitoring request successfully sent, url: %s", url ) );
         }
         else
         {
-            log.warn( "Monitoring request was unsuccessful, status code: " + sc );
+            log.warn( String.format( "Monitoring request was unsuccessful, status code: %s", sc ) );
         }
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.data;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
@@ -60,7 +61,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -101,6 +101,7 @@ public class DefaultQueryPlanner
             .add( q -> groupByAggregationType( q ) )
             .add( q -> groupByDaysInPeriod( q ) )
             .add( q -> groupByDataPeriodType( q ) )
+            .add( q -> groupByPeriod( q ) )
             .addAll( plannerParams.getQueryGroupers() )
             .build();
         
@@ -141,8 +142,21 @@ public class DefaultQueryPlanner
         return queryGroups;
     }
 
+    @Override
+    public DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams )
+    {
+        Partitions partitions = params.hasStartEndDate() ?
+            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
+            PartitionUtils.getPartitions( params.getAllPeriods() );
+
+        return DataQueryParams.newBuilder( params )
+            .withTableName( plannerParams.getTableName() )
+            .withPartitions( partitions )
+            .build();
+    }
+    
     // -------------------------------------------------------------------------
-    // Supportive methods
+    // Supportive split methods
     // -------------------------------------------------------------------------
 
     /**
@@ -184,24 +198,11 @@ public class DefaultQueryPlanner
 
         return DataQueryGroups.newBuilder().withQueries( subQueries ).build();
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive - group by methods
-    // -------------------------------------------------------------------------
-
-    @Override
-    public DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams )
-    {
-        Partitions partitions = params.hasStartEndDate() ?
-            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
-            PartitionUtils.getPartitions( params.getAllPeriods() );
-
-        return DataQueryParams.newBuilder( params )
-            .withTableName( plannerParams.getTableName() )
-            .withPartitions( partitions )
-            .build();
-    }
     
+    // -------------------------------------------------------------------------
+    // Supportive group by methods
+    // -------------------------------------------------------------------------
+
     /**
      * If periods appear as dimensions in the given query; groups the query into
      * sub queries based on the period type of the periods. Sets the period type
@@ -255,10 +256,7 @@ public class DefaultQueryPlanner
             return queries;
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on period type: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "period type" );
 
         return queries;
     }
@@ -305,10 +303,7 @@ public class DefaultQueryPlanner
             return queries;
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on org unit level: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "organisation unit level" );
 
         return queries;
     }
@@ -351,10 +346,7 @@ public class DefaultQueryPlanner
             throw new IllegalQueryException( "Query does not contain any period dimension items" );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on period: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "period start and end date" );
         
         return queries;
     }
@@ -391,10 +383,7 @@ public class DefaultQueryPlanner
             queries.add( query );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on data type: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "data type" );
 
         return queries;
     }
@@ -428,10 +417,10 @@ public class DefaultQueryPlanner
 
         if ( !params.getDataElements().isEmpty() )
         {
-            ListMap<AggregationType, DimensionalItemObject> aggregationTypeDataElementMap = 
+            ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap = 
                 QueryPlannerUtils.getAggregationTypeDataElementMap( params );
 
-            for ( AggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
+            for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
                 DataQueryParams query = DataQueryParams.newBuilder( params )
                     .withDataElements( aggregationTypeDataElementMap.get( aggregationType ) )
@@ -445,14 +434,16 @@ public class DefaultQueryPlanner
             DimensionalObject degs = params.getDataElementGroupSets().get( 0 );
             DataElementGroup deg = (DataElementGroup) (degs.hasItems() ? degs.getItems().get( 0 ) : null);
             
-            AggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), SUM );
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.SUM );
 
             if ( deg != null && !deg.getMembers().isEmpty() )
             {
                 PeriodType periodType = PeriodType.getPeriodTypeByName( params.getPeriodType() );
-                aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), deg.getAggregationType() );
-                aggregationType = QueryPlannerUtils.getAggregationType( 
-                    deg.getValueType(), aggregationType, periodType, deg.getPeriodType() );
+                AnalyticsAggregationType degAggType = AnalyticsAggregationType.fromAggregationType( deg.getAggregationType() );
+                
+                aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), degAggType );
+                aggregationType = QueryPlannerUtils.getAggregationType( aggregationType,
+                    deg.getValueType(), periodType, deg.getPeriodType() );
             }
             
             DataQueryParams query = DataQueryParams.newBuilder( params )
@@ -463,25 +454,23 @@ public class DefaultQueryPlanner
         else
         {
             DataQueryParams query = DataQueryParams.newBuilder( params )
-                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), SUM ) ).build();
+                .withAggregationType( ObjectUtils.firstNonNull( params.getAggregationType(), AnalyticsAggregationType.SUM ) ).build();
             
             queries.add( query );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on aggregation type: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "aggregation type" );
 
         return queries;
     }
 
     /**
-     * Groups the given query into sub queries based on the number of days in the
-     * aggregation period. This only applies if the aggregation type is
-     * {@link AggregationType#AVERAGE_SUM_INT} and the query has at least one period as 
-     * dimension option. This is necessary since the number of days in the aggregation 
-     * period is part of the expression for aggregating the value.
+     * Groups the given query in sub queries based on the number of days in the
+     * aggregation period. This only applies if the aggregation type is SUM, the
+     * period dimension aggregation type is AVERAGE, the data type is NUMERIC
+     * and the query has at least one period as dimension option. This is necessary 
+     * since the number of days in the aggregation period is part of the expression 
+     * for aggregating the value.
      * 
      * @param params the data query parameters.
      * @return a list of {@link DataQueryParams}.
@@ -489,8 +478,14 @@ public class DefaultQueryPlanner
     private List<DataQueryParams> groupByDaysInPeriod( DataQueryParams params )
     {
         List<DataQueryParams> queries = new ArrayList<>();
+        
+        AnalyticsAggregationType type = params.getAggregationType();
+        
+        boolean sumAvgNumeric = AggregationType.SUM == type.getAggregationType() && 
+            AggregationType.AVERAGE == type.getPeriodAggregationType() && 
+            DataType.NUMERIC == type.getDataType();
 
-        if ( params.getPeriods().isEmpty() || !params.isAggregationType( AggregationType.AVERAGE_SUM_INT ) )
+        if ( params.getPeriods().isEmpty() || !sumAvgNumeric )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
             return queries;
@@ -509,10 +504,7 @@ public class DefaultQueryPlanner
             queries.add( query );
         }
 
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on days in period: %d", queries.size() ) );
-        }
+        logQuerySplit( queries, "days in period" );
 
         return queries;
     }
@@ -532,6 +524,7 @@ public class DefaultQueryPlanner
         if ( params.getDataElements().isEmpty() || !params.isDisaggregation() )
         {
             queries.add( DataQueryParams.newBuilder( params ).build() );
+            
             return queries;
         }
 
@@ -546,12 +539,62 @@ public class DefaultQueryPlanner
             
             queries.add( query );
         }
-
-        if ( queries.size() > 1 )
-        {
-            log.debug( String.format( "Split on data period type: %d", queries.size() ) );
-        }
+        
+        logQuerySplit( queries, "data period type" );
 
         return queries;
+    }
+
+    /**
+     * Groups the given query in sub queries for each dimension period. This only applies
+     * if the aggregation type is {@link AggregationType#LAST} or 
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be 
+     * aggregated individually.
+     * 
+     * @param params the data query parameters.
+     * @return a list of {@link DataQueryParams}.
+     */
+    private List<DataQueryParams> groupByPeriod( DataQueryParams params )
+    {
+        List<DataQueryParams> queries = new ArrayList<>();
+        
+        if ( params.getAggregationType().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        {
+            for ( DimensionalItemObject period : params.getPeriods() )
+            {
+                String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+                
+                DataQueryParams query = DataQueryParams.newBuilder( params )
+                    .withPeriods( Lists.newArrayList( period ), periodType ).build();
+                
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( params );
+        }
+
+        logQuerySplit( queries, "period" );
+
+        return queries;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Log query split operation.
+     * 
+     * @param queries the list of queries.
+     * @param splitCriteria the name of the query split criteria.
+     */
+    private void logQuerySplit( List<DataQueryParams> queries, String splitCriteria )
+    {
+        if ( queries.size() > 1 )
+        {
+            log.debug( String.format( "Split on '%s': %d", splitCriteria, queries.size() ) );
+        }
     }
 }

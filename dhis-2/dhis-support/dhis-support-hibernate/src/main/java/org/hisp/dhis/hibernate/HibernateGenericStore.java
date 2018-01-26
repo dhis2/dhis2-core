@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -207,7 +207,7 @@ public class HibernateGenericStore<T>
     protected final NativeQuery getSqlQuery( String sql )
     {
         NativeQuery query = getSession().createNativeQuery( sql );
-        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT , cacheable );
+        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
         return query;
     }
 
@@ -231,7 +231,13 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getSharingCriteria()
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
+    }
+
+    @Override
+    public final Criteria getDataSharingCriteria()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
     }
 
     @Override
@@ -243,13 +249,13 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getSharingCriteria( User user )
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
     }
 
     @Override
     public final DetachedCriteria getSharingDetachedCriteria()
     {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" );
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
     }
 
     @Override
@@ -259,9 +265,21 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
+    {
+        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
-        return getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" );
+        return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
+    }
+
+    @Override
+    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
+    {
+        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
     }
 
     @Override
@@ -316,6 +334,52 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( userDetachedCriteria ) );
 
         criteria.add( disjunction );
+
+        return criteria;
+    }
+
+    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        if ( !dataSharingEnabled( user ) || user == null )
+        {
+            return criteria;
+        }
+
+        Assert.notNull( user, "User argument can't be null." );
+
+        Disjunction disjunction = Restrictions.disjunction();
+
+        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
+
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
+
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
+
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
+
+        criteria.add( disjunction );
+
         return criteria;
     }
 
@@ -364,7 +428,6 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
-
         return criteria;
     }
 
@@ -639,9 +702,26 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
+    public final List<T> getDataAll()
+    {
+        return getDataSharingCriteria().list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
     public final List<T> getAll( int first, int max )
     {
         return getSharingCriteria()
+            .setFirstResult( first )
+            .setMaxResults( max )
+            .list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataAll( int first, int max )
+    {
+        return getDataSharingCriteria()
             .setFirstResult( first )
             .setMaxResults( max )
             .list();
@@ -665,7 +745,7 @@ public class HibernateGenericStore<T>
         query.select( root );
         query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
 
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -703,24 +783,6 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public T getByAttribute( Attribute attribute )
-    {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return null;
-        }
-
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "attributeValues", "av" );
-        criteria.add( Restrictions.eq( "av.attribute", attribute ) );
-
-        return (T) criteria.uniqueResult();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
         Schema schema = schemaService.getDynamicSchema( getClazz() );
@@ -737,28 +799,7 @@ public class HibernateGenericStore<T>
         query.select( root.get( "attributeValues" ) );
         query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
 
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<AttributeValue> getAttributeValueByAttributes( List<Attribute> attributes )
-    {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
-        query = getCriteriaQuery();
-
-        Root root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
-        query.select( root.get( "attributeValues" ) );
-        query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
-
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -780,9 +821,9 @@ public class HibernateGenericStore<T>
         query.where(
             builder.and(
                 builder.equal( joinAttributeValue.get( "attribute" ), attribute ),
-                builder.equal( joinAttributeValue.get( "value" ), value )  ) ) ;
+                builder.equal( joinAttributeValue.get( "value" ), value ) ) );
 
-        return  sessionFactory.getCurrentSession().createQuery( query ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -816,6 +857,11 @@ public class HibernateGenericStore<T>
     protected boolean sharingEnabled( UserInfo userInfo )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
+    }
+
+    protected boolean dataSharingEnabled( UserInfo userInfo )
+    {
+        return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
     }
 
     protected boolean isReadAllowed( T object )

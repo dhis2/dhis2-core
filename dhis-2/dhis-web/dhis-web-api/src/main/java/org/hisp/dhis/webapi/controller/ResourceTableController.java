@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -47,13 +47,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -66,10 +63,7 @@ public class ResourceTableController
     public static final String RESOURCE_PATH = "/resourceTables";
 
     @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
-
-    @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -87,8 +81,6 @@ public class ResourceTableController
         @RequestParam( required = false ) Integer lastYears,
         HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobType.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser().getUid() );
-        
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
         
         if ( skipAggregate )
@@ -107,15 +99,13 @@ public class ResourceTableController
         {
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
-        
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears( lastYears )
-            .withTaskId( jobId )
-            .withSkipTableTypes( skipTableTypes )
-            .withSkipResourceTables( skipResourceTables )
-            .build();
 
-        scheduler.executeJob( () -> analyticsTableGenerator.generateTables( params ) );
+        AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes, skipResourceTables );
+
+        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "", analyticsJobParameters, false, true, true );
+        analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
+
+        schedulingManager.executeJob( analyticsTableJob );
         
         webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
     }
@@ -124,23 +114,23 @@ public class ResourceTableController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
-        JobId jobId = new JobId( JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
+            JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
 
-        scheduler.executeJob( () -> analyticsTableGenerator.generateResourceTables( jobId ) );
+        schedulingManager.executeJob( resourceTableJob );
 
-        webMessageService.send( WebMessageUtils.ok( "Initiated resource table update" ), response, request );
+        JacksonUtils.fromObjectToReponse( response, resourceTableJob );
     }
 
     @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {
-        // HH verify
-        JobConfiguration monitoringJob = new JobConfiguration( "monitoring from resource table controller", JobType.MONITORING, "", new MonitoringJobParameters(),
-            false, true );
+        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "", new MonitoringJobParameters(),
+            false, true, true );
 
-        scheduler.executeJob( monitoringJob );
+        schedulingManager.executeJob( monitoringJob );
 
-        webMessageService.send( WebMessageUtils.ok( "Initiated data monitoring" ), response, request );
+        JacksonUtils.fromObjectToReponse( response, monitoringJob );
     }
 }

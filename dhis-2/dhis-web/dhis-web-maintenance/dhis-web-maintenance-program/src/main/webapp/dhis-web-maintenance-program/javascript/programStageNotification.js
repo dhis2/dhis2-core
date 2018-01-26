@@ -17,6 +17,7 @@
 
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
+
         var days = qs( '#days' );
         var deliveryChannelsContainer = qs( '#deliveryChannelsContainer' );
         var subjectTemplateTextArea = qs( '#subjectTemplate' );
@@ -85,7 +86,12 @@
         notificationTrigger.addEventListener( "change", function( e ) {
             if ( notificationTrigger.value === 'ENROLLMENT' || notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
-            } else {
+            }
+            else if ( notificationTrigger.value === 'PROGRAM_RULE' )
+            {
+                daysContainer.style.display = 'none';
+            }
+            else {
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
             }
@@ -140,7 +146,7 @@
             var uid = qs( '#programAttribute' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
         }
-
+        
         function getDataElement() {
             var uid = qs( '#dataElement' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };

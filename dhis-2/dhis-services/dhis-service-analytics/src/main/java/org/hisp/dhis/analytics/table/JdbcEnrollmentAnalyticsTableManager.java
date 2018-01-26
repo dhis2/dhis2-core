@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -230,7 +231,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "limit 1) as " + quote( "duedate" );        
         columns.add( new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql ) );
         
-        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case status when 'COMPLETED' then enddate end" ) );
+        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case pi.status when 'COMPLETED' then pi.enddate end" ) );
         columns.add( new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" ) );

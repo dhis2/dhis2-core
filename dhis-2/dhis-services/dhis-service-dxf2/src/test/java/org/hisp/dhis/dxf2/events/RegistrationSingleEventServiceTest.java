@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,8 +50,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class RegistrationSingleEventServiceTest
     private EventService eventService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -85,10 +86,13 @@ public class RegistrationSingleEventServiceTest
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+    private IdentifiableObjectManager manager;
 
     @Autowired
     private UserService _userService;
+    
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
@@ -110,39 +114,39 @@ public class RegistrationSingleEventServiceTest
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
-        identifiableObjectManager.save( organisationUnitA );
-        identifiableObjectManager.save( organisationUnitB );
+        manager.save( organisationUnitA );
+        manager.save( organisationUnitB );
 
-        TrackedEntity trackedEntity = createTrackedEntity( 'A' );
-        trackedEntityService.addTrackedEntity( trackedEntity );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
         maleA = createTrackedEntityInstance( 'A', organisationUnitA );
         maleB = createTrackedEntityInstance( 'B', organisationUnitB );
         femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
         femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
 
-        maleA.setTrackedEntity( trackedEntity );
-        maleB.setTrackedEntity( trackedEntity );
-        femaleA.setTrackedEntity( trackedEntity );
-        femaleB.setTrackedEntity( trackedEntity );
+        maleA.setTrackedEntityType( trackedEntityType );
+        maleB.setTrackedEntityType( trackedEntityType );
+        femaleA.setTrackedEntityType( trackedEntityType );
+        femaleB.setTrackedEntityType( trackedEntityType );
 
-        identifiableObjectManager.save( maleA );
-        identifiableObjectManager.save( maleB );
-        identifiableObjectManager.save( femaleA );
-        identifiableObjectManager.save( femaleB );
+        manager.save( maleA );
+        manager.save( maleB );
+        manager.save( femaleA );
+        manager.save( femaleB );
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
         dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
-        identifiableObjectManager.save( dataElementA );
+        manager.save( dataElementA );
 
         programStageA = createProgramStage( 'A', 0 );
-        identifiableObjectManager.save( programStageA );
+        manager.save( programStageA );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        identifiableObjectManager.save( programA );
+        manager.save( programA );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
@@ -153,8 +157,8 @@ public class RegistrationSingleEventServiceTest
         programStageA.setProgram( programA );
         programA.getProgramStages().add( programStageA );
 
-        identifiableObjectManager.update( programStageA );
-        identifiableObjectManager.update( programA );
+        manager.update( programStageA );
+        manager.update( programA );
 
         createUserAndInjectSecurityContext( true );
     }
@@ -172,7 +176,7 @@ public class RegistrationSingleEventServiceTest
     public void testSaveWithEnrollmentShouldNotFail()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -185,7 +189,7 @@ public class RegistrationSingleEventServiceTest
     public void testSavingMultipleEventsShouldOnlyUpdate()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );

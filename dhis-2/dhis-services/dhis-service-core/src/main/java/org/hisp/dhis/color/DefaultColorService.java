@@ -1,7 +1,7 @@
 package org.hisp.dhis.color;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,9 +46,15 @@ public class DefaultColorService
     }
 
     // -------------------------------------------------------------------------
-    // Dependencies
+    // ColorService implementation
     // -------------------------------------------------------------------------
 
+    public int addColorSet( ColorSet colorSet )
+    {
+        colorSetStore.save( colorSet );
+        return colorSet.getId();
+    }
+    
     public ColorSet getColorSet( String uid )
     {
         return colorSetStore.getByUid( uid );

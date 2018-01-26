@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity.jobs;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -42,7 +42,7 @@ import org.hisp.dhis.system.notification.Notifier;
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 public class DataIntegrityJob
-    implements Job
+    extends AbstractJob
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -81,12 +81,18 @@ public class DataIntegrityJob
 
         timer.stop();
 
-        if ( jobConfiguration.getJobId() != null )
+        if ( jobConfiguration != null )
         {
             notifier.notify(
-                jobConfiguration.getJobId(), NotificationLevel.INFO,
+                jobConfiguration, NotificationLevel.INFO,
                 "Data integrity checks completed in " + timer.toString() + ".", true )
-                .addTaskSummary( jobConfiguration.getJobId(), report );
+                .addJobSummary( jobConfiguration, report );
         }
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "dataIntegrityJob";
     }
 }

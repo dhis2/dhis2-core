@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,10 @@ package org.hisp.dhis.dxf2.synch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
@@ -42,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 public class DataSynchronizationJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private SynchronizationManager synchronizationManager;
@@ -74,7 +76,7 @@ public class DataSynchronizationJob
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), "Data synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration, "Data synch failed: " + ex.getMessage() );
         }
         catch ( WebMessageParseException e )
         {
@@ -87,7 +89,7 @@ public class DataSynchronizationJob
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( jobConfiguration.getJobId(), "Event synch failed: " + ex.getMessage() );
+            notifier.notify( jobConfiguration, "Event synch failed: " + ex.getMessage() );
             
             messageService.sendSystemErrorNotification( "Event synch failed", ex );
         }
@@ -96,6 +98,25 @@ public class DataSynchronizationJob
             log.error("Error while executing event sync task. "+ e.getMessage(), e );
         }
 
-        notifier.notify( jobConfiguration.getJobId(), "Data/Event synch successful" );
+        notifier.notify( jobConfiguration, "Data/Event synch successful" );
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+
+        if ( !isRemoteServerAvailable.isAvailable() )
+        {
+            return new ErrorReport( DataSynchronizationJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
+        }
+
+        return super.validate();
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "dataSynchJob";
     }
 }

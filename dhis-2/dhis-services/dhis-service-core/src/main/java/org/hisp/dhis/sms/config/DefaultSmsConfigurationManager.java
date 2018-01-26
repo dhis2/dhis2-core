@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,65 +30,19 @@ package org.hisp.dhis.sms.config;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.sms.config.GatewayAdministrationService;
-import org.hisp.dhis.sms.config.SmsConfiguration;
-import org.hisp.dhis.sms.config.SmsConfigurationManager;
-import org.hisp.dhis.sms.config.SmsGatewayConfig;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 
 /**
- * Manages the {@link SmsConfiguration} for the DHIS instance.
- * <p>
- * The manager looks up all beans implementing {@link SmsConfigurable} in the
- * context, initializing them on startup and on any SMS configuration changes.
+ * Manages the {@link SmsConfiguration} for the instance.
  */
-
 public class DefaultSmsConfigurationManager
     implements SmsConfigurationManager
 {
-    private static final Log log = LogFactory.getLog( DefaultSmsConfigurationManager.class );
-
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private GatewayAdministrationService gatewayAdminService;
-
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
-    {
-        initializeSmsConfig();
-    }
-
-    private void initializeSmsConfig()
-    {
-        SmsConfiguration smsConfiguration = getSmsConfiguration();
-
-        if ( smsConfiguration == null )
-        {
-            log.info( "SMS configuration not found" );
-            return;
-        }
-
-        List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
-
-        if ( gatewayList == null || gatewayList.isEmpty() )
-        {
-            log.info( "Gateway configuration not found" );
-            return;
-        }
-
-        log.info( "Gateway configurations found: " + gatewayList );
-
-        gatewayAdminService.loadGatewayConfigurationMap( smsConfiguration );
-    }
 
     @Override
     public SmsConfiguration getSmsConfiguration()
@@ -100,8 +54,6 @@ public class DefaultSmsConfigurationManager
     public void updateSmsConfiguration( SmsConfiguration config )
     {
         systemSettingManager.saveSystemSetting( SettingKey.SMS_CONFIG, config );
-
-        initializeSmsConfig();
     }
 
     @Override

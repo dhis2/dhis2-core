@@ -402,6 +402,11 @@
         <artifactId>dhis-support-external</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis.rules</groupId>
+        <artifactId>rule-engine</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
 
       <!-- Spring -->
       <dependency>
@@ -697,6 +702,11 @@
         <groupId>org.apache.ant</groupId>
         <artifactId>ant-compress</artifactId>
         <version>1.4</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.interceptor</groupId>
+        <artifactId>javax.interceptor-api</artifactId>
+        <version>1.2.1</version>
       </dependency>
 
       <!-- Apache Commons -->
@@ -1133,7 +1143,7 @@
   <properties>
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>4.3.12.RELEASE</spring.version>
+    <spring.version>4.3.14.RELEASE</spring.version>
     <spring-security.version>4.2.3.RELEASE</spring-security.version>
     <spring-security-oauth2.version>2.2.0.RELEASE</spring-security-oauth2.version>
     <struts.version>2.3.32</struts.version>

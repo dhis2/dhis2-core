@@ -1,7 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,13 @@ import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.fileresource.ExternalFileResourceService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
@@ -48,14 +51,13 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -64,8 +66,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
@@ -76,7 +76,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -85,7 +89,6 @@ import java.util.*;
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
-    private static final int HOUR_TO_RUN = 4; // should run at 04:00
 
     private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
 
@@ -96,9 +99,6 @@ public class DefaultPushAnalysisService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private Scheduler scheduler;
 
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
@@ -125,50 +125,11 @@ public class DefaultPushAnalysisService
     @Qualifier( "emailMessageSender" )
     private MessageSender messageSender;
 
-    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>();
-
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
     public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         this.pushAnalysisStore = pushAnalysisStore;
-    }
-
-    //----------------------------------------------------------------------
-    // Scheduling methods
-    //----------------------------------------------------------------------
-
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent event )
-    {
-        List<PushAnalysis> pushAnalyses = pushAnalysisStore.getAll();
-
-        for ( PushAnalysis pushAnalysis : pushAnalyses )
-        {
-            if ( pushAnalysis.canSchedule() )
-                refreshPushAnalysisScheduling( pushAnalysis );
-        }
-    }
-
-    public boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis )
-    {
-        if ( !pushAnalysis.canSchedule() )
-        {
-            return false;
-        }
-
-        /*HH verify with stian return scheduler.refreshJob(
-            pushAnalysis.getSchedulingKey(),
-            new PushAnalysisJob(
-                new TaskId(
-                    TaskCategory.PUSH_ANALYSIS,
-                    currentUserService.getSender()
-                ),  pushAnalysis.getId()
-            ),
-            getPushAnalysisCronExpression( pushAnalysis )
-        );*/
-
-        return true;
     }
 
     //----------------------------------------------------------------------
@@ -182,7 +143,7 @@ public class DefaultPushAnalysisService
     }
 
     @Override
-    public void runPushAnalysis( String uid, JobId jobId )
+    public void runPushAnalysis( String uid, JobConfiguration jobId )
     {
         //----------------------------------------------------------------------
         // Set up
@@ -197,13 +158,6 @@ public class DefaultPushAnalysisService
         //----------------------------------------------------------------------
 
         log( jobId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
-
-        if ( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
-        {
-            log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with uid '" + uid + "' is already running. Terminating new PushAnalysis job.", true, null );
-            return;
-        }
 
         if ( pushAnalysis == null )
         {
@@ -286,22 +240,15 @@ public class DefaultPushAnalysisService
                         user.getUsername() + "': " + e.getMessage(), false, e );
             }
         }
-
-        // Update lastRun date
-        
-        pushAnalysis.setLastRun( new Date() );
-        pushAnalysisStore.update( pushAnalysis );
-
-        setPushAnalysisIsRunningFlag( pushAnalysis, false );
     }
 
     @Override
-    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobId jobId )
+    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
         throws IOException
     {
         if ( jobId == null )
         {
-            jobId = new JobId( JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid() );
+            jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid(), true );
             notifier.clear( jobId );
         }
 
@@ -366,7 +313,7 @@ public class DefaultPushAnalysisService
      * @return
      * @throws Exception
      */
-    private String getItemHtml( DashboardItem item, User user, JobId jobId )
+    private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
         throws IOException
     {
         switch ( item.getType() )
@@ -512,7 +459,7 @@ public class DefaultPushAnalysisService
      * @param completed         a flag indicating the task is completed (notifier)
      * @param exception         exception if one exists (logger)
      */
-    private void log( JobId jobId, NotificationLevel notificationLevel, String message, boolean completed,
+    private void log( JobConfiguration jobId, NotificationLevel notificationLevel, String message, boolean completed,
         Throwable exception )
     {
         notifier.notify( jobId, notificationLevel, message, completed );
@@ -534,48 +481,4 @@ public class DefaultPushAnalysisService
                 break;
         }
     }
-
-    /**
-     * synchronized method for claiming and releasing a flag that indicates whether a given
-     * push analysis is currently running. This is to avoid race conditions from multiple api requests.
-     * when setting the flag to true (running), the method will return false if the flag is already set to true,
-     * indicating the push analysis is already running.
-     *
-     * @param pushAnalysis to run
-     * @param running      indicates whether to claim (true) or release (false) flag.
-     * @return true if the flag was claimed or released, false if the flag was already claimed
-     */
-    private synchronized boolean setPushAnalysisIsRunningFlag( PushAnalysis pushAnalysis, boolean running )
-    {
-        if ( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
-        {
-            return false;
-        }
-
-        pushAnalysisIsRunning.put( pushAnalysis, running );
-
-        return true;
-    }
-
-    /**
-     * Returns the correct cronExpression for the pushAnalysis
-     *
-     * @param pushAnalysis
-     * @return
-     */
-    private String getPushAnalysisCronExpression( PushAnalysis pushAnalysis )
-    {
-        switch ( pushAnalysis.getSchedulingFrequency() )
-        {
-            case DAILY:
-                return CronUtils.getDailyCronExpression( 0, HOUR_TO_RUN );
-            case WEEKLY:
-                return CronUtils.getWeeklyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-            case MONTHLY:
-                return CronUtils.getMonthlyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-            default:
-                return null;
-        }
-    }
-
 }

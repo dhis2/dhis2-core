@@ -100,10 +100,21 @@
       <artifactId>dhis-support-commons</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.cronutils</groupId>
-      <artifactId>cron-utils</artifactId>
+      <groupId>org.hisp.dhis.rules</groupId>
+      <artifactId>rule-engine</artifactId>
     </dependency>
+      <dependency>
+          <groupId>com.cronutils</groupId>
+          <artifactId>cron-utils</artifactId>
+          <version>7.0.1</version>
+      </dependency>
+      <dependency>
+          <groupId>org.codehaus.jackson</groupId>
+          <artifactId>jackson-mapper-asl</artifactId>
+          <version>1.9.13</version>
+      </dependency>
   </dependencies>
+
 
   <properties>
     <rootDir>../</rootDir>

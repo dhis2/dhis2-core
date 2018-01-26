@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.gml;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -63,7 +63,7 @@ public class GmlImportServiceTest
 
     private ImportOptions importOptions;
 
-    private JobId jobId;
+    private JobConfiguration id;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -84,7 +84,7 @@ public class GmlImportServiceTest
     {
         inputStream = new ClassPathResource( "gml/testGmlPayload.gml" ).getInputStream();
 
-        /**
+        /*
          * Create orgunits present in testGmlPayload.gml and set ID properties.
          *      Name                    - FeatureType   - ID property
          *      Bo                      - Poly          - Name
@@ -123,7 +123,7 @@ public class GmlImportServiceTest
 
         user = createAndInjectAdminUser();
 
-        jobId = new JobId( JobType.METADATA_IMPORT, user.getUid() );
+        id = new JobConfiguration( "gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true );
 
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
@@ -132,7 +132,6 @@ public class GmlImportServiceTest
 
     @Override
     protected void tearDownTest()
-        throws Exception
     {
         IOUtils.closeQuietly( inputStream );
     }
@@ -143,10 +142,9 @@ public class GmlImportServiceTest
 
     @Test
     public void testImportGml()
-        throws Exception
     {
         MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setJobId( jobId );
+        importParams.setId( id );
         importParams.setUser( user );
 
         gmlImportService.importGml( inputStream, importParams );

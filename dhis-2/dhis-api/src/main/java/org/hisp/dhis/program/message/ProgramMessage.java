@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.message;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,6 +103,20 @@ public class ProgramMessage
         this( subject, text, recipients );
         this.deliveryChannels = deliveryChannels;
         this.programStageInstance = programStageInstance;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean hasProgramInstance()
+    {
+        return this.programInstance != null;
+    }
+
+    public boolean hasProgramStageInstance()
+    {
+        return this.programStageInstance != null;
     }
 
     // -------------------------------------------------------------------------

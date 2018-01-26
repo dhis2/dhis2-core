@@ -1,21 +1,44 @@
 package org.hisp.dhis.scheduling;
 
+/*
+ * Copyright (c) 2004-2018, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 /**
@@ -25,13 +48,6 @@ import static org.hisp.dhis.scheduling.JobType.values;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-    private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        this.schedulingManager = schedulingManager;
-    }
-
     private GenericNameableObjectStore<JobConfiguration> jobConfigurationStore;
 
     public void setJobConfigurationStore( GenericNameableObjectStore<JobConfiguration> jobConfigurationStore )
@@ -39,46 +55,13 @@ public class DefaultJobConfigurationService
         this.jobConfigurationStore = jobConfigurationStore;
     }
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    private boolean scheduledBoot = true;
-
-    private int STARTUP_DELAY = 120 * 1000;
-
-    /**
-     * Reschedule old jobs.
-     *
-     * Port jobs from the old scheduler if the startup involves server upgrade
-     *
-     * @param contextRefreshedEvent context event
-     */
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
-    {
-        if ( scheduledBoot && currentUserService != null )
-        {
-            Date now = new Date();
-            getAllJobConfigurations().forEach( (jobConfig -> {
-                jobConfig.setNextExecutionTime( null );
-                updateJobConfiguration( jobConfig );
-
-                if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                    ( !jobConfig.isContinuousExecution() && jobConfig.getNextExecutionTime().compareTo( now ) < 0 ) )
-                {
-                    schedulingManager.scheduleJob( new Date( now.getTime() + STARTUP_DELAY ), jobConfig );
-                }
-                schedulingManager.scheduleJob( jobConfig );
-            }) );
-
-            scheduledBoot = false;
-        }
-    }
-
     @Override
     public int addJobConfiguration( JobConfiguration jobConfiguration )
     {
-        jobConfigurationStore.save( jobConfiguration );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            jobConfigurationStore.save( jobConfiguration );
+        }
         return jobConfiguration.getId( );
     }
 
@@ -91,14 +74,20 @@ public class DefaultJobConfigurationService
     @Override
     public int updateJobConfiguration( JobConfiguration jobConfiguration )
     {
-        jobConfigurationStore.update( jobConfiguration );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            jobConfigurationStore.update( jobConfiguration );
+        }
         return jobConfiguration.getId();
     }
 
     @Override
     public void deleteJobConfiguration( JobConfiguration jobConfiguration )
     {
-        jobConfigurationStore.delete( jobConfigurationStore.getByUid( jobConfiguration.getUid() ) );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            jobConfigurationStore.delete( jobConfigurationStore.getByUid( jobConfiguration.getUid() ) );
+        }
     }
 
     @Override
@@ -136,14 +125,14 @@ public class DefaultJobConfigurationService
 
         for ( JobType jobType : values() )
         {
-            Map<String, Property> jobParameters = Maps.newHashMap();
+            Map<String, Property> jobParameters = new LinkedHashMap<>( );
 
             if ( !jobType.isConfigurable() )
             {
                 continue;
             }
 
-            Class clazz = jobType.getClazz();
+            Class<?> clazz = jobType.getJobParameters();
             if ( clazz == null )
             {
                 propertyMap.put( jobType.name(), null );

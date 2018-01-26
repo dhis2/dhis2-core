@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentitydatavalue;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,6 @@ public interface TrackedEntityDataValueService
      * Adds an {@link TrackedEntityDataValue}
      * 
      * @param dataValue The to TrackedEntityDataValue add.
-     * 
-     * @return A generated unique id of the added {@link TrackedEntityDataValue}.
      */
     void saveTrackedEntityDataValue( TrackedEntityDataValue dataValue );
 
@@ -71,8 +69,6 @@ public interface TrackedEntityDataValueService
      * Deletes all {@link TrackedEntityDataValue} of {@link ProgramStageInstance}
      * 
      * @param programStageInstance The {@link ProgramStageInstance}.
-     * 
-     * @return Error code. If this code is 0, deleting succeed.
      */
     void deleteTrackedEntityDataValue( ProgramStageInstance programStageInstance );
 
@@ -99,7 +95,7 @@ public interface TrackedEntityDataValueService
     /**
      * Retrieve data values of many events
      * 
-     * @param programStageInstance ProgramStageInstance
+     * @param programStageInstances the collection of ProgramStageInstances
      * 
      * @return TrackedEntityDataValue list
      */

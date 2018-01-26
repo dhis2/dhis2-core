@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,11 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -73,7 +76,7 @@ public class PushAnalysisController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @RequestMapping( value = "/{uid}/render", method = RequestMethod.GET )
     public void renderPushAnalytics(
@@ -105,36 +108,12 @@ public class PushAnalysisController
 
         if ( pushAnalysis == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
-        /*HH scheduler.executeTask( new PushAnalysisTask(
-            pushAnalysis.getId(),
-            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getSender() ),
-            pushAnalysisService ) );*/
-    }
-
-    @Override
-    protected void preDeleteEntity( PushAnalysis pushAnalysis )
-    {
-        scheduler.stopJob( pushAnalysis.getSchedulingKey() );
-    }
-
-    @Override
-    protected void postUpdateEntity( PushAnalysis pushAnalysis )
-    {
-        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
-    }
-
-    @Override
-    protected void postCreateEntity( PushAnalysis pushAnalysis )
-    {
-        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
-    }
-
-    @Override
-    protected void postPatchEntity( PushAnalysis pushAnalysis )
-    {
-        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
+        JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",
+            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), false, true, true );
+        schedulingManager.executeJob( pushAnalysisJobConfiguration );
     }
 }

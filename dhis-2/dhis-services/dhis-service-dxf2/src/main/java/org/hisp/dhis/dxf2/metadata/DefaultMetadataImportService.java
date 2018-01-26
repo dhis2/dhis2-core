@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
-/*
- * Copyright (c) 2004-2017, University of Oslo
+    /*
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
@@ -47,12 +52,13 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +87,9 @@ public class DefaultMetadataImportService implements MetadataImportService
     private ObjectBundleValidationService objectBundleValidationService;
 
     @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
     private AclService aclService;
 
     @Autowired
@@ -100,18 +109,23 @@ public class DefaultMetadataImportService implements MetadataImportService
             params.setUser( currentUserService.getCurrentUser() );
         }
 
+        if ( params.getUserOverrideMode() == UserOverrideMode.CURRENT )
+        {
+            params.setOverrideUser( currentUserService.getCurrentUser() );
+        }
+
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
         if ( params.hasJobId() )
         {
-            notifier.notify( params.getJobId(), message );
+            notifier.notify( params.getId(), message );
         }
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
-        prepareBundle( bundle );
+        prepareBundle( bundle, bundleParams );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport.getTypeReportMap() );
@@ -145,7 +159,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), NotificationLevel.INFO, message, true )
-                .addTaskSummary( bundle.getJobId(), importReport );
+                .addJobSummary( bundle.getJobId(), importReport );
         }
 
         if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
@@ -195,6 +209,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
+        params.setUserOverrideMode( getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
         params.setPreheatMode( getEnumWithDefault( PreheatMode.class, parameters, "preheatMode", PreheatMode.REFERENCE ) );
         params.setIdentifier( getEnumWithDefault( PreheatIdentifier.class, parameters, "identifier", PreheatIdentifier.UID ) );
@@ -206,9 +221,25 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         if ( getBooleanWithDefault( parameters, "async", false ) )
         {
-            JobId jobId = new JobId( JobType.METADATA_IMPORT, params.getUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( "metadataImport", JobType.METADATA_IMPORT, params.getUser().getUid(), true );
             notifier.clear( jobId );
-            params.setJobId( jobId );
+            params.setId( jobId );
+        }
+
+        if ( params.getUserOverrideMode() == UserOverrideMode.SELECTED )
+        {
+            User overrideUser = null;
+
+            if ( parameters.containsKey( "overrideUser" ) )
+            {
+                List<String> overrideUsers = parameters.get( "overrideUser" );
+                overrideUser = manager.get( User.class, overrideUsers.get( 0 ) );
+            }
+
+            if ( overrideUser == null )
+            {
+                throw new MetadataImportException( "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
+            }
         }
 
         return params;
@@ -242,7 +273,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private void prepareBundle( ObjectBundle bundle )
+    private void prepareBundle( ObjectBundle bundle, ObjectBundleParams params )
     {
         if ( bundle.getUser() == null )
         {
@@ -251,20 +282,32 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
         {
-            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle ) );
+            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle, params ) );
         }
     }
 
-    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle )
+    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
     {
         if ( StringUtils.isEmpty( object.getPublicAccess() ) )
         {
             aclService.resetSharing( object, bundle.getUser() );
         }
 
-        if ( object.getUser() == null ) object.setUser( bundle.getUser() );
-        if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
-        if ( object.getUserAccesses() == null ) object.setUserAccesses( new HashSet<>() );
+        if ( object.getUser() == null || manager.get( object.getUser().getUid() ) == null )
+        {
+            object.setUser( bundle.getUser() );
+        }
+
+        if ( object.getUserAccesses() == null )
+        {
+            object.setUserAccesses( new HashSet<>() );
+        }
+
+        if ( object.getUserGroupAccesses() == null )
+        {
+            object.setUserGroupAccesses( new HashSet<>() );
+        }
+
         object.setLastUpdatedBy( bundle.getUser() );
     }
 }

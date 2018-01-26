@@ -1,6 +1,6 @@
 package org.hisp.dhis.validation;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,11 +100,11 @@ public class DefaultValidationResultService
     }
 
     @Override
-    public List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits,
-        Collection<ValidationRule> validationRules, Collection<Period> periods )
+    public List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
     {
         Set<Period> persistedPeriods = periods.stream().map( period -> periodService.getPeriod( period.getIsoDate() ) )
             .collect( Collectors.toSet() );
-        return validationResultStore.getValidationResults( orgUnits, validationRules, persistedPeriods );
+        return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
     }
 }

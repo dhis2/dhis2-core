@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.job;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.sms.job;
 
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.Resource;
 
 public class SendSmsJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     @Resource( name = "smsMessageSender" )
@@ -71,23 +71,29 @@ public class SendSmsJob
         SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
         OutboundSms sms = new OutboundSms( parameters.getSmsSubject(), parameters.getMessage(), parameters.getRecipientsList().toString() );
 
-        notifier.notify( jobConfiguration.getJobId(), "Sending SMS" );
+        notifier.notify( jobConfiguration, "Sending SMS" );
 
         OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(), sms.getRecipients() );
 
         if ( status.isOk() )
         {
-            notifier.notify( jobConfiguration.getJobId(), "Message sending successful" );
+            notifier.notify( jobConfiguration, "Message sending successful" );
 
             sms.setStatus( OutboundSmsStatus.SENT );
         }
         else
         {
-            notifier.notify( jobConfiguration.getJobId(), "Message sending failed" );
+            notifier.notify( jobConfiguration, "Message sending failed" );
 
             sms.setStatus( OutboundSmsStatus.FAILED );
         }
 
         outboundSmsService.saveOutboundSms( sms );
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "sendSmsJob";
     }
 }

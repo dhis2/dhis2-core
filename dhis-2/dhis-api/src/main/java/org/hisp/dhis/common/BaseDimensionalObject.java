@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,6 +122,12 @@ public class BaseDimensionalObject
         this.uid = dimension;
         this.dimensionType = dimensionType;
         this.items = new ArrayList<>( items );
+    }
+
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String displayName, List<? extends DimensionalItemObject> items )
+    {
+        this( dimension, dimensionType, items );
+        this.displayName = displayName;
     }
 
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items )

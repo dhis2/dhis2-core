@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
@@ -101,16 +102,24 @@ public class DefaultEventDataQueryService
     public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus,
+        ProgramStatus programStatus, boolean collapseDataDimensions,
+        boolean aggregateData, boolean includeMetadataDetails, DisplayProperty displayProperty, Date relativePeriodDate,
+        String userOrgUnit, DhisApiVersion apiVersion )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, 
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, false, eventStatus, programStatus, displayProperty,
             relativePeriodDate, userOrgUnit, null, null, null, apiVersion );
 
-        EventQueryParams params = new EventQueryParams.Builder( query )
+        EventQueryParams.Builder params = new EventQueryParams.Builder( query );
+        
+        if ( aggregationType != null )
+        {
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
+        }
+        
+        return params
             .withValue( getValueDimension( value ) )
-            .withAggregationType( aggregationType )
             .withSkipRounding( skipRounding )
             .withShowHierarchy( showHierarchy )
             .withSortOrder( sortOrder )
@@ -118,18 +127,19 @@ public class DefaultEventDataQueryService
             .withOutputType( MoreObjects.firstNonNull( outputType, EventOutputType.EVENT ) )
             .withCollapseDataDimensions( collapseDataDimensions )
             .withAggregateData( aggregateData )
+            .withIncludeMetadataDetails( includeMetadataDetails )
             .withProgramStatus( programStatus )
             .build();
-
-        return params;
     }
 
     @Override
     public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
-        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
-        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, DhisApiVersion apiVersion )
+        boolean coordinatesOnly, boolean includeMetadataDetails, EventStatus eventStatus, ProgramStatus programStatus,
+        DisplayProperty displayProperty,
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize,
+        DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         
@@ -226,6 +236,7 @@ public class DefaultEventDataQueryService
             .withPage( page )
             .withPageSize( pageSize )
             .withProgramStatus( programStatus )
+            .withIncludeMetadataDetails( includeMetadataDetails )
             .withApiVersion( apiVersion )
             .build();
     }

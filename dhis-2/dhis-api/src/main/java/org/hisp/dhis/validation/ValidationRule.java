@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * HH extends OK?
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )

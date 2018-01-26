@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,8 @@ import java.util.List;
  */
 public class DefaultQueryParser implements QueryParser
 {
+    private static final String IDENTIFIABLE = "identifiable";
+
     private final SchemaService schemaService;
 
     public DefaultQueryParser( SchemaService schemaService )
@@ -60,8 +62,6 @@ public class DefaultQueryParser implements QueryParser
         Schema schema = schemaService.getDynamicSchema( klass );
         Query query = Query.from( schema, rootJunction );
 
-        Junction junction = query.getRootJunction();
-
         for ( String filter : filters )
         {
             String[] split = filter.split( ":" );
@@ -74,15 +74,37 @@ public class DefaultQueryParser implements QueryParser
             if ( split.length >= 3 )
             {
                 int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-                junction.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
+
+                if ( split[0].equals( IDENTIFIABLE ) && !schema.haveProperty( IDENTIFIABLE ) )
+                {
+                    query.add( handleIdentifiablePath( schema, split[1], filter.substring( index ) ) );
+                }
+                else
+                {
+                    query.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
+                }
             }
             else
             {
-                junction.add( getRestriction( schema, split[0], split[1], null ) );
+                query.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
 
         return query;
+    }
+
+    private Junction handleIdentifiablePath( Schema schema, String operator, Object arg )
+    {
+        Restriction displayNameRestriction = getRestriction( schema, "displayName", operator, arg );
+        Restriction uidRestriction = getRestriction( schema, "id", operator, arg );
+        Restriction codeRestriction = getRestriction( schema, "code", operator, arg );
+
+        Junction identifiableJunction = new Disjunction( schema );
+        identifiableJunction.add( displayNameRestriction );
+        identifiableJunction.add( uidRestriction );
+        identifiableJunction.add( codeRestriction );
+
+        return identifiableJunction;
     }
 
     @Override
@@ -177,6 +199,14 @@ public class DefaultQueryParser implements QueryParser
             case "!$ilike":
             {
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
+            }
+            case "token":
+            {
+                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+            }
+            case "!token":
+            {
+                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
             }
             case "endsWith":
             case "ilike$":

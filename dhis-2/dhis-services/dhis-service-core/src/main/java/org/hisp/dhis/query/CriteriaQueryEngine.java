@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -153,7 +153,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
     private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
     {
-        org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunction() );
+        org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunctionType() );
         detachedCriteria.add( junction );
 
         for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
@@ -236,9 +236,9 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         }
     }
 
-    private org.hibernate.criterion.Junction getHibernateJunction( Junction junction )
+    private org.hibernate.criterion.Junction getHibernateJunction( Junction.Type type )
     {
-        switch ( junction.type )
+        switch ( type )
         {
             case AND:
                 return Restrictions.conjunction();

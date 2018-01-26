@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -89,7 +88,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
             {
                 DataSet dataSet = ((Section) o).getDataSet();
 
-                if ( dataSet.getId() > 0 )
+                if ( dataSet != null && dataSet.getId() > 0 )
                 {
                     dataSets.add( dataSet );
                 }

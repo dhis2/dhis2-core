@@ -1,7 +1,7 @@
 package org.hisp.dhis.validationrule.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,8 +203,8 @@ public class RunValidationAction
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
-
-        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnits, format.parseDate( startDate ), format.parseDate( endDate ) )
+        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit, format.parseDate( startDate ), format.parseDate( endDate ) )
+            .withIncludeOrgUnitDescendants( true )
             .withAttributeOptionCombo( attributeOptionCombo )
             .withPersistResults( persistResults )
             .withSendNotifications( sendNotifications )

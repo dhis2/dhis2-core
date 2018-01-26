@@ -1,6 +1,6 @@
 package org.hisp.dhis.pushanalysis.scheduling;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.pushanalysis.scheduling;
  */
 
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Stian Sandvold
  */
 public class PushAnalysisJob
-    implements Job
+    extends AbstractJob
 {
     @Autowired
     private PushAnalysisService pushAnalysisService;
@@ -58,6 +58,12 @@ public class PushAnalysisJob
     {
         PushAnalysisJobParameters parameters = (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
 
-        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration.getJobId() );
+        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "pushAnalysis";
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +45,7 @@ import java.util.List;
  */
 public interface EnrollmentService
 {
-    int FLUSH_FREQUENCY = 50;
+    int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
     // READ
@@ -57,6 +59,8 @@ public interface EnrollmentService
 
     List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
 
+    Enrollments getEnrollments( ProgramInstanceQueryParams params);
+
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
@@ -68,6 +72,8 @@ public interface EnrollmentService
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
 
     ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
+
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     // -------------------------------------------------------------------------
     // UPDATE

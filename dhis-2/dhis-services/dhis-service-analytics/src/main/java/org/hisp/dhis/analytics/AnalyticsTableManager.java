@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,6 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
 
 import java.util.Collection;
 import java.util.Date;
@@ -115,6 +113,11 @@ public interface AnalyticsTableManager
     Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
     
     /**
+     * Invokes analytics table SQL hooks for the table type.
+     */
+    void invokeAnalyticsTableSqlHooks();
+    
+    /**
      * Drops the given {@link AnalyticsTable}.
      * 
      * @param table the analytics table.
@@ -147,7 +150,7 @@ public interface AnalyticsTableManager
      * organisation unit level column values to null for the levels above the
      * given aggregation level.
      * 
-     * @param tablePartitions the analytics table partitions.
+     * @param partitions the analytics table partitions.
      * @param dataElements the data element identifiers to apply aggregation levels for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.

@@ -139,7 +139,7 @@
       "annualized": false
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "created": "2016-03-10T04:28:25.000+0000",
       "name": "Person",

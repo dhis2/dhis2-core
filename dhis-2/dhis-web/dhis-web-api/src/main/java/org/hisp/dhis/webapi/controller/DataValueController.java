@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,6 +79,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -443,6 +446,7 @@ public class DataValueController
         List<String> value = new ArrayList<>();
         value.add( dataValue.getValue() );
 
+        setNoStore( response );
         return value;
     }
 
@@ -547,6 +551,7 @@ public class DataValueController
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        setNoStore( response );
 
         // ---------------------------------------------------------------------
         // Request signing is not available, stream content back to client

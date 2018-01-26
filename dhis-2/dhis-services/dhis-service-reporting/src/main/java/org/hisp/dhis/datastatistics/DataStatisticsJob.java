@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.datastatistics;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Julie Hill Roa
  */
 public class DataStatisticsJob
-    implements Job
+    extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( DataStatisticsJob.class );
     
@@ -66,5 +66,11 @@ public class DataStatisticsJob
         {
             log.info( "Saved data statistics snapshot" );
         }
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "dataStatisticsJob";
     }
 }
