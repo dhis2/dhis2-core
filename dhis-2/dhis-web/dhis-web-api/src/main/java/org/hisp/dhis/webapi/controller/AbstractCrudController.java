@@ -634,6 +634,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @ResponseStatus( HttpStatus.OK )
     public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
+
         List<T> entity = getEntity( pvUid );
         
         if ( entity.isEmpty() )
@@ -643,11 +648,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
-        
-        if ( !getSchema().isFavoritable() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
-        }
         
         object.getFavorites().add( user );
         manager.updateNoAcl( object );
@@ -790,6 +790,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @ResponseStatus( HttpStatus.OK )
     public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
+
         List<T> entity = getEntity( pvUid );
         
         if ( entity.isEmpty() )
@@ -800,11 +805,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();  
 
-        if ( !getSchema().isFavoritable() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
-        }
-              
         object.getFavorites().remove( user );        
         manager.updateNoAcl( object );
         
