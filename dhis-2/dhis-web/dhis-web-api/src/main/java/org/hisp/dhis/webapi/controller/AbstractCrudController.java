@@ -226,7 +226,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         postProcessEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false, currentUser );
-        handleFavoriteStatus( entities, currentUser );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -489,7 +488,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         entities = (List<T>) queryService.query( query );
 
         handleLinksAndAccess( entities, fields, true, user );
-        handleFavoriteStatus( entities, user );
 
         for ( T entity : entities )
         {
@@ -1164,21 +1162,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
     }
     
-    protected void handleFavoriteStatus( List<T> entityList, User user )
-    {
-        Schema schema = getSchema();
-        
-        if ( !schema.isFavoritable() )
-        {
-            return;
-        }
-        
-        for ( T entity : entityList )
-        {
-            entity.setFavoriteStatus( user );
-        }
-    }
-
     private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
     {
         if ( inclusionStrategy != null )

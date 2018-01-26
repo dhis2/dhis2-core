@@ -95,7 +95,4 @@ public interface IdentifiableObject
 
     @JsonIgnore
     String getPropertyValue( IdScheme idScheme );
-
-    @JsonIgnore
-    void setFavoriteStatus( User user );
 }

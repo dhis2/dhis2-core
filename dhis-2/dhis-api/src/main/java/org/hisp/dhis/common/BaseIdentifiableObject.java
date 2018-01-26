@@ -148,11 +148,6 @@ public class BaseIdentifiableObject
     protected Set<User> favorites = new HashSet<>();
     
     /**
-     * Indicates whether this object is a favorite of the current user. Not persisted.
-     */
-    protected transient boolean favorite;
-
-    /**
      * The i18n variant of the name. Not persisted.
      */
     protected transient String displayName;
@@ -512,7 +507,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFavorite()
     {
-        return favorite;
+        return favorites.contains( UserContext.getUser() );
     }
 
     // -------------------------------------------------------------------------
@@ -684,12 +679,6 @@ public class BaseIdentifiableObject
         }
 
         return null;
-    }
-    
-    @Override
-    public void setFavoriteStatus( User user )
-    {
-        this.favorite = favorites.contains( user );
     }
     
     @Override
