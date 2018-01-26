@@ -682,15 +682,15 @@ public class DefaultEventAnalyticsService
                 }
 
                 params.getLegends().forEach( legend -> {
-                    metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, includeMetadataDetails ? legend.getCode() : null ) );
+                    metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, legend.getCode() ) );
                 } );
 
                 params.getOptions().forEach( option -> {
-                    metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, includeMetadataDetails ? option.getCode() : null ) );
+                    metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, option.getCode() ) );
                 } );
 
                 params.getItems().forEach( item -> {
-                    metadataItemMap.put( item.getItemId(),  new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
+                    metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
                 } );
 
                 metaData.put( ITEMS.getKey(), metadataItemMap );
