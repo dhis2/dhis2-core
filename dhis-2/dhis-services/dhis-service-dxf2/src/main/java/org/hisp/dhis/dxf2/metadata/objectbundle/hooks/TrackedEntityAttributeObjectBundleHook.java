@@ -118,6 +118,5 @@ public class TrackedEntityAttributeObjectBundleHook
         }
 
         return errorReports;
-
     }
 }

@@ -50,6 +50,6 @@ public class TextMethodType
     @Override
     public String getValueRegex( String format )
     {
-        return ".*?";
+        return format;
     }
 }

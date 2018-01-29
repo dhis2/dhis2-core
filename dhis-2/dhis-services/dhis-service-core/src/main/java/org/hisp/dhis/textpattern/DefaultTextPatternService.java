@@ -29,7 +29,6 @@ package org.hisp.dhis.textpattern;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -88,21 +87,7 @@ public class DefaultTextPatternService
     @Override
     public boolean validate( TextPattern textPattern, String text )
     {
-        // TODO
         return TextPatternValidationUtils.validateTextPatternValue( textPattern, text );
-    }
-
-    @Override
-    public TextPattern getTextPattern( TrackedEntityAttribute attribute )
-        throws TextPatternParser.TextPatternParsingException
-    {
-        if ( attribute.getTextPattern() == null && attribute.isGenerated() )
-        {
-            attribute.setTextPattern( TextPatternParser.parse( attribute.getPattern() ) );
-            attribute.getTextPattern().setOwnerUID( attribute.getUid() );
-        }
-
-        return attribute.getTextPattern();
     }
 
     private String handleFixedValues( TextPatternSegment segment )

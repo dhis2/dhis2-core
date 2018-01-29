@@ -28,6 +28,8 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.sun.javafx.binding.StringFormatter;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.regex.Pattern;
@@ -62,7 +64,7 @@ public class DateMethodType
     @Override
     public String getValueRegex( String format )
     {
-        return ".*?";
+        return StringFormatter.format( ".{%d}", format.length() ).getValue();
     }
 
 }

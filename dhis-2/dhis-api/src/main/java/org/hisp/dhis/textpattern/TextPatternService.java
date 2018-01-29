@@ -28,8 +28,6 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
 import java.util.List;
 import java.util.Map;
 
@@ -57,9 +55,6 @@ public interface TextPatternService
     Map<String, List<String>> getRequiredValues( TextPattern pattern );
 
     boolean validate( TextPattern pattern, String text );
-
-    TextPattern getTextPattern( TrackedEntityAttribute attribute )
-        throws Exception;
 
     class TextPatternGenerationException
         extends Exception

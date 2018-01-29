@@ -28,6 +28,8 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.regex.Pattern;
+
 /**
  * @author Stian Sandvold
  */
@@ -41,8 +43,16 @@ public class TextPatternValidationUtils
 
     public static boolean validateTextPatternValue( TextPattern textPattern, String value )
     {
-        // TODO!
-        return false;
+        StringBuilder builder = new StringBuilder();
+
+        builder.append( "^" );
+
+        textPattern.getSegments().forEach(
+            ( segment ) -> builder.append( segment.getMethod().getType().getValueRegex( segment.getParameter() ) ) );
+
+        builder.append( "$" );
+
+        return Pattern.compile( builder.toString() ).matcher( value ).matches();
     }
 
     public static int getTotalValuesPotential( TextPatternSegment generatedSegment )

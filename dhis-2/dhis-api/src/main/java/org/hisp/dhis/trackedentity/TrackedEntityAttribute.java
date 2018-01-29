@@ -80,7 +80,7 @@ public class TrackedEntityAttribute
 
     private String pattern;
 
-    private transient TextPattern textPattern;
+    private TextPattern textPattern;
 
     /**
      * The style representing how TrackedEntityAttributes should be presented on the client

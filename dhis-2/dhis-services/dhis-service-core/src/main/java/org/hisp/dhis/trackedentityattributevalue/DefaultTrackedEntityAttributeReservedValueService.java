@@ -126,8 +126,8 @@ public class DefaultTrackedEntityAttributeReservedValueService
         throw new TimeoutException( "Timeout while generating values, could not find unused values for "
             + trackedEntityAttribute.getUid() + " in " + GENERATION_TIMEOUT + " tries." );
     }
-    
-   
+
+
     public TrackedEntityAttributeReservedValue reserveCandidateValue( TrackedEntityAttribute trackedEntityAttribute ) 
         throws TimeoutException 
     {

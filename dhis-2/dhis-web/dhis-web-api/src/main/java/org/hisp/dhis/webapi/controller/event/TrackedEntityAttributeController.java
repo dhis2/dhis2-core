@@ -121,7 +121,7 @@ public class TrackedEntityAttributeController
                 .conflict( "This attribute can not be generated." ) );
         }
 
-        TextPattern textPattern = textPatternService.getTextPattern( attribute );
+        TextPattern textPattern = attribute.getTextPattern();
         List<String> missingValues = textPatternService
             .getRequiredValues( textPattern )
             .get( "REQUIRED" );
@@ -157,7 +157,7 @@ public class TrackedEntityAttributeController
                 .conflict( "This attribute can not be generated." ) );
         }
 
-        TextPattern textPattern = textPatternService.getTextPattern( attribute );
+        TextPattern textPattern = attribute.getTextPattern();
         values = (values == null ? new HashMap<>() : values);
         List<String> missingValues = textPatternService
             .getRequiredValues( textPattern )
@@ -187,7 +187,7 @@ public class TrackedEntityAttributeController
             throw new Exception( "No attribute found with id " + id );
         }
 
-        return textPatternService.getRequiredValues( textPatternService.getTextPattern( attribute ) );
+        return textPatternService.getRequiredValues( attribute.getTextPattern() );
 
     }
 
