@@ -40,6 +40,8 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -109,6 +111,13 @@ public class DefaultInterpretationService
     public void setSystemSettingManager( SystemSettingManager systemSettingManager )
     {
         this.systemSettingManager = systemSettingManager;
+    }
+    
+    private AclService aclService;
+
+    public void setAclService( AclService aclService )
+    {
+        this.aclService = aclService;
     }
 
     // -------------------------------------------------------------------------
@@ -259,8 +268,11 @@ public class DefaultInterpretationService
     
     @Override
     public void updateSharingForMentions( Interpretation interpretation, Set<User> users ){
-        for ( User newUser : users ) {
-            interpretation.getObject().getUserAccesses().add( new UserAccess(newUser, "rw------" ) );
+        for ( User user : users ) {
+            if (!aclService.canRead( user, interpretation.getObject() )) {
+                interpretation.getObject().getUserAccesses().add( new UserAccess(user, "rw------" ) );    
+            }
+            
         }
     }
     
