@@ -208,7 +208,6 @@ public class DefaultInterpretationService
     @Override
     public Set<User> getMentionedUsers( String text ){
         Set<User> users = new HashSet<>();
-        
         Matcher matcher = Pattern.compile( "(?:\\s|^)@([\\w+._-]+)" ).matcher( text );
         while ( matcher.find() )
         {
@@ -219,7 +218,6 @@ public class DefaultInterpretationService
                 users.add( userCredentials.getUserInfo() );
             }
         }
-        
         return users;
     }
     
@@ -262,20 +260,17 @@ public class DefaultInterpretationService
         messageContent.append( "\n\n" ).append( "Go to " ).append( link );
         
         User user = currentUserService.getCurrentUser();
-        int conversationA = messageService.sendMessage( messageService.createPrivateMessage( users, user.getDisplayName() + " mentioned you in DHIS2", messageContent.toString(), "Meta" ).build() );
-
+        messageService.sendMessage( messageService.createPrivateMessage( users, user.getDisplayName() + " mentioned you in DHIS2", messageContent.toString(), "Meta" ).build() );
     }
     
     @Override
     public void updateSharingForMentions( Interpretation interpretation, Set<User> users ){
         for ( User user : users ) {
             if (!aclService.canRead( user, interpretation.getObject() )) {
-                interpretation.getObject().getUserAccesses().add( new UserAccess(user, "rw------" ) );    
+                interpretation.getObject().getUserAccesses().add( new UserAccess(user, "r_______" ) );    
             }
-            
         }
     }
-    
     
     @Override
     public InterpretationComment addInterpretationComment( String uid, String text )

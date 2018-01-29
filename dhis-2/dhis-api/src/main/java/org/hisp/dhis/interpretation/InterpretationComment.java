@@ -98,14 +98,6 @@ public class InterpretationComment
     
     public void setMentions( Set<User> users )
     {
-        List<Mention> mentions = new ArrayList<Mention>();
-        for ( User user : users )
-        {
-            Mention mention = new Mention();
-            mention.setCreated( new Date() );
-            mention.setUsername( user.getUsername() );
-            mentions.add( mention );
-        }
-        this.mentions =  (mentions.size() > 0) ? mentions : null;
+        this.mentions = MentionUtils.convertUsersToMentions( users );
     }
 }
