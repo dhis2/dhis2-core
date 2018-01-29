@@ -299,9 +299,9 @@ public class DefaultProgramIndicatorService
         
         expression = getSubstitutedVariablesForAnalyticsSql( expression, programIndicator, startDate, endDate );
 
-        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicator );
+        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicator, startDate, endDate );
         
-        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicator );
+        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicator, startDate, endDate );
 
         return expression;
     }
@@ -356,7 +356,7 @@ public class DefaultProgramIndicatorService
     }
 
     private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues, 
-        ProgramIndicator programIndicator )
+        ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
         if ( expression == null )
         {
@@ -378,7 +378,7 @@ public class DefaultProgramIndicatorService
 
                 for ( int i = 0; i < args.length; i++ )
                 {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator );
+                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator, reportingStartDate, reportingEndDate );
                     args[i] = arg;
                 }
 
