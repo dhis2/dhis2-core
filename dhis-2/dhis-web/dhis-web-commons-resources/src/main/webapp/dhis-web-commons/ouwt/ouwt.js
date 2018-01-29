@@ -41,6 +41,8 @@ dhis2.ou.memoryOnly = $('html').hasClass('ie7') || $('html').hasClass('ie8');
 
 $(function ()
 {
+    dhis2BaseUrl = dhis2.util.BASEURL || dhis2BaseUrl;
+    organisationUnitTreePath = dhis2BaseUrl + "/dhis-web-commons/ouwt/";
     var adapters = [];
     var partial_adapters = [];
 
