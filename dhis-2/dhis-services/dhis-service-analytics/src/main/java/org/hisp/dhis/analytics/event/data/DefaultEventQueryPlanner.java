@@ -64,12 +64,10 @@ public class DefaultEventQueryPlanner
     // EventQueryPlanner implementation
     // -------------------------------------------------------------------------
 
-    // TODO use list of functional groupers and single loop
-    
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
-        final List<EventQueryParams> queries = new ArrayList<>();
+        final List<EventQueryParams> queries = Lists.newArrayList( params );
         
         List<Function<EventQueryParams, List<EventQueryParams>>> groupers = new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
             .add( q -> groupByQueryItems( q ) )
