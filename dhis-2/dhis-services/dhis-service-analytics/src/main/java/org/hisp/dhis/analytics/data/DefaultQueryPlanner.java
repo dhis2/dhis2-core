@@ -110,10 +110,7 @@ public class DefaultQueryPlanner
             List<DataQueryParams> currentQueries = Lists.newArrayList( queries );
             queries.clear();
             
-            for ( DataQueryParams query : currentQueries )
-            {
-                queries.addAll( grouper.apply( query ) );
-            }
+            currentQueries.forEach( query -> queries.addAll( grouper.apply( query ) ) );
         }
 
         // ---------------------------------------------------------------------
