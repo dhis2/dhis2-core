@@ -1,0 +1,67 @@
+{
+  "dataSets": [
+    {
+      "dataSetElements": [
+        {
+          "id": "WTOZ7gqbASV",
+          "dataElement": {
+            "id": "nHwIqKAudKN"
+          },
+          "dataSet": {
+            "id": "em8Bg4LCr5k"
+          }
+        },
+        {
+          "id": "rSChycu6mOY",
+          "dataElement": {
+            "id": "VolAzjFe5zP"
+          },
+          "dataSet": {
+            "id": "em8Bg4LCr5k"
+          }
+        }
+      ],
+      "compulsoryDataElementOperands": [ ],
+      "timelyDays": 15,
+      "fieldCombinationRequired": false,
+      "version": 4,
+      "renderAsTabs": false,
+      "name": "Data Set",
+      "expiryDays": 0,
+      "skipOffline": false,
+      "dataElementDecoration": false,
+      "validCompleteOnly": false,
+      "publicAccess": "rw------",
+      "noValueRequiresComment": false,
+      "shortName": "Data Set",
+      "description" : "update data set",
+      "attributeValues": [ ],
+      "id": "em8Bg4LCr5k",
+      "indicators": [ ],
+      "userGroupAccesses": [ ],
+      "periodType": "Monthly",
+      "mobile": false,
+      "lastUpdated": "2016-03-08T07:32:42.146+0000",
+      "notifyCompletingUser": false,
+      "openFuturePeriods": 0,
+      "created": "2016-03-08T07:31:30.424+0000",
+      "organisationUnits": [
+        {
+          "id": "x3gVvpbVgqy"
+        }
+      ],
+      "renderHorizontally": false,
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "userAccesses": [
+        {
+          "access": "rwrw----",
+          "displayName": "admin",
+          "id": "T12jeH7KPzk",
+          "userUid": "T12jeH7KPzk"
+        }
+      ]
+    }
+  ]
+}
