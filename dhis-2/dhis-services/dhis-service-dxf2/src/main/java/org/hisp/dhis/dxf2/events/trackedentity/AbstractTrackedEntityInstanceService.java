@@ -149,9 +149,9 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
     {
-        return entityInstanceService.getTrackedEntityInstanceCount( params );
+        return entityInstanceService.getTrackedEntityInstanceCount( params, sync );
     }
 
     @Override
@@ -230,20 +230,25 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+        
         for ( TrackedEntityAttributeValue attributeValue : entityInstance.getTrackedEntityAttributeValues() )
         {
-            Attribute attribute = new Attribute();
+            if( readableAttributes.contains( attributeValue.getAttribute() ) )
+            {
+                Attribute attribute = new Attribute();
 
-            attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
-            attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
-            attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
-            attribute.setAttribute( attributeValue.getAttribute().getUid() );
-            attribute.setValueType( attributeValue.getAttribute().getValueType() );
-            attribute.setCode( attributeValue.getAttribute().getCode() );
-            attribute.setValue( attributeValue.getValue() );
-            attribute.setStoredBy( attributeValue.getStoredBy() );
+                attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
+                attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
+                attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
+                attribute.setAttribute( attributeValue.getAttribute().getUid() );
+                attribute.setValueType( attributeValue.getAttribute().getValueType() );
+                attribute.setCode( attributeValue.getAttribute().getCode() );
+                attribute.setValue( attributeValue.getValue() );
+                attribute.setStoredBy( attributeValue.getStoredBy() );
 
-            trackedEntityInstance.getAttributes().add( attribute );
+                trackedEntityInstance.getAttributes().add( attribute );
+            }
         }
 
         return trackedEntityInstance;
