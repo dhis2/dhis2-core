@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.user.SimpleUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.slf4j.Logger;
@@ -15,7 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -31,13 +31,13 @@ public class TwoFactorAuthenticationProvider
 
     private UserService userService;
 
-    private SecurityService securityService;
-
     @Autowired
     public void setUserService( UserService userService )
     {
         this.userService = userService;
     }
+
+    private SecurityService securityService;
 
     @Autowired
     public void setSecurityService( SecurityService securityService )
@@ -55,7 +55,7 @@ public class TwoFactorAuthenticationProvider
     public Authentication authenticate( Authentication auth )
         throws AuthenticationException
     {
-        log.debug( String.format( "Login attempt: %s", auth.getName() ) );
+        log.info( String.format( "Login attempt: %s", auth.getName() ) );
 
         TwoFactorWebAuthenticationDetails authDetails =
             (TwoFactorWebAuthenticationDetails) auth.getDetails();
@@ -80,6 +80,8 @@ public class TwoFactorAuthenticationProvider
 
         String code = StringUtils.deleteWhitespace( authDetails.getCode() );
 
+        System.out.println("code: " + code + ", username: " + userService.getUserCredentialsByUsername( username ).getUser());
+
         User user = userService.getUserCredentialsByUsername( username ).getUser();
 
         if ( user == null )
@@ -87,7 +89,9 @@ public class TwoFactorAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
-        if ( user.isIs2FA() )
+        System.out.println("user is2fa? " + user.isTwoFactorAuthentication() );
+
+        if ( user.isTwoFactorAuthentication() )
         {
             if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( user, code ) )
             {
@@ -101,8 +105,7 @@ public class TwoFactorAuthenticationProvider
         // Delegate authentication downstream, using UserDetails as principal
         // -------------------------------------------------------------------------
 
-        // HH correct?
-        UserDetails principal = (UserDetails) auth.getPrincipal();
+        SimpleUser principal = userService.getSimpleUser( username );
 
         Authentication result = super.authenticate( auth );
 

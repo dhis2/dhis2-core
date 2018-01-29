@@ -63,7 +63,7 @@ public class User
 
     private String firstName;
 
-    private boolean is2FA;
+    private boolean twoFactorAuthentication = false;
 
     private String secret;
 
@@ -101,7 +101,6 @@ public class User
     public User()
     {
         setSecret( );
-        this.is2FA = false;
     }
 
     /**
@@ -446,14 +445,14 @@ public class User
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isIs2FA()
+    public boolean isTwoFactorAuthentication()
     {
-        return is2FA;
+        return twoFactorAuthentication;
     }
 
-    public void setIs2FA( boolean is2FA )
+    public void setTwoFactorAuthentication( boolean twoFactorAuthentication )
     {
-        this.is2FA = is2FA;
+        this.twoFactorAuthentication = twoFactorAuthentication;
     }
 
     public String getSecret()

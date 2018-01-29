@@ -165,6 +165,14 @@ public class DefaultUserService
     @Override
     public User getUser( String uid )
     {
+        if ( uid.equals( "mIlA6jpvB52" ) )
+        {
+            User user = userStore.getByUid( uid );
+            user.setTwoFactorAuthentication( true );
+            userStore.update( user );
+
+            System.out.println("username : " + user.getUserCredentials().getUsername());
+        }
         return userStore.getByUid( uid );
     }
 
@@ -657,5 +665,11 @@ public class DefaultUserService
         userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
 
         return userStore.getExpiringUsers( userQueryParams );
+    }
+
+    @Override
+    public SimpleUser getSimpleUser( String username )
+    {
+        return (SimpleUser) getUserCredentialsByUsername( username ).getUser();
     }
 }

@@ -81,6 +81,8 @@ public class InitTableAlteror
         updateTimestamps();
         updateCompletedBy();
 
+        updateUser2FAFields();
+
         executeSql( "ALTER TABLE program ALTER COLUMN \"type\" TYPE varchar(255);" );
         executeSql( "update program set \"type\"='WITH_REGISTRATION' where type='1' or type='2'" );
         executeSql( "update program set \"type\"='WITHOUT_REGISTRATION' where type='3'" );
@@ -131,6 +133,12 @@ public class InitTableAlteror
 
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
 
+    }
+
+    private void updateUser2FAFields()
+    {
+        System.out.println("updateTABLE");
+        executeSql( "ALTER TABLE users ADD COLUMN twofactorauthentication boolean DEFAULT false" );
     }
 
     private void updateMessageConversationMessageTypes()
