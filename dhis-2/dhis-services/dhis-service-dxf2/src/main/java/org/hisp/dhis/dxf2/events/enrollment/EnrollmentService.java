@@ -34,6 +34,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,6 +82,8 @@ public interface EnrollmentService
     ImportSummary updateEnrollmentForNoteJson( String id, InputStream inputStream ) throws IOException;
 
     ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
+
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
 

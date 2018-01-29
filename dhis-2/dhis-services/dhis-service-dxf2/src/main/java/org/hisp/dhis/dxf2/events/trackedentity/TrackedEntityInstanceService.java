@@ -33,6 +33,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,9 +83,13 @@ public interface TrackedEntityInstanceService
 
     ImportSummary updateTrackedEntityInstanceJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
+    ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, User user, ImportOptions importOptions );
+
     ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
 
     ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
+
+    ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, User user, ImportOptions importOptions );
 
     // -------------------------------------------------------------------------
     // DELETE

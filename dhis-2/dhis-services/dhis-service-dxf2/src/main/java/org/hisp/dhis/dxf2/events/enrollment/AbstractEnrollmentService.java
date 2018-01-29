@@ -65,6 +65,10 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -74,17 +78,20 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -134,6 +141,12 @@ public abstract class AbstractEnrollmentService
     @Autowired
     protected EventService eventService;
 
+    @Autowired
+    private SchemaService schemaService;
+
+    @Autowired
+    private QueryService queryService;
+
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private CachingMap<String, Program> programCache = new CachingMap<>();
@@ -165,7 +178,7 @@ public abstract class AbstractEnrollmentService
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            
+
             enrollments.setPager( pager );
         }
 
@@ -307,19 +320,51 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
+        User user = currentUserService.getCurrentUser();
+        List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
+
         ImportSummaries importSummaries = new ImportSummaries();
-        int counter = 0;
 
-        for ( Enrollment enrollment : enrollments )
+        for ( List<Enrollment> _enrollments : partitions )
         {
-            importSummaries.addImportSummary( addEnrollment( enrollment, importOptions ) );
+            // prepare caches
+            Collection<String> orgUnits = _enrollments.stream().map( Enrollment::getOrgUnit ).collect( Collectors.toSet() );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( !orgUnits.isEmpty() )
             {
-                clearSession();
+                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", orgUnits ) );
+                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
-            counter++;
+            Collection<String> programs = _enrollments.stream().map( Enrollment::getProgram ).collect( Collectors.toSet() );
+
+            if ( !programs.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( Program.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", programs ) );
+                queryService.query( query ).forEach( pr -> programCache.put( pr.getUid(), (Program) pr ) );
+            }
+
+            Collection<String> trackedEntityAttributes = new HashSet<>();
+            _enrollments.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+            if ( !trackedEntityAttributes.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+            }
+
+            for ( Enrollment enrollment : _enrollments )
+            {
+                importSummaries.addImportSummary( addEnrollment( enrollment, importOptions, user ) );
+            }
+
+            clearSession();
         }
 
         return importSummaries;
@@ -327,6 +372,12 @@ public abstract class AbstractEnrollmentService
 
     @Override
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    {
+        return addEnrollment( enrollment, importOptions, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user )
     {
         if ( importOptions == null )
         {
@@ -458,19 +509,51 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
+        User user = currentUserService.getCurrentUser();
+        List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
+
         ImportSummaries importSummaries = new ImportSummaries();
-        int counter = 0;
 
-        for ( Enrollment enrollment : enrollments )
+        for ( List<Enrollment> _enrollments : partitions )
         {
-            importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions ) );
+            // prepare caches
+            Collection<String> orgUnits = _enrollments.stream().map( Enrollment::getOrgUnit ).collect( Collectors.toSet() );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( !orgUnits.isEmpty() )
             {
-                clearSession();
+                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", orgUnits ) );
+                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
-            counter++;
+            Collection<String> programs = _enrollments.stream().map( Enrollment::getProgram ).collect( Collectors.toSet() );
+
+            if ( !programs.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( Program.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", programs ) );
+                queryService.query( query ).forEach( pr -> programCache.put( pr.getUid(), (Program) pr ) );
+            }
+
+            Collection<String> trackedEntityAttributes = new HashSet<>();
+            _enrollments.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+            if ( !trackedEntityAttributes.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+            }
+
+            for ( Enrollment enrollment : _enrollments )
+            {
+                importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions ) );
+            }
+
+            clearSession();
         }
 
         return importSummaries;
@@ -526,8 +609,8 @@ public abstract class AbstractEnrollmentService
         {
             programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         }
-        
-        if ( enrollment.getOrgUnit() != null ) 
+
+        if ( enrollment.getOrgUnit() != null )
         {
             OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
             programInstance.setOrganisationUnit( organisationUnit );
