@@ -28,7 +28,15 @@ package org.hisp.dhis.security.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.*;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import java.io.IOException;
 
 /**
@@ -37,6 +45,9 @@ import java.io.IOException;
 public class CustomAuthenticationFilter
     implements Filter
 {
+    @Autowired
+    private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
+
     public static final String PARAM_MOBILE_VERSION = "mobileVersion";
     public static final String PARAM_AUTH_ONLY = "authOnly";
     

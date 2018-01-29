@@ -17,7 +17,7 @@
   <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint"
     authentication-manager-ref="oAuth2AuthenticationManager" stateless="false"/>
 
-  <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"
+  <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="twoFactorAuthenticationProvider" disable-url-rewriting="true"
     use-expressions="false" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />
     <sec:anonymous enabled="false" />
@@ -26,7 +26,7 @@
     <sec:csrf disabled="true" />
   </sec:http>
 
-  <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true" use-expressions="false"
+  <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="twoFactorAuthenticationProvider" disable-url-rewriting="true" use-expressions="false"
     create-session="ifRequired" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />
     <sec:http-basic />
@@ -60,19 +60,19 @@
   <bean id="appCacheFilter" class="org.hisp.dhis.servlet.filter.AppCacheFilter" />
 
   <sec:http access-decision-manager-ref="accessDecisionManager"
-    authentication-manager-ref="authenticationManager" pattern="/dhis-web-commons/javascripts/**" security="none" />
+    authentication-manager-ref="twoFactorAuthenticationProvider" pattern="/dhis-web-commons/javascripts/**" security="none" />
   <sec:http access-decision-manager-ref="accessDecisionManager"
-    authentication-manager-ref="authenticationManager" pattern="/dhis-web-commons/css/**" security="none" />
+    authentication-manager-ref="twoFactorAuthenticationProvider" pattern="/dhis-web-commons/css/**" security="none" />
   <sec:http access-decision-manager-ref="accessDecisionManager"
-    authentication-manager-ref="authenticationManager" pattern="/dhis-web-commons/flags/**" security="none" />
+    authentication-manager-ref="twoFactorAuthenticationProvider" pattern="/dhis-web-commons/flags/**" security="none" />
   <sec:http access-decision-manager-ref="accessDecisionManager"
-    authentication-manager-ref="authenticationManager" pattern="/dhis-web-commons/fonts/**" security="none" />
+    authentication-manager-ref="twoFactorAuthenticationProvider" pattern="/dhis-web-commons/fonts/**" security="none" />
   <sec:http access-decision-manager-ref="accessDecisionManager"
-    authentication-manager-ref="authenticationManager" pattern="/api/files/style/external" security="none" />
+    authentication-manager-ref="twoFactorAuthenticationProvider" pattern="/api/files/style/external" security="none" />
   <sec:http access-decision-manager-ref="accessDecisionManager"
-    authentication-manager-ref="authenticationManager" pattern="/external-static/**" security="none" />
+    authentication-manager-ref="twoFactorAuthenticationProvider" pattern="/external-static/**" security="none" />
   <sec:http access-decision-manager-ref="accessDecisionManager"
-    authentication-manager-ref="authenticationManager" pattern="/favicon.ico" security="none" />
+    authentication-manager-ref="twoFactorAuthenticationProvider" pattern="/favicon.ico" security="none" />
 
   <!-- Disabled for now, we need to properly handle "Basic Auth" dialog box popping up on browsers
   <sec:http access-decision-manager-ref="accessDecisionManager" use-expressions="true" realm="DHIS2" pattern="/api/**">
@@ -100,7 +100,7 @@
   </bean>
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
-    authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
+    authentication-manager-ref="twoFactorAuthenticationProvider" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
 
     <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
       authentication-failure-handler-ref="securityExceptionTranslationHandler"
@@ -329,7 +329,7 @@
   <bean id="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor"
     class="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor">
     <property name="accessDecisionManager" ref="accessDecisionManager" />
-    <property name="authenticationManager" ref="authenticationManager" />
+    <property name="authenticationManager" ref="twoFactorAuthenticationProvider" />
     <property name="validateConfigAttributes" value="false" />
     <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />
     <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />
@@ -439,6 +439,5 @@
 
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
-  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener"/>
-
+  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener2FA"/>
 </beans>
