@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.notification.logging;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,72 +28,15 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.option.Option;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
- * @author Henning Håkonsen
+ * Created by zubair@dhis2.org on 10.01.18.
  */
-public class EventReportDimensionalItem
+public interface NotificationLoggingStore
+    extends GenericIdentifiableObjectStore<ExternalNotificationLogEntry>
 {
-    private String parentUid;
+    ExternalNotificationLogEntry getByTemplateUid( String templateUid );
 
-    private Option option;
-
-    private DimensionalItemObject dimensionalItemObject;
-
-    public EventReportDimensionalItem( Option option, String parentUid )
-    {
-        this.option = option;
-        this.parentUid = parentUid;
-    }
-
-    EventReportDimensionalItem( DimensionalItemObject dimensionalItemObject, String parentUid )
-    {
-        this.dimensionalItemObject = dimensionalItemObject;
-        this.parentUid = parentUid;
-    }
-
-    public Option getOption()
-    {
-        return option;
-    }
-
-    public String getParentUid()
-    {
-       return parentUid;
-    }
-
-    public String getDisplayProperty( DisplayProperty displayProperty )
-    {
-        if ( option != null )
-        {
-            return option.getDisplayName();
-        }
-        else
-        {
-            if ( displayProperty == DisplayProperty.NAME )
-            {
-                return dimensionalItemObject.getName();
-            }
-            else
-            {
-                return dimensionalItemObject.getShortName();
-            }
-        }
-
-    }
-
-    @Override
-    public String toString()
-    {
-        if ( option == null )
-        {
-            return dimensionalItemObject.getDimensionItem();
-        }
-        else
-        {
-            return option.getCode();
-        }
-    }
+    ExternalNotificationLogEntry getByKey( String key );
 }

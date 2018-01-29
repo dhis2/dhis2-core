@@ -107,6 +107,16 @@ public class DefaultJobInstance
         schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
 
+    /**
+     * Method which calls the execute method in the job. The job will run in this thread and finish, either with success
+     * or with an exception.
+     *
+     * @param jobConfiguration the configuration to execute
+     * @param schedulingManager a reference to the scheduling manager
+     * @param messageService a reference to the message service to notify admins if a job fails
+     * @param clock a clock object to keep time of the execution of the job
+     * @throws Exception if the job fails
+     */
     private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
         MessageService messageService, Clock clock )
         throws Exception

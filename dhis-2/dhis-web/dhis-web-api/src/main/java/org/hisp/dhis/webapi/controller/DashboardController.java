@@ -1,5 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.common.DhisApiVersion;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -41,6 +43,7 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DashboardItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -66,6 +69,7 @@ import static org.hisp.dhis.dashboard.Dashboard.MAX_ITEMS;
  * @author Lars Helge Overland
  */
 @Controller
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
 @RequestMapping( value = DashboardSchemaDescriptor.API_ENDPOINT )
 public class DashboardController
     extends AbstractCrudController<Dashboard>
@@ -299,6 +303,24 @@ public class DashboardController
     }
 
     // -------------------------------------------------------------------------
+    // Metadata with dependencies
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, HttpServletResponse response )
+        throws WebMessageException, IOException
+    {
+        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+
+        if ( dashboard == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Dashboard not found for uid: " + dashboardId ) );
+        }
+
+        return exportService.getMetadataWithDependenciesAsNode( dashboard );
+    }
+    
+    // -------------------------------------------------------------------------
     // Hooks
     // -------------------------------------------------------------------------
 
@@ -324,19 +346,5 @@ public class DashboardController
                 }
             }
         }
-    }
-
-    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, HttpServletResponse response )
-        throws WebMessageException, IOException
-    {
-        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
-
-        if ( dashboard == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Dashboard not found for uid: " + dashboardId ) );
-        }
-
-        return exportService.getMetadataWithDependenciesAsNode( dashboard );
     }
 }

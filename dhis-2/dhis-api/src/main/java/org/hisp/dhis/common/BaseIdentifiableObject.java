@@ -113,7 +113,7 @@ public class BaseIdentifiableObject
     protected Map<String, String> translationCache = new HashMap<>();
 
     /**
-     * This object is available as external read-only
+     * This object is available as external read-only.
      */
     protected boolean externalAccess;
 
@@ -143,7 +143,12 @@ public class BaseIdentifiableObject
     protected transient Access access;
 
     /**
-     * The i18n variant of the name. Should not be persisted.
+     * Users who have marked this object as a favorite.
+     */
+    protected Set<User> favorites = new HashSet<>();
+    
+    /**
+     * The i18n variant of the name. Not persisted.
      */
     protected transient String displayName;
 
@@ -482,6 +487,29 @@ public class BaseIdentifiableObject
         this.access = access;
     }
 
+    @Override
+    @JsonProperty( "favorites" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "favorites", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "favorite", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<User> getFavorites()
+    {
+        return favorites;
+    }
+
+    public void setFavorites( Set<User> favorites )
+    {
+        this.favorites = favorites;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFavorite()
+    {
+        return favorites.contains( UserContext.getUser() );
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -600,6 +628,7 @@ public class BaseIdentifiableObject
      * @param idScheme the IdScheme.
      * @return the value of the property referred to by the IdScheme.
      */
+    @Override
     public String getPropertyValue( IdScheme idScheme )
     {
         if ( idScheme.isNull() || idScheme.is( IdentifiableProperty.UID ) )

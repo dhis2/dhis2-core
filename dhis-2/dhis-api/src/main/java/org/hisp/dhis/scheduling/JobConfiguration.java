@@ -314,12 +314,6 @@ public class JobConfiguration
     @Override
     public String toString()
     {
-        return "Name: " + name +
-            "\nType: " + jobType +
-            "\nStatus: " + jobStatus +
-            "\nConfigurable: " + configurable +
-            "\nContinuous: " + continuousExecution +
-            "\nCron expression: " + cronExpression +
-            "\nNext execution time: " + nextExecutionTime;
+        return uid + ", " + name + ", " + jobType + ", " + cronExpression;
     }
 }

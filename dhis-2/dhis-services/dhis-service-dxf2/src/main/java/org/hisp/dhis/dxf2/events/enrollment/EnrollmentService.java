@@ -45,7 +45,7 @@ import java.util.List;
  */
 public interface EnrollmentService
 {
-    int FLUSH_FREQUENCY = 50;
+    int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
     // READ
