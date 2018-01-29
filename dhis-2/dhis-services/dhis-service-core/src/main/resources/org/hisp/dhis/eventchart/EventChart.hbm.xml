@@ -255,13 +255,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="eventchartusergroupaccesses">
+    <set name="userGroupAccesses" table="eventchartusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="eventchartuseraccesses">
+    <set name="userAccesses" table="eventchartuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

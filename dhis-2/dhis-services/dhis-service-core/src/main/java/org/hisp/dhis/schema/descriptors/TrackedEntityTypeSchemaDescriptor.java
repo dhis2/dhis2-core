@@ -29,10 +29,10 @@ package org.hisp.dhis.schema.descriptors;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
@@ -50,6 +50,7 @@ public class TrackedEntityTypeSchemaDescriptor implements SchemaDescriptor
     public Schema getSchema()
     {
         Schema schema = new Schema( TrackedEntityType.class, SINGULAR, PLURAL );
+        schema.setDataShareable( true );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1480 );
 

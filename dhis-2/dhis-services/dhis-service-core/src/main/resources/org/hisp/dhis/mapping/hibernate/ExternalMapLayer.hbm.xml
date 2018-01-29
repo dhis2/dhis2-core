@@ -38,13 +38,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="externalmaplayerusergroupaccesses">
+    <set name="userGroupAccesses" table="externalmaplayerusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="externalmaplayerid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="externalmaplayeruseraccesses">
+    <set name="userAccesses" table="externalmaplayeruseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="externalmaplayerid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
