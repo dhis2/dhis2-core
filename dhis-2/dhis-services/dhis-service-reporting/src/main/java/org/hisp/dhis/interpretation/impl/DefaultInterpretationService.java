@@ -174,9 +174,7 @@ public class DefaultInterpretationService
         Set<User> users = this.getMentionedUsers( interpretation.getText() );
         interpretation.setMentions(users);
         this.updateSharingForMentions(interpretation, users);
-        
         interpretationStore.update( interpretation );
-        
         
         this.sendNotifications(interpretation, null, users);
     }
@@ -277,7 +275,7 @@ public class DefaultInterpretationService
     {
         Interpretation interpretation = getInterpretation( uid );
         User user = currentUserService.getCurrentUser();
-            
+
         InterpretationComment comment = new InterpretationComment( text );
         comment.setLastUpdated( new Date() );
         comment.setUid( CodeGenerator.generateUid() );
