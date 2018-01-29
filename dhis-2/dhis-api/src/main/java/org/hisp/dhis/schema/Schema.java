@@ -392,12 +392,18 @@ public class Schema implements Ordered, Klass
         this.persisted = persisted;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isTranslatable()
     {
         return isIdentifiableObject() && havePersistedProperty( "translations" );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFavoritable()
+    {
+        return isIdentifiableObject() && havePersistedProperty( "favorites" );
     }
 
     @JsonProperty

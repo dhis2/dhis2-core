@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import org.hisp.dhis.common.Grid;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -41,7 +40,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,15 +87,15 @@ public interface EventService
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobId jobId );
+    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsXml( InputStream inputStream, JobId jobId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
 
     ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsJson( InputStream inputStream, JobId jobId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE

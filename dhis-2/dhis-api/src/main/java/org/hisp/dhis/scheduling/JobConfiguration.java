@@ -84,11 +84,37 @@ public class JobConfiguration
 
     private boolean enabled = true;
 
+    private boolean inMemoryJob = false;
+
+    private String userUid;
+
     public JobConfiguration()
     {
     }
 
+    public JobConfiguration( String name, JobType jobType, String userUid, boolean inMemoryJob )
+    {
+        this.name = name;
+        this.jobType = jobType;
+        this.userUid = userUid;
+        this.inMemoryJob = inMemoryJob;
+        init();
+    }
+
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
+        boolean continuousExecution, boolean enabled )
+    {
+        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
+    }
+
+    public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
+        boolean continuousExecution, boolean enabled, boolean inMemoryJob )
+    {
+        this.inMemoryJob = inMemoryJob;
+        constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
+    }
+
+    private void constructor( String name, JobType jobType, String cronExpression, JobParameters jobParameters,
         boolean continuousExecution, boolean enabled )
     {
         this.name = name;
@@ -98,6 +124,15 @@ public class JobConfiguration
         this.continuousExecution = continuousExecution;
         this.enabled = enabled;
         setJobStatus( enabled ? SCHEDULED : DISABLED );
+        init();
+    }
+
+    private void init()
+    {
+        if ( inMemoryJob )
+        {
+            setAutoFields();
+        }
     }
 
     public void setCronExpression( String cronExpression )
@@ -146,7 +181,9 @@ public class JobConfiguration
         }
 
         if ( nextExecutionTime != null )
+        {
             this.nextExecutionTime = nextExecutionTime;
+        }
         else
         {
             this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
@@ -166,6 +203,16 @@ public class JobConfiguration
     public void setEnabled( boolean enabled )
     {
         this.enabled = enabled;
+    }
+
+    public void setInMemoryJob( boolean inMemoryJob )
+    {
+        this.inMemoryJob = inMemoryJob;
+    }
+
+    public void setUserUid( String userUid )
+    {
+        this.userUid = userUid;
     }
 
     @JacksonXmlProperty
@@ -246,10 +293,16 @@ public class JobConfiguration
         return enabled;
     }
 
-    public JobId getJobId()
+    public boolean isInMemoryJob()
     {
-        String user = getLastUpdatedBy() != null ? getLastUpdatedBy().getUid() : "system";
-        return new JobId( jobType, user );
+        return inMemoryJob;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getUserUid()
+    {
+        return userUid;
     }
 
     @Override
@@ -261,12 +314,6 @@ public class JobConfiguration
     @Override
     public String toString()
     {
-        return "Name: " + name +
-            "\nType: " + jobType +
-            "\nStatus: " + jobStatus +
-            "\nConfigurable: " + configurable +
-            "\nContinuous: " + continuousExecution +
-            "\nCron expression: " + cronExpression +
-            "\nNext execution time: " + nextExecutionTime;
+        return uid + ", " + name + ", " + jobType + ", " + cronExpression;
     }
 }

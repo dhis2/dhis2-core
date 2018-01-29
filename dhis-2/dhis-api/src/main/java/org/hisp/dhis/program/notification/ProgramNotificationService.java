@@ -68,6 +68,22 @@ public interface ProgramNotificationService
     void sendCompletionNotifications( ProgramStageInstance programStageInstance );
 
     /**
+     * Send completion notifications for the ProgramInstance triggered by ProgramRule evaluation.
+     * {@link ProgramNotificationTemplate templates}, nothing will happen.
+     * @param pnt ProgramNotificationTemplate to send
+     * @param programInstance the ProgramInstance.
+     */
+    void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramInstance programInstance );
+
+    /**
+     * Send completion notifications for the ProgramStageInstance triggered by ProgramRule evaluation.
+     * {@link ProgramNotificationTemplate templates}, nothing will happen.
+     * @param pnt ProgramNotificationTemplate to send
+     * @param programStageInstance the ProgramStageInstance.
+     */
+    void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramStageInstance programStageInstance );
+
+    /**
      * Send completion notifications for the ProgramInstance.
      * If the Program is not configured with suitable
      * {@link ProgramNotificationTemplate templates}, nothing will happen.

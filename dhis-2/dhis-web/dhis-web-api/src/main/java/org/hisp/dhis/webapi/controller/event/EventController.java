@@ -46,7 +46,13 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.events.event.*;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.event.ImportEventTask;
+import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -75,11 +81,11 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -91,7 +97,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -99,7 +109,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -122,7 +137,7 @@ public class EventController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private EventService eventService;
@@ -183,7 +198,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Grid getEventsGrid(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -251,7 +265,6 @@ public class EventController
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody RootNode getEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -347,7 +360,6 @@ public class EventController
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getCsvEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -449,7 +461,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model, HttpServletRequest request ) throws Exception
     {
@@ -466,7 +477,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
         HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
@@ -590,7 +600,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postXmlEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
@@ -627,17 +636,17 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsXml( inputStream );
 
-            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postJsonEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
@@ -674,16 +683,17 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsJson( inputStream );
-            scheduler.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }
 
     @RequestMapping( value = "/{uid}/note", method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -701,7 +711,6 @@ public class EventController
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException
     {
@@ -717,8 +726,9 @@ public class EventController
         }
         else
         {
-            JobId jobId = new JobId( JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid() );
-            scheduler.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+            schedulingManager.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
             response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
@@ -729,7 +739,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -748,7 +757,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -767,7 +775,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}/{dataElementUid}", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid ) throws IOException, WebMessageException
     {
@@ -792,7 +799,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEventForEventDate( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -814,7 +820,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_DELETE')" )
     public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid ) throws WebMessageException
     {

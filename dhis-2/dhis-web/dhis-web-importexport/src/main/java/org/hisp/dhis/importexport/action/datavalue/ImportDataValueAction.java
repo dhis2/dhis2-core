@@ -39,10 +39,10 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.JobId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,7 +71,7 @@ public class ImportDataValueAction
     private SessionFactory sessionFactory;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
@@ -160,7 +160,8 @@ public class ImportDataValueAction
     {
         strategy = strategy != null ? strategy : ImportStrategy.NEW_AND_UPDATES;
 
-        JobId jobId = new JobId( JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid() );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryDataValueImport",
+            JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         notifier.clear( jobId );
 
@@ -179,7 +180,7 @@ public class ImportDataValueAction
 
         log.info( options );
 
-        scheduler.executeJob( new ImportDataValueTask( dataValueSetService,
+        schedulingManager.executeJob( new ImportDataValueTask( dataValueSetService,
             adxDataService, sessionFactory, in, options, jobId, importFormat ) );
 
         return SUCCESS;

@@ -52,13 +52,13 @@ public class DefaultMetadataAuditService implements MetadataAuditService
     }
 
     @Override
-    public void deleteMetadataAudit( MetadataAudit audit )
+    public int count( MetadataAuditQuery query )
     {
-        auditStore.delete( audit );
+        return auditStore.count( query );
     }
 
     @Override
-    public List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query )
+    public List<MetadataAudit> query( MetadataAuditQuery query )
     {
         return auditStore.query( query );
     }

@@ -195,9 +195,8 @@ public class DefaultMessageService
         String footer = getMessageFooter( conversation );
 
         // Send messages to users using the messageSenders
-        params.getRecipients().forEach(
-            ( recipient ) -> invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
-                params.getRecipients(), params.isForceNotification() ) );
+        invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
+            params.getRecipients(), params.isForceNotification() );
 
         return saveMessageConversation( conversation );
     }

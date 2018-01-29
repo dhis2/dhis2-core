@@ -62,12 +62,12 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="interpretationusergroupaccesses">
+    <set name="userGroupAccesses" table="interpretationusergroupaccesses" cascade="all-delete-orphan">
       <key column="interpretationid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="interpretationuseraccesses">
+    <set name="userAccesses" table="interpretationuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="interpretationid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

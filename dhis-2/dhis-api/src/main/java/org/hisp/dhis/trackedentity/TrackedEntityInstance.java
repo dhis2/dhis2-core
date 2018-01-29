@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,6 +53,7 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstance
     extends BaseIdentifiableObject
+    implements CoordinateObject
 {
     public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
 
@@ -238,6 +240,12 @@ public class TrackedEntityInstance
         return featureType;
     }
 
+    @Override
+    public boolean hasFeatureType()
+    {
+        return getFeatureType() != null;
+    }
+
     public void setFeatureType( FeatureType featureType )
     {
         this.featureType = featureType;
@@ -249,6 +257,18 @@ public class TrackedEntityInstance
     public String getCoordinates()
     {
         return coordinates;
+    }
+
+    @Override
+    public boolean hasCoordinates()
+    {
+        return getCoordinates() != null;
+    }
+
+    @Override
+    public boolean hasDescendantsWithCoordinates()
+    {
+        return false;
     }
 
     public void setCoordinates( String coordinates )

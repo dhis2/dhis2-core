@@ -25,6 +25,8 @@
     
     <many-to-one name="eventReport" class="org.hisp.dhis.eventreport.EventReport" foreign-key="fk_dashboarditem_eventreportid" />
     
+    <property name="text" column="textcontent" type="text" />
+
     <list name="users" table="dashboarditem_users">
       <key column="dashboarditemid" foreign-key="fk_dashboarditem_users_dashboardid" />
       <list-index column="sort_order" base="0" />
@@ -49,7 +51,7 @@
       <key column="dashboarditemid" foreign-key="fk_objecttranslation_dashboarditemid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
-
+    
     <property name="messages" />
 
     <property name="appKey" />
@@ -61,6 +63,14 @@
         <param name="type">12</param>
       </type>
     </property>
+    
+    <property name="x" />
+    
+    <property name="y" />
+    
+    <property name="height" />
+    
+    <property name="width" />
 
   </class>
 

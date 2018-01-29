@@ -106,6 +106,20 @@ public class ProgramMessage
     }
 
     // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean hasProgramInstance()
+    {
+        return this.programInstance != null;
+    }
+
+    public boolean hasProgramStageInstance()
+    {
+        return this.programStageInstance != null;
+    }
+
+    // -------------------------------------------------------------------------
     // Setters and getters
     // -------------------------------------------------------------------------
 

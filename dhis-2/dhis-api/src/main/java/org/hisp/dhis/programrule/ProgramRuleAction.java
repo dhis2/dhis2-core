@@ -39,6 +39,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -129,6 +130,15 @@ public class ProgramRuleAction
     private ProgramStage programStage;
 
     /**
+     * The program notification that will be triggered by the rule action.
+     * Used for:
+     * <ul>
+     * <li>sendmessage</li>
+     * </ul>
+     */
+    private ProgramNotificationTemplate programNotificationTemplate;
+
+    /**
      * Used to determine which widget to display data for the two action types:
      * <p>
      * <ul>
@@ -176,6 +186,30 @@ public class ProgramRuleAction
     }
 
     // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean hasDataElement()
+    {
+        return this.dataElement != null;
+    }
+
+    public boolean hasTrackedEntityAttribute()
+    {
+        return this.attribute != null;
+    }
+
+    public boolean hasContent()
+    {
+        return this.content != null && !this.content.isEmpty();
+    }
+
+    public boolean hasNotification()
+    {
+        return this.programNotificationTemplate != null;
+    }
+
+    // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 
@@ -215,6 +249,19 @@ public class ProgramRuleAction
     public void setDataElement( DataElement dataElement )
     {
         this.dataElement = dataElement;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramNotificationTemplate getProgramNotificationTemplate()
+    {
+        return programNotificationTemplate;
+    }
+
+    public void setProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
+    {
+        this.programNotificationTemplate = programNotificationTemplate;
     }
 
     @JsonProperty( "trackedEntityAttribute" )

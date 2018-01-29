@@ -122,6 +122,11 @@
       <groupId>com.googlecode.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
     </dependency>
+      <dependency>
+          <groupId>org.apache.velocity</groupId>
+          <artifactId>velocity</artifactId>
+          <version>1.7</version>
+      </dependency>
 
   </dependencies>
   <properties>

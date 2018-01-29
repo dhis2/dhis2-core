@@ -897,6 +897,8 @@ public class DataSet
         this.formName = formName;
     }
     
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCompulsoryFieldsCompleteOnly()
     {
         return compulsoryFieldsCompleteOnly;

@@ -48,11 +48,12 @@ public final class ValidationAnalysisParams
         Required properties:
         Although required, they can be empty collections. If any of the collections are empty, there would be
         nothing to analyse. This is still a valid state for the params to have. The attribute option combo can also be
-        null, in that case the default attribute option combo will be used.
+        null, in that case the default attribute option combo will be used. The organisation unit can be null,
+        in that case all organisation units will be used.
      */
     private ImmutableCollection<ValidationRule> rules;
 
-    private ImmutableCollection<OrganisationUnit> orgUnits;
+    private OrganisationUnit orgUnit;
 
     private ImmutableCollection<Period> periods;
 
@@ -62,6 +63,8 @@ public final class ValidationAnalysisParams
         Optional properties:
         These have default values, which disables the behaviour represented by them.
      */
+    private boolean includeOrgUnitDescendants = false;
+
     private int maxResults = ValidationService.MAX_INTERACTIVE_ALERTS;
 
     private boolean sendNotifications = false;
@@ -81,13 +84,13 @@ public final class ValidationAnalysisParams
     }
 
     /**
-     * Gets the organisation units selected for analysis
+     * Gets the organisation unit selected for analysis
      *
-     * @return a collection of organisation units to be analysed
+     * @return the organisation unit to be analysed
      */
-    public ImmutableCollection<OrganisationUnit> getOrgUnits()
+    public OrganisationUnit getOrgUnit()
     {
-        return orgUnits;
+        return orgUnit;
     }
 
     /**
@@ -108,6 +111,16 @@ public final class ValidationAnalysisParams
     public DataElementCategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
+    }
+
+    /**
+     * Gets whether or not organisation unit descendants are included
+     *
+     * @return true if organisation unit descendants are included, false if not.
+     */
+    public boolean isIncludeOrgUnitDescendants()
+    {
+        return includeOrgUnitDescendants;
     }
 
     /**
@@ -159,12 +172,12 @@ public final class ValidationAnalysisParams
     {
         private ValidationAnalysisParams params;
 
-        public Builder( Collection<ValidationRule> validationRules, Collection<OrganisationUnit> organisationUnits,
+        public Builder( Collection<ValidationRule> validationRules, OrganisationUnit orgUnit,
             Collection<Period> periods )
         {
             this.params = new ValidationAnalysisParams();
             this.params.rules = ImmutableSet.copyOf( validationRules );
-            this.params.orgUnits = ImmutableSet.copyOf( organisationUnits );
+            this.params.orgUnit = orgUnit;
             this.params.periods = ImmutableSet.copyOf( periods );
         }
 
@@ -177,6 +190,18 @@ public final class ValidationAnalysisParams
         public Builder withAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
         {
             this.params.attributeOptionCombo = attributeOptionCombo;
+            return this;
+        }
+
+        /**
+         * If set to true, organisation unit descendants will be included
+         *
+         * @param includeOrgUnitDescendants true if organisation unit descendants will be included, false if not.
+         * @return the updated builder object
+         */
+        public Builder withIncludeOrgUnitDescendants( boolean includeOrgUnitDescendants )
+        {
+            this.params.includeOrgUnitDescendants = includeOrgUnitDescendants;
             return this;
         }
 

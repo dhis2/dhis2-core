@@ -79,6 +79,8 @@ public class DataQueryParams
     public static final String VALUE_ID = "value";
     public static final String NUMERATOR_ID = "numerator";
     public static final String DENOMINATOR_ID = "denominator";
+    public static final String PERIOD_START_DATE_ID = "pestartdate";
+    public static final String PERIOD_END_DATE_ID = "peenddate";
     public static final String FACTOR_ID = "factor";
     public static final String LEVEL_PREFIX = "uidlevel";
     public static final String KEY_DE_GROUP = "DE_GROUP-";
@@ -87,6 +89,8 @@ public class DataQueryParams
     public static final String VALUE_HEADER_NAME = "Value";
     public static final String NUMERATOR_HEADER_NAME = "Numerator";
     public static final String DENOMINATOR_HEADER_NAME = "Denominator";
+    public static final String PERIOD_START_DATE_NAME = "Period start date";
+    public static final String PERIOD_END_DATE_NAME = "Period end date";
     public static final String FACTOR_HEADER_NAME = "Factor";
     
     public static final String DISPLAY_NAME_DATA_X = "Data";
@@ -201,6 +205,12 @@ public class DataQueryParams
      * values where relevant in the response.
      */
     protected boolean includeNumDen;
+    
+    /**
+     * Indicates whether to include the start and end dates of the aggregation
+     * period in the response.
+     */
+    protected boolean includePeriodStartEndDates;
 
     /**
      * Indicates whether to include metadata details to response
@@ -398,6 +408,7 @@ public class DataQueryParams
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
         params.includeNumDen = this.includeNumDen;
+        params.includePeriodStartEndDates = this.includePeriodStartEndDates;
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
@@ -939,10 +950,10 @@ public class DataQueryParams
         return getDimensionItemObjects( dimension ).toArray( new DimensionalItemObject[0] );
     }
 
-    public List<EventReportDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
+    public List<EventAnalyticsDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
     {
         return getDimensionItemObjects( dimension ).stream()
-            .map( item -> new EventReportDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
+            .map( item -> new EventAnalyticsDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
     }
     
     /**
@@ -1729,6 +1740,11 @@ public class DataQueryParams
         return includeNumDen;
     }
 
+    public boolean isIncludePeriodStartEndDates()
+    {
+        return includePeriodStartEndDates;
+    }
+    
     public boolean isIncludeMetadataDetails()
     {
         return includeMetadataDetails;
@@ -2403,6 +2419,12 @@ public class DataQueryParams
         public Builder withIncludeNumDen( boolean includeNumDen )
         {
             this.params.includeNumDen = includeNumDen;
+            return this;
+        }
+        
+        public Builder withIncludePeriodStartEndDates( boolean includePeriodStartEndDates )
+        {
+            this.params.includePeriodStartEndDates = includePeriodStartEndDates;
             return this;
         }
 
