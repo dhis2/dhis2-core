@@ -55,6 +55,6 @@ public interface TrackedEntityAttributeStore
      * 
      * @return List of attributes
      */
-    List<TrackedEntityAttribute> getDisplayInList();
+    List<TrackedEntityAttribute> getDisplayInListNoProgram();
 
 }
