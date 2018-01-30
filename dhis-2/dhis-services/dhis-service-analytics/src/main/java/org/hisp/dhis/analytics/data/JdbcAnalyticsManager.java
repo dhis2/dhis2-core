@@ -515,12 +515,13 @@ public class JdbcAnalyticsManager
         }
         
         sql += 
-            "rank() over (" + 
+            "row_number() over (" + 
                 "partition by dx, ou, co, ao " + 
                 "order by peenddate desc, pestartdate desc) as pe_rank " + 
             "from analytics " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
+            "and (value is not null or textvalue is not null) " +
             ") as " + params.getTableName();
         
         return sql;
