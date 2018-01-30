@@ -204,7 +204,7 @@ public class IdentifiableObjectUtils
                 
         if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
         {
-            date = new DateTime( date.getTime() ).plusDays( 4 ).toDate();
+            date = new DateTime( date.getTime() ).plusDays( 3 ).toDate();
         }
         
         return periodType.createPeriod( date, calendar );
