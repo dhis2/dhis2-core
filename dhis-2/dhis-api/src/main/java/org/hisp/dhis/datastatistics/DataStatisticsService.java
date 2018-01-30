@@ -31,6 +31,7 @@ package org.hisp.dhis.datastatistics;
 import java.util.Date;
 import java.util.List;
 
+import datasummary.DataSummary;
 import org.hisp.dhis.analytics.SortOrder;
 
 /**
@@ -100,4 +101,11 @@ public interface DataStatisticsService
      * @return data statistics for the favorite with the given identifier.
      */
     FavoriteStatistics getFavoriteStatistics( String uid );
+
+    /**
+     * Returns a DataSummary instance with Data Statistics about System.
+     *
+     * @return a DataSummary instance with Data Statistics about System.
+     */
+    DataSummary getSystemStatisticsSummary();
 }
