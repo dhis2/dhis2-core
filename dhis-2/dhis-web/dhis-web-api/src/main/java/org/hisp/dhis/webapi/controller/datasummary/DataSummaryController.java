@@ -1,4 +1,4 @@
-package org.hisp.dhis.user;
+package org.hisp.dhis.webapi.controller.datasummary;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,35 +28,37 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import datasummary.DataSummary;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.datastatistics.DataStatisticsService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 /**
- * @author Lars Helge Overland
+ * dataSummary endpoint to access System Statistics
+ *
+ * @author Joao Antunes
  */
-public enum UserInvitationStatus
+@Controller
+@RequestMapping( value = DataSummaryController.RESOURCE_PATH )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSummaryController
 {
-    NONE( "none" ), ALL( "all" ), EXPIRED( "expired" );
+    public static final String RESOURCE_PATH = "/dataSummary";
 
-    private final String value;
+    @Autowired
+    private DataStatisticsService dataStatisticsService;
 
-    UserInvitationStatus( String value )
+    @GetMapping
+    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    public @ResponseBody
+    DataSummary getStatistics()
     {
-        this.value = value;
-    }
-
-    public static UserInvitationStatus fromValue( String value )
-    {
-        for ( UserInvitationStatus status : UserInvitationStatus.values() )
-        {
-            if ( status.value.equalsIgnoreCase( value ) )
-            {
-                return status;
-            }
-        }
-
-        return null;
-    }
-
-    public String getValue()
-    {
-        return value;
+        return dataStatisticsService.getSystemStatisticsSummary();
     }
 }
