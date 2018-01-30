@@ -52,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -392,7 +391,7 @@ public class DefaultOrganisationUnitService
             }
             else
             {
-                HashSet<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
+                Set<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
 
                 associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
             }

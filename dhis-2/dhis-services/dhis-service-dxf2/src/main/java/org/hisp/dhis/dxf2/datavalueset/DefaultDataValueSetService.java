@@ -114,6 +114,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.*;
@@ -884,11 +885,11 @@ public class DefaultDataValueSetService
 
             if ( categoryOptionCombo != null )
             {
-                List errors = accessManager.canWrite( currentUser, categoryOptionCombo );
+                List<String> errors = accessManager.canWrite( currentUser, categoryOptionCombo );
 
                 if ( !errors.isEmpty() )
                 {
-                    summary.getConflicts().addAll( errors );
+                    summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
                     continue;
                 }
             }
@@ -901,11 +902,11 @@ public class DefaultDataValueSetService
 
             if ( attrOptionCombo != null )
             {
-                List errors = accessManager.canWrite( currentUser, attrOptionCombo );
+                List<String> errors = accessManager.canWrite( currentUser, attrOptionCombo );
 
                 if ( !errors.isEmpty() )
                 {
-                    summary.getConflicts().addAll( errors );
+                    summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
                     continue;
                 }
             }
@@ -1135,11 +1136,11 @@ public class DefaultDataValueSetService
             // Check if current user has permission to save this value
             // -----------------------------------------------------------------
 
-            List errors = accessManager.canWrite( currentUser, internalValue );
+            List<String> errors = accessManager.canWrite( currentUser, internalValue );
 
             if ( !errors.isEmpty() )
             {
-                summary.getConflicts().addAll( errors );
+                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
                 continue;
             }
 

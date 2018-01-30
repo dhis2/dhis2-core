@@ -231,7 +231,7 @@ public class DefaultCompleteDataSetRegistrationService
 
                 for ( DataElementOperand dataElementOperand : dataSet.getCompulsoryDataElementOperands() )
                 {
-                    List errors = accessManager.canWrite( currentUser, dataElementOperand );
+                    List<String> errors = accessManager.canWrite( currentUser, dataElementOperand );
 
                     if ( !errors.isEmpty() )
                     {

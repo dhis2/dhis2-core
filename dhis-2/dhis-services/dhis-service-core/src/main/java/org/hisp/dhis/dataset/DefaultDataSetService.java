@@ -168,22 +168,15 @@ public class DefaultDataSetService
             return Lists.newArrayList();
         }
 
-        if ( user.isSuper() )
-        {
-            return getAllDataSets();
-        }
-        else
-        {
-            return dataSetStore.getDataReadAll();
-        }
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll();
     }
-
 
     @Override
     public List<DataSet> getDataReadAll()
     {
         return getDataReadAll( currentUserService.getCurrentUser() );
     }
+
     @Override
     public List<DataSet> getDataWriteAll( User user )
     {
@@ -192,14 +185,7 @@ public class DefaultDataSetService
             return Lists.newArrayList();
         }
 
-        if ( user.isSuper() )
-        {
-            return getAllDataSets();
-        }
-        else
-        {
-            return dataSetStore.getDataWriteAll();
-        }
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll();
     }
 
     @Override
