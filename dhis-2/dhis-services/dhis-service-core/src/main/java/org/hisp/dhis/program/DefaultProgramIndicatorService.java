@@ -488,16 +488,17 @@ public class DefaultProgramIndicatorService
     
     private String getLatestDataValueInEnrollmentSql( String dataElementUid, String programStageUid, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
-        String eventTableName = "analytics_event_" + programStageUid;
+        String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
         String columnName = "\"" + dataElementUid + "\"";
         return "(select " + columnName + " from " + eventTableName + 
             " where " + eventTableName + ".pi = enrollmenttable.pi " +
             "and " + eventTableName + ".ps = 'WZbXY0S00lP' " + 
             "and " + columnName + " is not null " +
-            programIndicator.hasEndEventBoundary() != null ? 
-                "and executiondate < '" + programIndicator.getEndEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " : "" + 
-            programIndicator.hasStartEventBoundary() != null ?
-                "and executiondate > '" + programIndicator.getStartEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " : "" + 
+            ( programIndicator.hasEndEventBoundary() != null ? 
+                ( "and executiondate < '" + programIndicator.getEndEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " ) : "" ) + 
+            ( programIndicator.hasStartEventBoundary() != null ?
+                ( "and executiondate > '" + programIndicator.getStartEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " ) : "" ) + 
+            "and ps = '" + programStageUid + "' " + 
             "order by executiondate " +
             "desc limit 1 ) ";
     }
