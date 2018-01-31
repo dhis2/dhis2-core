@@ -268,6 +268,12 @@
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
+    <set name="favorites" table="eventreportfavorites">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreportfavorites_eventreportid" />
+      <many-to-many class="org.hisp.dhis.user.User" column="userid" unique="true" foreign-key="fk_eventreportfavorites_userid" />
+    </set>
+    
   </class>
 
 </hibernate-mapping>
