@@ -229,18 +229,16 @@ public class Program
      * Returns IDs of searchable TrackedEntityAttributes.
      */
     public List<String> getSearchableAttributeIds()
+    {        
+        return programAttributes.stream().filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() ).map( ProgramTrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+    }
+    
+    /**
+     * Returns display in list TrackedEntityAttributes
+     */
+    public List<TrackedEntityAttribute> getDisplayInListAttributes()
     {
-        List<String> searchableAttributes = new ArrayList<>();
-        
-        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
-        {
-            if ( programAttribute.getAttribute().isSystemWideUnique() || programAttribute.isSearchable() )
-            {
-                searchableAttributes.add( programAttribute.getAttribute().getUid() );
-            }
-        }
-
-        return searchableAttributes;
+        return programAttributes.stream().filter( pa -> pa.isDisplayInList() ).map( ProgramTrackedEntityAttribute::getAttribute ).collect( Collectors.toList() );        
     }
 
     /**

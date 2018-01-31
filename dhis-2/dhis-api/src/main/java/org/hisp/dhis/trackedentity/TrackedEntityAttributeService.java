@@ -33,6 +33,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
@@ -130,7 +131,15 @@ public interface TrackedEntityAttributeService
      *
      * @return List of attributes
      */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList();
+    List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram();
+    
+    /**
+     * Get all attributes that user is allowed to read 
+     * (through program and tracked entity type)
+     * 
+     * @return
+     */
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
 
     /**
      * Validate scope of tracked entity attribute. Will return true if attribute is non-unique.
