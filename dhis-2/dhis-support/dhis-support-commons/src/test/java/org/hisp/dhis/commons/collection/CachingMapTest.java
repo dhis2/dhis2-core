@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.collection;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public class CachingMapTest
         assertEquals( "horse", cache.get( 1, FN ).getName() );
         assertEquals( "dog", cache.get( 2, FN ).getName() );
         assertEquals( "cat", cache.get( 3, FN ).getName() );        
-        assertFalse( cache.containsKey( "deer" ) );
+        assertFalse( cache.containsKey( 5 ) );
     }
         
     @Test

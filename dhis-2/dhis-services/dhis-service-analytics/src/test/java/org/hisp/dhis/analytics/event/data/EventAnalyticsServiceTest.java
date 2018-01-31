@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
@@ -47,7 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,16 +159,16 @@ public class EventAnalyticsServiceTest
 
         programA.getProgramStages().add( psA );
 
-        TrackedEntity trackedEntity = createTrackedEntity( 'A' );
-        idObjectManager.save( trackedEntity );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        idObjectManager.save( trackedEntityType );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', ouA );
         maleA.setUid( "person1234A" );
         org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance( 'B', ouB );
         femaleB.setUid( "person1234B" );
 
-        maleA.setTrackedEntity( trackedEntity );
-        femaleB.setTrackedEntity( trackedEntity );
+        maleA.setTrackedEntityType( trackedEntityType );
+        femaleB.setTrackedEntityType( trackedEntityType );
 
         idObjectManager.save( maleA );
         idObjectManager.save( femaleB );
@@ -182,7 +183,7 @@ public class EventAnalyticsServiceTest
 
         // Generate analytics tables
         // --------------------------------------------------------------------
-        analyticsTableGenerator.generateTables( null, null, null, false );
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
 
         // Set parameters
         // --------------------------------------------------------------------

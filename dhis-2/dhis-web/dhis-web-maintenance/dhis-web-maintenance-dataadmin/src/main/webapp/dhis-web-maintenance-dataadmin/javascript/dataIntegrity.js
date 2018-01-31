@@ -1,10 +1,16 @@
+var jobID = null;
+
 $( document ).ready( function() {
     showLoader();
 
     $.ajax({
         url: '../api/dataIntegrity',
         method: 'POST',
-        success: pollDataIntegrityCheckFinished,
+        type: "json",
+        success: function(data, status, xhr) {
+            jobID = data['id'];
+            pollDataIntegrityCheckFinished()
+        },
         error: function( xhr, txtStatus, err ) {
             showErrorMessage( "Data integrity checks cannot be run. Request failed.", 3 );
             throw Error( xhr.responseText );
@@ -15,8 +21,8 @@ $( document ).ready( function() {
 var checkFinishedTimeout = null;
 
 function pollDataIntegrityCheckFinished() {
-    pingNotifications( 'DATAINTEGRITY', 'notificationsTable', function() {
-        $.getJSON( "../api/system/taskSummaries/dataintegrity", {}, function( json ) {
+    pingNotifications( 'DATA_INTEGRITY', 'notificationsTable', function() {
+        $.getJSON( "../api/system/taskSummaries/DATA_INTEGRITY/" + jobID, {}, function( json ) {
             hideLoader();
             $( "#di-title" ).hide();
             $( "#di-completed" ).show();

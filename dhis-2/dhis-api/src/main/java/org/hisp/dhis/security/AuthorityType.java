@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,12 @@ package org.hisp.dhis.security;
 public enum AuthorityType
 {
     CREATE,
+    DATA_CREATE,
     CREATE_PUBLIC,
     CREATE_PRIVATE,
     EXTERNALIZE,
     READ,
+    DATA_READ,
     UPDATE,
     DELETE
 }

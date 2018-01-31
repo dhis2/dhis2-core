@@ -1,9 +1,7 @@
 package org.hisp.dhis.i18n;
 
-import java.util.Locale;
-
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import java.util.Locale;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.Locale;
 
 /**
  * @author Pham Thi Thuy

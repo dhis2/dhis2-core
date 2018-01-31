@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,8 @@ public class ProgramTrackedEntityAttribute
     private Boolean renderOptionsAsRadio = false;
 
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
+    
+    private Boolean searchable = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -268,4 +270,16 @@ public class ProgramTrackedEntityAttribute
     {
         this.renderOptionsAsRadio = renderOptionsAsRadio;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isSearchable()
+    {
+        return searchable;
+    }
+
+    public void setSearchable( Boolean searchable )
+    {
+        this.searchable = searchable;
+    }    
 }

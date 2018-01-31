@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -46,10 +46,11 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -75,6 +76,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -87,12 +89,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -132,12 +129,18 @@ public class DefaultAnalyticsService
 
     @Autowired
     private QueryPlanner queryPlanner;
+    
+    @Autowired
+    private QueryValidator queryValidator;
 
     @Autowired
     private ExpressionService expressionService;
 
     @Autowired
     private ConstantService constantService;
+    
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -164,7 +167,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withDimensionConstraints( params );
 
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
 
         return getAggregatedDataValueGridInternal( params );
     }
@@ -187,7 +190,7 @@ public class DefaultAnalyticsService
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withDimensionConstraints( params );
 
-        queryPlanner.validate( params );
+        queryValidator.validate( params );
         
         return getRawDataGrid( params );
     }
@@ -301,7 +304,7 @@ public class DefaultAnalyticsService
         {
             DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
 
-            return DataQueryParams.newBuilder( params )
+            params = DataQueryParams.newBuilder( params )
                 .addDimension( dx )
                 .removeFilter( DATA_X_DIM_ID )
                 .addProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
@@ -341,6 +344,20 @@ public class DefaultAnalyticsService
                 grid.addHeader( new GridHeader( col.getDimension(), col.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
             }
 
+            if ( params.isShowHierarchy() && !params.getOrgUnitLevels().isEmpty() )
+            {
+                for ( DimensionalObject level : params.getOrgUnitLevelsAsDimensions() )
+                {
+                    grid.addHeader( new GridHeader( level.getDimension(), level.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
+                }
+            }
+            
+            if ( params.isIncludePeriodStartEndDates() )
+            {
+                grid.addHeader( new GridHeader( PERIOD_START_DATE_ID, PERIOD_START_DATE_NAME, ValueType.DATETIME, Date.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( PERIOD_END_DATE_ID, PERIOD_END_DATE_NAME, ValueType.DATETIME, Date.class.getName(), false, false ) );
+            }
+            
             grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
 
             if ( params.isIncludeNumDen() )
@@ -556,7 +573,7 @@ public class DefaultAnalyticsService
                 DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                     .retainDataDimensionReportingRates( metric )
                     .ignoreDataApproval() // No approval for reporting rates
-                    .withAggregationType( AggregationType.COUNT )
+                    .withAggregationType( AnalyticsAggregationType.COUNT )
                     .withTimely( ( REPORTING_RATE_ON_TIME == metric || ACTUAL_REPORTS_ON_TIME == metric ) ).build();
 
                 addReportingRates( dataSourceParams, grid, metric );
@@ -586,7 +603,7 @@ public class DefaultAnalyticsService
                 .withTimely( false )
                 .withRestrictByOrgUnitOpeningClosedDate( true )
                 .withRestrictByCategoryOptionStartEndDate( true )
-                .withAggregationType( AggregationType.SUM ).build();
+                .withAggregationType( AnalyticsAggregationType.SUM ).build();
 
             Map<String, Double> targetMap = getAggregatedCompletenessTargetMap( targetParams );
 
@@ -706,7 +723,7 @@ public class DefaultAnalyticsService
         {
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                 .retainDataDimension( DataDimensionItemType.VALIDATION_RULE )
-                .withAggregationType( AggregationType.COUNT )
+                .withAggregationType( AnalyticsAggregationType.COUNT )
                 .withIncludeNumDen( false ).build();
 
             Map<String, Double> aggregatedDataMap = getAggregatedValidationResultMapObjectTyped( dataSourceParams );
@@ -734,7 +751,7 @@ public class DefaultAnalyticsService
             // -----------------------------------------------------------------
 
             Map<String, String> cocNameMap = AnalyticsUtils.getCocNameMap( params );
-            
+
             if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
                 metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );
@@ -795,11 +812,10 @@ public class DefaultAnalyticsService
 
             if ( params.isShowHierarchy() )
             {
-                Map<Object, List<?>> ancestorMap = organisationUnits
-                    .stream().collect( Collectors.toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
+                Map<Object, List<?>> ancestorMap = organisationUnits.stream()
+                    .collect( Collectors.toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
                 
-                internalMetaData.put( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
-                
+                internalMetaData.put( AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS.getKey(), ancestorMap );                
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
@@ -862,7 +878,7 @@ public class DefaultAnalyticsService
         ListUtils.removeEmptys( columns );
         ListUtils.removeEmptys( rows );
 
-        queryPlanner.validateTableLayout( params, columns, rows );
+        queryValidator.validateTableLayout( params, columns, rows );
 
         ReportTable reportTable = new ReportTable();
 
@@ -900,7 +916,6 @@ public class DefaultAnalyticsService
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
-
         return reportTable.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false );
     }
 
@@ -1053,7 +1068,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Object> getAggregatedValueMap( DataQueryParams params, String tableName, List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
     {
-        queryPlanner.validateMaintenanceMode();
+        queryValidator.validateMaintenanceMode();
 
         int optimalQueries = MathUtils.getWithin( getProcessNo(), 1, MAX_QUERIES );
 
@@ -1117,6 +1132,8 @@ public class DefaultAnalyticsService
     {
         Grid grid = new ListGrid();
         
+        params = preHandleRawDataQuery( params );
+        
         addHeaders( params, grid );
         
         addRawData( params, grid );
@@ -1126,6 +1143,26 @@ public class DefaultAnalyticsService
         applyIdScheme( params, grid );
         
         return grid;
+    }
+    
+    /**
+     * Prepares the given data query parameters.
+     * 
+     * @param params the {@link DataQueryParams}.
+     */
+    private DataQueryParams preHandleRawDataQuery( DataQueryParams params )
+    {
+        Builder builder = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions()
+            .withIncludePeriodStartEndDates( true );
+        
+        if ( params.isShowHierarchy() )
+        {            
+            builder.withOrgUnitLevels( organisationUnitService.getFilledOrganisationUnitLevels() );
+        }
+        
+        return builder.build();
     }
     
     /**
@@ -1141,9 +1178,9 @@ public class DefaultAnalyticsService
             QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
                 .withTableName( AnalyticsTableType.DATA_VALUE.getTableName() ).build();
             
-            List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+            params = queryPlanner.withTableNameAndPartitions( params, plannerParams );
             
-            queries.forEach( query -> rawAnalyticsManager.getRawDataValues( query, grid ) );
+            rawAnalyticsManager.getRawDataValues( params, grid );
         }
     }
 

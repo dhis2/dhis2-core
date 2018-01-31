@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ public enum ValueType
         TEXT, LONG_TEXT, LETTER, COORDINATE, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL ).build();
 
     public static final Set<ValueType> DATE_TYPES = ImmutableSet.<ValueType>builder().add(
-        DATE, DATETIME ).build();
+        DATE, DATETIME, AGE ).build();
 
     private final Class<?> javaClass;
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,13 +51,20 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnitGroup
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject
+    implements MetadataObject, CoordinateObject
 {
     private String symbol;
+    
+    private String color;
 
     private Set<OrganisationUnit> members = new HashSet<>();
 
     private Set<OrganisationUnitGroupSet> groupSets = new HashSet<>();
+
+    private FeatureType featureType = FeatureType.NONE;
+
+    private String coordinates;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -61,7 +72,6 @@ public class OrganisationUnitGroup
 
     public OrganisationUnitGroup()
     {
-
     }
 
     public OrganisationUnitGroup( String name )
@@ -142,6 +152,18 @@ public class OrganisationUnitGroup
         this.symbol = symbol;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getColor()
+    {
+        return color;
+    }
+
+    public void setColor( String color )
+    {
+        this.color = color;
+    }
+
     @JsonProperty( "organisationUnits" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -168,5 +190,47 @@ public class OrganisationUnitGroup
     public void setGroupSets( Set<OrganisationUnitGroupSet> groupSets )
     {
         this.groupSets = groupSets;
+    }
+
+    public boolean hasDescendantsWithCoordinates()
+    {
+        return CoordinateUtils.hasDescendantsWithCoordinates( members );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
+    }
+
+    @Override
+    public boolean hasFeatureType()
+    {
+        return getFeatureType() != null;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.GEOLOCATION )
+    public String getCoordinates()
+    {
+        return coordinates;
+    }
+
+    public void setCoordinates( String coordinates )
+    {
+        this.coordinates = coordinates;
+    }
+
+    @Override
+    public boolean hasCoordinates()
+    {
+        return getCoordinates() != null;
     }
 }

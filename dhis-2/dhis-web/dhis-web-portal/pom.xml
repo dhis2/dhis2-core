@@ -50,12 +50,14 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
     </dependency>
+    <!-- 
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-ohie</artifactId>
       <version>${project.version}</version>
       <type>war</type>
     </dependency>
+    -->
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-uaa</artifactId>
@@ -117,18 +119,6 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api-mobile</artifactId>
       <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-light</artifactId>
-      <version>${project.version}</version>
-      <type>war</type>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-mobile</artifactId>
-      <version>${project.version}</version>
-      <type>war</type>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

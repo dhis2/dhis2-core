@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,109 +28,19 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.SchedulingStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.hisp.dhis.scheduling.SchedulingManager.*;
-import static org.hisp.dhis.system.scheduling.Scheduler.*;
 
 /**
- * @author Lars Helge Overland
+ * @author Henning Håkonsen
  */
 @Controller
 @RequestMapping( value = "/scheduling" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SchedulingController
+    extends AbstractCrudController<JobConfiguration>
 {
-    private static final String STRATEGY_ALL_DAILY = "allDaily";
-    private static final String STRATEGY_ALL_15_MIN = "allEvery15Min";
-    private static final String STRATEGY_LAST_3_YEARS_DAILY = "last3YearsDaily";
-    private static final String STRATEGY_ENABLED = "enabled";
-
-    @Autowired
-    private SchedulingManager schedulingManager;
-
-    @Autowired
-    private RenderService renderService;
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SCHEDULING_ADMIN')" )
-    @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT }, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void schedule( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        SchedulingStrategy strategy = renderService.fromJson( request.getInputStream(), SchedulingStrategy.class );
-        ListMap<String, String> cronKeyMap = new ListMap<>();
-
-        // -------------------------------------------------------------
-        // Resource tables
-        // -------------------------------------------------------------
-
-        if ( STRATEGY_ALL_DAILY.equals( strategy.getResourceTableStrategy() ) )
-        {
-            cronKeyMap.putValue( CRON_DAILY_0AM, TASK_RESOURCE_TABLE );
-        }
-        else if ( STRATEGY_ALL_15_MIN.equals( strategy.getResourceTableStrategy() ) )
-        {
-            cronKeyMap.putValue( CRON_EVERY_15MIN, TASK_RESOURCE_TABLE_15_MINS );
-        }
-
-        // -------------------------------------------------------------
-        // Analytics
-        // -------------------------------------------------------------
-
-        if ( STRATEGY_ALL_DAILY.equals( strategy.getAnalyticsStrategy() ) )
-        {
-            cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_ALL );
-        }
-        else if ( STRATEGY_LAST_3_YEARS_DAILY.equals( strategy.getAnalyticsStrategy() ) )
-        {
-            cronKeyMap.putValue( CRON_DAILY_0AM, TASK_ANALYTICS_LAST_3_YEARS );
-        }
-
-        // -------------------------------------------------------------
-        // Data mart
-        // -------------------------------------------------------------
-
-        if ( STRATEGY_ALL_DAILY.equals( strategy.getDataMartStrategy() ) )
-        {
-            cronKeyMap.putValue( CRON_DAILY_0AM, TASK_DATAMART_LAST_YEAR );
-        }
-
-        // -------------------------------------------------------------
-        // Monitoring
-        // -------------------------------------------------------------
-
-        if ( STRATEGY_ALL_DAILY.equals( strategy.getMonitoringStrategy() ) )
-        {
-            cronKeyMap.putValue( CRON_DAILY_0AM, TASK_MONITORING_LAST_DAY );
-        }
-
-        // -------------------------------------------------------------
-        // Data synch
-        // -------------------------------------------------------------
-
-        if ( STRATEGY_ENABLED.equals( strategy.getDataSynchStrategy() ) )
-        {
-            cronKeyMap.putValue( CRON_EVERY_MIN, TASK_DATA_SYNCH );
-        }
-
-        schedulingManager.scheduleTasks( cronKeyMap );
-    }
 }

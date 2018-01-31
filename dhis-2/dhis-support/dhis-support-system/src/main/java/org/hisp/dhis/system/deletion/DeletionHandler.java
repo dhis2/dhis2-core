@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,10 +100,11 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -111,7 +112,6 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationCriteria;
@@ -249,16 +249,16 @@ public abstract class DeletionHandler
     {
     }
 
+    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    {
+        return null;
+    }
+
     public void deleteProgramMessage( ProgramMessage programMessage )
     {
     }
 
     public String allowDeleteProgramMessage( ProgramMessage programMessage )
-    {
-        return null;
-    }
-
-    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
     {
         return null;
     }
@@ -471,15 +471,6 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteUser( User user )
-    {
-        return null;
-    }
-
-    public void deleteUserCredentials( UserCredentials userCredentials )
-    {
-    }
-
-    public String allowDeleteUserCredentials( UserCredentials userCredentials )
     {
         return null;
     }
@@ -870,11 +861,11 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteTrackedEntity( TrackedEntity trackedEntity )
+    public void deleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
     }
 
-    public String allowDeleteTrackedEntity( TrackedEntity trackedEntity )
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         return null;
     }
@@ -967,6 +958,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteSMSCommand( SMSCommand smsCommand )
+    {
+        return null;
+    }
+
+    public void deleteJobConfiguration( JobConfiguration jobConfiguration )
+    {
+    }
+
+    public String allowDeleteJobConfiguration(JobConfiguration jobConfiguration )
     {
         return null;
     }

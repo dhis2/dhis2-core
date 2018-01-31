@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.audit;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.schema.audit;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import org.springframework.transaction.annotation.Transactional;
@@ -53,13 +52,13 @@ public class DefaultMetadataAuditService implements MetadataAuditService
     }
 
     @Override
-    public void deleteMetadataAudit( MetadataAudit audit )
+    public int count( MetadataAuditQuery query )
     {
-        auditStore.delete( audit );
+        return auditStore.count( query );
     }
 
     @Override
-    public List<MetadataAudit> getMetadataAudits( MetadataAuditQuery query )
+    public List<MetadataAudit> query( MetadataAuditQuery query )
     {
         return auditStore.query( query );
     }

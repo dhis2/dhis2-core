@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@ import org.hisp.dhis.user.User;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
@@ -380,7 +381,7 @@ public abstract class BaseAnalyticalObject
 
             if ( hasRelativePeriods() )
             {
-                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames ) );
+                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER ) );
             }
 
             type = DimensionType.PERIOD;

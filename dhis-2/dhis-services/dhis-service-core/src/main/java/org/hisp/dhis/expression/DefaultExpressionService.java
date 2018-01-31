@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@ import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -249,6 +250,7 @@ public class DefaultExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
         return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, null );
+
     }
 
     @Override
@@ -347,10 +349,10 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public Set<String> getAggregatesInExpression( String expression )
+    public void getAggregatesAndNonAggregatesInExpression( String expression,
+        Set<String> aggregates, Set<String> nonAggregates )
     {
         Pattern prefix = CustomFunctions.AGGREGATE_PATTERN_PREFIX;
-        Set<String> aggregates = new HashSet<>();
 
         if ( expression != null )
         {
@@ -370,6 +372,7 @@ public class DefaultExpressionService
                 }
                 else if ( end > 0 )
                 {
+                    nonAggregates.add( expression.substring( scan, matcher.start() ) );
                     aggregates.add( expression.substring( start, end ) );
                     scan = end + 1;
                 }
@@ -378,9 +381,12 @@ public class DefaultExpressionService
                     scan = start + 1;
                 }
             }
-        }
 
-        return aggregates;
+            if ( scan < len )
+            {
+                nonAggregates.add( expression.substring( scan, len ) );
+            }
+        }
     }
 
     @Override
@@ -848,6 +854,77 @@ public class DefaultExpressionService
 
         sb.append( expression.substring( tail ) );
         expression = sb.toString();
+
+        // ---------------------------------------------------------------------
+        // IsNull function (implemented here)
+        // ---------------------------------------------------------------------
+
+        sb = new StringBuffer();
+        matcher = ISNULL_PATTERN.matcher( expression );
+
+        scan = 0;
+        len = expression.length();
+        List<String> isNullArgList = new ArrayList<>();
+
+        while ( scan < len && matcher.find( scan ) )
+        {
+            int start = matcher.end();
+            int end = Expression.matchExpression( expression, start );
+
+            sb.append( expression.substring( scan, matcher.start() ) );
+
+            scan = start + 1;
+
+            if ( end > 0 )
+            {
+                String arg = expression.substring( start, end );
+                Matcher argMatcher = VARIABLE_PATTERN.matcher( arg );
+
+                if ( argMatcher.find() )
+                {
+                    String dimItem = argMatcher.group( GROUP_ID );
+
+                    final Double value = dimensionItemValueMap.get( dimItem );
+
+                    if ( value == null )
+                    {
+                        sb.append( TRUE_VALUE );
+                        isNullArgList.add( arg.trim() );
+                    }
+                    else
+                    {
+                        sb.append( FALSE_VALUE );
+                    }
+
+                    scan = end + 1;
+                }
+            }
+        }
+
+        sb.append( expression.substring( scan ) );
+        expression = sb.toString();
+
+        // Replace any other instances of the isNull() args with zeros, to
+        // avoid the expression being disqualified because they are there.
+        for( String isNullArg : isNullArgList )
+        {
+            expression = expression.replace(isNullArg, "0" );
+        }
+
+        // ---------------------------------------------------------------------
+        // Other scalar custom functions (make them case-insensitive)
+        // ---------------------------------------------------------------------
+
+        sb = new StringBuffer();
+        matcher = CustomFunctions.SCALAR_PATTERN_PREFIX.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            matcher.appendReplacement( sb,
+                expression.substring( matcher.start(), matcher.end() ).toUpperCase() );
+        }
+
+        expression = TextUtils.appendTail( matcher, sb );
 
         // ---------------------------------------------------------------------
         // DimensionalItemObjects

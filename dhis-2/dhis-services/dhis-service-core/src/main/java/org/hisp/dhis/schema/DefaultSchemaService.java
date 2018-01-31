@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,7 @@ import com.google.common.collect.Maps;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -64,6 +63,7 @@ public class DefaultSchemaService
 {
     private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
+        add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
         add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).
@@ -121,6 +121,7 @@ public class DefaultSchemaService
         add( new ProgramStageDataElementSchemaDescriptor() ).
         add( new ProgramStageSchemaDescriptor() ).
         add( new ProgramStageSectionSchemaDescriptor() ).
+        add( new ProgramSectionSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() ).
         add( new ProgramNotificationTemplateSchemaDescriptor() ).
@@ -131,7 +132,9 @@ public class DefaultSchemaService
         add( new SqlViewSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
-        add( new TrackedEntitySchemaDescriptor() ).
+        add( new TrackedEntityInstanceFilterSchemaDescriptor() ).
+        add( new TrackedEntityTypeSchemaDescriptor() ).
+        add( new TrackedEntityTypeAttributeSchemaDescriptor() ).
         add( new TrackedEntityDataElementDimensionSchemaDescriptor() ).
         add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() ).
         add( new UserCredentialsSchemaDescriptor() ).
@@ -154,6 +157,7 @@ public class DefaultSchemaService
         add( new UserGroupAccessSchemaDescriptor() ).
         add( new MinMaxDataElementSchemaDescriptor() ).
         add( new ValidationResultSchemaDescriptor() ).
+        add( new JobConfigurationSchemaDescriptor() ).
         add( new SmsCommandSchemaDescriptor() ).
         add( new CategoryDimensionSchemaDescriptor() ).
         add( new CategoryOptionGroupSetDimensionSchemaDescriptor() ).
@@ -175,14 +179,9 @@ public class DefaultSchemaService
     @Autowired
     private SessionFactory sessionFactory;
 
-    @Autowired
-    private I18nManager i18nManager;
-
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        I18n i18n = i18nManager.getI18n();
-
         for ( SchemaDescriptor descriptor : descriptors )
         {
             Schema schema = descriptor.getSchema();
@@ -196,11 +195,11 @@ public class DefaultSchemaService
             }
             catch ( MappingException e )
             {
-                // class is not persisted with hibernate
+                // class is not persisted with Hibernate
                 schema.setPersisted( false );
             }
 
-            schema.setDisplayName( i18n.getString( "schema_class_" + schema.getKlass().getName() ) );
+            schema.setDisplayName( TextUtils.getPrettyClassName( schema.getKlass() ) );
 
             if ( schema.getProperties().isEmpty() )
             {

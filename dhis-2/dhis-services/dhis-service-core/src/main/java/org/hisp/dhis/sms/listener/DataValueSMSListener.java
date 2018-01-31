@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,14 +59,7 @@ import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.annotation.Resource;
 
@@ -74,10 +67,6 @@ import javax.annotation.Resource;
 public class DataValueSMSListener
     extends BaseSMSListener
 {
-    private static final String DEFAULTPATTERN = "([a-zA-Z]+)\\s*(\\d+)";
-
-    private static final String SEPARATOR = "=";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -36,7 +37,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -129,8 +129,7 @@ public class SimplisticHttpGetGateWay
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
         uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
         uriBuilder.queryParam( config.getMessageParameter(), text );
-        uriBuilder.queryParam( config.getRecipientParameter(),
-            !recipients.isEmpty() ? recipients.iterator().next() : "" );
+        uriBuilder.queryParam( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
         return uriBuilder;
     }

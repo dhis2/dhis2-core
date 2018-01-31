@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;

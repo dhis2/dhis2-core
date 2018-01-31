@@ -1,7 +1,7 @@
 package org.hisp.dhis.de.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -235,7 +235,7 @@ public class GetMetaDataAction
 
         expressionService.substituteExpressions( indicators, null );
 
-        dataSets = dataSetService.getCurrentUserDataSets();
+        dataSets = dataSetService.getUserDataSets();
         
         Set<DataElementCategoryCombo> categoryComboSet = new HashSet<>();
         Set<DataElementCategory> categorySet = new HashSet<>();

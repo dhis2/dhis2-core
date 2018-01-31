@@ -24,8 +24,8 @@
       <artifactId>commons-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jfree</groupId>
@@ -99,7 +99,16 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-commons</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis.rules</groupId>
+      <artifactId>rule-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cronutils</groupId>
+      <artifactId>cron-utils</artifactId>
+    </dependency>
   </dependencies>
+
 
   <properties>
     <rootDir>../</rootDir>

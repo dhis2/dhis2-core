@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -61,6 +62,8 @@ public class ProgramStage
     extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
+
+    private String formName;
 
     private int minDaysFromStart;
 
@@ -93,6 +96,8 @@ public class ProgramStage
     private Boolean blockEntryForm = false;
 
     private Boolean preGenerateUID = false;
+
+    private ObjectStyle style;
 
     /**
      * Enabled this property to show a pop-up for confirming Complete a program
@@ -479,5 +484,29 @@ public class ProgramStage
     public void setHideDueDate( Boolean hideDueDate )
     {
         this.hideDueDate = hideDueDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
     }
 }

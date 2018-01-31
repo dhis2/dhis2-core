@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,9 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -51,19 +53,26 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -162,6 +171,7 @@ public class ConfigurationController
     public void setFeedbackRecipients( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         UserGroup group = identifiableObjectManager.get( UserGroup.class, uid );
 
         if ( group == null )
@@ -200,6 +210,7 @@ public class ConfigurationController
     public void setOfflineOrganisationUnitLevel( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         OrganisationUnitLevel organisationUnitLevel = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
 
         if ( organisationUnitLevel == null )
@@ -238,6 +249,7 @@ public class ConfigurationController
     public void setInfrastructuralIndicators( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         IndicatorGroup group = identifiableObjectManager.get( IndicatorGroup.class, uid );
 
         if ( group == null )
@@ -264,6 +276,7 @@ public class ConfigurationController
     public void setInfrastructuralDataElements( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         DataElementGroup group = identifiableObjectManager.get( DataElementGroup.class, uid );
 
         if ( group == null )
@@ -291,6 +304,7 @@ public class ConfigurationController
     public void setInfrastructuralPeriodType( @RequestBody String name )
         throws NotFoundException
     {
+        name = StringUtils.remove( name, "\"" );
         PeriodType periodType = PeriodType.getPeriodTypeByName( name );
 
         if ( periodType == null )
@@ -319,6 +333,7 @@ public class ConfigurationController
     public void setSelfRegistrationRole( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         UserAuthorityGroup userGroup = identifiableObjectManager.get( UserAuthorityGroup.class, uid );
 
         if ( userGroup == null )
@@ -356,6 +371,7 @@ public class ConfigurationController
     public void setSelfRegistrationOrgUnit( @RequestBody String uid )
         throws NotFoundException
     {
+        uid = StringUtils.remove( uid, "\"" );
         OrganisationUnit orgunit = identifiableObjectManager.get( OrganisationUnit.class, uid );
 
         if ( orgunit == null )

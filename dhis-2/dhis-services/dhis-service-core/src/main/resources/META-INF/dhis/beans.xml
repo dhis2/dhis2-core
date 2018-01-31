@@ -247,19 +247,11 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
 
-  <!--DataSetNotifications-->
-
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
-
-  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationService" />
-
-  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationTemplateService" />
-
-  <bean id="scheduledDataSetNotificationTask" class="org.hisp.dhis.dataset.notifications.DataSetNotificationTask" />
 
   <bean id="org.hisp.dhis.minmax.MinMaxDataElementStore" class="org.hisp.dhis.minmax.hibernate.HibernateMinMaxDataElementStore">
     <property name="clazz" value="org.hisp.dhis.minmax.MinMaxDataElement" />
@@ -467,6 +459,12 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.scheduling.JobConfigurationStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.scheduling.JobConfiguration" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore" />
 
   <bean id="org.hisp.dhis.schema.audit.MetadataAuditStore" class="org.hisp.dhis.schema.audit.hibernate.HibernateMetadataAuditStore" />
@@ -622,6 +620,13 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.program.ProgramSectionStore"
+        class="org.hisp.dhis.program.hibernate.HibernateProgramSectionStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramSection" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.program.ProgramStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStore">
     <property name="clazz" value="org.hisp.dhis.program.Program" />
@@ -655,8 +660,14 @@
     class="org.hisp.dhis.hibernate.HibernateGenericStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramExpression" />
     <property name="sessionFactory" ref="sessionFactory" />
+  </bean>  
+  
+  <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" class="org.hisp.dhis.trackedentityfilter.hibernate.HibernateTrackedEntityInstanceFilterStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
-
+  
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstance" />
@@ -735,9 +746,22 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityStore"
-    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityStore">
-    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntity" />
+  <!-- ProgramRule Engine -->
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngine" class="org.hisp.dhis.programrule.engine.ProgramRuleEngine" />
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEngineService" class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEngineService" />
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" class="org.hisp.dhis.programrule.engine.DefaultProgramRuleEntityMapperService" />
+
+  <bean id="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" class="org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" />
+
+  <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
+
+  
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityType" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -804,14 +828,19 @@
     <property name="clazz" value="org.hisp.dhis.pushanalysis.PushAnalysis" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableHookStore">
+    <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableHook" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
 
-  <!-- File resource tasks -->
+  <!-- File resource jobs -->
 
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
 
-  <bean id="org.hisp.dhis.fileresource.FileResourceCleanUpTask"
-    class="org.hisp.dhis.fileresource.FileResourceCleanUpTask"
-    scope="prototype" />
+  <bean id="fileResourceCleanUpJob"
+    class="org.hisp.dhis.fileresource.FileResourceCleanUpJob" />
 
   <!-- Service definitions -->
 
@@ -826,7 +855,7 @@
   <bean id="org.hisp.dhis.fileresource.FileResourceService" class="org.hisp.dhis.fileresource.DefaultFileResourceService">
     <property name="fileResourceStore" ref="org.hisp.dhis.fileresource.FileResourceStore" />
     <property name="fileResourceContentStore" ref="org.hisp.dhis.fileresource.FileResourceContentStore" />
-    <property name="scheduler" ref="scheduler" />
+    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
     <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
   </bean>
 
@@ -869,7 +898,7 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementService" class="org.hisp.dhis.dataelement.DefaultDataElementService">
@@ -905,7 +934,6 @@
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="dataSetNotificationService" ref="org.hisp.dhis.dataset.notifications.DataSetNotificationService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.SectionService" class="org.hisp.dhis.dataset.DefaultSectionService">
@@ -957,7 +985,6 @@
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
-    <property name="deletionManager" ref="deletionManager" />
   </bean>
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
@@ -1006,8 +1033,6 @@
       </map>
     </property>
   </bean>
-
-  <bean id="org.hisp.dhis.user.CurrentUserService" class="org.hisp.dhis.user.DefaultCurrentUserService" />
 
   <bean id="org.hisp.dhis.user.UserSettingService" class="org.hisp.dhis.user.DefaultUserSettingService">
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
@@ -1074,6 +1099,25 @@
     <property name="constantStore" ref="org.hisp.dhis.constant.ConstantStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.scheduling.JobInstance" class="org.hisp.dhis.scheduling.DefaultJobInstance" />
+
+  <bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+    <property name="poolSize" value="25" />
+  </bean>
+
+  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager">
+    <property name="taskScheduler" ref="taskScheduler" />
+    <property name="taskExecutor" ref="taskScheduler" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.CurrentUserService" class="org.hisp.dhis.user.DefaultCurrentUserService"/>
+
+  <bean id="jobConfigurationService" class="org.hisp.dhis.scheduling.DefaultJobConfigurationService">
+    <property name="jobConfigurationStore" ref="org.hisp.dhis.scheduling.JobConfigurationStore" />
+  </bean>
+
+  <bean id="mockJob" class="org.hisp.dhis.scheduling.MockJob" />
+
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectService" class="org.hisp.dhis.deletedobject.DefaultDeletedObjectService" />
 
   <bean id="org.hisp.dhis.schema.audit.MetadataAuditService" class="org.hisp.dhis.schema.audit.DefaultMetadataAuditService" />
@@ -1105,6 +1149,16 @@
     <property name="legendSetStore" ref="org.hisp.dhis.legend.LegendSetStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationService" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" class="org.hisp.dhis.dataset.notifications.DefaultDataSetNotificationTemplateService" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" />
+
+  <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" />
+
+  <bean id="scheduledDataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
+
   <bean id="org.hisp.dhis.security.oauth2.OAuth2ClientStore" class="org.hisp.dhis.security.oauth2.hibernate.HibernateOAuth2ClientStore">
     <property name="clazz" value="org.hisp.dhis.security.oauth2.OAuth2Client" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1134,6 +1188,7 @@
         <value>burundi</value>
         <value>cambodia</value>
         <value>cameroon</value>
+        <value>cape_verde</value>
         <value>chad</value>
         <value>china</value>
         <value>colombia</value>
@@ -1162,6 +1217,7 @@
         <value>honduras</value>
         <value>icap</value>
         <value>ippf</value>
+        <value>ima</value>
         <value>india</value>
         <value>indonesia</value>
         <value>irc</value>
@@ -1176,12 +1232,15 @@
         <value>lesotho</value>
         <value>liberia</value>
         <value>malawi</value>
+        <value>maldives</value>
         <value>mongolia</value>
         <value>mozambique</value>
         <value>myanmar</value>
         <value>mali</value>
+        <value>mhrp</value>
         <value>msf</value>
         <value>msh</value>
+        <value>msh_white</value>
         <value>msi</value>
         <value>namibia</value>
         <value>nicaragua</value>
@@ -1191,9 +1250,12 @@
         <value>norway</value>
         <value>pakistan</value>
         <value>palestine</value>
-        <value>paraguay</value>
-        <value>philippines</value>
+        <value>palladium</value>
         <value>pepfar</value>
+        <value>paraguay</value>
+        <value>pathfinder</value>
+        <value>philippines</value>
+        <value>planned_parenthood</value>
         <value>peru</value>
         <value>psi</value>
         <value>puntland</value>
@@ -1291,6 +1353,8 @@
   <bean id="org.hisp.dhis.color.ColorService" class="org.hisp.dhis.color.DefaultColorService">
     <property name="colorSetStore" ref="org.hisp.dhis.color.ColorSetStore" />
   </bean>
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookService" class="org.hisp.dhis.analytics.DefaultAnalyticsTableHookService" />
 
   <!-- SMS Services -->
 
@@ -1324,7 +1388,7 @@
 
   <bean id="smsMessageSender" class="org.hisp.dhis.sms.config.SmsMessageSender" />
 
-  <bean id="org.hisp.dhis.sms.task.SendSmsTask" class="org.hisp.dhis.sms.task.SendSmsTask" scope="prototype" />
+  <bean id="sendSmsJob" class="org.hisp.dhis.sms.job.SendSmsJob" scope="prototype" />
 
   <bean id="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" class="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" />
 
@@ -1446,6 +1510,10 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService" />
+    
+  <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
+    <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
+  </bean>  
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService">
@@ -1468,8 +1536,8 @@
     <property name="programStageDataElementStore" ref="org.hisp.dhis.program.ProgramStageDataElementStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityService" class="org.hisp.dhis.trackedentity.DefaultTrackedEntityService">
-    <property name="trackedEntityStore" ref="org.hisp.dhis.trackedentity.TrackedEntityStore" />
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeService" class="org.hisp.dhis.trackedentity.DefaultTrackedEntityTypeService">
+    <property name="trackedEntityTypeStore" ref="org.hisp.dhis.trackedentity.TrackedEntityTypeStore" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService"
@@ -1488,6 +1556,13 @@
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationStore"
     class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore"
+        class="org.hisp.dhis.program.notification.DefaultProgramNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
@@ -1543,6 +1618,16 @@
 
   <bean id="dataSetNotificationMessageRenderer" class="org.hisp.dhis.notification.DataSetNotificationMessageRenderer" />
 
+  <!-- Notification loggin -->
+
+  <bean id="org.hisp.dhis.notification.logging.NotificationLoggingStore" class="org.hisp.dhis.notification.logging.HibernateNotificationLoggingStore">
+    <property name="clazz" value="org.hisp.dhis.notification.logging.ExternalNotificationLogEntry" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.notification.logging.NotificationLoggingService" class="org.hisp.dhis.notification.logging.DefaultNotificationLoggingService" />
 
   <!-- I18n UI -->
 
@@ -1563,15 +1648,13 @@
     <property name="specificResourceBundleName" value="i18n_module" />
   </bean>
 
-  <!-- Scheduled task for scheduled program notifications -->
+  <!-- Scheduled jobs -->
 
-  <bean id="scheduledProgramNotificationsTask"
-    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
+  <bean id="scheduledProgramNotificationsJob"
+        class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
-  <!-- Scheduled task for validation result notifications -->
-
-  <bean id="validationResultNotificationTask"
-    class="org.hisp.dhis.validation.notification.ValidationResultNotificationTask" scope="prototype" />
+  <bean id="validationResultNotificationJob"
+        class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
 
   <!-- Startup routine definitions -->
 
@@ -1585,6 +1668,22 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="name" value="PeriodTypePopulator" />
     <property name="runlevel" value="2" />
+  </bean>
+
+  <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
+    <property name="jobConfigurationService" ref="jobConfigurationService" />
+    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
+    <property name="runlevel" value="5" />
+    <property name="skipInTests" value="true" />
+    <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
+  </bean>
+
+  <bean id="schedulerStart" class="org.hisp.dhis.startup.SchedulerStart">
+    <property name="jobConfigurationService" ref="jobConfigurationService" />
+    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="runlevel" value="14" />
+    <property name="skipInTests" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
@@ -1608,6 +1707,7 @@
         <value>indicator</value>
         <value>indicatorgroup</value>
         <value>indicatorgroupset</value>
+        <value>jobconfiguration</value>
         <value>validationrule</value>
         <value>validationrulegroup</value>
         <value>predictor</value>
@@ -1632,7 +1732,7 @@
         <value>optionset</value>
         <value>optionvalue</value>
         <value>validationcriteria</value>
-        <value>trackedentity</value>
+        <value>trackedentitytype</value>
         <value>trackedentityinstance</value>
         <value>trackedentityattribute</value>
         <value>program</value>
@@ -1878,7 +1978,6 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler"
     class="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler">
-    <property name="instanceService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceService" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
@@ -1901,12 +2000,6 @@
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler"
     class="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler">
     <property name="programRuleVariableService" ref="org.hisp.dhis.programrule.ProgramRuleVariableService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler"
-    class="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler">
-    <property name="programRuleActionService" ref="org.hisp.dhis.programrule.ProgramRuleActionService" />
-    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"
@@ -1972,7 +2065,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMapView(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMap(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.i18n.I18nLocaleService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityTypeService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityInstanceService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityAttributeService.delete*(..) )" method="intercept" />

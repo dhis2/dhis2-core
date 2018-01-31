@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@ import com.google.common.collect.ImmutableMap;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StrSubstitutor;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;

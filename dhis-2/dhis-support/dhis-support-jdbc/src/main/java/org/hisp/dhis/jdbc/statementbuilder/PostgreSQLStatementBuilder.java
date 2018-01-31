@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc.statementbuilder;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.Collection;
 
 /**
  * @author Lars Helge Overland
@@ -150,5 +152,34 @@ public class PostgreSQLStatementBuilder
     public String getDropNotNullConstraint( String table, String column, String type )
     {
         return "alter table " + table + " alter column " + column + " drop not null;";
+    }
+
+    /**
+     * Generates a derived table containing one column of literal strings.
+     *
+     * The PostgreSQL implementation returns the following form:
+     * <code>
+     *     (values ('s1'),('s2'),('s3')) table (column)
+     * </code>
+     *
+     * @param values (non-empty) String values for the derived table
+     * @param table the desired table name alias
+     * @param column the desired column name
+     * @return the derived literal table
+     */
+    @Override
+    public String literalStringTable( Collection<String> values, String table, String column )
+    {
+        StringBuilder sb = new StringBuilder("(values ");
+
+        for ( String value : values )
+        {
+            sb.append( "('" ).append( value ).append( "')," );
+        }
+
+        return sb.deleteCharAt(sb.length()-1) // Remove the final ','.
+            .append(") ").append( table )
+            .append(" (").append(column).append(")")
+            .toString();
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -341,6 +341,27 @@ public class DataQueryParamsTest
         assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
         assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );        
     }
+    
+    @Test
+    public void testGetLatestPeriod()
+    {
+        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
+        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .build();        
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( mar_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( jan_2016, feb_2016 ) )
+            .build();
+        
+        assertEquals( mar_2016, paramsA.getLatestPeriod() );
+        assertEquals( mar_2016, paramsB.getLatestPeriod() );
+    }
 
     @Test
     public void testGetLatestEndDate()
@@ -349,23 +370,94 @@ public class DataQueryParamsTest
         Period q2_2016 = PeriodType.getPeriodFromIsoString( "2016Q2");
         Calendar today = Calendar.getInstance();
 
-        DataQueryParams dqp1 = DataQueryParams.newBuilder()
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
             .withEndDate( today.getTime() )
             .withPeriods( Lists.newArrayList( q1_2016 ) )
             .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
             .build();
 
-        DataQueryParams dqp2 = DataQueryParams.newBuilder()
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
             .withEndDate( q1_2016.getEndDate() )
             .build();
 
-        DataQueryParams dqp3 = DataQueryParams.newBuilder()
+        DataQueryParams paramsC = DataQueryParams.newBuilder()
             .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
             .withPeriods( Lists.newArrayList( q1_2016 ) )
             .build();
 
-        assertEquals( today.getTime(), dqp1.getLatestEndDate() );
-        assertEquals( q1_2016.getEndDate(), dqp2.getLatestEndDate() );
-        assertEquals( q2_2016.getEndDate(), dqp3.getLatestEndDate() );
+        assertEquals( today.getTime(), paramsA.getLatestEndDate() );
+        assertEquals( q1_2016.getEndDate(), paramsB.getLatestEndDate() );
+        assertEquals( q2_2016.getEndDate(), paramsC.getLatestEndDate() );
+    }
+
+    @Test
+    public void testGetEarliestStartDate()
+    {
+        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
+        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Date dec_2015 = getDate( 2015, 12, 1 );
+
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withStartDate( dec_2015 )
+            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .build();
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withStartDate( jan_2016.getStartDate() )
+            .build();
+
+        DataQueryParams paramsC = DataQueryParams.newBuilder()
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .build();
+
+        assertEquals( dec_2015, paramsA.getEarliestStartDate() );
+        assertEquals( jan_2016.getStartDate(), paramsB.getEarliestStartDate() );
+        assertEquals( jan_2016.getStartDate(), paramsC.getEarliestStartDate() );
+    }
+    
+    @Test
+    public void testSetPeriodDimensionWithoutOptionsA()
+    {
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Period apr_2016 = PeriodType.getPeriodFromIsoString( "201604");
+        Period may_2016 = PeriodType.getPeriodFromIsoString( "201605");
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( mar_2016, apr_2016, may_2016 ) ).build();
+        
+        assertEquals( 3, params.getPeriods().size() );
+        
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions()
+            .build();
+
+        assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
+        assertEquals( 0, query.getPeriods().size() );
+        assertEquals( getDate( 2016, 3, 1 ), query.getStartDate() );
+        assertEquals( getDate( 2016, 5, 31 ), query.getEndDate() );        
+    }
+    
+    @Test
+    public void testSetPeriodDimensionWithoutOptionsB()
+    {        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withStartDate( getDate( 2017, 3, 1 ) )
+            .withEndDate( getDate( 2017, 5, 31 ) ).build();
+        
+        assertEquals( 0, params.getPeriods().size() );
+        
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions()
+            .build();
+
+        assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
+        assertEquals( 0, query.getPeriods().size() );
+        assertEquals( getDate( 2017, 3, 1 ), query.getStartDate() );
+        assertEquals( getDate( 2017, 5, 31 ), query.getEndDate() );        
     }
 }

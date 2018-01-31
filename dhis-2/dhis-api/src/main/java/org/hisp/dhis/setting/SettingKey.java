@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -79,12 +78,11 @@ public enum SettingKey
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
-    SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
     SMS_CONFIG( "keySmsSetting", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
-    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_PERIOD_OCTOBER, AnalyticsFinancialYearStartKey.class ),
+    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
@@ -94,6 +92,8 @@ public enum SettingKey
     CREDENTIALS_EXPIRES( "credentialsExpires", 0, Integer.class ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlert", false, Boolean.class ),
     SELF_REGISTRATION_NO_RECAPTCHA( "keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class ),
+    RECAPTCHA_SECRET( "recaptchaSecret", "6LcVwT0UAAAAAAtMWnPoerWwLx_DSwrcEncHCiWu", String.class ),
+    RECAPTCHA_SITE( "recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", String.class ),
     OPENID_PROVIDER( "keyOpenIdProvider" ),
     OPENID_PROVIDER_LABEL( "keyOpenIdProviderLabel" ),
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
@@ -111,8 +111,6 @@ public enum SettingKey
     LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
-    LAST_SUCCESSFUL_MONITORING( "keyLastSuccessfulMonitoring", Date.class ),
-    LAST_SUCCESSFUL_DATA_STATISTIC( "lastSuccessfulDataStatistics", Date.class ),
     HELP_PAGE_LINK( "helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html", String.class ),
     ACCEPTANCE_REQUIRED_FOR_APPROVAL( "keyAcceptanceRequiredForApproval", Boolean.FALSE, Boolean.class ),
     SYSTEM_NOTIFICATIONS_EMAIL( "keySystemNotificationsEmail" ),
@@ -140,17 +138,12 @@ public enum SettingKey
     REMOTE_INSTANCE_URL( "keyRemoteInstanceUrl", "", String.class ),
     REMOTE_INSTANCE_USERNAME( "keyRemoteInstanceUsername", "", String.class ),
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true ),
-    SYSTEM_MONITORING_URL( "keySystemMonitoringUrl", "", String.class ),
-    SYSTEM_MONITORING_USERNAME( "keySystemMonitoringUsername", "", String.class ),
-    SYSTEM_MONITORING_PASSWORD( "keySystemMonitoringPassword", "", String.class, true ),
     MAPZEN_SEARCH_API_KEY( "keyMapzenSearchApiKey", "search-Se1CFzK", String.class ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
     METADATAVERSION_ENABLED( "keyVersionEnabled", Boolean.FALSE, Boolean.class ),
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
     METADATA_LAST_FAILED_TIME( "keyMetadataLastFailedTime", Date.class ),
-    METADATA_SYNC_CRON( "metaDataSyncCron", String.class ),
-    DATA_SYNC_CRON( "dataSyncCron", String.class ),
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
     LAST_SUCCESSFUL_SCHEDULED_DATASET_NOTIFICATIONS( "keyLastSuccessfulScheduledDataSetNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
@@ -251,6 +244,10 @@ public enum SettingKey
             else if ( Cacheability.class.isAssignableFrom( settingClazz ) )
             {
                 return Cacheability.valueOf( value );
+            }
+            else if ( AnalyticsFinancialYearStartKey.class.isAssignableFrom( settingClazz ) )
+            {
+                return AnalyticsFinancialYearStartKey.valueOf( value );
             }
 
             //TODO handle Dates

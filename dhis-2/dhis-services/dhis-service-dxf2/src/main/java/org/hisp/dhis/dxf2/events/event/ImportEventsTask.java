@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,9 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.TaskId;
 
 import java.util.List;
 
@@ -46,20 +46,20 @@ public class ImportEventsTask
 
     private final ImportOptions importOptions;
 
-    private final TaskId taskId;
+    private final JobConfiguration id;
 
-    public ImportEventsTask( List<Event> events, EventService eventService, ImportOptions importOptions, TaskId taskId )
+    public ImportEventsTask( List<Event> events, EventService eventService, ImportOptions importOptions, JobConfiguration id )
     {
         super();
         this.events = events;
         this.eventService = eventService;
         this.importOptions = importOptions;
-        this.taskId = taskId;
+        this.id = id;
     }
 
     @Override
     public void call()
     {
-        eventService.addEvents( events, importOptions, taskId );
+        eventService.addEvents( events, importOptions, id );
     }
 }

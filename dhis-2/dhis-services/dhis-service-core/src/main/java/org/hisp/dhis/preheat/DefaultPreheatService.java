@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -564,6 +564,18 @@ public class DefaultPreheatService implements PreheatService
                         if ( dataDimensionItem.getReportingRate() != null )
                         {
                             addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
+                        }
+                        
+                        if ( dataDimensionItem.getProgramDataElement() != null )
+                        {
+                            addIdentifiers( map, dataDimensionItem.getProgramDataElement().getDataElement() );
+                            addIdentifiers( map, dataDimensionItem.getProgramDataElement().getProgram() );
+                        }
+                        
+                        if ( dataDimensionItem.getProgramAttribute() != null )
+                        {
+                            addIdentifiers( map, dataDimensionItem.getProgramAttribute().getAttribute() );
+                            addIdentifiers( map, dataDimensionItem.getProgramAttribute().getProgram() );
                         }
                     } );
 

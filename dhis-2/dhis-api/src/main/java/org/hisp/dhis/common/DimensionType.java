@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,10 +45,12 @@ public enum DimensionType
     CATEGORY_OPTION_GROUP_SET,
     DATA_ELEMENT_GROUP_SET,
     ORGANISATION_UNIT_GROUP_SET,
+    ORGANISATION_UNIT_GROUP,
     CATEGORY,
-    STATIC,
     OPTION_GROUP_SET,
-    VALIDATION_RULE;
+    VALIDATION_RULE,
+    STATIC,
+    ORGANISATION_UNIT_LEVEL;
     
     private static final int LAST_ORDER = 999;
     

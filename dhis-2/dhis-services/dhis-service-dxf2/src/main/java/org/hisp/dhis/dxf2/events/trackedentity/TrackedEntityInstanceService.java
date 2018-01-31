@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ import java.util.List;
  */
 public interface TrackedEntityInstanceService
 {
-    int FLUSH_FREQUENCY = 50;
+    int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
     // READ
@@ -51,7 +51,7 @@ public interface TrackedEntityInstanceService
 
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 

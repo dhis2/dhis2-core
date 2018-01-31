@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,20 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,6 +65,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Set;
 
+import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.*;
 
 /**
@@ -93,7 +93,7 @@ public class DataValueSetController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -120,6 +120,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_XML );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
@@ -142,6 +143,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException, AdxException
     {
         response.setContentType( CONTENT_TYPE_XML_ADX );
+        setNoStore( response );
 
         DataExportParams params = adxDataService.getFromUrl( dataSet, period,
             startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, limit, idSchemes );
@@ -167,6 +169,7 @@ public class DataValueSetController
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_JSON );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
@@ -194,6 +197,7 @@ public class DataValueSetController
         HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_CSV );
+        setNoStore( response );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
@@ -310,10 +314,12 @@ public class DataValueSetController
     {
         InputStream inputStream = saveTmp( request.getInputStream() );
 
-        TaskId taskId = new TaskId( TaskCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
-        scheduler.executeTask( new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions, taskId, format ) );
+        JobConfiguration jobId = new JobConfiguration( "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        schedulingManager.executeJob(
+            new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
+                jobId, format ) );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.DATAVALUE_IMPORT );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + DATAVALUE_IMPORT );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ package org.hisp.dhis.validation;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -48,37 +47,13 @@ public interface ValidationService
     int MAX_SCHEDULED_ALERTS = 100000;
 
     /**
-     * Validate DataValues.
+     * Start a validation analysis, based on the supplied parameters. See ValidationAnalysisParams for more
+     * information
      *
-     * @param startDate         the start date.
-     * @param endDate           the end date.
-     * @param orgUnits          a list of organisation units.
-     * @param persistResults    should results be persisted after run
-     * @param attributeCombo    attribute category option combo (null for all).
-     * @param group             validation rule group (null for all validationRules).
-     * @param sendNotifications whether to send notifications upon rule violations.
-     * @param format            the i18n format.
-     * @return a Collection of ValidationResults for each validation violation.
+     * @param parameters the parameters to base the analysis on.
+     * @return a collection of ValidationResults found.
      */
-    Collection<ValidationResult> startInteractiveValidationAnalysis( Date startDate, Date endDate, List<OrganisationUnit> orgUnits, boolean persistResults,
-        DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format );
-
-    /**
-     * Validate DataValues.
-     *
-     * @param dataSet              the data set.
-     * @param period               the period.
-     * @param orgUnit              the organisation unit.
-     * @param attributeOptionCombo the attribute option combo.
-     * @return a Collection of ValidationResults for each validation violation.
-     */
-    Collection<ValidationResult> startInteractiveValidationAnalysis( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo );
-
-    /**
-     * Evaluates all the validation rules that could generate notifications,
-     * and sends results (if any) to users who should be notified.
-     */
-    void startScheduledValidationAnalysis();
+    Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters );
 
     /**
      * Validate that missing data values have a corresponding comment, assuming
@@ -90,5 +65,16 @@ public interface ValidationService
      * @param attributeOptionCombo the attribute option combo.
      * @return a list of operands representing missing comments.
      */
-    List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+    List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit orgUnit,
+        DataElementCategoryOptionCombo attributeOptionCombo );
+
+    ValidationAnalysisParams.Builder newParamsBuilder( Collection<ValidationRule> validationRules,
+        OrganisationUnit organisationUnit, Collection<Period> periods );
+
+    ValidationAnalysisParams.Builder newParamsBuilder( ValidationRuleGroup validationRuleGroup,
+        OrganisationUnit organisationUnit, Date startDate, Date endDate );
+
+    ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnits,
+        Period period );
+
 }

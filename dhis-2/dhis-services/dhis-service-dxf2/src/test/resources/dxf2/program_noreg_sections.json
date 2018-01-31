@@ -293,7 +293,7 @@
       "minDaysFromStart": 0
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "description": "Person",
       "attributeValues": [ ],
@@ -463,7 +463,6 @@
       "id": "CXsesjOaSzr",
       "programScope": false,
       "displayInListNoProgram": false,
-      "searchScope": "SEARCH_ORG_UNITS",
       "user": {
         "id": "ZK1wkC59FCw"
       },

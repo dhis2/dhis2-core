@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18n;
@@ -51,8 +52,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml3;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
 
 /**
  * @author Bharath Kumar
@@ -290,6 +292,8 @@ public class DefaultDataEntryFormService
         // ---------------------------------------------------------------------
         // Inline javascript/html to add to HTML before output
         // ---------------------------------------------------------------------
+        
+        List<String> compulsoryDataElementOperands = dataSet.getCompulsoryDataElementOperands().stream().map( DataElementOperand::getDimensionItem ).collect(  Collectors.toList() );        
 
         Map<String, DataElement> dataElementMap = Maps.uniqueIndex( dataSet.getDataElements(), de -> de.getUid() );
 
@@ -340,36 +344,38 @@ public class DefaultDataEntryFormService
                     inputHtml = inputHtml.replaceAll( "title=\".*?\"", "" ).replace( TAG_CLOSE, titleTag + TAG_CLOSE );
                 }
 
-                String appendCode = "";
+                String appendCode = "", inputFieldId = dataElementId + "-" + optionComboId;
+                
                 ValueType valueType = dataElement.getValueType();
+                
+                String required = compulsoryDataElementOperands.contains( dataElementId + "." + optionComboId ) ? "required=\"required\"" : "";
 
                 if ( ValueType.BOOLEAN == valueType )
                 {
                     inputHtml = inputHtml.replaceAll(inputHtml, TAG_CLOSE);
                     
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" +
-                        optionComboId + "-val\"  id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
+                    appendCode += "<input type=\"radio\" class=\"entryselect\"" + required + " name=\"" + inputFieldId + "-val\"  id=\"" + inputFieldId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
                     appendCode += i18n.getString( "yes" );
                     appendCode += "</label>";
                     
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\" name=\"" + dataElementId + "-" + optionComboId + "-val\" " +
-                        " id=\"" + dataElementId + "-" + optionComboId + "-val\" tabindex=\"" + i++ + "\" value=\"false\">";
+                    appendCode += "<input type=\"radio\" class=\"entryselect\"" +  required + " name=\"" + inputFieldId + "-val\" " +
+                        " id=\"" + inputFieldId + "-val\" tabindex=\"" + i++ + "\" value=\"false\">";
                     appendCode += i18n.getString( "no" );
                     appendCode += "</label>";
 
-                    appendCode += "<img class=\"commentlink\" id=\"" + dataElementId + "-" + optionComboId +"-comment\" " +
+                    appendCode += "<img class=\"commentlink\" id=\"" + inputFieldId +"-comment\" " +
                                     "src=\"../images/comment.png\" title=\"View " + "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
                 }
                 else if ( ValueType.TRUE_ONLY == valueType )
                 {
-                    appendCode += " name=\"entrytrueonly\" class=\"entrytrueonly\" type=\"checkbox\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += " name=\"entrytrueonly\" class=\"entrytrueonly\"" +  required + "type=\"checkbox\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
                 }
                 else if ( dataElement.hasOptionSet() )
                 {
-                    appendCode += " name=\"entryoptionset\" class=\"entryoptionset\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
-                    appendCode += "<img class=\"commentlink\" id=\"" + dataElementId + "-" + optionComboId +"-comment\" " +
+                    appendCode += " name=\"entryoptionset\""+ required  + " class=\"entryoptionset\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += "<img class=\"commentlink\" id=\"" + inputFieldId +"-comment\" " +
                         "src=\"../images/comment.png\" title=\"View " +
                         "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
                 }
@@ -377,14 +383,14 @@ public class DefaultDataEntryFormService
                 {
                     inputHtml = inputHtml.replace( "input", "textarea" );
 
-                    appendCode += " name=\"entryfield\" class=\"entryfield entryarea\" tabindex=\"" + i++ + "\"" + "></textarea>";
+                    appendCode += " name=\"entryfield\"" + required  + " class=\"entryfield entryarea\" tabindex=\"" + i++ + "\"" + "></textarea>";
                 }
                 else if ( ValueType.FILE_RESOURCE == valueType )
                 {
                     inputHtml = inputHtml.replace( "input", "div" );
 
                     appendCode += " class=\"entryfileresource\" tabindex=\"" + i++ + "\">" +
-                                    "<input class=\"entryfileresource-input\" id=\"input-"+ dataElementId + "-" + optionComboId + "-val\">" +
+                                    "<input " + required + " class=\"entryfileresource-input\" id=\"input-"+ inputFieldId + "-val\">" +
                                     "<div class=\"upload-field\">" +
                                         "<div class=\"upload-fileinfo\">" +
                                             "<div class=\"upload-fileinfo-size\"></div>" +
@@ -403,22 +409,21 @@ public class DefaultDataEntryFormService
                 }
                 else if ( ValueType.TIME == valueType ) 
                 {
-                    appendCode += " type=\"time\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId +
-                        "-" + optionComboId + "\">";
+                    appendCode += " type=\"time\" name=\"entrytime\"" + required + " class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ inputFieldId + "\">";
                 }
                 else if ( ValueType.DATETIME == valueType )
                 {
-                    appendCode += " type=\"text\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\">&nbsp;";
-                    appendCode += "<input type=\"time\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+
-                        dataElementId + "-" + optionComboId +"-time" +"\">";
+                    appendCode += " type=\"text\" name=\"entryfield\"" + required + " class=\"entryfield\" tabindex=\"" + i++ + "\">&nbsp;";
+                    appendCode += "<input type=\"time\" name=\"entrytime\"" +  required + " class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+
+                        inputFieldId +"-time" +"\">";
                 }
                 else if ( ValueType.URL == valueType )
                 {
-                    appendCode += " type=\"url\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += " type=\"url\" name=\"entryfield\"" +  required + " class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
                 }
                 else
                 {
-                    appendCode += " type=\"text\" name=\"entryfield\" class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += " type=\"text\" name=\"entryfield\"" + required + " class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
                 }
 
                 inputHtml = inputHtml.replace( TAG_CLOSE, appendCode );

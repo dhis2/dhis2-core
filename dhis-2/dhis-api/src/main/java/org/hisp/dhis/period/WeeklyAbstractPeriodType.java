@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.period;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import com.google.common.collect.Lists;
@@ -35,6 +34,8 @@ import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -171,15 +172,31 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     @Override
     public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        dateTimeUnit = adjustToStartOfWeek( dateTimeUnit, calendar );
-        int week = calendar.week( dateTimeUnit );
+        int year;
+        int week;
 
-        if ( week == 1 && dateTimeUnit.getMonth() == calendar.monthsInYear() )
+        if ( calendar.isIso8601() )
         {
-            dateTimeUnit.setYear( dateTimeUnit.getYear() + 1 );
+            LocalDate date = LocalDate.of( dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay() );
+            WeekFields weekFields = WeekFields.of(PeriodType.MAP_WEEK_TYPE.get( getName() ), 4 );
+
+            year = date.get( weekFields.weekBasedYear() );
+            week = date.get( weekFields.weekOfWeekBasedYear() );
+        }
+        else
+        {
+            dateTimeUnit = adjustToStartOfWeek( dateTimeUnit, calendar );
+            week = calendar.week( dateTimeUnit );
+
+            if ( week == 1 && dateTimeUnit.getMonth() == calendar.monthsInYear() )
+            {
+                dateTimeUnit.setYear( dateTimeUnit.getYear() + 1 );
+            }
+
+            year = dateTimeUnit.getYear();
         }
 
-        return String.format( "%d%s%d", dateTimeUnit.getYear(), weekPrefix, week );
+        return String.format( "%d%s%d", year, weekPrefix, week );
     }
 
     @Override

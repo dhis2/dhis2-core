@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.sms.outbound.SubmissionType;
@@ -54,7 +53,6 @@ import java.util.stream.Collectors;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 public class BulkSmsGateway
     extends SmsGateway
 {
@@ -142,19 +140,6 @@ public class BulkSmsGateway
         }
 
         return getResponse( responseEntity );
-    }
-
-    private String buildCsvUrl( List<OutboundMessage> smsBatch )
-    {
-        String csvData = "msisdn,message\n";
-
-        for ( OutboundMessage sms : smsBatch )
-        {
-            csvData += getRecipients( sms.getRecipients() );
-            csvData += "," + sms.getText() + "\n";
-        }
-
-        return csvData;
     }
 
     private UriComponentsBuilder buildBaseUrl( BulkSmsGatewayConfig bulkSmsConfiguration, SubmissionType type )

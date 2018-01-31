@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
@@ -130,14 +131,15 @@ public interface TrackedEntityAttributeService
      *
      * @return List of attributes
      */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutProgram();
-
-    /**
-     * Get attributes which are displayed in visit schedule
-     *
-     * @return List of attributes
-     */
     List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList();
+    
+    /**
+     * Get all attributes that user is allowed to read 
+     * (through program and tracked entity type)
+     * 
+     * @return
+     */
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
 
     /**
      * Validate scope of tracked entity attribute. Will return true if attribute is non-unique.

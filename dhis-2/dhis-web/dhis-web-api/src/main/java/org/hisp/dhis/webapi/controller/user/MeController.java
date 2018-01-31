@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,10 @@ package org.hisp.dhis.webapi.controller.user;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -45,6 +47,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -60,8 +63,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.user.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -82,12 +83,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
 public class MeController
 {
     @Autowired
@@ -126,6 +129,12 @@ public class MeController
     @Autowired
     private PasswordValidationService passwordValidationService;
 
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private DataSetService dataSetService;
+
     private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
         UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
 
@@ -134,9 +143,9 @@ public class MeController
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        User currentUser = currentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUser();
 
-        if ( currentUser == null )
+        if ( user == null )
         {
             throw new NotAuthenticatedException();
         }
@@ -147,23 +156,41 @@ public class MeController
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
-            new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
+            new FieldFilterParams( Collections.singletonList( user ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
 
         if ( fieldsContains( "settings", fields ) )
         {
             rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( currentUser, USER_SETTING_NAMES, true ) ) );
+                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, true ) ) );
         }
 
         if ( fieldsContains( "authorities", fields ) )
         {
             rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
-                NodeUtils.createSimples( currentUser.getUserCredentials().getAllAuthorities() ) );
+                NodeUtils.createSimples( user.getUserCredentials().getAllAuthorities() ) );
+        }
+
+        if ( fieldsContains( "programs", fields ) )
+        {
+            rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
+                NodeUtils.createSimples( programService.getUserPrograms().stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() ) )
+            );
+        }
+
+        if ( fieldsContains( "dataSets", fields ) )
+        {
+            rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
+                NodeUtils.createSimples( dataSetService.getUserDataSets( user ).stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() ) )
+            );
         }
 
         nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
@@ -227,7 +254,7 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
@@ -244,7 +271,7 @@ public class MeController
         boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), hasAuthority );
     }
 
@@ -262,7 +289,7 @@ public class MeController
             currentUser, USER_SETTING_NAMES, true );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), userSettings );
     }
 
@@ -291,7 +318,7 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), value );
     }
 

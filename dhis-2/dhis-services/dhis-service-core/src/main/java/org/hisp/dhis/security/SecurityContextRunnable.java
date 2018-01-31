@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,14 +66,14 @@ public abstract class SecurityContextRunnable
     public abstract void call();
     
     /**
-     * Hook invoked before {@link call()}.
+     * Hook invoked before {@link #call()}.
      */
     public void before()
     {
     }
 
     /**
-     * Hook invoked after {@link call()}.
+     * Hook invoked after {@link #call()}.
      */
     public void after()
     {   

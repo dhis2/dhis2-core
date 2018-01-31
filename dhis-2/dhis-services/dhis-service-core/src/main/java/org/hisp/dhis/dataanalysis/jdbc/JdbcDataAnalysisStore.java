@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis.jdbc;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,7 +195,7 @@ public class JdbcDataAnalysisStore
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
                 
         String sql = 
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
             "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
             "from datavalue dv " +
@@ -257,7 +257,7 @@ public class JdbcDataAnalysisStore
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
         
         String sql = 
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, " +
             "'" + dataElement.getName() + "' as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " + 
             "'" + categoryOptionCombo.getName() + "' as categoryoptioncomboname " +
@@ -289,7 +289,7 @@ public class JdbcDataAnalysisStore
         String joinDataSet =  dataSet != null ?  " join datasetelement dse on dse.dataelementid = de.dataelementid" + " " : " ";
 
         final String sql =
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.value, " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, " +
             "dv.storedby, dv.lastupdated, dv.created, dv.comment, dv.followup, mm.minimumvalue, mm.maximumvalue, de.name AS dataelementname, " +
             "pe.startdate, pe.enddate, pt.name AS periodtypename, ou.name AS sourcename, cc.name AS categoryoptioncomboname " +
             "from datavalue dv " +

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,49 +28,27 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 
 /**
  * Class representing query parameters for retrieving event data from the
@@ -210,6 +188,11 @@ public class EventQueryParams
      */
     private ProgramStatus programStatus;
 
+    /**
+     * Indicates whether to include metadata details to response
+     */
+    protected boolean includeMetadataDetails;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -228,12 +211,14 @@ public class EventQueryParams
         params.includeNumDen = this.includeNumDen;
         params.displayProperty = this.displayProperty;
         params.aggregationType = this.aggregationType;
+        params.hierarchyMeta = this.hierarchyMeta;
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
+        params.tableName = this.tableName;
         params.periodType = this.periodType;
 
         params.program = this.program;
@@ -262,6 +247,7 @@ public class EventQueryParams
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
+        params.includeMetadataDetails = this.includeMetadataDetails;
 
         params.periodType = this.periodType;
 
@@ -418,7 +404,7 @@ public class EventQueryParams
     /**
      * Get option sets part of items.
      */
-    public Set<OptionSet> getItemOptionSets()
+    private Set<OptionSet> getItemOptionSets()
     {
         Set<OptionSet> optionSets = new HashSet<>();
 
@@ -431,6 +417,19 @@ public class EventQueryParams
         }
 
         return optionSets;
+    }
+
+    /**
+     * Get options for option sets part of items.
+     */
+    public List<Option> getOptions()
+    {
+        List<Option> options = new ArrayList<>( );
+        Set<OptionSet> optionSets = getItemOptionSets();
+
+        optionSets.stream().map( OptionSet::getOptions ).forEach( options::addAll );
+
+        return options;
     }
 
     /**
@@ -459,7 +458,7 @@ public class EventQueryParams
      * aggregation type of the query, second by looking at the aggregation type
      * of the value dimension, third by returning AVERAGE;
      */
-    public AggregationType getAggregationTypeFallback()
+    public AnalyticsAggregationType getAggregationTypeFallback()
     {
         if ( hasAggregationType() )
         {
@@ -467,10 +466,10 @@ public class EventQueryParams
         }
         else if ( hasValueDimension() && value.getAggregationType() != null )
         {
-            return value.getAggregationType();
+            return AnalyticsAggregationType.fromAggregationType( value.getAggregationType() );
         }
 
-        return AggregationType.AVERAGE;
+        return AnalyticsAggregationType.AVERAGE;
     }
 
     /**
@@ -478,11 +477,11 @@ public class EventQueryParams
      * {@link getAggregationTypeFallback}.
      */
     @Override
-    public boolean isAggregationType( AggregationType aggregationType )
+    public boolean isAggregationType( AggregationType type )
     {
-        AggregationType type = getAggregationTypeFallback();
+        AnalyticsAggregationType typeFallback = getAggregationTypeFallback();
 
-        return type != null && type.equals( aggregationType );
+        return typeFallback != null && type.equals( typeFallback.getAggregationType() );
     }
 
     /**
@@ -612,20 +611,20 @@ public class EventQueryParams
     @Override
     public String toString()
     {
-        return ImmutableMap.<String, Object>builder()
-            .put( "Program", program )
-            .put( "Stage", programStage )
-            .put( "Start date", startDate )
-            .put( "End date", endDate )
-            .put( "Items", items )
-            .put( "Item filters", itemFilters )
-            .put( "Value", value )
-            .put( "Item program indicators", itemProgramIndicators )
-            .put( "Program indicator", programIndicator )
-            .put( "Aggregation type", aggregationType )
-            .put( "Dimensions", dimensions )
-            .put( "Filters", filters )
-            .build().toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "Program", program )
+            .add( "Stage", programStage )
+            .add( "Start date", startDate )
+            .add( "End date", endDate )
+            .add( "Items", items )
+            .add( "Item filters", itemFilters )
+            .add( "Value", value )
+            .add( "Item program indicators", itemProgramIndicators )
+            .add( "Program indicator", programIndicator )
+            .add( "Aggregation type", aggregationType )
+            .add( "Dimensions", dimensions )
+            .add( "Filters", filters )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -746,6 +745,11 @@ public class EventQueryParams
     public boolean isIncludeClusterPoints()
     {
         return includeClusterPoints;
+    }
+
+    public boolean isIncludeMetadataDetails()
+    {
+        return includeMetadataDetails;
     }
     
     // -------------------------------------------------------------------------
@@ -931,6 +935,12 @@ public class EventQueryParams
             this.params.partitions = partitions;
             return this;
         }
+
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
+            return this;
+        }
         
         public Builder addAscSortItem( DimensionalItemObject sortItem )
         {
@@ -944,7 +954,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withAggregationType( AggregationType aggregationType )
+        public Builder withAggregationType( AnalyticsAggregationType aggregationType )
         {
             this.params.aggregationType = aggregationType;
             return this;
@@ -1037,6 +1047,12 @@ public class EventQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+
+        public Builder withIncludeMetadataDetails( boolean includeMetadataDetails )
+        {
+            this.params.includeMetadataDetails = includeMetadataDetails;
             return this;
         }
         

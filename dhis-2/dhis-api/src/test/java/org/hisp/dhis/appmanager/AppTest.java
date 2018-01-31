@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,15 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Saptarshi
@@ -44,15 +46,15 @@ import org.junit.Test;
  */
 public class AppTest
 {
-
     private App app;
 
     @Before
     public void setUp()
         throws IOException
     {
-        String appJson = FileUtils.readFileToString( new File( this.getClass().getResource( "/manifest.webapp" )
-            .getFile() ) );
+        String appJson = FileUtils.readFileToString( 
+            new File( this.getClass().getResource( "/manifest.webapp" ).getFile() ), StandardCharsets.UTF_8 );
+        
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         this.app = mapper.readValue( appJson, App.class );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.dataset;
  */
 
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -132,4 +133,18 @@ public interface CompleteDataSetRegistrationService
      * @param unit the OrganisationUnit.
      */
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
+    
+    /**
+    * Checks for missing compulsory fields of the data set to be completed
+    *    
+    * @param dataSet              the DataSet.
+    * @param period               the Period.
+    * @param source               the Source.
+    * @param attributeOptionCombo the attribute option combo.    
+    * @param multiOrgUnit whether to check for multi orgunits or not
+    * @return list of missing compulsory fields, null if all are filled.
+    */
+    
+    List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
+        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -668,7 +668,7 @@ public class DefaultProgramIndicatorService
 
     private String getNumericIgnoreNullSql( String column )
     {
-        return "coalesce(" + column + ",0)";
+        return "coalesce(" + column + "::numeric,0)";
     }
     
     private String getTextIgnoreNullSql( String column )

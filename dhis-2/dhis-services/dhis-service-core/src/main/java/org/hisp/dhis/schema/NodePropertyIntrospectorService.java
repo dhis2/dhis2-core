@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,26 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
 {
     private static final Log log = LogFactory.getLog( NodePropertyIntrospectorService.class );
 
+    public Property setPropertyIfCollection( Property property, Field field, Class klass )
+    {
+        property.setCollection( true );
+        property.setCollectionName( field.getName() );
+
+        Type type = field.getGenericType();
+
+        if ( ParameterizedType.class.isInstance( type ) )
+        {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            Class<?> itemKlass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+            property.setItemKlass( itemKlass );
+
+            property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( itemKlass ) );
+            property.setNameableObject( NameableObject.class.isAssignableFrom( itemKlass ) );
+            property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
+        }
+
+        return property;
+    }
     @Override
     protected Map<String, Property> scanClass( Class<?> klass )
     {
@@ -84,21 +104,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
 
                     if ( Collection.class.isAssignableFrom( field.getType() ) )
                     {
-                        property.setCollection( true );
-                        property.setCollectionName( field.getName() );
-
-                        Type type = field.getGenericType();
-
-                        if ( ParameterizedType.class.isInstance( type ) )
-                        {
-                            ParameterizedType parameterizedType = (ParameterizedType) type;
-                            Class<?> itemKlass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-                            property.setItemKlass( itemKlass );
-
-                            property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( itemKlass ) );
-                            property.setNameableObject( NameableObject.class.isAssignableFrom( itemKlass ) );
-                            property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
-                        }
+                        property = setPropertyIfCollection( property, field, klass );
                     }
 
                     break;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,8 @@ public class Access
     private boolean update;
 
     private boolean delete;
+
+    private AccessData data;
 
     public Access()
     {
@@ -135,6 +137,18 @@ public class Access
     public void setDelete( boolean delete )
     {
         this.delete = delete;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "data", namespace = DxfNamespaces.DXF_2_0 )
+    public AccessData getData()
+    {
+        return data;
+    }
+
+    public void setData( AccessData data )
+    {
+        this.data = data;
     }
 
     @Override

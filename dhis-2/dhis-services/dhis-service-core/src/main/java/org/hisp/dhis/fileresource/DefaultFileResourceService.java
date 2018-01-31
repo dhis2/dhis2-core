@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import com.google.common.io.ByteSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -78,11 +78,11 @@ public class DefaultFileResourceService
         this.fileResourceContentStore = fileResourceContentStore;
     }
 
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
-    public void setScheduler( Scheduler scheduler )
+    public void setSchedulingManager( SchedulingManager schedulingManager )
     {
-        this.scheduler = scheduler;
+        this.schedulingManager = schedulingManager;
     }
 
     private FileResourceUploadCallback uploadCallback;
@@ -195,7 +195,7 @@ public class DefaultFileResourceService
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
 
-        final ListenableFuture<String> saveContentTask = scheduler.executeTask( saveCallable );
+        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( saveCallable );
 
         final String uid = fileResource.getUid();
 

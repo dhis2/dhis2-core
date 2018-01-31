@@ -61,7 +61,7 @@
       "shortName": "DataElementShortC"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "name": "Person",
       "id": "uh6tOHZTlG0",

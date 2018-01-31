@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import org.hisp.dhis.common.ValueType;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ public class DataElement
         {
             this.setType( TYPE_EMAIL );
         }
-        else if ( type == ValueType.INTEGER || type == ValueType.NUMBER )
+        else if ( type.isNumeric() )
         {
             this.setType( TYPE_NUMBER );
         }
@@ -220,6 +220,10 @@ public class DataElement
     {
         dout.writeInt( this.getId() );
         dout.writeUTF( this.getName() );
+		//For backwards compatibility with legacy mobile clients
+		if (this.getType().equals(TYPE_NUMBER)) {
+			this.setType("int");
+		}
         dout.writeUTF( this.getType() );
         dout.writeBoolean( this.isCompulsory() );
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland

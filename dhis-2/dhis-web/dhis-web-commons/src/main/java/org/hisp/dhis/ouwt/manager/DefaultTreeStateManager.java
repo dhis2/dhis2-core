@@ -1,7 +1,7 @@
 package org.hisp.dhis.ouwt.manager;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,11 @@ package org.hisp.dhis.ouwt.manager;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-
-import com.opensymphony.xwork2.ActionContext;
+import org.hisp.dhis.util.SessionUtils;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -136,20 +134,15 @@ public class DefaultTreeStateManager
     @SuppressWarnings( "unchecked" )
     private Set<Integer> getTreeState()
     {
-        Set<Integer> treeState = (Set<Integer>) getSession().get( SESSION_KEY_TREE_STATE );
+        Set<Integer> treeState = (Set<Integer>) SessionUtils.getSessionVar( SESSION_KEY_TREE_STATE );
 
         if ( treeState == null )
         {
             treeState = new HashSet<>();
 
-            getSession().put( SESSION_KEY_TREE_STATE, treeState );
+            SessionUtils.setSessionVar( SESSION_KEY_TREE_STATE, treeState );
         }
 
         return treeState;
-    }
-
-    protected Map<String, Object> getSession()
-    {
-        return ActionContext.getContext().getSession();
     }
 }

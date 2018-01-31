@@ -52,21 +52,6 @@
         <td></td>
     </tr>
 	
-	<!--
-	<tr>
-		<td><label for="searchScope">$i18n.getString( "search_scope" ) <br /></label></td>
-		<td>
-            <select id="searchScope" name="searchScope" >
-				<option value='SEARCH_ORG_UNITS'>$i18n.getString('across_search_orgunits')</option>				
-				<option value='DATA_CAPTURE_ORG_UNITS'>$i18n.getString('across_data_capture_orgunits')</option>
-				<option value='ALL_ORG_UNITS'>$i18n.getString('across_all_orgunits')</option>
-				<option value='NOT_SEARCHABLE'>$i18n.getString('not_searchable')</option>
-			</select>
-		</td>
-		<td></td>
-	</tr>
-	-->
-	
 	<tr>
 		<td><label for="optionSetId">$i18n.getString( "option_set" )</label></td>
 		<td><select id="optionSetId" name="optionSetId" onchange="optionSetChanged()">
@@ -123,8 +108,8 @@
 	<tr id="trackedEntityRow" class="hidden">
 		<td><label for="trackedEntityId">$i18n.getString( "tracked_entity" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
 		<td><select id="trackedEntityId" name="trackedEntityId" class="{validate:{required:true}}" disabled>
-				#foreach( $trackedEntity in $trackedEntities )
-					<option value="$trackedEntity.id">$encoder.htmlEncode($trackedEntity.name)</option>
+				#foreach( $trackedEntityType in $trackedEntityTypes )
+					<option value="$trackedEntityType.id">$encoder.htmlEncode($trackedEntityType.name)</option>
 				#end
 			</select>
 		</td>

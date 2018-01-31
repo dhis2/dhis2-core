@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -132,7 +132,7 @@ public class J2MEDataValueSMSListener
 
         for ( SMSCode code : smsCommand.getCodes() )
         {
-            if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
+            if ( parsedMessage.containsKey( code.getCode() ) )
             {
                 storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, period,
                     smsCommand.getDataset() );

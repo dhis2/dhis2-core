@@ -1,7 +1,7 @@
 package org.hisp.dhis.importexport.action.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.importexport.action.event;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +66,9 @@ public class GetImportEventSummariesAction
     @Override
     public String execute()
     {
-        TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+        JobConfiguration jobId = new JobConfiguration( null, JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        importSummaries = (ImportSummaries) notifier.getTaskSummary( taskId );
+        importSummaries = (ImportSummaries) notifier.getJobSummary( jobId.getJobType() );
 
         return SUCCESS;
     }

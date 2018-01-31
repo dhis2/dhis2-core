@@ -26,11 +26,21 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataElementObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PredictorObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SectionObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramNotificationTemplateObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DocumentObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.JobConfigurationObjectBundleHook" >
+    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
+  </bean>
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
 
@@ -70,6 +80,8 @@
     <aop:scoped-proxy proxy-target-class="false" />
   </bean>
 
+  <bean id="org.hisp.dhis.dxf2.events.TrackerAccessManager" class="org.hisp.dhis.dxf2.events.DefaultTrackerAccessManager" />
+
   <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
 
   <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"
@@ -88,15 +100,11 @@
 
   <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" />
 
-  <bean id="dataSynchTask" class="org.hisp.dhis.dxf2.synch.DataSynchronizationTask" scope="prototype" />
-
   <bean id="org.hisp.dhis.dxf2.monitoring.MonitoringService" class="org.hisp.dhis.dxf2.monitoring.DefaultMonitoringService" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService" />
 
-  <bean id="metadataSyncTask" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask" scope="prototype" />
-
-  <bean id="metadataRetryContext" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataRetryContext" scope="prototype" />
+  <bean id="metadataRetryContext" class="org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext" scope="prototype" />
 
   <bean id="metadataSyncPreProcessor" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor" scope="prototype" />
 
@@ -114,7 +122,7 @@
     <constructor-arg ref="maxAttempts" />
     <constructor-arg>
       <map>
-        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true"></entry>
+        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true"/>
       </map>
     </constructor-arg>
   </bean>
@@ -131,5 +139,10 @@
   <bean id="inputUtils" class="org.hisp.dhis.dxf2.utils.InputUtils" />
 
   <bean id="org.hisp.dhis.dxf2.AdxDataService" class="org.hisp.dhis.dxf2.adx.DefaultAdxDataService" />
+
+  <!-- Scheduling -->
+  <bean id="metadataSyncJob" class="org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob"  />
+
+  <bean id="dataSynchJob" class="org.hisp.dhis.dxf2.synch.DataSynchronizationJob" />
 
 </beans>

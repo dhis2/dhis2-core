@@ -81,9 +81,10 @@ dhis2.period.DatePicker = function(calendar, format) {
  *
  * @param {jQuery|String|Object} el Element to select on, can be any kind of jQuery selector, or a jqEl
  * @param {boolean} [fromIso] Convert field from ISO 8601 to local calendar
+ * @param {boolean} [defaultIsToday] set default date to today
  * @param {Object} [options] Additional options, will be merged with the defaults
  */
-dhis2.period.DatePicker.prototype.createInstance = function(el, fromIso, options) {
+dhis2.period.DatePicker.prototype.createInstance = function(el, fromIso, defaultIsToday, options) {
   var self = this;
   var $el = $( el );
 
@@ -94,7 +95,7 @@ dhis2.period.DatePicker.prototype.createInstance = function(el, fromIso, options
     $el.val( this.calendar.formatDate( this.format, cDateIsoDate ) );
   }
 
-  if ( !$el.val() ) {
+  if ( !$el.val() && defaultIsToday ) {
     $el.val( dhis2.period.calendar.formatDate( this.format, dhis2.period.calendar.today() ) );
   }
 
@@ -636,14 +637,8 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
-    var weekday = startDate.dayOfWeek();
-
-    if ( weekday > 1 ) {
-      startDate.add( -(weekday - 1), 'd' );
-    } else if ( weekday < 1 ) {
-      startDate.add( -(weekday + (7 - 1)), 'd' );
-    }
+    var startDate = dhis2.period.getStartDateOfYear( year, 1 );
+    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -678,6 +673,36 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
   }
 } );
 
+
+/**
+ * Calculate the first date of an EPI year base on ISO standard  ( first week always contains 4th Jan )
+ * and week types ( week start on Monday or Sunday, etc. )
+ * @param year The year to calculate first date
+ * @param startDayOfWeek The week type ( Sunday = 0, Monday = 1, etc. )
+ * @returns {Date} The first date of the given year
+ */
+dhis2.period.getStartDateOfYear = function(year, startDayOfWeek )
+{
+    var jan4 = new Date( year, 0, 4 );
+
+    var jan4DayOfWeek = jan4.getDay();
+
+    var startDate = jan4;
+    var dayDiff = jan4DayOfWeek - startDayOfWeek;
+
+    if ( dayDiff > 0 )
+    {
+        startDate.setDate( jan4.getDate() - dayDiff );
+    }
+    else if ( dayDiff < 0 )
+    {
+        startDate.setDate( jan4.getDate() - dayDiff );
+        startDate.setDate( startDate.getDate() - 7 );
+    }
+
+    return startDate;
+}
+
 /**
  * Implementation of dhis2.period.BaseGenerator that generates Weekly Wednesday periods
  *
@@ -698,14 +723,8 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
-    var weekday = startDate.dayOfWeek();
-
-    if ( weekday > 1 ) {
-      startDate.add( -(weekday - 3), 'd' );
-    } else if ( weekday < 1 ) {
-      startDate.add( -(weekday + (7 - 3)), 'd' );
-    }
+    var startDate = dhis2.period.getStartDateOfYear( year, 3 );
+    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -760,14 +779,8 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
-    var weekday = startDate.dayOfWeek();
-
-    if ( weekday > 1 ) {
-      startDate.add( -(weekday - 4), 'd' );
-    } else if ( weekday < 1 ) {
-      startDate.add( -(weekday + (7 - 4)), 'd' );
-    }
+    var startDate = dhis2.period.getStartDateOfYear( year, 4 );
+    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -822,14 +835,8 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
-    var weekday = startDate.dayOfWeek();
-
-    if ( weekday > 1 ) {
-      startDate.add( -(weekday - 6), 'd' );
-    } else if ( weekday < 1 ) {
-      startDate.add( -(weekday + (7 - 6)), 'd' );
-    }
+    var startDate = dhis2.period.getStartDateOfYear( year, 6 );
+    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -884,14 +891,8 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = this.calendar.newDate( year, 1, 4 ); // first ISO week of the year always contains 4th January
-    var weekday = startDate.dayOfWeek();
-
-    if ( weekday > 1 ) {
-      startDate.add( -(weekday - 7), 'd' );
-    } else if ( weekday < 1 ) {
-      startDate.add( -(weekday + (7 - 7)), 'd' );
-    }
+    var startDate = dhis2.period.getStartDateOfYear( year, 7 );
+    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1

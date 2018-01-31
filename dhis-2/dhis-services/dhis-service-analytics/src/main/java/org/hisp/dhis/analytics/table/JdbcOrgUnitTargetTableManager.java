@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,15 @@ import java.util.concurrent.Future;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -58,11 +63,9 @@ public class JdbcOrgUnitTargetTableManager
     
     @Override
     @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        List<AnalyticsTable> tables = new ArrayList<>();
-        tables.add( new AnalyticsTable( getTableName(), getDimensionColumns( null ) ) );
-        return tables;
+        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -75,54 +78,32 @@ public class JdbcOrgUnitTargetTableManager
     public String validState()
     {
         return null;
-    }    
-    
-    @Override
-    public void createTable( AnalyticsTable table )
-    {
-        final String tableName = table.getTempTableName();
-        
-        final String sqlDrop = "drop table " + tableName;
-        
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-        
-        sqlCreate += "value double precision)";
-        
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
     }
 
     @Override
-    protected void populateTable( AnalyticsTable table )
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        final String tableName = table.getTempTableName();
+        return Lists.newArrayList();
+    }
+        
+    @Override
+    protected void populateTable( AnalyticsTablePartition partition )
+    {
+        final String tableName = partition.getTempTableName();
 
-        String sql = "insert into " + table.getTempTableName() + " (";
+        String sql = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
         
         validateDimensionColumns( columns );
         
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
         }
 
-        sql += "value) select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -139,8 +120,7 @@ public class JdbcOrgUnitTargetTableManager
         populateAndLog( sql, tableName );
     }
 
-    @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -153,23 +133,28 @@ public class JdbcOrgUnitTargetTableManager
             columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" );
-        
-        columns.add( ds );
+        columns.add( new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" ) );
         
         return filterDimensionColumns( columns );
     }
     
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        final String dbl = statementBuilder.getDoubleColumnType();
+        
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
+    }
+    
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
         return null; // Not relevant
     }
 
     @Override
     @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         return null; // Not needed
     }

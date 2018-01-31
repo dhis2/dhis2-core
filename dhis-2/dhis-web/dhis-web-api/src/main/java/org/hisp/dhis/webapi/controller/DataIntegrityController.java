@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataintegrity.DataIntegrityService;
-import org.hisp.dhis.dataintegrity.tasks.DataIntegrityTask;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -59,13 +56,7 @@ public class DataIntegrityController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
-
-    @Autowired
-    private DataIntegrityService dataIntegrityService;
-
-    @Autowired
-    private Notifier notifier;
+    private SchedulingManager schedulingManager;
 
     public static final String RESOURCE_PATH = "/dataIntegrity";
 
@@ -77,12 +68,13 @@ public class DataIntegrityController
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        TaskId taskId = new TaskId( TaskCategory.DATAINTEGRITY, currentUserService.getCurrentUser() );
-        notifier.clear( taskId );
+        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, null,
+            false, true, true );
+        jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
+        jobConfiguration.setAutoFields();
 
-        scheduler.executeTask( new DataIntegrityTask( taskId, dataIntegrityService, notifier ) );
+        schedulingManager.executeJob( jobConfiguration );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.DATAINTEGRITY );
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        JacksonUtils.fromObjectToReponse( response, jobConfiguration );
     }
 }

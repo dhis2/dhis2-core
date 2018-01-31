@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -240,8 +240,8 @@ public class MessageConversationController
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        int id = messageService.sendPrivateMessage( messageConversation.getSubject(), messageConversation.getText(), metaData,
-            messageConversation.getUsers() );
+        int id = messageService.sendMessage( messageService.createPrivateMessage( messageConversation.getUsers(),
+            messageConversation.getSubject(), messageConversation.getText(), metaData ).build() );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );
 
@@ -294,7 +294,7 @@ public class MessageConversationController
     {
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        messageService.sendTicketMessage( subject, body, metaData );
+        messageService.sendMessage( messageService.createTicketMessage( subject, body, metaData ).build() );
 
         webMessageService.send( WebMessageUtils.created( "Feedback created" ), response, request );
     }

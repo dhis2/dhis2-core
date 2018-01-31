@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,17 +103,24 @@ public class HibernateValidationResultStore
     }
 
     @Override
-    public List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits,
-        Collection<ValidationRule> validationRules, Collection<Period> periods )
+    public List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
     {
-        if ( isEmpty( orgUnits ) || isEmpty( validationRules ) || isEmpty( periods ) )
+        if ( isEmpty( validationRules ) || isEmpty( periods ) )
         {
             return new ArrayList<>();
         }
 
-        Query query = getQuery( "from ValidationResult vr where vr.organisationUnit in :orgUnits and validationRule in :validationRules and vr.period in :periods " );
+        String orgUnitFilter = orgUnit == null ? "" : "vr.organisationUnit.path like :orgUnitPath and ";
 
-        query.setParameter( "orgUnits", orgUnits );
+        Query query = getQuery( "from ValidationResult vr where " + orgUnitFilter + "vr.validationRule in :validationRules and vr.period in :periods " );
+
+        if ( orgUnit != null )
+        {
+            query.setParameter( "orgUnitPath", orgUnit.getPath()
+                + ( includeOrgUnitDescendants ? "%" : "" ) );
+        }
+
         query.setParameter( "validationRules", validationRules );
         query.setParameter( "periods", periods );
 

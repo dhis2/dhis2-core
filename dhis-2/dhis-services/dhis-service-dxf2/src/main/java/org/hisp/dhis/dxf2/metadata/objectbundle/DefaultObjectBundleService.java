@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-/*
- * Copyright (c) 2004-2017, University of Oslo
+    /*
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -62,6 +63,7 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -228,9 +230,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         objects.forEach( object -> objectBundleHooks.forEach( hook -> {
@@ -248,6 +250,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
             typeReport.addObjectReport( objectReport );
 
             preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+
+            if ( bundle.getOverrideUser() != null )
+            {
+                ((BaseIdentifiableObject) object).setUser( bundle.getOverrideUser() );
+
+                if ( User.class.isInstance( object ) )
+                {
+                    ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
+                }
+            }
 
             session.save( object );
 
@@ -315,9 +327,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         objects.forEach( object ->
@@ -350,6 +362,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 mergeService.merge( new MergeParams<>( object, persistedObject )
                     .setMergeMode( bundle.getMergeMode() )
                     .setSkipSharing( bundle.isSkipSharing() ) );
+            }
+
+            if ( bundle.getOverrideUser() != null )
+            {
+                ((BaseIdentifiableObject) persistedObject).setUser( bundle.getOverrideUser() );
+
+                if ( User.class.isInstance( object ) )
+                {
+                    ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
+                }
             }
 
             session.update( persistedObject );
@@ -418,9 +440,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         log.info( message );
 
-        if ( bundle.hasTaskId() )
+        if ( bundle.hasJobId() )
         {
-            notifier.notify( bundle.getTaskId(), message );
+            notifier.notify( bundle.getJobId(), message );
         }
 
         List<IdentifiableObject> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(), objects );

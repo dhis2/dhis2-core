@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.datavalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.commons.logging.Log;
@@ -40,8 +41,8 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
@@ -342,11 +343,11 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+    public Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
         Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        OrganisationUnit orgUnit )
+        Collection<OrganisationUnit> orgUnits )
     {
-        MapMapMap<Period, String, DimensionalItemObject, Double> result = new MapMapMap<>();
+        Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> result = new Map4<>();
 
         Collection<Integer> periodIdList = IdentifiableObjectUtils.getIdentifiers( periods );
 
@@ -357,13 +358,18 @@ public class HibernateDataValueStore
             return result;
         }
 
-        String sql = "select dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid, " +
+        List<String> paths = orgUnits.stream().map( OrganisationUnit::getPath ).collect( Collectors.toList() );
+
+        String pathsTable = statementBuilder.literalStringTable( paths, "p", "path" );
+
+        String sql = "select dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path, " +
             "sum( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as value " +
             "from datavalue dv " +
             "join organisationunit o on o.organisationunitid = dv.sourceid " +
             "join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid " +
-            "where o.path like '" + orgUnit.getPath() + "%' " +
-            "and dv.periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
+            "join categoryoptioncombo aoc on aoc.categoryoptioncomboid = dv.attributeoptioncomboid " +
+            "join " + pathsTable + " on o.path like p.path || '%' " +
+            "where dv.periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
             "and dv.value is not null " +
             "and dv.deleted is false " +
             "and ( ";
@@ -379,37 +385,36 @@ public class HibernateDataValueStore
                 snippit = "or ";
             }
 
-            sql += ") group by dv.dataelementid, coc.uid, dv.attributeoptioncomboid, dv.periodid";
+            sql += ") group by dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         Map<Integer, DataElement> dataElementsById = IdentifiableObjectUtils.getIdentifierMap( deosByDataElement.keySet() );
         Map<Integer, Period> periodsById = IdentifiableObjectUtils.getIdentifierMap( periods );
+        Map<String, OrganisationUnit> orgUnitsByPath = orgUnits.stream().collect( Collectors.toMap( o -> o.getPath(), o -> o ) );
 
         while ( rowSet.next() )
         {
             Integer dataElementId = rowSet.getInt( 1 );
             String categoryOptionComboUid = rowSet.getString( 2 );
+            String attributeOptionComboUid = rowSet.getString( 3 );
             Integer periodId = rowSet.getInt( 4 );
-            Double value = rowSet.getDouble( 5 );
+            String path = rowSet.getString( 5 );
+            Double value = rowSet.getDouble( 6 );
 
             DataElement dataElement = dataElementsById.get ( dataElementId );
             Period period = periodsById.get( periodId );
+            OrganisationUnit orgUnit = orgUnitsByPath.get( path );
 
             Set<DataElementOperand> deos = deosByDataElement.get( dataElement );
 
             for ( DataElementOperand deo : deos )
             {
-                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid() == categoryOptionComboUid )
+                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionComboUid ) )
                 {
-                    Double existingValue = result.getValue(period, categoryOptionComboUid, deo );
+                    double existingValue = ObjectUtils.firstNonNull( result.getValue(orgUnit, period, attributeOptionComboUid, deo ), 0.0 );
 
-                    if ( existingValue != null )
-                    {
-                        value += existingValue;
-                    }
-
-                    result.putEntry( period, categoryOptionComboUid, deo, value );
+                    result.putEntry( orgUnit, period, attributeOptionComboUid, deo, value + existingValue );
                 }
             }
         }
@@ -569,7 +574,7 @@ public class HibernateDataValueStore
                 {
                     if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) )
                     {
-                        Double existingValue = map.getValue(attributeOptionCombo, deo);
+                        double existingValue = ObjectUtils.firstNonNull( map.getValue(attributeOptionCombo, deo), 0.0 );
 
                         Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionCombo, deo );
 
@@ -581,7 +586,7 @@ public class HibernateDataValueStore
                             }
                             else if ( existingPeriodInterval > periodInterval )
                             {
-                                existingValue = null; // Overwrite previous value if for a longer interval
+                                existingValue = 0.0; // Overwrite previous value if for a longer interval
 
                                 if ( lastUpdatedMap != null )
                                 {
@@ -590,12 +595,7 @@ public class HibernateDataValueStore
                             }
                         }
 
-                        if ( existingValue != null )
-                        {
-                            value += existingValue;
-                        }
-
-                        map.putEntry( attributeOptionCombo, deo, value );
+                        map.putEntry( attributeOptionCombo, deo, value + existingValue);
 
                         if ( lastUpdatedMap != null && lastUpdated != null )
                         {

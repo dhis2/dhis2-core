@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentitydatavalue;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Abyot Asalefew Gizaw
- * @version $Id$
  */
 public interface TrackedEntityDataValueStore
     extends GenericStore<TrackedEntityDataValue>
@@ -50,9 +49,6 @@ public interface TrackedEntityDataValueStore
      * Adds an {@link TrackedEntityDataValue}
      * 
      * @param dataValue The to TrackedEntityDataValue add.
-     * 
-     * @return A generated unique id of the added {@link TrackedEntityDataValue}
-     *         .
      */
     void saveVoid( TrackedEntityDataValue dataValue );
 
@@ -76,7 +72,7 @@ public interface TrackedEntityDataValueStore
      * Retrieve data values of a event with data elements specified
      * 
      * @param programStageInstance ProgramStageInstance
-     * @param dataElement DataElement List
+     * @param dataElements DataElement List
      * 
      * @return TrackedEntityDataValue list
      */
@@ -86,7 +82,7 @@ public interface TrackedEntityDataValueStore
     /**
      * Retrieve data values of many events
      * 
-     * @param programStageInstance ProgramStageInstance
+     * @param programStageInstances ProgramStageInstance
      * 
      * @return TrackedEntityDataValue list
      */

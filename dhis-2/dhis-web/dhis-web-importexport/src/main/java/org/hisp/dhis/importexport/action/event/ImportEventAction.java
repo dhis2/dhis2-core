@@ -1,7 +1,7 @@
 package org.hisp.dhis.importexport.action.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,10 @@ import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventTask;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,7 +67,7 @@ public class ImportEventAction
     // -------------------------------------------------------------------------
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private Notifier notifier;
@@ -141,9 +141,9 @@ public class ImportEventAction
     @Override
     public String execute() throws Exception
     {
-        TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
+        JobConfiguration jobId = new JobConfiguration( null, JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         InputStream in = new FileInputStream( upload );
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
@@ -157,7 +157,7 @@ public class ImportEventAction
         if ( FORMAT_CSV.equals( payloadFormat ) )
         {
             Events events = csvEventService.readEvents( in, skipFirst );
-            scheduler.executeTask( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
+            schedulingManager.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
         }
         else
         {
@@ -172,7 +172,7 @@ public class ImportEventAction
                 events = eventService.getEventsXml( in );
             }
 
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
         }
 
         return SUCCESS;

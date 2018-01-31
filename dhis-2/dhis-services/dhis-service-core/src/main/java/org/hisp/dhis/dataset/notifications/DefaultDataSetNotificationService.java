@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -101,7 +102,7 @@ public class DefaultDataSetNotificationService
             .put( DeliveryChannel.EMAIL, ou ->  ou.getEmail() != null && !ou.getEmail().isEmpty() ) // Valid Ou Email
             .build();
 
-    private final BiFunction<SendStrategy, Set<DataSetNotificationTemplate>, Set<DataSetNotificationTemplate>> SEGREGATOR = ( s, t )  -> t.parallelStream()
+    private final BiFunction<SendStrategy, Set<DataSetNotificationTemplate>, Set<DataSetNotificationTemplate>> SEGREGATOR = ( s, t )  -> t.stream()
         .filter( f -> s.equals( f.getSendStrategy() ) )
         .collect( Collectors.toSet() );
 
@@ -214,7 +215,7 @@ public class DefaultDataSetNotificationService
                 {
                     summaryCreated = true;
 
-                    pendingOus = dataSet.getSources().parallelStream().filter( ou -> !isCompleted( createRespectiveRegistrationObject( dataSet, ou ) ) ).count();
+                    pendingOus = dataSet.getSources().stream().filter( ou -> !isCompleted( createRespectiveRegistrationObject( dataSet, ou ) ) ).count();
 
                     messageText += String.format( SUMMARY_TEXT, pendingOus, getPeriodString( dataSet.getPeriodType().createPeriod() ), dataSet.getName() ) + TEXT_SEPARATOR;
                 }
@@ -292,7 +293,7 @@ public class DefaultDataSetNotificationService
 
             for ( DataSet dataSet : dataSets )
             {
-                mapper.putAll( dataSet.getSources().parallelStream()
+                mapper.putAll( dataSet.getSources().stream()
                     .map( ou -> createRespectiveRegistrationObject( dataSet, ou ) )
                     .filter( r -> isScheduledNow( r, template ) )
                     .collect( Collectors.toMap( r -> r, t -> template ) ) );
@@ -379,7 +380,7 @@ public class DefaultDataSetNotificationService
 
         ProgramMessageRecipients recipients;
 
-        if ( template.getNotificationTrigger().isScheduled() )
+        if ( template.getDataSetNotificationTrigger().isScheduled() )
         {
             recipients = resolveExternalRecipientsForSchedule( template, registration );
         }
@@ -475,8 +476,10 @@ public class DefaultDataSetNotificationService
     private void sendInternalDhisMessages( List<DhisMessage> messages )
     {
         messages.forEach( m ->
-            internalMessageService.sendMessage( m.message.getSubject(), m.message.getMessage(), null, m.recipients, null,
-                MessageType.SYSTEM, false )
+            internalMessageService.sendMessage(
+                new MessageConversationParams.Builder(m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
+                .build()
+            )
         );
     }
 

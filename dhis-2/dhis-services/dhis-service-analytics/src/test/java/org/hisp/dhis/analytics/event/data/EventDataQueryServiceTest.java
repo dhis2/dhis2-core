@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.AnalyticsType;
@@ -179,7 +180,7 @@ public class EventDataQueryServiceTest
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
             null, null, dimensionParams, filterParams, null, null, false, false, false, false,
-            false, false, null, null, null, null, null, false, false, null, null, null, null );
+            false, false, null, null, null, null, null, false, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -199,14 +200,14 @@ public class EventDataQueryServiceTest
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
             null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, false,
-            false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
+            false, false, false, false, false, null, null, null, null, null, false, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
-        assertEquals( AggregationType.AVERAGE, params.getAggregationType() );
+        assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
     @Test
@@ -338,7 +339,7 @@ public class EventDataQueryServiceTest
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
             null, null, dimensionParams, filterParams, null, null, false, false, false, false,
-            false, false, null, null, null, null, null, false, false, null, null, null, null );
+            false, false, null, null, null, null, null, false, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getItems().size() );

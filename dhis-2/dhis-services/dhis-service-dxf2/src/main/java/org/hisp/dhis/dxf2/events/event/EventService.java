@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import org.hisp.dhis.common.Grid;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -41,11 +40,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -61,8 +59,6 @@ public interface EventService
 
     Events getEvents( EventSearchParams params );
 
-    Events getEvents( Collection<String> uids );
-
     EventRows getEventRows( EventSearchParams params );
 
     EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp, String orgUnit,
@@ -70,8 +66,6 @@ public interface EventService
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
         Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
         Set<String> filters, Set<String> dataElements, boolean includeDeleted );
-
-    Event getEvent( String uid );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
@@ -93,15 +87,15 @@ public interface EventService
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, TaskId taskId );
+    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsXml( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
 
     ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsJson( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE

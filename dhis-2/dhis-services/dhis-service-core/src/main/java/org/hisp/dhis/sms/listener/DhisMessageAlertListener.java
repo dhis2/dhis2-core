@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.listener;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -53,11 +54,6 @@ import java.util.*;
 public class DhisMessageAlertListener
     extends BaseSMSListener
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     @Autowired
     private SMSCommandService smsCommandService;
 
@@ -86,7 +82,6 @@ public class DhisMessageAlertListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.ALERT_PARSER );
         UserGroup userGroup = smsCommand.getUserGroup();
-        String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
 
         if ( userGroup != null )
         {
@@ -95,10 +90,12 @@ public class DhisMessageAlertListener
             if ( users != null && users.size() > 1 )
             {
                 String messageMoreThanOneUser = smsCommand.getMoreThanOneOrgUnitMessage();
-                if ( messageMoreThanOneUser.trim().equals( "" ) )
+                
+                if ( messageMoreThanOneUser.trim().isEmpty() )
                 {
                     messageMoreThanOneUser = SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE;
                 }
+                
                 for ( Iterator<User> i = users.iterator(); i.hasNext(); )
                 {
                     User user = i.next();
@@ -108,6 +105,7 @@ public class DhisMessageAlertListener
                         messageMoreThanOneUser += ",";
                     }
                 }
+                
                 throw new SMSParserException( messageMoreThanOneUser );
             }
             else if ( users != null && users.size() == 1 )
@@ -115,7 +113,7 @@ public class DhisMessageAlertListener
                 User sender = users.iterator().next();
 
                 Set<User> receivers = new HashSet<>( userGroup.getMembers() );
-                messageService.sendMessage( smsCommand.getName(), message, null, receivers, sender, MessageType.SYSTEM, false );
+                messageService.sendMessage( new MessageConversationParams.Builder( receivers, sender, smsCommand.getName(), message, MessageType.SYSTEM ).build() );
 
                 Set<User> feedbackList = new HashSet<>();
                 feedbackList.add( sender );
