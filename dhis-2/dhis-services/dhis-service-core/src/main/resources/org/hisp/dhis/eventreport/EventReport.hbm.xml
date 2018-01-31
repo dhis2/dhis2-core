@@ -249,7 +249,7 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="eventreportusergroupaccesses">
+    <set name="userGroupAccesses" table="eventreportusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventreportid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />

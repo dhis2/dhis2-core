@@ -194,7 +194,7 @@ public class TrackedEntityInstanceController
 
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {
-            int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams );
+            int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true );
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
@@ -467,7 +467,7 @@ public class TrackedEntityInstanceController
             eventStatus, eventStartDate, eventEndDate, true, TrackedEntityInstanceQueryParams.DEFAULT_PAGE, Pager.DEFAULT_PAGE_SIZE, true, true, includeDeleted,
             null );
 
-        return trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams );
+        return trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false );
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )

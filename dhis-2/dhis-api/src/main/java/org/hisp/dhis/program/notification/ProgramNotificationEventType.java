@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,18 +28,14 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-public class OrganisationUnitWithCoordinatesFilter
-    implements Filter<OrganisationUnit>
+public enum  ProgramNotificationEventType
 {
-    @Override
-    public boolean retain( OrganisationUnit object )
-    {
-        return object != null && object.hasFeatureType() && object.hasCoordinates();
-    }    
+    PROGRAM_ENROLLMENT,
+    PROGRAM_COMPLETION,
+    PROGRAM_STAGE_COMPLETION,
+    PROGRAM_RULE_ENROLLMENT,
+    PROGRAM_RULE_EVENT
 }
