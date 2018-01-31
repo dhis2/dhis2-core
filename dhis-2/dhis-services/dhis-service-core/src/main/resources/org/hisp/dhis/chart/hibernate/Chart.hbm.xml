@@ -228,8 +228,8 @@
     </set>
     
     <set name="favorites" table="chartfavorites">
-      <cache usage="read-write" foreign-key="fk_chartfavorites_chartid" />
-      <key column="chartid" />
+      <cache usage="read-write" />
+      <key column="chartid" foreign-key="fk_chartfavorites_chartid" />
       <many-to-many class="org.hisp.dhis.user.User" column="userid" unique="true" foreign-key="fk_chartfavorites_userid" />
     </set>
 
