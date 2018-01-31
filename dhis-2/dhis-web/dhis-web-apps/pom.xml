@@ -39,15 +39,6 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-core-resource</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
-                <!-- Maintenance -->
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-maintenance</artifactId>
-                  <version>2.29-SNAPSHOT</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maintenance</outputDirectory>
-                  <includes>**/*.*</includes>
-                </artifactItem>
                 <!-- App management -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
