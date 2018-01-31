@@ -61,6 +61,12 @@
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
+    <set name="favorites" table="mapfavorites">
+      <cache usage="read-write" />
+      <key column="mapid" foreign-key="fk_mapfavorites_mapid" />
+      <many-to-many class="org.hisp.dhis.user.User" column="userid" unique="true" foreign-key="fk_mapfavorites_userid" />
+    </set>
+    
   </class>
 
 </hibernate-mapping>
