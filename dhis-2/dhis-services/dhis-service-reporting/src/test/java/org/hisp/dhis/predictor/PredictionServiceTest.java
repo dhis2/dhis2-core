@@ -45,6 +45,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -127,6 +128,7 @@ public class PredictionServiceTest
     private Expression expressionE;
     private Expression expressionF;
     private Expression expressionG;
+    private Expression expressionH;
 
     private PeriodType periodTypeMonthly;
 
@@ -228,6 +230,9 @@ public class PredictionServiceTest
         expressionE = new Expression( "SUM(#{" + dataElementA.getUid() + "})+#{" + dataElementB.getUid() + "}", "descriptionE" );
         expressionF = new Expression( "#{" + dataElementB.getUid() + "}", "descriptionF" );
         expressionG = new Expression( "SUM(#{" + dataElementA.getUid() + "}+#{" + dataElementB.getUid() + "})", "descriptionG" );
+        expressionH = new Expression( "IF(IsNull(#{" + dataElementA.getUid() + "}), 5, #{" + dataElementA.getUid() + "})", "descriptionH" );
+
+        expressionH.setMissingValueStrategy( MissingValueStrategy.NEVER_SKIP );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -757,6 +762,22 @@ public class PredictionServiceTest
 
         assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
         assertEquals( "8.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+    }
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictNeverSkip()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 1 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictNeverSkip",
+            expressionH, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
+
+        assertEquals( 3, predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 7 ) ) );
+
+        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 6 ) ) );
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
     }
 }
 
