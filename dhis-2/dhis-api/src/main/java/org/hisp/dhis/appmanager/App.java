@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -81,7 +82,7 @@ public class App
 
     private String baseUrl;
 
-    private Set<String> authorities;
+    private Set<String> authorities = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Logic
