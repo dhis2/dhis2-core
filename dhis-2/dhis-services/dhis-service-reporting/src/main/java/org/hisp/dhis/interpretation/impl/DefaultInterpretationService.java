@@ -41,6 +41,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -144,9 +145,9 @@ public class DefaultInterpretationService
             interpretation.updateSharing();
             users = this.getMentionedUsers( interpretation.getText() ); 
             interpretation.setMentions(users);
+            this.updateSharingForMentions(interpretation, users);
         }
 
-        this.updateSharingForMentions(interpretation, users);
         interpretationStore.save( interpretation );
         
         this.sendNotifications(interpretation, null, users);
@@ -222,50 +223,51 @@ public class DefaultInterpretationService
     @Override
     public void sendNotifications( Interpretation interpretation, InterpretationComment comment,  Set<User> users)
     {
-        String link = systemSettingManager.getInstanceBaseUrl();
+        if ( interpretation != null) {
+            String link = systemSettingManager.getInstanceBaseUrl();
 
-        switch ( interpretation.getType() )
-        {
-            case MAP:
-                link += "/dhis-web-mapping/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid=" + interpretation.getUid();
-                break;
-            case REPORT_TABLE:
-                link += "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid=" + interpretation.getUid();
-                break;
-            case CHART:
-                link += "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid=" + interpretation.getUid();
-                break;
-            case EVENT_REPORT:
-                link += "/dhis-web-event-reports/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid=" + interpretation.getUid();
-                break;
-            case EVENT_CHART:
-                link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid=" + interpretation.getUid();
-                break;
-            default:
-                break;
-        }
+            switch ( interpretation.getType() )
+            {
+                case MAP:
+                    link += "/dhis-web-mapping/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid=" + interpretation.getUid();
+                    break;
+                case REPORT_TABLE:
+                    link += "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid=" + interpretation.getUid();
+                    break;
+                case CHART:
+                    link += "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid=" + interpretation.getUid();
+                    break;
+                case EVENT_REPORT:
+                    link += "/dhis-web-event-reports/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid=" + interpretation.getUid();
+                    break;
+                case EVENT_CHART:
+                    link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid=" + interpretation.getUid();
+                    break;
+                default:
+                    break;
+            }
 
-        StringBuilder messageContent;
-        if (comment != null) {
-            messageContent = new StringBuilder( "You were mentioned in the following comment: \n\n" )
-                .append( comment.getText() );
+            StringBuilder messageContent;
+            if (comment != null) {
+                messageContent = new StringBuilder( "You were mentioned in the following comment: \n\n" )
+                    .append( comment.getText() );
+            }
+            else {
+                messageContent = new StringBuilder( "You were mentioned in the following interpretation: \n\n" )
+                    .append( interpretation.getText() );
+                    
+            }
+            messageContent.append( "\n\n" ).append( "Go to " ).append( link );
+            User user = currentUserService.getCurrentUser();
+            messageService.sendMessage( messageService.createPrivateMessage( users, user.getDisplayName() + " mentioned you in DHIS2", messageContent.toString(), "Meta" ).build() );
         }
-        else {
-            messageContent = new StringBuilder( "You were mentioned in the following interpretation: \n\n" )
-                .append( interpretation.getText() );
-                
-        }
-        messageContent.append( "\n\n" ).append( "Go to " ).append( link );
-        
-        User user = currentUserService.getCurrentUser();
-        messageService.sendMessage( messageService.createPrivateMessage( users, user.getDisplayName() + " mentioned you in DHIS2", messageContent.toString(), "Meta" ).build() );
     }
     
     @Override
     public void updateSharingForMentions( Interpretation interpretation, Set<User> users ){
         for ( User user : users ) {
             if (!aclService.canRead( user, interpretation.getObject() )) {
-                interpretation.getObject().getUserAccesses().add( new UserAccess(user, "r_______" ) );    
+                interpretation.getObject().getUserAccesses().add( new UserAccess(user, AccessStringHelper.READ) );    
             }
         }
     }
