@@ -32,11 +32,17 @@ import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -56,7 +62,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -191,15 +203,19 @@ public class GeoFeatureController
             throw new IllegalArgumentException( "Dimension is present in query without any valid dimension options" );
         }
 
-        List<CoordinateBaseDimensionalItemObject> coordinateBaseDimensionalItemObjects = DimensionalObjectUtils
+        List<DimensionalItemObject> dimensionalItemObjects = DimensionalObjectUtils
             .asTypedList( dimensionalObject.getItems() );
 
-        coordinateBaseDimensionalItemObjects = coordinateBaseDimensionalItemObjects.stream().filter( object ->
-            object != null && object.getFeatureType() != null && object.hasCoordinates() &&
-                (object.getFeatureType() != FeatureType.POINT ||
-                    ValidationUtils.coordinateIsValid( object.getCoordinates() )) ).collect( Collectors.toList() );
+        dimensionalItemObjects = dimensionalItemObjects.stream().filter( object -> {
+            CoordinateObject coordinateObject = (CoordinateObject) object;
 
-        boolean modified = !ContextUtils.clearIfNotModified( request, response, coordinateBaseDimensionalItemObjects );
+            return coordinateObject != null && coordinateObject.getFeatureType() != null &&
+                coordinateObject.hasCoordinates() &&
+                (coordinateObject.getFeatureType() != FeatureType.POINT ||
+                    ValidationUtils.coordinateIsValid( coordinateObject.getCoordinates() ));
+        } ).collect( Collectors.toList() );
+
+        boolean modified = !ContextUtils.clearIfNotModified( request, response, dimensionalItemObjects );
 
         if ( !modified )
         {
@@ -214,15 +230,19 @@ public class GeoFeatureController
 
         Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-        for ( CoordinateBaseDimensionalItemObject unit : coordinateBaseDimensionalItemObjects )
+        for ( DimensionalItemObject unit : dimensionalItemObjects )
         {
             GeoFeature feature = new GeoFeature();
 
-            Integer ty = unit.getFeatureType() != null ? FEATURE_TYPE_MAP.get( unit.getFeatureType() ) : null;
+            CoordinateObject coordinateObject = (CoordinateObject) unit;
+
+            Integer ty = coordinateObject.getFeatureType() != null ?
+                FEATURE_TYPE_MAP.get( coordinateObject.getFeatureType() ) :
+                null;
 
             feature.setId( unit.getUid() );
             feature.setCode( unit.getCode() );
-            feature.setHcd( unit.hasDescendantsWithCoordinates() );
+            feature.setHcd( coordinateObject.hasDescendantsWithCoordinates() );
 
             if ( !useOrgUnitGroup )
             {
@@ -248,7 +268,7 @@ public class GeoFeatureController
             }
 
             feature.setTy( ObjectUtils.firstNonNull( ty, 0 ) );
-            feature.setCo( unit.getCoordinates() );
+            feature.setCo( coordinateObject.getCoordinates() );
             feature.setNa( unit.getDisplayProperty( params.getDisplayProperty() ) );
 
             features.add( feature );

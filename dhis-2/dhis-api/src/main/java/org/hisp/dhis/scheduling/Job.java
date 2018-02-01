@@ -29,7 +29,6 @@ package org.hisp.dhis.scheduling;
  */
 
 import org.hisp.dhis.feedback.ErrorReport;
-import org.springframework.context.event.ContextRefreshedEvent;
 
 /**
  * This interface is used for jobs in the system which are scheduled or executed by spring scheduler.

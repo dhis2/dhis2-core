@@ -255,13 +255,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="eventchartusergroupaccesses">
+    <set name="userGroupAccesses" table="eventchartusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="eventchartuseraccesses">
+    <set name="userAccesses" table="eventchartuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
@@ -272,6 +272,12 @@
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_objecttranslation_eventchartid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
+
+    <set name="favorites" table="eventchartfavorites">
+      <cache usage="read-write" />
+      <key column="eventchartid" foreign-key="fk_eventchartfavorites_eventchartid" />
+      <many-to-many class="org.hisp.dhis.user.User" column="userid" unique="true" foreign-key="fk_eventchartfavorites_userid" />
     </set>
 
   </class>

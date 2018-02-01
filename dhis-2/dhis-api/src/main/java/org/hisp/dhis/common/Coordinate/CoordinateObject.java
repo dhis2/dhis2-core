@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.common.Coordinate;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,18 +28,20 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.FeatureType;
 
 /**
- * @author Lars Helge Overland
+ * @author Henning Håkonsen
  */
-public class OrganisationUnitWithCoordinatesFilter
-    implements Filter<OrganisationUnit>
+public interface CoordinateObject
 {
-    @Override
-    public boolean retain( OrganisationUnit object )
-    {
-        return object != null && object.hasFeatureType() && object.hasCoordinates();
-    }    
+    FeatureType getFeatureType();
+
+    boolean hasFeatureType();
+
+    String getCoordinates();
+
+    boolean hasCoordinates();
+
+    boolean hasDescendantsWithCoordinates();
 }

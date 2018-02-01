@@ -68,7 +68,11 @@ public interface IdentifiableObject
     Set<AttributeValue> getAttributeValues();
 
     Set<ObjectTranslation> getTranslations();
+    
+    Set<User> getFavorites();
 
+    boolean isFavorite();
+    
     //-----------------------------------------------------------------------------
     // Sharing
     //-----------------------------------------------------------------------------

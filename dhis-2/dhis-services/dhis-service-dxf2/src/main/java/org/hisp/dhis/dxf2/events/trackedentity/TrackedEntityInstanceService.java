@@ -51,7 +51,7 @@ public interface TrackedEntityInstanceService
 
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 

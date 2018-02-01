@@ -36,6 +36,7 @@ import org.hisp.dhis.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Chau Thu Tran
@@ -75,7 +76,18 @@ public class TrackedEntityType
         this.name = name;
         this.description = description;
     }
-
+    
+    // -------------------------------------------------------------------------
+    // Logic methods
+    // -------------------------------------------------------------------------
+    
+    /**
+     * Returns TrackedEntityAttributes from TrackedEntityTypeAttributes.
+     */
+    public List<TrackedEntityAttribute> getTrackedEntityAttributes()
+    {
+        return trackedEntityTypeAttributes.stream().map( TrackedEntityTypeAttribute::getTrackedEntityAttribute ).collect( Collectors.toList() );
+    }
     
     // -------------------------------------------------------------------------
     // Getters and setters
