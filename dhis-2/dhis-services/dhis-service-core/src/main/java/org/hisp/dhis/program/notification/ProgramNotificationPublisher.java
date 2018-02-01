@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentityinstance;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,30 +28,44 @@ package org.hisp.dhis.trackedentityinstance;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.junit.Test;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-public class TrackedEntityInstanceQueryTest
-    extends DhisSpringTest
+public class ProgramNotificationPublisher
 {
     @Autowired
-    private TrackedEntityInstanceService instanceService;
-    
-    @Test
-    public void testValidateNoOrgUnitsModeAll()
+    private ApplicationEventPublisher publisher;
+
+    public void publishEnrollment( ProgramInstance programInstance, ProgramNotificationEventType eventType )
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        TrackedEntityType trackedEntityTypeA = createTrackedEntityType(  'A' );
-        params.setTrackedEntityType( trackedEntityTypeA );        
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        instanceService.validate( params );
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programInstance, eventType );
+
+        publisher.publishEvent( event );
+    }
+
+    public void publishEnrollment( ProgramNotificationTemplate template, ProgramInstance programInstance, ProgramNotificationEventType type )
+    {
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programInstance, type );
+
+        publisher.publishEvent( event );
+    }
+
+    public void publishEvent( ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
+    {
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programStageInstance, eventType );
+
+        publisher.publishEvent( event );
+    }
+
+    public void publishEvent( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance, ProgramNotificationEventType type )
+    {
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programStageInstance, type );
+
+        publisher.publishEvent( event );
     }
 }

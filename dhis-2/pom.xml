@@ -852,7 +852,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.1.1</version>
+        <version>42.2.1</version>
       </dependency>
 
       <!-- Apache jClouds -->
@@ -1144,7 +1144,7 @@
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring.version>4.3.14.RELEASE</spring.version>
-    <spring-security.version>4.2.3.RELEASE</spring-security.version>
+    <spring-security.version>4.2.4.RELEASE</spring-security.version>
     <spring-security-oauth2.version>2.2.0.RELEASE</spring-security-oauth2.version>
     <struts.version>2.3.32</struts.version>
     <hibernate.version>5.2.11.Final</hibernate.version>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,14 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
-
-import java.util.List;
-
 /**
- * Created by zubair@dhis2.org on 16.11.17.
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-public interface ProgramNotificationTemplateStore
-    extends GenericNameableObjectStore<ProgramNotificationTemplate>
+public enum  ProgramNotificationEventType
 {
-    String ID = ProgramNotificationTemplate.class.getName();
-
-    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger triggers );
+    PROGRAM_ENROLLMENT,
+    PROGRAM_COMPLETION,
+    PROGRAM_STAGE_COMPLETION,
+    PROGRAM_RULE_ENROLLMENT,
+    PROGRAM_RULE_EVENT
 }
