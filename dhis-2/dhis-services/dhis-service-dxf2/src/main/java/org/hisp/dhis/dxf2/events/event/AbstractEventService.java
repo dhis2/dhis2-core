@@ -1001,6 +1001,13 @@ public abstract class AbstractEventService
             organisationUnit = programStageInstance.getOrganisationUnit();
         }
 
+        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
+
         Date executionDate = new Date();
 
         if ( event.getEventDate() != null )
