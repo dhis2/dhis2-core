@@ -415,8 +415,6 @@ public class InterpretationController
                 
             }
         }
-
-//        interpretationService.updateInterpretation( interpretation );
     }
 
     @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.DELETE )
