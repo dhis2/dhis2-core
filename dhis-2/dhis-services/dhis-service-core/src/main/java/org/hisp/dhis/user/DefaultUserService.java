@@ -165,14 +165,6 @@ public class DefaultUserService
     @Override
     public User getUser( String uid )
     {
-        if ( uid.equals( "mIlA6jpvB52" ) )
-        {
-            User user = userStore.getByUid( uid );
-            user.setTwoFactorAuthentication( true );
-            userStore.update( user );
-
-            System.out.println("username : " + user.getUserCredentials().getUsername());
-        }
         return userStore.getByUid( uid );
     }
 
@@ -667,9 +659,10 @@ public class DefaultUserService
         return userStore.getExpiringUsers( userQueryParams );
     }
 
-    @Override
-    public SimpleUser getSimpleUser( String username )
+    public void set2FA( User user, Boolean twoFa )
     {
-        return (SimpleUser) getUserCredentialsByUsername( username ).getUser();
+        user.getUserCredentials().setTwoFA( twoFa );
+
+        updateUser( user );
     }
 }

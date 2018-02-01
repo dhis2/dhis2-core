@@ -6,6 +6,7 @@
 "forgot_password": "$!encoder.jsonEncode( $i18nObject.getString( "forgot_password" ) )",
 "create_an_account": "$!encoder.jsonEncode( $i18nObject.getString( "create_an_account" ) )",
 "wrong_username_or_password": "$!encoder.jsonEncode( $i18nObject.getString( "wrong_username_or_password" ) )",
+"bad_credentials": "$!encoder.jsonEncode( $i18nObject.getString( "bad_credentials" ) )",
 "powered_by": "$!encoder.jsonEncode( $i18nObject.getString( "powered_by" ) )",
 "sign_in": "$!encoder.jsonEncode( $i18nObject.getString( "sign_in" ) )",
 "applicationTitle": "$!encoder.jsonEncode( $!translations.get( "applicationTitle" ) )",

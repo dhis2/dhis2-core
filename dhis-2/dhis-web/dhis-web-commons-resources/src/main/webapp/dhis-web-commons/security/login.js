@@ -54,7 +54,7 @@ login.changeLocale = function( locale )
         $( '#2fa_code' ).attr( 'placeholder', json.login_code );
 		$( '#forgotPasswordLink' ).html( json.forgot_password );
 		$( '#createAccountLink' ).html( json.create_an_account );
-		$( '#loginMessage' ).html( json.wrong_username_or_password );
+		$( '#loginMessage' ).html( json.bad_credentials );
 		$( '#poweredByLabel' ).html( json.powered_by );
 		$( '#submit' ).val( json.sign_in );
 		

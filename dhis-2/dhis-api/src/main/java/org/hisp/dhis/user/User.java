@@ -40,7 +40,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.jboss.aerogear.security.otp.api.Base32;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,10 +61,6 @@ public class User
     private String surname;
 
     private String firstName;
-
-    private boolean twoFactorAuthentication = false;
-
-    private String secret;
 
     /**
      * Optional.
@@ -98,10 +93,6 @@ public class User
 
     private Set<UserGroup> groups = new HashSet<>();
 
-    public User()
-    {
-        setSecret( );
-    }
 
     /**
      * Organisation units for data input and data capture / write operations.
@@ -441,34 +432,6 @@ public class User
     public void setSurname( String surname )
     {
         this.surname = surname;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isTwoFactorAuthentication()
-    {
-        return twoFactorAuthentication;
-    }
-
-    public void setTwoFactorAuthentication( boolean twoFactorAuthentication )
-    {
-        this.twoFactorAuthentication = twoFactorAuthentication;
-    }
-
-    public String getSecret()
-    {
-        return secret;
-    }
-
-    public void setSecret( String secret )
-    {
-        this.secret = secret;
-        setSecret();
-    }
-
-    private void setSecret()
-    {
-        this.secret = Base32.random();
     }
 
     @JsonProperty

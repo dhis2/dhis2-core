@@ -5,7 +5,6 @@ import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
@@ -31,9 +30,6 @@ public class SecurityController
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private UserStore userStore;
-
     @RequestMapping( value = "/2fa/qr", method = RequestMethod.GET, produces = "application/json" )
     public void getQrCode( HttpServletRequest request, HttpServletResponse response )
     {
@@ -52,17 +48,9 @@ public class SecurityController
         JacksonUtils.fromObjectToReponse( response, map );
     }
 
-    @RequestMapping( value = "/set2FA", method = RequestMethod.POST, produces = "application/json" )
-    public void set2FA( @RequestParam String uid, @RequestParam boolean twoFactorValue )
+    @RequestMapping( value = "/settwofa", method = RequestMethod.POST )
+    public void set2FA( @RequestParam String uid, @RequestParam boolean twofa )
     {
-        System.out.println("uid: " + uid + ", " + twoFactorValue);
-
-        User user = userService.getUser( uid );
-
-        user.setTwoFactorAuthentication( twoFactorValue );
-
-        userStore.update( user );
-
-        System.out.println(userService.getUser( uid ).isTwoFactorAuthentication());
+        userService.set2FA( userService.getUser( uid ), twofa );
     }
 }

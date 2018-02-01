@@ -48,10 +48,6 @@
 
     <property name="lastCheckedInterpretations" type="timestamp" />
 
-    <property name="secret" type="text" />
-
-    <property name="twoFactorAuthentication" type="boolean" />
-
     <one-to-one name="userCredentials" class="org.hisp.dhis.user.UserCredentials" foreign-key="fk_userinfo_userid" />
 
     <set name="groups" table="usergroupmembers" inverse="true">

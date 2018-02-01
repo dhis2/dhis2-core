@@ -379,5 +379,5 @@ public interface UserService
      */
     List<User> getExpiringUsers();
 
-    SimpleUser getSimpleUser( String username );
+    void set2FA( User user, Boolean twoFA );
 }

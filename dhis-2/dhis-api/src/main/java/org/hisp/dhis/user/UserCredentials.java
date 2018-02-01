@@ -41,11 +41,14 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +63,7 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "userCredentials", namespace = DxfNamespaces.DXF_2_0 )
 public class UserCredentials
     extends BaseIdentifiableObject
+    implements UserDetails
 {
     /**
      * Required and unique.
@@ -91,6 +95,10 @@ public class UserCredentials
      * Required. Will be stored as a hash.
      */
     private String password;
+
+    private boolean twoFA;
+
+    private String secret;
 
     /**
      * Date when password was changed.
@@ -159,9 +167,11 @@ public class UserCredentials
 
     public UserCredentials()
     {
+        this.twoFA = true;
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // needed to support userCredentials uniqueness
+        setSecret();
     }
 
     // -------------------------------------------------------------------------
@@ -456,6 +466,38 @@ public class UserCredentials
         return password != null;
     }
 
+    public boolean isTwoFA()
+    {
+        return twoFA;
+    }
+
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
+    }
+
+    public String getSecret()
+    {
+        return secret;
+    }
+
+    public void setSecret( String secret )
+    {
+        if ( secret == null )
+        {
+            setSecret();
+        }
+        else
+        {
+            this.secret = secret;
+        }
+    }
+
+    private void setSecret()
+    {
+        this.secret = Base32.random();
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -726,5 +768,43 @@ public class UserCredentials
             "\"selfRegistered\":\"" + selfRegistered + "\", " +
             "\"disabled\":\"" + disabled + "\" " +
             "}";
+    }
+
+    // -------------------------------------------------------------------------
+    // Two Factor Authentication methods
+    // -------------------------------------------------------------------------
+    @Override
+    public Collection<GrantedAuthority> getAuthorities()
+    {
+        Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+        getAllAuthorities()
+            .forEach( authority -> grantedAuthorities.add( new SimpleGrantedAuthority( authority ) ) );
+
+        return grantedAuthorities;
+    }
+
+    @Override
+    public boolean isAccountNonExpired()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return !isDisabled();
     }
 }

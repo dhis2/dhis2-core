@@ -28,12 +28,13 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -49,6 +50,13 @@ public class InitTableAlteror
 
     @Autowired
     private StatementBuilder statementBuilder;
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // Execute
@@ -80,8 +88,6 @@ public class InitTableAlteror
         removeDeprecatedConfigurationColumns();
         updateTimestamps();
         updateCompletedBy();
-
-        updateUser2FAFields();
 
         executeSql( "ALTER TABLE program ALTER COLUMN \"type\" TYPE varchar(255);" );
         executeSql( "update program set \"type\"='WITH_REGISTRATION' where type='1' or type='2'" );
@@ -133,12 +139,12 @@ public class InitTableAlteror
 
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
 
-    }
+        // Two Factor Authentication update
+        executeSql( "UPDATE users set twofa = false where twofa is null" );
+        executeSql( "ALTER TABLE  users alter column twofa set not null" );
 
-    private void updateUser2FAFields()
-    {
-        System.out.println("updateTABLE");
-        executeSql( "ALTER TABLE users ADD COLUMN twofactorauthentication boolean DEFAULT false" );
+        executeSql( "UPDATE users SET secret = MD5(random()::text) where secret is null" );
+        executeSql( "ALTER TABLE users alter column secret set not null" );
     }
 
     private void updateMessageConversationMessageTypes()
@@ -156,7 +162,6 @@ public class InitTableAlteror
         executeSql( "UPDATE messageconversation SET messagetype = 'PRIVATE' WHERE messagetype IS NULL" );
 
         executeSql( "ALTER TABLE messageconversation ALTER COLUMN messagetype set not null" );
-
     }
 
     private void updateLegendSetAssociationAndDeleteOldAssociation()
