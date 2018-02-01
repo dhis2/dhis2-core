@@ -492,7 +492,6 @@ public class DefaultProgramIndicatorService
         String columnName = "\"" + dataElementUid + "\"";
         return "(select " + columnName + " from " + eventTableName + 
             " where " + eventTableName + ".pi = enrollmenttable.pi " +
-            "and " + eventTableName + ".ps = 'WZbXY0S00lP' " + 
             "and " + columnName + " is not null " +
             ( programIndicator.hasEndEventBoundary() != null ? 
                 ( "and executiondate < '" + programIndicator.getEndEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " ) : "" ) + 

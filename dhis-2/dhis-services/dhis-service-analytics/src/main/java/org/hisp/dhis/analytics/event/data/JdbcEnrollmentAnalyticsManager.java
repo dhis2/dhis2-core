@@ -223,24 +223,6 @@ public class JdbcEnrollmentAnalyticsManager
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Get individual program stages for a list of programStageDataElements
-     */
-    
-    private List<ProgramStage> getProgramStages( List<ProgramStageDataElement> prStDes )
-    {
-        List<ProgramStage> programStages = new ArrayList<ProgramStage>(1);
-        for ( ProgramStageDataElement prStDe : prStDes )
-        {
-            if ( !programStages.contains( prStDe.getProgramStage() ) )
-            {
-                programStages.add( prStDe.getProgramStage() );
-            }
-        }
-        
-        return programStages;
-    }
     
     /**
      * Returns the count clause based on value dimension and output type.
@@ -426,7 +408,7 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
             String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
-                params.getProgramIndicator(), false, params.getEarliestStartDate(), params.getLatestEndDate() );
+                params.getProgramIndicator(), false, params.getStartDate(), params.getEndDate() );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             
