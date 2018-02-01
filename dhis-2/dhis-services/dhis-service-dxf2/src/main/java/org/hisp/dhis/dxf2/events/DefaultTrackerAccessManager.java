@@ -244,12 +244,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         ProgramStage programStage = programStageInstance.getProgramStage();
         Program program = programStage.getProgram();
 
-        if ( !aclService.canDataWrite( user, program ) )
+        if ( !aclService.canDataRead( user, program ) )
         {
             errors.add( "User has no write access to program: " + program.getUid() );
         }
 
-        if ( !aclService.canDataWrite( user, programStage ) )
+        if ( !aclService.canDataRead( user, programStage ) )
         {
             errors.add( "User has no write access to program stage: " + programStage.getUid() );
         }
