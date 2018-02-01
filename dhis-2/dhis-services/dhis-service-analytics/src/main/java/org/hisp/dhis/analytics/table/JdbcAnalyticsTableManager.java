@@ -208,18 +208,20 @@ public class JdbcAnalyticsTableManager
             valueExpression + " as value, " +
             textValueExpression + " as textvalue " +
             "from datavalue dv " +
-            "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-            "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
-            "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
-            "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
-            "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
-            "inner join dataelement de on dv.dataelementid=de.dataelementid " +
-            "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
-            "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
             "inner join period pe on dv.periodid=pe.periodid " +
             "inner join _periodstructure ps on dv.periodid=ps.periodid " +
+            "inner join dataelement de on dv.dataelementid=de.dataelementid " +
+            "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
+            "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
+                "and (pe.startdate >= degs.startdate or degs.startdate is null) and (pe.enddate <= degs.enddate or degs.enddate is null) " +
             "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
+            "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
+                "and (pe.startdate >= ougs.startdate or ougs.startdate is null) and (pe.enddate <= ougs.enddate or ougs.enddate is null) " +
+            "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
+            "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
+            "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
+            "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
             "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
 

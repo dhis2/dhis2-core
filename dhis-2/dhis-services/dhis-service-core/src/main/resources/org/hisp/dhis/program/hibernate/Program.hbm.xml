@@ -21,6 +21,8 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
     <property name="version" />
 
     <property name="enrollmentDateLabel" column="enrollmentdatelabel" type="text" />
@@ -30,6 +32,11 @@
     <set name="programStages" order-by="sortOrder">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStage" />
+    </set>
+
+    <set name="programSections" order-by="sortOrder">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramSection" />
     </set>
 
     <set name="organisationUnits" table="program_organisationunits">
@@ -66,6 +73,8 @@
     <property name="minAttributesRequiredToSearch" />
     
     <property name="maxTeiCountToReturn" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
 
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />

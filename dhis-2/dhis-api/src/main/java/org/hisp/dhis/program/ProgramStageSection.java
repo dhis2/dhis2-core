@@ -36,7 +36,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ProgramStageSectionRenderingObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,10 +49,11 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "programStageSection", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageSection
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private String description;
-    
+
     private ProgramStage programStage;
 
     private List<DataElement> dataElements = new ArrayList<>();
@@ -57,6 +61,18 @@ public class ProgramStageSection
     private List<ProgramIndicator> programIndicators = new ArrayList<>();
 
     private Integer sortOrder;
+
+    /**
+     * The style represents how the ProgramStageSection should be presented on the client
+     */
+    private ObjectStyle style;
+
+    private String formName;
+
+    /**
+     * The renderType defines how the ProgramStageSection should be rendered on the client
+     */
+    private DeviceRenderTypeMap<ProgramStageSectionRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -154,5 +170,42 @@ public class ProgramStageSection
     public void setSortOrder( Integer sortOrder )
     {
         this.sortOrder = sortOrder;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<ProgramStageSectionRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType(
+        DeviceRenderTypeMap<ProgramStageSectionRenderingObject> renderType )
+    {
+        this.renderType = renderType;
     }
 }

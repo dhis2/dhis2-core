@@ -58,6 +58,12 @@ public class PushAnalysisJob
     {
         PushAnalysisJobParameters parameters = (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
 
-        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration.getJobId() );
+        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "pushAnalysis";
     }
 }

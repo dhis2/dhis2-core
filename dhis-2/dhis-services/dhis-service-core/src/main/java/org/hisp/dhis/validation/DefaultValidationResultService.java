@@ -100,11 +100,11 @@ public class DefaultValidationResultService
     }
 
     @Override
-    public List<ValidationResult> getValidationResults( List<OrganisationUnit> orgUnits,
-        Collection<ValidationRule> validationRules, Collection<Period> periods )
+    public List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
     {
         Set<Period> persistedPeriods = periods.stream().map( period -> periodService.getPeriod( period.getIsoDate() ) )
             .collect( Collectors.toSet() );
-        return validationResultStore.getValidationResults( orgUnits, validationRules, persistedPeriods );
+        return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
     }
 }

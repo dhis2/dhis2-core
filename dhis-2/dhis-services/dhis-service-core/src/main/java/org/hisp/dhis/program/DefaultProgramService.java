@@ -35,9 +35,11 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -77,6 +79,9 @@ public class DefaultProgramService
     {
         this.organisationUnitService = organisationUnitService;
     }
+
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -193,7 +198,9 @@ public class DefaultProgramService
             return Sets.newHashSet( getAllPrograms() );
         }
 
-        return user.getUserCredentials().getAllPrograms();
+        return getAllPrograms().stream()
+            .filter( p -> aclService.canDataRead( user, p ) )
+            .collect( Collectors.toSet() );
     }
 
     @Override

@@ -38,12 +38,22 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static com.cronutils.model.CronType.QUARTZ;
+import static org.hisp.dhis.scheduling.DefaultSchedulingManager.CONTINOUS_CRON;
+import static org.hisp.dhis.scheduling.DefaultSchedulingManager.HOUR_CRON;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 /**
@@ -185,7 +195,7 @@ public class JobConfigurationObjectBundleHook
             jobConfiguration.setNextExecutionTime( null );
             if ( jobConfiguration.isContinuousExecution() )
             {
-                jobConfiguration.setCronExpression( "* * * * * ?" );
+                jobConfiguration.setCronExpression( CONTINOUS_CRON );
             }
             log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded" );
         }
@@ -198,6 +208,11 @@ public class JobConfigurationObjectBundleHook
         return errorReports;
     }
 
+    private boolean setDefaultCronExpressionWhenDisablingContinuousExectution( JobConfiguration newObject, JobConfiguration persistedObject )
+    {
+        return ( !newObject.isContinuousExecution() && persistedObject.isContinuousExecution() ) && newObject.getCronExpression().equals( CONTINOUS_CRON );
+    }
+
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
@@ -205,10 +220,18 @@ public class JobConfigurationObjectBundleHook
         {
             return;
         }
+        JobConfiguration newObject = (JobConfiguration) object;
+        JobConfiguration persObject = (JobConfiguration) persistedObject;
 
-        ((JobConfiguration) object).setLastExecuted( ((JobConfiguration) persistedObject).getLastExecuted() );
-        ((JobConfiguration) object).setLastExecutedStatus( ((JobConfiguration) persistedObject).getLastExecutedStatus() );
-        ((JobConfiguration) object).setLastRuntimeExecution( ((JobConfiguration) persistedObject).getLastRuntimeExecution() );
+        newObject.setLastExecuted( persObject.getLastExecuted() );
+        newObject.setLastExecutedStatus( persObject.getLastExecutedStatus() );
+        newObject.setLastRuntimeExecution( persObject.getLastRuntimeExecution() );
+
+
+        if ( setDefaultCronExpressionWhenDisablingContinuousExectution( newObject, persObject ) )
+        {
+            newObject.setCronExpression( HOUR_CRON );
+        }
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
     }

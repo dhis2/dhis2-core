@@ -50,7 +50,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( AppStoreController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27 } )
 public class AppStoreController
 {
     public static final String RESOURCE_PATH = "/appStore";

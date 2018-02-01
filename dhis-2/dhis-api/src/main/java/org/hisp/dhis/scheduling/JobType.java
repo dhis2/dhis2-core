@@ -85,7 +85,8 @@ public enum JobType
 
     ImmutableMap<String, String> relativeApiElements;
 
-    JobType( String key, boolean configurable, Class<? extends JobParameters> jobParameters, ImmutableMap<String, String> relativeApiElements )
+    JobType( String key, boolean configurable, Class<? extends JobParameters> jobParameters,
+        ImmutableMap<String, String> relativeApiElements )
     {
         this.key = key;
         this.jobParameters = jobParameters;

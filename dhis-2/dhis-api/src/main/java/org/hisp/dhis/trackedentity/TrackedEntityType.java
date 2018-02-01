@@ -28,17 +28,15 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.*;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import java.util.stream.Collectors;
 
 /**
  * @author Chau Thu Tran
@@ -48,6 +46,10 @@ public class TrackedEntityType
     extends BaseNameableObject implements MetadataObject
 {
     private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
+
+    private ObjectStyle style;
+
+    private String formName;
     
     /**
      * Property indicating minimum number of attributes required to fill
@@ -74,7 +76,18 @@ public class TrackedEntityType
         this.name = name;
         this.description = description;
     }
-
+    
+    // -------------------------------------------------------------------------
+    // Logic methods
+    // -------------------------------------------------------------------------
+    
+    /**
+     * Returns TrackedEntityAttributes from TrackedEntityTypeAttributes.
+     */
+    public List<TrackedEntityAttribute> getTrackedEntityAttributes()
+    {
+        return trackedEntityTypeAttributes.stream().map( TrackedEntityTypeAttribute::getTrackedEntityAttribute ).collect( Collectors.toList() );
+    }
     
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -130,7 +143,7 @@ public class TrackedEntityType
         
         for ( TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes )
         {
-            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isUnique()  )
+            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique()  )
             {
                 searchableAttributes.add( trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid() );
             }
@@ -138,5 +151,28 @@ public class TrackedEntityType
 
         return searchableAttributes;
     }
-    
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
 }

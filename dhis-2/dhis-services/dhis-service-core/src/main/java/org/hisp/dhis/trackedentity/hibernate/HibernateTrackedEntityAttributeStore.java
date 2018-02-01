@@ -56,7 +56,7 @@ public class HibernateTrackedEntityAttributeStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<TrackedEntityAttribute> getDisplayInList()
+    public List<TrackedEntityAttribute> getDisplayInListNoProgram()
     {
         return getCriteria( Restrictions.eq( "displayInListNoProgram", true ) ).list();
     }

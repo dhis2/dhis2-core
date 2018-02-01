@@ -71,23 +71,29 @@ public class SendSmsJob
         SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
         OutboundSms sms = new OutboundSms( parameters.getSmsSubject(), parameters.getMessage(), parameters.getRecipientsList().toString() );
 
-        notifier.notify( jobConfiguration.getJobId(), "Sending SMS" );
+        notifier.notify( jobConfiguration, "Sending SMS" );
 
         OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(), sms.getRecipients() );
 
         if ( status.isOk() )
         {
-            notifier.notify( jobConfiguration.getJobId(), "Message sending successful" );
+            notifier.notify( jobConfiguration, "Message sending successful" );
 
             sms.setStatus( OutboundSmsStatus.SENT );
         }
         else
         {
-            notifier.notify( jobConfiguration.getJobId(), "Message sending failed" );
+            notifier.notify( jobConfiguration, "Message sending failed" );
 
             sms.setStatus( OutboundSmsStatus.FAILED );
         }
 
         outboundSmsService.saveOutboundSms( sms );
+    }
+
+    @Override
+    protected String getJobId()
+    {
+        return "sendSmsJob";
     }
 }

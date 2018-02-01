@@ -203,8 +203,8 @@ public class RunValidationAction
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
-
-        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnits, format.parseDate( startDate ), format.parseDate( endDate ) )
+        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit, format.parseDate( startDate ), format.parseDate( endDate ) )
+            .withIncludeOrgUnitDescendants( true )
             .withAttributeOptionCombo( attributeOptionCombo )
             .withPersistResults( persistResults )
             .withSendNotifications( sendNotifications )

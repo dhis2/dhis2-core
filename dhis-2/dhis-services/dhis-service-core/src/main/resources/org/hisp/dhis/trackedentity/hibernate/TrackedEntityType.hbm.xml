@@ -18,11 +18,15 @@
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
     <property name="description" type="text" />
-    
+
+    <property name="formName" type="text" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
+
     <property name="minAttributesRequiredToSearch" />
-    
+
     <property name="maxTeiCountToReturn" />
-    
+
     <list name="trackedEntityTypeAttributes" cascade="all-delete-orphan">
       <key column="trackedentitytypeid" />
       <list-index column="sort_order" base="1" />
@@ -41,6 +45,23 @@
       <cache usage="read-write" />
       <key column="trackedentitytypeid" foreign-key="fk_objecttranslation_trackedentitytypeid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_trackedentitytype_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="trackedentitytypeusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentitytypeid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="trackedentitytypeuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentitytypeid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

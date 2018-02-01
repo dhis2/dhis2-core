@@ -45,7 +45,7 @@ import java.util.List;
  */
 public interface EnrollmentService
 {
-    int FLUSH_FREQUENCY = 50;
+    int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
     // READ
@@ -70,6 +70,8 @@ public interface EnrollmentService
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
+
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
 
     ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 

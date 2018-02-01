@@ -35,11 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -72,6 +68,8 @@ public class Program
     extends BaseNameableObject
     implements VersionedObject, MetadataObject
 {
+    private String formName;
+
     private int version;
 
     private String enrollmentDateLabel;
@@ -81,6 +79,8 @@ public class Program
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
     private Set<ProgramStage> programStages = new HashSet<>();
+
+    private Set<ProgramSection> programSections = new HashSet<>();
 
     private Set<ValidationCriteria> validationCriteria = new HashSet<>();
 
@@ -119,6 +119,8 @@ public class Program
     private TrackedEntityType trackedEntityType;
 
     private DataEntryForm dataEntryForm;
+
+    private ObjectStyle style;
 
     /**
      * The CategoryCombo used for data attributes.
@@ -227,18 +229,16 @@ public class Program
      * Returns IDs of searchable TrackedEntityAttributes.
      */
     public List<String> getSearchableAttributeIds()
+    {        
+        return programAttributes.stream().filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() ).map( ProgramTrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+    }
+    
+    /**
+     * Returns display in list TrackedEntityAttributes
+     */
+    public List<TrackedEntityAttribute> getDisplayInListAttributes()
     {
-        List<String> searchableAttributes = new ArrayList<>();
-        
-        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
-        {
-            if ( programAttribute.getAttribute().isUnique() || programAttribute.isSearchable() )
-            {
-                searchableAttributes.add( programAttribute.getAttribute().getUid() );
-            }
-        }
-
-        return searchableAttributes;
+        return programAttributes.stream().filter( pa -> pa.isDisplayInList() ).map( ProgramTrackedEntityAttribute::getAttribute ).collect( Collectors.toList() );        
     }
 
     /**
@@ -858,5 +858,43 @@ public class Program
     public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
     {
         this.maxTeiCountToReturn = maxTeiCountToReturn;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+
+    @JsonProperty( "programSections" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programSections", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programSection", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramSection> getProgramSections()
+    {
+        return programSections;
+    }
+
+    public void setProgramSections( Set<ProgramSection> programSections )
+    {
+        this.programSections = programSections;
     }
 }

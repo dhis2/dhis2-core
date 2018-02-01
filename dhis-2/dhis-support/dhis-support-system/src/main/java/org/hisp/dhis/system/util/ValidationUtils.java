@@ -39,6 +39,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
+import org.hisp.dhis.render.StaticRenderingConfiguration;
+import org.hisp.dhis.render.type.ValueTypeRenderingType;
 
 import java.awt.geom.Point2D;
 import java.util.Locale;
@@ -591,5 +594,30 @@ public class ValidationUtils
         }
 
         return bool;
+    }
+    /**
+     * Validates that the clazz and valueType or optionSet combination supports the given RenderingType set.
+     * @param clazz the class to validate
+     * @param valueType the valuetype to validate
+     * @param optionSet is the class an optionset?
+     * @param type the RenderingType to validate
+     * @return true if RenderingType is supported, false if not.
+     */
+    public static boolean validateRenderingType( Class<?> clazz, ValueType valueType, boolean optionSet, ValueTypeRenderingType type )
+    {
+        if ( valueType != null && type.equals( ValueTypeRenderingType.DEFAULT ))
+        {
+            return true;
+        }
+
+        for ( ObjectValueTypeRenderingOption option : StaticRenderingConfiguration.RENDERING_OPTIONS_MAPPING )
+        {
+            if ( option.equals( new ObjectValueTypeRenderingOption( clazz, valueType, optionSet, null ) ) )
+            {
+                return option.getRenderingTypes().contains( type );
+            }
+        }
+
+        return false;
     }
 }

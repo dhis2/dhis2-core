@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -82,6 +81,7 @@ public class DefaultProgramService
     @Override
     public List<org.hisp.dhis.api.mobile.model.LWUITmodel.Program> getProgramsLWUIT( OrganisationUnit unit )
     {
+        /*
         Collection<org.hisp.dhis.program.Program> programByUnit = programService.getPrograms( unit );
 
         Collection<org.hisp.dhis.program.Program> programByCurrentUser = programService.getUserPrograms();
@@ -94,8 +94,9 @@ public class DefaultProgramService
         {
             programs.add( getProgramLWUIT( program.getId() ) );
         }
+        */
 
-        return programs;
+        return new ArrayList<>(  );
     }
 
     @Override

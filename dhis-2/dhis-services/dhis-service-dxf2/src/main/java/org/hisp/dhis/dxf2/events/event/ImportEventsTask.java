@@ -28,9 +28,9 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobId;
 
 import java.util.List;
 
@@ -46,20 +46,20 @@ public class ImportEventsTask
 
     private final ImportOptions importOptions;
 
-    private final JobId jobId;
+    private final JobConfiguration id;
 
-    public ImportEventsTask( List<Event> events, EventService eventService, ImportOptions importOptions, JobId jobId )
+    public ImportEventsTask( List<Event> events, EventService eventService, ImportOptions importOptions, JobConfiguration id )
     {
         super();
         this.events = events;
         this.eventService = eventService;
         this.importOptions = importOptions;
-        this.jobId = jobId;
+        this.id = id;
     }
 
     @Override
     public void call()
     {
-        eventService.addEvents( events, importOptions, jobId );
+        eventService.addEvents( events, importOptions, id );
     }
 }

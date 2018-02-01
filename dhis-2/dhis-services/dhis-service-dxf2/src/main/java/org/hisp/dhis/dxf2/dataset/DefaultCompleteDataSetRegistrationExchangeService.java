@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
-
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -56,6 +56,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -67,7 +68,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.scheduling.JobId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
@@ -140,9 +140,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private CurrentUserService currentUserService;
-
+    
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
+    
+    @Autowired
+    private InputUtils inputUtils;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -211,7 +214,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobId jobId )
+    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId )
     {
         try
         {
@@ -234,8 +237,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
-        JobId jobId )
+    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId )
     {
         try
         {
@@ -357,7 +359,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private ImportSummary handleImportError( JobId jobId, Throwable ex )
+    private ImportSummary handleImportError( JobConfiguration jobId, Throwable ex )
     {
         log.error( DebugUtils.getStackTrace( ex ) );
         notifier.notify( jobId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
@@ -372,7 +374,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         throw new IllegalQueryException( message );
     }
 
-    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobId id,
+    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, JobConfiguration id,
         CompleteDataSetRegistrations completeRegistrations )
     {
         Clock clock = new Clock( log ).startClock()
@@ -415,7 +417,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         int totalCount = batchImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
-        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addTaskSummary( id, importSummary );
+        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary );
 
         ImportCount count = importSummary.getImportCount();
 
@@ -502,15 +504,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 summary.getConflicts().add( ic.getImportConflict() );
                 continue;
             }
+            
 
             // ---------------------------------------------------------------------
             // Compulsory fields validation
             // ---------------------------------------------------------------------
-
-            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields(
-                mdProps.dataSet, mdProps.period, mdProps.orgUnit, mdProps.attrOptCombo, false );
-
-            if ( !missingDataElementOperands.isEmpty() )
+            
+            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
+                mdProps.orgUnit, mdProps.attrOptCombo, false );
+            
+            
+            if( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
@@ -616,8 +620,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         int ignores = totalCount - importCount - updateCount - deleteCount;
 
         summary.setImportCount( new ImportCount( importCount, updateCount, ignores, deleteCount ) );
-        summary.setStatus( ImportStatus.SUCCESS );
-        summary.setDescription( "Import process completed successfully" );
+        summary.setStatus( totalCount == ignores ? ImportStatus.ERROR : ImportStatus.SUCCESS );
+        summary.setDescription( "Import process complete." );
     }
 
     private static CompleteDataSetRegistration createCompleteDataSetRegistration(
@@ -772,13 +776,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private static MetaDataProperties initMetaDataProperties(
+    public MetaDataProperties initMetaDataProperties(
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
     {
         String ds = StringUtils.trimToNull( cdsr.getDataSet() ), pe = StringUtils.trimToNull( cdsr.getPeriod() ),
             ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
-            aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
-
+            aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );    
+        
+        if( aoc == null )
+        {
+            DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
+            aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
+        }
+        
         return new MetaDataProperties( cache.dataSets.get( ds, callables.dataSetCallable.setId( ds ) ),
             cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
             cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),

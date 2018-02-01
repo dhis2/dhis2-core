@@ -207,9 +207,10 @@ public class ProgramStageInstance
         return organisationUnit;
     }
 
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    public ProgramStageInstance setOrganisationUnit( OrganisationUnit organisationUnit )
     {
         this.organisationUnit = organisationUnit;
+        return this;
     }
 
     public DataElementCategoryOptionCombo getAttributeOptionCombo()
