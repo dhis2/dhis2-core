@@ -119,7 +119,7 @@ public class TwoFactorAuthenticationProvider
         }
 
         // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using UserDetails as principal
+        // Delegate authentication downstream, using UserCredentials as principal
         // -------------------------------------------------------------------------
         Authentication result = super.authenticate( auth );
 

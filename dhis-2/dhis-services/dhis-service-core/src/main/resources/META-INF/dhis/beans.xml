@@ -1660,7 +1660,6 @@
   <!-- Startup routine definitions -->
 
   <bean id="org.hisp.dhis.startup.InitTableAlteror" class="org.hisp.dhis.startup.InitTableAlteror">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="name" value="InitTableAlteror" />
     <property name="runlevel" value="1" />
     <property name="skipInTests" value="true" />

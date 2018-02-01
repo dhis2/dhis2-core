@@ -93,7 +93,6 @@ public class User
 
     private Set<UserGroup> groups = new HashSet<>();
 
-
     /**
      * Organisation units for data input and data capture / write operations.
      * TODO move to UserCredentials.

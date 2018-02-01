@@ -432,8 +432,4 @@ public class ContextUtils
         return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ))
             || (request.getHeader( "Accept" ) != null && request.getHeader( "Accept" ).contains( "application/csv+gzip" )));
     }
-
-    public static void conflict( HttpServletResponse response, String no_current_user )
-    {
-    }
 }

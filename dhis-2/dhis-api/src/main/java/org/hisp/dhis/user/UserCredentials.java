@@ -96,8 +96,14 @@ public class UserCredentials
      */
     private String password;
 
+    /**
+     * Required. Does this user have two factor authentication
+     */
     private boolean twoFA;
 
+    /**
+     * Required. Automatically set in constructor
+     */
     private String secret;
 
     /**
@@ -167,7 +173,7 @@ public class UserCredentials
 
     public UserCredentials()
     {
-        this.twoFA = true;
+        this.twoFA = false;
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // needed to support userCredentials uniqueness
@@ -466,38 +472,6 @@ public class UserCredentials
         return password != null;
     }
 
-    public boolean isTwoFA()
-    {
-        return twoFA;
-    }
-
-    public void setTwoFA( boolean twoFA )
-    {
-        this.twoFA = twoFA;
-    }
-
-    public String getSecret()
-    {
-        return secret;
-    }
-
-    public void setSecret( String secret )
-    {
-        if ( secret == null )
-        {
-            setSecret();
-        }
-        else
-        {
-            this.secret = secret;
-        }
-    }
-
-    private void setSecret()
-    {
-        this.secret = Base32.random();
-    }
-
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -560,6 +534,42 @@ public class UserCredentials
     public void setPassword( String password )
     {
         this.password = password;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isTwoFA()
+    {
+        return twoFA;
+    }
+
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSecret()
+    {
+        return secret;
+    }
+
+    public void setSecret( String secret )
+    {
+        if ( secret == null )
+        {
+            setSecret();
+        }
+        else
+        {
+            this.secret = secret;
+        }
+    }
+
+    private void setSecret()
+    {
+        this.secret = Base32.random();
     }
 
     @JsonProperty
