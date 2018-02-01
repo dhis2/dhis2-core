@@ -99,6 +99,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -243,6 +244,8 @@ public class Metadata
     private List<ColorSet> colorSets = new ArrayList<>();
 
     private List<Predictor> predictors = new ArrayList<>();
+
+    private List<ValidationNotificationTemplate> validationNotificationTemplates = new ArrayList<>();
 
     public Metadata()
     {
@@ -1118,6 +1121,19 @@ public class Metadata
         this.predictors = predictors;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "validationNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "validationNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ValidationNotificationTemplate> getValidationNotificationTemplates()
+    {
+        return this.validationNotificationTemplates;
+    }
+
+    public void setValidationNotificationTemplates( List<ValidationNotificationTemplate> validationNotificationTemplates )
+    {
+        this.validationNotificationTemplates = validationNotificationTemplates;
+    }
+
     @Override
     public String toString()
     {
@@ -1173,6 +1189,7 @@ public class Metadata
             ", trackedEntityAttributes=" + trackedEntityAttributes +
             ", colors=" + colors +
             ", colorSets=" + colorSets +
+            ", validationNotificationTemplates=" + validationNotificationTemplates +
             '}';
     }
 }
