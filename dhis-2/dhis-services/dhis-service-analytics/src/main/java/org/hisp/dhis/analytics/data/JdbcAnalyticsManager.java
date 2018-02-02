@@ -478,8 +478,8 @@ public class JdbcAnalyticsManager
             "from analytics " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
-            "and (value is not null or textvalue is not null) " +
-            ") as " + params.getTableName();
+            "and (value is not null or textvalue is not null)) " +
+            "as " + params.getTableName();
         
         return sql;
     }
@@ -550,7 +550,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a HAVING clause restricting the result based on the measure criteria.
+     * Returns a having clause restricting the result based on the measure criteria.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {

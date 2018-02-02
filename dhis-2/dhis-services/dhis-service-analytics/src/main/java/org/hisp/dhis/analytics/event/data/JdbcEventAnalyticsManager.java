@@ -63,6 +63,7 @@ import javax.annotation.Resource;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
@@ -526,7 +527,7 @@ public class JdbcEventAnalyticsManager
     {
         String sql = "from ";
 
-        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        if ( params.isAggregateData() && params.hasValueDimension() && params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
             sql += getLastValueSubquerySql( params );
         }
@@ -708,8 +709,11 @@ public class JdbcEventAnalyticsManager
     
     private String getLastValueSubquerySql( EventQueryParams params )
     {
+        Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
+        
         Date latest = params.getLatestEndDate();
-        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );        
+        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
+        String valueItem = statementBuilder.columnQuote( params.getValue().getDimensionItem() );
         List<String> columns = getLastValueSubqueryQuotedColumns( params );
         
         String sql = "(select ";
@@ -722,11 +726,12 @@ public class JdbcEventAnalyticsManager
         sql += 
             "row_number() over (" + 
                 "partition by ou, ao " +
-                "order by executiondate desc) ) as pe_rank " +
-            "from " + params.getTableName() +
-            "where executiondate >= '" + getMediumDateString( earliest ) +
-            "and executiondate <= '" + getMediumDateString( latest ) +
-            "and ";
+                "order by executiondate desc) as pe_rank " +
+            "from " + params.getTableName() + " " +
+            "where executiondate >= '" + getMediumDateString( earliest ) + "' " +
+            "and executiondate <= '" + getMediumDateString( latest ) + "' " +
+            "and " + valueItem + " is not null) " +
+            "as " + params.getTableName();
         
         return sql;
     }
@@ -735,8 +740,12 @@ public class JdbcEventAnalyticsManager
     {
         Period period = params.getLatestPeriod();
         
-        List<String> cols = Lists.newArrayList( "yearly" );
+        String valueItem = params.getValue().getDimensionItem();
         
+        List<String> cols = Lists.newArrayList( "yearly", valueItem );
+
+        cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
+
         //TODO query item
         
         for ( DimensionalObject dim : params.getDimensions() )
