@@ -508,7 +508,7 @@ public class JdbcAnalyticsManager
             }
         }
 
-        for ( DimensionalObject dim : params.getDimensions() )
+        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
         {            
             if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {

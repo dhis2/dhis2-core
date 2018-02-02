@@ -748,7 +748,7 @@ public class JdbcEventAnalyticsManager
 
         //TODO query item
         
-        for ( DimensionalObject dim : params.getDimensions() )
+        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
         {            
             if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {
