@@ -49,6 +49,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.system.util.MathUtils;
@@ -60,8 +61,10 @@ import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 
+import java.util.Date;
 import java.util.List;
 
+import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -89,6 +92,8 @@ public class JdbcEventAnalyticsManager
     private static final String COL_EXTENT = "extent";
     private static final int COORD_DEC = 6;
 
+    private static final int LAST_VALUE_YEARS_OFFSET = -10;
+    
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
@@ -519,9 +524,18 @@ public class JdbcEventAnalyticsManager
      */
     private String getFromClause( EventQueryParams params )
     {
-        String sql = "from " + params.getTableName() + " ";
+        String sql = "from ";
+
+        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        {
+            sql += getLastValueSubquerySql( params );
+        }
+        else
+        {
+            sql += params.getTableName();
+        }
         
-        return sql;
+        return sql + " ";
     }
 
     /**
@@ -690,6 +704,58 @@ public class JdbcEventAnalyticsManager
         }
         
         return sql;
+    }
+    
+    private String getLastValueSubquerySql( EventQueryParams params )
+    {
+        Date latest = params.getLatestEndDate();
+        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );        
+        List<String> columns = getLastValueSubqueryQuotedColumns( params );
+        
+        String sql = "(select ";
+        
+        for ( String col : columns )
+        {
+            sql += col + ",";
+        }
+        
+        sql += 
+            "row_number() over (" + 
+                "partition by ou, ao " +
+                "order by executiondate desc) ) as pe_rank " +
+            "from " + params.getTableName() +
+            "where executiondate >= '" + getMediumDateString( earliest ) +
+            "and executiondate <= '" + getMediumDateString( latest ) +
+            "and ";
+        
+        return sql;
+    }
+    
+    private List<String> getLastValueSubqueryQuotedColumns( EventQueryParams params )
+    {
+        Period period = params.getLatestPeriod();
+        
+        List<String> cols = Lists.newArrayList( "yearly" );
+        
+        //TODO query item
+        
+        for ( DimensionalObject dim : params.getDimensions() )
+        {            
+            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
+            {
+                String alias = statementBuilder.columnQuote( dim.getDimensionName() );
+                String col = "'" + period.getDimensionItem() + "' as " + alias;
+                
+                cols.remove( alias ); // Remove column if already present, i.e. "yearly"
+                cols.add( col );
+            }
+            else
+            {
+                cols.add( statementBuilder.columnQuote( dim.getDimensionName() ) );
+            }
+        }
+
+        return cols;
     }
     
     /**

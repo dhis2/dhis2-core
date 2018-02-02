@@ -452,6 +452,39 @@ public class JdbcAnalyticsManager
     }
 
     /**
+     * Generates a sub query which provides a view of the data where each row is
+     * ranked by the start date, then end date of the data value period, latest first.
+     * The data is partitioned by data element, org unit, category option combo and 
+     * attribute option combo. A column {@code pe_rank} defines the rank. Only data 
+     * for the last 10 years relative to the period end date is included. 
+     */
+    private String getLastValueSubquerySql( DataQueryParams params )
+    {
+        Date latest = params.getLatestEndDate();
+        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );        
+        List<String> columns = getLastValueSubqueryQuotedColumns( params );
+        
+        String sql = "(select ";
+        
+        for ( String col : columns )
+        {
+            sql += col + ",";
+        }
+        
+        sql += 
+            "row_number() over (" + 
+                "partition by dx, ou, co, ao " + 
+                "order by peenddate desc, pestartdate desc) as pe_rank " + 
+            "from analytics " +
+            "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
+            "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
+            "and (value is not null or textvalue is not null) " +
+            ") as " + params.getTableName();
+        
+        return sql;
+    }
+    
+    /**
      * Returns quoted names of all non-dimensional columns of the aggregate data 
      * analytics table. It is assumed that {@link AggregationType#LAST} type only
      * applies to aggregate data analytics. The period dimension is replaced by
@@ -494,39 +527,6 @@ public class JdbcAnalyticsManager
         return cols;
     }
 
-    /**
-     * Generates a sub query which provides a view of the data where each row is
-     * ranked by the start date, then end date of the data value period, latest first.
-     * The data is partitioned by data element, org unit, category option combo and 
-     * attribute option combo. A column {@code pe_rank} defines the rank. Only data 
-     * for the last 10 years relative to the period end date is included. 
-     */
-    private String getLastValueSubquerySql( DataQueryParams params )
-    {
-        Date latest = params.getLatestEndDate();
-        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );        
-        List<String> columns = getLastValueSubqueryQuotedColumns( params );
-        
-        String sql = "(select ";
-        
-        for ( String col : columns )
-        {
-            sql += col + ",";
-        }
-        
-        sql += 
-            "row_number() over (" + 
-                "partition by dx, ou, co, ao " + 
-                "order by peenddate desc, pestartdate desc) as pe_rank " + 
-            "from analytics " +
-            "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
-            "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
-            "and (value is not null or textvalue is not null) " +
-            ") as " + params.getTableName();
-        
-        return sql;
-    }
-    
     /**
      * Generates a sub query which provides a filtered view of the data according 
      * to the criteria. If not, returns the full view of the partition.
