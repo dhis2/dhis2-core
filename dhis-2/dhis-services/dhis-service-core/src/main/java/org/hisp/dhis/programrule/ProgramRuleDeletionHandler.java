@@ -47,7 +47,7 @@ public class ProgramRuleDeletionHandler
     {
         this.programRuleService = programRuleService;
     }
-    
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------

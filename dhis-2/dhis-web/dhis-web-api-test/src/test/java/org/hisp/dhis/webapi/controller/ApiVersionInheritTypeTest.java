@@ -52,25 +52,25 @@ public class ApiVersionInheritTypeTest extends DhisWebSpringTest
         mvc.perform( post( endpoint + "/abc" ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/23" + endpoint ).session( session ) )
+        mvc.perform( get( "/26" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( post( "/23" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( post( "/26" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/24" + endpoint ).session( session ) )
+        mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/24" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( get( "/27" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( put( "/24" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( put( "/27" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( delete( "/24" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( delete( "/27" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( post( "/24" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( post( "/27" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isOk() );
     }
 }

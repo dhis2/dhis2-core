@@ -74,6 +74,10 @@ public class CompleteDataSetRegistration
     protected String date;
 
     protected String storedBy;
+    
+    protected String cc;
+    
+    protected String cp;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -196,4 +200,29 @@ public class CompleteDataSetRegistration
     {
         this.storedBy = storedBy;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCc()
+    {
+        return cc;
+    }
+
+    public void setCc( String cc )
+    {
+        this.cc = cc;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCp()
+    {
+        return cp;
+    }
+
+    public void setCp( String cp )
+    {
+        this.cp = cp;
+    }    
+    
 }

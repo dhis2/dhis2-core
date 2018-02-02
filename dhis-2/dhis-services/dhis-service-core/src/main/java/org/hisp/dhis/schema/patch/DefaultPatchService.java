@@ -232,7 +232,7 @@ public class DefaultPatchService implements PatchService
         }
         else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
         {
-            Collection sourceCollection = new ArrayList( (Collection) sourceValue );
+            List sourceCollection = new ArrayList( (Collection) sourceValue );
             Collection targetCollection = (Collection) targetValue;
 
             Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );

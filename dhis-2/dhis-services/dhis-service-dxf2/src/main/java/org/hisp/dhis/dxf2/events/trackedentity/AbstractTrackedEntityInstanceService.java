@@ -55,10 +55,10 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -149,9 +149,9 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
     {
-        return entityInstanceService.getTrackedEntityInstanceCount( params );
+        return entityInstanceService.getTrackedEntityInstanceCount( params, sync );
     }
 
     @Override
@@ -230,20 +230,25 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+        
         for ( TrackedEntityAttributeValue attributeValue : entityInstance.getTrackedEntityAttributeValues() )
         {
-            Attribute attribute = new Attribute();
+            if( readableAttributes.contains( attributeValue.getAttribute() ) )
+            {
+                Attribute attribute = new Attribute();
 
-            attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
-            attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
-            attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
-            attribute.setAttribute( attributeValue.getAttribute().getUid() );
-            attribute.setValueType( attributeValue.getAttribute().getValueType() );
-            attribute.setCode( attributeValue.getAttribute().getCode() );
-            attribute.setValue( attributeValue.getValue() );
-            attribute.setStoredBy( attributeValue.getStoredBy() );
+                attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
+                attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
+                attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
+                attribute.setAttribute( attributeValue.getAttribute().getUid() );
+                attribute.setValueType( attributeValue.getAttribute().getValueType() );
+                attribute.setCode( attributeValue.getAttribute().getCode() );
+                attribute.setValue( attributeValue.getValue() );
+                attribute.setStoredBy( attributeValue.getStoredBy() );
 
-            trackedEntityInstance.getAttributes().add( attribute );
+                trackedEntityInstance.getAttributes().add( attribute );
+            }
         }
 
         return trackedEntityInstance;
@@ -314,6 +319,17 @@ public abstract class AbstractTrackedEntityInstanceService
                 queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
+            Collection<String> trackedEntityAttributes = new HashSet<>();
+            _trackedEntityInstances.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+            if ( !trackedEntityAttributes.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+            }
+
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
                 importSummaries.addImportSummary( addTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
@@ -368,6 +384,9 @@ public abstract class AbstractTrackedEntityInstanceService
         updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
 
+        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
+        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
+
         teiService.updateTrackedEntityInstance( entityInstance );
 
         importSummary.setReference( entityInstance.getUid() );
@@ -407,6 +426,17 @@ public abstract class AbstractTrackedEntityInstanceService
                 query.setUser( user );
                 query.add( Restrictions.in( "id", orgUnits ) );
                 queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
+            }
+
+            Collection<String> trackedEntityAttributes = new HashSet<>();
+            _trackedEntityInstances.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+            if ( !trackedEntityAttributes.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
             }
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )

@@ -67,4 +67,10 @@ public class DataStatisticsJob
             log.info( "Saved data statistics snapshot" );
         }
     }
+
+    @Override
+    protected String getJobId()
+    {
+        return "dataStatisticsJob";
+    }
 }

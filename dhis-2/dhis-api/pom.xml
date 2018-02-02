@@ -100,10 +100,15 @@
       <artifactId>dhis-support-commons</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp.dhis.rules</groupId>
+      <artifactId>rule-engine</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.cronutils</groupId>
       <artifactId>cron-utils</artifactId>
     </dependency>
   </dependencies>
+
 
   <properties>
     <rootDir>../</rootDir>

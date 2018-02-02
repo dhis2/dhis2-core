@@ -161,23 +161,20 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getCurrentUserDataSets()
+    public List<DataSet> getUserDataSets()
     {
-        User user = currentUserService.getCurrentUser();
+        return getUserDataSets( currentUserService.getCurrentUser() );
+    }
 
-        if ( user == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        if ( user.isSuper() )
+    @Override
+    public List<DataSet> getUserDataSets( User user )
+    {
+        if ( user == null || user.isSuper() )
         {
             return getAllDataSets();
         }
-        else
-        {
-            return Lists.newArrayList( user.getUserCredentials().getAllDataSets() );
-        }
+
+        return Lists.newArrayList( user.getUserCredentials().getAllDataSets() );
     }
 
     // -------------------------------------------------------------------------

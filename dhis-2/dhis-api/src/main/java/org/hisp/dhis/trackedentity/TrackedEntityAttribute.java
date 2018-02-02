@@ -5,9 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.analytics.EventDimensionalItemObject;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /*
@@ -43,7 +46,8 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
  */
 @JacksonXmlRootElement( localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityAttribute
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject
+    implements MetadataObject, EventDimensionalItemObject
 {
     private String description;
 
@@ -73,13 +77,21 @@ public class TrackedEntityAttribute
 
     private String pattern;
 
+    /**
+     * The style representing how TrackedEntityAttributes should be presented on the client
+     */
     private ObjectStyle style;
 
     // For Local ID type
 
     private Boolean orgunitScope = false;
 
-    private Boolean programScope = false;    
+    private Boolean programScope = false;
+
+    /**
+     * Represents how the client should render the TrackedEntityAttribute
+     */
+    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -400,5 +412,18 @@ public class TrackedEntityAttribute
     public Boolean isSystemWideUnique()
     {
         return isUnique() && !getProgramScope() && !getOrgunitScope();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType(
+        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
+    {
+        this.renderType = renderType;
     }
 }

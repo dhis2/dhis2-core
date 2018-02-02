@@ -338,6 +338,7 @@ public class TableAlteror
         executeSql( "UPDATE chart SET type='line' where type='line3d'" );
         executeSql( "UPDATE chart SET type='pie' where type='pie'" );
         executeSql( "UPDATE chart SET type='pie' where type='pie3d'" );
+        executeSql( "UPDATE programruleaction SET programnotificationtemplateid= 0 where programnotificationtemplateid is NULL" );
 
         executeSql( "UPDATE chart SET type=lower(type), series=lower(series), category=lower(category), filter=lower(filter)" );
 
@@ -1045,6 +1046,8 @@ public class TableAlteror
 
         executeSql( "delete from systemsetting where name='dataSyncCron'" );
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
+        
+        updateDimensionFilterToText();
 
         log.info( "Tables updated" );
     }
@@ -1830,5 +1833,12 @@ public class TableAlteror
 
         sql = " drop table maplegendsetmaplegend";
         executeSql( sql );
+    }
+    
+    private void updateDimensionFilterToText()
+    {
+        executeSql( "alter table trackedentityattributedimension alter column \"filter\" type text;" );
+        executeSql( "alter table trackedentitydataelementdimension alter column \"filter\" type text;" );
+        executeSql( "alter table trackedentityprogramindicatordimension alter column \"filter\" type text;" );
     }
 }

@@ -336,14 +336,14 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+    @ApiVersion( exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET )
-    @ApiVersion( exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
+    @ApiVersion( exclude = { DhisApiVersion.DEFAULT } )
     public @ResponseBody String ping()
     {
         return "pong";
