@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.data;
+package org.hisp.dhis.analytics.data.support.test;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -35,8 +36,12 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.period.Period;
 
 /**
  * Configurable mock implementation of AnalyticsService for testing purposes.
@@ -44,17 +49,17 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 public class MockAnalyticsService
     implements AnalyticsService
 {
-    private Map<String, Object> valueMap;
+    private Map<Date, Grid> dateGridMap;
 
-    public MockAnalyticsService( Map<String, Object> valueMap )
+    public MockAnalyticsService( Map<Date, Grid> dateGridMap )
     {
-        this.valueMap = valueMap;
+        this.dateGridMap = dateGridMap;
     }
 
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
-        throw new NotImplementedException( "" );
+        return getGrid( params );
     }
 
     @Override
@@ -68,13 +73,13 @@ public class MockAnalyticsService
     {
         throw new NotImplementedException( "" );
     }
-    
+
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
         throw new NotImplementedException( "" );
     }
-    
+
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {
@@ -84,12 +89,58 @@ public class MockAnalyticsService
     @Override
     public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
     {
-        return valueMap;
+        throw new NotImplementedException( "" );
     }
 
     @Override
     public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
     {
-        return valueMap;
+        throw new NotImplementedException( "" );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Find the pre-filled grid matching matching either a date in the the
+     * parameters' date range, or a date in a PERIOD filter
+     *
+     * @param params the parameters
+     * @return the grid matching the parameters' date range
+     */
+    private Grid getGrid( DataQueryParams params )
+    {
+        for ( Map.Entry<Date, Grid> e : dateGridMap.entrySet() )
+        {
+            if ( params.getStartDate() != null )
+            {
+                if ( params.getStartDate().compareTo( e.getKey() ) <= 0 &&
+                    params.getEndDate().compareTo( e.getKey() ) >= 0 )
+                {
+                    return e.getValue();
+                }
+            }
+            else
+            {
+                for ( DimensionalObject o : params.getFilters() )
+                {
+                    if ( o.getDimensionType() == DimensionType.PERIOD && o.getItems() != null )
+                    {
+                        for ( DimensionalItemObject item : o.getItems() )
+                        {
+                            Period period = (Period) item;
+
+                            if ( period.getStartDate().compareTo( e.getKey() ) <= 0 &&
+                                period.getEndDate().compareTo( e.getKey() ) >= 0 )
+                            {
+                                return e.getValue();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        throw new RuntimeException( "Couldn't find grid for date in params" );
     }
 }
