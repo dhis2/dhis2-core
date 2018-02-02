@@ -77,9 +77,6 @@ public class DataValidationTask
     private DataValueService dataValueService;
 
     @Autowired
-    private AnalyticsService analyticsService;
-
-    @Autowired
     private DataElementCategoryService categoryService;
 
     @Autowired
@@ -87,6 +84,9 @@ public class DataValidationTask
 
     @Autowired
     private ValidationResultService validationResultService;
+
+    // (wired through constructor)
+    private AnalyticsService analyticsService;
 
     private List<OrganisationUnit> orgUnits;
     private ValidationRunContext context;
@@ -104,10 +104,11 @@ public class DataValidationTask
     private MapMapMap<Integer, String, DimensionalItemObject, Double> eventMap;
     private MapMapMap<Integer, String, DimensionalItemObject, Double> slidingWindowEventMap;
 
-    public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context )
+    public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService )
     {
         this.orgUnits = orgUnits;
         this.context = context;
+        this.analyticsService = analyticsService;
     }
 
     /**

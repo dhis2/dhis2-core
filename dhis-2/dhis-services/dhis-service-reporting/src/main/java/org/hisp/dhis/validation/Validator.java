@@ -29,6 +29,7 @@ package org.hisp.dhis.validation;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -56,7 +57,7 @@ public class Validator
      * @return a collection of any validations that were found
      */
     public static Collection<ValidationResult> validate( ValidationRunContext context,
-        ApplicationContext applicationContext )
+        ApplicationContext applicationContext, AnalyticsService analyticsService )
     {
         DataElementCategoryService categoryService = (DataElementCategoryService)
             applicationContext.getBean( DataElementCategoryService.class );
@@ -75,7 +76,7 @@ public class Validator
         for ( List<OrganisationUnit> orgUnits : orgUnitLists )
         {
             ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
-            task.init( orgUnits, context );
+            task.init( orgUnits, context, analyticsService );
 
             executor.execute( task );
         }

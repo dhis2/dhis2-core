@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -116,12 +117,19 @@ public class DefaultValidationService
     @Autowired
     private ValidationResultService validationResultService;
 
-    private CurrentUserService currentUserService;
+    public void setAnalyticsService( AnalyticsService analyticsService )
+    {
+        this.analyticsService = analyticsService;
+    }
+
+    private AnalyticsService analyticsService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
+
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // ValidationRule business logic
@@ -135,7 +143,7 @@ public class DefaultValidationService
 
         clock.logTime( "Initialized validation analysis." );
 
-        Collection<ValidationResult> results = Validator.validate( context, applicationContext );
+        Collection<ValidationResult> results = Validator.validate( context, applicationContext, analyticsService );
 
         clock.logTime( "Finished validation analysis." ).stop();
 
