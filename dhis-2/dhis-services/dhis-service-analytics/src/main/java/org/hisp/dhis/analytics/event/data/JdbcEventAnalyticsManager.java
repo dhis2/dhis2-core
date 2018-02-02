@@ -745,8 +745,6 @@ public class JdbcEventAnalyticsManager
         List<String> cols = Lists.newArrayList( "yearly", valueItem );
 
         cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
-
-        //TODO query item
         
         for ( DimensionalObject dim : params.getDimensionsAndFilters() )
         {            
