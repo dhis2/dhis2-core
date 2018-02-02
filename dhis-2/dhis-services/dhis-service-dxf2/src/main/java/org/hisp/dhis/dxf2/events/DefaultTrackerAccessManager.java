@@ -273,7 +273,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         DataElement dataElement = dataValue.getDataElement();
 
-        if ( !aclService.canDataRead( user, dataElement ) )
+        if ( !aclService.canRead( user, dataElement ) )
         {
             errors.add( "User has no read access to data element: " + dataElement.getUid() );
         }
@@ -295,7 +295,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         DataElement dataElement = dataValue.getDataElement();
 
-        if ( !aclService.canDataWrite( user, dataElement ) )
+        if ( !aclService.canWrite( user, dataElement ) )
         {
             errors.add( "User has no write access to data element: " + dataElement.getUid() );
         }
