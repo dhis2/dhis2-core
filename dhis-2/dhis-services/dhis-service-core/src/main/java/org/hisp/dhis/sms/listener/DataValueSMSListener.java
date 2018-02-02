@@ -81,6 +81,8 @@ public class DataValueSMSListener
 {
     private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
 
+    private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -151,10 +153,13 @@ public class DataValueSMSListener
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
         Period period = getPeriod( smsCommand, date );
 
-        if ( dataSetService.isLocked( smsCommand.getDataset(), period, orgUnit, null, null ) )
+        DataSet dataSet = smsCommand.getDataset();
+
+        if ( dataSetService.isLocked( dataSet, period, orgUnit, dataElementCategoryService.getDefaultDataElementCategoryOptionCombo(), null ) )
         {
-            throw new SMSParserException(
-                "Dataset is locked for the period " + period.getStartDate() + " - " + period.getEndDate() );
+            smsSender.sendMessage( null, String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator() );
+
+            throw new SMSParserException( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ) );
         }
 
         boolean valueStored = false;
