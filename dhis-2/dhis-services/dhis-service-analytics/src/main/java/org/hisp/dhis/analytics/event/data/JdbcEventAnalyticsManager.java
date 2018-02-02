@@ -113,7 +113,9 @@ public class JdbcEventAnalyticsManager
         // Criteria
         // ---------------------------------------------------------------------
 
-        sql += getFromWhereClause( params );
+        sql += getFromClause( params );
+        
+        sql += getWhereClause( params );
 
         // ---------------------------------------------------------------------
         // Group by
@@ -234,7 +236,9 @@ public class JdbcEventAnalyticsManager
         // Criteria
         // ---------------------------------------------------------------------
 
-        sql += getFromWhereClause( params );
+        sql += getFromClause( params );
+        
+        sql += getWhereClause( params );
         
         // ---------------------------------------------------------------------
         // Sorting
@@ -256,7 +260,6 @@ public class JdbcEventAnalyticsManager
 
             sql = removeLastComma( sql ) + " ";
         }
-
         
         // ---------------------------------------------------------------------
         // Paging
@@ -335,8 +338,10 @@ public class JdbcEventAnalyticsManager
             "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
         
         String sql = "select " + StringUtils.join( columns, "," ) + " ";
+
+        sql += getFromClause( params );
         
-        sql += getFromWhereClause( params );
+        sql += getWhereClause( params );
         
         sql += "group by ST_SnapToGrid(ST_Transform(" + quotedClusterField + ", 3785), " + params.getClusterSize() + ") ";
 
@@ -360,8 +365,10 @@ public class JdbcEventAnalyticsManager
     public long getEventCount( EventQueryParams params )
     {
         String sql = "select count(psi) ";
+
+        sql += getFromClause( params );
         
-        sql += getFromWhereClause( params );
+        sql += getWhereClause( params );
         
         long count = 0;
         
@@ -386,9 +393,11 @@ public class JdbcEventAnalyticsManager
         String quotedClusterField = statementBuilder.columnQuote( clusterField );
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT + " ";
-        
-        sql += getFromWhereClause( params );
 
+        sql += getFromClause( params );
+        
+        sql += getWhereClause( params );
+        
         log.debug( String.format( "Analytics event count and extent SQL: %s", sql ) );
         
         Rectangle rectangle = new Rectangle();
@@ -504,16 +513,26 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a from and where SQL clause for the given analytics table 
-     * partition.
+     * Returns a from SQL clause for the given analytics table partition.
      * 
      * @param params the {@link EventQueryParams}.
-     * @param partition the partition name.
      */
-    private String getFromWhereClause( EventQueryParams params )
+    private String getFromClause( EventQueryParams params )
     {
         String sql = "from " + params.getTableName() + " ";
+        
+        return sql;
+    }
 
+    /**
+     * Returns a where SQL clause for the given analytics table partition.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getWhereClause( EventQueryParams params )
+    {
+        String sql = "";
+        
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
@@ -718,6 +737,7 @@ public class JdbcEventAnalyticsManager
         
         Legend legend = null;
         Option option = null;
+        
         if ( item.hasLegendSet() && ( legend = item.getLegendSet().getLegendByUid( itemValue ) ) != null )
         {
             return value + legend.getDisplayName();
