@@ -40,8 +40,10 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -73,6 +75,7 @@ public class DefaultEventQueryPlanner
             .add( q -> groupByQueryItems( q ) )
             .add( q -> groupByOrgUnitLevel( q ) )
             .add( q -> groupByPeriodType( q ) )
+            .add( q -> groupByPeriod( q ) )
             .build();
 
         for ( Function<EventQueryParams, List<EventQueryParams>> grouper : groupers )
@@ -160,7 +163,7 @@ public class DefaultEventQueryPlanner
     {
         return QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( params ) );
     }
-        
+    
     /**
      * Groups by items if query items are to be collapsed in order to aggregate
      * each item individually. Sets program on the given parameters.
@@ -222,6 +225,30 @@ public class DefaultEventQueryPlanner
             queries.add( new EventQueryParams.Builder( params ).build() );
         }
         
+        return queries;
+    }
+
+    private List<EventQueryParams> groupByPeriod( EventQueryParams params )
+    {
+        List<EventQueryParams> queries = new ArrayList<>();
+        
+        if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        {
+            for ( DimensionalItemObject period : params.getPeriods() )
+            {
+                String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+                
+                EventQueryParams query = new EventQueryParams.Builder( params )
+                    .withPeriods( Lists.newArrayList( period ), periodType ).build();
+                
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( params );
+        }
+
         return queries;
     }
 }
