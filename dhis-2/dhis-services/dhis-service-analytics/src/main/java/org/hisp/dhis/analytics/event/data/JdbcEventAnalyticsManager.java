@@ -703,6 +703,15 @@ public class JdbcEventAnalyticsManager
             sql += "and " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
+
+        // ---------------------------------------------------------------------
+        // Period rank restriction to get last value only
+        // ---------------------------------------------------------------------
+        
+        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        {
+            sql += "and " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
+        }
         
         return sql;
     }
