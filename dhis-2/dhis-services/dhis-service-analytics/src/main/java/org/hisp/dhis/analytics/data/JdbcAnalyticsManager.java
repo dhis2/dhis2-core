@@ -485,10 +485,10 @@ public class JdbcAnalyticsManager
     }
     
     /**
-     * Returns quoted names of all non-dimensional columns of the aggregate data 
-     * analytics table. It is assumed that {@link AggregationType#LAST} type only
-     * applies to aggregate data analytics. The period dimension is replaced by
-     * the name of the single period in the given query.
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
+     * It is assumed that {@link AggregationType#LAST} type only applies to aggregate 
+     * data analytics. The period dimension is replaced by the name of the single period 
+     * in the given query.
      */
     private List<String> getLastValueSubqueryQuotedColumns( DataQueryParams params )
     {

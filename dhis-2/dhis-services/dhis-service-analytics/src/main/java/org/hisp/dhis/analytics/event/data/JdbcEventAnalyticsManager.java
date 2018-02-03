@@ -706,7 +706,13 @@ public class JdbcEventAnalyticsManager
         
         return sql;
     }
-    
+
+    /**
+     * Generates a sub query which provides a view of the data where each row is
+     * ranked by the execution date, latest first. The events are partitioned by 
+     * org unit and attribute option combo. A column {@code pe_rank} defines the rank. 
+     * Only data for the last 10 years relative to the period end date is included. 
+     */
     private String getLastValueSubquerySql( EventQueryParams params )
     {
         Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
@@ -735,7 +741,12 @@ public class JdbcEventAnalyticsManager
         
         return sql;
     }
-    
+
+    /**
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
+     * The period dimension is replaced by the name of the single period in the given 
+     * query.
+     */
     private List<String> getLastValueSubqueryQuotedColumns( EventQueryParams params )
     {
         Period period = params.getLatestPeriod();
