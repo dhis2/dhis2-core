@@ -38,7 +38,9 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MaintenanceModeException;
@@ -228,6 +230,15 @@ public class DefaultEventQueryPlanner
         return queries;
     }
 
+    /**
+     * Groups the given query in sub queries for each dimension period. This only applies
+     * if the aggregation type is {@link AggregationType#LAST} or 
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be 
+     * aggregated individually.
+     * 
+     * @param params the data query parameters.
+     * @return a list of {@link EventQueryParams}.
+     */
     private List<EventQueryParams> groupByPeriod( EventQueryParams params )
     {
         List<EventQueryParams> queries = new ArrayList<>();
