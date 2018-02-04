@@ -708,7 +708,7 @@ public class JdbcEventAnalyticsManager
         // Period rank restriction to get last value only
         // ---------------------------------------------------------------------
         
-        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
             sql += "and " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
         }
