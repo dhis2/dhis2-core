@@ -164,7 +164,7 @@ public class DefaultEventQueryPlanner
     {
         return QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( params ) );
     }
-    
+
     /**
      * Groups by items if query items are to be collapsed in order to aggregate
      * each item individually. Sets program on the given parameters.
