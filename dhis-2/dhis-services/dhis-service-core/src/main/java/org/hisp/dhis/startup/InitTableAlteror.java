@@ -134,9 +134,6 @@ public class InitTableAlteror
         // Two Factor Authentication update
         executeSql( "UPDATE users set twofa = false where twofa is null" );
         executeSql( "ALTER TABLE  users alter column twofa set not null" );
-
-        executeSql( "UPDATE users SET secret = MD5(random()::text) where secret is null" );
-        executeSql( "ALTER TABLE users alter column secret set not null" );
     }
 
     private void updateMessageConversationMessageTypes()

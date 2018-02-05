@@ -46,7 +46,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @author Henning Håkonsen
- * @author Lars Helge Øverland
  */
 public class TwoFactorAuthenticationProvider
     extends DaoAuthenticationProvider

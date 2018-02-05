@@ -28,6 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -177,7 +178,7 @@ public class UserCredentials
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // needed to support userCredentials uniqueness
-        setSecret();
+        this.setSecret();
     }
 
     // -------------------------------------------------------------------------
@@ -548,8 +549,7 @@ public class UserCredentials
         this.twoFA = twoFA;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonIgnore
     public String getSecret()
     {
         return secret;
@@ -569,7 +569,10 @@ public class UserCredentials
 
     private void setSecret()
     {
-        this.secret = Base32.random();
+        if ( this.secret == null )
+        {
+            this.secret = Base32.random();
+        }
     }
 
     @JsonProperty

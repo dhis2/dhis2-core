@@ -28,17 +28,22 @@ package org.hisp.dhis.webapi.controller.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,8 +53,8 @@ import java.util.Map;
 /**
  * @author Henning Håkonsen
  */
-@Controller
-@RequestMapping( value = "/security" )
+@RestController
+@RequestMapping( value = "/2fa" )
 public class SecurityController
 {
     @Autowired
@@ -58,7 +63,7 @@ public class SecurityController
     @Autowired
     private UserService userService;
 
-    @RequestMapping( value = "/2fa/qr", method = RequestMethod.GET, produces = "application/json" )
+    @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
     public void getQrCode( HttpServletRequest request, HttpServletResponse response )
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -76,9 +81,21 @@ public class SecurityController
         JacksonUtils.fromObjectToReponse( response, map );
     }
 
-    @RequestMapping( value = "/settwofa", method = RequestMethod.POST )
-    public void set2FA( @RequestParam String uid, @RequestParam boolean twofa )
+    @RequestMapping( value = "/set", method = RequestMethod.GET, produces = "application/json")
+    public ObjectReport set2FA( @RequestParam String uid, @RequestParam boolean twofa )
     {
-        userService.set2FA( userService.getUser( uid ), twofa );
+        ObjectReport objectReport = new ObjectReport( User.class, 0 );
+
+        User user = userService.getUser( uid );
+        if ( !ObjectUtils.allNonNull( user ) )
+        {
+            objectReport.addErrorReport( new ErrorReport( User.class, new ErrorMessage( ErrorCode.E4014, uid, "user" ) ) );
+        }
+        else
+        {
+            userService.set2FA( user, twofa );
+        }
+
+        return objectReport;
     }
 }

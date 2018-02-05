@@ -1049,6 +1049,9 @@ public class TableAlteror
         
         updateDimensionFilterToText();
 
+        // 2FA fixes for 2.30
+        executeSql( "ALTER TABLE users alter column secret set not null" );
+
         log.info( "Tables updated" );
     }
 
