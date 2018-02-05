@@ -61,7 +61,7 @@
 
     <property name="displayInForm" />
 
-    <property name="analyticsType" column="analyticstype" length="15">
+    <property name="analyticsType" column="analyticstype" length="15" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.AnalyticsType</param>
         <param name="useNamed">true</param>

@@ -426,7 +426,6 @@ public class ProgramIndicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Value.TRUE )
     public AnalyticsType getAnalyticsType()
     {
         return analyticsType;
