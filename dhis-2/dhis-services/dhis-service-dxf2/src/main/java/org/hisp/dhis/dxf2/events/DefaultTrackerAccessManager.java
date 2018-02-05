@@ -82,7 +82,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataRead( user, trackedEntityType ) )
         {
-            errors.add( "User has no read access to tracked entity: " + trackedEntityType.getUid() );
+            errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
         }
 
         return errors;
@@ -113,7 +113,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
-            errors.add( "User has no write access to tracked entity: " + trackedEntityType.getUid() );
+            errors.add( "User has no data write access to tracked entity: " + trackedEntityType.getUid() );
         }
 
         return errors;
@@ -144,7 +144,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataRead( user, program ) )
         {
-            errors.add( "User has no read access to program: " + program.getUid() );
+            errors.add( "User has no data read access to program: " + program.getUid() );
         }
 
         return errors;
@@ -175,7 +175,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataWrite( user, program ) )
         {
-            errors.add( "User has no write access to program: " + program.getUid() );
+            errors.add( "User has no data write access to program: " + program.getUid() );
         }
 
         return errors;
@@ -207,12 +207,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataRead( user, program ) )
         {
-            errors.add( "User has no read access to program: " + program.getUid() );
+            errors.add( "User has no data read access to program: " + program.getUid() );
         }
 
         if ( !aclService.canDataRead( user, programStage ) )
         {
-            errors.add( "User has no read access to program stage: " + programStage.getUid() );
+            errors.add( "User has no data read access to program stage: " + programStage.getUid() );
         }
 
         errors.addAll( canRead( user, programStageInstance.getAttributeOptionCombo() ) );
@@ -246,12 +246,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !aclService.canDataRead( user, program ) )
         {
-            errors.add( "User has no write access to program: " + program.getUid() );
+            errors.add( "User has no data read access to program: " + program.getUid() );
         }
 
         if ( !aclService.canDataRead( user, programStage ) )
         {
-            errors.add( "User has no write access to program stage: " + programStage.getUid() );
+            errors.add( "User has no data read access to program stage: " + programStage.getUid() );
         }
 
         errors.addAll( canWrite( user, programStageInstance.getAttributeOptionCombo() ) );
