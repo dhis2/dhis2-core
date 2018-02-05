@@ -1,60 +1,61 @@
 package org.hisp.dhis.webapi.controller.event;
 
-    /*
-     * Copyright (c) 2004-2017, University of Oslo
-     * All rights reserved.
-     *
-     * Redistribution and use in source and binary forms, with or without
-     * modification, are permitted provided that the following conditions are met:
-     * Redistributions of source code must retain the above copyright notice, this
-     * list of conditions and the following disclaimer.
-     *
-     * Redistributions in binary form must reproduce the above copyright notice,
-     * this list of conditions and the following disclaimer in the documentation
-     * and/or other materials provided with the distribution.
-     * Neither the name of the HISP project nor the names of its contributors may
-     * be used to endorse or promote products derived from this software without
-     * specific prior written permission.
-     *
-     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-     * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-     * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-     * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-     */
+/*
+ * Copyright (c) 2004-2017, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,117 +66,57 @@ public class TrackedEntityAttributeController
     extends AbstractCrudController<TrackedEntityAttribute>
 {
     @Autowired
-    TrackedEntityAttributeReservedValueService trackedEntityAttributeReservedValueService;
+    private TrackedEntityAttributeReservedValueService trackedEntityAttributeReservedValueService;
 
     @Autowired
-    TrackedEntityAttributeService trackedEntityAttributeService;
+    private TrackedEntityAttributeService trackedEntityAttributeService;
 
     @Autowired
-    TextPatternService textPatternService;
+    private TextPatternService textPatternService;
+
+    @Autowired
+    private ReservedValueService reservedValueService;
+
+    @Autowired
+    private ContextService context;
 
     @RequestMapping( value = "/{id}/generateAndReserve", method = RequestMethod.GET, produces = {
         ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
-    List<TrackedEntityAttributeReservedValue> queryTrackedEntityInstancesJson(
-        @RequestParam( required = false ) Integer numberToReserve,
-        @PathVariable String id,
-        Model model,
-        HttpServletResponse response )
-        throws Exception
+    List<String> generateAndReserveValues(
+        @RequestParam( required = false, defaultValue = "1" ) Integer numberToReserve,
+        @PathVariable String id
+    )
+        throws WebMessageException
     {
-        if ( numberToReserve == null || numberToReserve < 1 )
-        {
-            numberToReserve = 1;
-        }
-
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-        if ( attribute == null )
-        {
-            throw new Exception( "No attribute found with id " + id );
-        }
-
-        return trackedEntityAttributeReservedValueService.createTrackedEntityReservedValues(
-            attribute, numberToReserve );
+        return reserve( id, numberToReserve, 60 );
     }
 
+    /**
+     * This method is legacy and will do the same as generateAndReserveValues, but with only 3 days expiration.
+     * The use-case for this endpoint is to get a single id when filling in the form, so we assume the form is
+     * submitted within 3 days. generateAndReserveValues is designed to account for offline devices that need to
+     * reserve ids in batches for a longer period of time.
+     *
+     * @param id
+     * @return The id generated
+     * @throws WebMessageException
+     */
     @RequestMapping( value = "/{id}/generate", method = RequestMethod.GET )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
     String legacyQueryTrackedEntityInstancesJson(
-        @PathVariable String id,
-        Model model,
-        HttpServletResponse response )
-        throws Exception
-    {
-
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-        if ( attribute == null )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "No attribute with id " + id + " was found." ) );
-        }
-
-        if ( !attribute.isGenerated() )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "This attribute can not be generated." ) );
-        }
-
-        TextPattern textPattern = attribute.getTextPattern();
-        List<String> missingValues = textPatternService
-            .getRequiredValues( textPattern )
-            .get( "REQUIRED" );
-
-        if ( missingValues.size() > 0 )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .conflict(
-                    "Missing required values: " + StringUtils.collectionToDelimitedString( missingValues, ", " ) ) );
-        }
-
-        return textPatternService.resolvePattern( textPattern, new HashMap() );
-    }
-
-    @RequestMapping( value = "/{id}/generate", method = RequestMethod.POST, consumes = "application/json" )
-    public @ResponseBody
-    String queryTrackedEntityInstancesJson(
-        @PathVariable String id,
-        @RequestBody Map<String, String> values
+        @PathVariable String id
     )
-        throws Exception
+        throws WebMessageException
     {
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-        if ( attribute == null )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "No attribute with id " + id + " was found." ) );
-        }
-
-        if ( !attribute.isGenerated() )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "This attribute can not be generated." ) );
-        }
-
-        TextPattern textPattern = attribute.getTextPattern();
-        values = (values == null ? new HashMap<>() : values);
-        List<String> missingValues = textPatternService
-            .getRequiredValues( textPattern )
-            .get( "REQUIRED" );
-
-        missingValues.removeAll( values.keySet() );
-
-        if ( missingValues.size() > 0 )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .conflict(
-                    "Missing required values: " + StringUtils.collectionToDelimitedString( missingValues, ", " ) ) );
-        }
-
-        return textPatternService.resolvePattern( textPattern, values );
+        return reserve( id, 1, 3 ).get( 0 );
     }
 
     @RequestMapping( value = "/{id}/requiredValues", method = RequestMethod.GET )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
     Map<String, List<String>> getRequiredValues( @PathVariable String id )
         throws Exception
@@ -189,6 +130,78 @@ public class TrackedEntityAttributeController
 
         return textPatternService.getRequiredValues( attribute.getTextPattern() );
 
+    }
+
+    // Helpers
+
+    private List<String> reserve( String id, int numberToReserve, int daysToLive )
+        throws WebMessageException
+    {
+
+        Map<String, List<String>> params = context.getParameterValuesMap();
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
+        if ( attribute == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No attribute found with id " + id ) );
+        }
+
+        if ( attribute.getTextPattern() == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "This attribute has no pattern" ) );
+        }
+
+        if ( numberToReserve < 1 )
+        {
+            numberToReserve = 1;
+        }
+
+        Map<String, String> values = getRequiredValues( attribute, params );
+
+        Date expiration = DateUtils.getDateAfterAddition( new Date(), daysToLive );
+
+        try
+        {
+            List<String> result = reservedValueService
+                .reserve( attribute.getTextPattern(), numberToReserve, values, expiration );
+
+            if ( result.isEmpty() )
+            {
+                throw new WebMessageException( WebMessageUtils
+                    .conflict( "Unable to reserve id. This may indicate that there are too few available ids left." ) );
+            }
+
+            return result;
+        }
+        catch ( ReservedValueService.ReserveValueException e )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( e.getMessage() ) );
+        }
+        catch ( TextPatternService.TextPatternGenerationException e )
+        {
+            throw new WebMessageException( WebMessageUtils.error( e.getMessage() ) );
+        }
+    }
+
+    private Map<String, String> getRequiredValues( TrackedEntityAttribute attr, Map<String, List<String>> values )
+        throws WebMessageException
+    {
+        List<String> requiredValues = textPatternService
+            .getRequiredValues( attr.getTextPattern() )
+            .get( "REQUIRED" );
+
+        Map<String, String> result = values.entrySet().stream()
+            .filter( ( entry ) -> requiredValues.contains( entry.getKey() ) )
+            .collect( Collectors.toMap( Map.Entry::getKey, ( entry ) -> entry.getValue().get( 0 ) ) );
+
+        requiredValues.removeAll( result.keySet() );
+
+        if ( requiredValues.size() > 0 )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict(
+                    "Missing required values: " + StringUtils.collectionToCommaDelimitedString( requiredValues ) ) );
+        }
+
+        return result;
     }
 
 }

@@ -174,20 +174,6 @@ public class TestTextPatternParser
     }
 
     @Test
-    public void testParseMultipleSequentialAndRandomThrowsException()
-        throws TextPatternParser.TextPatternParsingException
-    {
-        String pattern_1 = "RANDOM(#) + SEQUENTIAL(#)";
-        String pattern_2 = "SEQUENTIAL(#) + SEQUENTIAL(#)";
-
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( pattern_1 );
-
-        thrown.expect( ParsingException );
-        TextPatternParser.parse( pattern_2 );
-    }
-
-    @Test
     public void testParsePatternEndWithJoinThrowsException()
         throws TextPatternParser.TextPatternParsingException
     {

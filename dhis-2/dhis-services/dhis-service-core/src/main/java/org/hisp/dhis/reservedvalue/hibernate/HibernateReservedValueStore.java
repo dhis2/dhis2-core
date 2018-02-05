@@ -29,6 +29,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  */
 
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.batchhandler.ReservedValueBatchHandler;
 import org.hisp.dhis.reservedvalue.ReservedValue;
@@ -106,14 +107,14 @@ public class HibernateReservedValueStore
             .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
-        if ( reservedValue.getOwnerObject().equals( TRACKEDENTITYATTRIBUTE ) )
+        if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
             count += (long) getQuery(
                 "SELECT count(*) " +
                     "FROM TrackedEntityAttributeValue " +
                     "WHERE attribute = " +
-                        "( FROM TrackedEntityAttribute " +
-                        "WHERE uid = :uid ) " +
+                    "( FROM TrackedEntityAttribute " +
+                    "WHERE uid = :uid ) " +
                     "AND value LIKE :value " )
                 .setParameter( "uid", reservedValue.getOwnerUid() )
                 .setParameter( "value", reservedValue.getValue() )
@@ -148,7 +149,13 @@ public class HibernateReservedValueStore
             .map( ReservedValue::getValue )
             .collect( Collectors.toList() ) );
 
-        if ( reservedValue.getOwnerObject().equals( TRACKEDENTITYATTRIBUTE ) )
+        // All values supplied is unavailable
+        if ( values.isEmpty() )
+        {
+            return values;
+        }
+
+        if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
             values.removeAll( getSqlQuery(
                 "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )

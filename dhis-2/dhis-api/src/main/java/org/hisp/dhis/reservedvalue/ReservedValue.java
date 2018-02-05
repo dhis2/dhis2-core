@@ -47,7 +47,7 @@ public class ReservedValue
      */
     private static final long serialVersionUID = 334738541365949298L;
 
-    private org.hisp.dhis.common.Objects ownerObject;
+    private String ownerObject;
 
     private String ownerUid;
 
@@ -62,7 +62,7 @@ public class ReservedValue
 
     }
 
-    public ReservedValue( org.hisp.dhis.common.Objects ownerObject, String ownerUid, String key, String value, Date expires )
+    public ReservedValue( String ownerObject, String ownerUid, String key, String value, Date expires )
     {
         this.ownerObject = ownerObject;
         this.ownerUid = ownerUid;
@@ -73,12 +73,12 @@ public class ReservedValue
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public org.hisp.dhis.common.Objects getOwnerObject()
+    public String getOwnerObject()
     {
         return ownerObject;
     }
 
-    public void setOwnerObject( org.hisp.dhis.common.Objects ownerObject )
+    public void setOwnerObject( String ownerObject )
     {
         this.ownerObject = ownerObject;
     }

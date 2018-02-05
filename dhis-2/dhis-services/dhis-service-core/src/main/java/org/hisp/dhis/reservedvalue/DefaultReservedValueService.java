@@ -78,7 +78,7 @@ public class DefaultReservedValueService
         // Used for searching value tables
         String valueKey = (generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key);
 
-        ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject(), textPattern.getOwnerUID(), key,
+        ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(), key,
             valueKey,
             expires );
 

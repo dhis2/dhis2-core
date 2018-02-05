@@ -28,7 +28,6 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
@@ -76,7 +75,8 @@ public class ReservedValueBatchHandler
     @Override
     public List<Object> getIdentifierValues( ReservedValue object )
     {
-        return getObjectList( object.getOwnerObject(), object.getOwnerUid(), object.getKey(), object.getValue() );
+        return getObjectList( object.getOwnerObject(), object.getOwnerUid(), object.getKey(),
+            object.getValue() );
     }
 
     @Override
@@ -89,7 +89,7 @@ public class ReservedValueBatchHandler
     public List<Object> getUniqueValues( ReservedValue object )
     {
         return getObjectList(
-            object.getOwnerObject().name(),
+            object.getOwnerObject(),
             object.getOwnerUid(),
             object.getKey(),
             object.getValue()
@@ -106,7 +106,7 @@ public class ReservedValueBatchHandler
     public List<Object> getValues( ReservedValue object )
     {
         return getObjectList(
-            object.getOwnerObject().name(),
+            object.getOwnerObject(),
             object.getOwnerUid(),
             object.getKey(),
             object.getValue(),
@@ -124,7 +124,7 @@ public class ReservedValueBatchHandler
 
         expires.setTime( resultSet.getDate( "expires" ) );
 
-        rv.setOwnerObject( Objects.valueOf( resultSet.getString( "ownerobject" ) ) );
+        rv.setOwnerObject( resultSet.getString( "ownerobject" ) );
         rv.setOwnerUid( resultSet.getString( "ownerUid" ) );
         rv.setKey( resultSet.getString( "key" ) );
         rv.setValue( resultSet.getString( "value" ) );

@@ -28,6 +28,7 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.sun.javafx.binding.StringFormatter;
@@ -85,6 +86,7 @@ public class TextPatternSegment
      *
      * @return The original segment based on method and parameter
      */
+    @JsonIgnore
     public String getRawSegment()
     {
         if ( method.equals( TextPatternMethod.TEXT ) )

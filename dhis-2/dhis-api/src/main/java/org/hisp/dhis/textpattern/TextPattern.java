@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Objects;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,7 @@ import java.util.List;
  * @author Stian Sandvold
  */
 public class TextPattern
+    implements Serializable
 {
     private ImmutableList<TextPatternSegment> segments;
 
@@ -69,6 +71,8 @@ public class TextPattern
         this.ownerUID = ownerUID;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getOwnerUID()
     {
         return ownerUID;
@@ -79,6 +83,8 @@ public class TextPattern
         this.segments = ImmutableList.copyOf( segments );
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Objects getOwnerObject()
     {
         return ownerObject;
@@ -88,7 +94,7 @@ public class TextPattern
     {
         this.ownerObject = ownerObject;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TextPatternSegment> getSegments()
