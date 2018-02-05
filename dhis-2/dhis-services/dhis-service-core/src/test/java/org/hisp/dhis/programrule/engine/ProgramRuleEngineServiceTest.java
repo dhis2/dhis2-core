@@ -150,6 +150,17 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         assertEquals( 1, actions.size() );
     }
 
+    @Test
+    public void test_withProgramInstanceNull_programStageInstance()
+    {
+        setProgramRuleActionType_SendMessage();
+        programStageInstance.setProgramInstance( null );
+
+        List<RuleAction> actions = service.evaluate( programStageInstance );
+
+        assertEquals( 0, actions.size() );
+    }
+
     private void setUpInstances()
     {
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
