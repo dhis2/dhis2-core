@@ -54,6 +54,7 @@ import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.junit.Assert.*;
 
@@ -98,8 +99,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         ruleActionImplementers.add( ruleActionSendMessage );
 
         // stub for programRuleEngine
-        when( programRuleEngine.evaluateEnrollment( any() ) ).thenReturn(effects);
-        when( programRuleEngine.evaluateEvent( any() ) ).thenReturn(effects);
+        when( programRuleEngine.evaluateEnrollment( any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluateEvent( any() ) ).thenReturn( effects );
 
         // stub for ruleActionSendMessage
         when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
