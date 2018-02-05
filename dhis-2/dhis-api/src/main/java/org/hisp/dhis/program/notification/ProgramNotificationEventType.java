@@ -1,7 +1,7 @@
-package org.hisp.dhis.web.ohie.csd.domain;
+package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,14 @@ package org.hisp.dhis.web.ohie.csd.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlType;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-@XmlAccessorType( XmlAccessType.FIELD )
-@XmlType( name = "providerDirectory", namespace = "urn:ihe:iti:csd:2013" )
-public class ProviderDirectory
+public enum  ProgramNotificationEventType
 {
+    PROGRAM_ENROLLMENT,
+    PROGRAM_COMPLETION,
+    PROGRAM_STAGE_COMPLETION,
+    PROGRAM_RULE_ENROLLMENT,
+    PROGRAM_RULE_EVENT
 }

@@ -131,7 +131,7 @@ public interface TrackedEntityAttributeService
      *
      * @return List of attributes
      */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList();
+    List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram();
     
     /**
      * Get all attributes that user is allowed to read 

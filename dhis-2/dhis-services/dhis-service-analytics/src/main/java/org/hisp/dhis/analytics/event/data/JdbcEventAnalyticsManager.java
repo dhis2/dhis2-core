@@ -49,6 +49,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.system.util.MathUtils;
@@ -60,8 +61,11 @@ import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -89,6 +93,8 @@ public class JdbcEventAnalyticsManager
     private static final String COL_EXTENT = "extent";
     private static final int COORD_DEC = 6;
 
+    private static final int LAST_VALUE_YEARS_OFFSET = -10;
+    
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
@@ -113,7 +119,9 @@ public class JdbcEventAnalyticsManager
         // Criteria
         // ---------------------------------------------------------------------
 
-        sql += getFromWhereClause( params );
+        sql += getFromClause( params );
+        
+        sql += getWhereClause( params );
 
         // ---------------------------------------------------------------------
         // Group by
@@ -234,7 +242,9 @@ public class JdbcEventAnalyticsManager
         // Criteria
         // ---------------------------------------------------------------------
 
-        sql += getFromWhereClause( params );
+        sql += getFromClause( params );
+        
+        sql += getWhereClause( params );
         
         // ---------------------------------------------------------------------
         // Sorting
@@ -256,7 +266,6 @@ public class JdbcEventAnalyticsManager
 
             sql = removeLastComma( sql ) + " ";
         }
-
         
         // ---------------------------------------------------------------------
         // Paging
@@ -335,8 +344,10 @@ public class JdbcEventAnalyticsManager
             "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
         
         String sql = "select " + StringUtils.join( columns, "," ) + " ";
+
+        sql += getFromClause( params );
         
-        sql += getFromWhereClause( params );
+        sql += getWhereClause( params );
         
         sql += "group by ST_SnapToGrid(ST_Transform(" + quotedClusterField + ", 3785), " + params.getClusterSize() + ") ";
 
@@ -360,8 +371,10 @@ public class JdbcEventAnalyticsManager
     public long getEventCount( EventQueryParams params )
     {
         String sql = "select count(psi) ";
+
+        sql += getFromClause( params );
         
-        sql += getFromWhereClause( params );
+        sql += getWhereClause( params );
         
         long count = 0;
         
@@ -386,9 +399,11 @@ public class JdbcEventAnalyticsManager
         String quotedClusterField = statementBuilder.columnQuote( clusterField );
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT + " ";
-        
-        sql += getFromWhereClause( params );
 
+        sql += getFromClause( params );
+        
+        sql += getWhereClause( params );
+        
         log.debug( String.format( "Analytics event count and extent SQL: %s", sql ) );
         
         Rectangle rectangle = new Rectangle();
@@ -504,16 +519,35 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a from and where SQL clause for the given analytics table 
-     * partition.
+     * Returns a from SQL clause for the given analytics table partition.
      * 
      * @param params the {@link EventQueryParams}.
-     * @param partition the partition name.
      */
-    private String getFromWhereClause( EventQueryParams params )
+    private String getFromClause( EventQueryParams params )
     {
-        String sql = "from " + params.getTableName() + " ";
+        String sql = "from ";
 
+        if ( params.isAggregateData() && params.hasValueDimension() && params.getAggregationTypeFallback().isLastPeriodAggregationType() )
+        {
+            sql += getLastValueSubquerySql( params );
+        }
+        else
+        {
+            sql += params.getTableName();
+        }
+        
+        return sql + " ";
+    }
+
+    /**
+     * Returns a where SQL clause for the given analytics table partition.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getWhereClause( EventQueryParams params )
+    {
+        String sql = "";
+        
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
@@ -669,8 +703,86 @@ public class JdbcEventAnalyticsManager
             sql += "and " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
+
+        // ---------------------------------------------------------------------
+        // Period rank restriction to get last value only
+        // ---------------------------------------------------------------------
+        
+        if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
+        {
+            sql += "and " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
+        }
         
         return sql;
+    }
+
+    /**
+     * Generates a sub query which provides a view of the data where each row is
+     * ranked by the execution date, latest first. The events are partitioned by 
+     * org unit and attribute option combo. A column {@code pe_rank} defines the rank. 
+     * Only data for the last 10 years relative to the period end date is included. 
+     */
+    private String getLastValueSubquerySql( EventQueryParams params )
+    {
+        Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
+        
+        Date latest = params.getLatestEndDate();
+        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
+        String valueItem = statementBuilder.columnQuote( params.getValue().getDimensionItem() );
+        List<String> columns = getLastValueSubqueryQuotedColumns( params );
+        
+        String sql = "(select ";
+        
+        for ( String col : columns )
+        {
+            sql += col + ",";
+        }
+        
+        sql += 
+            "row_number() over (" + 
+                "partition by ou, ao " +
+                "order by executiondate desc) as pe_rank " +
+            "from " + params.getTableName() + " " +
+            "where executiondate >= '" + getMediumDateString( earliest ) + "' " +
+            "and executiondate <= '" + getMediumDateString( latest ) + "' " +
+            "and " + valueItem + " is not null) " +
+            "as " + params.getTableName();
+        
+        return sql;
+    }
+
+    /**
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
+     * The period dimension is replaced by the name of the single period in the given 
+     * query.
+     */
+    private List<String> getLastValueSubqueryQuotedColumns( EventQueryParams params )
+    {
+        Period period = params.getLatestPeriod();
+        
+        String valueItem = params.getValue().getDimensionItem();
+        
+        List<String> cols = Lists.newArrayList( "yearly", valueItem );
+
+        cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
+        
+        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
+        {            
+            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
+            {
+                String alias = statementBuilder.columnQuote( dim.getDimensionName() );
+                String col = "'" + period.getDimensionItem() + "' as " + alias;
+                
+                cols.remove( alias ); // Remove column if already present, i.e. "yearly"
+                cols.add( col );
+            }
+            else
+            {
+                cols.add( statementBuilder.columnQuote( dim.getDimensionName() ) );
+            }
+        }
+
+        return cols;
     }
     
     /**
@@ -718,6 +830,7 @@ public class JdbcEventAnalyticsManager
         
         Legend legend = null;
         Option option = null;
+        
         if ( item.hasLegendSet() && ( legend = item.getLegendSet().getLegendByUid( itemValue ) ) != null )
         {
             return value + legend.getDisplayName();

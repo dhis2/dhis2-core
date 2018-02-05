@@ -131,7 +131,7 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
-            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInList();
+            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
             params.addAttributes( QueryItem.getQueryItems( attributes ) );
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
@@ -298,13 +298,13 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
-            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInList();
+            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
             params.addAttributes( QueryItem.getQueryItems( attributes ) );
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
         else if ( params.hasProgram() && !params.hasAttributes() )
         {
-            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getTrackedEntityAttributes() ) );
+            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getDisplayInListAttributes() ) );
         }
         else if( params.hasTrackedEntityType() && !params.hasAttributes() )
         {

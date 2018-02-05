@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate.dialect;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,32 +28,44 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.H2Dialect;
-
-import java.sql.Types;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * @author Lars Helge Overland
+ * Created by zubair@dhis2.org on 18.01.18.
  */
-public class DhisH2Dialect
-    extends H2Dialect
+public class ProgramNotificationPublisher
 {
-    public DhisH2Dialect()
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
+    public void publishEnrollment( ProgramInstance programInstance, ProgramNotificationEventType eventType )
     {
-        registerColumnType( Types.JAVA_OBJECT, "text" );
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programInstance, eventType );
+
+        publisher.publishEvent( event );
     }
 
-    @Override
-    public String getDropSequenceString( String sequenceName )
+    public void publishEnrollment( ProgramNotificationTemplate template, ProgramInstance programInstance, ProgramNotificationEventType type )
     {
-        // Adding the "if exists" clause to avoid warnings
-        return "drop sequence if exists " + sequenceName;
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programInstance, type );
+
+        publisher.publishEvent( event );
     }
 
-    @Override
-    public boolean dropConstraints()
+    public void publishEvent( ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
     {
-        // No need to drop constraints before dropping tables, leads to error messages
-        return false;
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programStageInstance, eventType );
+
+        publisher.publishEvent( event );
+    }
+
+    public void publishEvent( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance, ProgramNotificationEventType type )
+    {
+        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programStageInstance, type );
+
+        publisher.publishEvent( event );
     }
 }
