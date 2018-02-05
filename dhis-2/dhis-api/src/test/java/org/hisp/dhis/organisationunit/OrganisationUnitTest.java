@@ -28,14 +28,15 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -171,7 +172,7 @@ public class OrganisationUnitTest
     public void testSetMultiPolygonCoordinatesFromCollection()
     {
         OrganisationUnit unit = new OrganisationUnit();
-        unit.setMultiPolygonCoordinatesFromList( multiPolygonCoordinatesList );
+        unit.setCoordinates( CoordinateUtils.setMultiPolygonCoordinatesFromList( multiPolygonCoordinatesList ) );
         
         assertEquals( multiPolygonCoordinates, unit.getCoordinates() );
     }
@@ -180,7 +181,7 @@ public class OrganisationUnitTest
     public void testSetPointCoordinatesFromCollection()
     {
         OrganisationUnit unit = new OrganisationUnit();
-        unit.setPointCoordinatesFromList( pointCoordinatesList );
+        unit.setCoordinates( CoordinateUtils.setPointCoordinatesFromList( pointCoordinatesList ) );
         
         assertEquals( pointCoordinates, unit.getCoordinates() );
     }
@@ -192,10 +193,10 @@ public class OrganisationUnitTest
         unit.setCoordinates( multiPolygonCoordinates );
         unit.setFeatureType( FeatureType.MULTI_POLYGON );
         
-        assertEquals( 3, unit.getCoordinatesAsList().size() );
+        assertEquals( 3, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).size() );
         
-        assertEquals( tupleA, unit.getCoordinatesAsList().get( 0 ) );
-        assertEquals( tupleB, unit.getCoordinatesAsList().get( 1 ) );
-        assertEquals( tupleC, unit.getCoordinatesAsList().get( 2 ) );
+        assertEquals( tupleA, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 0 ) );
+        assertEquals( tupleB, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 1 ) );
+        assertEquals( tupleC, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), unit.getFeatureType() ).get( 2 ) );
     }
 }

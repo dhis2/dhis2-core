@@ -146,9 +146,7 @@ public class TableAlteror
         executeSql( "UPDATE program SET usefirststageduringregistration=false where usefirststageduringregistration is null" );
         executeSql( "UPDATE program SET capturecoordinates=false where capturecoordinates is null" );
         executeSql( "UPDATE program SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
-        executeSql( "UPDATE program SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
-        executeSql( "UPDATE trackedentitytype SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
-        executeSql( "UPDATE trackedentitytype SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
+        executeSql( "UPDATE program SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );        
 
         executeSql( "UPDATE programinstance SET followup=false where followup is null" );
 
@@ -313,7 +311,10 @@ public class TableAlteror
         executeSql( "update programinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
 
         executeSql( "update programstageinstance set createdatclient=created where createdatclient is null" );
-        executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );        
+        executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+        
+        executeSql( "UPDATE trackedentitytype SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
+        executeSql( "UPDATE trackedentitytype SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
         
     }
 

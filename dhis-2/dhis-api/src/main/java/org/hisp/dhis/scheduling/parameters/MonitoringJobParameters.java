@@ -31,7 +31,6 @@ package org.hisp.dhis.scheduling.parameters;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
 

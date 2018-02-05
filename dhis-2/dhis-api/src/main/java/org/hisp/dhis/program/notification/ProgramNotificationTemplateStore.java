@@ -29,7 +29,6 @@ package org.hisp.dhis.program.notification;
  */
 
 import org.hisp.dhis.common.GenericNameableObjectStore;
-import org.hisp.dhis.programrule.ProgramRule;
 
 import java.util.List;
 

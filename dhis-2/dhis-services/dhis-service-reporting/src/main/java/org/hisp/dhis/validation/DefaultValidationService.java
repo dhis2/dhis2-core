@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -115,12 +117,19 @@ public class DefaultValidationService
     @Autowired
     private ValidationResultService validationResultService;
 
-    private CurrentUserService currentUserService;
+    public void setAnalyticsService( AnalyticsService analyticsService )
+    {
+        this.analyticsService = analyticsService;
+    }
+
+    private AnalyticsService analyticsService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
+
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // ValidationRule business logic
@@ -134,7 +143,7 @@ public class DefaultValidationService
 
         clock.logTime( "Initialized validation analysis." );
 
-        Collection<ValidationResult> results = Validator.validate( context, applicationContext );
+        Collection<ValidationResult> results = Validator.validate( context, applicationContext, analyticsService );
 
         clock.logTime( "Finished validation analysis." ).stop();
 
@@ -248,18 +257,15 @@ public class DefaultValidationService
             orgUnits = Lists.newArrayList( parameterOrgUnit );
         }
 
-        Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap = new HashMap<>();
+        Map<PeriodType, PeriodTypeExtended> periodTypeXMap = new HashMap<>();
 
-        addPeriodsToContext( periodTypeExtendedMap, parameters.getPeriods() );
-        Map<String, DimensionalItemObject> dimensionItemMap = addRulesToContext( periodTypeExtendedMap,
-            parameters.getRules() );
-        removeAnyUnneededPeriodTypes( periodTypeExtendedMap );
-        addOrgUnitsToContext( periodTypeExtendedMap, orgUnits );
+        addPeriodsToContext( periodTypeXMap, parameters.getPeriods() );
+        addRulesToContext( periodTypeXMap, parameters.getRules() );
+        removeAnyUnneededPeriodTypes( periodTypeXMap );
 
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
-            .withPeriodTypeExtendedMap( periodTypeExtendedMap )
             .withOrgUnits( orgUnits )
-            .withEventItems( getEventItems( dimensionItemMap ) )
+            .withPeriodTypeXs( new ArrayList<>( periodTypeXMap.values() ) )
             .withConstantMap( constantService.getConstantMap() )
             .withInitialResults( validationResultService
                 .getValidationResults( parameterOrgUnit,
@@ -267,6 +273,7 @@ public class DefaultValidationService
             .withSendNotifications( parameters.isSendNotifications() )
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
+            .withDefaultAttributeCombo( categoryService.getDefaultDataElementCategoryOptionCombo() )
             .withMaxResults( parameters.getMaxResults() );
 
         if ( currentUser != null )
@@ -284,42 +291,67 @@ public class DefaultValidationService
     /**
      * Adds Periods to the context, grouped by period type.
      *
-     * @param periodTypeExtendedMap period type map to extended period types.
+     * @param periodTypeXMap period type map to extended period types.
      * @param periods               periods to group and add.
      */
-    private void addPeriodsToContext( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
+    private void addPeriodsToContext( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
         Collection<Period> periods )
     {
         for ( Period period : periods )
         {
-            PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( periodTypeExtendedMap,
+            PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( periodTypeXMap,
                 period.getPeriodType() );
             periodTypeX.getPeriods().add( period );
+        }
+
+        generateAllowedPeriods( periodTypeXMap.values() );
+    }
+
+    /**
+     * For each period type, allow all the longer period types in validation
+     * queries.
+     *
+     * @param periodTypeXs period types to generate allowed period types from.
+     */
+    private void generateAllowedPeriods( Collection<PeriodTypeExtended> periodTypeXs )
+    {
+        for ( PeriodTypeExtended p : periodTypeXs )
+        {
+            for ( PeriodTypeExtended q : periodTypeXs )
+            {
+                if ( q.getPeriodType().getFrequencyOrder() >= p.getPeriodType().getFrequencyOrder() )
+                {
+                    p.getAllowedPeriodTypes().add( q.getPeriodType() );
+                }
+            }
         }
     }
 
     /**
      * Adds validation rules to the context.
      *
-     * @param periodTypeExtendedMap period type map to extended period types.
+     * @param periodTypeXMap period type map to extended period types.
      * @param rules                 validation rules to add.
      */
-    private Map<String, DimensionalItemObject> addRulesToContext(
-        Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
+    private void addRulesToContext( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
         Collection<ValidationRule> rules )
     {
         // 1. Find all dimensional object IDs in the expressions of the validation rules.
 
         SetMap<Class<? extends DimensionalItemObject>, String> allItemIds = new SetMap<>();
 
-        SetMap<ValidationRule, String> ruleItemIds = new SetMap<>();
+        SetMap<PeriodTypeExtended, String> periodItemIds = new SetMap<>();
 
         for ( ValidationRule rule : rules )
         {
-            if ( periodTypeExtendedMap.get( rule.getPeriodType() ) == null )
+            PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
+
+            if ( periodX == null )
             {
                 continue; // Don't include rules for which there are no periods.
             }
+
+            periodX.getRuleXs().add( new ValidationRuleExtended( rule ) );
 
             SetMap<Class<? extends DimensionalItemObject>, String> dimensionItemIdentifiers = expressionService
                 .getDimensionalItemIdsInExpression( rule.getLeftSide().getExpression() );
@@ -329,7 +361,7 @@ public class DefaultValidationService
             Set<String> ruleIds = dimensionItemIdentifiers.values().stream()
                 .reduce( new HashSet<>(), Sets::union );
 
-            ruleItemIds.putValues( rule, ruleIds );
+            periodItemIds.putValues( periodX, ruleIds );
 
             allItemIds.putValues( dimensionItemIdentifiers );
         }
@@ -338,57 +370,43 @@ public class DefaultValidationService
 
         Map<String, DimensionalItemObject> dimensionItemMap = getDimensionalItemObjects( allItemIds );
 
-        // 3. Save the dimensional objects in the validation context.
+        // 3. Save the dimensional objects in the extended period types.
 
-        for ( ValidationRule rule : rules )
+        for ( Map.Entry<PeriodTypeExtended, Set<String>> e : periodItemIds.entrySet() )
         {
-            PeriodTypeExtended periodTypeX = periodTypeExtendedMap.get( rule.getPeriodType() );
+            PeriodTypeExtended periodTypeX = e.getKey();
 
-            if ( periodTypeX == null )
+            for ( String itemId : e.getValue() )
             {
-                continue;
-            }
+                DimensionalItemObject item = dimensionItemMap.get( itemId );
 
-            ValidationRuleExtended ruleX = new ValidationRuleExtended( rule );
-
-            Set<DimensionalItemObject> ruleDimensionItemObjects = ruleItemIds.get( rule ).stream()
-                .map( dimensionItemMap::get )
-                .collect( Collectors.toSet() );
-
-            if ( ruleDimensionItemObjects != null )
-            {
-                ruleX.setDimensionalItemObjects( ruleDimensionItemObjects );
-
-                Set<DataElementOperand> ruleDataElementOperands = ruleDimensionItemObjects.stream()
-                    .filter( o -> o != null && o.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
-                    .map( o -> (DataElementOperand) o )
-                    .collect( Collectors.toSet() );
-
-                if ( ruleDataElementOperands != null )
+                if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
                 {
-                    ruleX.setDataElementOperands( ruleDataElementOperands );
-
-                    Set<DataElement> ruleDataElements = ruleDataElementOperands.stream()
-                        .map( DataElementOperand::getDataElement )
-                        .collect( Collectors.toSet() );
-
-                    ruleX.setDataElements( ruleDataElements );
+                    periodTypeX.getDataItems().add( (DataElementOperand) item );
+                }
+                else if ( hasAttributeOptions( item ) )
+                {
+                    periodTypeX.getEventItems().add( item );
+                }
+                else
+                {
+                    periodTypeX.getEventItemsWithoutAttributeOptions().add( item );
                 }
             }
-
-            periodTypeX.getRuleXs().add( ruleX );
-
-            Set<DataElement> ruleDataElements = ruleX.getDataElements();
-
-            // Add data elements of rule to the period extended
-            periodTypeX.getDataElements().addAll( ruleDataElements );
-
-            // Add the allowed period types for data elements of rule
-            periodTypeX.getAllowedPeriodTypes().addAll(
-                getAllowedPeriodTypesForDataElements( ruleDataElements, rule.getPeriodType() ) );
         }
+    }
 
-        return dimensionItemMap;
+    /**
+     * Checks to see if a dimensional item object has values
+     * stored in the database by attribute option combo.
+     *
+     * @param o dimensional item object
+     * @return true if values are stored by attribuete option combo.
+     */
+    private boolean hasAttributeOptions( DimensionalItemObject o )
+    {
+        return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
+            || ( (ProgramIndicator)o ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
     }
 
     /**
@@ -532,48 +550,17 @@ public class DefaultValidationService
     /**
      * Removes any period types that don't have rules assigned to them.
      *
-     * @param periodTypeExtendedMap period type map to extended period types.
+     * @param periodTypeXMap period type map to extended period types.
      */
-    private void removeAnyUnneededPeriodTypes( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap )
+    private void removeAnyUnneededPeriodTypes( Map<PeriodType, PeriodTypeExtended> periodTypeXMap )
     {
-        Set<PeriodTypeExtended> periodTypeXs = new HashSet<>( periodTypeExtendedMap.values() );
+        List<PeriodTypeExtended> periodTypeXs = new ArrayList<>( periodTypeXMap.values() );
 
         for ( PeriodTypeExtended periodTypeX : periodTypeXs )
         {
             if ( periodTypeX.getRuleXs().isEmpty() )
             {
-                periodTypeExtendedMap.remove( periodTypeX.getPeriodType() );
-            }
-        }
-    }
-
-    /**
-     * Adds a collection of organisation units to the validation run context.
-     *
-     * @param periodTypeExtendedMap period type map to extended period types.
-     * @param orgUnits              organisation units to add.
-     */
-    private void addOrgUnitsToContext(
-        Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
-        Collection<OrganisationUnit> orgUnits )
-    {
-        for ( OrganisationUnit orgUnit : orgUnits )
-        {
-            Map<PeriodType, Set<DataElement>> orgUnitElementsMap = orgUnit.getDataElementsInDataSetsByPeriodType();
-
-            for ( PeriodTypeExtended periodTypeX : periodTypeExtendedMap.values() )
-            {
-                periodTypeX.getOrgUnitDataElements().put( orgUnit, new HashSet<>() );
-
-                for ( PeriodType allowedType : periodTypeX.getAllowedPeriodTypes() )
-                {
-                    Set<DataElement> orgUnitDataElements = orgUnitElementsMap.get( allowedType );
-
-                    if ( orgUnitDataElements != null )
-                    {
-                        periodTypeX.getOrgUnitDataElements().get( orgUnit ).addAll( orgUnitDataElements );
-                    }
-                }
+                periodTypeXMap.remove( periodTypeX.getPeriodType() );
             }
         }
     }
@@ -583,51 +570,21 @@ public class DefaultValidationService
      * creates a new PeriodTypeExtended object, puts it into the context object,
      * and returns it.
      *
-     * @param periodTypeExtendedMap period type map to extended period types.
+     * @param periodTypeXMap period type map to extended period types.
      * @param periodType            period type to search for
      * @return period type extended from the context object
      */
-    private PeriodTypeExtended getOrCreatePeriodTypeExtended( Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap,
+    private PeriodTypeExtended getOrCreatePeriodTypeExtended( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
         PeriodType periodType )
     {
-        PeriodTypeExtended periodTypeX = periodTypeExtendedMap.get( periodType );
+        PeriodTypeExtended periodTypeX = periodTypeXMap.get( periodType );
 
         if ( periodTypeX == null )
         {
             periodTypeX = new PeriodTypeExtended( periodType );
-            periodTypeExtendedMap.put( periodType, periodTypeX );
+            periodTypeXMap.put( periodType, periodTypeX );
         }
 
         return periodTypeX;
-    }
-
-    /**
-     * Finds all period types that may contain given data elements, whose period
-     * type interval is at least as long as the given period type.
-     *
-     * @param dataElements data elements to look for
-     * @param periodType   the minimum-length period type
-     * @return all period types that are allowed for these data elements
-     */
-    private static Set<PeriodType> getAllowedPeriodTypesForDataElements( Collection<DataElement> dataElements,
-        PeriodType periodType )
-    {
-        Set<PeriodType> allowedPeriodTypes = new HashSet<>();
-
-        if ( dataElements != null )
-        {
-            for ( DataElement dataElement : dataElements )
-            {
-                for ( DataSet dataSet : dataElement.getDataSets() )
-                {
-                    if ( dataSet.getPeriodType().getFrequencyOrder() >= periodType.getFrequencyOrder() )
-                    {
-                        allowedPeriodTypes.add( dataSet.getPeriodType() );
-                    }
-                }
-            }
-        }
-
-        return allowedPeriodTypes;
     }
 }
