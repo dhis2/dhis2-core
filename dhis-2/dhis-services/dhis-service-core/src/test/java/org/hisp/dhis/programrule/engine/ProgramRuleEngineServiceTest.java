@@ -43,6 +43,7 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -52,11 +53,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 
 /**
@@ -111,8 +109,10 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     public void test_whenNoImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_ShowError();
+
         List<RuleAction> actions = service.evaluate( programInstance );
 
+        verify( programRuleEngine, never() ).evaluateEnrollment( programInstance );
         assertEquals( 0, actions.size() );
     }
 
@@ -120,6 +120,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     public void test_withImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_SendMessage();
+
+        ArgumentCaptor<ProgramInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
+
         List<RuleAction> actions = service.evaluate( programInstance );
 
         assertEquals( 1, actions.size() );
@@ -131,6 +134,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
             assertEquals( NOTIFICATION_UID, ruleActionSendMessage.notification() );
         }
+
+        verify( programRuleEngine, times( 1 ) ).evaluateEnrollment( argumentCaptor.capture() );
+        assertEquals( programInstance, argumentCaptor.getValue() );
     }
 
     @Test
@@ -139,6 +145,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         setProgramRuleActionType_ShowError();
         List<RuleAction> actions = service.evaluate( programStageInstance );
 
+        verify( programRuleEngine, never() ).evaluateEvent( programStageInstance );
         assertEquals( 0, actions.size() );
     }
 
@@ -146,9 +153,14 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     public void test_withImplementableActionExist_programStageInstance()
     {
         setProgramRuleActionType_SendMessage();
+
+        ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
+
         List<RuleAction> actions = service.evaluate( programStageInstance );
 
         assertEquals( 1, actions.size() );
+        verify( programRuleEngine, times( 1 ) ).evaluateEvent( argumentCaptor.capture() );
+        assertEquals( programStageInstance, argumentCaptor.getValue() );
     }
 
     @Test
