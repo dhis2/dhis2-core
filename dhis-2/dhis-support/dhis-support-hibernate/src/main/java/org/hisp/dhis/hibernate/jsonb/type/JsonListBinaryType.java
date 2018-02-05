@@ -36,6 +36,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
+import org.postgresql.jdbc.PgClob;
 import org.postgresql.util.PGobject;
 
 import java.io.IOException;
@@ -97,7 +98,7 @@ public class JsonListBinaryType implements UserType, ParameterizedType
 
         if ( !rs.wasNull() )
         {
-            String content;
+            String content = null;
 
             if ( result instanceof String )
             {
@@ -107,10 +108,9 @@ public class JsonListBinaryType implements UserType, ParameterizedType
             {
                 content = ((PGobject) result).getValue();
             }
-            else
-            {
-                throw new IllegalArgumentException( "Unknown object type (expected PGObject or String)" );
-            }
+
+            // Other types currently ignored
+            
             if ( content != null )
             {
                 return convertJsonToObject( content );
@@ -204,6 +204,7 @@ public class JsonListBinaryType implements UserType, ParameterizedType
         try
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            
             if ( classLoader != null )
             {
                 return classLoader.loadClass( name );

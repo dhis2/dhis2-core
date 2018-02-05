@@ -96,7 +96,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
         if ( !rs.wasNull() )
         {
-            String content;
+            String content = null;
 
             if ( result instanceof String )
             {
@@ -106,10 +106,9 @@ public class JsonBinaryType implements UserType, ParameterizedType
             {
                 content = ((PGobject) result).getValue();
             }
-            else
-            {
-                throw new IllegalArgumentException( "Unknown object type (expected PGObject or String)" );
-            }
+            
+            // Other types currently ignored
+            
             if ( content != null )
             {
                 return convertJsonToObject( content );

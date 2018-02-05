@@ -274,11 +274,7 @@
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
-    <set name="favorites" table="eventchartfavorites">
-      <cache usage="read-write" />
-      <key column="eventchartid" foreign-key="fk_eventchartfavorites_eventchartid" />
-      <many-to-many class="org.hisp.dhis.user.User" column="userid" unique="true" foreign-key="fk_eventchartfavorites_userid" />
-    </set>
+    <property name="favorites" type="jbObjectFavorites" />
 
   </class>
 
