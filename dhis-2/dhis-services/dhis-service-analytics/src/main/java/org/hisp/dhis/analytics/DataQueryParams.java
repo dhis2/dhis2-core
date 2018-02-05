@@ -254,6 +254,11 @@ public class DataQueryParams
     protected Date endDate;
     
     /**
+     * The order in which the data values has to be sorted, can be null.
+     */
+    protected SortOrder order;
+    
+    /**
      * The API version used for the request.
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
@@ -417,6 +422,7 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.order = this.order;
         params.apiVersion = this.apiVersion;
         
         params.currentUser = this.currentUser;
@@ -1107,6 +1113,16 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether this query requires ordering of data values.
+     * 
+     * @return true if ordering is required , false otherwise.
+     */
+    public boolean hasOrder()
+    {
+    		return order != null;
+    }
+    
+    /**
      * Indicates whether this object has a program.
      */
     public boolean hasProgram()
@@ -1783,6 +1799,11 @@ public class DataQueryParams
     public Date getEndDate()
     {
         return endDate;
+    }
+    
+    public SortOrder getOrder()
+    {
+    		return order;
     }
 
     public DhisApiVersion getApiVersion()
@@ -2558,6 +2579,12 @@ public class DataQueryParams
         {
             this.params.endDate = endDate;
             return this;
+        }
+        
+        public Builder withOrder(SortOrder order)
+        {
+        		this.params.order = order;
+        		return this;
         }
         
         public Builder withApiVersion( DhisApiVersion apiVersion )
