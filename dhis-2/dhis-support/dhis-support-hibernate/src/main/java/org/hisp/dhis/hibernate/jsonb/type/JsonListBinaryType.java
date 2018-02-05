@@ -235,6 +235,7 @@ public class JsonListBinaryType implements UserType, ParameterizedType
         try
         {
             JavaType type = MAPPER.getTypeFactory().constructCollectionType( List.class, returnedClass() );
+            
             return MAPPER.readValue( content, type );
         }
         catch ( IOException e )

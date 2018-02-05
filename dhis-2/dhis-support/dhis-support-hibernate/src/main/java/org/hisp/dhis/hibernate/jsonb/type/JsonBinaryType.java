@@ -182,8 +182,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
         catch ( ClassNotFoundException e )
         {
-            throw new IllegalArgumentException( "Class: " + clazz
-                + " is not a known class type." );
+            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
         }
     }
 
@@ -199,6 +198,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         try
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            
             if ( classLoader != null )
             {
                 return classLoader.loadClass( name );
