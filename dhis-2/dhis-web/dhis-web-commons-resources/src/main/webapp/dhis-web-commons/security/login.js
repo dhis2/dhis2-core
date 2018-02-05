@@ -6,13 +6,14 @@ $( document ).ready( function()
 {
     $( '#j_username' ).focus();
 
-    $( '#2fa' ).change( function () {
-        $( '#2fa_code' ).val("").attr("readonly", true);
-        if ($( '#2fa' ).is(":checked")) {
-            $( '#2fa_code' ).removeAttr("hidden");
-            $( '#2fa_code' ).removeAttr("readonly");
-            $( '#2fa_code' ).focus();
-        }
+    var checked = document.getElementById( '2fa' ).checked;
+
+    $( '#2fa' ).click( function () {
+        $( '#2fa_code' ).attr("hidden", checked);
+        $( '#2fa_code' ).attr("readonly", checked);
+        document.getElementById( '2fa' ).checked = !checked
+
+        checked = !checked;
     });
 
     $( '#loginForm').bind( 'submit', function() 
