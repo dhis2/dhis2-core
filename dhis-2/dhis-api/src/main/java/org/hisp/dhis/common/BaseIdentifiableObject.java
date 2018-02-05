@@ -147,7 +147,7 @@ public class BaseIdentifiableObject
     /**
      * Users who have marked this object as a favorite.
      */
-    protected List<String> favorites = new ArrayList<>();
+    protected Set<String> favorites = new HashSet<>();
     
     /**
      * The i18n variant of the name. Not persisted.
@@ -493,12 +493,12 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "favorites", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "favorite", namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getFavorites()
+    public Set<String> getFavorites()
     {
         return favorites;
     }
 
-    public void setFavorites( List<String> favorites )
+    public void setFavorites( Set<String> favorites )
     {
         this.favorites = favorites;
     }
@@ -510,7 +510,7 @@ public class BaseIdentifiableObject
     {
         User user = UserContext.getUser();
         
-        return user != null ? favorites.contains( user.getUid() ) : false;
+        return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
     }
 
     // -------------------------------------------------------------------------

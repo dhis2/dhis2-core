@@ -39,7 +39,6 @@ import org.hisp.dhis.user.UserGroupAccess;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -70,7 +69,7 @@ public interface IdentifiableObject
 
     Set<ObjectTranslation> getTranslations();
     
-    List<String> getFavorites();
+    Set<String> getFavorites();
 
     boolean isFavorite();
     
