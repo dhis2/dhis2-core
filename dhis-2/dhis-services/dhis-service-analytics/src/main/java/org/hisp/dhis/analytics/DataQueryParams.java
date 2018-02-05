@@ -1119,7 +1119,7 @@ public class DataQueryParams
      */
     public boolean hasOrder()
     {
-    		return order != null;
+        return order != null;
     }
     
     /**
@@ -1803,7 +1803,7 @@ public class DataQueryParams
     
     public SortOrder getOrder()
     {
-    		return order;
+        return order;
     }
 
     public DhisApiVersion getApiVersion()
@@ -2581,10 +2581,10 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withOrder(SortOrder order)
+        public Builder withOrder( SortOrder order )
         {
-        		this.params.order = order;
-        		return this;
+            this.params.order = order;
+            return this;
         }
         
         public Builder withApiVersion( DhisApiVersion apiVersion )

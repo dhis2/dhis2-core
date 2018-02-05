@@ -330,10 +330,10 @@ public class DefaultAnalyticsService
             grid.removeColumn( DataQueryParams.DX_INDEX );
         }
         
-        if ( params.hasOrder() && grid.getIndexOfHeader( VALUE_ID ) >= 0 ) 
+        if ( params.hasOrder() && grid.getIndexOfHeader( VALUE_ID ) >= 0 )
         {
-        		int orderInt = params.getOrder().equals( SortOrder.ASC ) ? -1 : 1;
-        		grid.sortGrid( grid.getIndexOfHeader( VALUE_ID ) + 1, orderInt);
+            int orderInt = params.getOrder().equals( SortOrder.ASC ) ? -1 : 1;
+            grid.sortGrid( grid.getIndexOfHeader( VALUE_ID ) + 1, orderInt );
         }
     }
 
