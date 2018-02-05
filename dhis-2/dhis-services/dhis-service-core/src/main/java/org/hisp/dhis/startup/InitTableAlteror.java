@@ -131,7 +131,7 @@ public class InitTableAlteror
 
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
 
-        // Two Factor Authentication update
+        // 2FA fixes for 2.30
         executeSql( "UPDATE users set twofa = false where twofa is null" );
         executeSql( "ALTER TABLE  users alter column twofa set not null" );
     }

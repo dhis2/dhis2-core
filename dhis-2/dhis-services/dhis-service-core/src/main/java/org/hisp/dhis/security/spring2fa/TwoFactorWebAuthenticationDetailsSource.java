@@ -42,7 +42,6 @@ public class TwoFactorWebAuthenticationDetailsSource
     @Override
     public WebAuthenticationDetails buildDetails( HttpServletRequest request )
     {
-        System.out.println("called");
         return new TwoFactorWebAuthenticationDetails( request );
     }
 }
