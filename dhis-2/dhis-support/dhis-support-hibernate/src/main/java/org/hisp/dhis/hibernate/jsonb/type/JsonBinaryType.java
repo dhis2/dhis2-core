@@ -96,7 +96,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
         if ( !rs.wasNull() )
         {
-            String content;
+            String content = null;
 
             if ( result instanceof String )
             {
@@ -106,10 +106,9 @@ public class JsonBinaryType implements UserType, ParameterizedType
             {
                 content = ((PGobject) result).getValue();
             }
-            else
-            {
-                throw new IllegalArgumentException( "Unknown object type (expected PGObject or String)" );
-            }
+            
+            // Other types currently ignored
+            
             if ( content != null )
             {
                 return convertJsonToObject( content );
@@ -183,8 +182,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
         catch ( ClassNotFoundException e )
         {
-            throw new IllegalArgumentException( "Class: " + clazz
-                + " is not a known class type." );
+            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
         }
     }
 
@@ -200,6 +198,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         try
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            
             if ( classLoader != null )
             {
                 return classLoader.loadClass( name );
