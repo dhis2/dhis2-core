@@ -107,7 +107,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_whenNoImpletableActionExist_programInstance()
+    public void test_whenNoImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_ShowError();
         List<RuleAction> actions = service.evaluate( programInstance );
@@ -116,7 +116,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_withImpletableActionExist_programInstance()
+    public void test_withImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_SendMessage();
         List<RuleAction> actions = service.evaluate( programInstance );
@@ -166,7 +166,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 
         Program programA = createProgram('A', new HashSet<>(), organisationUnitA );
-        ProgramStage programStageA = createProgramStage('A', programA );
+        ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programRuleA = createProgramRule( 'R', programA );
         programRuleActionA = createProgramRuleAction( 'T' );
