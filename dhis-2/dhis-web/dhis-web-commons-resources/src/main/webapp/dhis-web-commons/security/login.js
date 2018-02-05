@@ -6,6 +6,15 @@ $( document ).ready( function()
 {
     $( '#j_username' ).focus();
 
+    $( '#2fa' ).change( function () {
+        $( '#2fa_code' ).val("").attr("readonly", true);
+        if ($( '#2fa' ).is(":checked")) {
+            $( '#2fa_code' ).removeAttr("hidden");
+            $( '#2fa_code' ).removeAttr("readonly");
+            $( '#2fa_code' ).focus();
+        }
+    });
+
     $( '#loginForm').bind( 'submit', function() 
     {
 		if ( window.location.hash )

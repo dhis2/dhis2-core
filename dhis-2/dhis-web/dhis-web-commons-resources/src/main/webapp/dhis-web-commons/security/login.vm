@@ -56,7 +56,10 @@
                 	<div id="signInLabel">Sign in</div>
                     <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
                     <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password" required></div>
-                    <div><input type="code" id="2fa_code" name="2fa_code" autocomplete="off" placeholder="Insert 2FA code if applicable"></div>
+                    <div>
+                        <label><input type="radio" name="2fa" value="2fa" id="2fa" required />Login using two factor authentication</label>
+                        <input type="code" id="2fa_code" name="2fa_code" placeholder="Two factor authentication code" hidden readonly >
+                    </div>
                 </div>
                 <div id="submitDiv">
                 	<input id="submit" class="button" type="submit" value="Sign in">
