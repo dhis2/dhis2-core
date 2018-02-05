@@ -38,6 +38,9 @@ import com.google.common.collect.Sets;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -423,6 +426,7 @@ public class ProgramIndicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Value.TRUE )
     public AnalyticsType getAnalyticsType()
     {
         return analyticsType;

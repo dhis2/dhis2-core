@@ -160,7 +160,7 @@ public class JdbcEnrollmentAnalyticsManager
     
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Analytics event aggregate SQL: " + sql );
+        log.debug( "Analytics enrollment aggregate SQL: " + sql );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
