@@ -64,6 +64,10 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "abc123";
 
+    // -------------------------------------------------------------------------
+    // Mocking Dependencies
+    // -------------------------------------------------------------------------
+
     @Mock
     private ProgramRuleEngine programRuleEngine;
 
@@ -209,6 +213,10 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         assertEquals( 0, actions.size() );
     }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private void setUpInstances()
     {
