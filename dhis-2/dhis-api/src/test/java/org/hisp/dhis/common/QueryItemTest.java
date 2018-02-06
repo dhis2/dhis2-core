@@ -92,7 +92,6 @@ public class QueryItemTest
     public void testGetOptionSetQueryFilterItems()
     {
         QueryItem qiA = new QueryItem( deA, null, ValueType.TEXT, AggregationType.SUM, osA );
-        
         qiA.addFilter( new QueryFilter( QueryOperator.IN, "CODEA;CODEB" ) );
         
         List<String> expected = Lists.newArrayList( "UIDA", "UIDB" );
@@ -111,7 +110,6 @@ public class QueryItemTest
     public void testGet()
     {
         QueryItem qiA = new QueryItem( deB, lsA, ValueType.TEXT, AggregationType.SUM, null );
-        
         qiA.addFilter( new QueryFilter( QueryOperator.IN, "UIDA;UIDB" ) );
 
         List<String> expected = Lists.newArrayList( "UIDA", "UIDB" );
