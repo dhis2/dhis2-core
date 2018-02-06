@@ -35,15 +35,14 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import static org.junit.Assert.*;
-
 import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+
+import static org.junit.Assert.*;
 
 /**
 * @author Lars Helge Overland
