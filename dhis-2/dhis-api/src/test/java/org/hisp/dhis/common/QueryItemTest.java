@@ -1,12 +1,5 @@
 package org.hisp.dhis.common;
 
-import java.util.List;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.legend.LegendSet;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -44,6 +37,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import static org.junit.Assert.*;
+
+import java.util.List;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 
 /**
 * @author Lars Helge Overland
