@@ -297,9 +297,7 @@ public class DefaultEventAnalyticsService
      * @param dimension the requested dimension
      */
     private void getEventDataObjects( Grid grid, EventQueryParams params,
-        Map<String, List<EventAnalyticsDimensionalItem>> table,
-        String dimension )
-        throws Exception
+        Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension ) throws Exception
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
@@ -333,8 +331,8 @@ public class DefaultEventAnalyticsService
      * @throws Exception throws exception if the given dimension is invalid
      */
     @SuppressWarnings( "unchecked" )
-    private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
-        throws Exception
+    private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, 
+        List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension ) throws Exception
     {
         if ( eventDimensionalItemObject == null )
         {
