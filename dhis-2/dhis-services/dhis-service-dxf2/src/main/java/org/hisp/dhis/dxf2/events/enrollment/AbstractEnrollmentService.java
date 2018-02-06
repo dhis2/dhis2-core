@@ -309,7 +309,10 @@ public abstract class AbstractEnrollmentService
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
+                if( !programStageInstance.isDeleted() )
+                {
+                    enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
+                }
             }
         }
 
