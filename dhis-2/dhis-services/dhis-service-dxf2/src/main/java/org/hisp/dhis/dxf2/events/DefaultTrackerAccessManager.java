@@ -135,7 +135,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
+            if ( !isInHierarchy( ou, user.getDataViewOrganisationUnitsWithFallback() ) )
             {
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
@@ -199,8 +199,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
-            { // TODO consider getDataViewOrganisationUnits
+            if ( !isInHierarchy( ou, user.getDataViewOrganisationUnitsWithFallback() ) )
+            {
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
