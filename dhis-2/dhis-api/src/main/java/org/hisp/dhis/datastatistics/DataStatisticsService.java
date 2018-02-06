@@ -31,7 +31,7 @@ package org.hisp.dhis.datastatistics;
 import java.util.Date;
 import java.util.List;
 
-import datasummary.DataSummary;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.analytics.SortOrder;
 
 /**

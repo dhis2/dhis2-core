@@ -28,7 +28,7 @@ package org.hisp.dhis.webapi.controller.datasummary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import datasummary.DataSummary;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;

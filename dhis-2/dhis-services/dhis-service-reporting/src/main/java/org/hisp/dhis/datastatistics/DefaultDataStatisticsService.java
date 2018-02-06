@@ -28,7 +28,7 @@ package org.hisp.dhis.datastatistics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import datasummary.DataSummary;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;

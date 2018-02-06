@@ -1,4 +1,4 @@
-package datasummary;
+package org.hisp.dhis.datasummary;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
