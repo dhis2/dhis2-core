@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -140,6 +141,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
+        // TODO consider TEI/TET data read sharing?
         Program program = programInstance.getProgram();
 
         if ( !aclService.canDataRead( user, program ) )
@@ -171,6 +173,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
+        // TODO consider TEI/TET data read/write sharing?
         Program program = programInstance.getProgram();
 
         if ( !aclService.canDataWrite( user, program ) )
@@ -197,11 +200,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
             if ( !isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() ) )
-            {
+            { // TODO consider getDataViewOrganisationUnits
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
+        // TODO consider TEI/TET data read sharing?
         ProgramStage programStage = programStageInstance.getProgramStage();
         Program program = programStage.getProgram();
 
@@ -241,17 +245,18 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
+        // TODO consider TEI/TET data read/write sharing?
         ProgramStage programStage = programStageInstance.getProgramStage();
         Program program = programStage.getProgram();
 
-        if ( !aclService.canDataRead( user, program ) )
+        if ( !aclService.canDataWrite( user, program ) )
         {
-            errors.add( "User has no data read access to program: " + program.getUid() );
+            errors.add( "User has no data write access to program: " + program.getUid() );
         }
 
-        if ( !aclService.canDataRead( user, programStage ) )
+        if ( !program.isWithoutRegistration() && !aclService.canDataWrite( user, programStage ) )
         {
-            errors.add( "User has no data read access to program stage: " + programStage.getUid() );
+            errors.add( "User has no data write access to program stage: " + programStage.getUid() );
         }
 
         errors.addAll( canWrite( user, programStageInstance.getAttributeOptionCombo() ) );
@@ -295,9 +300,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         DataElement dataElement = dataValue.getDataElement();
 
-        if ( !aclService.canWrite( user, dataElement ) )
+        if ( !aclService.canRead( user, dataElement ) )
         {
-            errors.add( "User has no write access to data element: " + dataElement.getUid() );
+            errors.add( "User has no read access to data element: " + dataElement.getUid() );
         }
 
         return errors;
@@ -313,7 +318,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        /*
         for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
             if ( !aclService.canDataRead( user, categoryOption ) )
@@ -321,7 +325,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no read access to category option: " + categoryOption.getUid() );
             }
         }
-        */
 
         return errors;
     }
@@ -336,7 +339,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        /*
         for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
             if ( !aclService.canDataWrite( user, categoryOption ) )
@@ -344,7 +346,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no write access to category option: " + categoryOption.getUid() );
             }
         }
-        */
 
         return errors;
     }
