@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentityattributevalue;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
@@ -38,10 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-
 import java.util.Collection;
 import java.util.List;
+
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 
 /**
  * @author Abyot Asalefew
@@ -65,7 +66,7 @@ public class DefaultTrackedEntityAttributeValueService
     private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
     @Autowired
-    private TrackedEntityAttributeReservedValueService trackedEntityAttributeReservedValueService;
+    private ReservedValueService reservedValueService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -142,7 +143,7 @@ public class DefaultTrackedEntityAttributeValueService
         if ( attributeValue.getValue() != null )
         {
             attributeValueStore.saveVoid( attributeValue );
-            trackedEntityAttributeReservedValueService.markTrackedEntityAttributeReservedValueAsUtilized( attributeValue.getAttribute(), attributeValue.getEntityInstance(), attributeValue.getAuditValue() );
+            reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
         }
     }
 
@@ -174,7 +175,7 @@ public class DefaultTrackedEntityAttributeValueService
 
             trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             attributeValueStore.update( attributeValue );
-            trackedEntityAttributeReservedValueService.markTrackedEntityAttributeReservedValueAsUtilized( attributeValue.getAttribute(), attributeValue.getEntityInstance(), attributeValue.getAuditValue() );
+            reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
         }
     }
 

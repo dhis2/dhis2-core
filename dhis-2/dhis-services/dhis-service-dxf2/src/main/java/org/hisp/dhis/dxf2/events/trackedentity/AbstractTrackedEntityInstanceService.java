@@ -55,6 +55,7 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -723,6 +724,18 @@ public abstract class AbstractTrackedEntityInstanceService
         return importConflicts;
     }
 
+    private List<ImportConflict> validateTextPatternValue( TrackedEntityAttribute attribute, String value )
+    {
+        List<ImportConflict> importConflicts = new ArrayList<>();
+
+        if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) )
+        {
+            importConflicts.add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern." ) );
+        }
+
+        return importConflicts;
+    }
+
     private List<ImportConflict> checkScope( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
         TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit )
     {
@@ -756,6 +769,11 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 importConflicts.add( new ImportConflict( "Attribute.attribute", "Invalid attribute " + attribute.getAttribute() ) );
                 continue;
+            }
+
+            if ( entityAttribute.isGenerated() && entityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
+            {
+                importConflicts.addAll( validateTextPatternValue( entityAttribute, attribute.getValue()) );
             }
 
             if ( entityAttribute.isUnique() )

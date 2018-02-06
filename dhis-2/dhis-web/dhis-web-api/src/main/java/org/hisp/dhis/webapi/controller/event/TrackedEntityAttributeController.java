@@ -37,7 +37,6 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -65,8 +64,6 @@ import java.util.stream.Collectors;
 public class TrackedEntityAttributeController
     extends AbstractCrudController<TrackedEntityAttribute>
 {
-    @Autowired
-    private TrackedEntityAttributeReservedValueService trackedEntityAttributeReservedValueService;
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
