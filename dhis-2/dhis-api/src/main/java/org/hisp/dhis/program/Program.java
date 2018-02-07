@@ -230,7 +230,7 @@ public class Program
      */
     public List<String> getSearchableAttributeIds()
     {        
-        return programAttributes.stream().filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() ).map( ProgramTrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+        return programAttributes.stream().filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() ).map( ProgramTrackedEntityAttribute::getAttribute ).map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
     }
     
     /**
