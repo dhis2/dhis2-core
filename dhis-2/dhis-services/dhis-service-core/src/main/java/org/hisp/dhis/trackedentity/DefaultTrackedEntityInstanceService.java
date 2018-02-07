@@ -50,6 +50,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -69,7 +70,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
@@ -116,6 +121,9 @@ public class DefaultTrackedEntityInstanceService
 
     @Autowired
     private TrackedEntityAttributeValueAuditService attributeValueAuditService;
+    
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -124,25 +132,46 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
+        if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
+        {
+            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
+            params.addAttributes( QueryItem.getQueryItems( attributes ) );
+            params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
+        }
+        
         decideAccess( params );
         validate( params );
-
+        
         params.setUser( currentUserService.getCurrentUser() );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
         }
-
-        return trackedEntityInstanceStore.getTrackedEntityInstances( params );
+        
+        Set<TrackedEntityAttribute> readableAttributes = attributeService.getAllUserReadableTrackedEntityAttributes();
+            
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
+ 
+        for( TrackedEntityInstance tei : trackedEntityInstances )
+        {             
+            tei.setTrackedEntityAttributeValues( tei.getTrackedEntityAttributeValues().stream().filter( av -> readableAttributes.contains( av.getAttribute() ) ).collect( Collectors.toSet() ) );
+        }
+        
+        return trackedEntityInstances;
+        
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
-    {
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    {        
         decideAccess( params );
         validate( params );
-        validateSearchScope( params );
+        
+        if( !sync )
+        {
+            validateSearchScope( params );
+        }        
         
         params.setUser( currentUserService.getCurrentUser() );
 
@@ -153,7 +182,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     public Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
-    {
+    {        
         decideAccess( params );
         validate( params );
         validateSearchScope( params );
@@ -272,23 +301,39 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
-            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInList();
+            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
             params.addAttributes( QueryItem.getQueryItems( attributes ) );
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
         else if ( params.hasProgram() && !params.hasAttributes() )
         {
-            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getTrackedEntityAttributes() ) );
+            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getDisplayInListAttributes() ) );
+        }
+        else if( params.hasTrackedEntityType() && !params.hasAttributes() )
+        {
+            params.addAttributes( QueryItem.getQueryItems( params.getTrackedEntityType().getTrackedEntityAttributes() ) );
         }
     }
 
     @Override
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
+        User user = currentUserService.getCurrentUser();
+        
         if ( params.isOrganisationUnitMode( ALL ) &&
             !currentUserService.currentUserIsAuthorized( F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS ) )
         {
             throw new IllegalQueryException( "Current user is not authorized to query across all organisation units" );
+        }
+        
+        if( params.hasProgram() && !aclService.canDataRead( user, params.getProgram() ) )
+        {
+            throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
+        }
+        
+        if( params.hasTrackedEntityType() && !aclService.canDataRead( user, params.getTrackedEntityType() ) )
+        {
+            throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
         }
     }
 
@@ -382,6 +427,8 @@ public class DefaultTrackedEntityInstanceService
     public void validateSearchScope( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
     {
+        
+        
         if ( params == null )
         {
             throw new IllegalQueryException( "Params cannot be null" );
@@ -399,6 +446,11 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
         
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() )
+        {
+            throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+        }
+        
         if( !isLocalSearch( params ) )
         {
             int maxTeiLimit = 0; // no limit
@@ -408,9 +460,9 @@ public class DefaultTrackedEntityInstanceService
                 throw new IllegalQueryException( "Query cannot be used during global search" );
             }
             
-            if ( !params.hasProgram() && !params.hasTrackedEntityType() )
+            if ( params.hasProgram() && params.hasTrackedEntityType() )
             {
-                throw new IllegalQueryException( "Either program or tracked entity need to be specified" );
+                throw new IllegalQueryException( "Program and tracked entity cannot be specified simultaneously" );
             }
             
             if( params.hasFilters() )
@@ -425,7 +477,7 @@ public class DefaultTrackedEntityInstanceService
                 if( params.hasTrackedEntityType() )
                 {
                     searchableAttributeIds.addAll( params.getTrackedEntityType().getSearchableAttributeIds() );
-                }
+                }                
                 
                 List<String> violatingAttributes = new ArrayList<>();
                 
@@ -863,39 +915,37 @@ public class DefaultTrackedEntityInstanceService
     {   
         User user = currentUserService.getCurrentUser();
         
-        if( user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback()  ) )
+        Set<OrganisationUnit> localOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+        
+        Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
+        
+        if( params.isOrganisationUnitMode( SELECTED ) )
         {
-            return true;
+            searchOrgUnits =  params.getOrganisationUnits();
         }
-        
-        if( params.isOrganisationUnitMode( ALL ) )
+        else if ( params.isOrganisationUnitMode( CHILDREN ) || params.isOrganisationUnitMode( DESCENDANTS )  )
         {
-            return user.getOrganisationUnits().containsAll( organisationUnitService.getRootOrganisationUnits() );
+            for( OrganisationUnit ou : params.getOrganisationUnits() )
+            {
+                searchOrgUnits.addAll( ou.getChildren() );
+            }
         }
-        
-        if( params.isOrganisationUnitMode( ACCESSIBLE ) )
-        {            
-            return user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback() );
-        }        
-        
-        for( OrganisationUnit searchOu : params.getOrganisationUnits() )
+        else if ( params.isOrganisationUnitMode( ALL ) )
         {
-            boolean localSearch = false;
-            
-            for( OrganisationUnit localOu : user.getOrganisationUnits() )
+            searchOrgUnits.addAll( organisationUnitService.getRootOrganisationUnits() );
+        }
+        else
+        {
+            searchOrgUnits.addAll( user.getTeiSearchOrganisationUnitsWithFallback() );
+        }                
+        
+        for( OrganisationUnit ou : searchOrgUnits )
+        {
+            if( !ou.isDescendant( localOrgUnits ) )
             {
-                if( searchOu.getPath().indexOf(  localOu.getUid() ) != - 1 )
-                {
-                    localSearch = true;
-                    break;
-                }
+                return false;
             }
-            
-            if( !localSearch )
-            {
-                return localSearch;
-            }
-        }        
+        }
         
         return true;
     }

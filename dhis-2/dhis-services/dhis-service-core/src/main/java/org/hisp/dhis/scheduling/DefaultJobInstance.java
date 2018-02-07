@@ -75,6 +75,14 @@ public class DefaultJobInstance
         setFinishingStatus( clock, schedulingManager, jobConfiguration );
     }
 
+    /**
+     * Set status properties of job after finish. If the job was executed manually and the job is disabled we want
+     * to set the status back to DISABLED.
+     *
+     * @param clock Clock for keeping track of time usage
+     * @param schedulingManager reference to scheduling manager
+     * @param jobConfiguration the job configuration
+     */
     private void setFinishingStatus( Clock clock, SchedulingManager schedulingManager, JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isInMemoryJob() )
@@ -86,6 +94,12 @@ public class DefaultJobInstance
         {
             jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
         }
+
+        if ( !jobConfiguration.isEnabled() )
+        {
+            jobConfiguration.setJobStatus( JobStatus.DISABLED );
+        }
+
         jobConfiguration.setNextExecutionTime( null );
         jobConfiguration.setLastExecuted( new Date() );
         jobConfiguration.setLastRuntimeExecution( clock.time() );
@@ -93,6 +107,16 @@ public class DefaultJobInstance
         schedulingManager.jobConfigurationFinished( jobConfiguration );
     }
 
+    /**
+     * Method which calls the execute method in the job. The job will run in this thread and finish, either with success
+     * or with an exception.
+     *
+     * @param jobConfiguration the configuration to execute
+     * @param schedulingManager a reference to the scheduling manager
+     * @param messageService a reference to the message service to notify admins if a job fails
+     * @param clock a clock object to keep time of the execution of the job
+     * @throws Exception if the job fails
+     */
     private void executeJob( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
         MessageService messageService, Clock clock )
         throws Exception

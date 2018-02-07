@@ -60,4 +60,10 @@ public class PushAnalysisJob
 
         pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
     }
+
+    @Override
+    protected String getJobId()
+    {
+        return "pushAnalysis";
+    }
 }

@@ -188,6 +188,11 @@ public class EventQueryParams
      */
     private ProgramStatus programStatus;
 
+    /**
+     * Indicates whether to include metadata details to response
+     */
+    protected boolean includeMetadataDetails;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -242,6 +247,7 @@ public class EventQueryParams
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
+        params.includeMetadataDetails = this.includeMetadataDetails;
 
         params.periodType = this.periodType;
 
@@ -740,6 +746,11 @@ public class EventQueryParams
     {
         return includeClusterPoints;
     }
+
+    public boolean isIncludeMetadataDetails()
+    {
+        return includeMetadataDetails;
+    }
     
     // -------------------------------------------------------------------------
     // Builder of immutable instances
@@ -790,6 +801,13 @@ public class EventQueryParams
         public Builder withEndDate( Date endDate )
         {
             this.params.endDate = endDate;
+            return this;
+        }
+
+        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
+            this.params.periodType = periodType;
             return this;
         }
         
@@ -1036,6 +1054,12 @@ public class EventQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+
+        public Builder withIncludeMetadataDetails( boolean includeMetadataDetails )
+        {
+            this.params.includeMetadataDetails = includeMetadataDetails;
             return this;
         }
         

@@ -32,6 +32,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,6 +49,8 @@ public class TrackedEntityInstanceQueryTest
     public void testValidateNoOrgUnitsModeAll()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType(  'A' );
+        params.setTrackedEntityType( trackedEntityTypeA );        
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         instanceService.validate( params );
     }

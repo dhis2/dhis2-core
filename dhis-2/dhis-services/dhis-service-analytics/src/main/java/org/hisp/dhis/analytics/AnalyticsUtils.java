@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -544,15 +545,15 @@ public class AnalyticsUtils
      * @param params the data query parameters.
      * @return a mapping between identifiers and meta data items.
      */
-    public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
+    public static Map<String, Object> getDimensionMetadataItemMap( DataQueryParams params )
     {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
 
-        Map<String, MetadataItem> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
 
         Calendar calendar = PeriodType.getCalendar();
 
-        Boolean includeMetadataDetails = params.includeMetadataDetails;
+        Boolean includeMetadataDetails = params.isIncludeMetadataDetails();
 
         for ( DimensionalObject dimension : dimensions )
         {
@@ -592,6 +593,26 @@ public class AnalyticsUtils
             }
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
+        }
+
+        Program program = params.getProgram();
+        ProgramStage stage = params.getProgramStage();
+
+        if ( ObjectUtils.allNotNull( program ) )
+        {
+            map.put( program.getUid(), new MetadataItem( program.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? program : null ) );
+
+            if ( stage != null )
+            {
+                map.put( stage.getUid(), new MetadataItem( stage.getDisplayName(), includeMetadataDetails ? stage : null ) );
+            }
+            else
+            {
+                for ( ProgramStage st : program.getProgramStages() )
+                {
+                    map.put( st.getUid(), new MetadataItem( st.getDisplayName(), includeMetadataDetails ? st : null ) );
+                }
+            }
         }
 
         return map;

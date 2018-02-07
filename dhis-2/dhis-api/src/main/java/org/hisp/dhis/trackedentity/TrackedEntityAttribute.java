@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.analytics.EventDimensionalItemObject;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -45,7 +46,8 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
  */
 @JacksonXmlRootElement( localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityAttribute
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject
+    implements MetadataObject, EventDimensionalItemObject
 {
     private String description;
 

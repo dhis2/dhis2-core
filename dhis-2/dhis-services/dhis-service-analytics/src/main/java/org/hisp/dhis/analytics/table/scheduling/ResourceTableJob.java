@@ -58,4 +58,10 @@ public class ResourceTableJob
     {
         analyticsTableGenerator.generateResourceTables( jobConfiguration );
     }
+
+    @Override
+    protected String getJobId()
+    {
+        return "resourceTableJob";
+    }
 }

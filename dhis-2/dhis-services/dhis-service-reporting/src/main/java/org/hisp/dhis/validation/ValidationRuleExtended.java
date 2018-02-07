@@ -33,9 +33,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 
 /**
  * Holds information for each validation rule that is needed during a validation
@@ -54,24 +51,27 @@ public class ValidationRuleExtended
 {
     private ValidationRule rule;
 
-    private Set<DimensionalItemObject> dimensionalItemObjects = new HashSet<>();
+    private Set<Integer> organisationUnitLevels;
 
-    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+    private boolean leftSlidingWindow;
 
-    private Set<DataElement> dataElements = new HashSet<>();
+    private boolean rightSlidingWindow;
 
     public ValidationRuleExtended( ValidationRule rule )
     {
         this.rule = rule;
+        this.organisationUnitLevels = new HashSet<>( rule.getOrganisationUnitLevels() );
+        this.leftSlidingWindow = rule.getLeftSide().getSlidingWindow();
+        this.rightSlidingWindow = rule.getRightSide().getSlidingWindow();
     }
 
     public String toString()
     {
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
             .append( "rule", rule )
-            .append( "dimensionalItemObjects", dimensionalItemObjects )
-            .append( "dataElementOperands", dataElementOperands )
-            .append( "dataElements", dataElements ).toString();
+            .append( "organisationUnitLevels", organisationUnitLevels )
+            .append( "leftSlidingWindow", leftSlidingWindow )
+            .append( "rightSlidingWindow", rightSlidingWindow ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -83,33 +83,18 @@ public class ValidationRuleExtended
         return rule;
     }
 
-    public Set<DimensionalItemObject> getDimensionalItemObjects()
+    public Set<Integer> getOrganisationUnitLevels()
     {
-        return dimensionalItemObjects;
+        return organisationUnitLevels;
     }
 
-    public void setDimensionalItemObjects( Set<DimensionalItemObject> dimensionalItemObjects )
+    public boolean getLeftSlidingWindow()
     {
-        this.dimensionalItemObjects = dimensionalItemObjects;
+        return leftSlidingWindow;
     }
 
-    public Set<DataElementOperand> getDataElementOperands()
+    public boolean getRightSlidingWindow()
     {
-        return dataElementOperands;
-    }
-
-    public void setDataElementOperands( Set<DataElementOperand> dataElementOperands )
-    {
-        this.dataElementOperands = dataElementOperands;
-    }
-
-    public Set<DataElement> getDataElements()
-    {
-        return dataElements;
-    }
-
-    public void setDataElements( Set<DataElement> dataElements )
-    {
-        this.dataElements = dataElements;
+        return rightSlidingWindow;
     }
 }

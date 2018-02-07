@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
@@ -37,12 +38,18 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -60,28 +67,27 @@ public class DefaultEventQueryPlanner
     // EventQueryPlanner implementation
     // -------------------------------------------------------------------------
 
-    // TODO use list of functional groupers and single loop
-    
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
-        List<EventQueryParams> queries = new ArrayList<>();
+        final List<EventQueryParams> queries = Lists.newArrayList( params );
         
-        List<EventQueryParams> groupedByQueryItems = groupByQueryItems( params );
-        
-        for ( EventQueryParams byQueryItem : groupedByQueryItems )
-        {      
-            List<EventQueryParams> groupedByOrgUnitLevel = QueryPlannerUtils.convert( queryPlanner.groupByOrgUnitLevel( byQueryItem ) );
+        List<Function<EventQueryParams, List<EventQueryParams>>> groupers = new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
+            .add( q -> groupByQueryItems( q ) )
+            .add( q -> groupByOrgUnitLevel( q ) )
+            .add( q -> groupByPeriodType( q ) )
+            .add( q -> groupByPeriod( q ) )
+            .build();
+
+        for ( Function<EventQueryParams, List<EventQueryParams>> grouper : groupers )
+        {
+            List<EventQueryParams> currentQueries = Lists.newArrayList( queries );
+            queries.clear();
             
-            for ( EventQueryParams byOrgUnitLevel : groupedByOrgUnitLevel )
-            {
-                queries.addAll( QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( byOrgUnitLevel ) ) );
-            }
+            currentQueries.forEach( query -> queries.addAll( grouper.apply( query ) ) );
         }
         
-        queries = withTableNameAndPartitions( queries );
-        
-        return queries;
+        return withTableNameAndPartitions( queries );
     }
 
     @Override
@@ -138,7 +144,29 @@ public class DefaultEventQueryPlanner
     }
     
     /**
-     * Group by items if query items are to be collapsed in order to aggregate
+     * Groups by organisation unit level.
+     * 
+     * @param params the event data query parameters.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> groupByOrgUnitLevel( EventQueryParams params )
+    {
+        return QueryPlannerUtils.convert( queryPlanner.groupByOrgUnitLevel( params ) );
+    }    
+
+    /**
+     * Groups by period types.
+     * 
+     * @param params the event data query parameters.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> groupByPeriodType( EventQueryParams params )
+    {
+        return QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( params ) );
+    }
+
+    /**
+     * Groups by items if query items are to be collapsed in order to aggregate
      * each item individually. Sets program on the given parameters.
      * 
      * @param params the event query parameters.
@@ -198,6 +226,39 @@ public class DefaultEventQueryPlanner
             queries.add( new EventQueryParams.Builder( params ).build() );
         }
         
+        return queries;
+    }
+
+    /**
+     * Groups the given query in sub queries for each dimension period. This only applies
+     * if the aggregation type is {@link AggregationType#LAST} or 
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be 
+     * aggregated individually.
+     * 
+     * @param params the data query parameters.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> groupByPeriod( EventQueryParams params )
+    {
+        List<EventQueryParams> queries = new ArrayList<>();
+        
+        if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        {
+            for ( DimensionalItemObject period : params.getPeriods() )
+            {
+                String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+                
+                EventQueryParams query = new EventQueryParams.Builder( params )
+                    .withPeriods( Lists.newArrayList( period ), periodType ).build();
+                
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( params );
+        }
+
         return queries;
     }
 }

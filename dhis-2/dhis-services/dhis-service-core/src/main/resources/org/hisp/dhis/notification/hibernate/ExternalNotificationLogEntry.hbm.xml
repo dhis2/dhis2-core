@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.notification.logging.ExternalNotificationLogEntry" table="externalnotificationlogentry">
+
+        <id name="id" column="externalnotificationlogentryid">
+            <generator class="native" />
+        </id>
+
+        <property name="uid" column="uid" unique="true" length="11" />
+
+        <property name="created" type="timestamp" not-null="true" />
+
+        <property name="lastUpdated" type="timestamp" not-null="true" />
+
+        <property name="lastSentAt" column="lastsentat" not-null="false" type="timestamp" />
+
+        <property name="retries" column="retries" not-null="false" />
+
+        <property name="key" column="key" not-null="true" type="text" unique="true" />
+
+        <property name="notificationTemplateUid" column="templateuid" not-null="true" type="text" />
+
+        <property name="allowMultiple" column="allowmultiple" />
+
+        <property name="notificationTriggeredBy" column="triggerby">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.notification.logging.NotificationTriggerEvent</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+    </class>
+</hibernate-mapping>

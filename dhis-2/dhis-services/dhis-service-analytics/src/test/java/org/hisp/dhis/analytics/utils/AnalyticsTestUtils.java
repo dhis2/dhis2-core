@@ -91,6 +91,7 @@ public class AnalyticsTestUtils
 
         reader.readRecord(); // Ignore first row
         ArrayList<String[]> lines = new ArrayList<>();
+        
         while ( reader.readRecord() )
         {
             String[] values = reader.getValues();
@@ -105,21 +106,26 @@ public class AnalyticsTestUtils
      * aggregatedResultMapping. Also test for null values.
      *
      * @param aggregatedResultData aggregated results
-     * @param keyValue             expected results
+     * @param keyValue expected results
      */
     public static void assertResultGrid( Grid aggregatedResultData, Map<String, Double> keyValue )
     {
         assertNotNull( aggregatedResultData );
+        
         for ( int i = 0; i < aggregatedResultData.getRows().size(); i++ )
         {
             int numberOfDimensions = aggregatedResultData.getRows().get( 0 ).size() - 1;
 
             StringBuilder key = new StringBuilder();
+            
             for ( int j = 0; j < numberOfDimensions; j++ )
             {
                 key.append( aggregatedResultData.getValue( i, j ).toString() );
+                
                 if ( j != numberOfDimensions - 1 )
+                {
                     key.append( "-" );
+                }
             }
 
             Double expected = keyValue.get( key.toString() );
@@ -127,8 +133,7 @@ public class AnalyticsTestUtils
 
             assertNotNull( "Did not find '" + key + "' in provided results", expected );
             assertNotNull( aggregatedResultData.getRow( i ) );
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
@@ -138,7 +143,7 @@ public class AnalyticsTestUtils
      * aggregatedDataValueMapping
      *
      * @param aggregatedResultMapping aggregated values
-     * @param keyValue                   expected results
+     * @param keyValue expected results
      */
     public static void assertResultMapping( Map<String, Object> aggregatedResultMapping,
         Map<String, Double> keyValue )
@@ -154,8 +159,7 @@ public class AnalyticsTestUtils
             Double actual = (Double) entry.getValue();
 
             assertNotNull( "Did not find '" + key + "' in provided results", expected );
-            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
@@ -164,7 +168,7 @@ public class AnalyticsTestUtils
      * aggregatedDataValueSet. Also test for null values.
      *
      * @param aggregatedResultSet aggregated values
-     * @param keyValue               expected results
+     * @param keyValue expected results
      */
     public static void assertResultSet( DataValueSet aggregatedResultSet, Map<String, Double> keyValue )
     {
@@ -176,8 +180,7 @@ public class AnalyticsTestUtils
             Double actual = Double.parseDouble( dataValue.getValue() );
             Double expected = keyValue.get( key );
 
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 }

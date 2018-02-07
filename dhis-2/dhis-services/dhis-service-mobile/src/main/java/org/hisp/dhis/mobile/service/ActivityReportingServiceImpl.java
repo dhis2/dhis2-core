@@ -1658,7 +1658,7 @@ public class ActivityReportingServiceImpl
     {
         TrackedEntityInstanceQueryParams param = new TrackedEntityInstanceQueryParams();
         List<TrackedEntityAttribute> displayAttributes = new ArrayList<>(
-            attributeService.getTrackedEntityAttributesDisplayInList() );
+            attributeService.getTrackedEntityAttributesDisplayInListNoProgram() );
 
         for ( TrackedEntityAttribute trackedEntityAttribute : displayAttributes )
         {
@@ -2173,7 +2173,7 @@ public class ActivityReportingServiceImpl
         {
             TrackedEntityInstance instance = entityInstanceService.getTrackedEntityInstance( (String) row.get( 0 ) );
             Collection<TrackedEntityAttribute> displayAttributes = attributeService
-                .getTrackedEntityAttributesDisplayInList();
+                .getTrackedEntityAttributesDisplayInListNoProgram();
 
             eventsInfo += instance.getId() + "/";
             String displayName = "";

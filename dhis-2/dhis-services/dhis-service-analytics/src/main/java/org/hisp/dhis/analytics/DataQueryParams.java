@@ -44,7 +44,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
@@ -254,6 +256,11 @@ public class DataQueryParams
     protected Date endDate;
     
     /**
+     * The order in which the data values has to be sorted, can be null.
+     */
+    protected SortOrder order;
+    
+    /**
      * The API version used for the request.
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
@@ -417,6 +424,7 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.order = this.order;
         params.apiVersion = this.apiVersion;
         
         params.currentUser = this.currentUser;
@@ -950,10 +958,10 @@ public class DataQueryParams
         return getDimensionItemObjects( dimension ).toArray( new DimensionalItemObject[0] );
     }
 
-    public List<EventReportDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
+    public List<EventAnalyticsDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
     {
         return getDimensionItemObjects( dimension ).stream()
-            .map( item -> new EventReportDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
+            .map( item -> new EventAnalyticsDimensionalItem( item, dimension ) ).collect( Collectors.toList() );
     }
     
     /**
@@ -1106,6 +1114,16 @@ public class DataQueryParams
         return startDate != null && endDate != null;
     }
 
+    /**
+     * Indicates whether this query requires ordering of data values.
+     * 
+     * @return true if ordering is required , false otherwise.
+     */
+    public boolean hasOrder()
+    {
+        return order != null;
+    }
+    
     /**
      * Indicates whether this object has a program.
      */
@@ -1784,6 +1802,11 @@ public class DataQueryParams
     {
         return endDate;
     }
+    
+    public SortOrder getOrder()
+    {
+        return order;
+    }
 
     public DhisApiVersion getApiVersion()
     {
@@ -1953,6 +1976,27 @@ public class DataQueryParams
     public List<DimensionalItemObject> getAllPeriods()
     {
         return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
+    }
+    
+    /**
+     * Returns all programs part of program attributes and program data elements
+     * part of a dimension or filter.
+     */
+    public Set<Program> getAllProgramsInAttributesAndDataElements()
+    {
+        final Set<Program> programs = new HashSet<>();
+        
+        getAllProgramAttributes().stream()
+            .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a)
+            .filter( a -> a.getProgram() != null )
+            .forEach( a -> programs.add( a.getProgram() ) );
+        
+        getAllProgramDataElements().stream()
+            .map( d -> (ProgramDataElementDimensionItem) d)
+            .filter( d -> d.getProgram() != null )
+            .forEach( d -> programs.add( d.getProgram() ) );
+        
+        return programs;            
     }
 
     // -------------------------------------------------------------------------
@@ -2557,6 +2601,12 @@ public class DataQueryParams
         public Builder withEndDate( Date endDate )
         {
             this.params.endDate = endDate;
+            return this;
+        }
+        
+        public Builder withOrder( SortOrder order )
+        {
+            this.params.order = order;
             return this;
         }
         

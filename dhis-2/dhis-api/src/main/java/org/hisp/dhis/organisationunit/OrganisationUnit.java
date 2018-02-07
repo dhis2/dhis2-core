@@ -36,17 +36,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -67,8 +68,8 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends CoordinateBaseDimensionalItemObject
-    implements MetadataObject
+    extends BaseDimensionalItemObject
+    implements MetadataObject, CoordinateObject
 {
     private static final String PATH_SEP = "/";
 
@@ -115,6 +116,10 @@ public class OrganisationUnit
     private Set<User> users = new HashSet<>();
 
     private Set<DataElementCategoryOption> categoryOptions = new HashSet<>();
+
+    private FeatureType featureType = FeatureType.NONE;
+
+    private String coordinates;
 
     // -------------------------------------------------------------------------
     // Transient fields
@@ -354,10 +359,9 @@ public class OrganisationUnit
         return children == null || children.isEmpty();
     }
 
-    @Override
     public boolean hasDescendantsWithCoordinates()
     {
-        return children.stream().anyMatch( OrganisationUnit::hasCoordinates );
+        return CoordinateUtils.hasDescendantsWithCoordinates( children );
     }
 
     public boolean isDescendant( OrganisationUnit ancestor )
@@ -598,30 +602,6 @@ public class OrganisationUnit
         }
 
         return uids;
-    }
-
-    public Set<DataElement> getDataElementsInDataSets()
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            dataElements.addAll( dataSet.getDataElements() );
-        }
-
-        return dataElements;
-    }
-
-    public Map<PeriodType, Set<DataElement>> getDataElementsInDataSetsByPeriodType()
-    {
-        SetMap<PeriodType, DataElement> map = new SetMap<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            map.putValues( dataSet.getPeriodType(), dataSet.getDataElements() );
-        }
-
-        return map;
     }
 
     public void updateParent( OrganisationUnit newParent )
@@ -1047,6 +1027,43 @@ public class OrganisationUnit
     public void setCategoryOptions( Set<DataElementCategoryOption> categoryOptions )
     {
         this.categoryOptions = categoryOptions;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
+    }
+
+    @Override
+    public boolean hasFeatureType()
+    {
+        return getFeatureType() != null;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.GEOLOCATION )
+    public String getCoordinates()
+    {
+        return coordinates;
+    }
+
+    public void setCoordinates( String coordinates )
+    {
+        this.coordinates = coordinates;
+    }
+
+    @Override
+    public boolean hasCoordinates()
+    {
+        return getCoordinates() != null;
     }
 
     // -------------------------------------------------------------------------

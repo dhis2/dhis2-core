@@ -39,15 +39,22 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -84,10 +91,19 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+    
+    @Autowired
     private UserService userService;
 
     @Autowired
     private ApplicationContext applicationContext;
+    
+    @Autowired
+    private CurrentUserService currentUserService;
+    
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -156,9 +172,9 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList()
+    public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram()
     {
-        return attributeStore.getDisplayInList();
+        return attributeStore.getDisplayInListNoProgram();
     }
 
     @Override
@@ -175,6 +191,9 @@ public class DefaultTrackedEntityAttributeService
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
+        
+        //Search at least TEI's of the same type
+        params.setTrackedEntityType( trackedEntityInstance.getTrackedEntityType() );
 
         if ( trackedEntityAttribute.getOrgunitScope() && trackedEntityAttribute.getProgramScope() )
         {
@@ -275,6 +294,21 @@ public class DefaultTrackedEntityAttributeService
         }
 
         return null;
+    }
+    
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
+    {
+        Set<TrackedEntityAttribute> attributes = new HashSet<>();
+        
+        User user = currentUserService.getCurrentUser();        
+        
+        attributes = programService.getAllPrograms().stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
+            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );                
+        
+        attributes.addAll( trackedEntityTypeService.getAllTrackedEntityType().stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
+            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );        
+        
+        return attributes;
     }
 
     // -------------------------------------------------------------------------

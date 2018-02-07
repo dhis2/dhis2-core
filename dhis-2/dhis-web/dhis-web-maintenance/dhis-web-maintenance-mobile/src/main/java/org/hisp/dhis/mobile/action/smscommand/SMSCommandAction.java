@@ -28,11 +28,7 @@ package org.hisp.dhis.mobile.action.smscommand;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -237,6 +233,16 @@ public class SMSCommandAction
             if ( d != null )
             {
                 dataElements = new ArrayList<>( d.getDataElements() );
+
+                Collections.sort( dataElements, new Comparator<DataElement>()
+                {
+                    @Override
+                    public int compare( DataElement o1, DataElement o2 )
+                    {
+                        return o1.getName().compareTo( o2.getName() );
+                    }
+                });
+
                 return dataElements;
             }
         }
