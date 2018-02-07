@@ -143,7 +143,12 @@ public class DefaultTrackedEntityAttributeValueService
         if ( attributeValue.getValue() != null )
         {
             attributeValueStore.saveVoid( attributeValue );
-            reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+
+            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+            {
+                reservedValueService
+                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+            }
         }
     }
 
@@ -175,8 +180,12 @@ public class DefaultTrackedEntityAttributeValueService
 
             trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             attributeValueStore.update( attributeValue );
-            reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
-        }
+
+            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+            {
+                reservedValueService
+                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+            }        }
     }
 
     @Override

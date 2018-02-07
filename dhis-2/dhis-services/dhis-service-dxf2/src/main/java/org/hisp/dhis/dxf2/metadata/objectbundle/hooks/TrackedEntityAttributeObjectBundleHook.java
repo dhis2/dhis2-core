@@ -75,7 +75,7 @@ public class TrackedEntityAttributeObjectBundleHook
         {
             TrackedEntityAttribute attr = (TrackedEntityAttribute) persistedObject;
 
-            if ( attr.getPattern() != null )
+            if ( attr.isGenerated() )
             {
                 try
                 {
@@ -96,7 +96,7 @@ public class TrackedEntityAttributeObjectBundleHook
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( attr.getPattern() != null )
+        if ( attr.isGenerated() )
         {
             try
             {

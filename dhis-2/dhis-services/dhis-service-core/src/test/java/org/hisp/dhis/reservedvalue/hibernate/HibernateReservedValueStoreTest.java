@@ -58,11 +58,11 @@ public class HibernateReservedValueStoreTest
 
     private static int counter = 1;
 
-    private final ReservedValue RESERVED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE, "A",
+    private final ReservedValue RESERVED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
         "00X", "001",
         null );
 
-    private final ReservedValue USED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE, "A",
+    private final ReservedValue USED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
         "00X", "002",
         null );
 
@@ -245,7 +245,7 @@ public class HibernateReservedValueStoreTest
     private ReservedValue getFreeReservedValue()
     {
         return new ReservedValue(
-            Objects.TRACKEDENTITYATTRIBUTE,
+            Objects.TRACKEDENTITYATTRIBUTE.name(),
             "FREE",
             "00X",
             String.format( "%03d", counter++ ),

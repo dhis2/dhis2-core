@@ -311,7 +311,7 @@ public class DefaultReservedValueServiceTest
     {
         try
         {
-            return new ReservedValue( Objects.fromClass( owner.getClass() ), owner.getUid(), key, "", new Date() );
+            return new ReservedValue( Objects.fromClass( owner.getClass() ).name(), owner.getUid(), key, "", new Date() );
         }
         catch ( IllegalAccessException e )
         {

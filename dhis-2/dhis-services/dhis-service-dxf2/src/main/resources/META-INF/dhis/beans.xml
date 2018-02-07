@@ -44,8 +44,6 @@
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeValueObjectBundleHook" class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeValueObjectBundleHook" />
-
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleValidationService" />
