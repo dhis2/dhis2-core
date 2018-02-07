@@ -1937,6 +1937,17 @@ public class DataQueryParams
     {
         return ImmutableList.copyOf( ListUtils.union( getReportingRates(), getFilterReportingRates() ) );
     }
+    
+    /**
+     * Returns all data sets part of a dimension or filter.
+     */
+    public Set<DimensionalItemObject> getAllDataSets()
+    {
+        return getAllReportingRates().stream()
+            .map( r -> (ReportingRate) r )
+            .map( r -> r.getDataSet() )
+            .collect( Collectors.toSet() );
+    }
 
     /**
      * Returns all program attributes part of a dimension or filter.
@@ -1977,14 +1988,38 @@ public class DataQueryParams
     {
         return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
     }
+
+    /**
+     * Returns all data element group sets specified as dimensions or filters.
+     */
+    public List<DimensionalObject> getDataElementGroupSets()
+    {
+        return ListUtils.union( dimensions, filters ).stream()
+            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
+    }
+    
+    /**
+     * Returns all category options parts of categories specified as dimensions
+     * or filters.
+     */
+    public Set<DimensionalItemObject> getCategoryOptions()
+    {
+        final Set<DimensionalItemObject> categoryOptions = new HashSet<>();
+        
+        ListUtils.union( dimensions, filters ).stream()
+            .filter( d -> DimensionType.CATEGORY.equals( d.getDimensionType() ) )
+            .forEach( d -> categoryOptions.addAll( d.getItems() ) );
+        
+        return categoryOptions;
+    }
     
     /**
      * Returns all programs part of program attributes and program data elements
      * part of a dimension or filter.
      */
-    public Set<Program> getAllProgramsInAttributesAndDataElements()
+    public Set<IdentifiableObject> getProgramsInAttributesAndDataElements()
     {
-        final Set<Program> programs = new HashSet<>();
+        final Set<IdentifiableObject> programs = new HashSet<>();
         
         getAllProgramAttributes().stream()
             .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a)
@@ -1998,7 +2033,7 @@ public class DataQueryParams
         
         return programs;            
     }
-
+    
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
@@ -2073,15 +2108,6 @@ public class DataQueryParams
     public List<DimensionalItemObject> getOrganisationUnits()
     {
         return ImmutableList.copyOf( getDimensionOptions( ORGUNIT_DIM_ID ) );
-    }
-
-    /**
-     * Returns all data element group sets specified as dimensions.
-     */
-    public List<DimensionalObject> getDataElementGroupSets()
-    {
-        return ListUtils.union( dimensions, filters ).stream().
-            filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
     }
 
     /**
