@@ -10,8 +10,8 @@ addons:
 before_install:
 - rm ~/.m2/settings.xml
 script:
-  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -f --batch-mode ./dhis-2/pom.xml
-  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -f --batch-mode ./dhis-2/dhis-web/pom.xml -U
+  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" --batch-mode -f ./dhis-2/pom.xml
+  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" --batch-mode -f ./dhis-2/dhis-web/pom.xml -U
 branches:
   only:
   - master
