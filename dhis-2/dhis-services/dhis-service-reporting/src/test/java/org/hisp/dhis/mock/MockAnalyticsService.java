@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.mock;
+package org.hisp.dhis.mock;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
