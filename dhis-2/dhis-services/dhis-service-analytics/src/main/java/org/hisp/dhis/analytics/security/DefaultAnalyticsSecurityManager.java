@@ -77,12 +77,21 @@ public class DefaultAnalyticsSecurityManager
     @Override
     public void decideAccess( DataQueryParams params )
     {
-        // ---------------------------------------------------------------------
-        // Check current user data view access to org units
-        // ---------------------------------------------------------------------
-        
         User user = currentUserService.getCurrentUser();
         
+        decideAccessDataViewOrgUnits( params, user );        
+    }
+
+    /**
+     * Checks current user data view access to organisation units.
+     * 
+     * @param params the data query parameters.
+     * @param user the user to check.
+     * @throws IllegalQueryException if user does not have access.
+     */
+    private void decideAccessDataViewOrgUnits( DataQueryParams params, User user )
+        throws IllegalQueryException
+    {        
         List<DimensionalItemObject> queryOrgUnits = params.getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
         
         if ( queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit() )
@@ -102,7 +111,7 @@ public class DefaultAnalyticsSecurityManager
             }
         }
     }
-
+    
     @Override
     public void decideAccessEventQuery( EventQueryParams params )
     {
