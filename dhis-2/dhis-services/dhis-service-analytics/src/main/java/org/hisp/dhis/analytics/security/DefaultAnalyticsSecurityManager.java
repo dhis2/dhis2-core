@@ -34,11 +34,11 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -46,6 +46,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,8 +85,8 @@ public class DefaultAnalyticsSecurityManager
     {
         User user = currentUserService.getCurrentUser();
         
-        decideAccessDataViewOrgUnits( params, user );
-        decideAccessPrograms( params, user );
+        decideAccessDataViewOrganisationUnits( params, user );
+        decideAccessDataReadObjects( params, user );
     }
 
     /**
@@ -95,7 +96,7 @@ public class DefaultAnalyticsSecurityManager
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
-    private void decideAccessDataViewOrgUnits( DataQueryParams params, User user )
+    private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
         throws IllegalQueryException
     {        
         List<DimensionalItemObject> queryOrgUnits = params.getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
@@ -118,27 +119,37 @@ public class DefaultAnalyticsSecurityManager
     }
     
     /**
-     * Checks whether the given user has data read access to all programs.
+     * Checks whether the given user has data read access to all programs,
+     * program stages, data sets and category options in the request.
      * 
      * @param params the data query parameters.
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
-    private void decideAccessPrograms( DataQueryParams params, User user )
+    private void decideAccessDataReadObjects( DataQueryParams params, User user )
         throws IllegalQueryException
     {
-        Set<Program> programs = params.getAllProgramsInAttributesAndDataElements();
+        Set<IdentifiableObject> objects = new HashSet<>();
+        objects.addAll( params.getAllDataSets() );
+        objects.addAll( params.getProgramsInAttributesAndDataElements() );
+        objects.addAll( params.getCategoryOptions() );
         
         if ( params.hasProgram() )
         {
-            programs.add( params.getProgram() );
+            objects.add( params.getProgram() );
         }
         
-        for ( Program program : programs )
+        if ( params.hasProgramStage() )
         {
-            boolean canNotRead = !aclService.canDataRead( user, program );
+            objects.add( params.getProgramStage() );
+        }
+        
+        for ( IdentifiableObject object : objects )
+        {
+            boolean canNotRead = !aclService.canDataRead( user, object );
+            String className = TextUtils.getPrettyClassName( object.getClass() );
             
-            throwExWhenTrue( canNotRead, String.format( "User: %s is not allowed to read data for program: %s", user.getUsername(), program.getUid() ) );
+            throwExWhenTrue( canNotRead, String.format( "User: %s is not allowed to read data for %s: %s", user.getUsername(), className, object.getUid() ) );
         }
     }
     
