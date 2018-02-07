@@ -138,8 +138,6 @@ public class DefaultAnalyticsSecurityManager
         {
             boolean canNotRead = !aclService.canDataRead( user, program );
             
-            System.out.println( "user " + user );
-            System.out.println( "pr " + program );
             throwExWhenTrue( canNotRead, String.format( "User: %s is not allowed to read program: %s", user.getUsername(), program.getUid() ) );
         }
     }
