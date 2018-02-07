@@ -269,17 +269,23 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         ProgramStage programStage = programStageInstance.getProgramStage();
         Program program = programStage.getProgram();
 
-        // TODO canDataWrite if program is single event?
-        if ( !aclService.canDataRead( user, program ) )
+        if ( program.isWithoutRegistration() )
         {
-            errors.add( "User has no data read access to program: " + program.getUid() );
+            if ( !aclService.canDataWrite( user, program ) )
+            {
+                errors.add( "User has no data write access to program: " + program.getUid() );
+            }
         }
-
-        if ( !program.isWithoutRegistration() )
+        else
         {
             if ( !aclService.canDataWrite( user, programStage ) )
             {
                 errors.add( "User has no data write access to program stage: " + programStage.getUid() );
+            }
+
+            if ( !aclService.canDataRead( user, program ) )
+            {
+                errors.add( "User has no data read access to program: " + program.getUid() );
             }
 
             if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
