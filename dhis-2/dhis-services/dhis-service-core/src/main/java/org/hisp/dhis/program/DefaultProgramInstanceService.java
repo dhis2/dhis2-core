@@ -125,6 +125,7 @@ public class DefaultProgramInstanceService
         else
         {
             programInstance.setDeleted( true );
+            programInstance.setStatus( ProgramStatus.CANCELLED );
             programInstanceStore.update( programInstance );
         }
     }
