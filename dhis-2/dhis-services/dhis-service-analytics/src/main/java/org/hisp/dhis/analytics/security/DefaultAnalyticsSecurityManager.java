@@ -315,6 +315,13 @@ public class DefaultAnalyticsSecurityManager
         }        
     }
     
+    /**
+     * Throws {@link IllegalQueryException} with the given message if the 
+     * given condition is true.
+     * 
+     * @param condition the condition.
+     * @param message the message.
+     */
     private void throwExWhenTrue( boolean condition, String message )
     {
         if ( condition )
