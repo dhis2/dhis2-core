@@ -46,6 +46,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -94,6 +95,8 @@ public class EventAnalyticsServiceMetadataTest
     @Override
     public void setUpTest()
     {
+        userService = (UserService) getBean( UserService.ID );
+        
         leA = createLegend( 'A', 0d, 10d );
         leB = createLegend( 'B', 11d, 20d );
         leC = createLegend( 'C', 21d, 30d );
@@ -132,6 +135,8 @@ public class EventAnalyticsServiceMetadataTest
         prA = createProgram( 'A' );
         psA = createProgramStage( 'A', prA );
         prA.getProgramStages().add( psA );
+        
+        createAndInjectAdminUser( "ALL" );
     }
 
     // -------------------------------------------------------------------------

@@ -44,7 +44,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
@@ -1974,6 +1976,27 @@ public class DataQueryParams
     public List<DimensionalItemObject> getAllPeriods()
     {
         return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
+    }
+    
+    /**
+     * Returns all programs part of program attributes and program data elements
+     * part of a dimension or filter.
+     */
+    public Set<Program> getAllProgramsInAttributesAndDataElements()
+    {
+        final Set<Program> programs = new HashSet<>();
+        
+        getAllProgramAttributes().stream()
+            .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a)
+            .filter( a -> a.getProgram() != null )
+            .forEach( a -> programs.add( a.getProgram() ) );
+        
+        getAllProgramDataElements().stream()
+            .map( d -> (ProgramDataElementDimensionItem) d)
+            .filter( d -> d.getProgram() != null )
+            .forEach( d -> programs.add( d.getProgram() ) );
+        
+        return programs;            
     }
 
     // -------------------------------------------------------------------------

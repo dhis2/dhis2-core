@@ -39,6 +39,10 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,6 +71,11 @@ public class DataQueryParamsTest
     private ReportingRate rrC;
     private ReportingRate rrD;
     
+    private Program prA;
+    private Program prB;
+    
+    private TrackedEntityAttribute atA;
+    
     private Period peA;
     private Period peB;
     
@@ -90,6 +99,11 @@ public class DataQueryParamsTest
         rrC = new ReportingRate( createDataSet( 'C', null ), ReportingRateMetric.EXPECTED_REPORTS );
         rrD = new ReportingRate( createDataSet( 'D', null ), ReportingRateMetric.ACTUAL_REPORTS );
         
+        prA = createProgram( 'A' );
+        prB = createProgram( 'B' );
+        
+        atA = createTrackedEntityAttribute( 'A' );
+        
         peA = createPeriod( "201601" );
         peB = createPeriod( "201603" );
         
@@ -98,7 +112,7 @@ public class DataQueryParamsTest
     }
 
     @Test
-    public void addDimension()
+    public void testAddDimension()
     {
         DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
         DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
@@ -459,5 +473,23 @@ public class DataQueryParamsTest
         assertEquals( 0, query.getPeriods().size() );
         assertEquals( getDate( 2017, 3, 1 ), query.getStartDate() );
         assertEquals( getDate( 2017, 5, 31 ), query.getEndDate() );        
+    }
+    
+    @Test
+    public void testGetAllProgramsInAttributesAndDataElements()
+    {
+        ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prB, deA );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withProgramAttributes( Lists.newArrayList( ptaA ) )
+            .withProgramDataElements( Lists.newArrayList( pdeA ) )
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+        
+        Set<Program> expected = Sets.newHashSet( prA, prB );
+        
+        assertEquals( expected, params.getAllProgramsInAttributesAndDataElements() );        
     }
 }
