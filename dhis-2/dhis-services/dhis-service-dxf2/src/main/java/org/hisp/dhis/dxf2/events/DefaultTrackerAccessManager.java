@@ -141,12 +141,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
-        // TODO consider TEI/TET data read sharing?
         Program program = programInstance.getProgram();
 
         if ( !aclService.canDataRead( user, program ) )
         {
             errors.add( "User has no data read access to program: " + program.getUid() );
+        }
+
+        if ( !program.isWithoutRegistration() && !aclService.canDataRead( user, program.getTrackedEntityType() ) )
+        {
+            errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
         }
 
         return errors;
@@ -173,12 +177,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
-        // TODO consider TEI/TET data read/write sharing?
         Program program = programInstance.getProgram();
 
         if ( !aclService.canDataWrite( user, program ) )
         {
             errors.add( "User has no data write access to program: " + program.getUid() );
+        }
+
+        if ( !program.isWithoutRegistration() && !aclService.canDataRead( user, program.getTrackedEntityType() ) )
+        {
+            errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
         }
 
         return errors;
@@ -205,7 +213,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
-        // TODO consider TEI/TET data read sharing?
         ProgramStage programStage = programStageInstance.getProgramStage();
         Program program = programStage.getProgram();
 
@@ -220,6 +227,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         errors.addAll( canRead( user, programStageInstance.getAttributeOptionCombo() ) );
+
+        if ( !program.isWithoutRegistration() && !aclService.canDataRead( user, program.getTrackedEntityType() ) )
+        {
+            errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
+        }
 
         return errors;
     }
@@ -245,7 +257,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
-        // TODO consider TEI/TET data read/write sharing?
         ProgramStage programStage = programStageInstance.getProgramStage();
         Program program = programStage.getProgram();
 
@@ -260,6 +271,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         errors.addAll( canWrite( user, programStageInstance.getAttributeOptionCombo() ) );
+
+        if ( !program.isWithoutRegistration() && !aclService.canDataRead( user, program.getTrackedEntityType() ) )
+        {
+            errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
+        }
 
         return errors;
     }
