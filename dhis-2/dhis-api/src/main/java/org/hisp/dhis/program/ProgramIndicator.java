@@ -78,7 +78,6 @@ public class ProgramIndicator
     public static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
     public static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
     
-
     public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
     public static final String SQL_FUNC_REGEXP = "d2:(.+?)\\((.*?)\\)";
@@ -91,7 +90,6 @@ public class ProgramIndicator
     public static final String EQUALSEMPTY = " *== *'' *";
     public static final String EQUALSZERO = " *== *0 *";
     public static final String EXPRESSION_EQUALSZEROOREMPTY_REGEX = EXPRESSION_REGEXP + "(" + EQUALSEMPTY + "|" + EQUALSZERO + ")?";
-
 
     public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     public static final Pattern EXPRESSION_EQUALSZEROOREMPTY_PATTERN = Pattern.compile( EXPRESSION_EQUALSZEROOREMPTY_REGEX );

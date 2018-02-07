@@ -208,7 +208,7 @@ public class EventAnalyticsServiceMetadataTest
         assertTrue( itemsFilter.isEmpty() );
         assertTrue( !itemsOptionSet.isEmpty() );
         assertEquals( 2, itemsOptionSetFilter.size() );
-        assertTrue( itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getCodes( Sets.newHashSet( opA, opB ) ) ) );
+        assertTrue( itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( opA, opB ) ) ) );
     }
     
     @Test
