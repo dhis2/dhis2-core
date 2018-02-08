@@ -120,6 +120,7 @@ public class TwoFactorAuthenticationProvider
         // -------------------------------------------------------------------------
         // Delegate authentication downstream, using UserCredentials as principal
         // -------------------------------------------------------------------------
+
         Authentication result = super.authenticate( auth );
 
         return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(), result.getAuthorities() );

@@ -42,6 +42,8 @@ public class TwoFactorWebAuthenticationDetails
 {
     private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
 
+    private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+
     private String code;
 
     private String ip;
@@ -49,7 +51,7 @@ public class TwoFactorWebAuthenticationDetails
     TwoFactorWebAuthenticationDetails( HttpServletRequest request )
     {
         super( request );
-        code = request.getParameter( "2fa_code" );
+        code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
         ip = ObjectUtils.firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
     }
 
