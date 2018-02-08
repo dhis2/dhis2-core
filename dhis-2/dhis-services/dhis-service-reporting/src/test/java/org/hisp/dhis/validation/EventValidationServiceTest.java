@@ -33,7 +33,6 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.analytics.data.support.test.MockAnalyticsService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -44,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -90,7 +90,7 @@ public class EventValidationServiceTest
     private TrackedEntityAttributeService entityAttributeService;
 
     @Autowired
-    TrackedEntityAttributeValueService entityAttributeValueService;
+    private TrackedEntityAttributeValueService entityAttributeValueService;
 
     @Autowired
     private ProgramService programService;

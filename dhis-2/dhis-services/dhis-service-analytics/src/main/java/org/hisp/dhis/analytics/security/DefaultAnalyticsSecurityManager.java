@@ -34,16 +34,19 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,6 +69,9 @@ public class DefaultAnalyticsSecurityManager
     
     @Autowired
     private DimensionService dimensionService;
+    
+    @Autowired
+    private AclService aclService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -79,17 +85,18 @@ public class DefaultAnalyticsSecurityManager
     {
         User user = currentUserService.getCurrentUser();
         
-        decideAccessDataViewOrgUnits( params, user );        
+        decideAccessDataViewOrganisationUnits( params, user );
+        decideAccessDataReadObjects( params, user );
     }
 
     /**
-     * Checks current user data view access to organisation units.
+     * Checks whether the given user has data view access to organisation units.
      * 
      * @param params the data query parameters.
      * @param user the user to check.
      * @throws IllegalQueryException if user does not have access.
      */
-    private void decideAccessDataViewOrgUnits( DataQueryParams params, User user )
+    private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
         throws IllegalQueryException
     {        
         List<DimensionalItemObject> queryOrgUnits = params.getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
@@ -105,10 +112,44 @@ public class DefaultAnalyticsSecurityManager
         {
             OrganisationUnit queryOrgUnit = (OrganisationUnit) object;
             
-            if ( !queryOrgUnit.isDescendant( viewOrgUnits ) )
-            {
-                throw new IllegalQueryException( String.format( "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
-            }
+            boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
+            
+            throwExWhenTrue( notDescendant, String.format( "User: %s is not allowed to view org unit: %s", user.getUsername(), queryOrgUnit.getUid() ) );
+        }
+    }
+    
+    /**
+     * Checks whether the given user has data read access to all programs,
+     * program stages, data sets and category options in the request.
+     * 
+     * @param params the data query parameters.
+     * @param user the user to check.
+     * @throws IllegalQueryException if user does not have access.
+     */
+    private void decideAccessDataReadObjects( DataQueryParams params, User user )
+        throws IllegalQueryException
+    {
+        Set<IdentifiableObject> objects = new HashSet<>();
+        objects.addAll( params.getAllDataSets() );
+        objects.addAll( params.getProgramsInAttributesAndDataElements() );
+        objects.addAll( params.getCategoryOptions() );
+        
+        if ( params.hasProgram() )
+        {
+            objects.add( params.getProgram() );
+        }
+        
+        if ( params.hasProgramStage() )
+        {
+            objects.add( params.getProgramStage() );
+        }
+        
+        for ( IdentifiableObject object : objects )
+        {
+            boolean canNotRead = !aclService.canDataRead( user, object );
+            String className = TextUtils.getPrettyClassName( object.getClass() );
+            
+            throwExWhenTrue( canNotRead, String.format( "User: %s is not allowed to read data for %s: %s", user.getUsername(), className, object.getUid() ) );
         }
     }
     
@@ -119,10 +160,9 @@ public class DefaultAnalyticsSecurityManager
         
         decideAccess( params );
         
-        if ( user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS ) )
-        {
-            throw new IllegalQueryException( String.format( "User: %s is not allowed to view event analytics", user.getUsername() ) );
-        }
+        boolean notAuthorized = user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS );
+        
+        throwExWhenTrue( notAuthorized, String.format( "User: %s is not allowed to view event analytics", user.getUsername() ) );
     }
 
     @Override
@@ -152,12 +192,9 @@ public class DefaultAnalyticsSecurityManager
                 // Set approval level from query
                 
                 DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
-                
-                if ( approvalLevel == null )
-                {
-                    throw new IllegalQueryException( String.format( "Approval level does not exist: %s", params.getApprovalLevel() ) );
-                }
-                
+                                
+                throwExWhenTrue( approvalLevel == null, String.format( "Approval level does not exist: %s", params.getApprovalLevel() ) );
+                                
                 approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
             }
             else if ( !canViewUnapprovedData )
@@ -270,11 +307,10 @@ public class DefaultAnalyticsSecurityManager
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
 
-            if ( canReadItems == null || canReadItems.isEmpty() )
-            {
-                throw new IllegalQueryException( String.format( "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
-            }
-
+            boolean hasNoReadItems =  canReadItems == null || canReadItems.isEmpty();
+            
+            throwExWhenTrue( hasNoReadItems, String.format( "Current user is constrained by a dimension but has access to no associated dimension items: %s", dimension.getDimension() ) );
+            
             // -----------------------------------------------------------------
             // Apply constraint as filter, and remove potential all-dimension
             // -----------------------------------------------------------------
@@ -288,5 +324,21 @@ public class DefaultAnalyticsSecurityManager
 
             log.debug( String.format( "User: %s constrained by dimension: %s", user.getUsername(), constraint.getDimension() ) );
         }        
+    }
+    
+    /**
+     * Throws a {@link IllegalQueryException} with the given message if the 
+     * given condition is true.
+     * 
+     * @param condition the condition.
+     * @param message the message.
+     * @throws {@link IllegalQueryException}.
+     */
+    private void throwExWhenTrue( boolean condition, String message )
+    {
+        if ( condition )
+        {
+            throw new IllegalQueryException( message );
+        }
     }
 }
