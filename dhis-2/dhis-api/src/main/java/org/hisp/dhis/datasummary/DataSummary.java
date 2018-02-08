@@ -14,23 +14,19 @@ import java.util.Map;
 @JacksonXmlRootElement
 public class DataSummary
 {
-    private Map<String, Integer> objectCounts;
+    private Map<String, Integer> objectCounts = new HashMap<>(  );
 
-    private Map<Integer, Integer> activeUsers;
+    private Map<Integer, Integer> activeUsers = new HashMap<>(  );
 
-    private Map<String, Integer> userInvitations;
+    private Map<String, Integer> userInvitations = new HashMap<>(  );
 
-    private Map<Integer, Integer> dataValueCount;
+    private Map<Integer, Integer> dataValueCount = new HashMap<>(  );
 
-    private Map<Integer, Long> eventCount;
+    private Map<Integer, Long> eventCount = new HashMap<>(  );
 
     public DataSummary()
     {
-        this.objectCounts = new HashMap<>(  );
-        this.activeUsers = new HashMap<>(  );
-        this.userInvitations = new HashMap<>(  );
-        this.dataValueCount = new HashMap<>(  );
-        this.eventCount = new HashMap<>(  );
+
     }
 
     public DataSummary( Map<String, Integer> objectCounts,
