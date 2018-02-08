@@ -56,8 +56,7 @@ public class DataSummaryController
 
     @GetMapping
     @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
-    public @ResponseBody
-    DataSummary getStatistics()
+    public @ResponseBody DataSummary getStatistics()
     {
         return dataStatisticsService.getSystemStatisticsSummary();
     }
