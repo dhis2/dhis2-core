@@ -42,19 +42,18 @@ import java.util.Map;
 @JacksonXmlRootElement
 public class DataSummary
 {
-    private Map<String, Integer> objectCounts = new HashMap<>(  );
+    private Map<String, Integer> objectCounts = new HashMap<>();
 
-    private Map<Integer, Integer> activeUsers = new HashMap<>(  );
+    private Map<Integer, Integer> activeUsers = new HashMap<>();
 
-    private Map<String, Integer> userInvitations = new HashMap<>(  );
+    private Map<String, Integer> userInvitations = new HashMap<>();
 
-    private Map<Integer, Integer> dataValueCount = new HashMap<>(  );
+    private Map<Integer, Integer> dataValueCount = new HashMap<>();
 
-    private Map<Integer, Long> eventCount = new HashMap<>(  );
+    private Map<Integer, Long> eventCount = new HashMap<>();
 
     public DataSummary()
     {
-
     }
 
     public DataSummary( Map<String, Integer> objectCounts,

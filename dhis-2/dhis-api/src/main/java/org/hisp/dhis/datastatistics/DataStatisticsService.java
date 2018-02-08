@@ -51,10 +51,9 @@ public interface DataStatisticsService
     /**
      * Gets number of saved events from a start date to an end date.
      *
-     * @param startDate start date
-     * @param endDate end date
+     * @param startDate     start date
+     * @param endDate       end date
      * @param eventInterval event interval
-     *
      * @return list of reports
      */
     List<AggregatedStatistics> getReports( Date startDate, Date endDate, EventInterval eventInterval );
@@ -86,13 +85,14 @@ public interface DataStatisticsService
      * Returns top favorites by views
      *
      * @param eventType that should be counted
-     * @param pageSize number of favorites
+     * @param pageSize  number of favorites
      * @param sortOrder sort order of the favorites
-     * @param username name of user, makes the query specified to this user
+     * @param username  name of user, makes the query specified to this user
      * @return list of FavoriteStatistics
      */
 
-    List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username );
+    List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder,
+        String username );
 
     /**
      * Returns data statistics for the favorite with the given identifier.
