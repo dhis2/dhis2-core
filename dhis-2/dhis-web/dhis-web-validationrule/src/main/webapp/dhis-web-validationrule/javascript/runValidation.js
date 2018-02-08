@@ -27,39 +27,51 @@ function validateRunValidation()
   sendNotifications = $( '#sendNotifications' ).is( ':checked' );
   persistResults = $( '#persistResults').is( ':checked');
 
-  $.getJSON( 'validateRunValidation.action',
-    {
-      startDate: startDate,
-      endDate: endDate
+  $.ajax({
+      url: 'validateRunValidation.action',
+      beforeSend: function(xhr){
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      },
+      dataType: 'json',
+      data: {
+        "startDate": startDate,
+        "endDate": endDate
+      },
+      success: function ( json ) {
+        if ( json.response == 'success' ) {
+
+          $( '#validateButton' ).attr( 'disabled', true );
+
+          setHeaderWaitMessage( i18n_analysing_please_wait );
+
+          $.get( 'runValidationAction.action',
+            {
+              organisationUnitId: organisationUnitId,
+              startDate: startDate, endDate: endDate,
+              validationRuleGroupId: validationRuleGroupId,
+              sendNotifications: sendNotifications,
+              persistResults: persistResults
+            },
+            function(data) {
+              hideHeaderMessage();
+              $( 'div#analysisInput' ).hide();
+              $( 'div#analysisResult' ).show();
+              $( 'div#analysisResult' ).html( data );
+              setTableStyles();
+
+              $( '#validateButton' ).removeAttr( 'disabled' );
+            } );
+        }
+        else if ( json.response == 'input' ) {
+          setHeaderDelayMessage( json.message );
+        }
+      },
+      error : function(status)
+      {
+        if ( status)
+        window.location.href = "login.action";
+      }
     },
-    function(json) {
-      if ( json.response == 'success' ) {
-        $( '#validateButton' ).attr( 'disabled', true );
-
-        setHeaderWaitMessage( i18n_analysing_please_wait );
-
-        $.get( 'runValidationAction.action',
-          {
-            organisationUnitId: organisationUnitId,
-            startDate: startDate, endDate: endDate,
-            validationRuleGroupId: validationRuleGroupId,
-            sendNotifications: sendNotifications,
-            persistResults: persistResults
-          },
-          function(data) {
-            hideHeaderMessage();
-            $( 'div#analysisInput' ).hide();
-            $( 'div#analysisResult' ).show();
-            $( 'div#analysisResult' ).html( data );
-            setTableStyles();
-
-            $( '#validateButton' ).removeAttr( 'disabled' );
-          } );
-      }
-      else if ( json.response == 'input' ) {
-        setHeaderDelayMessage( json.message );
-      }
-    } );
 
   return false;
 }
