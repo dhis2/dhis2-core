@@ -28,6 +28,8 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.util.Assert;
+
 /**
  * Currently only the two first positions in the access string are used - rw.
  *
@@ -188,15 +190,17 @@ public class AccessStringHelper
 
     public static boolean isEnabled( String access, Permission permission )
     {
-        return access != null && access.charAt( permission.getPosition() ) == permission.getValue();
+        return access == null || (validateAccessString( access ) && access.charAt( permission.getPosition() ) == permission.getValue());
     }
 
     public static boolean isValid( String access )
     {
-        if ( access == null )
-        {
-            return true;
-        }
+        return access == null || validateAccessString( access );
+    }
+
+    private static boolean validateAccessString( String access )
+    {
+        Assert.notNull( access, "access can not be null" );
 
         if ( access.length() != 8 || !access.endsWith( "----" ) )
         {

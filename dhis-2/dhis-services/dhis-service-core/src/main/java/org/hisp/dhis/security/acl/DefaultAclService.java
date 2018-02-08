@@ -505,7 +505,7 @@ public class DefaultAclService implements AclService
         {
             ErrorReport errorReport = null;
 
-            if ( AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            if ( object.getPublicAccess() != null && AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
             {
                 errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
             }

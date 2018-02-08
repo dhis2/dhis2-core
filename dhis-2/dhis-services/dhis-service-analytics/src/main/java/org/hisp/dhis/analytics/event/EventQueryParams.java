@@ -803,6 +803,13 @@ public class EventQueryParams
             this.params.endDate = endDate;
             return this;
         }
+
+        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
+            this.params.periodType = periodType;
+            return this;
+        }
         
         public Builder addDimension( DimensionalObject dimension )
         {

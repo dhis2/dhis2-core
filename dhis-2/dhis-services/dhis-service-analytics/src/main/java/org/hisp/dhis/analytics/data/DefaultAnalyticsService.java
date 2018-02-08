@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -316,7 +317,8 @@ public class DefaultAnalyticsService
     /**
      * Performs post-handling of the given grid. If the query has the single
      * indicator as data filter item, the column at the data dimension index is
-     * removed.
+     * removed. If the query has sorting order, then the grid is ordered on the
+     * value column based on the sorting specified.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -326,6 +328,12 @@ public class DefaultAnalyticsService
         if ( params.hasProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
         {
             grid.removeColumn( DataQueryParams.DX_INDEX );
+        }
+        
+        if ( params.hasOrder() && grid.getIndexOfHeader( VALUE_ID ) >= 0 )
+        {
+            int orderInt = params.getOrder().equals( SortOrder.ASC ) ? -1 : 1;
+            grid.sortGrid( grid.getIndexOfHeader( VALUE_ID ) + 1, orderInt );
         }
     }
 
