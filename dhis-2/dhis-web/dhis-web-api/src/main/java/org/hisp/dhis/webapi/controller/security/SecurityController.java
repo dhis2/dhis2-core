@@ -28,21 +28,14 @@ package org.hisp.dhis.webapi.controller.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -60,9 +53,6 @@ public class SecurityController
     @Autowired
     private CurrentUserService currentUserService;
 
-    @Autowired
-    private UserService userService;
-
     @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
     public void getQrCode( HttpServletRequest request, HttpServletResponse response )
     {
@@ -79,23 +69,5 @@ public class SecurityController
         map.put( "url", url );
 
         JacksonUtils.fromObjectToReponse( response, map );
-    }
-
-    @RequestMapping( value = "/set", method = RequestMethod.GET, produces = "application/json")
-    public ObjectReport set2FA( @RequestParam String uid, @RequestParam boolean twofa )
-    {
-        ObjectReport objectReport = new ObjectReport( User.class, 0 );
-
-        User user = userService.getUser( uid );
-        if ( !ObjectUtils.allNonNull( user ) )
-        {
-            objectReport.addErrorReport( new ErrorReport( User.class, new ErrorMessage( ErrorCode.E4014, uid, "user" ) ) );
-        }
-        else
-        {
-            userService.set2FA( user, twofa );
-        }
-
-        return objectReport;
     }
 }
