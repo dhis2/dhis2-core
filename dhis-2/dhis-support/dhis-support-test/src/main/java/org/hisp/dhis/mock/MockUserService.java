@@ -64,133 +64,114 @@ public class MockUserService
     @Override
     public void updateUser( User user )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public User getUser( int id )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public User getUser( String uid )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<User> getAllUsers()
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public void deleteUser( User user )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public List<User> getUsersByUid( List<String> uids )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public boolean isLastSuperUser( UserCredentials userCredentials )
     {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
     {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public List<User> getManagedUsers( User user )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public int getManagedUserCount( User user )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public List<User> getUsers( UserQueryParams params )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public int getUserCount( UserQueryParams params )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public int getUserCount()
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public List<User> getUsersByPhoneNumber( String phoneNumber )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public boolean canAddOrUpdateUser( Collection<String> userGroups )
     {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser )
     {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public int addUserCredentials( UserCredentials userCredentials )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public void updateUserCredentials( UserCredentials userCredentials )
     {
-        // TODO Auto-generated method stub
 
     }
 
@@ -208,175 +189,150 @@ public class MockUserService
     @Override
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public UserCredentials getUserCredentialsByLdapId( String ldapId )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<UserCredentials> getAllUserCredentials()
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public void encodeAndSetPassword( User user, String rawPassword )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void setLastLogin( String username )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public int getActiveUsersCount( int days )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public int getActiveUsersCount( Date since )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public boolean credentialsNonExpired( UserCredentials credentials )
     {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public UserAuthorityGroup getUserAuthorityGroup( int id )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public UserAuthorityGroup getUserAuthorityGroup( String uid )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public UserAuthorityGroup getUserAuthorityGroupByName( String name )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public List<UserAuthorityGroup> getAllUserAuthorityGroups()
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<UserAuthorityGroup> getUserRolesByUid( Collection<String> uids )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<UserAuthorityGroup> getUserRolesBetween( int first, int max )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public int getUserRoleCount()
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public int getUserRoleCountByName( String name )
     {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public void canIssueFilter( Collection<UserAuthorityGroup> userRoles )
     {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public List<ErrorReport> validateUser( User user, User currentUser )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<User> getExpiringUsers()
     {
-        // TODO Auto-generated method stub
         return null;
     }
 }
