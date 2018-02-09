@@ -33,10 +33,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -123,6 +125,9 @@ public abstract class AbstractTrackedEntityInstanceService
     @Autowired
     protected QueryService queryService;
 
+    @Autowired
+    protected TrackerAccessManager trackerAccessManager;
+
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final CachingMap<String, TrackedEntityType> trackedEntityCache = new CachingMap<>();
@@ -137,12 +142,12 @@ public abstract class AbstractTrackedEntityInstanceService
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = entityInstanceService.getTrackedEntityInstances( queryParams );
-
         List<TrackedEntityInstance> teiItems = new ArrayList<>();
+        User user = currentUserService.getCurrentUser();
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance : teis )
         {
-            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, params ) );
+            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, params, user ) );
         }
 
         return teiItems;
@@ -176,9 +181,23 @@ public abstract class AbstractTrackedEntityInstanceService
     public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityInstanceParams params )
     {
+        return getTrackedEntityInstance( entityInstance, params, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        TrackedEntityInstanceParams params, User user )
+    {
         if ( entityInstance == null )
         {
             return null;
+        }
+
+        List<String> errors = trackerAccessManager.canRead( user, entityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
         }
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
@@ -231,10 +250,10 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
-        
+
         for ( TrackedEntityAttributeValue attributeValue : entityInstance.getTrackedEntityAttributeValues() )
         {
-            if( readableAttributes.contains( attributeValue.getAttribute() ) )
+            if ( readableAttributes.contains( attributeValue.getAttribute() ) )
             {
                 Attribute attribute = new Attribute();
 
@@ -378,6 +397,13 @@ public abstract class AbstractTrackedEntityInstanceService
             return importSummary;
         }
 
+        List<String> errors = trackerAccessManager.canWrite( user, entityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
+
         teiService.addTrackedEntityInstance( entityInstance );
 
         updateRelationships( trackedEntityInstance, entityInstance );
@@ -480,7 +506,14 @@ public abstract class AbstractTrackedEntityInstanceService
                 + " does not point to valid trackedEntityInstance" ) );
         }
 
-        OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, trackedEntityInstance.getOrgUnit() );
+        List<String> errors = trackerAccessManager.canWrite( user, entityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
+
+        OrganisationUnit organisationUnit = getOrganisationUnit( new IdSchemes(), trackedEntityInstance.getOrgUnit() );
 
         if ( organisationUnit == null )
         {

@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.mock;
+package org.hisp.dhis.mock;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -49,9 +49,37 @@ import org.hisp.dhis.period.Period;
 public class MockAnalyticsService
     implements AnalyticsService
 {
-    private Map<Date, Grid> dateGridMap;
+    /**
+     * A fixed grid to return regardless of params.
+     */
+    private Grid grid;
 
-    public MockAnalyticsService( Map<Date, Grid> dateGridMap )
+    public void setGrid( Grid grid )
+    {
+        this.grid = grid;
+    }
+
+    /**
+     * A map of grids to retrun depending on a date that matches params.
+     */
+    private Map<Date, Grid> dateGridMap = null;
+
+    public void setDateGridMap( Map<Date, Grid> dateGridMap )
+    {
+        this.dateGridMap = dateGridMap;
+    }
+
+    /**
+     * A map of grids to retrun depending on a base dimenstional object.
+     */
+    private Map<String, Grid> itemGridMap = null;
+
+    public void setItemGridMap( Map<String, Grid> objectGridMap )
+    {
+        this.itemGridMap = objectGridMap;
+    }
+
+    public MockAnalyticsService()
     {
         this.dateGridMap = dateGridMap;
     }
@@ -111,6 +139,33 @@ public class MockAnalyticsService
      */
     private Grid getGrid( DataQueryParams params )
     {
+        if ( grid != null )
+        {
+            return grid;
+        }
+
+        if ( dateGridMap != null )
+        {
+            return getDateGrid( params );
+        }
+
+        if ( itemGridMap != null )
+        {
+            return getItemGrid( params );
+        }
+
+        throw new RuntimeException( "Couldn't find grid to retrun" );
+    }
+
+    /**
+     * Find the pre-filled grid matching matching either a date in the the
+     * parameters' date range, or a date in a PERIOD filter
+     *
+     * @param params the parameters
+     * @return the grid matching the parameters' date range
+     */
+    private Grid getDateGrid( DataQueryParams params )
+    {
         for ( Map.Entry<Date, Grid> e : dateGridMap.entrySet() )
         {
             if ( params.getStartDate() != null )
@@ -141,6 +196,34 @@ public class MockAnalyticsService
                 }
             }
         }
+
         throw new RuntimeException( "Couldn't find grid for date in params" );
+    }
+
+    /**
+     * Find the pre-filled grid matching matching a
+     *
+     * @param params the parameters
+     * @return the grid matching the parameters' base dimenstional object
+     */
+    private Grid getItemGrid( DataQueryParams params )
+    {
+        for ( DimensionalObject o : params.getDimensions() )
+        {
+            if ( o.getItems() != null )
+            {
+                for ( DimensionalItemObject i : o.getItems() )
+                {
+                    Grid g = itemGridMap.get( i.getDimensionItem() );
+
+                    if ( g != null )
+                    {
+                        return g;
+                    }
+                }
+            }
+        }
+
+        throw new RuntimeException( "Couldn't find grid for base dimensional object in params" );
     }
 }

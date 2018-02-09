@@ -30,7 +30,7 @@ package org.hisp.dhis.common;
 
 import java.security.SecureRandom;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 import org.springframework.util.Base64Utils;
@@ -78,16 +78,16 @@ public class CodeGenerator
      */
     public static String generateCode( int codeSize )
     {
-        Random sr = new Random();
+        ThreadLocalRandom r = ThreadLocalRandom.current();
 
         char[] randomChars = new char[codeSize];
         
         // First char should be a letter
-        randomChars[0] = letters.charAt( sr.nextInt( letters.length() ) );
+        randomChars[0] = letters.charAt( r.nextInt( letters.length() ) );
         
         for ( int i = 1; i < codeSize; ++i )
         {
-            randomChars[i] = ALLOWED_CHARS.charAt( sr.nextInt( NUMBER_OF_CODEPOINTS ) );
+            randomChars[i] = ALLOWED_CHARS.charAt( r.nextInt( NUMBER_OF_CODEPOINTS ) );
         }
         
         return new String( randomChars );

@@ -1001,6 +1001,13 @@ public abstract class AbstractEventService
             organisationUnit = programStageInstance.getOrganisationUnit();
         }
 
+        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
+
         Date executionDate = new Date();
 
         if ( event.getEventDate() != null )
@@ -1118,7 +1125,7 @@ public abstract class AbstractEventService
             TrackedEntityDataValue dataValue = dataValueService.getTrackedEntityDataValue( programStageInstance,
                 dataElement );
 
-            if ( !validateDataValue( dataElement, value.getValue(), importSummary ) )
+            if ( !validateDataValue( programStageInstance, user, dataElement, value.getValue(), importSummary ) )
             {
                 continue;
             }
@@ -1284,7 +1291,7 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
-    private boolean validateDataValue( DataElement dataElement, String value, ImportSummary importSummary )
+    private boolean validateDataValue( ProgramStageInstance programStageInstance, User user, DataElement dataElement, String value, ImportSummary importSummary )
     {
         String status = ValidationUtils.dataValueIsValid( value, dataElement );
 
@@ -1294,6 +1301,14 @@ public abstract class AbstractEventService
             importSummary.getImportCount().incrementIgnored();
 
             return false;
+        }
+
+        List<String> errors = trackerAccessManager.canWrite( user, new TrackedEntityDataValue( programStageInstance, dataElement, value ) );
+
+        if ( !errors.isEmpty() )
+        {
+            errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
+            importSummary.getImportCount().incrementIgnored();
         }
 
         return true;
@@ -1401,7 +1416,7 @@ public abstract class AbstractEventService
 
             if ( dataElement != null )
             {
-                if ( validateDataValue( dataElement, dataValue.getValue(), importSummary ) )
+                if ( validateDataValue( programStageInstance, user, dataElement, dataValue.getValue(), importSummary ) )
                 {
                     String dataValueStoredBy = dataValue.getStoredBy() != null ? dataValue.getStoredBy() : storedBy;
 

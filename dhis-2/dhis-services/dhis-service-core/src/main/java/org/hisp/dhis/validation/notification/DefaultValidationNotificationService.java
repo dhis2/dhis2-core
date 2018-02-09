@@ -31,6 +31,7 @@ package org.hisp.dhis.validation.notification;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -366,24 +367,32 @@ public class DefaultValidationNotificationService
         // Limit recipients to be withing org unit hierarchy only, effectively
         // producing a cross-cut of all users in the configured user groups.
 
-        final boolean limitToHierarchy = template.getNotifyUsersInHierarchyOnly();
+        final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
+
+        final boolean parentOrgUnitOnly = BooleanUtils.toBoolean( template.getNotifyParentOrganisationUnitOnly() );
 
         Set<OrganisationUnit> orgUnitsToInclude = Sets.newHashSet();
+
+        Set<User> recipients = template.getRecipientUserGroups().stream()
+            .flatMap( ug -> ug.getMembers().stream() ).collect( Collectors.toSet() );
 
         if ( limitToHierarchy )
         {
             orgUnitsToInclude.add( validationResult.getOrganisationUnit() ); // Include self
             orgUnitsToInclude.addAll( validationResult.getOrganisationUnit().getAncestors() );
+
+            recipients = recipients.stream()
+                .filter( user -> orgUnitsToInclude.contains( user.getOrganisationUnit() ) ).collect( Collectors.toSet() );
+        }
+        else if ( parentOrgUnitOnly )
+        {
+            Set<User> parents = Sets.newHashSet();
+            recipients.forEach( user -> parents.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
+
+            return parents;
         }
 
-        // Get all distinct users in configured user groups
-        // Limit (only if configured) to the pre-computed set of ancestors
-
-        return template.getRecipientUserGroups().stream()
-            .flatMap( ug -> ug.getMembers().stream() )
-            .distinct()
-            .filter( user -> !limitToHierarchy || orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
-            .collect( Collectors.toSet() );
+        return recipients;
     }
 
     private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
