@@ -26,6 +26,10 @@
     <param name="clazz">org.hisp.dhis.trackedentityfilter.FilterPeriod</param>
   </typedef>
   
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSet">
+    <param name="clazz">java.util.HashSet</param>
+  </typedef>
+  
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventFilter">
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
   </typedef>

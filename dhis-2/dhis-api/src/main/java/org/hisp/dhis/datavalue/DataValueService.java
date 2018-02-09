@@ -29,8 +29,7 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -244,17 +243,15 @@ public interface DataValueService
      * more than one period for the same organisationUnit, date, and attribute
      * combo, the value is returned from the period with the shortest duration.
      *
-     * @param dataElementOperandsToGet DataElementOperands to fetch
+     * @param dataElementOperands DataElementOperands to fetch
      * @param date date which must be present in the period
-     * @param source OrganisationUnit for which to fetch the values
+     * @param orgUnits organisation units for which to fetch the values
      * @param periodTypes allowable period types in which to find the data
      * @param attributeCombo the attribute combo to check (if restricted)
-     * @param lastUpdatedMap map in which to return the lastUpdated date for each value
-     * @return map of values by attribute option combo UID, then DataElementOperand
+     * @return map of values by org unit ID, attribute option combo UID, and DataElementOperand
      */
-    MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        SetMap<String, DataElementOperand> dataElementOperandsToGet, Date date, OrganisationUnit source,
+    MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+        Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
         Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<String, DataElementOperand, Date> lastUpdatedMap );
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints );
 }

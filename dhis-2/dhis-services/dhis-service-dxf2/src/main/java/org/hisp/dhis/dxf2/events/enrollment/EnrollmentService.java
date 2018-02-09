@@ -89,6 +89,8 @@ public interface EnrollmentService
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
 
+    ImportSummary updateEnrollment( Enrollment enrollment, User user, ImportOptions importOptions );
+
     ImportSummary updateEnrollmentForNote( Enrollment enrollment );
 
     void cancelEnrollment( String uid );

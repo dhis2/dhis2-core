@@ -53,6 +53,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -103,9 +104,6 @@ public class DefaultPredictionService
     private DataValueService dataValueService;
 
     @Autowired
-    private AnalyticsService analyticsService;
-
-    @Autowired
     private DataElementCategoryService categoryService;
 
     @Autowired
@@ -113,6 +111,14 @@ public class DefaultPredictionService
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private AnalyticsService analyticsService;
+
+    public void setAnalyticsService( AnalyticsService analyticsService )
+    {
+        this.analyticsService = analyticsService;
+    }
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -229,6 +235,11 @@ public class DefaultPredictionService
 
                         Set<String> attributeOptionCombos = usingAttributeOptions ?
                             Sets.union( aggregateSampleMap.keySet(), nonAggregateSampleMap.keySet() ) : defaultOptionComboAsSet;
+
+                        if ( attributeOptionCombos.isEmpty() && generator.getMissingValueStrategy() == MissingValueStrategy.NEVER_SKIP )
+                        {
+                            attributeOptionCombos = defaultOptionComboAsSet;
+                        }
 
                         ListMap<String, Double> aggregateSampleMapNonAoc = aggregateSampleMap.get( NON_AOC );
 

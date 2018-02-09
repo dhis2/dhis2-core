@@ -172,9 +172,9 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList()
+    public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram()
     {
-        return attributeStore.getDisplayInList();
+        return attributeStore.getDisplayInListNoProgram();
     }
 
     @Override

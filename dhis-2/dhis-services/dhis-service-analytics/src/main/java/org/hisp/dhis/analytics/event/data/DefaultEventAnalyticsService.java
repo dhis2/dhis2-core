@@ -106,6 +106,9 @@ public class DefaultEventAnalyticsService
     private static final String NAME_CENTER = "Center";
     private static final String NAME_EXTENT = "Extent";
     private static final String NAME_POINTS = "Points";
+    
+    private static final Option OPT_TRUE = new Option( "Yes", "1" );
+    private static final Option OPT_FALSE = new Option( "No", "0" );
 
     @Autowired
     private DataElementService dataElementService;
@@ -294,9 +297,7 @@ public class DefaultEventAnalyticsService
      * @param dimension the requested dimension
      */
     private void getEventDataObjects( Grid grid, EventQueryParams params,
-        Map<String, List<EventAnalyticsDimensionalItem>> table,
-        String dimension )
-        throws Exception
+        Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension ) throws Exception
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
@@ -330,28 +331,20 @@ public class DefaultEventAnalyticsService
      * @throws Exception throws exception if the given dimension is invalid
      */
     @SuppressWarnings( "unchecked" )
-    private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
-        throws Exception
+    private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, 
+        List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension ) throws Exception
     {
         if ( eventDimensionalItemObject == null )
         {
-            throw new Exception( "Supplied data dimension '" + dimension + "' is invalid" );
+            throw new IllegalStateException( String.format( "Data dimension '%s' is invalid", dimension ) );
         }
 
         String parentUid = eventDimensionalItemObject.getUid();
 
         if ( eventDimensionalItemObject.getValueType() == ValueType.BOOLEAN )
         {
-            Option t = new Option();
-            t.setCode( "1" );
-            t.setName( "Yes" );
-
-            Option f = new Option();
-            f.setCode( "0" );
-            f.setName( "No" );
-
-            objects.add( new EventAnalyticsDimensionalItem( t, parentUid ) );
-            objects.add( new EventAnalyticsDimensionalItem( f, parentUid ) );
+            objects.add( new EventAnalyticsDimensionalItem( OPT_TRUE, parentUid ) );
+            objects.add( new EventAnalyticsDimensionalItem( OPT_FALSE, parentUid ) );
         }
 
         if ( eventDimensionalItemObject.hasOptionSet() )
@@ -364,7 +357,8 @@ public class DefaultEventAnalyticsService
         else if ( eventDimensionalItemObject.hasLegendSet() )
         {
             List<String> legendOptions = (List<String>) ((Map<String, Object>) grid.getMetaData()
-                .get( DIMENSIONS.getKey() )).get( dimension );
+                .get( DIMENSIONS.getKey() ))
+                .get( dimension );
 
             if ( legendOptions.isEmpty() )
             {
@@ -374,9 +368,8 @@ public class DefaultEventAnalyticsService
                 {
                     for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
                     {
-                        objects.add(
-                            new EventAnalyticsDimensionalItem( new Option( String.valueOf( i ), String.valueOf( i ) ),
-                                parentUid ) );
+                        objects.add( new EventAnalyticsDimensionalItem( new Option( 
+                            String.valueOf( i ), String.valueOf( i ) ), parentUid ) );
                     }
                 }
             }
@@ -385,10 +378,11 @@ public class DefaultEventAnalyticsService
                 for ( String legend : legendOptions )
                 {
                     MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
-                        .get( ITEMS.getKey() )).get( legend );
+                        .get( ITEMS.getKey() ))
+                        .get( legend );
 
-                    objects.add(
-                        new EventAnalyticsDimensionalItem( new Option( metadataItem.getName(), legend ), parentUid ) );
+                    objects.add( new EventAnalyticsDimensionalItem( 
+                        new Option( metadataItem.getName(), legend ), parentUid ) );
                 }
             }
         }

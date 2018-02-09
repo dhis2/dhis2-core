@@ -28,195 +28,20 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.ParameterizedType;
-import org.hibernate.usertype.UserType;
-import org.postgresql.util.PGobject;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public class JsonListBinaryType implements UserType, ParameterizedType
+public class JsonListBinaryType extends JsonBinaryType
 {
-    public static final ObjectMapper MAPPER = new ObjectMapper();
-
-    static
-    {
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-    }
-
-    private Class returnedClass;
-
+    
     @Override
-    public int[] sqlTypes()
-    {
-        return new int[] { Types.JAVA_OBJECT };
-    }
-
-    @Override
-    public Class returnedClass()
-    {
-        return returnedClass;
-    }
-
-    @Override
-    public boolean equals( Object x, Object y )
-        throws HibernateException
-    {
-        return x == y || !(x == null || y == null) && x.equals( y );
-    }
-
-    @Override
-    public int hashCode( Object x )
-        throws HibernateException
-    {
-        return null == x ? 0 : x.hashCode();
-    }
-
-    @Override
-    public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner )
-        throws HibernateException,
-        SQLException
-    {
-        final Object result = rs.getObject( names[0] );
-
-        if ( !rs.wasNull() )
-        {
-            String content;
-
-            if ( result instanceof String )
-            {
-                content = (String) result;
-            }
-            else if ( result instanceof PGobject )
-            {
-                content = ((PGobject) result).getValue();
-            }
-            else
-            {
-                throw new IllegalArgumentException( "Unknown object type (expected PGObject or String)" );
-            }
-            if ( content != null )
-            {
-                return convertJsonToObject( content );
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session )
-        throws HibernateException,
-        SQLException
-    {
-        if ( value == null )
-        {
-            ps.setObject( idx, null );
-            return;
-        }
-
-        PGobject pg = new PGobject();
-        pg.setType( "jsonb" );
-        pg.setValue( convertObjectToJson( value ) );
-
-        ps.setObject( idx, pg );
-    }
-
-    @Override
-    public Object deepCopy( Object value )
-        throws HibernateException
-    {
-        String json = convertObjectToJson( value );
-        return convertJsonToObject( json );
-    }
-
-    @Override
-    public boolean isMutable()
-    {
-        return true;
-    }
-
-    @Override
-    public Serializable disassemble( Object value )
-        throws HibernateException
-    {
-        return (Serializable) this.deepCopy( value );
-    }
-
-    @Override
-    public Object assemble( Serializable cached, Object owner )
-        throws HibernateException
-    {
-        return this.deepCopy( cached );
-    }
-
-    @Override
-    public Object replace( Object original, Object target, Object owner )
-        throws HibernateException
-    {
-        return this.deepCopy( original );
-    }
-
-    @Override
-    public void setParameterValues( Properties parameters )
-    {
-        final String clazz = (String) parameters.get( "clazz" );
-
-        if ( clazz == null )
-        {
-            throw new IllegalArgumentException( String.format( "Required parameter '%s' is not configured", "clazz" ) );
-        }
-
-        try
-        {
-            init( classForName( clazz ) );
-        }
-        catch ( ClassNotFoundException e )
-        {
-            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
-        }
-    }
-
-    private void init( Class klass )
-    {
-        returnedClass = klass;
-    }
-
-    private static Class classForName( String name )
-        throws ClassNotFoundException
-    {
-        try
-        {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            if ( classLoader != null )
-            {
-                return classLoader.loadClass( name );
-            }
-        }
-        catch ( Throwable ignore )
-        {
-        }
-
-        return Class.forName( name );
-    }
-
-    private String convertObjectToJson( Object value )
+    public String convertObjectToJson( Object value )
     {
         try
         {
@@ -227,12 +52,14 @@ public class JsonListBinaryType implements UserType, ParameterizedType
             throw new RuntimeException( e );
         }
     }
-
-    private Object convertJsonToObject( String content )
+    
+    @Override
+    public Object convertJsonToObject( String content )
     {
         try
         {
             JavaType type = MAPPER.getTypeFactory().constructCollectionType( List.class, returnedClass() );
+            
             return MAPPER.readValue( content, type );
         }
         catch ( IOException e )

@@ -226,6 +226,8 @@
       <key column="chartid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
+    
+    <property name="favorites" type="jbSet" />
 
   </class>
 
