@@ -413,7 +413,14 @@ public class DefaultAclService implements AclService
     {
         if ( user == null || user.isSuper() )
         {
-            return new Access( true );
+            Access access = new Access( true );
+
+            if ( isDataShareable( object.getClass() ) )
+            {
+                access.setData( new AccessData( true, true ) );
+            }
+
+            return access;
         }
 
         Access access = new Access();
