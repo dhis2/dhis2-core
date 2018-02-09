@@ -275,7 +275,8 @@ public class EventValidationServiceTest
         dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8 ) );
         dateGridMap.put( periodApr.getStartDate(), newGrid( 5, 1, 9 ) );
 
-        AnalyticsService mockAnalyticsSerivce = new MockAnalyticsService( dateGridMap );
+        MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
+        mockAnalyticsSerivce.setDateGridMap( dateGridMap );
 
         setDependency( validationService, "analyticsService", mockAnalyticsSerivce, AnalyticsService.class );
     }

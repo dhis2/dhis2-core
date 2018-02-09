@@ -573,7 +573,7 @@ public abstract class AbstractEnrollmentService
 
             for ( Enrollment enrollment : _enrollments )
             {
-                importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions ) );
+                importSummaries.addImportSummary( updateEnrollment( enrollment, user, importOptions ) );
             }
 
             clearSession();
@@ -584,6 +584,12 @@ public abstract class AbstractEnrollmentService
 
     @Override
     public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    {
+        return updateEnrollment( enrollment, currentUserService.getCurrentUser(), importOptions );
+    }
+
+    @Override
+    public ImportSummary updateEnrollment( Enrollment enrollment, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
@@ -602,6 +608,13 @@ public abstract class AbstractEnrollmentService
         if ( programInstance == null )
         {
             return new ImportSummary( ImportStatus.ERROR, "Enrollment ID was not valid." ).incrementIgnored();
+        }
+
+        List<String> errors = trackerAccessManager.canWrite( user, programInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
         Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
