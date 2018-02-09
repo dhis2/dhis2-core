@@ -98,9 +98,4 @@ public class FileResourceCleanUpJob
         return sb.toString();
     }
 
-    @Override
-    protected String getJobId()
-    {
-        return "fileResourceCleanUpJob";
-    }
 }
