@@ -34,15 +34,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Value;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -126,6 +123,13 @@ public class ProgramIndicator
         put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "ps" ).
         put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "ps" ).build();
 
+    private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
+    private static final Set<AnalyticsPeriodBoundary> defaultErollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
+    
     private Program program;
 
     private String expression;
@@ -273,29 +277,22 @@ public class ProgramIndicator
         }
     }
     
+    public Boolean hasDefaultBoundaries()
+    {
+        return this.analyticsType == AnalyticsType.EVENT && this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
+            this.analyticsType == AnalyticsType.ENROLLMENT && this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
+    }
+    
     public Boolean hasEndEventBoundary()
     {
         return getEndEventBoundary() != null;
     }
     
-    public Date getEndEventBoundaryDate( Date reportingStartDate, Date reportingEndDate )
-    {
-        AnalyticsPeriodBoundary boundary = getEndEventBoundary();
-        if ( boundary != null ) 
-        {
-            return boundary.getBoundaryDate( reportingStartDate, reportingEndDate );
-        }
-        
-        return null;
-    }
-    
-    private AnalyticsPeriodBoundary getEndEventBoundary()
+    public AnalyticsPeriodBoundary getEndEventBoundary()
     {
         for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
         {
-            if ( boundary.getBoundaryTarget() == AnalyticsPeriodBoundary.EVENT_DATE
-                && ( boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD
-                || boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.BEFORE_START_OF_REPORTING_PERIOD ) )
+            if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() )
             {
                 return boundary;                
             }
@@ -309,24 +306,11 @@ public class ProgramIndicator
         return getStartEventBoundary() != null;
     }
     
-    public Date getStartEventBoundaryDate( Date reportingStartDate, Date reportingEndDate )
-    {
-        AnalyticsPeriodBoundary boundary = getStartEventBoundary();
-        if ( boundary != null ) 
-        {
-            return boundary.getBoundaryDate( reportingStartDate, reportingEndDate );
-        }
-        
-        return null;
-    }
-    
-    private AnalyticsPeriodBoundary getStartEventBoundary()
+    public AnalyticsPeriodBoundary getStartEventBoundary()
     {
         for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
         {
-            if ( boundary.getBoundaryTarget() == AnalyticsPeriodBoundary.EVENT_DATE
-                && ( boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.AFTER_END_OF_REPORTING_PERIOD
-                || boundary.getAnalyticsPeriodBoundaryType() == AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) )
+            if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() )
             {
                 return boundary;                
             }

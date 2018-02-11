@@ -28,8 +28,18 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.MathUtils.getRounded;
+
+import java.util.List;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -39,35 +49,32 @@ import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import javax.annotation.Resource;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.*;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Markus Bekken
@@ -100,6 +107,7 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
+        
         // ---------------------------------------------------------------------
         // Select
         // ---------------------------------------------------------------------
@@ -233,7 +241,7 @@ public class JdbcEnrollmentAnalyticsManager
     {
         EventOutputType outputType = params.getOutputType();
         
-        if ( params.hasValueDimension() ) // && isNumeric
+        if ( params.hasValueDimension() )
         {
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
             
@@ -316,16 +324,50 @@ public class JdbcEnrollmentAnalyticsManager
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
-        
-        if ( params.hasStartEndDate() )
-        {        
-            sql += "where enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
-        }
-        else // Periods
+        if ( params.hasProgramIndicatorDimension() && !params.getProgramIndicator().hasDefaultBoundaries() )
         {
-            sql += "where " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+            //The program indicator has non-default boundaries, and defines its own relationship with the 
+            //reporting period. We need to make custom where-clauses instead of using the preaggregated period columns.
+            //We know that the query planner has split the query into individual periods, as this is always done for
+            //non-default boundaries.
+            SqlHelper sqlHelper = new SqlHelper();
+            for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
+            {
+                if ( !boundary.isEventDateBoundary() )
+                {
+                    sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
+                }
+            }
+            
+            //Filter for only evaluating enrollments that has any events in the boundary period:
+            if( params.getProgramIndicator().hasEndEventBoundary() )
+            {
+                sql += sqlHelper.whereAnd() + "( select count * from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
+                    " where pi = enrollmenttable.pi " + 
+                    (params.getProgramIndicator().hasEndEventBoundary() ? 
+                    ( sqlHelper.whereAnd() + " " + 
+                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ") 
+                    : "") + 
+                    (params.getProgramIndicator().hasStartEventBoundary() ? 
+                    ( sqlHelper.whereAnd() + " "  + 
+                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ") 
+                    : "") + 
+                    ") > 0";
+            }
         }
+        else
+        {
+            if ( params.hasStartEndDate() )
+            {        
+                sql += "where enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            }
+            else // Periods
+            {
+                sql += "where " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+            }
+        }
+        
 
         // ---------------------------------------------------------------------
         // Organisation units
@@ -408,7 +450,7 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
             String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
-                params.getProgramIndicator(), false, params.getStartDate(), params.getEndDate() );
+                params.getProgramIndicator(), false, params.getEarliestStartDate(), params.getLatestEndDate() );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             
@@ -458,8 +500,6 @@ public class JdbcEnrollmentAnalyticsManager
         {
             sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
-        
-        //TODO partition table and add partition restriction
         
         return sql;
     }

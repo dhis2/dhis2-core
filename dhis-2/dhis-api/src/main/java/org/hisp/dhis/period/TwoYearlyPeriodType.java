@@ -87,7 +87,7 @@ public class TwoYearlyPeriodType
     @Override
     public Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
-        return null;
+        return createPeriod( createCalendarInstance( dateTimeUnit.toJdkDate() ) );
     }
 
     @Override
@@ -99,35 +99,15 @@ public class TwoYearlyPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-
+    
     @Override
-    public Period getNextPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset, org.hisp.dhis.calendar.Calendar calendar )
     {
-        Calendar cal = createCalendarInstance( period.getStartDate() );
-        cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 + 2 );
+        Calendar cal = createCalendarInstance( date );
+        cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 + ( 2 * offset ) );
         cal.set( Calendar.DAY_OF_YEAR, 1 );
 
-        Date startDate = cal.getTime();
-
-        cal.add( Calendar.YEAR, 1 );
-        cal.set( Calendar.DAY_OF_YEAR, cal.getActualMaximum( Calendar.DAY_OF_YEAR ) );
-
-        return new Period( this, startDate, cal.getTime() );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        Calendar cal = createCalendarInstance( period.getStartDate() );
-        cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 - 2 );
-        cal.set( Calendar.DAY_OF_YEAR, 1 );
-
-        Date startDate = cal.getTime();
-
-        cal.add( Calendar.YEAR, 1 );
-        cal.set( Calendar.DAY_OF_YEAR, cal.getActualMaximum( Calendar.DAY_OF_YEAR ) );
-
-        return new Period( this, startDate, cal.getTime() );
+        return cal.getTime();
     }
 
     /**

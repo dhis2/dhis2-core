@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
@@ -106,23 +107,13 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
 
         return toIsoPeriod( start, end, calendar );
     }
-
+    
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusWeeks( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusWeeks( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
+        dateTimeUnit = calendar.plusWeeks( dateTimeUnit, offset );
+        return dateTimeUnit.toJdkDate();
     }
 
     /**

@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -95,23 +96,13 @@ public class YearlyPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-
+    
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusYears( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusYears( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
+        dateTimeUnit = calendar.plusYears( dateTimeUnit, offset );
+        return dateTimeUnit.toJdkDate();
     }
 
     /**

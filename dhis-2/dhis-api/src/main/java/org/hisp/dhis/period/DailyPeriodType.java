@@ -87,25 +87,11 @@ public class DailyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusDays( dateTimeUnit, 1 );
-
-        Date date = calendar.toIso( dateTimeUnit ).toJdkDate();
-
-        return new Period( this, date, date );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusDays( dateTimeUnit, 1 );
-
-        Date date = calendar.toIso( dateTimeUnit ).toJdkDate();
-
-        return new Period( this, date, date );
+        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
+        dateTimeUnit = calendar.plusDays( dateTimeUnit, offset );
+        return dateTimeUnit.toJdkDate();
     }
 
     /**

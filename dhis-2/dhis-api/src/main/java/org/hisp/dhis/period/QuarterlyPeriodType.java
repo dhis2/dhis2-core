@@ -29,6 +29,8 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
+
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 import java.util.Date;
@@ -105,21 +107,11 @@ public class QuarterlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Period getNextPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusMonths( dateTimeUnit, 3 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 3 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
+        dateTimeUnit = calendar.plusMonths( dateTimeUnit, offset * 3 );
+        return dateTimeUnit.toJdkDate();
     }
 
     /**

@@ -1,16 +1,22 @@
 package org.hisp.dhis.program;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 
+import javax.validation.constraints.AssertTrue;
+
+import org.apache.commons.lang.NotImplementedException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -52,9 +58,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "analyticsPeriodBoundary", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements EmbeddedObject
 {
-    public static String EVENT_DATE = "EVENT_DATE";
-    public static String ENROLLMENT_DATE = "ENROLLMENT_DATE";
-    public static String INCIDENT_DATE = "INCIDENT_DATE";
+    public static final String EVENT_DATE = "EVENT_DATE";
+    public static final String ENROLLMENT_DATE = "ENROLLMENT_DATE";
+    public static final String INCIDENT_DATE = "INCIDENT_DATE";
+    
+    public static final String DB_EVENT_DATE = "executiondate";
+    public static final String DB_ENROLLMENT_DATE = "enrollmentdate";
+    public static final String DB_INCIDENT_DATE = "incidentdate";
+    
     
     private String boundaryTarget;
     
@@ -84,6 +95,12 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         this.offsetNumberOfPeriods = offsetNumberOfPeriods;
     }
     
+    public AnalyticsPeriodBoundary( String boundaryTarget, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType )
+    {
+        this.boundaryTarget = boundaryTarget;
+        this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
+    }
+    
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -92,8 +109,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     {
         Date returnDate = null;
         
-        if ( analyticsPeriodBoundaryType == AnalyticsPeriodBoundaryType.AFTER_END_OF_REPORTING_PERIOD 
-            || analyticsPeriodBoundaryType == AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD )
+        if ( analyticsPeriodBoundaryType.isEndBoundary() )
         {
             returnDate = reportingEndDate;
         }
@@ -108,6 +124,32 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         }
         
         return returnDate;
+    }
+    
+    public Boolean isEventDateBoundary()
+    {
+        return boundaryTarget.equals( AnalyticsPeriodBoundary.EVENT_DATE );
+    }
+    
+    public Boolean isEnrollmentDateBoundary()
+    {
+        return boundaryTarget.equals( AnalyticsPeriodBoundary.ENROLLMENT_DATE );
+    }
+    
+    public Boolean isIncidentDateBoundary()
+    {
+        return boundaryTarget.equals( AnalyticsPeriodBoundary.INCIDENT_DATE );
+    }
+    
+    public String getSqlCondition( Date reportingStartDate, Date reportingEndDate )
+    {
+        String column = isEventDateBoundary() ? DB_EVENT_DATE : isEnrollmentDateBoundary() ? DB_ENROLLMENT_DATE : isIncidentDateBoundary() ? DB_INCIDENT_DATE : null;
+        Assert.isTrue( column != null, "Can not generate where condition for analyticsPeriodBoundary " + this.uid + " - unknown boundaryTarget" );
+        
+        final SimpleDateFormat format = new SimpleDateFormat();
+        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
+        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? " <= " : ">=" ) +
+            " cast( '" + format.format( getBoundaryDate( reportingStartDate, reportingEndDate ) ) +  "' as date )";
     }
     
     // -------------------------------------------------------------------------

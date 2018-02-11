@@ -93,21 +93,11 @@ public abstract class SixMonthlyAbstractPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
-        dateTimeUnit = calendar.plusMonths( dateTimeUnit, 6 );
-
-        return createPeriod( calendar.toIso( dateTimeUnit ), calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
-        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 6 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
+        dateTimeUnit = calendar.plusMonths( dateTimeUnit, offset * 6 );
+        return dateTimeUnit.toJdkDate();
     }
 
     /**

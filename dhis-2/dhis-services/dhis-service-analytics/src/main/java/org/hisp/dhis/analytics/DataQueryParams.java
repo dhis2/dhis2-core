@@ -1172,6 +1172,19 @@ public class DataQueryParams
         return currentUser != null;
     }
     
+    /**
+     * Indicates whether one of the dimensions or filters is a program indicator.
+     * @return true if one or more of the dimensions is of type program indicator.
+     */
+    public boolean hasProgramIndicatorDimension(  )
+    {
+       DimensionalObject dimension = getDimensionOrFilter( DATA_X_DIM_ID );
+        
+       List<DimensionalItemObject> items = AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, dimension.getItems() );
+       
+       return items.size() > 0;
+    }
+    
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------

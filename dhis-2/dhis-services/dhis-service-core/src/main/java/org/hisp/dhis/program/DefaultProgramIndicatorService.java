@@ -57,7 +57,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.jfree.util.Log;
-import org.omg.CORBA.portable.ApplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,34 +75,30 @@ import static org.apache.commons.lang3.StringUtils.trim;
 public class DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
-    private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction>builder().
-        put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() ).
-        put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() ).
-        put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() ).
-        put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() ).
-        put( WeeksBetweenSqlFunction.KEY, new WeeksBetweenSqlFunction() ).
-        put( MonthsBetweenSqlFunction.KEY, new MonthsBetweenSqlFunction() ).
-        put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() ).
-        put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).
-        put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
-    
-    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String>builder().
-        put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" ).
-        put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "'COMPLETED'" ).
-        put( ProgramIndicator.VAR_EVENT_COUNT, "1" ).
-        put( ProgramIndicator.VAR_EVENT_DATE, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_EXECUTION_DATE, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_INCIDENT_DATE, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_ANALYTICS_PERIOD_START, "'2017-07-08'" ).
-        put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" ).
-        put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" ).
-        put( ProgramIndicator.VAR_TEI_COUNT, "1" ).
-        put( ProgramIndicator.VAR_VALUE_COUNT, "1" ).
-        put( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT, "1" ).build();
+    private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
+        .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
+        .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
+        .put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() )
+        .put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() )
+        .put( WeeksBetweenSqlFunction.KEY, new WeeksBetweenSqlFunction() )
+        .put( MonthsBetweenSqlFunction.KEY, new MonthsBetweenSqlFunction() )
+        .put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() )
+        .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
+        .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
+
+    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
+        .put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" ).put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" ).put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "'COMPLETED'" ).put( ProgramIndicator.VAR_EVENT_COUNT, "1" )
+        .put( ProgramIndicator.VAR_EVENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_EXECUTION_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_INCIDENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ANALYTICS_PERIOD_START, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" )
+        .put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" )
+        .put( ProgramIndicator.VAR_TEI_COUNT, "1" ).put( ProgramIndicator.VAR_VALUE_COUNT, "1" )
+        .put( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT, "1" ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -122,7 +117,7 @@ public class DefaultProgramIndicatorService
     {
         this.programStageService = programStageService;
     }
-    
+
     private ProgramStageDataElementService programStageDataElementService;
 
     public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
@@ -160,7 +155,8 @@ public class DefaultProgramIndicatorService
 
     private GenericIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
 
-    public void setProgramIndicatorGroupStore( GenericIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore )
+    public void setProgramIndicatorGroupStore(
+        GenericIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore )
     {
         this.programIndicatorGroupStore = programIndicatorGroupStore;
     }
@@ -246,7 +242,8 @@ public class DefaultProgramIndicatorService
                     String programStageName = programStage.getDisplayName();
                     String dataelementName = dataElement.getDisplayName();
 
-                    matcher.appendReplacement( description, programStageName + ProgramIndicator.SEPARATOR_ID + dataelementName );
+                    matcher.appendReplacement( description, programStageName + ProgramIndicator.SEPARATOR_ID
+                        + dataelementName );
                 }
             }
             else if ( ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
@@ -288,36 +285,40 @@ public class DefaultProgramIndicatorService
         return getAnalyticsSQl( expression, programIndicator, true, startDate, endDate );
     }
 
-    public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues, Date startDate, Date endDate )
+    public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues,
+        Date startDate, Date endDate )
     {
         if ( expression == null )
         {
             return null;
-        } 
+        }
 
         expression = TextUtils.removeNewlines( expression );
-        
+
         expression = getSubstitutedVariablesForAnalyticsSql( expression, programIndicator, startDate, endDate );
 
         expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicator, startDate, endDate );
-        
-        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicator, startDate, endDate );
+
+        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicator, startDate,
+            endDate );
 
         return expression;
     }
-    
+
     public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter )
     {
         return getProgramStageDateElementsInExpression( expression, filter, null );
     }
-    
-    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter, ProgramStage currentStage )
-    {   
+
+    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter,
+        ProgramStage currentStage )
+    {
         ArrayList<ProgramStageDataElement> prStDesInExpression = new ArrayList<ProgramStageDataElement>();
-        
-        //We will look for data elements in both the expression and the filter in the same matching.
-        expression += " " + filter; 
-        
+
+        // We will look for data elements in both the expression and the filter
+        // in the same matching.
+        expression += " " + filter;
+
         Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
 
         while ( matcher.find() )
@@ -328,34 +329,36 @@ public class DefaultProgramIndicatorService
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
             {
                 String de = matcher.group( 3 );
-                
+
                 ProgramStage programStage = programStageService.getProgramStage( uid );
                 DataElement dataElement = dataElementService.getDataElement( de );
 
                 if ( programStage != null && dataElement != null )
                 {
                     ProgramStageDataElement prStDe = programStageDataElementService.get( programStage, dataElement );
-                    
+
                     if ( prStDe != null )
                     {
                         prStDesInExpression.add( prStDe );
                     }
                     else
                     {
-                        Log.error( "Program indicator defined unknown programStageDataElement combination for key:" + key + " uid:" + uid + " de:" + de );
+                        Log.error( "Program indicator defined unknown programStageDataElement combination for key:"
+                            + key + " uid:" + uid + " de:" + de );
                     }
                 }
                 else
                 {
-                    throw new NotImplementedException( "No dataelement is found for key:" + key + " uid:" + uid + " de:" + de + " . Was the funtion called by an event program indicator?" );
+                    throw new NotImplementedException( "No dataelement is found for key:" + key + " uid:" + uid
+                        + " de:" + de + " . Was the funtion called by an event program indicator?" );
                 }
             }
         }
-        
+
         return prStDesInExpression;
     }
 
-    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues, 
+    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues,
         ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
         if ( expression == null )
@@ -378,7 +381,8 @@ public class DefaultProgramIndicatorService
 
                 for ( int i = 0; i < args.length; i++ )
                 {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator, reportingStartDate, reportingEndDate );
+                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator,
+                        reportingStartDate, reportingEndDate );
                     args[i] = arg;
                 }
 
@@ -398,7 +402,8 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedVariablesForAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
+    private String getSubstitutedVariablesForAnalyticsSql( String expression, ProgramIndicator programIndicator,
+        Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -424,7 +429,8 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, ProgramIndicator programIndicator, Date startDate, Date endDate  )
+    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues,
+        ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -441,22 +447,24 @@ public class DefaultProgramIndicatorService
             String el1 = matcher.group( 2 );
             String el2 = matcher.group( 3 );
             boolean equalsZero = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSZERO );
-            boolean equalsEmpty = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSEMPTY );
+            boolean equalsEmpty = matcher.group( 4 ) != null
+                && matcher.group( 4 ).matches( ProgramIndicator.EQUALSEMPTY );
 
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) || ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
-            {                
+            {
                 String columnName;
-                
+
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
-                    columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? 
-                        getLatestDataValueInEnrollmentSql( el2, el1, programIndicator, startDate, endDate ) : statementBuilder.columnQuote( el2 );
+                    columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? getDataValueEnrollmentSql(
+                        el2, el1, programIndicator, startDate, endDate ) : statementBuilder.columnQuote( el2 );
                 }
-                else // ProgramIndicator.KEY_ATTRIBUTE
-                {                    
+                else
+                // ProgramIndicator.KEY_ATTRIBUTE
+                {
                     columnName = statementBuilder.columnQuote( el1 );
                 }
-                    
+
                 if ( equalsZero )
                 {
                     columnName = getNumericIgnoreNullSql( columnName ) + " == 0 ";
@@ -485,21 +493,34 @@ public class DefaultProgramIndicatorService
 
         return TextUtils.appendTail( matcher, buffer );
     }
-    
-    private String getLatestDataValueInEnrollmentSql( String dataElementUid, String programStageUid, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
+
+    private String getDataValueEnrollmentSql( String dataElementUid, String programStageUid,
+        ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
-        String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-        String columnName = "\"" + dataElementUid + "\"";
-        return "(select " + columnName + " from " + eventTableName + 
-            " where " + eventTableName + ".pi = enrollmenttable.pi " +
-            "and " + columnName + " is not null " +
-            ( programIndicator.hasEndEventBoundary() != null ? 
-                ( "and executiondate < '" + programIndicator.getEndEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " ) : "" ) + 
-            ( programIndicator.hasStartEventBoundary() != null ?
-                ( "and executiondate > '" + programIndicator.getStartEventBoundaryDate( reportingStartDate, reportingEndDate ) + "' " ) : "" ) + 
-            "and ps = '" + programStageUid + "' " + 
-            "order by executiondate " +
-            "desc limit 1 ) ";
+        if ( programIndicator.hasDefaultBoundaries() )
+        {
+           return statementBuilder.columnQuote( programStageUid + ProgramIndicator.SEPARATOR_ID + dataElementUid );
+        }
+        else
+        {
+            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+            String columnName = "\"" + dataElementUid + "\"";
+            return "(select " + 
+                columnName + 
+                " from " + 
+                eventTableName + 
+                " where " + 
+                eventTableName + 
+                ".pi = enrollmenttable.pi " + 
+                "and " + 
+                columnName + 
+                " is not null " + 
+                (programIndicator.hasEndEventBoundary() ? 
+                    ("and " + programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ") : "") + 
+                (programIndicator.hasStartEventBoundary() ? 
+                    ("and " + programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ") : "") + 
+                "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 ) ";
+        }
     }
 
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
@@ -526,7 +547,7 @@ public class DefaultProgramIndicatorService
     {
         String expr = getSubstitutedExpression( expression );
 
-        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr ) 
+        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
             || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
         {
             return expr;
@@ -558,10 +579,10 @@ public class DefaultProgramIndicatorService
 
         return ProgramIndicator.VALID;
     }
-    
+
     /**
-     * Generates an expression where all items are substituted with a sample value
-     * in order to maintain a valid expression syntax.
+     * Generates an expression where all items are substituted with a sample
+     * value in order to maintain a valid expression syntax.
      *
      * @param expression the expression.
      */
@@ -625,7 +646,7 @@ public class DefaultProgramIndicatorService
             else if ( ProgramIndicator.KEY_PROGRAM_VARIABLE.equals( key ) )
             {
                 String sampleValue = VARIABLE_SAMPLE_VALUE_MAP.get( uid );
-                
+
                 if ( sampleValue != null )
                 {
                     matcher.appendReplacement( expr, sampleValue );
@@ -655,12 +676,13 @@ public class DefaultProgramIndicatorService
      * @param expression the program indicator expression.
      * @return a SQL select clause.
      */
-    private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType, Date startDate, Date endDate )
+    private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType, Date startDate,
+        Date endDate )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
         String variableColumnName = ProgramIndicator.getVariableColumnName( var );
-        
+
         if ( ProgramIndicator.VAR_CURRENT_DATE.equals( var ) )
         {
             return "'" + DateUtils.getLongDateString() + "'";
@@ -687,8 +709,7 @@ public class DefaultProgramIndicatorService
 
             return TextUtils.removeLast( sql, "+" ).trim() + ") as " + dbl + "),0)";
         }
-        else if ( ProgramIndicator.VAR_EVENT_COUNT.equals( var ) 
-            || ProgramIndicator.VAR_ENROLLMENT_COUNT.equals( var )
+        else if ( ProgramIndicator.VAR_EVENT_COUNT.equals( var ) || ProgramIndicator.VAR_ENROLLMENT_COUNT.equals( var )
             || ProgramIndicator.VAR_TEI_COUNT.equals( var ) )
         {
             return "distinct " + variableColumnName;
@@ -726,14 +747,12 @@ public class DefaultProgramIndicatorService
 
         return variableColumnName;
     }
-    
-   
 
     private String getNumericIgnoreNullSql( String column )
     {
         return "coalesce(" + column + "::numeric,0)";
     }
-    
+
     private String getTextIgnoreNullSql( String column )
     {
         return "coalesce(" + column + ",'')";
