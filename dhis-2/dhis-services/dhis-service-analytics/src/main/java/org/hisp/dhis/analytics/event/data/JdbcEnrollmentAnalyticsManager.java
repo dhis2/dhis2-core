@@ -64,6 +64,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -72,6 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -114,7 +116,19 @@ public class JdbcEnrollmentAnalyticsManager
 
         String countClause = getAggregateClause( params );
         
-        String sql = "select " + countClause + " as value," + StringUtils.join( getSelectColumns( params ), "," ) + " ";
+        List<String> selectColumns = getSelectColumns( params );
+        
+        String sql = "select " + countClause + " as value," + StringUtils.join( selectColumns, "," ) + " ";
+        
+        //For non-default program indicator dimensions, each period is a separate query that needs to be hard coded into the SQL
+        if ( params.hasProgramIndicatorDimension() && !params.getProgramIndicator().hasDefaultBoundaries() )
+        {
+            Assert.isTrue( params.getPeriods().size() == 1, "For program indicator " + params.getProgramIndicator().getUid() +
+                " with non-default boundaries, it is assumed that exactly one period is queried at a time. Found " + 
+                params.getPeriods().size() + " periods." );
+            Period period = (Period) params.getPeriods().get( 0 );
+            sql += period.getIsoDate() + " as " +  params.getPeriodType() + " ";
+        }
 
         // ---------------------------------------------------------------------
         // Criteria
@@ -125,8 +139,10 @@ public class JdbcEnrollmentAnalyticsManager
         // ---------------------------------------------------------------------
         // Group by
         // ---------------------------------------------------------------------
-
-        sql += "group by " + StringUtils.join( getSelectColumns( params ), "," ) + " ";
+        if ( selectColumns.size() > 0 )
+        {
+            sql += "group by " + StringUtils.join( getSelectColumns( params ), "," ) + " ";
+        }
 
         // ---------------------------------------------------------------------
         // Sort order
@@ -283,7 +299,15 @@ public class JdbcEnrollmentAnalyticsManager
         
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
+            //When creating SQL for a program indicator with non-default boundaries, only one period is queried at a time
+            //this period needs to be hard-coded in the SQL return statement, as non-default boundaries is relative to the 
+            //original period.
+            //Only add a column if it is not a period or a program indicator with default boundaries
+            if ( dimension.getDimensionType() != DimensionType.PERIOD ||
+                !params.hasProgramIndicatorDimension() || params.getProgramIndicator().hasDefaultBoundaries() )
+            {
+                columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
+            }
         }
         
         for ( QueryItem queryItem : params.getItems() )
@@ -340,7 +364,7 @@ public class JdbcEnrollmentAnalyticsManager
             }
             
             //Filter for only evaluating enrollments that has any events in the boundary period:
-            if( params.getProgramIndicator().hasEndEventBoundary() )
+            if( params.getProgramIndicator().hasEndEventBoundary() || params.getProgramIndicator().hasStartEventBoundary() )
             {
                 sql += sqlHelper.whereAnd() + "( select count * from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
                     " where pi = enrollmenttable.pi " + 
