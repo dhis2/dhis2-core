@@ -1195,6 +1195,19 @@ public abstract class DhisConvenienceTest
 
         return legendSet;
     }
+
+    public static LegendSet createLegendSet( char uniqueCharacter, Legend... legends )
+    {
+        LegendSet legendSet = createLegendSet( uniqueCharacter );
+        
+        for ( Legend legend : legends )
+        {
+            legendSet.getLegends().add( legend );
+            legend.setLegendSet( legendSet );
+        }
+
+        return legendSet;
+    }
     
     public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
     {
@@ -1740,6 +1753,19 @@ public abstract class DhisConvenienceTest
         optionSet.setName( "OptionSet" + uniqueCharacter );
         optionSet.setCode( "OptionSetCode" + uniqueCharacter );
 
+        return optionSet;
+    }
+
+    protected static OptionSet createOptionSet( char uniqueCharacter, Option... options )
+    {
+        OptionSet optionSet = createOptionSet( uniqueCharacter );
+
+        for ( Option option : options )
+        {
+            optionSet.getOptions().add( option );
+            option.setOptionSet( optionSet );
+        }
+        
         return optionSet;
     }
 

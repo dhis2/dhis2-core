@@ -697,11 +697,11 @@ public class DefaultEventAnalyticsService
             metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
         }
 
-        params.getLegends().forEach( legend -> {
+        params.getItemLegends().forEach( legend -> {
             metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null, legend.getCode() ) );
         } );
 
-        params.getOptions().forEach( option -> {
+        params.getItemOptions().forEach( option -> {
             metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) );
         } );
 
