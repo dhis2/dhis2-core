@@ -663,36 +663,28 @@ public class DefaultEventAnalyticsService
 
             Map<String, Object> metaData = new HashMap<>();
 
-            Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
             boolean includeMetadataDetails = params.isIncludeMetadataDetails();
 
-            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
+            Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+
+            if ( params.hasValueDimension() )
             {
-                Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
-
-                if ( params.hasValueDimension() )
-                {
-                    metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
-                }
-
-                params.getLegends().forEach( legend -> {
-                    metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, legend.getCode() ) );
-                } );
-
-                params.getOptions().forEach( option -> {
-                    metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, option.getCode() ) );
-                } );
-
-                params.getItems().forEach( item -> {
-                    metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
-                } );
-
-                metaData.put( ITEMS.getKey(), metadataItemMap );
+                metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
             }
-            else
-            {
-                metaData.put( NAMES.getKey(), uidNameMap );
-            }
+
+            params.getLegends().forEach( legend -> {
+                metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, legend.getCode() ) );
+            } );
+
+            params.getOptions().forEach( option -> {
+                metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, option.getCode() ) );
+            } );
+
+            params.getItems().forEach( item -> {
+                metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
+            } );
+
+            metaData.put( ITEMS.getKey(), metadataItemMap );            
 
             Map<String, Object> dimensionItems = new HashMap<>();
             
@@ -738,14 +730,7 @@ public class DefaultEventAnalyticsService
                 }
             }
 
-            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
-            {
-                metaData.put( DIMENSIONS.getKey(), dimensionItems );
-            }
-            else
-            {
-                metaData.putAll( dimensionItems );
-            }
+            metaData.put( DIMENSIONS.getKey(), dimensionItems );
 
             User user = securityManager.getCurrentUser( params );
 
