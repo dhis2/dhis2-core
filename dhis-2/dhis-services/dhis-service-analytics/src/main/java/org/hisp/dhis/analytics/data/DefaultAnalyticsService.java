@@ -57,7 +57,6 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -760,17 +759,7 @@ public class DefaultAnalyticsService
 
             Map<String, String> cocNameMap = AnalyticsUtils.getCocNameMap( params );
 
-            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
-            {
-                metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );
-            }
-            else
-            {
-                Map<String, String> uidNameMap = AnalyticsUtils.getDimensionItemNameMap( params );
-                uidNameMap.putAll( cocNameMap );
-                uidNameMap.put( DATA_X_DIM_ID, DISPLAY_NAME_DATA_X );
-                metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
-            }
+            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );
 
             // -----------------------------------------------------------------
             // Item order elements
@@ -795,14 +784,7 @@ public class DefaultAnalyticsService
                 }
             }
             
-            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
-            {
-                metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
-            }
-            else
-            {
-                metaData.putAll( dimensionItems );
-            }
+            metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
 
             // -----------------------------------------------------------------
             // Organisation unit hierarchy
