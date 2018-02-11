@@ -94,9 +94,4 @@ public class ValidationResultNotificationJob
         notificationService.sendUnsentNotifications();
     }
 
-    @Override
-    protected String getJobId()
-    {
-        return "validationResultNotificationJob";
-    }
 }

@@ -61,8 +61,6 @@ public class DefaultSchedulingManager
     public static final String CONTINOUS_CRON = "* * * * * ?";
     public static final String HOUR_CRON = "0 0 * ? * *";
 
-    private Map<JobType, String> jobMap = new HashMap<>();
-
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
 
     private Map<String, ListenableFuture<?>> currentTasks = new HashMap<>();
@@ -92,12 +90,6 @@ public class DefaultSchedulingManager
     public void setTaskExecutor( AsyncListenableTaskExecutor jobExecutor )
     {
         this.jobExecutor = jobExecutor;
-    }
-
-    @Override
-    public void addJob( JobType jobType, String jobId )
-    {
-        jobMap.put( jobType, jobId );
     }
 
     // -------------------------------------------------------------------------
@@ -214,7 +206,7 @@ public class DefaultSchedulingManager
 
     public Job getJob( JobType jobType )
     {
-        return (Job) applicationContext.getBean( jobMap.get( jobType ) );
+        return (Job) applicationContext.getBean( jobType.getKey() );
     }
 
     // -------------------------------------------------------------------------
