@@ -705,7 +705,7 @@ public class DefaultEventAnalyticsService
             metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) );
         } );
 
-        params.getItems().forEach( item -> {
+        params.getItemsAndItemFilters().forEach( item -> {
             metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) );
         } );
 
