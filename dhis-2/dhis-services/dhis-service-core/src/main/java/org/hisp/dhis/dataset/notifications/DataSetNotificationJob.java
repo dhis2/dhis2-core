@@ -95,9 +95,4 @@ public class DataSetNotificationJob
         dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date() );
     }
 
-    @Override
-    protected String getJobId()
-    {
-        return "scheduledDataSetNotificationJob";
-    }
 }
