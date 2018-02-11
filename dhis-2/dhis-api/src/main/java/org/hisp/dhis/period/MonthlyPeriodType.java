@@ -96,8 +96,9 @@ public class MonthlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset )
     {
+        Calendar calendar = getCalendar();
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
         dateTimeUnit = calendar.plusMonths( dateTimeUnit, offset );
         return dateTimeUnit.toJdkDate();

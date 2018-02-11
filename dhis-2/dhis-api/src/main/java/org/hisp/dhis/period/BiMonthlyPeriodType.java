@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -86,10 +87,10 @@ public class BiMonthlyPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-    
     @Override
-    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset )
     {
+        Calendar calendar = getCalendar();
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
         dateTimeUnit = calendar.plusMonths( dateTimeUnit, 2 * offset );
         return dateTimeUnit.toJdkDate();

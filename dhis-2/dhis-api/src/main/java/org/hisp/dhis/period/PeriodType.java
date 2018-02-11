@@ -589,7 +589,7 @@ public abstract class PeriodType
      */
     public Period getNextPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
     {
-        Date dateWithOffset = getDateWithOffset( period.getStartDate(), 1, calendar );
+        Date dateWithOffset = getDateWithOffset( period.getStartDate(), 1 );
 
         return createPeriod( DateTimeUnit.fromJdkDate( dateWithOffset ), calendar );
     }
@@ -643,7 +643,7 @@ public abstract class PeriodType
      */
     public Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
     {
-        Date dateWithOffset = getDateWithOffset( period.getStartDate(), -1, calendar );
+        Date dateWithOffset = getDateWithOffset( period.getStartDate(), -1 );
 
         return createPeriod( DateTimeUnit.fromJdkDate( dateWithOffset ), calendar );
     }
@@ -673,7 +673,7 @@ public abstract class PeriodType
      * result in the original date to be returned.
      * @return a new date object that has been offset from the original date passed into the function.
      */
-    public abstract Date getDateWithOffset( Date date, int offset, org.hisp.dhis.calendar.Calendar calendar );
+    public abstract Date getDateWithOffset( Date date, int offset );
 
     // -------------------------------------------------------------------------
     // hashCode and equals

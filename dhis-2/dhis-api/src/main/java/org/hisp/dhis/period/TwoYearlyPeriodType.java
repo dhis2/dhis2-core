@@ -101,7 +101,7 @@ public class TwoYearlyPeriodType
     // -------------------------------------------------------------------------
     
     @Override
-    public Date getDateWithOffset( Date date, int offset, org.hisp.dhis.calendar.Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset )
     {
         Calendar cal = createCalendarInstance( date );
         cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 + ( 2 * offset ) );

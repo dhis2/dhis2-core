@@ -93,8 +93,9 @@ public abstract class SixMonthlyAbstractPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset )
     {
+        Calendar calendar = getCalendar();
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
         dateTimeUnit = calendar.plusMonths( dateTimeUnit, offset * 6 );
         return dateTimeUnit.toJdkDate();

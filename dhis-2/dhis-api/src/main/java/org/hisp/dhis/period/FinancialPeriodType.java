@@ -92,8 +92,9 @@ public abstract class FinancialPeriodType
     // -------------------------------------------------------------------------
     
     @Override
-    public Date getDateWithOffset( Date date, int offset, Calendar calendar )
+    public Date getDateWithOffset( Date date, int offset )
     {
+        Calendar calendar = getCalendar();
         DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
         dateTimeUnit = calendar.plusYears( dateTimeUnit, offset );
         return dateTimeUnit.toJdkDate();

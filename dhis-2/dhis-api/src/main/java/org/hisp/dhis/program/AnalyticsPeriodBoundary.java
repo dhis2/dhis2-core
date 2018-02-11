@@ -105,22 +105,22 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     // Logic
     // -------------------------------------------------------------------------
  
-    public Date getBoundaryDate( Date reportingStartDate, Date reportingEndDate )
+    private Date getBoundaryDate( Date reportingStartDate, Date reportingEndDate )
     {
         Date returnDate = null;
         
         if ( analyticsPeriodBoundaryType.isEndBoundary() )
         {
-            returnDate = reportingEndDate;
+            returnDate = new Date( reportingEndDate.getTime() );
         }
         else
         {
-            returnDate = reportingStartDate;
+            returnDate = new Date( reportingEndDate.getTime() );
         }
         
         if ( offsetNumberOfPeriods > 0 && offsetPeriodType != null )
         {
-           //TODO: CHeck with Lars whether we have some smart mechanism to use already
+           returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, this.offsetNumberOfPeriods );
         }
         
         return returnDate;
