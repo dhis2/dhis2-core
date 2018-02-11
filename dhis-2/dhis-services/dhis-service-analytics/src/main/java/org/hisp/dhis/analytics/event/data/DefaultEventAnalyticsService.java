@@ -654,100 +654,120 @@ public class DefaultEventAnalyticsService
     {
         if ( !params.isSkipMeta() )
         {
-            Calendar calendar = PeriodType.getCalendar();
+            final Map<String, Object> metadata = new HashMap<>();
             
-            List<String> periodUids = calendar.isIso8601() ?
-                getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
-                getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
+            metadata.put( ITEMS.getKey(), getMetadataItems( params ) );
+            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params ) );
 
-            Map<String, Object> metaData = new HashMap<>();
-
-            boolean includeMetadataDetails = params.isIncludeMetadataDetails();
-
-            Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
-
-            if ( params.hasValueDimension() )
+            if ( params.isHierarchyMeta() || params.isShowHierarchy() )
             {
-                metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
-            }
-
-            params.getLegends().forEach( legend -> {
-                metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, legend.getCode() ) );
-            } );
-
-            params.getOptions().forEach( option -> {
-                metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, option.getCode() ) );
-            } );
-
-            params.getItems().forEach( item -> {
-                metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
-            } );
-
-            metaData.put( ITEMS.getKey(), metadataItemMap );            
-
-            Map<String, Object> dimensionItems = new HashMap<>();
-            
-            dimensionItems.put( PERIOD_DIM_ID, periodUids );
-
-            for ( DimensionalObject dim : params.getDimensionsAndFilters() )
-            {
-                if ( !metaData.keySet().contains( dim.getDimension() ) )
+                User user = securityManager.getCurrentUser( params );    
+                List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );                
+                Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+                
+                if ( params.isHierarchyMeta() )
                 {
-                    dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
+                    metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
                 }
-            }
-            
-            for ( QueryItem item : params.getItems() )
-            {
-                if ( item.hasOptionSet() )
+    
+                if ( params.isShowHierarchy() )
                 {
-                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
-                }
-                else if ( item.hasLegendSet() )
-                {
-                    dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
-                }
-                else
-                {
-                    dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+                    metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
                 }
             }
 
-            for ( QueryItem item : params.getItemFilters() )
-            {
-                if ( item.hasOptionSet() )
-                {
-                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
-                }
-                else if ( item.hasLegendSet() )
-                {
-                    dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
-                }
-                else
-                {
-                    dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
-                }
-            }
-
-            metaData.put( DIMENSIONS.getKey(), dimensionItems );
-
-            User user = securityManager.getCurrentUser( params );
-
-            List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-            
-            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-            
-            if ( params.isHierarchyMeta() )
-            {
-                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
-            }
-
-            if ( params.isShowHierarchy() )
-            {
-                metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
-            }
-
-            grid.setMetaData( metaData );
+            grid.setMetaData( metadata );
         }
+    }
+    
+    /**
+     * Returns a map of metadata item identifiers and {@link MetadataItem}.
+     * 
+     * @param params the data query parameters.
+     * @return a map.
+     */
+    private Map<String, Object> getMetadataItems( EventQueryParams params )
+    {
+        Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+
+        boolean includeDetails = params.isIncludeMetadataDetails();
+
+        if ( params.hasValueDimension() )
+        {
+            metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
+        }
+
+        params.getLegends().forEach( legend -> {
+            metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null, legend.getCode() ) );
+        } );
+
+        params.getOptions().forEach( option -> {
+            metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) );
+        } );
+
+        params.getItems().forEach( item -> {
+            metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) );
+        } );
+
+        return metadataItemMap;
+    }
+    
+    /**
+     * Returns a map between dimension identifiers and lists of dimension item
+     * identifiers.
+     * 
+     * @param params the data query parameters.
+     * @return a map.
+     */
+    private Map<String, List<String>> getDimensionItems( EventQueryParams params )
+    {
+        Calendar calendar = PeriodType.getCalendar();
+        
+        List<String> periodUids = calendar.isIso8601() ?
+            getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+            getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );        
+
+        Map<String, List<String>> dimensionItems = new HashMap<>();
+        
+        dimensionItems.put( PERIOD_DIM_ID, periodUids );
+
+        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
+        {
+            dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
+        }
+        
+        for ( QueryItem item : params.getItems() )
+        {
+            if ( item.hasOptionSet() )
+            {
+                dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+            }
+            else if ( item.hasLegendSet() )
+            {
+                dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+            }
+            else
+            {
+                dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+            }
+        }
+
+        for ( QueryItem item : params.getItemFilters() )
+        {
+            if ( item.hasOptionSet() )
+            {
+                dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+            }
+            else if ( item.hasLegendSet() )
+            {
+                dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+            }
+            else
+            {
+                dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
+            }
+        }
+
+        return dimensionItems;
     }
 }
