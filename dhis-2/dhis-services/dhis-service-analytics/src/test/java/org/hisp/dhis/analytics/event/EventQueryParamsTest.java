@@ -70,7 +70,6 @@ public class EventQueryParamsTest
     private DataElement deA;
     private DataElement deB;
     
-    
     @Before
     public void before()
     {
