@@ -132,7 +132,7 @@ public class JobConfigurationObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>();
 
         JobConfiguration persitedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
-        if ( !persitedJobConfiguration.isConfigurable() )
+        if ( persitedJobConfiguration != null && !persitedJobConfiguration.isConfigurable() )
         {
             if ( persitedJobConfiguration.compareTo( jobConfiguration ) !=  SUCCESS )
             {
