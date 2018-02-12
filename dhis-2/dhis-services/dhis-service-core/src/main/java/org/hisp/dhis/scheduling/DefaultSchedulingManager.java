@@ -100,6 +100,11 @@ public class DefaultSchedulingManager
 
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
+        if ( jobConfiguration.isInMemoryJob() )
+        {
+            return false;
+        }
+
         return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(
             jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) &&
                 !jobConfig.isContinuousExecution() );
@@ -107,8 +112,11 @@ public class DefaultSchedulingManager
 
     public void jobConfigurationStarted( JobConfiguration jobConfiguration )
     {
-        runningJobConfigurations.add( jobConfiguration );
-        jobConfigurationService.updateJobConfiguration( jobConfiguration );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            runningJobConfigurations.add( jobConfiguration );
+            jobConfigurationService.updateJobConfiguration( jobConfiguration );
+        }
     }
 
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
