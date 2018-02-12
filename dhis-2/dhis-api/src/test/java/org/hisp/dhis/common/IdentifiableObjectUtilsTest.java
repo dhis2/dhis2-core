@@ -152,6 +152,8 @@ public class IdentifiableObjectUtilsTest
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W21" ), monthly, calendar ) );
         assertEquals( PeriodType.getPeriodFromIsoString( "201706" ),
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W22" ), monthly, calendar ) );
+        assertEquals( PeriodType.getPeriodFromIsoString( "201708" ),
+            IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W35" ), monthly, calendar ) );
 
         assertEquals( PeriodType.getPeriodFromIsoString( "201702" ),
             IdentifiableObjectUtils.getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017WedW8" ), monthly, calendar ) );
