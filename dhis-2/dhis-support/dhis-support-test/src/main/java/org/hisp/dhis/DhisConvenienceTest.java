@@ -1687,7 +1687,7 @@ public abstract class DhisConvenienceTest
      * @param sql             A query statement to retreive record/data from database.
      * @return a sqlView instance
      */
-    protected static SqlView createSqlView( char uniqueCharacter, String sql )
+    public static SqlView createSqlView( char uniqueCharacter, String sql )
     {
         SqlView sqlView = new SqlView();
         sqlView.setAutoFields();
@@ -1706,7 +1706,7 @@ public abstract class DhisConvenienceTest
      * @param value           The value for constant
      * @return a constant instance
      */
-    protected static Constant createConstant( char uniqueCharacter, double value )
+    public static Constant createConstant( char uniqueCharacter, double value )
     {
         Constant constant = new Constant();
         constant.setAutoFields();
@@ -1717,7 +1717,7 @@ public abstract class DhisConvenienceTest
         return constant;
     }
 
-    protected static ProgramNotificationTemplate createProgramNotificationTemplate(
+    public static ProgramNotificationTemplate createProgramNotificationTemplate(
         String name, int days, NotificationTrigger trigger )
     {
         return new ProgramNotificationTemplate(
@@ -1732,7 +1732,7 @@ public abstract class DhisConvenienceTest
         );
     }
 
-    protected static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
+    public static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
     {
         ValidationNotificationTemplate template = new ValidationNotificationTemplate();
         template.setAutoFields();
@@ -1745,7 +1745,7 @@ public abstract class DhisConvenienceTest
         return template;
     }
 
-    protected static OptionSet createOptionSet( char uniqueCharacter )
+    public static OptionSet createOptionSet( char uniqueCharacter )
     {
         OptionSet optionSet = new OptionSet();
         optionSet.setAutoFields();
@@ -1756,7 +1756,7 @@ public abstract class DhisConvenienceTest
         return optionSet;
     }
 
-    protected static OptionSet createOptionSet( char uniqueCharacter, Option... options )
+    public static OptionSet createOptionSet( char uniqueCharacter, Option... options )
     {
         OptionSet optionSet = createOptionSet( uniqueCharacter );
 
@@ -1769,7 +1769,7 @@ public abstract class DhisConvenienceTest
         return optionSet;
     }
 
-    protected static Option createOption( char uniqueCharacter )
+    public static Option createOption( char uniqueCharacter )
     {
         Option option = new Option();
         option.setAutoFields();
