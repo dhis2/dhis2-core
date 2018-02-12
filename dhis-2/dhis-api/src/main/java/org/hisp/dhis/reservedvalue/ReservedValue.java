@@ -47,6 +47,8 @@ public class ReservedValue
      */
     private static final long serialVersionUID = 334738541365949298L;
 
+    private int id;
+
     private String ownerObject;
 
     private String ownerUid;
@@ -69,6 +71,17 @@ public class ReservedValue
         this.key = key;
         this.value = value;
         this.expires = expires;
+    }
+
+
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
     }
 
     @JsonProperty

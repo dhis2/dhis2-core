@@ -133,6 +133,13 @@ public class InitTableAlteror
 
     }
 
+    private void updateTrackedEntityAttributePatternAndTextPattern()
+    {
+        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUID\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb ﻿WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
+
+        executeSql( "UPDATE trackedentityattribute SET pattern = concat('RANDOM(', pattern, ')') WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NOT NULL" );
+    }
+
     private void updateMessageConversationMessageTypes()
     {
         // Tickets has status != NONE
