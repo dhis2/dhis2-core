@@ -45,7 +45,6 @@ import java.util.List;
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.*;
-import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 
 /**
  *
@@ -147,7 +146,8 @@ public class SchedulerStart
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
-            dataStatistics.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "lastSuccessfulDataStatistics" ) );
+            SchedulerUpgrade.portJob( systemSettingManager, dataStatistics,"lastSuccessfulDataStatistics" );
+
             addAndScheduleJob( dataStatistics );
         }
 

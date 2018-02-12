@@ -37,6 +37,7 @@ import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -100,27 +101,27 @@ public class SchedulerUpgrade
         {
             log.info( "Porting old jobs" );
             JobConfiguration resourceTable = new JobConfiguration( "Resource table", RESOURCE_TABLE, null, null, false, true );
-            resourceTable.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulResourceTablesUpdate" ) );
+            portJob( systemSettingManager, resourceTable, "keyLastSuccessfulResourceTablesUpdate" );
 
             JobConfiguration analytics = new JobConfiguration( "Analytics", ANALYTICS_TABLE, null,
                 new AnalyticsJobParameters( null, Sets.newHashSet(), false ), false, true );
-            analytics.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulAnalyticsTablesUpdate" ) );
+            portJob( systemSettingManager, analytics, "keyLastSuccessfulAnalyticsTablesUpdate" );
 
             JobConfiguration monitoring = new JobConfiguration( "Monitoring", MONITORING, null, null, false, true );
-            monitoring.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulMonitoring" ) );
+            portJob( systemSettingManager, monitoring, "keyLastSuccessfulMonitoring" );
 
             JobConfiguration dataSync = new JobConfiguration( "Data synchronization", DATA_SYNC, null, null, false, true );
-            dataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulDataSynch" ) );
+            portJob( systemSettingManager, dataSync, "keyLastSuccessfulDataSynch" );
 
             JobConfiguration metadataSync = new JobConfiguration( "Metadata sync", META_DATA_SYNC, null, null, false, true );
-            metadataSync.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastMetaDataSyncSuccess" ) );
+            portJob( systemSettingManager, metadataSync, "keyLastMetaDataSyncSuccess" );
 
             JobConfiguration sendScheduledMessage = new JobConfiguration( "Send scheduled messages",
                 SEND_SCHEDULED_MESSAGE, null, null, false, true );
 
             JobConfiguration scheduledProgramNotifications = new JobConfiguration( "Scheduled program notifications",
                 PROGRAM_NOTIFICATIONS, null, null, false, true );
-            scheduledProgramNotifications.setLastExecuted( (Date) systemSettingManager.getSystemSetting( "keyLastSuccessfulScheduledProgramNotifications" ) );
+            portJob( systemSettingManager, scheduledProgramNotifications, "keyLastSuccessfulScheduledProgramNotifications" );
 
             HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>()
             {{
@@ -185,6 +186,17 @@ public class SchedulerUpgrade
 
             log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
             systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
+        }
+    }
+
+    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, String systemKey )
+    {
+        Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
+
+        if ( lastSuccessfulRun != null )
+        {
+            jobConfiguration.setLastExecuted( lastSuccessfulRun );
+            jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
         }
     }
 }
