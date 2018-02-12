@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
@@ -686,15 +687,17 @@ public class DefaultEventAnalyticsService
      * @param params the data query parameters.
      * @return a map.
      */
-    private Map<String, Object> getMetadataItems( EventQueryParams params )
+    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params )
     {
-        Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+        Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
 
         boolean includeDetails = params.isIncludeMetadataDetails();
 
         if ( params.hasValueDimension() )
         {
-            metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
+            DimensionalItemObject value = params.getValue();
+            
+            metadataItemMap.put( value.getUid(), new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ), includeDetails ? value.getUid() : null, value.getCode() ) );
         }
 
         params.getItemLegends().forEach( legend -> {
