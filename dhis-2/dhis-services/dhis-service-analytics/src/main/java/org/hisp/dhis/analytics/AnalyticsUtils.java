@@ -544,11 +544,11 @@ public class AnalyticsUtils
      * @param params the data query parameters.
      * @return a mapping between identifiers and meta data items.
      */
-    public static Map<String, Object> getDimensionMetadataItemMap( DataQueryParams params )
+    public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
     {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
 
-        Map<String, Object> map = new HashMap<>();
+        Map<String, MetadataItem> map = new HashMap<>();
 
         Calendar calendar = PeriodType.getCalendar();
 
