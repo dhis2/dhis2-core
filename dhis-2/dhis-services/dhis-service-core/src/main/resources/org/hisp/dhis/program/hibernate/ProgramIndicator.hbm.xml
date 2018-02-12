@@ -69,7 +69,7 @@
       </type>
     </property>
     
-   	<set name="analyticsPeriodBoundaries" cascade="all-delete-orphan">
+    <set name="analyticsPeriodBoundaries" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" />
       <one-to-many class="org.hisp.dhis.program.AnalyticsPeriodBoundary" />

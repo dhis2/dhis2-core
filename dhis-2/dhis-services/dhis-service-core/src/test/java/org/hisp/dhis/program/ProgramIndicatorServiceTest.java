@@ -523,29 +523,6 @@ public class ProgramIndicatorServiceTest
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
     
-    @Test
-    public void testGetProgramStageDataElementsInExpression()
-    {
-        
-        String expression =
-            "d2:condition('#{" + psA.getUid() + "." + deA.getUid() + "} < 30',20,100)";
-        List<ProgramStageDataElement> prStDes =
-            programIndicatorService.getProgramStageDateElementsInExpression( expression, null );
-        
-        boolean psA_deA_found = false;
-        
-        for ( ProgramStageDataElement prStDe : prStDes )
-        {
-           if( prStDe.getProgramStage().getUid() == psA.getUid()
-               && prStDe.getDataElement().getUid() == deA.getUid() )
-           {
-               psA_deA_found = true;
-           }
-        }
-        
-        assertTrue( psA_deA_found );
-    }
-    
     @Test( expected = IllegalStateException.class )
     public void testGetAnalyticsSqlWithFunctionsInvalid()
     {

@@ -1417,7 +1417,6 @@
   <bean id="org.hisp.dhis.program.ProgramIndicatorService" class="org.hisp.dhis.program.DefaultProgramIndicatorService">
     <property name="programIndicatorStore" ref="org.hisp.dhis.program.ProgramIndicatorStore" />
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="programStageDataElementService" ref="org.hisp.dhis.program.ProgramStageDataElementService" />
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="attributeService" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
     <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />

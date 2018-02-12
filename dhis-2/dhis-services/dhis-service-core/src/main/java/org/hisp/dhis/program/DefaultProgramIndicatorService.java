@@ -31,7 +31,6 @@ package org.hisp.dhis.program;
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
@@ -56,11 +55,9 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -116,13 +113,6 @@ public class DefaultProgramIndicatorService
     public void setProgramStageService( ProgramStageService programStageService )
     {
         this.programStageService = programStageService;
-    }
-
-    private ProgramStageDataElementService programStageDataElementService;
-
-    public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
-    {
-        this.programStageDataElementService = programStageDataElementService;
     }
 
     private DataElementService dataElementService;
@@ -303,59 +293,6 @@ public class DefaultProgramIndicatorService
             endDate );
 
         return expression;
-    }
-
-    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter )
-    {
-        return getProgramStageDateElementsInExpression( expression, filter, null );
-    }
-
-    public List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter,
-        ProgramStage currentStage )
-    {
-        ArrayList<ProgramStageDataElement> prStDesInExpression = new ArrayList<ProgramStageDataElement>();
-
-        // We will look for data elements in both the expression and the filter
-        // in the same matching.
-        expression += " " + filter;
-
-        Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
-
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 );
-            String uid = matcher.group( 2 );
-
-            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
-            {
-                String de = matcher.group( 3 );
-
-                ProgramStage programStage = programStageService.getProgramStage( uid );
-                DataElement dataElement = dataElementService.getDataElement( de );
-
-                if ( programStage != null && dataElement != null )
-                {
-                    ProgramStageDataElement prStDe = programStageDataElementService.get( programStage, dataElement );
-
-                    if ( prStDe != null )
-                    {
-                        prStDesInExpression.add( prStDe );
-                    }
-                    else
-                    {
-                        Log.error( "Program indicator defined unknown programStageDataElement combination for key:"
-                            + key + " uid:" + uid + " de:" + de );
-                    }
-                }
-                else
-                {
-                    throw new NotImplementedException( "No dataelement is found for key:" + key + " uid:" + uid
-                        + " de:" + de + " . Was the funtion called by an event program indicator?" );
-                }
-            }
-        }
-
-        return prStDesInExpression;
     }
 
     private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues,

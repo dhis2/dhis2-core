@@ -151,8 +151,6 @@ public interface ProgramIndicatorService
      */
     String filterIsValid( String filter );
     
-    List<ProgramStageDataElement> getProgramStageDateElementsInExpression( String expression, String filter );
-    
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup
     // -------------------------------------------------------------------------
