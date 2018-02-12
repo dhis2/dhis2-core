@@ -554,7 +554,7 @@ public class DefaultQueryPlanner
     private List<DataQueryParams> groupByPeriod( DataQueryParams params )
     {
         List<DataQueryParams> queries = new ArrayList<>();
-       
+        
         if ( params.getAggregationType().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )
