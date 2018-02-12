@@ -121,11 +121,12 @@ public class JdbcEnrollmentAnalyticsManager
         String sql = "select " + countClause + " as value," + StringUtils.join( selectColumns, "," ) + " ";
         
         //For non-default program indicator dimensions, each period is a separate query that needs to be hard coded into the SQL
-        if ( params.hasProgramIndicatorDimension() && !params.getProgramIndicator().hasDefaultBoundaries() )
+        if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasNonDefaultBoundaries() )
         {
             Assert.isTrue( params.getPeriods().size() == 1, "For program indicator " + params.getProgramIndicator().getUid() +
                 " with non-default boundaries, it is assumed that exactly one period is queried at a time. Found " + 
                 params.getPeriods().size() + " periods." );
+            
             Period period = (Period) params.getPeriods().get( 0 );
             sql += period.getIsoDate() + " as " +  params.getPeriodType() + " ";
         }
@@ -304,7 +305,7 @@ public class JdbcEnrollmentAnalyticsManager
             //original period.
             //Only add a column if it is not a period or a program indicator with default boundaries
             if ( dimension.getDimensionType() != DimensionType.PERIOD ||
-                !params.hasProgramIndicatorDimension() || params.getProgramIndicator().hasDefaultBoundaries() )
+                !params.hasProgramIndicatorDimension() || !params.getProgramIndicator().hasNonDefaultBoundaries() )
             {
                 columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
             }
@@ -348,7 +349,7 @@ public class JdbcEnrollmentAnalyticsManager
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
-        if ( params.hasProgramIndicatorDimension() && !params.getProgramIndicator().hasDefaultBoundaries() )
+        if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasNonDefaultBoundaries() )
         {
             //The program indicator has non-default boundaries, and defines its own relationship with the 
             //reporting period. We need to make custom where-clauses instead of using the preaggregated period columns.
@@ -364,17 +365,17 @@ public class JdbcEnrollmentAnalyticsManager
             }
             
             //Filter for only evaluating enrollments that has any events in the boundary period:
-            if( params.getProgramIndicator().hasEndEventBoundary() || params.getProgramIndicator().hasStartEventBoundary() )
+            if( params.getProgramIndicator().hasEventBoundary() )
             {
                 sql += sqlHelper.whereAnd() + "( select count * from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
                     " where pi = enrollmenttable.pi " + 
-                    (params.getProgramIndicator().hasEndEventBoundary() ? 
+                    (params.getProgramIndicator().getEndEventBoundary() != null ? 
                     ( sqlHelper.whereAnd() + " " + 
                     params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ") 
                     : "") + 
-                    (params.getProgramIndicator().hasStartEventBoundary() ? 
+                    (params.getProgramIndicator().getStartEventBoundary() != null ? 
                     ( sqlHelper.whereAnd() + " "  + 
-                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ") 
+                    params.getProgramIndicator().getStartEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ") 
                     : "") + 
                     ") > 0";
             }

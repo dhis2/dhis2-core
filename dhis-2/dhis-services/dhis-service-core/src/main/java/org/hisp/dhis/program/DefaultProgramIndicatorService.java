@@ -497,11 +497,7 @@ public class DefaultProgramIndicatorService
     private String getDataValueEnrollmentSql( String dataElementUid, String programStageUid,
         ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
-        if ( programIndicator.hasDefaultBoundaries() )
-        {
-           return statementBuilder.columnQuote( programStageUid + ProgramIndicator.SEPARATOR_ID + dataElementUid );
-        }
-        else
+        if ( programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
         {
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
             String columnName = "\"" + dataElementUid + "\"";
@@ -515,11 +511,15 @@ public class DefaultProgramIndicatorService
                 "and " + 
                 columnName + 
                 " is not null " + 
-                (programIndicator.hasEndEventBoundary() ? 
+                (programIndicator.getEndEventBoundary() != null ? 
                     ("and " + programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ") : "") + 
-                (programIndicator.hasStartEventBoundary() ? 
-                    ("and " + programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ") : "") + 
+                (programIndicator.getStartEventBoundary() != null ? 
+                    ("and " + programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ") : "") + 
                 "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 ) ";
+        }
+        else
+        {
+           return statementBuilder.columnQuote( programStageUid + ProgramIndicator.SEPARATOR_ID + dataElementUid );
         }
     }
 

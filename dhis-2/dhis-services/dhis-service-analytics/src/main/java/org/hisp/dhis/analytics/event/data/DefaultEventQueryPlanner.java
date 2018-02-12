@@ -234,7 +234,7 @@ public class DefaultEventQueryPlanner
      * if the aggregation type is {@link AggregationType#LAST} or 
      * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query includes
      * a {@link ProgramIndicator} that does not use default analytics period boundaries: 
-     * {@link ProgramIndicator#hasDefaultBoundaries()}.
+     * {@link ProgramIndicator#hasNonDefaultBoundaries()}.
      * In this case, each period must be aggregated individually. 
      * 
      * @param params the data query parameters.
@@ -246,7 +246,7 @@ public class DefaultEventQueryPlanner
         
         
         if ( ( params.getAggregationType() != null && params.getAggregationType().isLastPeriodAggregationType() ) || 
-            ( params.hasProgramIndicatorDimension() && !params.getProgramIndicator().hasDefaultBoundaries() ) &&
+            ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasNonDefaultBoundaries() ) &&
             !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )

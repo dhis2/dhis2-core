@@ -275,15 +275,15 @@ public class ProgramIndicator
         }
     }
     
-    public Boolean hasDefaultBoundaries()
+    public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsType == AnalyticsType.EVENT && this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
-            this.analyticsType == AnalyticsType.ENROLLMENT && this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
+        return this.analyticsType == AnalyticsType.EVENT && !this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
+            this.analyticsType == AnalyticsType.ENROLLMENT && !this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
     }
     
-    public Boolean hasEndEventBoundary()
+    public Boolean hasEventBoundary()
     {
-        return getEndEventBoundary() != null;
+        return getEndEventBoundary() != null || getStartEventBoundary() != null;
     }
     
     public AnalyticsPeriodBoundary getEndEventBoundary()
@@ -297,11 +297,6 @@ public class ProgramIndicator
         }
 
         return null;
-    }
-    
-    public Boolean hasStartEventBoundary()
-    {
-        return getStartEventBoundary() != null;
     }
     
     public AnalyticsPeriodBoundary getStartEventBoundary()
