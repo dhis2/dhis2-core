@@ -72,6 +72,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
@@ -131,7 +134,7 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
-            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInList();
+            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
             params.addAttributes( QueryItem.getQueryItems( attributes ) );
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
@@ -298,13 +301,13 @@ public class DefaultTrackedEntityInstanceService
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
-            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInList();
+            Collection<TrackedEntityAttribute> attributes = attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
             params.addAttributes( QueryItem.getQueryItems( attributes ) );
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
         else if ( params.hasProgram() && !params.hasAttributes() )
         {
-            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getTrackedEntityAttributes() ) );
+            params.addAttributes( QueryItem.getQueryItems( params.getProgram().getDisplayInListAttributes() ) );
         }
         else if( params.hasTrackedEntityType() && !params.hasAttributes() )
         {
@@ -474,7 +477,7 @@ public class DefaultTrackedEntityInstanceService
                 if( params.hasTrackedEntityType() )
                 {
                     searchableAttributeIds.addAll( params.getTrackedEntityType().getSearchableAttributeIds() );
-                }
+                }                
                 
                 List<String> violatingAttributes = new ArrayList<>();
                 
@@ -912,39 +915,37 @@ public class DefaultTrackedEntityInstanceService
     {   
         User user = currentUserService.getCurrentUser();
         
-        if( user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback()  ) )
+        Set<OrganisationUnit> localOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+        
+        Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
+        
+        if( params.isOrganisationUnitMode( SELECTED ) )
         {
-            return true;
+            searchOrgUnits =  params.getOrganisationUnits();
         }
-        
-        if( params.isOrganisationUnitMode( ALL ) )
+        else if ( params.isOrganisationUnitMode( CHILDREN ) || params.isOrganisationUnitMode( DESCENDANTS )  )
         {
-            return user.getOrganisationUnits().containsAll( organisationUnitService.getRootOrganisationUnits() );
+            for( OrganisationUnit ou : params.getOrganisationUnits() )
+            {
+                searchOrgUnits.addAll( ou.getChildren() );
+            }
         }
-        
-        if( params.isOrganisationUnitMode( ACCESSIBLE ) )
-        {            
-            return user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback() );
-        }        
-        
-        for( OrganisationUnit searchOu : params.getOrganisationUnits() )
+        else if ( params.isOrganisationUnitMode( ALL ) )
         {
-            boolean localSearch = false;
-            
-            for( OrganisationUnit localOu : user.getOrganisationUnits() )
+            searchOrgUnits.addAll( organisationUnitService.getRootOrganisationUnits() );
+        }
+        else
+        {
+            searchOrgUnits.addAll( user.getTeiSearchOrganisationUnitsWithFallback() );
+        }                
+        
+        for( OrganisationUnit ou : searchOrgUnits )
+        {
+            if( !ou.isDescendant( localOrgUnits ) )
             {
-                if( searchOu.getPath().indexOf(  localOu.getUid() ) != - 1 )
-                {
-                    localSearch = true;
-                    break;
-                }
+                return false;
             }
-            
-            if( !localSearch )
-            {
-                return localSearch;
-            }
-        }        
+        }
         
         return true;
     }

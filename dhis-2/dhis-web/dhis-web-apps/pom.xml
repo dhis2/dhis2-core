@@ -183,6 +183,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-translations</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!-- Dashboard (new) -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-dashboard</artifactId>
+                  <version>2.29-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-dashboard</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
                 <!-- Dashboard -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>

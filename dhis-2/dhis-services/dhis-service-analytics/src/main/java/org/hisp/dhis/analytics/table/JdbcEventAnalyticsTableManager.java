@@ -303,7 +303,7 @@ public class JdbcEventAnalyticsTableManager
         columns.add( new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" ) );
         columns.add( new AnalyticsTableColumn( quote( "longitude" ), dbl, "psi.longitude" ) );
         columns.add( new AnalyticsTableColumn( quote( "latitude" ), dbl, "psi.latitude" ) );
-        columns.add(  new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" ) );
         columns.add( new AnalyticsTableColumn( quote( "ouname" ), "text not null", "ou.name" ) );
         columns.add( new AnalyticsTableColumn( quote( "oucode" ), "text", "ou.code" ) );
 

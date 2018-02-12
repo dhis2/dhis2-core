@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.springframework.scheduling.annotation.Async;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -47,14 +48,14 @@ public abstract class AbstractEventJdbcTableManager
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
         Collection<String> dataElements, int aggregationLevel )
     {
-        return null; // Not relevant
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override
     @Async
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tables )
     {
-        return null; // Not needed
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     /**

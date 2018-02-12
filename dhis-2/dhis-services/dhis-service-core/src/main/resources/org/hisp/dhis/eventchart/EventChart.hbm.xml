@@ -274,6 +274,8 @@
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
+    <property name="favorites" type="jbSet" />
+
   </class>
 
 </hibernate-mapping>

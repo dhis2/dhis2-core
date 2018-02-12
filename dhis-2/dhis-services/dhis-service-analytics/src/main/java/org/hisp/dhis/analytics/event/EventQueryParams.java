@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -386,50 +385,26 @@ public class EventQueryParams
     /**
      * Get legend sets part of items and item filters.
      */
-    public Set<Legend> getLegends()
+    public Set<Legend> getItemLegends()
     {
-        Set<Legend> legends = new HashSet<>();
-
-        for ( QueryItem item : ListUtils.union( items, itemFilters ) )
-        {
-            if ( item.hasLegendSet() )
-            {
-                legends.addAll( item.getLegendSet().getLegends() );
-            }
-        }
-
-        return legends;
+        return getItemsAndItemFilters().stream()
+            .filter( QueryItem::hasLegendSet )
+            .map( i -> i.getLegendSet().getLegends() )
+            .flatMap( i -> i.stream() )
+            .collect( Collectors.toSet() );
+            
     }
 
     /**
-     * Get option sets part of items.
+     * Get options for option sets part of items and item filters.
      */
-    private Set<OptionSet> getItemOptionSets()
+    public Set<Option> getItemOptions()
     {
-        Set<OptionSet> optionSets = new HashSet<>();
-
-        for ( QueryItem item : items )
-        {
-            if ( item.hasOptionSet() )
-            {
-                optionSets.add( item.getOptionSet() );
-            }
-        }
-
-        return optionSets;
-    }
-
-    /**
-     * Get options for option sets part of items.
-     */
-    public List<Option> getOptions()
-    {
-        List<Option> options = new ArrayList<>( );
-        Set<OptionSet> optionSets = getItemOptionSets();
-
-        optionSets.stream().map( OptionSet::getOptions ).forEach( options::addAll );
-
-        return options;
+        return getItemsAndItemFilters().stream()
+            .filter( QueryItem::hasOptionSet )
+            .map( q -> q.getOptionSet().getOptions() )
+            .flatMap( q -> q.stream() )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -801,6 +776,13 @@ public class EventQueryParams
         public Builder withEndDate( Date endDate )
         {
             this.params.endDate = endDate;
+            return this;
+        }
+
+        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
+        {
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
+            this.params.periodType = periodType;
             return this;
         }
         

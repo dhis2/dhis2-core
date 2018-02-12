@@ -230,7 +230,7 @@ public class JCloudsFileResourceContentStore
             return null;
         }
 
-        putBlob( blob );
+        blobStore.putBlob( config.container, blob );
 
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 
@@ -247,7 +247,7 @@ public class JCloudsFileResourceContentStore
             return null;
         }
 
-        putBlob( blob );
+        blobStore.putBlob( config.container, blob );
 
         try
         {
@@ -316,33 +316,6 @@ public class JCloudsFileResourceContentStore
     private void deleteBlob( String key )
     {
         blobStore.removeBlob( config.container, key );
-    }
-
-    private String putBlob( Blob blob )
-    {
-        String etag = null;
-
-        try
-        {
-            etag = blobStore.putBlob( config.container, blob );
-        }
-        catch ( RuntimeException rte )
-        {
-            Throwable cause = rte.getCause();
-
-            if ( cause != null && cause instanceof UserPrincipalNotFoundException )
-            {
-                // Intentionally ignored exception which occurs with JClouds (< 2.0.0) on localized Windows.
-                // See https://issues.apache.org/jira/browse/JCLOUDS-1015
-                log.debug( "Ignored UserPrincipalNotFoundException. Workaround for 'JCLOUDS-1015'." );
-            }
-            else
-            {
-                throw rte;
-            }
-        }
-
-        return etag;
     }
 
     private Blob createBlob( FileResource fileResource, byte[] bytes )

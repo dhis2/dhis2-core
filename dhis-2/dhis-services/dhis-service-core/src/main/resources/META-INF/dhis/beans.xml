@@ -1157,7 +1157,7 @@
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" />
 
-  <bean id="scheduledDataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
+  <bean id="dataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
   <bean id="org.hisp.dhis.security.oauth2.OAuth2ClientStore" class="org.hisp.dhis.security.oauth2.hibernate.HibernateOAuth2ClientStore">
     <property name="clazz" value="org.hisp.dhis.security.oauth2.OAuth2Client" />
@@ -1438,7 +1438,6 @@
     <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
     <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="programNotificationService" ref="org.hisp.dhis.program.notification.ProgramNotificationService" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramInstanceService" class="org.hisp.dhis.program.DefaultProgramInstanceService" />
@@ -1457,6 +1456,10 @@
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
   </bean>
+
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationPublisher" class="org.hisp.dhis.program.notification.ProgramNotificationPublisher" />
+
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener" class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
     <property name="programRuleVariableStore" ref="org.hisp.dhis.programrule.ProgramRuleVariableStore" />
@@ -1650,7 +1653,7 @@
 
   <!-- Scheduled jobs -->
 
-  <bean id="scheduledProgramNotificationsJob"
+  <bean id="programNotificationsJob"
         class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
   <bean id="validationResultNotificationJob"
