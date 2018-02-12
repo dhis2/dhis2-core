@@ -158,16 +158,6 @@ public class HibernateGenericStore<T>
         this.cacheable = cacheable;
     }
 
-    protected CriteriaBuilder builder;
-
-    protected CriteriaQuery query;
-
-    @PostConstruct
-    private void initiateCriteriaProperties()
-    {
-        builder = getCriteriaBuilder();
-    }
-
     // -------------------------------------------------------------------------
     // Convenience methods
     // -------------------------------------------------------------------------
@@ -738,7 +728,7 @@ public class HibernateGenericStore<T>
             return new ArrayList<>();
         }
 
-        query = getCriteriaQuery();
+        CriteriaQuery query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
@@ -792,7 +782,8 @@ public class HibernateGenericStore<T>
             return new ArrayList<>();
         }
 
-        query = getCriteriaQuery();
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
@@ -813,7 +804,8 @@ public class HibernateGenericStore<T>
             return null;
         }
 
-        query = getCriteriaQuery();
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );

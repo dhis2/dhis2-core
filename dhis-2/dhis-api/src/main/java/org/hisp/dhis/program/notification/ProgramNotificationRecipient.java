@@ -41,7 +41,8 @@ public enum ProgramNotificationRecipient
     USERS_AT_ORGANISATION_UNIT( false ),
     USER_GROUP( false ),
     PROGRAM_ATTRIBUTE( true ),
-    DATA_ELEMENT( true );
+    DATA_ELEMENT( true ),
+    PARENT_ORGANISATION_UNIT_OF_USERS_IN_GROUP( false );
 
     private boolean external;
 
