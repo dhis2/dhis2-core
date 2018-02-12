@@ -695,8 +695,7 @@ public class DefaultEventAnalyticsService
 
         if ( params.hasValueDimension() )
         {
-            DimensionalItemObject value = params.getValue();
-            
+            DimensionalItemObject value = params.getValue();            
             metadataItemMap.put( value.getUid(), new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ), includeDetails ? value.getUid() : null, value.getCode() ) );
         }
 

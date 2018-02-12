@@ -232,7 +232,7 @@ public class EventAnalyticsServiceMetadataTest
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA )
-            .addItem( qiB )
+            .addItemFilter( qiB )
             .withSkipData( true )
             .withSkipMeta( false )
             .withApiVersion( DhisApiVersion.V29 )
