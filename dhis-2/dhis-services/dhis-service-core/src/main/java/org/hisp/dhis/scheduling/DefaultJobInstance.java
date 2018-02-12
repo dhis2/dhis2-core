@@ -76,7 +76,7 @@ public class DefaultJobInstance
 
                 messageService.sendSystemErrorNotification(
                     "Job '" + jobConfiguration.getName() + "' failed, jobtype '" + jobConfiguration.getJobType() +
-                        "' is already running [" + clock.time() + "]",
+                        "' is already running.",
                     new Exception( "Job '" + jobConfiguration.getName() + "' failed" ) );
 
                 jobConfiguration.setLastExecutedStatus( JobStatus.FAILED );
