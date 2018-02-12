@@ -211,7 +211,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         return Class.forName( name );
     }
 
-    public String convertObjectToJson( Object value )
+    protected String convertObjectToJson( Object value )
     {
         try
         {
@@ -223,7 +223,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    public Object convertJsonToObject( String content )
+    protected Object convertJsonToObject( String content )
     {
         try
         {
