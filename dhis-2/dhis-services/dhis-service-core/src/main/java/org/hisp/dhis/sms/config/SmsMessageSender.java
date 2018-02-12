@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -46,9 +47,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -63,6 +62,8 @@ public class SmsMessageSender
     private static final Log log = LogFactory.getLog( SmsMessageSender.class );
 
     private static final String NO_CONFIG = "No default gateway configured";
+
+    private static final Integer MAX_RECIPIENTS_ALLOWED = 200;
 
     private static final Pattern SUMMARY_PATTERN = Pattern.compile( "\\s*High\\s*[0-9]*\\s*,\\s*medium\\s*[0-9]*\\s*,\\s*low\\s*[0-9]*\\s*" );
 
@@ -177,21 +178,32 @@ public class SmsMessageSender
         Serializable userSetting = userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION,
             user );
 
-            return userSetting != null ? (Boolean) userSetting : false;
+        return userSetting != null ? (Boolean) userSetting : false;
     }
 
     private OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients,
         SmsGatewayConfig gatewayConfig )
     {
+        OutboundMessageResponse status = null;
+
         for ( SmsGateway smsGateway : smsGateways )
         {
             if ( smsGateway.accept( gatewayConfig ) )
             {
-                log.info( "Sending SMS to " + recipients );
+                List<String> temp = new ArrayList<>( recipients );
 
-                OutboundMessageResponse status = smsGateway.send( subject, text, recipients, gatewayConfig );
+                List<List<String>> slices = Lists.partition( temp, MAX_RECIPIENTS_ALLOWED );
 
-                return handleResponse( status );
+                for ( List<String> to: slices )
+                {
+                    log.info( "Sending SMS to " + to );
+
+                    status = smsGateway.send( subject, text, new HashSet<>( to ), gatewayConfig );
+
+                    handleResponse( status );
+                }
+
+                return status;
             }
         }
 
@@ -214,14 +226,19 @@ public class SmsMessageSender
         {
             log.info( "SMS sent" );
 
-            return new OutboundMessageResponse( gatewayResponse.getResponseMessage(), gatewayResponse, true );
+            status.setOk( true );
         }
         else
         {
             log.error( "SMS failed, failure cause: " + gatewayResponse.getResponseMessage() );
 
-            return new OutboundMessageResponse( gatewayResponse.getResponseMessage(), gatewayResponse, false );
+            status.setOk( false );
         }
+
+        status.setDescription( gatewayResponse.getResponseMessage() );
+        status.setResponseObject( gatewayResponse );
+
+        return status;
     }
 
     private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses, OutboundMessageBatch batch,
