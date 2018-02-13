@@ -1,7 +1,7 @@
-package org.hisp.dhis.hibernate.jsonb.type;
+package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,30 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JavaType;
-
-import java.io.IOException;
-import java.util.List;
+import org.joda.time.Months;
+import org.joda.time.Period;
+import org.joda.time.Seconds;
+import org.joda.time.Years;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
+ * @author Kristian Wærstad
  */
-public class JsonListBinaryType extends JsonBinaryType
+public enum FileResourceRetentionStrategy
 {
-    
-    @Override
-    protected String convertObjectToJson( Object value )
+    NONE ( Seconds.ZERO.toPeriod() ),
+    THREE_MONTHS ( Months.THREE.toPeriod() ),
+    ONE_YEAR ( Years.ONE.toPeriod() ),
+    FOREVER ( null );
+
+    private Period retentionTime;
+
+    FileResourceRetentionStrategy( Period retentionTime )
     {
-        try
-        {
-            return MAPPER.writeValueAsString( value );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
+        this.retentionTime = retentionTime;
     }
-    
-    @Override
-    protected Object convertJsonToObject( String content )
+
+    public Period getRetentionTime()
     {
-        try
-        {
-            JavaType type = MAPPER.getTypeFactory().constructCollectionType( List.class, returnedClass() );
-            
-            return MAPPER.readValue( content, type );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
+        return retentionTime;
     }
 }
