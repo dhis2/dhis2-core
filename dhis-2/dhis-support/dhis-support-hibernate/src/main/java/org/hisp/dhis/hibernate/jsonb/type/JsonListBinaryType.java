@@ -41,7 +41,7 @@ public class JsonListBinaryType extends JsonBinaryType
 {
     
     @Override
-    public String convertObjectToJson( Object value )
+    protected String convertObjectToJson( Object value )
     {
         try
         {
@@ -54,7 +54,7 @@ public class JsonListBinaryType extends JsonBinaryType
     }
     
     @Override
-    public Object convertJsonToObject( String content )
+    protected Object convertJsonToObject( String content )
     {
         try
         {
