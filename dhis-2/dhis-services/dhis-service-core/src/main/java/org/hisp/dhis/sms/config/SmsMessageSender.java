@@ -35,10 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.outboundmessage.*;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
@@ -115,13 +112,8 @@ public class SmsMessageSender
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
-        Set<String> recipients = new HashSet<>();
-        recipients.add( recipient );
-
-        return sendMessage( subject, text, recipients );
+        return sendMessage( subject, text, Sets.newHashSet( recipient ) );
     }
-
-
 
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
@@ -166,7 +158,9 @@ public class SmsMessageSender
     @Override
     public boolean isConfigured()
     {
-        return !gatewayAdminService.getGatewayConfigurationMap().isEmpty();
+        Map<String, SmsGatewayConfig> configMap = gatewayAdminService.getGatewayConfigurationMap();
+
+        return !configMap.isEmpty();
     }
 
     // -------------------------------------------------------------------------
