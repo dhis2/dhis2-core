@@ -43,11 +43,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
 public class Mention implements Serializable
 {
-
     private String username;
     
     private Date created;
-    
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
