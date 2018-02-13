@@ -219,7 +219,7 @@ public class DefaultInterpretationService
     @Override
     public void sendNotifications( Interpretation interpretation, InterpretationComment comment,  Set<User> users)
     {
-        if ( interpretation != null) {
+        if ( interpretation != null && users.size() > 0 ) {
             String link = systemSettingManager.getInstanceBaseUrl();
 
             switch ( interpretation.getType() )
