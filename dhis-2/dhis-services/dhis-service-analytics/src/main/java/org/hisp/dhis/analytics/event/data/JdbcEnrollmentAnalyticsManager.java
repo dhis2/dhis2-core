@@ -99,9 +99,6 @@ public class JdbcEnrollmentAnalyticsManager
     @Autowired
     private ProgramIndicatorService programIndicatorService;
     
-    @Autowired
-    private ProgramService programService;
-    
     // -------------------------------------------------------------------------
     // EnrollmentAnalyticsManager implementation
     // -------------------------------------------------------------------------

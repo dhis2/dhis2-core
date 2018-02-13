@@ -283,16 +283,16 @@ public class DefaultProgramIndicatorService
             return null;
         }
 
-        expression = TextUtils.removeNewlines( expression );
+        String sqlExpression = TextUtils.removeNewlines( expression );
 
-        expression = getSubstitutedVariablesForAnalyticsSql( expression, programIndicator, startDate, endDate );
+        sqlExpression = getSubstitutedVariablesForAnalyticsSql( sqlExpression, programIndicator, startDate, endDate );
 
-        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicator, startDate, endDate );
+        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate, endDate );
 
-        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicator, startDate,
+        sqlExpression = getSubstitutedElementsAnalyticsSql( sqlExpression, ignoreMissingValues, programIndicator, startDate,
             endDate );
 
-        return expression;
+        return sqlExpression;
     }
 
     private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues,
@@ -438,25 +438,26 @@ public class DefaultProgramIndicatorService
         {
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
             String columnName = "\"" + dataElementUid + "\"";
-            return "(select " + 
-                columnName + 
-                " from " + 
-                eventTableName + 
-                " where " + 
-                eventTableName + 
-                ".pi = enrollmenttable.pi " + 
-                "and " + 
-                columnName + 
-                " is not null " + 
-                (programIndicator.getEndEventBoundary() != null ? 
-                    ("and " + programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ") : "") + 
-                (programIndicator.getStartEventBoundary() != null ? 
-                    ("and " + programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ") : "") + 
-                "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 ) ";
+            return "(select "
+                + columnName
+                + " from "
+                + eventTableName
+                + " where "
+                + eventTableName
+                + ".pi = enrollmenttable.pi "
+                + "and "
+                + columnName
+                + " is not null "
+                + (programIndicator.getEndEventBoundary() != null ? ("and "
+                    + programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ")
+                    : "")
+                + (programIndicator.getStartEventBoundary() != null ? ("and "
+                    + programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ")
+                    : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 ) ";
         }
         else
         {
-           return statementBuilder.columnQuote( programStageUid + ProgramIndicator.SEPARATOR_ID + dataElementUid );
+            return statementBuilder.columnQuote( programStageUid + ProgramIndicator.SEPARATOR_ID + dataElementUid );
         }
     }
 

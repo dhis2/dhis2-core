@@ -154,7 +154,7 @@ public class QuarterlyPeriodType
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
     {
-        org.hisp.dhis.calendar.Calendar cal = getCalendar();
+        Calendar cal = getCalendar();
 
         dateTimeUnit.setDay( 1 );
 
@@ -172,7 +172,7 @@ public class QuarterlyPeriodType
     }
 
     @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
+    public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && dateTimeUnit.isIso8601() )
         {
