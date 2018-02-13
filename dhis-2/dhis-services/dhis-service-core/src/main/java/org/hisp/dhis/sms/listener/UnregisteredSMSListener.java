@@ -113,6 +113,7 @@ public class UnregisteredSMSListener
                 user.setSurname( userName );
                 user.setFirstName( "" );
                 user.setUserCredentials( usercredential );
+                user.setAutoFields();
 
                 userService.addUserCredentials( usercredential );
                 userService.addUser( user );
