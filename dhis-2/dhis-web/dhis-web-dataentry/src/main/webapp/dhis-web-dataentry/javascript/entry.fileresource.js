@@ -48,9 +48,8 @@
             postData.value = '';
 
             $.ajax( {
-                url: '../api/dataValues',
-                type: 'POST',
-                data: postData,
+                url: '../api/dataValues?de=' + formData.de + '&ou=' + formData.ou + '&pe=' + formData.pe,
+                type: 'DELETE',
                 success: function() {
                     $fileinfoName.text( '' );
                     $fileinfoSize.text( '' );
