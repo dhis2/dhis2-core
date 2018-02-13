@@ -47,7 +47,7 @@ public class MentionUtils
             mention.setUsername( user.getUsername() );
             mentions.add( mention );
         }
-        return (mentions.size() > 0) ? mentions : null;
+        return mentions;
     }
 
 }
