@@ -449,7 +449,7 @@ public class DefaultProgramIndicatorService
         }
         else
         {
-            return statementBuilder.columnQuote( programStageUid + ProgramIndicator.SEPARATOR_ID + dataElementUid );
+            return statementBuilder.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
         }
     }
 

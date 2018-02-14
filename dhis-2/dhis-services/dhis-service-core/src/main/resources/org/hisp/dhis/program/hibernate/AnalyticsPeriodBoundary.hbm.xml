@@ -25,7 +25,7 @@
       </type>
     </property>
     
-    <property name="offsetNumberOfPeriods" />
+    <property name="offsetPeriods" />
     
     <many-to-one name="offsetPeriodType" class="org.hisp.dhis.period.PeriodType" 
         column="offsetperiodtypeid" foreign-key="fk_analyticsperiodboundary_periodtype" />
