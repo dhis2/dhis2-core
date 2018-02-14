@@ -315,7 +315,7 @@ public class SmsMessageSender
         OutboundMessageBatchStatus batchStatus, OutboundMessageBatch batch )
     {
         OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel, batchStatus );
-        summary.setTotal( batch.getMessages().size() );
+        summary.setTotal( batch.size() );
 
         log.warn( responseMessage );
 

@@ -28,6 +28,7 @@ package org.hisp.dhis.outboundmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.DeliveryChannel;
@@ -38,8 +39,8 @@ import org.hisp.dhis.common.DeliveryChannel;
 
 public class OutboundMessageBatch
 {
-    private List<OutboundMessage> messages;
-    
+    private List<OutboundMessage> messages = new ArrayList<>();
+
     private final DeliveryChannel deliveryChannel;
 
     public OutboundMessageBatch( List<OutboundMessage> messages, DeliveryChannel deliveryChannel )
@@ -66,5 +67,10 @@ public class OutboundMessageBatch
     public void setMessages( List<OutboundMessage> messages )
     {
         this.messages = messages;
+    }
+
+    public int size()
+    {
+        return messages.size();
     }
 }

@@ -77,6 +77,8 @@ public class SmsMessageSenderTest
 
     private OutboundMessageResponse okStatus;
 
+    private OutboundMessageResponse failedStatus;
+
     private List<OutboundMessageResponse> summaryResponses = new ArrayList<>();
 
     private List<OutboundMessage> outboundMessages = new ArrayList<>();
@@ -104,7 +106,7 @@ public class SmsMessageSenderTest
     @Before
     public void initTest()
     {
-        setup();
+        setUp();
 
         smsGateways.add( bulkSmsGateway );
 
@@ -113,7 +115,7 @@ public class SmsMessageSenderTest
         when( gatewayAdministrationService.getGatewayConfigurationMap() ).thenReturn( configMap );
 
         // stub for UserSettingService
-        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( new Boolean( true ) );
+        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.valueOf( true ) );
 
         // stub for SmsGateways
         when ( bulkSmsGateway.accept( any() ) ).thenReturn( true );
@@ -122,7 +124,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageWithGatewayConfig()
+    public void testSendMessageWithGatewayConfig()
     {
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, recipientsNormalized );
 
@@ -136,7 +138,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageWithOutGatewayConfig()
+    public void testSendMessageWithOutGatewayConfig()
     {
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( null );
 
@@ -152,7 +154,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_isConfiguredWithOutGatewayConfig()
+    public void testIsConfiguredWithOutGatewayConfig()
     {
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( null );
         when( gatewayAdministrationService.getGatewayConfigurationMap() ).thenReturn( new HashMap<>() );
@@ -163,7 +165,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_isConfiguredWithGatewayConfig()
+    public void testIsConfiguredWithGatewayConfig()
     {
         boolean isConfigured = smsMessageSender.isConfigured();
 
@@ -171,7 +173,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageWithListOfUsers()
+    public void testSendMessageWithListOfUsers()
     {
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, users, false );
 
@@ -181,7 +183,51 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_numberNormalization()
+    public void testSendMessageWithEmptyUserList()
+    {
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, new HashSet<>(), false );
+
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.NO_RECIPIENT, status.getResponseObject() );
+        assertEquals( "no recipient", status.getDescription() );
+    }
+
+    @Test
+    public void testSendMessageWithUserSMSSettingsDisabled()
+    {
+        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.valueOf( false ) );
+
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, users, false );
+
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.SMS_DISABLED, status.getResponseObject() );
+        assertEquals( "sms notifications are disabled", status.getDescription() );
+    }
+
+    @Test
+    public void testSendMessageWithSingleRecipient()
+    {
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, "47401111111" );
+
+        assertTrue( status.isOk() );
+        assertEquals( GatewayResponse.RESULT_CODE_0, status.getResponseObject() );
+        assertEquals( "success", status.getDescription() );
+    }
+
+    @Test
+    public void testSendMessageFailed()
+    {
+        when( bulkSmsGateway.send( anyString(), anyString(), anySetOf( String.class ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( failedStatus );
+
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, recipientsNormalized );
+
+        assertNotNull( status );
+        assertEquals( GatewayResponse.FAILED, status.getResponseObject() );
+        assertFalse( status.isOk() );
+    }
+
+    @Test
+    public void testNumberNormalization()
     {
         Set<String> temp_recipients = Sets.newHashSet();
 
@@ -204,7 +250,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageWithMaxRecipients()
+    public void testSendMessageWithMaxRecipients()
     {
         List<Set<String>> recipientList = new ArrayList<>();
 
@@ -226,7 +272,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageBatchCompleted()
+    public void testSendMessageBatchCompleted()
     {
         responseForCompletedBatch();
 
@@ -242,7 +288,7 @@ public class SmsMessageSenderTest
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
         assertEquals( batch, argumentCaptor.getValue() );
 
-        assertEquals( 4, argumentCaptor.getValue().getMessages().size() );
+        assertEquals( 4, argumentCaptor.getValue().size() );
 
         assertEquals( 4, summary.getSent() );
         assertEquals( 4, summary.getTotal() );
@@ -251,7 +297,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageBatchFailed()
+    public void testSendMessageBatchFailed()
     {
         responseForFailedBatch();
 
@@ -266,7 +312,7 @@ public class SmsMessageSenderTest
 
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
         assertEquals( batch, argumentCaptor.getValue() );
-        assertEquals( 4, argumentCaptor.getValue().getMessages().size() );
+        assertEquals( 4, argumentCaptor.getValue().size() );
 
         assertEquals( 3, summary.getSent() );
         assertEquals( 4, summary.getTotal() );
@@ -275,7 +321,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageBatchWithMaxRecipients()
+    public void testSendMessageBatchWithMaxRecipients()
     {
         summaryResponses.clear();
 
@@ -304,7 +350,7 @@ public class SmsMessageSenderTest
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
         assertEquals( batch, argumentCaptor.getValue() );
 
-        assertEquals( 6, argumentCaptor.getValue().getMessages().size() );
+        assertEquals( 6, argumentCaptor.getValue().size() );
         assertEquals( 6, summary.getSent() );
         assertEquals( 6, summary.getTotal() );
         assertEquals( 0, summary.getFailed() );
@@ -312,7 +358,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageBatchWithOutMaxRecipients()
+    public void testSendMessageBatchWithOutMaxRecipients()
     {
         responseForCompletedBatch();
         createOutBoundMessagesWithOutMaxRecipients();
@@ -329,18 +375,37 @@ public class SmsMessageSenderTest
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
         assertEquals( batch, argumentCaptor.getValue() );
 
-        assertEquals( 4, argumentCaptor.getValue().getMessages().size() );
+        assertEquals( 4, argumentCaptor.getValue().size() );
 
+    }
+
+    @Test
+    public void testSendMessageBatchWithOutGatewayConfiguration()
+    {
+        when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( null );
+
+        responseForFailedBatch();
+
+        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages, DeliveryChannel.SMS );
+
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.FAILED, summary.getBatchStatus() );
+        assertEquals( NO_CONFIG, summary.getErrorMessage() );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void setup()
+    private void setUp()
     {
         okStatus = new OutboundMessageResponse();
         okStatus.setResponseObject( GatewayResponse.RESULT_CODE_0 );
+
+        failedStatus = new OutboundMessageResponse();
+        failedStatus.setResponseObject( GatewayResponse.FAILED );
 
         smsGatewayConfig = new BulkSmsGatewayConfig();
         smsGatewayConfig.setUrlTemplate("");
