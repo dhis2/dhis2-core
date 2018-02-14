@@ -46,6 +46,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author Zubair Asghar.
@@ -276,7 +277,18 @@ public class SmsMessageSenderTest
     @Test
     public void test_sendMessageBatchWithMaxRecipients()
     {
-        responseForCompletedBatch();
+        summaryResponses.clear();
+
+        when ( bulkSmsGateway.sendBatch( any(), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
+        {
+            OutboundMessageBatch batch = (OutboundMessageBatch) invocation.getArguments()[0];
+
+            summaryResponses.addAll( batch.getMessages().stream()
+                .map( message -> new OutboundMessageResponse( "success", GatewayResponse.RESULT_CODE_0, true ) )
+                .collect( Collectors.toList() ) );
+
+            return summaryResponses;
+        });
 
         createOutBoundMessagesWithMaxRecipients();
 
@@ -293,6 +305,10 @@ public class SmsMessageSenderTest
         assertEquals( batch, argumentCaptor.getValue() );
 
         assertEquals( 6, argumentCaptor.getValue().getMessages().size() );
+        assertEquals( 6, summary.getSent() );
+        assertEquals( 6, summary.getTotal() );
+        assertEquals( 0, summary.getFailed() );
+        assertEquals( 0, summary.getPending() );
     }
 
     @Test
@@ -413,10 +429,8 @@ public class SmsMessageSenderTest
                 i--;
                 continue;
             }
-            else
-            {
-                generatedRecipients.add( temp );
-            }
+
+            generatedRecipients.add( temp );
         }
     }
 }
