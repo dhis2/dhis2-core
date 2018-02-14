@@ -36,7 +36,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,6 +51,7 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -139,6 +142,8 @@ public class ProgramIndicatorServiceTest
     private ProgramIndicator indicatorD;
 
     private ProgramIndicator indicatorE;
+    
+    private ProgramIndicator indicatorF;
     
 
     @Override
@@ -286,6 +291,13 @@ public class ProgramIndicatorServiceTest
             + "{" + atB.getUid() + "}";
         String filterE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
         indicatorE = createProgramIndicator( 'E', programB, expressionE, filterE );
+        
+        String expressionF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}";
+        String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} >" +
+            KEY_ATTRIBUTE + "{" + atA.getUid() + "}";
+        indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
+        indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
     }
 
     // -------------------------------------------------------------------------
@@ -570,6 +582,16 @@ public class ProgramIndicatorServiceTest
         "(#{OXXcwl6aPCQ.GCyeKSqlpdk}  == ''   and A{kts5J79K9gA}== 0)";
         String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, null, filter ), true, new Date(), new Date() );
         assertEquals( expected, actual );        
+    }
+    
+    @Test
+    public void testEnrollmentIndicatorWithEventBoundaryExpression()
+    {
+        String expected = "foobar";
+        Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
+        Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
+        String actual = programIndicatorService.getAnalyticsSQl( expected, indicatorF, true, reportingStartDate, reportingEndDate );
+        assertEquals( expected, actual );  
     }
     
     @Test
