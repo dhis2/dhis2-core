@@ -30,7 +30,7 @@ package org.hisp.dhis;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
+import com.google.common.hash.Hashing;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -65,6 +65,8 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -136,6 +138,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
 import javax.annotation.PostConstruct;
@@ -1706,6 +1709,20 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
+    public static FileResource createFileResource( char uniqueChar, byte[] content )
+    {
+        String filename = "filename" + uniqueChar;
+        String contentMd5 = Hashing.md5().hashBytes( content ).toString();
+        String contentType = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+
+        FileResource fileResource = new FileResource( filename, contentType, content.length, contentMd5, FileResourceDomain.DATA_VALUE );
+        fileResource.setAssigned( false );
+        fileResource.setCreated( new Date() );
+        fileResource.setAutoFields();
+
+        return fileResource;
+    }
+
     /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param sql             A query statement to retreive record/data from database.
@@ -2168,4 +2185,6 @@ public abstract class DhisConvenienceTest
 
         return new ProgramDataElementDimensionItem( pr, de );
     }
+
+
 }

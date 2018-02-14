@@ -1,7 +1,7 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,30 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.option.OptionSet;
+import org.joda.time.Months;
+import org.joda.time.Period;
+import org.joda.time.Seconds;
+import org.joda.time.Years;
 
 /**
- * @author Henning Håkonsen
+ * @author Kristian Wærstad
  */
-public interface EventDimensionalItemObject
-    extends DimensionalItemObject
+public enum FileResourceRetentionStrategy
 {
-    boolean hasOptionSet();
+    NONE ( Seconds.ZERO.toPeriod() ),
+    THREE_MONTHS ( Months.THREE.toPeriod() ),
+    ONE_YEAR ( Years.ONE.toPeriod() ),
+    FOREVER ( null );
 
-    OptionSet getOptionSet();
+    private Period retentionTime;
 
-    ValueType getValueType();
+    FileResourceRetentionStrategy( Period retentionTime )
+    {
+        this.retentionTime = retentionTime;
+    }
+
+    public Period getRetentionTime()
+    {
+        return retentionTime;
+    }
 }
