@@ -142,13 +142,15 @@ public class SmsMessageSender
 
         batch.getMessages().stream().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
 
+        sliceBatchMessages( batch );
+
         for ( SmsGateway smsGateway : smsGateways )
         {
             if ( smsGateway.accept( defaultGateway ) )
             {
                 List<OutboundMessageResponse> responses = smsGateway.sendBatch( batch, defaultGateway );
 
-                return generateSummary( responses, batch, smsGateway );
+                return generateSummary( responses, batch );
             }
         }
 
@@ -209,6 +211,28 @@ public class SmsMessageSender
         return to.stream().map( SmsUtils::removePhoneNumberPrefix ).collect( Collectors.toSet() );
     }
 
+    private OutboundMessageBatch sliceBatchMessages( OutboundMessageBatch batch )
+    {
+        List<OutboundMessage> messages = new ArrayList<>();
+
+        messages = batch.getMessages().stream().flatMap( m -> sliceMessageRecipients( m ).stream() ).collect( Collectors.toList() );
+
+        batch.setMessages( messages );
+
+        return batch;
+    }
+
+    private List<OutboundMessage> sliceMessageRecipients( OutboundMessage message )
+    {
+        List<String> temp = new ArrayList<>( message.getRecipients() );
+
+        List<List<String>> slices = Lists.partition( temp, MAX_RECIPIENTS_ALLOWED );
+
+        return slices.stream()
+            .map( to -> new OutboundMessage( message.getSubject(), message.getText(), new HashSet<>( to ) ) )
+            .collect( Collectors.toList() );
+    }
+
     private OutboundMessageResponse handleResponse( OutboundMessageResponse status )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
@@ -235,8 +259,7 @@ public class SmsMessageSender
         return status;
     }
 
-    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses, OutboundMessageBatch batch,
-        SmsGateway smsGateway )
+    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses, OutboundMessageBatch batch )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
             GatewayResponse.RESULT_CODE_202 );
@@ -255,7 +278,7 @@ public class SmsMessageSender
         {
             if ( okCodes.contains( status.getResponseObject() ) )
             {
-                sent = (smsGateway instanceof BulkSmsGateway) ? total : sent + 1;
+                sent++;
             }
             else
             {

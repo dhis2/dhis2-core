@@ -30,10 +30,8 @@ package org.hisp.dhis.sms;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.RandomStringUtils;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.outboundmessage.*;
 import org.hisp.dhis.sms.config.*;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.user.User;
@@ -227,14 +225,101 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    public void test_sendMessageBatch()
+    public void test_sendMessageBatchCompleted()
     {
+        responseForCompletedBatch();
+
+        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages, DeliveryChannel.SMS );
+
+        ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
+
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.COMPLETED, summary.getBatchStatus() );
+
+        verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
+        assertEquals( batch, argumentCaptor.getValue() );
+
+        assertEquals( 4, argumentCaptor.getValue().getMessages().size() );
+
+        assertEquals( 4, summary.getSent() );
+        assertEquals( 4, summary.getTotal() );
+        assertEquals( 0, summary.getFailed() );
+        assertEquals( 0, summary.getPending() );
+    }
+
+    @Test
+    public void test_sendMessageBatchFailed()
+    {
+        responseForFailedBatch();
+
+        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages, DeliveryChannel.SMS );
+
+        ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
+
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.FAILED, summary.getBatchStatus() );
+
+        verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
+        assertEquals( batch, argumentCaptor.getValue() );
+        assertEquals( 4, argumentCaptor.getValue().getMessages().size() );
+
+        assertEquals( 3, summary.getSent() );
+        assertEquals( 4, summary.getTotal() );
+        assertEquals( 1, summary.getFailed() );
+        assertEquals( 0, summary.getPending() );
     }
 
     @Test
     public void test_sendMessageBatchWithMaxRecipients()
     {
+        responseForCompletedBatch();
+
+        createOutBoundMessagesWithMaxRecipients();
+
+        ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
+
+        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages , DeliveryChannel.SMS );
+
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.COMPLETED, summary.getBatchStatus() );
+
+        verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
+        assertEquals( batch, argumentCaptor.getValue() );
+
+        assertEquals( 6, argumentCaptor.getValue().getMessages().size() );
     }
+
+    @Test
+    public void test_sendMessageBatchWithOutMaxRecipients()
+    {
+        responseForCompletedBatch();
+        createOutBoundMessagesWithOutMaxRecipients();
+
+        ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
+
+        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages , DeliveryChannel.SMS );
+
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.COMPLETED, summary.getBatchStatus() );
+
+        verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
+        assertEquals( batch, argumentCaptor.getValue() );
+
+        assertEquals( 4, argumentCaptor.getValue().getMessages().size() );
+
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private void setup()
     {
@@ -251,11 +336,12 @@ public class SmsMessageSenderTest
 
         configMap.put(gateway, smsGatewayConfig);
 
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.FAILED.getResponseMessage(), GatewayResponse.FAILED, false ) );
-
         OutboundMessage outboundMessageA = new OutboundMessage( subject, text, recipientsNormalized );
+        OutboundMessage outboundMessageB = new OutboundMessage( subject, text, recipientsNonNormalized );
+        OutboundMessage outboundMessageC = new OutboundMessage( subject, text, recipientsNormalized );
+        OutboundMessage outboundMessageD = new OutboundMessage( subject, text, recipientsNonNormalized );
+
+        outboundMessages = Arrays.asList( outboundMessageA, outboundMessageB, outboundMessageC, outboundMessageD );
 
         User userA = new User();
         userA.setPhoneNumber( "47401111111" );
@@ -272,6 +358,46 @@ public class SmsMessageSenderTest
         users = Sets.newHashSet( userA, userB, userC, userD );
         sender = new User();
         sender.setPhoneNumber( "4740555555" );
+    }
+
+    private void responseForFailedBatch()
+    {
+        summaryResponses.clear();
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.FAILED.getResponseMessage(), GatewayResponse.FAILED, false ) );
+    }
+
+    private void responseForCompletedBatch()
+    {
+        summaryResponses.clear();
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+    }
+
+    private void createOutBoundMessagesWithMaxRecipients()
+    {
+        generateRecipients( 500 );
+
+        OutboundMessage outboundMessageA = new OutboundMessage( subject, text, generatedRecipients );
+        OutboundMessage outboundMessageB = new OutboundMessage( subject, text, recipientsNonNormalized );
+        OutboundMessage outboundMessageC = new OutboundMessage( subject, text, recipientsNormalized );
+        OutboundMessage outboundMessageD = new OutboundMessage( subject, text, recipientsNonNormalized );
+
+        outboundMessages = Arrays.asList( outboundMessageA, outboundMessageB, outboundMessageC, outboundMessageD );
+    }
+
+    private void createOutBoundMessagesWithOutMaxRecipients()
+    {
+        OutboundMessage outboundMessageA = new OutboundMessage( subject, text, recipientsNormalized );
+        OutboundMessage outboundMessageB = new OutboundMessage( subject, text, recipientsNonNormalized );
+        OutboundMessage outboundMessageC = new OutboundMessage( subject, text, recipientsNormalized );
+        OutboundMessage outboundMessageD = new OutboundMessage( subject, text, recipientsNonNormalized );
+
+        outboundMessages = Arrays.asList( outboundMessageA, outboundMessageB, outboundMessageC, outboundMessageD );
     }
 
     private void generateRecipients( int size )
