@@ -85,7 +85,6 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
     @Autowired
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
@@ -97,9 +96,6 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    @Autowired
-    protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService entityInstanceService;
 
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -141,7 +137,7 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = entityInstanceService.getTrackedEntityInstances( queryParams );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = teiService.getTrackedEntityInstances( queryParams );
         List<TrackedEntityInstance> teiItems = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
@@ -156,7 +152,7 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
     {
-        return entityInstanceService.getTrackedEntityInstanceCount( params, sync );
+        return teiService.getTrackedEntityInstanceCount( params, sync );
     }
 
     @Override
@@ -315,11 +311,6 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     public ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
-        if ( importOptions == null )
-        {
-            importOptions = new ImportOptions();
-        }
-
         User user = currentUserService.getCurrentUser();
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
 
@@ -381,10 +372,9 @@ public abstract class AbstractTrackedEntityInstanceService
         importConflicts.addAll( checkTrackedEntityType( trackedEntityInstance, importOptions ) );
         importConflicts.addAll( checkAttributes( trackedEntityInstance, importOptions ) );
 
-        importSummary.setConflicts( importConflicts );
-
         if ( !importConflicts.isEmpty() )
         {
+            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
             return importSummary;
@@ -406,7 +396,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         teiService.addTrackedEntityInstance( entityInstance );
 
-        updateRelationships( trackedEntityInstance, entityInstance );
+        updateRelationships( trackedEntityInstance );
         updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
 
@@ -431,11 +421,6 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     public ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
-        if ( importOptions == null )
-        {
-            importOptions = new ImportOptions();
-        }
-
         User user = currentUserService.getCurrentUser();
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
 
@@ -497,8 +482,7 @@ public abstract class AbstractTrackedEntityInstanceService
         importConflicts.addAll( checkRelationships( trackedEntityInstance ) );
         importConflicts.addAll( checkAttributes( trackedEntityInstance, importOptions ) );
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
-            trackedEntityInstance.getTrackedEntityInstance() );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() );
 
         if ( entityInstance == null )
         {
@@ -525,10 +509,9 @@ public abstract class AbstractTrackedEntityInstanceService
             entityInstance.setOrganisationUnit( organisationUnit );
         }
 
-        importSummary.setConflicts( importConflicts );
-
         if ( !importConflicts.isEmpty() )
         {
+            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
 
@@ -543,13 +526,12 @@ public abstract class AbstractTrackedEntityInstanceService
         removeAttributeValues( entityInstance );
         teiService.updateTrackedEntityInstance( entityInstance );
 
-        updateRelationships( trackedEntityInstance, entityInstance );
+        updateRelationships( trackedEntityInstance );
         updateAttributeValues( trackedEntityInstance, entityInstance, user );
         updateDateFields( trackedEntityInstance, entityInstance );
 
         teiService.updateTrackedEntityInstance( entityInstance );
 
-        importSummary.setStatus( ImportStatus.SUCCESS );
         importSummary.setReference( entityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
@@ -623,8 +605,8 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         ImportSummaries importSummaries = new ImportSummaries();
-        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions ) );
-        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions ) );
+        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, null, false ) );
+        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, null, false ) );
 
         return importSummaries;
     }
@@ -634,8 +616,7 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         for ( Attribute attribute : trackedEntityInstance.getAttributes() )
         {
-            TrackedEntityAttribute entityAttribute = manager.get( TrackedEntityAttribute.class,
-                attribute.getAttribute() );
+            TrackedEntityAttribute entityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( entityAttribute != null )
             {
@@ -643,6 +624,8 @@ public abstract class AbstractTrackedEntityInstanceService
                 attributeValue.setEntityInstance( entityInstance );
                 attributeValue.setValue( attribute.getValue() );
                 attributeValue.setAttribute( entityAttribute );
+
+                entityInstance.addAttributeValue( attributeValue );
 
                 String storedBy = getStoredBy( attributeValue, new ImportSummary(), user );
                 attributeValue.setStoredBy( storedBy );
@@ -652,7 +635,7 @@ public abstract class AbstractTrackedEntityInstanceService
         }
     }
 
-    private void updateRelationships( TrackedEntityInstance trackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance )
+    private void updateRelationships( TrackedEntityInstance trackedEntityInstance )
     {
         for ( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship : trackedEntityInstance.getRelationships() )
         {
@@ -741,7 +724,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 importConflicts.add( new ImportConflict( "Relationship.type", "Invalid type " + relationship.getRelationship() ) );
             }
 
-            org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstanceA = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class, relationship.getTrackedEntityInstanceA() );
+            org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstanceA = teiService.getTrackedEntityInstance( relationship.getTrackedEntityInstanceA() );
 
             if ( entityInstanceA == null )
             {
@@ -749,7 +732,7 @@ public abstract class AbstractTrackedEntityInstanceService
                     + relationship.getTrackedEntityInstanceA() ) );
             }
 
-            org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstanceB = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class, relationship.getTrackedEntityInstanceB() );
+            org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstanceB = teiService.getTrackedEntityInstance( relationship.getTrackedEntityInstanceB() );
 
             if ( entityInstanceB == null )
             {
