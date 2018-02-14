@@ -191,9 +191,6 @@ public class DefaultTrackedEntityAttributeService
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
-        
-        //Search at least TEI's of the same type
-        params.setTrackedEntityType( trackedEntityInstance.getTrackedEntityType() );
 
         if ( trackedEntityAttribute.getOrgunitScope() && trackedEntityAttribute.getProgramScope() )
         {
@@ -352,5 +349,11 @@ public class DefaultTrackedEntityAttributeService
         }
 
         return new ProgramTrackedEntityAttribute( program, attribute );
+    }
+
+    @Override
+    public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()
+    {
+        return getAllTrackedEntityAttributes().stream().filter( ta -> ta.isSystemWideUnique() ).collect( Collectors.toList() );
     }
 }

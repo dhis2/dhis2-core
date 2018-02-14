@@ -34,7 +34,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.*;
@@ -545,11 +544,11 @@ public class AnalyticsUtils
      * @param params the data query parameters.
      * @return a mapping between identifiers and meta data items.
      */
-    public static Map<String, Object> getDimensionMetadataItemMap( DataQueryParams params )
+    public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
     {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
 
-        Map<String, Object> map = new HashMap<>();
+        Map<String, MetadataItem> map = new HashMap<>();
 
         Calendar calendar = PeriodType.getCalendar();
 
@@ -647,47 +646,6 @@ public class AnalyticsUtils
         return metaData;
     }
     
-    /**
-     * Returns a mapping of identifiers and names for the given event query.
-     * 
-     * @param params the event query.
-     * @return a mapping of identifiers and names for the given event query.
-     */
-    public static Map<String, String> getUidNameMap( EventQueryParams params )
-    {
-        Map<String, String> map = new HashMap<>();
-
-        Program program = params.getProgram();
-        ProgramStage stage = params.getProgramStage();
-
-        map.put( program.getUid(), program.getDisplayProperty( params.getDisplayProperty() ) );
-
-        if ( stage != null )
-        {
-            map.put( stage.getUid(), stage.getName() );
-        }
-        else
-        {
-            for ( ProgramStage st : program.getProgramStages() )
-            {
-                map.put( st.getUid(), st.getName() );
-            }
-        }
-
-        if ( params.hasValueDimension() )
-        {
-            map.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
-        }
-        
-        map.putAll( getUidDisplayPropertyMap( params.getItems(), params.getDisplayProperty() ) );
-        map.putAll( getUidDisplayPropertyMap( params.getItemFilters(), params.getDisplayProperty() ) );
-        map.putAll( getUidDisplayPropertyMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
-        map.putAll( getUidDisplayPropertyMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
-        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
-        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getOptions() ) );
-        
-        return map;
-    }
     /**
      * Returns a mapping between identifiers and display properties for the given 
      * list of query items.

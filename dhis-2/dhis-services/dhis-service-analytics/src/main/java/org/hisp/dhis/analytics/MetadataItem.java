@@ -62,6 +62,10 @@ public class MetadataItem
 
     private AggregationType aggregationType;
 
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
     public MetadataItem( String name )
     {
         this.name = name;
@@ -121,6 +125,10 @@ public class MetadataItem
         this.description = programStage.getDescription();
     }
 
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
     private void setDataItem( DimensionalItemObject dimensionalItemObject )
     {
         if ( dimensionalItemObject == null )
@@ -148,6 +156,10 @@ public class MetadataItem
         this.aggregationType = dimensionalObject.getAggregationType();
         this.uid = dimensionalObject.getUid();
     }
+
+    // -------------------------------------------------------------------------
+    // Get and set
+    // -------------------------------------------------------------------------
 
     @JsonProperty
     public String getUid()

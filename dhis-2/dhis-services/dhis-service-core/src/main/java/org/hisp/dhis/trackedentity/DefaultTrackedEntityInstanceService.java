@@ -446,9 +446,17 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
         
-        if ( !params.hasProgram() && !params.hasTrackedEntityType() )
-        {
-            throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() )
+        {                        
+            List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+            
+            for( String att : params.getAttributeAndFilterIds() ) 
+            {
+                if( !uniqeAttributeIds.contains( att ) )
+                {
+                    throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+                }
+            }
         }
         
         if( !isLocalSearch( params ) )
