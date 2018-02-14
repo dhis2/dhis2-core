@@ -269,39 +269,39 @@ public abstract class AbstractTrackedEntityInstanceService
         return trackedEntityInstance;
     }
 
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions, ImportSummary importSummary )
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance createDAOTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions, ImportSummary importSummary )
     {
-        if ( StringUtils.isEmpty( trackedEntityInstance.getOrgUnit() ) )
+        if ( StringUtils.isEmpty( dtoEntityInstance.getOrgUnit() ) )
         {
-            importSummary.getConflicts().add( new ImportConflict( trackedEntityInstance.getTrackedEntityInstance(), "No org unit ID in tracked entity instance object." ) );
+            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "No org unit ID in tracked entity instance object." ) );
             return null;
         }
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = new org.hisp.dhis.trackedentity.TrackedEntityInstance();
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = new org.hisp.dhis.trackedentity.TrackedEntityInstance();
 
-        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), trackedEntityInstance.getOrgUnit() );
+        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), dtoEntityInstance.getOrgUnit() );
 
         if ( organisationUnit == null )
         {
-            importSummary.getConflicts().add( new ImportConflict( trackedEntityInstance.getTrackedEntityInstance(), "Invalid org unit ID: " + trackedEntityInstance.getOrgUnit() ) );
+            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "Invalid org unit ID: " + dtoEntityInstance.getOrgUnit() ) );
             return null;
         }
 
-        entityInstance.setOrganisationUnit( organisationUnit );
+        daoEntityInstance.setOrganisationUnit( organisationUnit );
 
-        TrackedEntityType trackedEntityType = getTrackedEntityType( importOptions.getIdSchemes(), trackedEntityInstance.getTrackedEntityType() );
+        TrackedEntityType trackedEntityType = getTrackedEntityType( importOptions.getIdSchemes(), dtoEntityInstance.getTrackedEntityType() );
 
         if ( trackedEntityType == null )
         {
-            importSummary.getConflicts().add( new ImportConflict( trackedEntityInstance.getTrackedEntityInstance(), "Invalid tracked entity ID: " + trackedEntityInstance.getTrackedEntityType() ) );
+            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "Invalid tracked entity ID: " + dtoEntityInstance.getTrackedEntityType() ) );
             return null;
         }
 
-        entityInstance.setTrackedEntityType( trackedEntityType );
-        entityInstance.setUid( CodeGenerator.isValidUid( trackedEntityInstance.getTrackedEntityInstance() ) ?
-            trackedEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
+        daoEntityInstance.setTrackedEntityType( trackedEntityType );
+        daoEntityInstance.setUid( CodeGenerator.isValidUid( dtoEntityInstance.getTrackedEntityInstance() ) ?
+            dtoEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
 
-        return entityInstance;
+        return daoEntityInstance;
     }
 
     // -------------------------------------------------------------------------
@@ -318,27 +318,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _trackedEntityInstances.stream().map( TrackedEntityInstance::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> trackedEntityAttributes = new HashSet<>();
-            _trackedEntityInstances.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
-
-            if ( !trackedEntityAttributes.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
-                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
-            }
+            prepareCaches( _trackedEntityInstances, user );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
@@ -357,20 +337,20 @@ public abstract class AbstractTrackedEntityInstanceService
         return addTrackedEntityInstance( trackedEntityInstance, currentUserService.getCurrentUser(), importOptions );
     }
 
-    private ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, User user, ImportOptions importOptions )
+    private ImportSummary addTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
+        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
 
-        trackedEntityInstance.trimValuesToNull();
+        dtoEntityInstance.trimValuesToNull();
 
         Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkTrackedEntityType( trackedEntityInstance, importOptions ) );
-        importConflicts.addAll( checkAttributes( trackedEntityInstance, importOptions ) );
+        importConflicts.addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
+        importConflicts.addAll( checkAttributes( dtoEntityInstance, importOptions ) );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -380,36 +360,36 @@ public abstract class AbstractTrackedEntityInstanceService
             return importSummary;
         }
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = getTrackedEntityInstance( trackedEntityInstance, importOptions, importSummary );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = createDAOTrackedEntityInstance( dtoEntityInstance, importOptions, importSummary );
 
-        if ( entityInstance == null )
+        if ( daoEntityInstance == null )
         {
             return importSummary;
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, entityInstance );
+        List<String> errors = trackerAccessManager.canWrite( user, daoEntityInstance );
 
         if ( !errors.isEmpty() )
         {
             return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
-        teiService.addTrackedEntityInstance( entityInstance );
+        teiService.addTrackedEntityInstance( daoEntityInstance );
 
-        updateRelationships( trackedEntityInstance );
-        updateAttributeValues( trackedEntityInstance, entityInstance, user );
-        updateDateFields( trackedEntityInstance, entityInstance );
+        updateRelationships( dtoEntityInstance );
+        updateAttributeValues( dtoEntityInstance, daoEntityInstance, user );
+        updateDateFields( dtoEntityInstance, daoEntityInstance );
 
-        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
-        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
+        daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
+        daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
 
-        teiService.updateTrackedEntityInstance( entityInstance );
+        teiService.updateTrackedEntityInstance( daoEntityInstance );
 
-        importSummary.setReference( entityInstance.getUid() );
+        importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        importSummary.setEnrollments( handleEnrollments( trackedEntityInstance, entityInstance, importOptions ) );
+        importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
     }
@@ -428,27 +408,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _trackedEntityInstances.stream().map( TrackedEntityInstance::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> trackedEntityAttributes = new HashSet<>();
-            _trackedEntityInstances.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
-
-            if ( !trackedEntityAttributes.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
-                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
-            }
+            prepareCaches( _trackedEntityInstances, user );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
@@ -467,46 +427,46 @@ public abstract class AbstractTrackedEntityInstanceService
         return updateTrackedEntityInstance( trackedEntityInstance, currentUserService.getCurrentUser(), importOptions );
     }
 
-    private ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, User user, ImportOptions importOptions )
+    private ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary( trackedEntityInstance.getTrackedEntityInstance() );
+        ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
 
-        trackedEntityInstance.trimValuesToNull();
+        dtoEntityInstance.trimValuesToNull();
 
         Set<ImportConflict> importConflicts = new HashSet<>();
-        importConflicts.addAll( checkRelationships( trackedEntityInstance ) );
-        importConflicts.addAll( checkAttributes( trackedEntityInstance, importOptions ) );
+        importConflicts.addAll( checkRelationships( dtoEntityInstance ) );
+        importConflicts.addAll( checkAttributes( dtoEntityInstance, importOptions ) );
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
 
-        if ( entityInstance == null )
+        if ( daoEntityInstance == null )
         {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance", "trackedEntityInstance " + trackedEntityInstance.getTrackedEntityInstance()
+            importConflicts.add( new ImportConflict( "TrackedEntityInstance", "trackedEntityInstance " + dtoEntityInstance.getTrackedEntityInstance()
                 + " does not point to valid trackedEntityInstance" ) );
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, entityInstance );
+        List<String> errors = trackerAccessManager.canWrite( user, daoEntityInstance );
 
         if ( !errors.isEmpty() )
         {
             return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
-        OrganisationUnit organisationUnit = getOrganisationUnit( new IdSchemes(), trackedEntityInstance.getOrgUnit() );
+        OrganisationUnit organisationUnit = getOrganisationUnit( new IdSchemes(), dtoEntityInstance.getOrgUnit() );
 
         if ( organisationUnit == null )
         {
-            importConflicts.add( new ImportConflict( "OrganisationUnit", "orgUnit " + trackedEntityInstance.getOrgUnit()
+            importConflicts.add( new ImportConflict( "OrganisationUnit", "orgUnit " + dtoEntityInstance.getOrgUnit()
                 + " does not point to valid organisation unit" ) );
         }
         else
         {
-            entityInstance.setOrganisationUnit( organisationUnit );
+            daoEntityInstance.setOrganisationUnit( organisationUnit );
         }
 
         if ( !importConflicts.isEmpty() )
@@ -518,25 +478,25 @@ public abstract class AbstractTrackedEntityInstanceService
             return importSummary;
         }
 
-        entityInstance.setInactive( trackedEntityInstance.isInactive() );
-        entityInstance.setFeatureType( trackedEntityInstance.getFeatureType() );
-        entityInstance.setCoordinates( trackedEntityInstance.getCoordinates() );
+        daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
+        daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
+        daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
 
-        removeRelationships( entityInstance );
-        removeAttributeValues( entityInstance );
-        teiService.updateTrackedEntityInstance( entityInstance );
+        removeRelationships( daoEntityInstance );
+        removeAttributeValues( daoEntityInstance );
+        teiService.updateTrackedEntityInstance( daoEntityInstance );
 
-        updateRelationships( trackedEntityInstance );
-        updateAttributeValues( trackedEntityInstance, entityInstance, user );
-        updateDateFields( trackedEntityInstance, entityInstance );
+        updateRelationships( dtoEntityInstance );
+        updateAttributeValues( dtoEntityInstance, daoEntityInstance, user );
+        updateDateFields( dtoEntityInstance, daoEntityInstance );
 
-        teiService.updateTrackedEntityInstance( entityInstance );
+        teiService.updateTrackedEntityInstance( daoEntityInstance );
 
-        importSummary.setReference( entityInstance.getUid() );
+        importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        importSummary.setEnrollments( handleEnrollments( trackedEntityInstance, entityInstance, importOptions ) );
+        importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
     }
@@ -584,15 +544,15 @@ public abstract class AbstractTrackedEntityInstanceService
     // HELPERS
     // -------------------------------------------------------------------------
 
-    private ImportSummaries handleEnrollments( TrackedEntityInstance trackedEntityInstanceDTO, org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions )
+    private ImportSummaries handleEnrollments( TrackedEntityInstance dtoEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, ImportOptions importOptions )
     {
         List<Enrollment> create = new ArrayList<>();
         List<Enrollment> update = new ArrayList<>();
 
-        for ( Enrollment enrollment : trackedEntityInstanceDTO.getEnrollments() )
+        for ( Enrollment enrollment : dtoEntityInstance.getEnrollments() )
         {
-            enrollment.setTrackedEntityType( trackedEntityInstanceDTO.getTrackedEntityType() );
-            enrollment.setTrackedEntityInstance( trackedEntityInstance.getUid() );
+            enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
+            enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
 
             if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
             {
@@ -605,27 +565,52 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         ImportSummaries importSummaries = new ImportSummaries();
-        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, null, false ) );
-        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, null, false ) );
+
+        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
+        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, daoEntityInstance, false ) );
 
         return importSummaries;
     }
 
-    private void updateAttributeValues( TrackedEntityInstance trackedEntityInstance,
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance, User user )
+    private void prepareCaches( List<TrackedEntityInstance> trackedEntityInstances, User user )
     {
-        for ( Attribute attribute : trackedEntityInstance.getAttributes() )
+        Collection<String> orgUnits = trackedEntityInstances.stream().map( TrackedEntityInstance::getOrgUnit ).collect( Collectors.toSet() );
+
+        if ( !orgUnits.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", orgUnits ) );
+            queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
+        }
+
+        Collection<String> trackedEntityAttributes = new HashSet<>();
+        trackedEntityInstances.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+        if ( !trackedEntityAttributes.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+            queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+        }
+    }
+
+    private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, User user )
+    {
+        for ( Attribute attribute : dtoEntityInstance.getAttributes() )
         {
             TrackedEntityAttribute entityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( entityAttribute != null )
             {
                 TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-                attributeValue.setEntityInstance( entityInstance );
+                attributeValue.setEntityInstance( daoEntityInstance );
                 attributeValue.setValue( attribute.getValue() );
                 attributeValue.setAttribute( entityAttribute );
 
-                entityInstance.addAttributeValue( attributeValue );
+                daoEntityInstance.addAttributeValue( attributeValue );
 
                 String storedBy = getStoredBy( attributeValue, new ImportSummary(), user );
                 attributeValue.setStoredBy( storedBy );

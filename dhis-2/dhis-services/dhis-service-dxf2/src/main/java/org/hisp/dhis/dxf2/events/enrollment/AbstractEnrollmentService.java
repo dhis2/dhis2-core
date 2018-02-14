@@ -339,37 +339,7 @@ public abstract class AbstractEnrollmentService
 
         for ( List<Enrollment> _enrollments : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _enrollments.stream().map( Enrollment::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> programs = _enrollments.stream().map( Enrollment::getProgram ).collect( Collectors.toSet() );
-
-            if ( !programs.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( Program.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", programs ) );
-                queryService.query( query ).forEach( pr -> programCache.put( pr.getUid(), (Program) pr ) );
-            }
-
-            Collection<String> trackedEntityAttributes = new HashSet<>();
-            _enrollments.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
-
-            if ( !trackedEntityAttributes.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
-                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
-            }
+            prepareCaches( _enrollments, user );
 
             for ( Enrollment enrollment : _enrollments )
             {
@@ -402,8 +372,6 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
-
         if ( daoTrackedEntityInstance == null )
         {
             daoTrackedEntityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
@@ -411,58 +379,15 @@ public abstract class AbstractEnrollmentService
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
 
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setSkipPaging( true );
-        params.setProgram( program );
-        params.setTrackedEntityInstance( daoTrackedEntityInstance );
-        params.setProgramStatus( ProgramStatus.ACTIVE );
-
-        List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
-
-        if ( !enrollments.isEmpty() )
+        ImportSummary importSummary = validateRequest( program, daoTrackedEntityInstance, enrollment, importOptions );
+        if ( importSummary.getStatus() != ImportStatus.SUCCESS )
         {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "TrackedEntityInstance " + daoTrackedEntityInstance.getUid()
-                + " already have an active enrollment in program " + program.getUid() );
-            importSummary.incrementIgnored();
-
-            return importSummary;
-        }
-
-        if ( program.getOnlyEnrollOnce() )
-        {
-            params.setProgramStatus( ProgramStatus.COMPLETED );
-
-            enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
-
-            if ( !enrollments.isEmpty() )
-            {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setDescription( "TrackedEntityInstance " + daoTrackedEntityInstance.getUid()
-                    + " already have a completed enrollment in program " + program.getUid() + ", and this program is" +
-                    " configured to only allow enrolling one time." );
-                importSummary.incrementIgnored();
-
-                return importSummary;
-            }
-        }
-
-        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
-
-        if ( !importConflicts.isEmpty() )
-        {
-            importSummary.setConflicts( importConflicts );
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.incrementIgnored();
-
             return importSummary;
         }
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
 
         List<String> errors = trackerAccessManager.canWrite( user, new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ) );
-
         if ( !errors.isEmpty() )
         {
             return new ImportSummary( ImportStatus.ERROR, errors.toString() );
@@ -470,6 +395,36 @@ public abstract class AbstractEnrollmentService
 
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( daoTrackedEntityInstance, program,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
+
+        importSummary = validateProgramInstance( program, programInstance, enrollment, importOptions );
+        if ( importSummary.getStatus() != ImportStatus.SUCCESS )
+        {
+            return importSummary;
+        }
+
+        updateCoordinates( program, enrollment, programInstance );
+        updateAttributeValues( enrollment, importOptions );
+        updateDateFields( enrollment, programInstance );
+        programInstance.setFollowup( enrollment.getFollowup() );
+        programInstance.setStoredBy( storedBy );
+
+        programInstanceService.updateProgramInstance( programInstance );
+
+        saveTrackedEntityComment( programInstance, enrollment );
+
+        importSummary.setReference( programInstance.getUid() );
+        importSummary.getImportCount().incrementImported();
+
+        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+
+        return importSummary;
+    }
+
+    private ImportSummary validateProgramInstance( Program program, ProgramInstance programInstance, Enrollment enrollment, ImportOptions importOptions )
+    {
+
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         if ( programInstance == null )
         {
@@ -486,40 +441,61 @@ public abstract class AbstractEnrollmentService
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
             importSummary.incrementIgnored();
+        }
+
+        return importSummary;
+    }
+
+    private ImportSummary validateRequest( Program program, org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        Enrollment enrollment, ImportOptions importOptions )
+    {
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
+
+        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        params.setSkipPaging( true );
+        params.setProgram( program );
+        params.setTrackedEntityInstance( entityInstance );
+        params.setProgramStatus( ProgramStatus.ACTIVE );
+
+        List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
+
+        if ( !enrollments.isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
+                + " already have an active enrollment in program " + program.getUid() );
+            importSummary.incrementIgnored();
 
             return importSummary;
         }
 
-        if ( program.getCaptureCoordinates() )
+        if ( program.getOnlyEnrollOnce() )
         {
-            if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
+            params.setProgramStatus( ProgramStatus.COMPLETED );
+
+            enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
+
+            if ( !enrollments.isEmpty() )
             {
-                programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
-                programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
-            }
-            else
-            {
-                programInstance.setLatitude( null );
-                programInstance.setLongitude( null );
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.setDescription( "TrackedEntityInstance " + entityInstance.getUid()
+                    + " already have a completed enrollment in program " + program.getUid() + ", and this program is" +
+                    " configured to only allow enrolling one time." );
+                importSummary.incrementIgnored();
+
+                return importSummary;
             }
         }
 
-        updateAttributeValues( enrollment, importOptions );
-        updateDateFields( enrollment, programInstance );
-        programInstance.setFollowup( enrollment.getFollowup() );
-        programInstance.setStoredBy( storedBy );
+        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
 
-
-        programInstanceService.updateProgramInstance( programInstance );
-        manager.update( programInstance.getEntityInstance() );
-
-        saveTrackedEntityComment( programInstance, enrollment );
-
-        importSummary.setReference( programInstance.getUid() );
-        importSummary.getImportCount().incrementImported();
-
-        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+        if ( !importConflicts.isEmpty() )
+        {
+            importSummary.setConflicts( importConflicts );
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
+        }
 
         return importSummary;
     }
@@ -538,37 +514,7 @@ public abstract class AbstractEnrollmentService
 
         for ( List<Enrollment> _enrollments : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _enrollments.stream().map( Enrollment::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> programs = _enrollments.stream().map( Enrollment::getProgram ).collect( Collectors.toSet() );
-
-            if ( !programs.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( Program.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", programs ) );
-                queryService.query( query ).forEach( pr -> programCache.put( pr.getUid(), (Program) pr ) );
-            }
-
-            Collection<String> trackedEntityAttributes = new HashSet<>();
-            _enrollments.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
-
-            if ( !trackedEntityAttributes.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
-                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
-            }
+            prepareCaches( _enrollments, user );
 
             for ( Enrollment enrollment : _enrollments )
             {
@@ -668,19 +614,7 @@ public abstract class AbstractEnrollmentService
             return importSummary;
         }
 
-        if ( program.getCaptureCoordinates() )
-        {
-            if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
-            {
-                programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
-                programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
-            }
-            else
-            {
-                programInstance.setLatitude( null );
-                programInstance.setLongitude( null );
-            }
-        }
+        updateCoordinates( program, enrollment, programInstance );
 
         if ( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) != enrollment.getStatus() )
         {
@@ -835,6 +769,57 @@ public abstract class AbstractEnrollmentService
         importSummaries.addImportSummaries( eventService.updateEvents( update, false, false ) );
 
         return importSummaries;
+    }
+
+    private void prepareCaches( List<Enrollment> enrollments, User user )
+    {
+        Collection<String> orgUnits = enrollments.stream().map( Enrollment::getOrgUnit ).collect( Collectors.toSet() );
+
+        if ( !orgUnits.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", orgUnits ) );
+            queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
+        }
+
+        Collection<String> programs = enrollments.stream().map( Enrollment::getProgram ).collect( Collectors.toSet() );
+
+        if ( !programs.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( Program.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", programs ) );
+            queryService.query( query ).forEach( pr -> programCache.put( pr.getUid(), (Program) pr ) );
+        }
+
+        Collection<String> trackedEntityAttributes = new HashSet<>();
+        enrollments.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+        if ( !trackedEntityAttributes.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+            queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+        }
+    }
+
+    private void updateCoordinates( Program program, Enrollment enrollment, ProgramInstance programInstance )
+    {
+        if ( program.getCaptureCoordinates() )
+        {
+            if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
+            {
+                programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
+                programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
+            }
+            else
+            {
+                programInstance.setLatitude( null );
+                programInstance.setLongitude( null );
+            }
+        }
     }
 
     private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
