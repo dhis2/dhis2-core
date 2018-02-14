@@ -58,7 +58,6 @@ public class DefaultMergeService implements MergeService
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
 
-
         Schema schema = schemaService.getDynamicSchema( source.getClass() );
 
         for ( Property property : schema.getProperties() )
