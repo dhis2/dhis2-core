@@ -68,7 +68,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -118,7 +117,7 @@ public class JdbcEnrollmentAnalyticsManager
         String sql = "select " + countClause + " as value," + StringUtils.join( selectColumns, "," ) + " ";
         
         //For non-default program indicator dimensions, each period is a separate query that needs to be hard coded into the SQL
-        if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasNonDefaultBoundaries() )
+        if ( params.hasNonDefaultBoundaries() )
         {
             Assert.isTrue( params.getPeriods().size() == 1, "For program indicator " + params.getProgramIndicator().getUid() +
                 " with non-default boundaries, it is assumed that exactly one period is queried at a time. Found " + 
@@ -290,6 +289,8 @@ public class JdbcEnrollmentAnalyticsManager
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are converted to SQL expressions.
+     * In the case of non-default boundaries{@link EventQueryParams#hasNonDefaultBoundaries},
+     * the periods is not returned as select columns.
      */
     private List<String> getSelectColumns( EventQueryParams params )
     {
@@ -297,12 +298,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            //When creating SQL for a program indicator with non-default boundaries, only one period is queried at a time
-            //this period needs to be hard-coded in the SQL return statement, as non-default boundaries is relative to the 
-            //original period.
-            //Only add a column if it is not a period or a program indicator with default boundaries
-            if ( dimension.getDimensionType() != DimensionType.PERIOD ||
-                !params.hasProgramIndicatorDimension() || !params.getProgramIndicator().hasNonDefaultBoundaries() )
+            if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
             {
                 columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
             }
@@ -346,7 +342,7 @@ public class JdbcEnrollmentAnalyticsManager
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
-        if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasNonDefaultBoundaries() )
+        if ( params.hasNonDefaultBoundaries() )
         {
             //The program indicator has non-default boundaries, and defines its own relationship with the 
             //reporting period. We need to make custom where-clauses instead of using the preaggregated period columns.

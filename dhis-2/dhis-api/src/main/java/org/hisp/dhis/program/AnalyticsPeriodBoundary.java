@@ -1,26 +1,5 @@
 package org.hisp.dhis.program;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Objects;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /*
  * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
@@ -49,6 +28,27 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Objects;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * @author Markus Bekken
  */
@@ -70,7 +70,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     
     private PeriodType offsetPeriodType;
     
-    private Integer offsetNumberOfPeriods;
+    private Integer offsetPeriods;
     
     private ProgramIndicator programIndicator;
     
@@ -84,12 +84,12 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     }
     
     public AnalyticsPeriodBoundary( String boundaryTarget, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType, 
-        PeriodType offsetPeriodType, Integer offsetNumberOfPeriods )
+        PeriodType offsetPeriodType, Integer offsetPeriods )
     {
         this.boundaryTarget = boundaryTarget;
         this.analyticsPeriodBoundaryType = analyticsPeriodBoundaryType;
         this.offsetPeriodType = offsetPeriodType;
-        this.offsetNumberOfPeriods = offsetNumberOfPeriods;
+        this.offsetPeriods = offsetPeriods;
     }
     
     public AnalyticsPeriodBoundary( String boundaryTarget, AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType )
@@ -115,9 +115,9 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
             returnDate = new Date( reportingStartDate.getTime() );
         }
         
-        if ( offsetNumberOfPeriods != 0 && offsetPeriodType != null )
+        if ( offsetPeriods != 0 && offsetPeriodType != null )
         {
-           returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, this.offsetNumberOfPeriods );
+           returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, this.offsetPeriods );
         }
         
         return returnDate;
@@ -156,7 +156,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     @Override
     public int hashCode()
     {
-        return 31 * super.hashCode() + Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, this.offsetNumberOfPeriods );
+        return 31 * super.hashCode() + Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, this.offsetPeriods );
     }
 
     @Override
@@ -180,7 +180,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         return Objects.equals( this.boundaryTarget, other.boundaryTarget )
             && Objects.equals( this.analyticsPeriodBoundaryType, other.analyticsPeriodBoundaryType )
             && Objects.equals( this.offsetPeriodType, other.offsetPeriodType )
-            && Objects.equals( this.offsetNumberOfPeriods, other.offsetNumberOfPeriods );
+            && Objects.equals( this.offsetPeriods, other.offsetPeriods );
     }
 
     // -------------------------------------------------------------------------
@@ -228,14 +228,14 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getOffsetNumberOfPeriods()
+    public Integer getoffsetPeriods()
     {
-        return offsetNumberOfPeriods;
+        return offsetPeriods;
     }
 
-    public void setOffsetNumberOfPeriods( Integer offsetNumberOfPeriods )
+    public void setoffsetPeriods( Integer offsetPeriods )
     {
-        this.offsetNumberOfPeriods = offsetNumberOfPeriods;
+        this.offsetPeriods = offsetPeriods;
     }
     
     @Property( owner = Property.Value.FALSE )

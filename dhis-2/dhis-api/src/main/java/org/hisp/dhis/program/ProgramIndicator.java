@@ -275,17 +275,32 @@ public class ProgramIndicator
         }
     }
     
+    /**
+     * Indicates whether the program indicator has standard reporting period boundaries, and can use the 
+     * pre-aggregated data in the analytics tables directly, or whether a custom set of boundaries is used. 
+     * @return true if the program indicator uses custom boundaries that the database query will need to 
+     * handle.
+     */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsType == AnalyticsType.EVENT && !this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
-            this.analyticsType == AnalyticsType.ENROLLMENT && !this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
+        return this.analyticsType == AnalyticsType.EVENT && 
+            !this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
+            this.analyticsType == AnalyticsType.ENROLLMENT && 
+            !this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
     }
     
+    /**
+     * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries event data.
+     */
     public Boolean hasEventBoundary()
     {
         return getEndEventBoundary() != null || getStartEventBoundary() != null;
     }
     
+    /**
+     * Returns the boundary for the latest event date to include in the further evaluation.
+     * @return The analytics period boundary that defines the event end date. Null if none is found.
+     */
     public AnalyticsPeriodBoundary getEndEventBoundary()
     {
         for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
@@ -299,6 +314,10 @@ public class ProgramIndicator
         return null;
     }
     
+    /**
+     * Returns the boundary for the earliest event date to include in the further evaluation.
+     * @return The analytics period boundary that defines the event start date. Null if none is found.
+     */
     public AnalyticsPeriodBoundary getStartEventBoundary()
     {
         for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )

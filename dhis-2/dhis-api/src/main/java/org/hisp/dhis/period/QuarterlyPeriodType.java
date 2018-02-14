@@ -174,21 +174,23 @@ public class QuarterlyPeriodType
     @Override
     public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && dateTimeUnit.isIso8601() )
+        DateTimeUnit newUnit = dateTimeUnit;
+        
+        if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && newUnit.isIso8601() )
         {
-            dateTimeUnit = calendar.fromIso( dateTimeUnit );
+            newUnit = calendar.fromIso( newUnit );
         }
 
-        switch ( dateTimeUnit.getMonth() )
+        switch ( newUnit.getMonth() )
         {
             case 1:
-                return dateTimeUnit.getYear() + "Q1";
+                return newUnit.getYear() + "Q1";
             case 4:
-                return dateTimeUnit.getYear() + "Q2";
+                return newUnit.getYear() + "Q2";
             case 7:
-                return dateTimeUnit.getYear() + "Q3";
+                return newUnit.getYear() + "Q3";
             case 10:
-                return dateTimeUnit.getYear() + "Q4";
+                return newUnit.getYear() + "Q4";
             default:
                 throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
         }
@@ -212,7 +214,7 @@ public class QuarterlyPeriodType
     @Override
     public Date getRewindedDate( Date date, Integer rewindedPeriods )
     {
-        org.hisp.dhis.calendar.Calendar cal = getCalendar();
+        Calendar cal = getCalendar();
 
         date = date != null ? date : new Date();
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
