@@ -293,7 +293,7 @@ public class ProgramIndicatorServiceTest
         indicatorE = createProgramIndicator( 'E', programB, expressionE, filterE );
         
         String expressionF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}";
-        String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} >" +
+        String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} > " +
             KEY_ATTRIBUTE + "{" + atA.getUid() + "}";
         indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
         indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
@@ -587,10 +587,27 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testEnrollmentIndicatorWithEventBoundaryExpression()
     {
-        String expected = "foobar";
+        String expected = "coalesce((select \"" + deA.getUid() + "\" from analytics_event_" + programB.getUid() + " " + 
+            "where analytics_event_" + indicatorF.getProgram().getUid() + 
+            ".pi = enrollmenttable.pi and \"" + deA.getUid() + "\" is not null " + 
+            "and executiondate <= cast( '2018-03-10' as date ) and "+
+            "ps = '" + psA.getUid() + "' order by executiondate desc limit 1 )::numeric,0)";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
-        String actual = programIndicatorService.getAnalyticsSQl( expected, indicatorF, true, reportingStartDate, reportingEndDate );
+        String actual = programIndicatorService.getAnalyticsSQl( indicatorF.getExpression(), indicatorF, true, reportingStartDate, reportingEndDate );
+        assertEquals( expected, actual );  
+    }
+    
+    @Test
+    public void testEnrollmentIndicatorWithEventBoundaryFilter()
+    {
+        String expected = "(select \"" + deA.getUid() + "\" from analytics_event_" + programB.getUid() + " " +
+            "where analytics_event_" + indicatorF.getProgram().getUid() + ".pi " + 
+            "= enrollmenttable.pi and \"" + deA.getUid() + "\" is not null and executiondate <= cast( '2018-03-10' as date ) and " + 
+            "ps = '" + psA.getUid() + "' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
+        Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
+        Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
+        String actual = programIndicatorService.getAnalyticsSQl( indicatorF.getFilter(), indicatorF, false, reportingStartDate, reportingEndDate );
         assertEquals( expected, actual );  
     }
     

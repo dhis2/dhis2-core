@@ -445,7 +445,7 @@ public class DefaultProgramIndicatorService
                     : "") +
                 (programIndicator.getStartEventBoundary() != null ? ("and "
                     + programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ")
-                    : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 ) ";
+                    : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
         }
         else
         {

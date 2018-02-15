@@ -145,8 +145,8 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
-        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? " <= " : ">=" ) +
-            " cast( '" + format.format( getBoundaryDate( reportingStartDate, reportingEndDate ) ) +  "' as date )";
+        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? "<=" : ">=" ) +
+            " cast( '" + format.format( getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
     }
     
     // -------------------------------------------------------------------------
