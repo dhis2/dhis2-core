@@ -28,6 +28,8 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertFalse;
@@ -83,7 +85,8 @@ public class TestTextPatternValidationUtils
     public void testValidationUtilsValidateTextPatternValue()
         throws TextPatternParser.TextPatternParsingException
     {
-        TextPattern tp = TextPatternParser.parse( "\"FOOBAR\"+RANDOM(xxx)+\"-\"+SEQUENTIAL(##)+ORG_UNIT_CODE(...)+CURRENT_DATE(yyyy)" );
+        TextPattern tp = TextPatternParser
+            .parse( "\"FOOBAR\"+RANDOM(xxx)+\"-\"+SEQUENTIAL(##)+ORG_UNIT_CODE(...)+CURRENT_DATE(yyyy)" );
 
         assertTrue( TextPatternValidationUtils.validateTextPatternValue( tp, "FOOBARabc-01OSL1990" ) );
         assertFalse( TextPatternValidationUtils.validateTextPatternValue( tp, "FOOBAR abc - 01 OSL 1990" ) );
@@ -91,7 +94,64 @@ public class TestTextPatternValidationUtils
         assertFalse( TextPatternValidationUtils.validateTextPatternValue( tp, "FOOBARabc-01OSL 1990" ) );
         assertFalse( TextPatternValidationUtils.validateTextPatternValue( tp, "" ) );
 
+    }
 
+    @Test
+    public void testValidateValueType()
+    {
+        TextPattern textTP = new TextPattern( Lists.newArrayList( textSegment ) );
+        TextPattern numberTP = new TextPattern( Lists.newArrayList( sequentialSegment ) );
+
+        for ( ValueType valueType : ValueType.values() )
+        {
+            if ( valueType.equals( ValueType.TEXT ) )
+            {
+                assertTrue( TextPatternValidationUtils.validateValueType( textTP, valueType ) );
+            }
+            else if ( valueType.equals( ValueType.NUMBER ) )
+            {
+                assertTrue( TextPatternValidationUtils.validateValueType( numberTP, valueType ) );
+            }
+            else
+            {
+                assertFalse( TextPatternValidationUtils.validateValueType( textTP, valueType ) );
+                assertFalse( TextPatternValidationUtils.validateValueType( numberTP, valueType ) );
+            }
+        }
+    }
+
+    @Test
+    public void testValidateValueTypeWithDifferentTextPattern()
+    {
+        TextPattern just_text = new TextPattern( Lists.newArrayList( textSegment ) );
+        TextPattern just_random = new TextPattern( Lists.newArrayList( randomSegment ) );
+        TextPattern just_sequential = new TextPattern( Lists.newArrayList( sequentialSegment ) );
+        TextPattern just_orgunitcode = new TextPattern( Lists.newArrayList( orgUnitCodeSegment ) );
+        TextPattern just_currentdate = new TextPattern( Lists.newArrayList( currentDateSegment ) );
+
+        TextPattern text_and_numbers = new TextPattern( Lists.newArrayList( textSegment, sequentialSegment ) );
+        TextPattern just_numbers = new TextPattern( Lists.newArrayList( sequentialSegment ) );
+
+        assertTrue( TextPatternValidationUtils.validateValueType( just_text, ValueType.TEXT ) );
+        assertFalse( TextPatternValidationUtils.validateValueType( just_text, ValueType.NUMBER ) );
+
+        assertTrue( TextPatternValidationUtils.validateValueType( just_random, ValueType.TEXT ) );
+        assertFalse( TextPatternValidationUtils.validateValueType( just_random, ValueType.NUMBER ) );
+
+        assertTrue( TextPatternValidationUtils.validateValueType( just_sequential, ValueType.TEXT ) );
+        assertTrue( TextPatternValidationUtils.validateValueType( just_sequential, ValueType.NUMBER ) );
+
+        assertTrue( TextPatternValidationUtils.validateValueType( just_orgunitcode, ValueType.TEXT ) );
+        assertFalse( TextPatternValidationUtils.validateValueType( just_orgunitcode, ValueType.NUMBER ) );
+
+        assertTrue( TextPatternValidationUtils.validateValueType( just_currentdate, ValueType.TEXT ) );
+        assertFalse( TextPatternValidationUtils.validateValueType( just_currentdate, ValueType.NUMBER ) );
+
+        assertTrue( TextPatternValidationUtils.validateValueType( text_and_numbers, ValueType.TEXT ) );
+        assertFalse( TextPatternValidationUtils.validateValueType( text_and_numbers, ValueType.NUMBER ) );
+
+        assertTrue( TextPatternValidationUtils.validateValueType( just_numbers, ValueType.TEXT ) );
+        assertTrue( TextPatternValidationUtils.validateValueType( just_numbers, ValueType.NUMBER ) );
     }
 
 }

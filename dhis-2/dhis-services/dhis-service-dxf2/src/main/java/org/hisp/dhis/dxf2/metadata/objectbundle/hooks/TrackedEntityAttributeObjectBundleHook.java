@@ -39,6 +39,7 @@ import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
+import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.ArrayList;
@@ -109,12 +110,18 @@ public class TrackedEntityAttributeObjectBundleHook
                 {
                     errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4021 ) );
                 }
+
+                if ( !TextPatternValidationUtils.validateValueType( tp, attr.getValueType() ) )
+                {
+                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4022, attr.getPattern(), attr.getValueType().name() ));
+                }
             }
             catch ( TextPatternParser.TextPatternParsingException e )
             {
                 errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019, attr.getPattern(),
                     e.getMessage() ) );
             }
+
         }
 
         return errorReports;

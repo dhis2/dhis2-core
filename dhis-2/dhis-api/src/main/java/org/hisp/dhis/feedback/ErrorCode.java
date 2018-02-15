@@ -79,6 +79,7 @@ public enum ErrorCode
 
     /* TextPattern for ID generation errors */
     E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
+    E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),

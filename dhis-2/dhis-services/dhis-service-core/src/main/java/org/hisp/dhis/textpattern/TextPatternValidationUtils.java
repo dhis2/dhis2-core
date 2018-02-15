@@ -28,6 +28,8 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.ValueType;
+
 import java.util.regex.Pattern;
 
 /**
@@ -74,6 +76,9 @@ public class TextPatternValidationUtils
                 {
                     switch ( c )
                     {
+                    case '*':
+                        res = res * 26;
+                        break;
                     case '#':
                         res = res * 10;
                         break;
@@ -93,5 +98,48 @@ public class TextPatternValidationUtils
         }
 
         return 1;
+    }
+
+    public static boolean validateValueType( TextPattern textPattern, ValueType valueType )
+    {
+        if ( valueType.equals( ValueType.TEXT ) )
+        {
+            return true;
+        }
+        else if ( valueType.equals( ValueType.NUMBER ) )
+        {
+            boolean isAllNumbers = true;
+
+            for ( TextPatternSegment segment : textPattern.getSegments() )
+            {
+                isAllNumbers = isAllNumbers && isNumericOnly( segment );
+            }
+
+            return isAllNumbers;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private static boolean isNumericOnly( TextPatternSegment segment )
+    {
+        if (segment.getMethod().equals( TextPatternMethod.SEQUENTIAL ))
+        {
+            return true;
+        }
+
+        if ( segment.getMethod().equals( TextPatternMethod.RANDOM ) )
+        {
+            return segment.getParameter().matches( "^#+$" );
+        }
+
+        if ( segment.getMethod().equals( TextPatternMethod.TEXT ))
+        {
+            return segment.getParameter().matches( "^[0-9]*$" );
+        }
+
+        return false;
     }
 }
