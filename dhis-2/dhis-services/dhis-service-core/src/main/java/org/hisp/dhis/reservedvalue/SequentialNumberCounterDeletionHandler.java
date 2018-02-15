@@ -28,26 +28,30 @@ package org.hisp.dhis.reservedvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.List;
-
-/**
- * @author Stian Sandvold
- */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
+public class SequentialNumberCounterDeletionHandler
+    extends DeletionHandler
 {
 
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+    private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+    public SequentialNumberCounterDeletionHandler(
+        SequentialNumberCounterStore sequentialNumberCounterStore )
+    {
+        this.sequentialNumberCounterStore = sequentialNumberCounterStore;
+    }
 
-    int getNumberOfUsedValues( ReservedValue reservedValue );
+    @Override
+    protected String getClassName()
+    {
+        return SequentialNumberCounter.class.getSimpleName();
+    }
 
-    void removeExpiredReservations();
-
-    boolean useReservedValue( String ownerUID, String value );
-
-    void deleteReservedValueByUid( String uid );
+    @Override
+    public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    {
+        sequentialNumberCounterStore.deleteCounter( attribute.getUid() );
+    }
 }

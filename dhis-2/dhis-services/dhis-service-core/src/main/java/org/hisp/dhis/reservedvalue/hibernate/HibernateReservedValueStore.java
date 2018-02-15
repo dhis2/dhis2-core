@@ -141,6 +141,14 @@ public class HibernateReservedValueStore
             .executeUpdate() == 1;
     }
 
+    @Override
+    public void deleteReservedValueByUid( String uid )
+    {
+        getQuery( "DELETE FROM ReservedValue WHERE owneruid = :uid" )
+            .setParameter( "uid", uid )
+            .executeUpdate();
+    }
+
     // Helper methods:
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )

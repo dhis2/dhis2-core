@@ -57,7 +57,7 @@ public class ReservedValueBatchHandler
     @Override
     public String getAutoIncrementColumn()
     {
-        return null;
+        return "reservedvalueid";
     }
 
     @Override
@@ -69,26 +69,26 @@ public class ReservedValueBatchHandler
     @Override
     public List<String> getIdentifierColumns()
     {
-        return getStringList( "ownerobject", "owneruid", "key", "value" );
+        return getStringList( "reservedvalueid" );
     }
 
     @Override
     public List<Object> getIdentifierValues( ReservedValue object )
     {
-        return getObjectList( object.getOwnerObject(), object.getOwnerUid(), object.getKey(),
-            object.getValue() );
+        return getObjectList( object.getId() );
     }
 
     @Override
     public List<String> getUniqueColumns()
     {
-        return getStringList( "ownerobject", "owneruid", "key", "value" );
+        return getStringList( "reservedvalueid", "ownerobject", "owneruid", "key", "value" );
     }
 
     @Override
     public List<Object> getUniqueValues( ReservedValue object )
     {
         return getObjectList(
+            object.getId(),
             object.getOwnerObject(),
             object.getOwnerUid(),
             object.getKey(),
@@ -124,6 +124,7 @@ public class ReservedValueBatchHandler
 
         expires.setTime( resultSet.getDate( "expires" ) );
 
+        rv.setId( resultSet.getInt( "reservedvalueid" ) );
         rv.setOwnerObject( resultSet.getString( "ownerobject" ) );
         rv.setOwnerUid( resultSet.getString( "ownerUid" ) );
         rv.setKey( resultSet.getString( "key" ) );

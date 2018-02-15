@@ -258,7 +258,7 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveStringValueWithValues()
         throws TextPatternService.TextPatternGenerationException, ReservedValueService.ReserveValueException
     {
-        Map<String, String> map = new HashMap<>(  );
+        Map<String, String> map = new HashMap<>();
         map.put( "ORG_UNIT_CODE(..)", "OSLO" );
 
         List<String> result = reservedValueService.reserve( simpleStringPattern, 1, map, future );
@@ -311,7 +311,8 @@ public class DefaultReservedValueServiceTest
     {
         try
         {
-            return new ReservedValue( Objects.fromClass( owner.getClass() ).name(), owner.getUid(), key, "", new Date() );
+            return new ReservedValue( Objects.fromClass( owner.getClass() ).name(), owner.getUid(), key, "",
+                new Date() );
         }
         catch ( IllegalAccessException e )
         {

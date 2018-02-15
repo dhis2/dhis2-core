@@ -85,11 +85,9 @@ public class HibernateSequentialNumberCounterStore
         Session session = sessionFactory.getCurrentSession();
 
         sessionFactory.getCurrentSession()
-            .createQuery( "FROM SequentialNumberCounter WHERE owneruid = ?" )
-            .setParameter( 0, uid )
-            .list()
-            .stream()
-            .forEach( session::delete );
+            .createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
+            .setParameter( "uid", uid )
+            .executeUpdate();
 
     }
 }

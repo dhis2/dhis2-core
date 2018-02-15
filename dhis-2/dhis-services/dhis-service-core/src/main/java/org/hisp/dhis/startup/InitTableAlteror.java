@@ -131,13 +131,28 @@ public class InitTableAlteror
 
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
 
+        updateTrackedEntityAttributePatternAndTextPattern();
+
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
     {
-        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUID\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb ﻿WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
+        // Create textpattern jsonb
+        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUID\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
 
+        // Update pattern to match new syntax
         executeSql( "UPDATE trackedentityattribute SET pattern = concat('RANDOM(', pattern, ')') WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NOT NULL" );
+
+        // Move all reserved values into the new table
+        executeSql( "INSERT INTO reservedvalue(owneruid, key, value, expires, ownerobject, reservedvalueid) " +
+            "SELECT TEA.uid, TEA.pattern, TEARV.value, TEARV.expirydate, 'TRACKEDENTITYATTRIBUTE', nextval('hibernate_sequence') " +
+            "FROM trackedentityattributereservedvalue TEARV, trackedentityattribute TEA " +
+            "WHERE TEARV.trackedentityattributeid = TEA.trackedentityattributeid " +
+            "AND TEARV.expirydate > NOW() " +
+            "AND TEARV.trackedentityinstanceid IS NULL" );
+
+        // Drop the old table
+        executeSql( "DROP TABLE trackedentityattributereservedvalue" );
     }
 
     private void updateMessageConversationMessageTypes()

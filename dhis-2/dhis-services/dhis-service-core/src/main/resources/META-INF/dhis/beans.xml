@@ -2047,6 +2047,16 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
+        class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" >
+    <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
+        class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" >
+    <constructor-arg ref="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" />
+  </bean>
+
   <!-- AOP definitions -->
 
   <aop:config>
