@@ -84,7 +84,7 @@ public class DefaultReservedValueService
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = (generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key);
+        String valueKey = ( generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key );
 
         ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(),
             key,

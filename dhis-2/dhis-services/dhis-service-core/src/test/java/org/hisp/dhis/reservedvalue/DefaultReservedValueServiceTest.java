@@ -30,7 +30,6 @@ package org.hisp.dhis.reservedvalue;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.ListUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
@@ -69,9 +68,6 @@ public class DefaultReservedValueServiceTest
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    @Autowired
-    SessionFactory sessionFactory;
 
     // Preset values
     private static Date future;

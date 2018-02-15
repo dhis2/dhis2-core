@@ -73,7 +73,6 @@ public class ReservedValue
         this.expires = expires;
     }
 
-
     public int getId()
     {
         return id;
@@ -161,7 +160,6 @@ public class ReservedValue
     @Override
     public int hashCode()
     {
-
         return Objects.hash( ownerObject, ownerUid, key, value );
     }
 
