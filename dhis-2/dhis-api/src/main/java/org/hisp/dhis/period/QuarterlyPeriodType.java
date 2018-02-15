@@ -107,12 +107,9 @@ public class QuarterlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Date getDateWithOffset( Date date, int offset )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
-        dateTimeUnit = calendar.plusMonths( dateTimeUnit, offset * 3 );
-        return dateTimeUnit.toJdkDate();
+        return calendar.plusMonths( dateTimeUnit, offset * 3 );
     }
 
     /**
@@ -148,24 +145,22 @@ public class QuarterlyPeriodType
     {
         date = createPeriod( date ).getStartDate();
 
-        return generateRollingPeriods( createLocalDateUnitInstance( date ) );
+        return generateRollingPeriods( createLocalDateUnitInstance( date ), getCalendar() );
     }
 
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        Calendar cal = getCalendar();
-
         dateTimeUnit.setDay( 1 );
 
-        dateTimeUnit = cal.minusMonths( dateTimeUnit, 9 );
+        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 9 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 4; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, cal ) );
-            dateTimeUnit = cal.plusMonths( dateTimeUnit, 3 );
+            periods.add( createPeriod( dateTimeUnit, calendar ) );
+            dateTimeUnit = calendar.plusMonths( dateTimeUnit, 3 );
         }
 
         return periods;

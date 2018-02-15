@@ -96,12 +96,9 @@ public class MonthlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Date getDateWithOffset( Date date, int offset )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
-        dateTimeUnit = calendar.plusMonths( dateTimeUnit, offset );
-        return dateTimeUnit.toJdkDate();
+        return calendar.plusMonths( dateTimeUnit, offset );
     }
 
     /**
@@ -134,19 +131,17 @@ public class MonthlyPeriodType
      * given date is inside.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        Calendar cal = getCalendar();
-
         dateTimeUnit.setDay( 1 );
-        dateTimeUnit = cal.minusMonths( dateTimeUnit, 11 );
+        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 11 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 12; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, cal ) );
-            dateTimeUnit = cal.plusMonths( dateTimeUnit, 1 );
+            periods.add( createPeriod( dateTimeUnit, calendar ) );
+            dateTimeUnit = calendar.plusMonths( dateTimeUnit, 1 );
         }
 
         return periods;

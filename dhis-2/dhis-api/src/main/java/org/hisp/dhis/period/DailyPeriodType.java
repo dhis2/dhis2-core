@@ -74,7 +74,7 @@ public class DailyPeriodType
     @Override
     public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        return toIsoPeriod( dateTimeUnit );
+        return toIsoPeriod( dateTimeUnit, dateTimeUnit, calendar );
     }
 
     @Override
@@ -88,12 +88,9 @@ public class DailyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Date getDateWithOffset( Date date, int offset )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
-        dateTimeUnit = calendar.plusDays( dateTimeUnit, offset );
-        return dateTimeUnit.toJdkDate();
+        return calendar.plusDays( dateTimeUnit, offset );
     }
 
     /**
@@ -126,7 +123,7 @@ public class DailyPeriodType
      * date.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         Calendar cal = getCalendar();
 
@@ -136,7 +133,7 @@ public class DailyPeriodType
 
         for ( int i = 0; i < 365; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, null ) );
+            periods.add( createPeriod( dateTimeUnit, calendar ) );
             dateTimeUnit = cal.plusDays( dateTimeUnit, 1 );
         }
 

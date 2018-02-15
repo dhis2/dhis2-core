@@ -109,12 +109,9 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     }
     
     @Override
-    public Date getDateWithOffset( Date date, int offset )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
-        dateTimeUnit = calendar.plusWeeks( dateTimeUnit, offset );
-        return dateTimeUnit.toJdkDate();
+        return calendar.plusWeeks( dateTimeUnit, offset );
     }
 
     /**
@@ -144,10 +141,8 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
      * given date is inside.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit end )
+    public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-
         List<Period> periods = Lists.newArrayList();
         end = adjustToStartOfWeek( end, calendar );
         end = calendar.minusDays( end, 357 );

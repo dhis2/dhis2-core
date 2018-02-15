@@ -98,12 +98,9 @@ public class YearlyPeriodType
     // -------------------------------------------------------------------------
     
     @Override
-    public Date getDateWithOffset( Date date, int offset )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
-        dateTimeUnit = calendar.plusYears( dateTimeUnit, offset );
-        return dateTimeUnit.toJdkDate();
+        return calendar.plusYears( dateTimeUnit, offset );
     }
 
     /**
@@ -140,9 +137,9 @@ public class YearlyPeriodType
     }
 
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        return generateLast5Years( getCalendar().toIso( dateTimeUnit ).toJdkDate() );
+        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
     /**
