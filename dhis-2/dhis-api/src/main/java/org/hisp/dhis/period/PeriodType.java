@@ -123,6 +123,7 @@ public abstract class PeriodType
             add( new WeeklyThursdayPeriodType() );
             add( new WeeklySaturdayPeriodType() );
             add( new WeeklySundayPeriodType() );
+            add( new BiWeeklyPeriodType() );
             add( new MonthlyPeriodType() );
             add( new BiMonthlyPeriodType() );
             add( new QuarterlyPeriodType() );
@@ -141,7 +142,6 @@ public abstract class PeriodType
         WeeklyThursdayPeriodType.NAME, DayOfWeek.THURSDAY,
         WeeklySaturdayPeriodType.NAME, DayOfWeek.SATURDAY,
         WeeklyPeriodType.NAME, DayOfWeek.MONDAY );
-
 
     private static final Map<String, PeriodType> PERIOD_TYPE_MAP = new HashMap<String, PeriodType>()
     {

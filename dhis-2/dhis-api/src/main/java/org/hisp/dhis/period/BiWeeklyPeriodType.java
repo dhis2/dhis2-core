@@ -1,6 +1,4 @@
-package org.hisp.dhis.sms.config;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.period;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,56 +29,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Kristian Wærstad
  */
-public class ClickatellGatewayConfig
-    extends SmsGatewayConfig
+public class BiWeeklyPeriodType
+    extends BiWeeklyAbstractPeriodType
 {
-    private static final long serialVersionUID = -4286107769356591957L;
+    public static final String NAME = "BiWeekly";
 
-    private final String URL_TEMPLATE = "https://platform.clickatell.com/rest/messages";
-    
-    private String authToken;
-
-    @JsonProperty( value = "authtoken" )
-    public String getAuthToken()
+    public BiWeeklyPeriodType()
     {
-        return authToken;
-    }
-
-    public void setAuthToken( String authToken )
-    {
-        this.authToken = authToken;
-    }
-
-    @JsonProperty( value = "default" )
-    public boolean getStatus()
-    {
-        return super.isDefault();
-    }
-
-    @JsonProperty( value = "name" )
-    public String getName()
-    {
-        return super.getName();
-    }
-
-    @Override
-    public boolean isInbound()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isOutbound()
-    {
-        return true;
-    }
-    
-    @Override
-    @JsonProperty( value = "urlTemplate" )
-    public String getUrlTemplate()
-    {
-        return this.URL_TEMPLATE;
+        super( NAME, 1, "yyyyBiWn", "P14D", 14, "BiW" );
     }
 }

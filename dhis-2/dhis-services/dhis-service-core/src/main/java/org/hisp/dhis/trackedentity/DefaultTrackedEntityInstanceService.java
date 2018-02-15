@@ -318,10 +318,11 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
-        User user = currentUserService.getCurrentUser();
+        User user = params.isInternalSearch() ? null : currentUserService.getCurrentUser();        
         
         if ( params.isOrganisationUnitMode( ALL ) &&
-            !currentUserService.currentUserIsAuthorized( F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS ) )
+            !currentUserService.currentUserIsAuthorized( F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS ) &&
+            !params.isInternalSearch() )
         {
             throw new IllegalQueryException( "Current user is not authorized to query across all organisation units" );
         }
@@ -446,9 +447,17 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
         
-        if ( !params.hasProgram() && !params.hasTrackedEntityType() )
-        {
-            throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() )
+        {                        
+            List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+            
+            for( String att : params.getAttributeAndFilterIds() ) 
+            {
+                if( !uniqeAttributeIds.contains( att ) )
+                {
+                    throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+                }
+            }
         }
         
         if( !isLocalSearch( params ) )
@@ -465,7 +474,7 @@ public class DefaultTrackedEntityInstanceService
                 throw new IllegalQueryException( "Program and tracked entity cannot be specified simultaneously" );
             }
             
-            if( params.hasFilters() )
+            if( params.hasAttributesOrFilters() )
             {
                 List<String> searchableAttributeIds = new ArrayList<>();
                 
@@ -477,15 +486,20 @@ public class DefaultTrackedEntityInstanceService
                 if( params.hasTrackedEntityType() )
                 {
                     searchableAttributeIds.addAll( params.getTrackedEntityType().getSearchableAttributeIds() );
-                }                
+                }
+                
+                if ( !params.hasProgram() && !params.hasTrackedEntityType() )
+                {   
+                    searchableAttributeIds.addAll( attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() ) );
+                }
                 
                 List<String> violatingAttributes = new ArrayList<>();
                 
-                for ( QueryItem queryItem : params.getFilters() )
+                for ( String attributeId : params.getAttributeAndFilterIds() )
                 {
-                    if( !searchableAttributeIds.contains( queryItem.getItemId() ) )
+                    if( !searchableAttributeIds.contains( attributeId ) )
                     {
-                        violatingAttributes.add(  queryItem.getItemId() );
+                        violatingAttributes.add(  attributeId );
                     }
                 }
                 
