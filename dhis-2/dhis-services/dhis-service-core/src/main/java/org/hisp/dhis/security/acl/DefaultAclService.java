@@ -543,11 +543,6 @@ public class DefaultAclService implements AclService
             }
         }
 
-        if ( schema.isImplicitPrivateAuthority() && !checkUser( user, object ) )
-        {
-            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
-        }
-
         boolean canMakePublic = canMakePublic( user, object.getClass() );
         boolean canMakePrivate = canMakePrivate( user, object.getClass() );
         boolean canMakeExternal = canMakeExternal( user, object.getClass() );
@@ -562,7 +557,7 @@ public class DefaultAclService implements AclService
 
         if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
         {
-            if ( canMakePublic || canMakePrivate )
+            if ( canMakePublic || canMakePrivate || schema.isImplicitPrivateAuthority() )
             {
                 return errorReports;
             }
