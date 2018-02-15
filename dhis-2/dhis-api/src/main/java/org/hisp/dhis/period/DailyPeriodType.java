@@ -127,14 +127,14 @@ public class DailyPeriodType
     {
         Calendar cal = getCalendar();
 
-        dateTimeUnit = cal.minusDays( dateTimeUnit, 364 );
+        DateTimeUnit iterationDateTimeUnit = cal.minusDays( dateTimeUnit, 364 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 365; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, calendar ) );
-            dateTimeUnit = cal.plusDays( dateTimeUnit, 1 );
+            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
+            iterationDateTimeUnit = cal.plusDays( iterationDateTimeUnit, 1 );
         }
 
         return periods;

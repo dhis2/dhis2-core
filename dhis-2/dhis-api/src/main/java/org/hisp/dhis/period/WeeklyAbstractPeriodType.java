@@ -144,13 +144,13 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )
     {
         List<Period> periods = Lists.newArrayList();
-        end = adjustToStartOfWeek( end, calendar );
-        end = calendar.minusDays( end, 357 );
+        DateTimeUnit iterationDateTimeUnit = adjustToStartOfWeek( end, calendar );
+        iterationDateTimeUnit = calendar.minusDays( iterationDateTimeUnit, 357 );
 
         for ( int i = 0; i < 52; i++ )
         {
-            periods.add( createPeriod( end, calendar ) );
-            end = calendar.plusWeeks( end, 1 );
+            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
+            iterationDateTimeUnit = calendar.plusWeeks( iterationDateTimeUnit, 1 );
         }
 
         return periods;

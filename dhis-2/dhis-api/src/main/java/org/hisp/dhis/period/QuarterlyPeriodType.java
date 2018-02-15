@@ -153,14 +153,14 @@ public class QuarterlyPeriodType
     {
         dateTimeUnit.setDay( 1 );
 
-        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 9 );
+        DateTimeUnit iterationDateTimeUnit = calendar.minusMonths( dateTimeUnit, 9 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 4; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, calendar ) );
-            dateTimeUnit = calendar.plusMonths( dateTimeUnit, 3 );
+            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
+            iterationDateTimeUnit = calendar.plusMonths( iterationDateTimeUnit, 3 );
         }
 
         return periods;

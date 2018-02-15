@@ -134,14 +134,14 @@ public class MonthlyPeriodType
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         dateTimeUnit.setDay( 1 );
-        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 11 );
+        DateTimeUnit iterationDateTimeUnit = calendar.minusMonths( dateTimeUnit, 11 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 12; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, calendar ) );
-            dateTimeUnit = calendar.plusMonths( dateTimeUnit, 1 );
+            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
+            iterationDateTimeUnit = calendar.plusMonths( iterationDateTimeUnit, 1 );
         }
 
         return periods;
