@@ -555,9 +555,11 @@ public class DefaultAclService implements AclService
             }
         }
 
+        errorReports.addAll( verifyImplicitSharing( user, object ) );
+
         if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
         {
-            if ( canMakePublic || canMakePrivate || schema.isImplicitPrivateAuthority() )
+            if ( canMakePublic || canMakePrivate )
             {
                 return errorReports;
             }
@@ -572,6 +574,24 @@ public class DefaultAclService implements AclService
             }
 
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3008, user.getUsername(), object.getClass() ) );
+        }
+
+        return errorReports;
+    }
+
+    private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing( User user, T object )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) )
+        {
+            return errorReports;
+        }
+
+        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
         }
 
         return errorReports;
