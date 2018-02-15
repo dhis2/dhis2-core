@@ -84,11 +84,12 @@ public class TrackedEntityAttributeController
     public @ResponseBody
     List<String> generateAndReserveValues(
         @RequestParam( required = false, defaultValue = "1" ) Integer numberToReserve,
+        @RequestParam( required = false, defaultValue = "60" ) Integer expiration,
         @PathVariable String id
     )
         throws WebMessageException
     {
-        return reserve( id, numberToReserve, 60 );
+        return reserve( id, numberToReserve, expiration );
     }
 
     /**
@@ -105,11 +106,12 @@ public class TrackedEntityAttributeController
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
     String legacyQueryTrackedEntityInstancesJson(
-        @PathVariable String id
+        @PathVariable String id,
+        @RequestParam( required = false, defaultValue = "3" ) Integer expiration
     )
         throws WebMessageException
     {
-        return reserve( id, 1, 3 ).get( 0 );
+        return reserve( id, 1, expiration ).get( 0 );
     }
 
     @RequestMapping( value = "/{id}/requiredValues", method = RequestMethod.GET )
@@ -195,7 +197,7 @@ public class TrackedEntityAttributeController
         if ( requiredValues.size() > 0 )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
-                    "Missing required values: " + StringUtils.collectionToCommaDelimitedString( requiredValues ) ) );
+                "Missing required values: " + StringUtils.collectionToCommaDelimitedString( requiredValues ) ) );
         }
 
         return result;
