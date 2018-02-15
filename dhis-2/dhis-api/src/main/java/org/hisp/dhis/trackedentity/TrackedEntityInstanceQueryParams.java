@@ -39,11 +39,13 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
@@ -374,6 +376,15 @@ public class TrackedEntityInstanceQueryParams
         items.addAll( attributes );
         items.addAll( filters );
         return items;
+    }
+    
+    /**
+     * 
+     * Returns a list of of attributes and filters combined.
+     */
+    public Set<String> getAttributeAndFilterIds()
+    {
+        return getAttributesAndFilters().stream().map( QueryItem::getItemId ).collect( Collectors.toSet() );
     }
 
     /**

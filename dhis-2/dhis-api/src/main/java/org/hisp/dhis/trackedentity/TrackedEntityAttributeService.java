@@ -116,6 +116,15 @@ public interface TrackedEntityAttributeService
      * List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
+    
+    
+    /**
+     * Returns all {@link TrackedEntityAttribute}
+     *
+     * @return a List of all system wide uniqe TrackedEntityAttribute, or an empty
+     * List if there are no TrackedEntityAttributes.
+     */
+    List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes();
 
     /**
      * Get attributes which are displayed in visit schedule
