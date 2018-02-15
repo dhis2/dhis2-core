@@ -50,4 +50,6 @@ public interface ReservedValueStore
     boolean useReservedValue( String ownerUID, String value );
 
     void deleteReservedValueByUid( String uid );
+
+    boolean isReserved( String ownerObject, String ownerUID, String value );
 }

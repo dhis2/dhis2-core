@@ -53,6 +53,7 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
@@ -123,6 +124,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected QueryService queryService;
+
+    @Autowired
+    protected ReservedValueService reservedValueService;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -728,7 +732,8 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
 
-        if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value ) )
+        if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
+            && !reservedValueService.isReserved( attribute.getTextPattern(), value ) )
         {
             importConflicts.add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern." ) );
         }

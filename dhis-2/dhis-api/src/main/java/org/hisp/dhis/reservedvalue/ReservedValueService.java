@@ -45,6 +45,8 @@ public interface ReservedValueService
 
     boolean useReservedValue( TextPattern textPattern, String value );
 
+    boolean isReserved( TextPattern textPattern, String value );
+
     class ReserveValueException
         extends Exception
     {

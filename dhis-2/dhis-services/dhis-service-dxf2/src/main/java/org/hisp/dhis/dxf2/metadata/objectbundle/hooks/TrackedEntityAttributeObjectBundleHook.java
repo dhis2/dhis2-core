@@ -113,7 +113,8 @@ public class TrackedEntityAttributeObjectBundleHook
 
                 if ( !TextPatternValidationUtils.validateValueType( tp, attr.getValueType() ) )
                 {
-                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4022, attr.getPattern(), attr.getValueType().name() ));
+                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4022, attr.getPattern(),
+                        attr.getValueType().name() ) );
                 }
             }
             catch ( TextPatternParser.TextPatternParsingException e )

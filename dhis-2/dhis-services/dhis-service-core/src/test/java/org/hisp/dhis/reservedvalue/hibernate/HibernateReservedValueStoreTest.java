@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class HibernateReservedValueStoreTest
@@ -125,6 +126,18 @@ public class HibernateReservedValueStoreTest
 
         assertEquals( 1, res.size() );
         assertTrue( reservedValueStore.getCount() == count + 1 );
+    }
+
+    @Test
+    public void isReservedShouldBeTrue()
+    {
+        assertTrue( reservedValueStore.isReserved( RESERVED_VALUE.getOwnerObject(), RESERVED_VALUE.getOwnerUid(), "001" ) );
+    }
+
+    @Test
+    public void isReservedShouldBeFalse()
+    {
+        assertFalse( reservedValueStore.isReserved( RESERVED_VALUE.getOwnerObject(), RESERVED_VALUE.getOwnerUid(), "100" ) );
     }
 
     @Test

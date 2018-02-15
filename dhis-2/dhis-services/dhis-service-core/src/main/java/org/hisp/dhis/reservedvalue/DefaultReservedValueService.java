@@ -127,6 +127,12 @@ public class DefaultReservedValueService
         return reservedValueStore.useReservedValue( textPattern.getOwnerUID(), value );
     }
 
+    @Override
+    public boolean isReserved( TextPattern textPattern, String value )
+    {
+        return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(), value );
+    }
+
     // Helper methods
 
     private TextPatternSegment getGeneratedSegment( TextPattern textPattern )

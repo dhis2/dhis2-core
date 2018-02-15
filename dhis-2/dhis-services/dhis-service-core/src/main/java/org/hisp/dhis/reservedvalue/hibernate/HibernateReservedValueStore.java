@@ -149,6 +149,16 @@ public class HibernateReservedValueStore
             .executeUpdate();
     }
 
+    @Override
+    public boolean isReserved( String ownerObject, String ownerUID, String value )
+    {
+        return !getCriteria()
+            .add( Restrictions.eq( "ownerObject", ownerObject ) )
+            .add( Restrictions.eq( "ownerUid", ownerUID ) )
+            .add( Restrictions.eq( "value", value ) )
+            .list().isEmpty();
+    }
+
     // Helper methods:
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
