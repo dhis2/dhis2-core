@@ -72,6 +72,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
@@ -443,9 +446,17 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
         
-        if ( !params.hasProgram() && !params.hasTrackedEntityType() )
-        {
-            throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() )
+        {                        
+            List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+            
+            for( String att : params.getAttributeAndFilterIds() ) 
+            {
+                if( !uniqeAttributeIds.contains( att ) )
+                {
+                    throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+                }
+            }
         }
         
         if( !isLocalSearch( params ) )
@@ -462,7 +473,7 @@ public class DefaultTrackedEntityInstanceService
                 throw new IllegalQueryException( "Program and tracked entity cannot be specified simultaneously" );
             }
             
-            if( params.hasFilters() )
+            if( params.hasAttributesOrFilters() )
             {
                 List<String> searchableAttributeIds = new ArrayList<>();
                 
@@ -476,13 +487,18 @@ public class DefaultTrackedEntityInstanceService
                     searchableAttributeIds.addAll( params.getTrackedEntityType().getSearchableAttributeIds() );
                 }
                 
+                if ( !params.hasProgram() && !params.hasTrackedEntityType() )
+                {   
+                    searchableAttributeIds.addAll( attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() ) );
+                }
+                
                 List<String> violatingAttributes = new ArrayList<>();
                 
-                for ( QueryItem queryItem : params.getFilters() )
+                for ( String attributeId : params.getAttributeAndFilterIds() )
                 {
-                    if( !searchableAttributeIds.contains( queryItem.getItemId() ) )
+                    if( !searchableAttributeIds.contains( attributeId ) )
                     {
-                        violatingAttributes.add(  queryItem.getItemId() );
+                        violatingAttributes.add(  attributeId );
                     }
                 }
                 
@@ -912,39 +928,37 @@ public class DefaultTrackedEntityInstanceService
     {   
         User user = currentUserService.getCurrentUser();
         
-        if( user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback()  ) )
+        Set<OrganisationUnit> localOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+        
+        Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
+        
+        if( params.isOrganisationUnitMode( SELECTED ) )
         {
-            return true;
+            searchOrgUnits =  params.getOrganisationUnits();
         }
-        
-        if( params.isOrganisationUnitMode( ALL ) )
+        else if ( params.isOrganisationUnitMode( CHILDREN ) || params.isOrganisationUnitMode( DESCENDANTS )  )
         {
-            return user.getOrganisationUnits().containsAll( organisationUnitService.getRootOrganisationUnits() );
+            for( OrganisationUnit ou : params.getOrganisationUnits() )
+            {
+                searchOrgUnits.addAll( ou.getChildren() );
+            }
         }
-        
-        if( params.isOrganisationUnitMode( ACCESSIBLE ) )
-        {            
-            return user.getOrganisationUnits().containsAll( user.getTeiSearchOrganisationUnitsWithFallback() );
-        }        
-        
-        for( OrganisationUnit searchOu : params.getOrganisationUnits() )
+        else if ( params.isOrganisationUnitMode( ALL ) )
         {
-            boolean localSearch = false;
-            
-            for( OrganisationUnit localOu : user.getOrganisationUnits() )
+            searchOrgUnits.addAll( organisationUnitService.getRootOrganisationUnits() );
+        }
+        else
+        {
+            searchOrgUnits.addAll( user.getTeiSearchOrganisationUnitsWithFallback() );
+        }                
+        
+        for( OrganisationUnit ou : searchOrgUnits )
+        {
+            if( !ou.isDescendant( localOrgUnits ) )
             {
-                if( searchOu.getPath().indexOf(  localOu.getUid() ) != - 1 )
-                {
-                    localSearch = true;
-                    break;
-                }
+                return false;
             }
-            
-            if( !localSearch )
-            {
-                return localSearch;
-            }
-        }        
+        }
         
         return true;
     }

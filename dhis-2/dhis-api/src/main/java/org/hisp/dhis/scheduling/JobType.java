@@ -33,22 +33,24 @@ import org.hisp.dhis.scheduling.parameters.*;
 
 /**
  * Enum describing the different jobs in the system.
- * Each job has a name, class and possibly a map containing relative endpoints for possible parameters.
+ * Each job has a key, class, configurable status and possibly a map containing relative endpoints for possible parameters.
+ *
+ * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch the correct job
  *
  * @author Henning Håkonsen
  */
 public enum JobType
 {
     DATA_STATISTICS( "dataStatisticsJob", false, null, null ),
-    DATA_INTEGRITY( "dataIntegrity", true, null, null ),
+    DATA_INTEGRITY( "dataIntegrityJob", true, null, null ),
     RESOURCE_TABLE( "resourceTableJob", true, null, null ),
     ANALYTICS_TABLE( "analyticsTableJob", true, AnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes"
     ) ),
-    DATA_SYNC( "dataSyncJob", true, null, null ),
-    FILE_RESOURCE_CLEANUP( "fileResourceCleanUp", false, null, null ),
-    META_DATA_SYNC( "metaDataSyncJob", true, null, null ),
-    SMS_SEND( "smsSendJob", false, SmsJobParameters.class, null ),
+    DATA_SYNC( "dataSynchJob", true, null, null ),
+    FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false, null, null ),
+    META_DATA_SYNC( "metadataSyncJob", true, null, null ),
+    SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
     PROGRAM_NOTIFICATIONS( "programNotificationsJob", true, null, null ),
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false, null, null ),
@@ -57,14 +59,13 @@ public enum JobType
         "relativePeriods", "/api/periodTypes/relativePeriodTypes",
         "validationRuleGroups", "/api/validationRuleGroups"
     ) ),
-    PUSH_ANALYSIS( "pushAnalysis", true, PushAnalysisJobParameters.class, ImmutableMap.of(
+    PUSH_ANALYSIS( "pushAnalysisJob", true, PushAnalysisJobParameters.class, ImmutableMap.of(
         "pushAnalysis", "/api/pushAnalysis"
     ) ),
-    PREDICTOR( "predictor", true, PredictorJobParameters.class, ImmutableMap.of(
+    PREDICTOR( "predictorJob", true, PredictorJobParameters.class, ImmutableMap.of(
         "predictors", "/api/predictors"
     ) ),
-    DATA_SET_NOTIFICATION( "dataSetNotification", false, null, null ),
-    STARTUP( "startup", false, null, null ),
+    DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
 
     // For tests
     MOCK( "mockJob", false, MockJobParameters.class, null ),

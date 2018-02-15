@@ -72,6 +72,13 @@ public class OptionSet
         this.valueType = valueType;
     }
 
+    public OptionSet( String name, ValueType valueType, List<Option> options )
+    {
+        this.name = name;
+        this.valueType = valueType;
+        this.options = options;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

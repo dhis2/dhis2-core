@@ -130,12 +130,6 @@ public class CredentialsExpiryAlertJob
         return super.validate();
     }
 
-    @Override
-    protected String getJobId()
-    {
-        return "credentialsExpiryAlertJob";
-    }
-
     private void sendExpiryAlert( Map<String,String> content )
     {
         if ( emailMessageSender.isConfigured() )

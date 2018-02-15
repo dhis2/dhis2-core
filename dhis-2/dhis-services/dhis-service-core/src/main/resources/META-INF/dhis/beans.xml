@@ -868,7 +868,6 @@
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="fileResourceService" ref="org.hisp.dhis.fileresource.FileResourceService" />
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
@@ -1157,7 +1156,7 @@
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" />
 
-  <bean id="scheduledDataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
+  <bean id="dataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
   <bean id="org.hisp.dhis.security.oauth2.OAuth2ClientStore" class="org.hisp.dhis.security.oauth2.hibernate.HibernateOAuth2ClientStore">
     <property name="clazz" value="org.hisp.dhis.security.oauth2.OAuth2Client" />
@@ -1651,7 +1650,7 @@
 
   <!-- Scheduled jobs -->
 
-  <bean id="scheduledProgramNotificationsJob"
+  <bean id="programNotificationsJob"
         class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
   <bean id="validationResultNotificationJob"

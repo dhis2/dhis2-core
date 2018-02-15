@@ -308,7 +308,39 @@ public class JobConfiguration
     @Override
     public int compareTo( IdentifiableObject jobConfiguration )
     {
-        return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
+        JobConfiguration compareJobConfiguration = (JobConfiguration) jobConfiguration;
+
+        if ( jobType != compareJobConfiguration.getJobType() )
+        {
+            return -1;
+        }
+
+        if ( jobStatus != compareJobConfiguration.getJobStatus() )
+        {
+            return -1;
+        }
+
+        if ( jobParameters != compareJobConfiguration.getJobParameters() )
+        {
+            return -1;
+        }
+
+        if ( continuousExecution != compareJobConfiguration.isContinuousExecution() )
+        {
+            return -1;
+        }
+
+        if ( enabled != compareJobConfiguration.isEnabled() )
+        {
+            return -1;
+        }
+
+        if ( !cronExpression.equals( compareJobConfiguration.getCronExpression() ) )
+        {
+            return 1;
+        }
+
+        return -1;
     }
 
     @Override
