@@ -34,6 +34,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
@@ -75,6 +76,13 @@ public class DefaultOrganisationUnitService
     public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
     {
         this.organisationUnitStore = organisationUnitStore;
+    }
+    
+    private DataSetService dataSetService;
+
+    public void setDataSetService( DataSetService dataSetService )
+    {
+        this.dataSetService = dataSetService;
     }
 
     private OrganisationUnitLevelStore organisationUnitLevelStore;
@@ -396,8 +404,8 @@ public class DefaultOrganisationUnitService
         User currentUser = currentUserService.getCurrentUser();
 
         if ( currentUser != null && !currentUser.getUserCredentials().isSuper() )
-        {
-            Set<String> userDataSets = Sets.newHashSet( getUids( currentUser.getUserCredentials().getAllDataSets() ) );
+        {            
+            Set<String> userDataSets = Sets.newHashSet( getUids( dataSetService.getUserDataSets() ) );
 
             for ( Set<String> dataSets : associationMap.values() )
             {

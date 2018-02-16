@@ -987,6 +987,7 @@
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
     <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
