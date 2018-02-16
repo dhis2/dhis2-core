@@ -68,7 +68,6 @@ public interface ProgramInstanceService
      */
     void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
 
-
     /**
      * Updates an {@link ProgramInstance}.
      *

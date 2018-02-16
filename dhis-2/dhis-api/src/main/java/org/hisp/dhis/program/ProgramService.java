@@ -136,14 +136,6 @@ public interface ProgramService
     List<Program> getProgramsByDataEntryForm( DataEntryForm dataEntryForm );
 
     /**
-     * Returns The number of Programs with the key searched
-     *
-     * @param name Keyword for searching by name
-     * @return A number
-     */
-    Integer getProgramCountByName( String name );
-
-    /**
      * Get {@link Program} by the current user. Returns all programs if current
      * user is superuser. Returns an empty list if there is no current user.
      *

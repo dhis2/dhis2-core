@@ -149,12 +149,6 @@ public class DefaultProgramService
     }
 
     @Override
-    public Integer getProgramCountByName( String name )
-    {
-        return programStore.getCountLikeName( name );
-    }
-
-    @Override
     public Set<Program> getUserPrograms()
     {
         return getUserPrograms( currentUserService.getCurrentUser() );
@@ -168,6 +162,7 @@ public class DefaultProgramService
             return Sets.newHashSet( getAllPrograms() );
         }
 
+        //TODO should this be canDataWrite ?
         return getAllPrograms().stream()
             .filter( p -> aclService.canDataRead( user, p ) )
             .collect( Collectors.toSet() );
