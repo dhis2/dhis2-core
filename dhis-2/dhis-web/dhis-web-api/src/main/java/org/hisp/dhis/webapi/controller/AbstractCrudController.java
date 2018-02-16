@@ -654,7 +654,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
         }
         
-        object.getFavorites().add( user.getUid() );
+        object.setAsFavorite( user );
         manager.updateNoAcl( object );
         
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
@@ -814,7 +814,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
         }
         
-        object.getFavorites().remove( user.getUid() );        
+        object.removeAsFavorite( user );
         manager.updateNoAcl( object );
         
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );        
