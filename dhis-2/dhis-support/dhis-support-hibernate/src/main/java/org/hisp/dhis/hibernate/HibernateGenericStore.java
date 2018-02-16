@@ -230,6 +230,12 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public final Criteria getDataWriteSharingCriteria()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_WRITE_DATA ) );
+    }
+
+    @Override
     public final Criteria getSharingCriteria( String access )
     {
         return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
@@ -269,6 +275,12 @@ public class HibernateGenericStore<T>
     public final DetachedCriteria getDataReadSharingDetachedCriteria( User user )
     {
         return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
+    }
+
+    @Override
+    public final DetachedCriteria getDataWriteSharingDetachedCriteria( User user )
+    {
+        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_WRITE_DATA );
     }
 
     @Override
