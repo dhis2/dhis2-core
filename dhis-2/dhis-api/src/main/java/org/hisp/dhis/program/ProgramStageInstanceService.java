@@ -146,19 +146,6 @@ public interface ProgramStageInstanceService
     void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
 
     /**
-     * Creates a ProgramStageInstance. Will create a ProgramInstance in case
-     * the program is single event.
-     *
-     * @param entityInstance the TrackedEntityInstance.
-     * @param program the Program.
-     * @param executionDate the report date of the event.
-     * @param organisationUnit the OrganisationUnit where the event took place.
-     * @return ProgramStageInstance the ProgramStageInstance which was created.
-     */
-    ProgramStageInstance createProgramStageInstance( TrackedEntityInstance entityInstance, Program program,
-        Date executionDate, OrganisationUnit organisationUnit );
-
-    /**
      * Creates a program stage instance. 
      *
      * @param programInstance the ProgramInstance.
