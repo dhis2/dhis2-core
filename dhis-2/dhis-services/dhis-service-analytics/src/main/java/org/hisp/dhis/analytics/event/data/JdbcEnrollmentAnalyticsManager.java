@@ -44,6 +44,7 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.ss.formula.eval.NotImplementedException;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -114,17 +115,28 @@ public class JdbcEnrollmentAnalyticsManager
         
         List<String> selectColumns = getSelectColumns( params );
         
-        String sql = "select " + countClause + " as value," + StringUtils.join( selectColumns, "," ) + " ";
+        String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +  
+             StringUtils.join( selectColumns, "," ) ) + " ";
         
-        //For non-default program indicator dimensions, each period is a separate query that needs to be hard coded into the SQL
+        //For non-default program indicator dimensions, each period is a separate query
         if ( params.hasNonDefaultBoundaries() )
         {
-            Assert.isTrue( params.getPeriods().size() == 1, "For program indicator " + params.getProgramIndicator().getUid() +
-                " with non-default boundaries, it is assumed that exactly one period is queried at a time. Found " + 
-                params.getPeriods().size() + " periods." );
-            
-            Period period = (Period) params.getPeriods().get( 0 );
-            sql += period.getIsoDate() + " as " +  params.getPeriodType() + " ";
+            if ( params.getPeriods().size() == 1 )
+            {
+                Period period = (Period) params.getPeriods().get( 0 );
+                sql += ", " + period.getIsoDate() + " as " +  period.getPeriodType().getName() + " ";
+            }
+            else if ( params.getPeriods().size() == 0 && params.getFilterPeriods().size() > 0 )
+            {
+                //assuming same period type for all period filters, as the query planner splits into one query per period type
+                Period period = (Period) params.getFilterPeriods().get( 0 );
+                sql += ", " + period.getIsoDate() + " as " +  period.getPeriodType().getName() + " ";
+            }
+            else
+            {
+                throw new NotImplementedException( "Program indicatpr with non-default boundaries expects the queries to happen" +
+                    " with exaclty one period at a time, or with no periods and a period filter.");
+            }
         }
 
         // ---------------------------------------------------------------------
