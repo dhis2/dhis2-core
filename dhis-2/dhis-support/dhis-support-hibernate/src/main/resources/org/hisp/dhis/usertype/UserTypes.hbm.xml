@@ -30,7 +30,7 @@
     <param name="clazz">org.hisp.dhis.trackedentityfilter.FilterPeriod</param>
   </typedef>
   
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jbSet">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSet">
     <param name="clazz">java.util.HashSet</param>
   </typedef>
   

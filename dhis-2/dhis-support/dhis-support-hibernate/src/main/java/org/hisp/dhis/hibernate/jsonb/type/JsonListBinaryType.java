@@ -31,7 +31,6 @@ package org.hisp.dhis.hibernate.jsonb.type;
 import com.fasterxml.jackson.databind.JavaType;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,11 +66,5 @@ public class JsonListBinaryType
         {
             throw new RuntimeException( e );
         }
-    }
-    
-    @Override
-    protected Object getWhenNull()
-    {
-        return new ArrayList<>();
     }
 }

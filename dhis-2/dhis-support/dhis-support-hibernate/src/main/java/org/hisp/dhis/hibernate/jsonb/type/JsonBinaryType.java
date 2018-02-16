@@ -246,15 +246,4 @@ public class JsonBinaryType implements UserType, ParameterizedType
             throw new RuntimeException( e );
         }
     }
-    
-    /**
-     * Provides the object to be provided when the get
-     * request did not provide a non-null object.
-     * 
-     * @return an object or null.
-     */
-    protected Object getWhenNull()
-    {
-        return null;
-    }
 }
