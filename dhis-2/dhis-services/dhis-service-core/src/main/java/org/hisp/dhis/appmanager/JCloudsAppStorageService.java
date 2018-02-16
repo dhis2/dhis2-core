@@ -302,7 +302,7 @@ public class JCloudsAppStorageService
 
             String namespace = app.getActivities().getDhis().getNamespace();
 
-            if ( namespace != null && !namespace.isEmpty() && !app.equals( reservedNamespaces.get( namespace ) ) )
+            if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
             {
                 log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
                     app.getName(), namespace ) );
