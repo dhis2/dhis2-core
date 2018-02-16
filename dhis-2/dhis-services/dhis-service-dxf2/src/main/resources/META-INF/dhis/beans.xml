@@ -22,8 +22,6 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserRoleObjectBundleHook" />
-
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataElementObjectBundleHook" />
