@@ -117,7 +117,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
         return null;
     }
-
+    
     @Override
     public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session ) throws HibernateException, SQLException
     {
@@ -211,11 +211,17 @@ public class JsonBinaryType implements UserType, ParameterizedType
         return Class.forName( name );
     }
 
-    protected String convertObjectToJson( Object value )
+    /**
+     * Serializes an object to JSON.
+     * 
+     * @param object the object to convert.
+     * @return JSON content.
+     */
+    protected String convertObjectToJson( Object object )
     {
         try
         {
-            return writer.writeValueAsString( value );
+            return writer.writeValueAsString( object );
         }
         catch ( IOException e )
         {
@@ -223,6 +229,12 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
+    /**
+     * Deserializes JSON content to an object.
+     * 
+     * @param content the JSON content.
+     * @return an object.
+     */
     protected Object convertJsonToObject( String content )
     {
         try
@@ -233,5 +245,16 @@ public class JsonBinaryType implements UserType, ParameterizedType
         {
             throw new RuntimeException( e );
         }
+    }
+    
+    /**
+     * Provides the object to be provided when the get
+     * request did not provide a non-null object.
+     * 
+     * @return an object or null.
+     */
+    protected Object getWhenNull()
+    {
+        return null;
     }
 }

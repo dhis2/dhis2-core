@@ -28,17 +28,13 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.fasterxml.jackson.databind.JavaType;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
- */
-public class JsonListBinaryType 
+public class JsonSetBinaryType
     extends JsonBinaryType
 {
     @Override
@@ -53,13 +49,13 @@ public class JsonListBinaryType
             throw new RuntimeException( e );
         }
     }
-    
+
     @Override
     protected Object convertJsonToObject( String content )
     {
         try
         {
-            JavaType type = MAPPER.getTypeFactory().constructCollectionType( List.class, returnedClass() );
+            JavaType type = MAPPER.getTypeFactory().constructCollectionType( Set.class, returnedClass() );
             
             return MAPPER.readValue( content, type );
         }
@@ -68,10 +64,10 @@ public class JsonListBinaryType
             throw new RuntimeException( e );
         }
     }
-    
+
     @Override
     protected Object getWhenNull()
     {
-        return new ArrayList<>();
+        return new HashSet<>();
     }
 }
