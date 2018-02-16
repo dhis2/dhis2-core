@@ -50,7 +50,7 @@ public class TestTextPatternParser
 
     private final String EXAMPLE_SEQUENTIAL_SEGMENT = "SEQUENTIAL(#)";
 
-    private final String EXAMPLE_RANDOM_SEGMENT = "RANDOM(#Xx)";
+    private final String EXAMPLE_RANDOM_SEGMENT = "RANDOM(#Xx*)";
 
     @Test
     public void testParseNullExpressionThrowsException()
