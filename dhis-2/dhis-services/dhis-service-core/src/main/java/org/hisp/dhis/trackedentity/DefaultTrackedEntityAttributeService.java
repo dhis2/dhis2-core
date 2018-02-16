@@ -191,6 +191,7 @@ public class DefaultTrackedEntityAttributeService
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
+        params.setInternalSearch( true );
 
         if ( trackedEntityAttribute.getOrgunitScope() && trackedEntityAttribute.getProgramScope() )
         {
