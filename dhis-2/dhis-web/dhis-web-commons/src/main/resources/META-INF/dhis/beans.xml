@@ -20,7 +20,6 @@
     class="org.hisp.dhis.webportal.module.ConfigurableModuleComparator">
     <property name="order">
       <list>
-        <value>dhis-web-dashboard-integration</value>
         <value>dhis-web-pivot</value>
         <value>dhis-web-visualizer</value>
         <value>dhis-web-mapping</value>
