@@ -28,7 +28,6 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -37,8 +36,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -73,13 +70,6 @@ public class DefaultDataSetService
     public void setLockExceptionStore( LockExceptionStore lockExceptionStore )
     {
         this.lockExceptionStore = lockExceptionStore;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     private DataApprovalService dataApprovalService;
@@ -159,24 +149,7 @@ public class DefaultDataSetService
     {
         return dataSetStore.getDataSetsForMobile( source );
     }
-
-    @Override
-    public List<DataSet> getUserDataSets()
-    {
-        return getUserDataSets( currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public List<DataSet> getUserDataSets( User user )
-    {
-        if ( user == null || user.isSuper() )
-        {
-            return getAllDataSets();
-        }
-
-        return Lists.newArrayList( user.getUserCredentials().getAllDataSets() );
-    }
-
+    
     // -------------------------------------------------------------------------
     // DataSet LockExceptions
     // -------------------------------------------------------------------------
@@ -334,7 +307,6 @@ public class DefaultDataSetService
             }
         }
 
-
         return new ArrayList<>( returnList );
     }
 
@@ -388,6 +360,4 @@ public class DefaultDataSetService
         }
         return ids;
     }
-
-
 }
