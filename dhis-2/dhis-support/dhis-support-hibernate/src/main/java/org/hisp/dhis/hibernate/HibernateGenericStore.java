@@ -67,7 +67,6 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -225,7 +224,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public final Criteria getDataSharingCriteria()
+    public final Criteria getDataReadSharingCriteria()
     {
         return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
     }
@@ -267,7 +266,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
+    public final DetachedCriteria getDataReadSharingDetachedCriteria( User user )
     {
         return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
     }
@@ -692,9 +691,9 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataAll()
+    public final List<T> getDataReadAll()
     {
-        return getDataSharingCriteria().list();
+        return getDataReadSharingCriteria().list();
     }
 
     @Override
@@ -709,9 +708,9 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataAll( int first, int max )
+    public final List<T> getDataReadAll( int first, int max )
     {
-        return getDataSharingCriteria()
+        return getDataReadSharingCriteria()
             .setFirstResult( first )
             .setMaxResults( max )
             .list();
