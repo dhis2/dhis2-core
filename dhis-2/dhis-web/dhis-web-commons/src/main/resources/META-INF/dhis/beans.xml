@@ -392,11 +392,6 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
   </bean>
 
-  <bean id="org.hisp.dhis.commons.action.GetProgramsAction" class="org.hisp.dhis.commons.action.GetProgramsAction"
-    scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-  </bean>
-
   <bean id="org.hisp.dhis.commons.action.GetIndicatorAction" class="org.hisp.dhis.commons.action.GetIndicatorAction"
     scope="prototype">
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
