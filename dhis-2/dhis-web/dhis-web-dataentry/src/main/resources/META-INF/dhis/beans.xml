@@ -53,6 +53,7 @@
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="fileResourceService" ref="org.hisp.dhis.fileresource.FileResourceService" />
   </bean>
 
   <bean id="org.hisp.dhis.de.action.ValidationAction" class="org.hisp.dhis.de.action.ValidationAction" scope="prototype">

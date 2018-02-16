@@ -28,8 +28,8 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Lars Helge Overland

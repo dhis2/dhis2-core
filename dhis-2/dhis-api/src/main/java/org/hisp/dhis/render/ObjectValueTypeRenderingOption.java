@@ -42,11 +42,10 @@ import java.util.Set;
  */
 public class ObjectValueTypeRenderingOption
 {
-
     /**
      * The class that should be rendered
      */
-    private Class clazz;
+    private Class<?> clazz;
 
     /**
      * The ValueType of the class to be rendered
@@ -63,7 +62,7 @@ public class ObjectValueTypeRenderingOption
      */
     private Set<ValueTypeRenderingType> renderingTypes;
 
-    public ObjectValueTypeRenderingOption( Class clazz, ValueType valueType, boolean hasOptionSet,
+    public ObjectValueTypeRenderingOption( Class<?> clazz, ValueType valueType, boolean hasOptionSet,
         Set<ValueTypeRenderingType> renderingTypes )
     {
         this.clazz = clazz;
@@ -110,12 +109,12 @@ public class ObjectValueTypeRenderingOption
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class getClazz()
+    public Class<?> getClazz()
     {
         return clazz;
     }
 
-    public void setClazz( Class clazz )
+    public void setClazz( Class<?> clazz )
     {
         this.clazz = clazz;
     }

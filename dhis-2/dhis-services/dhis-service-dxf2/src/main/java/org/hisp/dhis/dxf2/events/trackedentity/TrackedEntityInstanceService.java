@@ -33,6 +33,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +52,7 @@ public interface TrackedEntityInstanceService
 
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
@@ -69,6 +70,9 @@ public interface TrackedEntityInstanceService
     ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
     ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+
+    TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        TrackedEntityInstanceParams params, User user );
 
     ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
 

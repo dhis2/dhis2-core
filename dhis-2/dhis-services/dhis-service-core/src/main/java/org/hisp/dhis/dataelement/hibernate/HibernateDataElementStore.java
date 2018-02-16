@@ -56,6 +56,13 @@ public class HibernateDataElementStore
     {
         return getCriteria( Restrictions.eq( "domainType", domainType ) ).list();
     }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<DataElement> getDataElementsByValueType( ValueType valueType )
+    {
+        return getCriteria( Restrictions.eq( "valueType", valueType ) ).list();
+    }
     
     @Override
     @SuppressWarnings( "unchecked" )

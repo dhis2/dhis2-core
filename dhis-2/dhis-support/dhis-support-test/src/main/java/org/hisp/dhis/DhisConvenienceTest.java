@@ -30,6 +30,7 @@ package org.hisp.dhis;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -64,6 +65,8 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -132,6 +135,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
 import javax.annotation.PostConstruct;
@@ -1195,6 +1199,19 @@ public abstract class DhisConvenienceTest
 
         return legendSet;
     }
+
+    public static LegendSet createLegendSet( char uniqueCharacter, Legend... legends )
+    {
+        LegendSet legendSet = createLegendSet( uniqueCharacter );
+        
+        for ( Legend legend : legends )
+        {
+            legendSet.getLegends().add( legend );
+            legend.setLegendSet( legendSet );
+        }
+
+        return legendSet;
+    }
     
     public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
     {
@@ -1669,12 +1686,26 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
+    public static FileResource createFileResource( char uniqueChar, byte[] content )
+    {
+        String filename = "filename" + uniqueChar;
+        String contentMd5 = Hashing.md5().hashBytes( content ).toString();
+        String contentType = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+
+        FileResource fileResource = new FileResource( filename, contentType, content.length, contentMd5, FileResourceDomain.DATA_VALUE );
+        fileResource.setAssigned( false );
+        fileResource.setCreated( new Date() );
+        fileResource.setAutoFields();
+
+        return fileResource;
+    }
+
     /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param sql             A query statement to retreive record/data from database.
      * @return a sqlView instance
      */
-    protected static SqlView createSqlView( char uniqueCharacter, String sql )
+    public static SqlView createSqlView( char uniqueCharacter, String sql )
     {
         SqlView sqlView = new SqlView();
         sqlView.setAutoFields();
@@ -1693,7 +1724,7 @@ public abstract class DhisConvenienceTest
      * @param value           The value for constant
      * @return a constant instance
      */
-    protected static Constant createConstant( char uniqueCharacter, double value )
+    public static Constant createConstant( char uniqueCharacter, double value )
     {
         Constant constant = new Constant();
         constant.setAutoFields();
@@ -1704,7 +1735,7 @@ public abstract class DhisConvenienceTest
         return constant;
     }
 
-    protected static ProgramNotificationTemplate createProgramNotificationTemplate(
+    public static ProgramNotificationTemplate createProgramNotificationTemplate(
         String name, int days, NotificationTrigger trigger )
     {
         return new ProgramNotificationTemplate(
@@ -1719,7 +1750,7 @@ public abstract class DhisConvenienceTest
         );
     }
 
-    protected static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
+    public static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
     {
         ValidationNotificationTemplate template = new ValidationNotificationTemplate();
         template.setAutoFields();
@@ -1732,7 +1763,7 @@ public abstract class DhisConvenienceTest
         return template;
     }
 
-    protected static OptionSet createOptionSet( char uniqueCharacter )
+    public static OptionSet createOptionSet( char uniqueCharacter )
     {
         OptionSet optionSet = new OptionSet();
         optionSet.setAutoFields();
@@ -1743,7 +1774,20 @@ public abstract class DhisConvenienceTest
         return optionSet;
     }
 
-    protected static Option createOption( char uniqueCharacter )
+    public static OptionSet createOptionSet( char uniqueCharacter, Option... options )
+    {
+        OptionSet optionSet = createOptionSet( uniqueCharacter );
+
+        for ( Option option : options )
+        {
+            optionSet.getOptions().add( option );
+            option.setOptionSet( optionSet );
+        }
+        
+        return optionSet;
+    }
+
+    public static Option createOption( char uniqueCharacter )
     {
         Option option = new Option();
         option.setAutoFields();
@@ -2118,5 +2162,6 @@ public abstract class DhisConvenienceTest
 
         return new ProgramDataElementDimensionItem( pr, de );
     }
+
 
 }
