@@ -401,6 +401,7 @@ public class SmsMessageSenderTest
     {
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, StringUtils.EMPTY );
 
+        assertNotNull( status );
         assertFalse( status.isOk() );
         assertEquals( GatewayResponse.NO_RECIPIENT, status.getResponseObject() );
     }
@@ -410,6 +411,7 @@ public class SmsMessageSenderTest
     {
         OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( null );
 
+        assertNotNull( summary );
         assertEquals( OutboundMessageBatchStatus.ABORTED, summary.getBatchStatus() );
     }
 
