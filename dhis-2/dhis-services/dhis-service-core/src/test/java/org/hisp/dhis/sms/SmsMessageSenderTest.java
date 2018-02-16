@@ -30,6 +30,7 @@ package org.hisp.dhis.sms;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.*;
 import org.hisp.dhis.sms.config.*;
@@ -393,6 +394,23 @@ public class SmsMessageSenderTest
         assertNotNull( summary );
         assertEquals( OutboundMessageBatchStatus.FAILED, summary.getBatchStatus() );
         assertEquals( NO_CONFIG, summary.getErrorMessage() );
+    }
+
+    @Test
+    public void testIfNoRecipient()
+    {
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, StringUtils.EMPTY );
+
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.NO_RECIPIENT, status.getResponseObject() );
+    }
+
+    @Test
+    public void testIfBatchIsNull()
+    {
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( null );
+
+        assertEquals( OutboundMessageBatchStatus.ABORTED, summary.getBatchStatus() );
     }
 
     // -------------------------------------------------------------------------
