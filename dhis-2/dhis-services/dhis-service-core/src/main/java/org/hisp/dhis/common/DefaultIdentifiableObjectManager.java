@@ -420,6 +420,34 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> clazz )
+    {
+        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getDataReadAll();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> clazz )
+    {
+        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getDataWriteAll();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAllByName( Class<T> clazz, String name )
     {
         GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );

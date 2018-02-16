@@ -710,6 +710,13 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
+    public final List<T> getDataWriteAll()
+    {
+        return getDataWriteSharingCriteria().list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
     public final List<T> getAll( int first, int max )
     {
         return getSharingCriteria()
