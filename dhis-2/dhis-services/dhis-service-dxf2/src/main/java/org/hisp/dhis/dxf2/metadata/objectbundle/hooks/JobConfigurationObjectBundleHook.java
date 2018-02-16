@@ -238,7 +238,6 @@ public class JobConfigurationObjectBundleHook
         newObject.setLastExecuted( persObject.getLastExecuted() );
         newObject.setLastExecutedStatus( persObject.getLastExecutedStatus() );
         newObject.setLastRuntimeExecution( persObject.getLastRuntimeExecution() );
-        newObject.setConfigurable( persObject.isConfigurable() );
 
         if ( setDefaultCronExpressionWhenDisablingContinuousExectution( newObject, persObject ) )
         {
