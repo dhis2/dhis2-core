@@ -72,7 +72,6 @@
 
   <bean id="org.hisp.dhis.user.action.GetRoleAction" class="org.hisp.dhis.user.action.GetRoleAction" scope="prototype">
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
   </bean>
 
