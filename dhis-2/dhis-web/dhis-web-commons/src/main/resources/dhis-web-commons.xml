@@ -667,13 +667,6 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-  	<action name="getPrograms" class="org.hisp.dhis.commons.action.GetProgramsAction">
-      <result name="success" type="velocity-json">
-        /dhis-web-commons/ajax/jsonPrograms.vm
-      </result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
     <action name="getDataSetsMinified" class="org.hisp.dhis.commons.action.GetDataSetsAction">
       <result name="success" type="velocity-json">
         /dhis-web-commons/ajax/jsonminDataSets.vm
