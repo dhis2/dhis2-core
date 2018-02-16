@@ -81,12 +81,6 @@ public class DefaultProgramStageService
     }
 
     @Override
-    public ProgramStage getProgramStageByName( String name, Program program )
-    {
-        return programStageStore.getByNameAndProgram( name, program );
-    }
-
-    @Override
     public List<ProgramStage> getProgramStagesByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return programStageStore.getByDataEntryForm( dataEntryForm );
