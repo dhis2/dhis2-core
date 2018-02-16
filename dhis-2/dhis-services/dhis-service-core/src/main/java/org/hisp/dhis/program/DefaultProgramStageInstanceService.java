@@ -34,7 +34,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -227,52 +226,6 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
-    public ProgramStageInstance createProgramStageInstance( TrackedEntityInstance instance, Program program,
-        Date executionDate, OrganisationUnit organisationUnit )
-    {
-        ProgramStage programStage = null;
-
-        if ( program.getProgramStages() != null )
-        {
-            programStage = program.getProgramStages().iterator().next();
-        }
-
-        ProgramInstance programInstance = null;
-
-        if ( program.isWithoutRegistration() )
-        {
-            Collection<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program );
-
-            if ( programInstances == null || programInstances.size() == 0 )
-            {
-                // Add a new program instance if it doesn't exist
-                programInstance = new ProgramInstance();
-                programInstance.setEnrollmentDate( executionDate );
-                programInstance.setIncidentDate( executionDate );
-                programInstance.setProgram( program );
-                programInstance.setStatus( ProgramStatus.ACTIVE );
-                programInstanceService.addProgramInstance( programInstance );
-            }
-            else
-            {
-                programInstance = programInstanceService.getProgramInstances( program ).iterator().next();
-            }
-        }
-
-        // Add a new program stage instance
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setDueDate( executionDate );
-        programStageInstance.setExecutionDate( executionDate );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-
-        addProgramStageInstance( programStageInstance );
-
-        return programStageInstance;
-    }
-
-    @Override
     public ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
@@ -312,5 +265,4 @@ public class DefaultProgramStageInstanceService
 
         return programStageInstance;
     }
-
 }

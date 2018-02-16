@@ -414,16 +414,4 @@ public class ProgramStageInstanceServiceTest
 
         assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
     }
-
-    @Test
-    public void testCreateProgramStageInstance()
-    {
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programService.updateProgram( programA );
-
-        ProgramStageInstance programStageInstance = programStageInstanceService.createProgramStageInstance( entityInstanceA,
-            programA, enrollmentDate, organisationUnitA );
-
-        assertNotNull( programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() ) );
-    }
 }
