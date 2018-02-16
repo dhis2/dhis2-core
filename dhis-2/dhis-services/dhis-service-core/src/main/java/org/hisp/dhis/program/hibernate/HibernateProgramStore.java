@@ -69,17 +69,6 @@ public class HibernateProgramStore
         return  criteria.list();
     }
 
-    @SuppressWarnings( "unchecked" )
-    @Override
-    public List<Program> get( ProgramType type, OrganisationUnit organisationUnit )
-    {
-        Criteria criteria1 = getCriteria();
-        criteria1.createAlias( "organisationUnits", "orgunit" );
-        criteria1.add( Restrictions.eq( "programType", type ) );
-        criteria1.add( Restrictions.eq( "orgunit.id", organisationUnit.getId() ) );
-        return criteria1.list();
-    }
-
     @Override
     @SuppressWarnings( "unchecked" )
     public List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType )
