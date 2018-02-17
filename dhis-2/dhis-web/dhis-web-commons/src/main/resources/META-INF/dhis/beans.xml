@@ -20,7 +20,6 @@
     class="org.hisp.dhis.webportal.module.ConfigurableModuleComparator">
     <property name="order">
       <list>
-        <value>dhis-web-dashboard-integration</value>
         <value>dhis-web-pivot</value>
         <value>dhis-web-visualizer</value>
         <value>dhis-web-mapping</value>
@@ -379,23 +378,6 @@
   <bean id="org.hisp.dhis.commons.action.GetDataElementCategoriesAction" class="org.hisp.dhis.commons.action.GetDataElementCategoriesAction"
     scope="prototype">
     <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.commons.action.GetDataSetAction" class="org.hisp.dhis.commons.action.GetDataSetAction"
-    scope="prototype">
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.commons.action.GetDataSetsAction" class="org.hisp.dhis.commons.action.GetDataSetsAction"
-    scope="prototype">
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.commons.action.GetProgramsAction" class="org.hisp.dhis.commons.action.GetProgramsAction"
-    scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetIndicatorAction" class="org.hisp.dhis.commons.action.GetIndicatorAction"
