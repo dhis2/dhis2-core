@@ -36,30 +36,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsUtils;
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.system.util.MathUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
-
-import javax.annotation.Resource;
 
 import java.util.Date;
 import java.util.List;
@@ -70,164 +61,23 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
  * 
  * @author Lars Helge Overland
  */
-public class JdbcEventAnalyticsManager
+public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     implements EventAnalyticsManager
 {
-    private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
-    
-    private static final String QUERY_ERR_MSG = "Query failed, likely because the requested analytics table does not exist";
-    private static final String ITEM_NAME_SEP = ": ";
-    private static final String NA = "[N/A]";
-    private static final String COL_COUNT = "count";
-    private static final String COL_EXTENT = "extent";
-    private static final int COORD_DEC = 6;
-
-    private static final int LAST_VALUE_YEARS_OFFSET = -10;
-    
-    @Resource( name = "readOnlyJdbcTemplate" )
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private StatementBuilder statementBuilder;
-    
-    @Autowired
-    private ProgramIndicatorService programIndicatorService;
+    protected static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
     
     // -------------------------------------------------------------------------
     // EventAnalyticsManager implementation
     // -------------------------------------------------------------------------
-
-    @Override
-    public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
-    {
-        String countClause = getAggregateClause( params );
-        
-        String sql = "select " + countClause + " as value," + StringUtils.join( getSelectColumns( params ), "," ) + " ";
-
-        // ---------------------------------------------------------------------
-        // Criteria
-        // ---------------------------------------------------------------------
-
-        sql += getFromClause( params );
-        
-        sql += getWhereClause( params );
-
-        // ---------------------------------------------------------------------
-        // Group by
-        // ---------------------------------------------------------------------
-
-        sql += "group by " + StringUtils.join( getSelectColumns( params ), "," ) + " ";
-
-        // ---------------------------------------------------------------------
-        // Sort order
-        // ---------------------------------------------------------------------
-
-        if ( params.hasSortOrder() )
-        {
-            sql += "order by value " + params.getSortOrder().toString().toLowerCase() + " ";
-        }
-        
-        // ---------------------------------------------------------------------
-        // Limit, add one to max to enable later check against max limit
-        // ---------------------------------------------------------------------
-
-        if ( params.hasLimit() )
-        {
-            sql += "limit " + params.getLimit();
-        }
-        else if ( maxLimit > 0 )
-        {
-            sql += "limit " + ( maxLimit + 1 );
-        }
-        
-        // ---------------------------------------------------------------------
-        // Grid
-        // ---------------------------------------------------------------------
-
-        try
-        {
-            getAggregatedEventData( grid, params, sql );
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.info( QUERY_ERR_MSG, ex );
-        }
-
-        return grid;
-    }
-    
-    private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
-    {
-        log.debug( String.format( "Analytics event aggregate SQL: %s", sql ) );
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        while ( rowSet.next() )
-        {            
-            grid.addRow();
-
-            if ( params.isAggregateData() )
-            {
-                if ( params.hasValueDimension() )
-                {
-                    String itemId = params.getProgram().getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + params.getValue().getUid();
-                    grid.addValue( itemId );
-                }
-                else if ( params.hasProgramIndicatorDimension() )
-                {
-                    grid.addValue( params.getProgramIndicator().getUid() );
-                }                
-            }
-            else
-            {
-                for ( QueryItem queryItem : params.getItems() )
-                {
-                    String itemValue = rowSet.getString( queryItem.getItemName() );
-                    String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( params, queryItem, itemValue ) : itemValue;
-                    grid.addValue( gridValue );
-                }
-            }
-            
-            for ( DimensionalObject dimension : params.getDimensions() )
-            {
-                String dimensionValue = rowSet.getString( dimension.getDimensionName() );
-                grid.addValue( dimensionValue );
-            }
-            
-            if ( params.hasValueDimension() )
-            {
-                double value = rowSet.getDouble( "value" );
-                grid.addValue( params.isSkipRounding() ? value : getRounded( value ) );
-            }
-            else if ( params.hasProgramIndicatorDimension() )
-            {
-                double value = rowSet.getDouble( "value" );
-                ProgramIndicator indicator = params.getProgramIndicator();
-                grid.addValue( AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value ) );
-            }
-            else
-            {
-                int value = rowSet.getInt( "value" );
-                grid.addValue( value );
-            }
-            
-            if ( params.isIncludeNumDen() )
-            {
-                grid.addNullValues( 3 );
-            }
-        }
-    }
     
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
@@ -426,106 +276,13 @@ public class JdbcEventAnalyticsManager
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the count clause based on value dimension and output type.
-     * 
-     * @param params the {@link EventQueryParams}.
-     * 
-     * TODO include output type if aggregation type is count
-     */
-    private String getAggregateClause( EventQueryParams params )
-    {
-        EventOutputType outputType = params.getOutputType();
-        
-        if ( params.hasValueDimension() ) // TODO && isNumeric
-        {
-            Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregateable(), "Event query aggregation type must be aggregatable" );
-            
-            String function = params.getAggregationTypeFallback().getAggregationType().getValue();
-            
-            String expression = statementBuilder.columnQuote( params.getValue().getUid() );
-            
-            return function + "(" + expression + ")";
-        }
-        else if ( params.hasEventProgramIndicatorDimension() )
-        {            
-            String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
-            
-            function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
-            
-            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
-                params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
-            
-            return function + "(" + expression + ")";
-        }
-        else
-        {
-            if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
-            {
-                return "count(distinct " + statementBuilder.columnQuote( "tei") + ")";
-            }
-            else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
-            {
-                return "count(distinct " + statementBuilder.columnQuote( "pi") + ")";
-            }
-            else // EVENT
-            {
-                return "count(" + statementBuilder.columnQuote( "psi") + ")";
-            }
-        }
-    }
-    
-    /**
-     * Returns the dynamic select columns. Dimensions come first and query items
-     * second. Program indicator expressions are converted to SQL expressions.
-     * 
-     * @param params the {@link EventQueryParams}.
-     */
-    private List<String> getSelectColumns( EventQueryParams params )
-    {
-        List<String> columns = Lists.newArrayList();
-        
-        for ( DimensionalObject dimension : params.getDimensions() )
-        {
-            columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
-        }
-        
-        for ( QueryItem queryItem : params.getItems() )
-        {            
-            if ( queryItem.isProgramIndicator() )
-            {
-                ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
-                
-                String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
-                
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
-            }
-            else if ( ValueType.COORDINATE == queryItem.getValueType() )
-            {
-                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
-                
-                String coordSql =  
-                    "'[' || round(ST_X(" + colName + ")::numeric, " + COORD_DEC + ") ||" +
-                    "',' || round(ST_Y(" + colName + ")::numeric, " + COORD_DEC + ") || ']' as " + colName;
-                
-                columns.add( coordSql );
-            }
-            else
-            {
-                columns.add( statementBuilder.columnQuote( queryItem.getItemName() ) );
-            }
-        }
-        
-        return columns;
-    }
-
-    /**
      * Returns a from SQL clause for the given analytics table partition.
      * 
      * @param params the {@link EventQueryParams}.
      */
-    private String getFromClause( EventQueryParams params )
+    protected String getFromClause( EventQueryParams params )
     {
-        String sql = "from ";
+        String sql = " from ";
 
         if ( params.isAggregateData() && params.hasValueDimension() && params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
@@ -544,22 +301,36 @@ public class JdbcEventAnalyticsManager
      * 
      * @param params the {@link EventQueryParams}.
      */
-    private String getWhereClause( EventQueryParams params )
+    protected String getWhereClause( EventQueryParams params )
     {
         String sql = "";
+        SqlHelper sqlHelper = new SqlHelper();
         
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
-
-        if ( params.hasStartEndDate() )
+        if ( params.hasNonDefaultBoundaries() )
+        {
+            //The program indicator has non-default boundaries, and defines its own relationship with the 
+            //reporting period. We need to make custom where-clauses instead of using the preaggregated period columns.
+            //We know that the query planner has split the query into individual periods, as this is always done for
+            //non-default boundaries.
+            for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
+            {
+                if ( !boundary.isEventDateBoundary() )
+                {
+                    sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
+                }
+            }
+        }
+        else if ( params.hasStartEndDate() )
         {        
-            sql += "where " + statementBuilder.columnQuote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and " + statementBuilder.columnQuote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "executiondate") + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += sqlHelper.whereAnd() + " "  + statementBuilder.columnQuote( "executiondate") + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
         else // Periods
         {
-            sql += "where " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -568,15 +339,15 @@ public class JdbcEventAnalyticsManager
 
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) )
         {
-            sql += "and ou in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " ou in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
-            sql += "and ou in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " and ou in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
-            sql += "and (";
+            sql += sqlHelper.whereAnd() + " (";
             
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
@@ -598,7 +369,7 @@ public class JdbcEventAnalyticsManager
         {            
             String col = statementBuilder.columnQuote( dim.getDimensionName() );
             
-            sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -607,7 +378,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStage() )
         {
-            sql += "and " + statementBuilder.columnQuote( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
 
         // ---------------------------------------------------------------------
@@ -620,7 +391,7 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += sqlHelper.whereAnd() + " " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -631,7 +402,7 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += sqlHelper.whereAnd() + " " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -647,7 +418,7 @@ public class JdbcEventAnalyticsManager
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             
-            sql += "and (" + sqlFilter + ") ";
+            sql += sqlHelper.whereAnd() + " (" + sqlFilter + ") ";
         }
         
         if ( params.hasProgramIndicatorDimension() )
@@ -656,7 +427,7 @@ public class JdbcEventAnalyticsManager
             
             if ( anyValueFilter != null )
             {
-                sql += "and (" + anyValueFilter + ") ";
+                sql += sqlHelper.whereAnd() + " (" + anyValueFilter + ") ";
             }
         }
         
@@ -666,32 +437,32 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += "and pistatus = '" + params.getProgramStatus().name() + "' ";
+            sql += sqlHelper.whereAnd() + " pistatus = '" + params.getProgramStatus().name() + "' ";
         }
 
         if ( params.hasEventStatus() )
         {
-            sql += "and psistatus = '" + params.getEventStatus().name() + "' ";
+            sql += sqlHelper.whereAnd() + " psistatus = '" + params.getEventStatus().name() + "' ";
         }
 
         if ( params.isCoordinatesOnly() )
         {
-            sql += "and (longitude is not null and latitude is not null) ";
+            sql += sqlHelper.whereAnd() + " (longitude is not null and latitude is not null) ";
         }
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
         {
-            sql += "and completeddate is not null ";
+            sql += sqlHelper.whereAnd() + " completeddate is not null ";
         }
         
         if ( params.hasBbox() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
 
         // ---------------------------------------------------------------------
@@ -700,7 +471,7 @@ public class JdbcEventAnalyticsManager
         
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {
-            sql += "and " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
@@ -710,7 +481,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
-            sql += "and " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
+            sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "pe_rank" ) + " = 1 ";
         }
         
         return sql;
@@ -809,41 +580,5 @@ public class JdbcEventAnalyticsManager
         String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
         
         return item.getSqlFilter( filter, encodedFilter );
-    }
-
-    /**
-     * Returns an item value for the given query, query item and value. Assumes that
-     * data dimensions are collapsed for the given query. Returns the short name
-     * of the given query item followed by the item value. If the given query item
-     * has a legend set, the item value is treated as an id and substituted with
-     * the matching legend name. If the given query item has an option set, the 
-     * item value is treated as a code and substituted with the matching option 
-     * name.
-     * 
-     * @param params the {@link EventQueryParams}..
-     * @param item the {@link QueryItem}.
-     * @param itemValue the item value.
-     */
-    private String getCollapsedDataItemValue( EventQueryParams params, QueryItem item, String itemValue )
-    {
-        String value = item.getItem().getDisplayShortName() + ITEM_NAME_SEP;
-        
-        Legend legend = null;
-        Option option = null;
-        
-        if ( item.hasLegendSet() && ( legend = item.getLegendSet().getLegendByUid( itemValue ) ) != null )
-        {
-            return value + legend.getDisplayName();
-        }        
-        else if ( item.hasOptionSet() && ( option = item.getOptionSet().getOptionByCode( itemValue ) ) != null )
-        {
-            return value + option.getDisplayName();
-        }
-        else
-        {
-            itemValue = StringUtils.defaultString( itemValue, NA );
-            
-            return value + itemValue;
-        }
     }
 }

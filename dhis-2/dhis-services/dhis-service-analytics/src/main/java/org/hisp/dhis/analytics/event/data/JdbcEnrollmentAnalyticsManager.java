@@ -30,326 +30,53 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.List;
 
-import javax.annotation.Resource;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.poi.ss.formula.eval.NotImplementedException;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsUtils;
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.util.Assert;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * @author Markus Bekken
  */
-public class JdbcEnrollmentAnalyticsManager
+public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
 {
-    private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
-    
-    private static final String QUERY_ERR_MSG = "Query failed, likely because the requested analytics table does not exist";
-    private static final String ITEM_NAME_SEP = ": ";
-    private static final String NA = "[N/A]";
-
-    @Resource( name = "readOnlyJdbcTemplate" )
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private StatementBuilder statementBuilder;
-    
-    @Autowired
-    private ProgramIndicatorService programIndicatorService;
-    
-    // -------------------------------------------------------------------------
-    // EnrollmentAnalyticsManager implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
-    {
-        
-        // ---------------------------------------------------------------------
-        // Select
-        // ---------------------------------------------------------------------
-
-        String countClause = getAggregateClause( params );
-        
-        List<String> selectColumns = getSelectColumns( params );
-        
-        String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +  
-             StringUtils.join( selectColumns, "," ) ) + " ";
-        
-        //For non-default program indicator dimensions, each period is a separate query
-        if ( params.hasNonDefaultBoundaries() )
-        {
-            if ( params.getPeriods().size() == 1 )
-            {
-                Period period = (Period) params.getPeriods().get( 0 );
-                sql += ", " + period.getIsoDate() + " as " +  period.getPeriodType().getName() + " ";
-            }
-            else if ( params.getPeriods().size() == 0 && params.getFilterPeriods().size() > 0 )
-            {
-                //assuming same period type for all period filters, as the query planner splits into one query per period type
-                Period period = (Period) params.getFilterPeriods().get( 0 );
-                sql += ", " + period.getIsoDate() + " as " +  period.getPeriodType().getName() + " ";
-            }
-            else
-            {
-                throw new NotImplementedException( "Program indicatpr with non-default boundaries expects the queries to happen" +
-                    " with exaclty one period at a time, or with no periods and a period filter.");
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Criteria
-        // ---------------------------------------------------------------------
-
-        sql += getFromWhereClause( params );
-
-        // ---------------------------------------------------------------------
-        // Group by
-        // ---------------------------------------------------------------------
-        if ( selectColumns.size() > 0 )
-        {
-            sql += "group by " + StringUtils.join( getSelectColumns( params ), "," ) + " ";
-        }
-
-        // ---------------------------------------------------------------------
-        // Sort order
-        // ---------------------------------------------------------------------
-
-        if ( params.hasSortOrder() )
-        {
-            sql += "order by value " + params.getSortOrder().toString().toLowerCase() + " ";
-        }
-        
-        // ---------------------------------------------------------------------
-        // Limit, add one to max to enable later check against max limit
-        // ---------------------------------------------------------------------
-
-        if ( params.hasLimit() )
-        {
-            sql += "limit " + params.getLimit();
-        }
-        else if ( maxLimit > 0 )
-        {
-            sql += "limit " + ( maxLimit + 1 );
-        }
-        
-        // ---------------------------------------------------------------------
-        // Grid
-        // ---------------------------------------------------------------------
-
-        try
-        {
-            getAggregatedEventData( grid, params, sql );
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.info( QUERY_ERR_MSG, ex );
-        }
-        
-        return grid;
-    }
-    
-    private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
-    {
-        log.debug( "Analytics enrollment aggregate SQL: " + sql );
-        
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        while ( rowSet.next() )
-        {            
-            grid.addRow();
-
-            if ( params.isAggregateData() )
-            {
-                if ( params.hasValueDimension() )
-                {
-                    String itemId = params.getProgram().getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + params.getValue().getUid();
-                    grid.addValue( itemId );
-                }
-                else if ( params.hasProgramIndicatorDimension() )
-                {
-                    grid.addValue( params.getProgramIndicator().getUid() );
-                }                
-            }
-            else
-            {
-                for ( QueryItem queryItem : params.getItems() )
-                {
-                    String itemValue = rowSet.getString( queryItem.getItemName() );
-                    String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( params, queryItem, itemValue ) : itemValue;
-                    grid.addValue( gridValue );
-                }
-            }
-            
-            for ( DimensionalObject dimension : params.getDimensions() )
-            {
-                String dimensionValue = rowSet.getString( dimension.getDimensionName() );
-                grid.addValue( dimensionValue );
-            }
-            
-            if ( params.hasValueDimension() )
-            {
-                double value = rowSet.getDouble( "value" );
-                grid.addValue( params.isSkipRounding() ? value : getRounded( value ) );
-            }
-            else if ( params.hasProgramIndicatorDimension() )
-            {
-                double value = rowSet.getDouble( "value" );
-                ProgramIndicator indicator = params.getProgramIndicator();
-                grid.addValue( AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value ) );
-            }
-            else
-            {
-                int value = rowSet.getInt( "value" );
-                grid.addValue( value );
-            }
-            
-            if ( params.isIncludeNumDen() )
-            {
-                grid.addNullValues( 3 );
-            }
-        }
-    }
    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-    
-    /**
-     * Returns the count clause based on value dimension and output type.
-     * 
-     * TODO include output type if aggregation type is count
-     */
-    private String getAggregateClause( EventQueryParams params )
-    {
-        EventOutputType outputType = params.getOutputType();
-        
-        if ( params.hasValueDimension() )
-        {
-            String function = params.getAggregationTypeFallback().getAggregationType().getValue();
-            
-            String expression = statementBuilder.columnQuote( params.getValue().getUid() );
-            
-            return function + "(" + expression + ")";
-        }
-        else if ( params.hasEnrollmentProgramIndicatorDimension() )
-        {
-            String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
-            
-            function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
-            
-            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
-                params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
-            
-            return function + "(" + expression + ")";
-        }
-        else
-        {
-            if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
-            {
-                return "count(distinct tei)";
-            }
-            else // EVENT
-            {
-                return "count(pi)";
-            }
-        }
-    }
-    
-    /**
-     * Returns the dynamic select columns. Dimensions come first and query items
-     * second. Program indicator expressions are converted to SQL expressions.
-     * In the case of non-default boundaries{@link EventQueryParams#hasNonDefaultBoundaries},
-     * the periods is not returned as select columns.
-     */
-    private List<String> getSelectColumns( EventQueryParams params )
-    {
-        List<String> columns = Lists.newArrayList();
-        
-        for ( DimensionalObject dimension : params.getDimensions() )
-        {
-            if ( dimension.getDimensionType() != DimensionType.PERIOD || !params.hasNonDefaultBoundaries() )
-            {
-                columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
-            }
-        }
-        
-        for ( QueryItem queryItem : params.getItems() )
-        {            
-            if ( queryItem.isProgramIndicator() )
-            {
-                ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
-                
-                String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
-            }
-            else if ( ValueType.COORDINATE == queryItem.getValueType() )
-            {
-                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
-                
-                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
-                
-                columns.add( coordSql );
-            }
-            else
-            {
-                columns.add( statementBuilder.columnQuote( queryItem.getItemName() ) );
-            }
-        }
-        
-        return columns;
-    }
 
+    
+    protected String getFromClause( EventQueryParams params )
+    {
+        return " from " + params.getTableName() + " as enrollmenttable ";
+    }
+    
     /**
      * Returns a from and where SQL clause.
      * 
      * @param params the event query parameters.
      */
-    private String getFromWhereClause( EventQueryParams params )
+    protected String getWhereClause( EventQueryParams params )
     {        
-        String sql = "from " + params.getTableName() + " as enrollmenttable ";
+        String sql = "";
        
         // ---------------------------------------------------------------------
         // Periods
@@ -552,37 +279,5 @@ public class JdbcEnrollmentAnalyticsManager
         String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
         
         return item.getSqlFilter( filter, encodedFilter );
-    }
-
-    /**
-     * Returns an item value for the given query, query item and value. Assumes that
-     * data dimensions are collapsed for the given query. Returns the short name
-     * of the given query item followed by the item value. If the given query item
-     * has a legend set, the item value is treated as an id and substituted with
-     * the matching legend name. If the given query item has an option set, the 
-     * item value is treated as a code and substituted with the matching option 
-     * name.
-     */
-    private String getCollapsedDataItemValue( EventQueryParams params, QueryItem item, String itemValue )
-    {
-        String value = item.getItem().getDisplayShortName() + ITEM_NAME_SEP;
-        
-        Legend legend = null;
-        Option option = null;
-        
-        if ( item.hasLegendSet() && ( legend = item.getLegendSet().getLegendByUid( itemValue ) ) != null )
-        {
-            return value + legend.getDisplayName();
-        }
-        else if ( item.hasOptionSet() && ( option = item.getOptionSet().getOptionByCode( itemValue ) ) != null )
-        {
-            return value + option.getDisplayName();
-        }
-        else
-        {
-            itemValue = StringUtils.defaultString( itemValue, NA );
-            
-            return value + itemValue;
-        }
     }
 }
