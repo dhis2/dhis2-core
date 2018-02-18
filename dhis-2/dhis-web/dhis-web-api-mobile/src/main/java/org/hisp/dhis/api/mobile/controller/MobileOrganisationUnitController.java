@@ -36,7 +36,6 @@ import java.util.Locale;
 
 import org.hisp.dhis.api.mobile.ActivityReportingService;
 import org.hisp.dhis.api.mobile.FacilityReportingService;
-import org.hisp.dhis.api.mobile.IProgramService;
 import org.hisp.dhis.api.mobile.NotAllowedException;
 import org.hisp.dhis.api.mobile.model.ActivityValue;
 import org.hisp.dhis.api.mobile.model.Contact;
@@ -79,9 +78,6 @@ public class MobileOrganisationUnitController
     private ActivityReportingService activityReportingService;
 
     @Autowired
-    private IProgramService programService;
-
-    @Autowired
     private FacilityReportingService facilityReportingService;
 
     @Autowired
@@ -113,7 +109,6 @@ public class MobileOrganisationUnitController
         MobileModel mobileModel = new MobileModel();
         mobileModel.setClientVersion( DataStreamSerializable.TWO_POINT_EIGHT );
         OrganisationUnit unit = getUnit( id );
-        mobileModel.setPrograms( programService.getPrograms( unit, locale ) );
         mobileModel.setDatasets( facilityReportingService.getMobileDataSetsForUnit( unit, locale ) );
         mobileModel.setServerCurrentDate( new Date() );
         mobileModel.setLocales( getLocalStrings( localeService.getAllLocales() ) );
@@ -168,7 +163,6 @@ public class MobileOrganisationUnitController
     {
         MobileModel model = new MobileModel();
         model.setClientVersion( DataStreamSerializable.TWO_POINT_EIGHT );
-        model.setPrograms( programService.updateProgram( programsFromClient, locale, getUnit( id ) ) );
         model.setServerCurrentDate( new Date() );
         return model;
     }
@@ -242,7 +236,6 @@ public class MobileOrganisationUnitController
     {
         MobileModel model = new MobileModel();
         model.setClientVersion( clientVersion );
-        model.setPrograms( programService.updateProgram( programsFromClient, locale, getUnit( id ) ) );
         model.setServerCurrentDate( new Date() );
         return model;
     }
@@ -303,10 +296,7 @@ public class MobileOrganisationUnitController
     {
         org.hisp.dhis.api.mobile.model.LWUITmodel.MobileModel mobileModel = new org.hisp.dhis.api.mobile.model.LWUITmodel.MobileModel();
         mobileModel.setClientVersion( clientVersion );
-        OrganisationUnit unit = getUnit( id );
-        mobileModel.setPrograms( programService.getProgramsLWUIT( unit ) );
         mobileModel.setServerCurrentDate( new Date() );
-        mobileModel.setRelationshipTypes( programService.getAllRelationshipTypes() );
         
         return mobileModel;
     }
