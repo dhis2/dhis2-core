@@ -427,9 +427,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public void validateSearchScope( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
-    {
-        
-        
+    {        
         if ( params == null )
         {
             throw new IllegalQueryException( "Params cannot be null" );
@@ -792,83 +790,6 @@ public class DefaultTrackedEntityInstanceService
     public boolean trackedEntityInstanceExists( String uid )
     {
         return trackedEntityInstanceStore.exists( uid );
-    }
-
-    @Override
-    public void updateTrackedEntityInstance( TrackedEntityInstance instance, String representativeId,
-        Integer relationshipTypeId, List<TrackedEntityAttributeValue> valuesForSave,
-        List<TrackedEntityAttributeValue> valuesForUpdate, Collection<TrackedEntityAttributeValue> valuesForDelete )
-    {
-        trackedEntityInstanceStore.update( instance );
-
-        valuesForSave.forEach( attributeValueService::addTrackedEntityAttributeValue );
-        valuesForUpdate.forEach( attributeValueService::updateTrackedEntityAttributeValue );
-        valuesForDelete.forEach( attributeValueService::deleteTrackedEntityAttributeValue );
-
-        if ( shouldSaveRepresentativeInformation( instance, representativeId ) )
-        {
-            TrackedEntityInstance representative = trackedEntityInstanceStore.getByUid( representativeId );
-
-            if ( representative != null )
-            {
-                instance.setRepresentative( representative );
-
-                Relationship rel = new Relationship();
-                rel.setEntityInstanceA( representative );
-                rel.setEntityInstanceB( instance );
-
-                if ( relationshipTypeId != null )
-                {
-                    RelationshipType relType = relationshipTypeService.getRelationshipType( relationshipTypeId );
-
-                    if ( relType != null )
-                    {
-                        rel.setRelationshipType( relType );
-                        relationshipService.addRelationship( rel );
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean shouldSaveRepresentativeInformation( TrackedEntityInstance instance, String representativeId )
-    {
-        if ( representativeId == null || representativeId.isEmpty() )
-        {
-            return false;
-        }
-
-        return instance.getRepresentative() == null || !(instance.getRepresentative().getUid().equals( representativeId ));
-    }
-
-    @Override
-    public String validateTrackedEntityInstance( TrackedEntityInstance instance, Program program )
-    {
-        if ( program != null )
-        {
-            ValidationCriteria validationCriteria = validateEnrollment( instance, program );
-
-            if ( validationCriteria != null )
-            {
-                return TrackedEntityInstanceService.ERROR_ENROLLMENT + TrackedEntityInstanceService.SEPARATOR
-                    + validationCriteria.getId();
-            }
-        }
-
-        if ( instance.getTrackedEntityAttributeValues() != null && instance.getTrackedEntityAttributeValues().size() > 0 )
-        {
-            for ( TrackedEntityAttributeValue attributeValue : instance.getTrackedEntityAttributeValues() )
-            {
-                String valid = trackedEntityInstanceStore.validate( instance, attributeValue, program );
-
-                if ( valid != null )
-                {
-                    return valid;
-                }
-            }
-        }
-
-        return TrackedEntityInstanceService.ERROR_NONE + "";
     }
 
     @Override

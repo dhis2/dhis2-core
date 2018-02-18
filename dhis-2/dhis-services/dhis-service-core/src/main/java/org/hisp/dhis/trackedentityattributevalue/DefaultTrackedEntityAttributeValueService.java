@@ -177,25 +177,4 @@ public class DefaultTrackedEntityAttributeValueService
             trackedEntityAttributeReservedValueService.markTrackedEntityAttributeReservedValueAsUtilized( attributeValue.getAttribute(), attributeValue.getEntityInstance(), attributeValue.getAuditValue() );
         }
     }
-
-    @Override
-    public List<TrackedEntityAttributeValue> searchTrackedEntityAttributeValue( TrackedEntityAttribute attribute,
-        String searchText )
-    {
-        return attributeValueStore.searchByValue( attribute, searchText );
-    }
-    
-    @Override
-    public void copyTrackedEntityAttributeValues( TrackedEntityInstance source, TrackedEntityInstance destination )
-    {
-        attributeValueStore.deleteByTrackedEntityInstance( destination );
-
-        for ( TrackedEntityAttributeValue attributeValue : getTrackedEntityAttributeValues( source ) )
-        {
-            TrackedEntityAttributeValue value = new TrackedEntityAttributeValue(
-                attributeValue.getAttribute(), destination, attributeValue.getValue() );
-
-            addTrackedEntityAttributeValue( value );
-        }
-    }
 }

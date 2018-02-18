@@ -36,7 +36,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -154,20 +151,6 @@ public class DefaultProgramStageInstanceService
     public boolean programStageInstanceExists( String uid )
     {
         return programStageInstanceStore.exists( uid );
-    }
-
-    @Override
-    public List<ProgramStageInstance> getProgramStageInstances( Collection<ProgramInstance> programInstances,
-        EventStatus status )
-    {
-        return programStageInstanceStore.get( programInstances, status );
-    }
-
-    @Override
-    public List<ProgramStageInstance> getProgramStageInstances( TrackedEntityInstance entityInstance,
-        EventStatus status )
-    {
-        return programStageInstanceStore.get( entityInstance, status );
     }
 
     @Override

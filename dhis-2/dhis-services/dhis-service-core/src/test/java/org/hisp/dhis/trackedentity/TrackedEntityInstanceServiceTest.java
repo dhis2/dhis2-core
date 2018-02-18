@@ -37,9 +37,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -64,8 +62,6 @@ public class TrackedEntityInstanceServiceTest
 
     private TrackedEntityInstance entityInstanceA1;
 
-    private TrackedEntityInstance entityInstanceA3;
-
     private TrackedEntityInstance entityInstanceB1;
 
     private TrackedEntityAttribute entityInstanceAttribute;
@@ -85,7 +81,6 @@ public class TrackedEntityInstanceServiceTest
         attributeService.addTrackedEntityAttribute( entityInstanceAttribute );
 
         entityInstanceA1 = createTrackedEntityInstance( 'A', organisationUnit );
-        entityInstanceA3 = createTrackedEntityInstance( 'A', organisationUnit, entityInstanceAttribute );
         entityInstanceB1 = createTrackedEntityInstance( 'B', organisationUnit );
         entityInstanceB1.setUid( "UID-B1" );
     }
@@ -192,32 +187,5 @@ public class TrackedEntityInstanceServiceTest
         int idA = entityInstanceService.createTrackedEntityInstance( entityInstanceA1, entityInstanceB1.getUid(),
             relationshipTypeId, entityInstanceAttributeValues );
         assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-    }
-
-    @Test
-    public void testUpdateTrackedEntityInstanceAndRelative()
-    {
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
-
-        RelationshipType relationshipType = createRelationshipType( 'A' );
-        int relationshipTypeId = relationshipTypeService.addRelationshipType( relationshipType );
-
-        entityInstanceA3.setName( "B" );
-        TrackedEntityAttributeValue attributeValue = createTrackedEntityAttributeValue( 'A', entityInstanceA3,
-            entityInstanceAttribute );
-        Set<TrackedEntityAttributeValue> entityInstanceAttributeValues = new HashSet<>();
-        entityInstanceAttributeValues.add( attributeValue );
-        int idA = entityInstanceService.createTrackedEntityInstance( entityInstanceA3, entityInstanceB1.getUid(),
-            relationshipTypeId, entityInstanceAttributeValues );
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-
-        attributeValue.setValue( "AttributeB" );
-        List<TrackedEntityAttributeValue> attributeValues = new ArrayList<>();
-        attributeValues.add( attributeValue );
-
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceA3, entityInstanceB1.getUid(),
-            relationshipTypeId, attributeValues, new ArrayList<>(),
-            new ArrayList<>() );
-        assertEquals( "B", entityInstanceService.getTrackedEntityInstance( idA ).getName() );
     }
 }
