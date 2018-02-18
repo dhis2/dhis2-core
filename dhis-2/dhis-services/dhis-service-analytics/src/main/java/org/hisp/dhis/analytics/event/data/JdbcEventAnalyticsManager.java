@@ -75,10 +75,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 {
     protected static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
     
-    // -------------------------------------------------------------------------
-    // EventAnalyticsManager implementation
-    // -------------------------------------------------------------------------
-    
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {

@@ -58,12 +58,11 @@ import com.google.common.collect.Sets;
 public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
 {
-   
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    
+    /**
+     * Returns a from SQL clause for the given analytics table partition.
+     * 
+     * @param params the {@link EventQueryParams}.
+     */
     protected String getFromClause( EventQueryParams params )
     {
         return " from " + params.getTableName() + " as enrollmenttable ";
@@ -75,6 +74,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
      * boundaries is used, or the params does not include program indicators, the periods are joined in from the analytics
      * tables the normal way. A where clause can never have a mix of indicators with non-default boundaries and regular 
      * analytics table periods.
+     * 
      * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
@@ -84,28 +84,31 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
+        
         if ( params.hasNonDefaultBoundaries() )
         {
             SqlHelper sqlHelper = new SqlHelper();
+            
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
             {
-                //Event data is joined in the program indicator service, as part of translating the expression or filter for the program indicator.
+                // Event data joined in the program indicator service, as part of translating the expression or filter for the program indicator
+                
                 if ( !boundary.isEventDateBoundary() )
                 {
                     sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
                 }
             }
             
-            //Filter for only evaluating enrollments that has any events in the boundary period:
-            if( params.getProgramIndicator().hasEventBoundary() )
+            // Filter for evaluating enrollments which have any events in the boundary period
+            
+            if ( params.getProgramIndicator().hasEventBoundary() )
             {
                 sql += sqlHelper.whereAnd() + "( select count * from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
                     " where pi = enrollmenttable.pi " + 
                     ( params.getProgramIndicator().getEndEventBoundary() != null ? ( sqlHelper.whereAnd() + " " + 
-                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) 
-                    : "") + ( params.getProgramIndicator().getStartEventBoundary() != null ? ( sqlHelper.whereAnd() + " "  + 
-                    params.getProgramIndicator().getStartEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) 
-                    : "") + ") > 0";
+                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + 
+                    ( params.getProgramIndicator().getStartEventBoundary() != null ? ( sqlHelper.whereAnd() + " "  + 
+                    params.getProgramIndicator().getStartEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + ") > 0";
             }
         }
         else
@@ -119,8 +122,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             {
                 sql += "where " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
             }
-        }
-        
+        }        
 
         // ---------------------------------------------------------------------
         // Organisation units
@@ -266,9 +268,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         
         return item.isText() ? "lower(" + col + ")" : col;
     }
-    
+
     /**
      * Returns the filter value for the given query item.
+     * 
+     * @param filter the {@link QueryFilter}.
+     * @param item the {@link QueryItem}.
      */
     private String getSqlFilter( QueryFilter filter, QueryItem item )
     {
