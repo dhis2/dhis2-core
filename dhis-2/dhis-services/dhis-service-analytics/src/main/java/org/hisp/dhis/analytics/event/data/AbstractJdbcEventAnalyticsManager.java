@@ -38,7 +38,6 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.poi.ss.formula.eval.NotImplementedException;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -61,7 +60,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 
 /**
  * 
@@ -135,15 +134,16 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( !params.hasPeriods() && params.hasFilterPeriods() )
             {
-                //assuming same period type for all period filters, as the query planner splits into one query per period type
+                // Assuming same period type for all period filters, as the query planner splits into one query per period type
+                
                 Period period = (Period) params.getFilterPeriods().get( 0 );
-                columns.add( ( columnNamesOnly ? "" : ( period.getIsoDate() + " as " ) ) +
-                    period.getPeriodType().getName() );
+                String periodCol = ( columnNamesOnly ? "" : ( period.getIsoDate() + " as " ) ) + period.getPeriodType().getName();
+                columns.add( periodCol );
             }
             else
             {
-                throw new NotImplementedException( "Program indicatpr with non-default boundaries expects the queries to happen" +
-                    " with exaclty one period at a time, or with no periods and a period filter.");
+                throw new IllegalStateException( 
+                    "Program indicator with non-default boundary expects queries to have exactly one period, or no periods and a period filter" );
             }
         }
         
