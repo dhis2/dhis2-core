@@ -34,7 +34,6 @@ import org.hisp.dhis.api.mobile.model.Interpretation;
 import org.hisp.dhis.api.mobile.model.Message;
 import org.hisp.dhis.api.mobile.model.MessageConversation;
 import org.hisp.dhis.api.mobile.model.User;
-import org.hisp.dhis.api.mobile.model.LWUITmodel.Patient;
 
 public interface ActivityReportingService
 {

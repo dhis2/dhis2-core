@@ -52,8 +52,4 @@
 
 	</bean>
 
-	<bean id="org.hisp.dhis.mobile.api.IProgramService" class="org.hisp.dhis.mobile.service.DefaultProgramService">
-		<property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-	</bean>
-
 </beans>
