@@ -1050,6 +1050,7 @@ public class TableAlteror
         updateDimensionFilterToText();
 
         log.info( "Tables updated" );
+
     }
 
     private void upgradeEmbeddedObject( String table )

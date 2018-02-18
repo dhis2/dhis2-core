@@ -28,10 +28,15 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +44,7 @@ import java.util.List;
 
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobType.*;
 
 /**
  *
@@ -49,6 +55,20 @@ import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 public class SchedulerStart
     extends AbstractStartupRoutine
 {
+    private static final Log log = LogFactory.getLog( SchedulerStart.class );
+
+    private final String CRON_DAILY_2AM = "0 0 2 * * ?";
+    private final String CRON_DAILY_7AM = "0 0 7 * * ?";
+
+    private final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
+    private final String DEFAULT_DATA_STATISTICS = "Data statistics";
+    private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
+    private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
+    private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     private JobConfigurationService jobConfigurationService;
 
     public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
@@ -77,7 +97,10 @@ public class SchedulerStart
         Date now = new Date();
         List<String> unexecutedJobs = new ArrayList<>( );
 
-        jobConfigurationService.getAllJobConfigurations().forEach( (jobConfig -> {
+        List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
+        addDefaultJobs( jobConfigurations );
+
+        jobConfigurations.forEach( (jobConfig -> {
             if ( jobConfig.isEnabled() )
             {
                 Date oldExecutionTime = jobConfig.getNextExecutionTime();
@@ -107,5 +130,57 @@ public class SchedulerStart
 
             messageService.sendSystemErrorNotification( "Scheduler startup", new Exception( "Scheduler started with one or more unexecuted jobs:\n" + jobs ) );
         }
+    }
+
+    private void addDefaultJobs( List<JobConfiguration> jobConfigurations)
+    {
+        log.info( "Setting up default jobs." );
+        if ( addDefaultJob( DEFAULT_FILE_RESOURCE_CLEANUP, jobConfigurations ) )
+        {
+            JobConfiguration fileResourceCleanUp = new JobConfiguration( DEFAULT_FILE_RESOURCE_CLEANUP,
+                FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, false, true );
+            addAndScheduleJob( fileResourceCleanUp );
+        }
+
+        if ( addDefaultJob( DEFAULT_DATA_STATISTICS, jobConfigurations ) )
+        {
+            JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
+                CRON_DAILY_2AM, null, false, true );
+            SchedulerUpgrade.portJob( systemSettingManager, dataStatistics,"lastSuccessfulDataStatistics" );
+
+            addAndScheduleJob( dataStatistics );
+        }
+
+        if ( addDefaultJob( DEFAULT_VALIDATION_RESULTS_NOTIFICATION, jobConfigurations ) )
+        {
+            JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
+                VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false, true );
+            addAndScheduleJob( validationResultNotification );
+        }
+
+        if ( addDefaultJob( DEFAULT_CREDENTIALS_EXPIRY_ALERT, jobConfigurations ) )
+        {
+            JobConfiguration credentialsExpiryAlert = new JobConfiguration( DEFAULT_CREDENTIALS_EXPIRY_ALERT,
+                CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, false, true );
+            addAndScheduleJob( credentialsExpiryAlert );
+        }
+
+        if ( addDefaultJob( DEFAULT_DATA_SET_NOTIFICATION, jobConfigurations ) )
+        {
+            JobConfiguration dataSetNotification = new JobConfiguration( DEFAULT_DATA_SET_NOTIFICATION,
+                DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null, false, true );
+            addAndScheduleJob( dataSetNotification );
+        }
+    }
+
+    private boolean addDefaultJob( String name, List<JobConfiguration> jobConfigurations )
+    {
+        return jobConfigurations.stream().noneMatch( jobConfiguration -> jobConfiguration.getName().equals( name ) );
+    }
+
+    private void addAndScheduleJob( JobConfiguration jobConfiguration )
+    {
+        jobConfigurationService.addJobConfiguration( jobConfiguration );
+        schedulingManager.scheduleJob( jobConfiguration );
     }
 }

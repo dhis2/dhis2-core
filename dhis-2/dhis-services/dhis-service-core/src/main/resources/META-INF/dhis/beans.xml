@@ -1674,7 +1674,6 @@
 
   <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
     <property name="jobConfigurationService" ref="jobConfigurationService" />
-    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
     <property name="runlevel" value="5" />
     <property name="skipInTests" value="true" />
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
