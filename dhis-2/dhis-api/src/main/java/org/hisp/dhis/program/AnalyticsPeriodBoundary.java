@@ -228,12 +228,12 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getoffsetPeriods()
+    public Integer getOffsetPeriods()
     {
         return offsetPeriods;
     }
 
-    public void setoffsetPeriods( Integer offsetPeriods )
+    public void setOffsetPeriods( Integer offsetPeriods )
     {
         this.offsetPeriods = offsetPeriods;
     }
