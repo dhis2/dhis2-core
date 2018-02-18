@@ -755,24 +755,11 @@ public class DefaultTrackedEntityInstanceService
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
-        deleteTrackedEntityInstance( instance, false );
+        instance.setDeleted( true );
+        trackedEntityInstanceStore.update( instance );
 
     }
 
-    @Override
-    public void deleteTrackedEntityInstance( TrackedEntityInstance instance, boolean forceDelete )
-    {
-        if ( forceDelete )
-        {
-            trackedEntityInstanceStore.delete( instance );
-        }
-        else
-        {
-            instance.setDeleted( true );
-            trackedEntityInstanceStore.update( instance );
-        }
-
-    }
 
     @Override
     public TrackedEntityInstance getTrackedEntityInstance( int id )

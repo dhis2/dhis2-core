@@ -96,27 +96,7 @@ public class TrackedEntityInstanceServiceTest
     }
 
     @Test
-    public void testHardDeleteTrackedEntityInstance()
-    {
-        int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        int idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
-
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
-
-        entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1, true );
-
-        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-        assertNotNull( entityInstanceService.getTrackedEntityInstance( idB ) );
-
-        entityInstanceService.deleteTrackedEntityInstance( entityInstanceB1, true );
-
-        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
-        assertNull( entityInstanceService.getTrackedEntityInstance( idB ) );
-    }
-
-    @Test
-    public void testSoftDeleteTrackedEntityInstance()
+    public void testDeleteTrackedEntityInstance()
     {
         int idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         int idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
