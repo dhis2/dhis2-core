@@ -259,30 +259,4 @@ public class JdbcEnrollmentAnalyticsManager
         
         return sql;
     }
-    
-    /**
-     * Returns an encoded column name wrapped in lower directive if not numeric
-     * or boolean.
-     * 
-     * @param item the {@link QueryItem}.
-     */
-    private String getColumn( QueryItem item )
-    {
-        String col = statementBuilder.columnQuote( item.getItemName() );
-        
-        return item.isText() ? "lower(" + col + ")" : col;
-    }
-
-    /**
-     * Returns the filter value for the given query item.
-     * 
-     * @param filter the {@link QueryFilter}.
-     * @param item the {@link QueryItem}.
-     */
-    private String getSqlFilter( QueryFilter filter, QueryItem item )
-    {
-        String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
-        
-        return item.getSqlFilter( filter, encodedFilter );
-    }
 }

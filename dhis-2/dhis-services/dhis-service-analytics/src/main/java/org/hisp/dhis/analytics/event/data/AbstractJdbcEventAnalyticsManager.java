@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -396,6 +397,32 @@ public abstract class AbstractJdbcEventAnalyticsManager
             
             return value + itemValue;
         }
+    }
+
+    /**
+     * Returns an encoded column name wrapped in lower directive if not numeric
+     * or boolean.
+     * 
+     * @param item the {@link QueryItem}.
+     */
+    protected String getColumn( QueryItem item )
+    {
+        String col = statementBuilder.columnQuote( item.getItemName() );
+        
+        return item.isText() ? "lower(" + col + ")" : col;
+    }
+
+    /**
+     * Returns the filter value for the given query item.
+     * 
+     * @param filter the {@link QueryFilter}.
+     * @param item the {@link QueryItem}.
+     */
+    protected String getSqlFilter( QueryFilter filter, QueryItem item )
+    {
+        String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+        
+        return item.getSqlFilter( filter, encodedFilter );
     }
     
     /**
