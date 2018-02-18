@@ -55,8 +55,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Markus Bekken
  */
-public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsManager
-    implements EnrollmentAnalyticsManager
+public class JdbcEnrollmentAnalyticsManager 
+    extends AbstractJdbcEventAnalyticsManager
+        implements EnrollmentAnalyticsManager
 {
     /**
      * Returns a from SQL clause for the given analytics table partition.

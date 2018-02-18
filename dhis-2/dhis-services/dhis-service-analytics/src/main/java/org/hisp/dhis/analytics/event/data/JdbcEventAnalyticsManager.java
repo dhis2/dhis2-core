@@ -70,8 +70,9 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
  * 
  * @author Lars Helge Overland
  */
-public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
-    implements EventAnalyticsManager
+public class JdbcEventAnalyticsManager 
+    extends AbstractJdbcEventAnalyticsManager
+        implements EventAnalyticsManager
 {
     protected static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
     
