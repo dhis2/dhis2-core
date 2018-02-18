@@ -57,20 +57,23 @@ public class ReservedValue
 
     private String value;
 
-    private Date expires;
+    private Date created;
+
+    private Date expiryDate;
 
     public ReservedValue()
     {
-
+        created = new Date();
     }
 
-    public ReservedValue( String ownerObject, String ownerUid, String key, String value, Date expires )
+    public ReservedValue( String ownerObject, String ownerUid, String key, String value, Date expiryDate )
     {
         this.ownerObject = ownerObject;
         this.ownerUid = ownerUid;
         this.key = key;
         this.value = value;
-        this.expires = expires;
+        this.expiryDate = expiryDate;
+        this.created = new Date();
     }
 
     public int getId()
@@ -133,14 +136,14 @@ public class ReservedValue
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getExpires()
+    public Date getExpiryDate()
     {
-        return expires;
+        return expiryDate;
     }
 
-    public void setExpires( Date expires )
+    public void setExpiryDate( Date expires )
     {
-        this.expires = expires;
+        this.expiryDate = expires;
     }
 
     @Override
@@ -157,6 +160,18 @@ public class ReservedValue
             Objects.equals( value, that.value );
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
     @Override
     public int hashCode()
     {
@@ -171,7 +186,7 @@ public class ReservedValue
             ", ownerUid='" + ownerUid + '\'' +
             ", key='" + key + '\'' +
             ", value='" + value + '\'' +
-            ", expires=" + expires +
+            ", expires=" + expiryDate +
             '}';
     }
 }

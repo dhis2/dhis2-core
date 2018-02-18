@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public interface ReservedValueService
 {
-    List<String> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
+    List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
         throws ReserveValueException, TextPatternService.TextPatternGenerationException;
 
     boolean useReservedValue( TextPattern textPattern, String value );

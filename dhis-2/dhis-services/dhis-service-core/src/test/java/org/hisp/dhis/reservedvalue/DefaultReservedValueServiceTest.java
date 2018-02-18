@@ -126,9 +126,9 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveASingleSimpleValueWhenNotUsed()
         throws Exception
     {
-        List<String> res = reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
 
-        assertTrue( res.contains( "FOOBAR" ) );
+        assertEquals( "FOOBAR", res.get( 0 ).getValue() );
         assertEquals( 1, reservedValueStore.getCount() );
     }
 
@@ -137,7 +137,7 @@ public class DefaultReservedValueServiceTest
     {
         reservedValueStore.reserveValues( simpleReservedValue, Lists.newArrayList( "FOOBAR" ) );
 
-        List<String> res = null;
+        List<ReservedValue> res = null;
 
         try
         {
@@ -156,7 +156,7 @@ public class DefaultReservedValueServiceTest
     @Test
     public void testReserveReserveATwoSimpleValuesShouldFail()
     {
-        List<String> res = null;
+        List<ReservedValue> res = null;
 
         try
         {
@@ -189,9 +189,9 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveASequentialValueWhenNotUsed()
         throws Exception
     {
-        List<String> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
 
-        assertEquals( 1, res.stream().filter( ( str ) -> str.indexOf( "TEST-" ) == 0 && str.length() == 7 ).count() );
+        assertEquals( 1, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 1, reservedValueStore.getCount() );
 
     }
@@ -200,9 +200,9 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveMultipleSequentialValueWhenNotUsed()
         throws Exception
     {
-        List<String> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(), future );
 
-        assertEquals( 50, res.stream().filter( ( str ) -> str.indexOf( "TEST-" ) == 0 && str.length() == 7 ).count() );
+        assertEquals( 50, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
     }
@@ -211,18 +211,18 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveMultipleSequentialValueWhenSomeExists()
         throws Exception
     {
-        List<String> reserved = reservedValueService
+        List<ReservedValue> reserved = reservedValueService
             .reserve( simpleSequentialTextPattern, 50, new HashMap<>(), future );
 
         // Make sure they where added successfully
         assertEquals( 50,
-            reserved.stream().filter( ( str ) -> str.indexOf( "TEST-" ) == 0 && str.length() == 7 ).count() );
+            reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
-        List<String> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(), future );
 
         assertTrue( ListUtils.intersection( reserved, res ).isEmpty() );
-        assertEquals( 25, res.stream().filter( ( str ) -> str.indexOf( "TEST-" ) == 0 && str.length() == 7 ).count() );
+        assertEquals( 25, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 75, reservedValueStore.getCount() );
 
     }
@@ -257,10 +257,10 @@ public class DefaultReservedValueServiceTest
         Map<String, String> map = new HashMap<>();
         map.put( "ORG_UNIT_CODE(..)", "OSLO" );
 
-        List<String> result = reservedValueService.reserve( simpleStringPattern, 1, map, future );
+        List<ReservedValue> result = reservedValueService.reserve( simpleStringPattern, 1, map, future );
 
         assertEquals( 1, result.size() );
-        assertEquals( "TEST-OS", result.get( 0 ) );
+        assertEquals( "TEST-OS", result.get( 0 ).getValue() );
     }
 
     @Test

@@ -74,8 +74,10 @@ public class HibernateReservedValueStore
                 reservedValue.getOwnerUid(),
                 reservedValue.getKey(),
                 value,
-                reservedValue.getExpires()
+                reservedValue.getExpiryDate()
             );
+
+            rv.setCreated( reservedValue.getCreated() );
 
             batchHandler.addObject( rv );
             toAdd.add( rv );
@@ -127,7 +129,7 @@ public class HibernateReservedValueStore
     @Override
     public void removeExpiredReservations()
     {
-        getQuery( "DELETE FROM ReservedValue WHERE expires < :now" )
+        getQuery( "DELETE FROM ReservedValue WHERE expiryDate < :now" )
             .setParameter( "now", new Date() )
             .executeUpdate();
     }

@@ -90,8 +90,8 @@ public class HibernateReservedValueStoreTest
         Calendar future = Calendar.getInstance();
         future.add( Calendar.DATE, 10 );
         futureDate = future.getTime();
-        RESERVED_VALUE.setExpires( futureDate );
-        USED_VALUE.setExpires( futureDate );
+        RESERVED_VALUE.setExpiryDate( futureDate );
+        USED_VALUE.setExpiryDate( futureDate );
 
         reservedValueStore.save( RESERVED_VALUE );
 
@@ -230,7 +230,7 @@ public class HibernateReservedValueStoreTest
         Calendar pastDate = Calendar.getInstance();
         pastDate.add( Calendar.DATE, -1 );
         ReservedValue expired = getFreeReservedValue();
-        expired.setExpires( pastDate.getTime() );
+        expired.setExpiryDate( pastDate.getTime() );
         reservedValueStore.reserveValues( expired, Lists.newArrayList( expired.getValue() ) );
 
         assertEquals( expired,

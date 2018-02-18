@@ -70,21 +70,21 @@ public class DefaultReservedValueService
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
-    public List<String> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
+    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
         Date expires )
         throws ReserveValueException, TextPatternService.TextPatternGenerationException
     {
         long startTime = System.currentTimeMillis();
         int attemptsLeft = 10;
 
-        List<String> resultList = new ArrayList<>();
+        List<ReservedValue> resultList = new ArrayList<>();
 
         TextPatternSegment generatedSegment = getGeneratedSegment( textPattern );
 
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = ( generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key );
+        String valueKey = (generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key);
 
         ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(),
             key,
@@ -101,9 +101,7 @@ public class DefaultReservedValueService
         if ( generatedSegment == null && numberOfReservations == 1 )
         {
             reservedValue.setValue( key );
-            reservedValueStore.reserveValues( reservedValue, Lists.newArrayList( key ) );
-
-            return Lists.newArrayList( key );
+            return reservedValueStore.reserveValues( reservedValue, Lists.newArrayList( key ) );
         }
 
         List<String> usedGeneratedValues = new ArrayList();
@@ -143,9 +141,7 @@ public class DefaultReservedValueService
                             .build() ) );
                 }
 
-                resultList.addAll( reservedValueStore.reserveValues( reservedValue, resolvedPatterns ).stream()
-                    .map( ReservedValue::getValue )
-                    .collect( Collectors.toList() ) );
+                resultList.addAll( reservedValueStore.reserveValues( reservedValue, resolvedPatterns ) );
 
                 numberOfValuesLeftToGenerate = numberOfReservations - resultList.size();
             }

@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.system.util.DateUtils;
@@ -82,7 +83,7 @@ public class TrackedEntityAttributeController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
-    List<String> generateAndReserveValues(
+    List<ReservedValue> generateAndReserveValues(
         @RequestParam( required = false, defaultValue = "1" ) Integer numberToReserve,
         @RequestParam( required = false, defaultValue = "60" ) Integer expiration,
         @PathVariable String id
@@ -105,7 +106,7 @@ public class TrackedEntityAttributeController
     @RequestMapping( value = "/{id}/generate", method = RequestMethod.GET )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
-    String legacyQueryTrackedEntityInstancesJson(
+    ReservedValue legacyQueryTrackedEntityInstancesJson(
         @PathVariable String id,
         @RequestParam( required = false, defaultValue = "3" ) Integer expiration
     )
@@ -133,7 +134,7 @@ public class TrackedEntityAttributeController
 
     // Helpers
 
-    private List<String> reserve( String id, int numberToReserve, int daysToLive )
+    private List<ReservedValue> reserve( String id, int numberToReserve, int daysToLive )
         throws WebMessageException
     {
 
@@ -160,7 +161,7 @@ public class TrackedEntityAttributeController
 
         try
         {
-            List<String> result = reservedValueService
+            List<ReservedValue> result = reservedValueService
                 .reserve( attribute.getTextPattern(), numberToReserve, values, expiration );
 
             if ( result.isEmpty() )

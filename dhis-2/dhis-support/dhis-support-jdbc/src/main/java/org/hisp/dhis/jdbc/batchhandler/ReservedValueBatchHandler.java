@@ -99,7 +99,7 @@ public class ReservedValueBatchHandler
     @Override
     public List<String> getColumns()
     {
-        return getStringList( "ownerobject", "owneruid", "key", "value", "expires" );
+        return getStringList( "ownerobject", "owneruid", "key", "value", "expirydate", "created" );
     }
 
     @Override
@@ -110,7 +110,8 @@ public class ReservedValueBatchHandler
             object.getOwnerUid(),
             object.getKey(),
             object.getValue(),
-            object.getExpires()
+            object.getExpiryDate(),
+            object.getCreated()
         );
     }
 
@@ -122,14 +123,15 @@ public class ReservedValueBatchHandler
 
         ReservedValue rv = new ReservedValue();
 
-        expires.setTime( resultSet.getDate( "expires" ) );
+        expires.setTime( resultSet.getDate( "expirydate" ) );
 
         rv.setId( resultSet.getInt( "reservedvalueid" ) );
         rv.setOwnerObject( resultSet.getString( "ownerobject" ) );
         rv.setOwnerUid( resultSet.getString( "ownerUid" ) );
         rv.setKey( resultSet.getString( "key" ) );
         rv.setValue( resultSet.getString( "value" ) );
-        rv.setExpires( expires.getTime() );
+        rv.setExpiryDate( expires.getTime() );
+        rv.setCreated( resultSet.getDate( "created" ) );
 
         return rv;
     }
