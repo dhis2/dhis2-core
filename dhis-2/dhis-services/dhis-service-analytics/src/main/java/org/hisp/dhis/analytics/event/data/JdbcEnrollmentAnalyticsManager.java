@@ -259,9 +259,12 @@ public class JdbcEnrollmentAnalyticsManager
         
         return sql;
     }
+    
     /**
      * Returns an encoded column name wrapped in lower directive if not numeric
      * or boolean.
+     * 
+     * @param item the {@link QueryItem}.
      */
     private String getColumn( QueryItem item )
     {
