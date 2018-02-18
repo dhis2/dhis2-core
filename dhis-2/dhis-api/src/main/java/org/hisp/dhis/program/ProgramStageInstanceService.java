@@ -1,5 +1,7 @@
 package org.hisp.dhis.program;
 
+import java.util.Date;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,14 +30,8 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -75,7 +71,13 @@ public interface ProgramStageInstanceService
      */
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
 
-    boolean programStageInstanceExists(String uid);
+    /**
+     * Checks whether a {@link ProgramStageInstance} with the given identifier
+     * exists.
+     * 
+     * @param uid the identifier.
+     */
+    boolean programStageInstanceExists( String uid );
 
     /**
      * Returns a {@link ProgramStageInstance}.
@@ -104,28 +106,6 @@ public interface ProgramStageInstanceService
      *          programInstance and ProgramStage, or null if no match.
      */
     ProgramStageInstance getProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage );
-
-    /**
-     * Retrieve an event list on a list of ProgramInstances with a certain status.
-     *
-     * @param programInstances the ProgramInstance list.
-     * @param status the EventStatus.
-     * @return a list of all ProgramStageInstances for the given ProgramInstances
-     *          and EventStatus.
-     */
-    List<ProgramStageInstance> getProgramStageInstances( Collection<ProgramInstance> programInstances,
-        EventStatus status );
-
-    /**
-     * Get all events by TrackedEntityInstance, optionally filtering by
-     * completed.
-     *
-     * @param entityInstance the TrackedEntityInstance.
-     * @param status the EventStatus.
-     * @return a list of all ProgramStageInstance for the given
-     *          TrackedEntityInstance and EventStatus.
-     */
-    List<ProgramStageInstance> getProgramStageInstances( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
      * Gets the number of ProgramStageInstances added since the given number of days.

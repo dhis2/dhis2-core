@@ -52,7 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class TrackedEntityAttributeValueServiceTest
     extends DhisSpringTest
 {
-
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
 
@@ -218,32 +217,5 @@ public class TrackedEntityAttributeValueServiceTest
         List<TrackedEntityAttributeValue> attributeValues = attributeValueService.getTrackedEntityAttributeValues( entityInstances );
         assertEquals( 3, attributeValues.size() );
         assertTrue( equals( attributeValues, attributeValueA, attributeValueB, attributeValueC ) );
-    }
-    
-    @Test
-    public void testSearchTrackedEntityAttributeValue()
-    {
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueC );
-
-        List<TrackedEntityAttributeValue> attributeValues = attributeValueService.searchTrackedEntityAttributeValue(
-            attributeA, "A" );
-        assertTrue( equals( attributeValues, attributeValueA ) );
-    }
-
-    @Test
-    public void testCopyTrackedEntityAttributeValues()
-    {
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueC );
-
-        attributeValueService.copyTrackedEntityAttributeValues( entityInstanceA, entityInstanceB );
-
-        TrackedEntityAttributeValue attributeValue = attributeValueService.getTrackedEntityAttributeValue( entityInstanceB, attributeB );
-        assertEquals( "B", attributeValue.getValue() );
-
-        attributeValue = attributeValueService.getTrackedEntityAttributeValue( entityInstanceB, attributeA );
-        assertNull( attributeValue );
     }
 }

@@ -1518,11 +1518,7 @@
   </bean>  
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
-    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService">
-    <property name="attributeStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore" />
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="programAttributeStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" />
-  </bean>
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService" />
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueService">
