@@ -297,8 +297,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a where SQL clause for the given analytics table partition.
-     * 
+     * Returns a from and where SQL clause. If this is a program indicator with non-default boundaries, the relationship 
+     * with the reporting period is specified with where conditions on the enrollment or incident dates. If the default 
+     * boundaries is used, or the params does not include program indicators, the periods are joined in from the analytics
+     * tables the normal way. A where clause can never have a mix of indicators with non-default boundaries and regular 
+     * analytics table periods.
      * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
@@ -311,16 +314,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
         if ( params.hasNonDefaultBoundaries() )
         {
-            //The program indicator has non-default boundaries, and defines its own relationship with the 
-            //reporting period. We need to make custom where-clauses instead of using the preaggregated period columns.
-            //We know that the query planner has split the query into individual periods, as this is always done for
-            //non-default boundaries.
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
             {
-                if ( !boundary.isEventDateBoundary() )
-                {
-                    sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
-                }
+                sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
             }
         }
         else if ( params.hasStartEndDate() )

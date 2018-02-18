@@ -127,13 +127,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 columns.add( statementBuilder.columnQuote( dimension.getDimensionName() ) );
             }
-            else if ( params.getPeriods().size() == 1 )
+            else if ( params.hasSinglePeriod() )
             {
                 Period period = (Period) params.getPeriods().get( 0 );
                 columns.add( ( columnNamesOnly ? "" : ( period.getIsoDate() + " as " ) ) +
                     period.getPeriodType().getName() );
             }
-            else if ( params.getPeriods().size() == 0 && params.getFilterPeriods().size() > 0 )
+            else if ( !params.hasPeriods() && params.hasFilterPeriods() )
             {
                 //assuming same period type for all period filters, as the query planner splits into one query per period type
                 Period period = (Period) params.getFilterPeriods().get( 0 );
@@ -193,6 +193,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
         
         List<String> selectColumnNames = getSelectColumnNames( params );
+        
         if ( selectColumnNames.size() > 0 )
         {
             sql += "group by " + StringUtils.join( selectColumnNames, "," ) + " ";
@@ -397,7 +398,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
     
+    /**
+     * Generate the SQL for the from-clause. Generally this means which analytics table to get data from.
+     * @param params the {@link EventQueryParams} that define what is going to be queried.
+     * @return SQL to add to the analytics query.
+     */
     protected abstract String getFromClause( EventQueryParams params );
     
+    /**
+     * Generate the SQL for the where-clause. Generally this means adding filters, grouping and ordering
+     * to the SQL.
+     * @param params the {@link EventQueryParams} that defines the details of the filters, grouping and ordering.
+     * @return SQL to add to the analytics query.
+     */
     protected abstract String getWhereClause( EventQueryParams params );
 }

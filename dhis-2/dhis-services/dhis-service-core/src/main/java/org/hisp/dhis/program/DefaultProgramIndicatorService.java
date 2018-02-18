@@ -438,14 +438,13 @@ public class DefaultProgramIndicatorService
         {
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
             String columnName = "\"" + dataElementUid + "\"";
-            return "(select " + columnName + " from " + eventTableName +
-                " where " + eventTableName + ".pi = enrollmenttable.pi and " + columnName + " is not null " +
-                (programIndicator.getEndEventBoundary() != null ? ("and "
-                    + programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ")
-                    : "") +
-                (programIndicator.getStartEventBoundary() != null ? ("and "
-                    + programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + " ")
-                    : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
+                ".pi = enrollmenttable.pi and " + columnName + " is not null " +
+                (programIndicator.getEndEventBoundary() != null ? ("and " + 
+                programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + 
+                " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
+                programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) +
+                " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
         }
         else
         {

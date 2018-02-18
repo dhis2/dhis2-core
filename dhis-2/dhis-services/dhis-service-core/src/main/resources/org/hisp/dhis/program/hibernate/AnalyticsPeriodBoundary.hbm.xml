@@ -15,7 +15,7 @@
     </id>
     &identifiableProperties;
 
-	<property name="boundaryTarget" length="50" />
+    <property name="boundaryTarget" length="50" />
 
     <property name="analyticsPeriodBoundaryType" length="50">
       <type name="org.hibernate.type.EnumType">
@@ -32,7 +32,7 @@
         
     <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator" not-null="false"
         column="programindicatorid" foreign-key="fk_analyticsperiodboundary_programindicator" />
-    
+
   </class>
 
 </hibernate-mapping>

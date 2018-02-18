@@ -70,9 +70,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
     
     /**
-     * Returns a from and where SQL clause.
-     * 
-     * @param params the event query parameters.
+     * Returns a from and where SQL clause. If this is a program indicator with non-default boundaries, the relationship 
+     * with the reporting period is specified with where conditions on the enrollment or incident dates. If the default 
+     * boundaries is used, or the params does not include program indicators, the periods are joined in from the analytics
+     * tables the normal way. A where clause can never have a mix of indicators with non-default boundaries and regular 
+     * analytics table periods.
+     * @param params the {@link EventQueryParams}.
      */
     protected String getWhereClause( EventQueryParams params )
     {        
@@ -83,13 +86,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         // ---------------------------------------------------------------------
         if ( params.hasNonDefaultBoundaries() )
         {
-            //The program indicator has non-default boundaries, and defines its own relationship with the 
-            //reporting period. We need to make custom where-clauses instead of using the preaggregated period columns.
-            //We know that the query planner has split the query into individual periods, as this is always done for
-            //non-default boundaries.
             SqlHelper sqlHelper = new SqlHelper();
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
             {
+                //Event data is joined in the program indicator service, as part of translating the expression or filter for the program indicator.
                 if ( !boundary.isEventDateBoundary() )
                 {
                     sql += sqlHelper.whereAnd() + " " + boundary.getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
@@ -101,15 +101,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             {
                 sql += sqlHelper.whereAnd() + "( select count * from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
                     " where pi = enrollmenttable.pi " + 
-                    (params.getProgramIndicator().getEndEventBoundary() != null ? 
-                    ( sqlHelper.whereAnd() + " " + 
-                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ") 
-                    : "") + 
-                    (params.getProgramIndicator().getStartEventBoundary() != null ? 
-                    ( sqlHelper.whereAnd() + " "  + 
-                    params.getProgramIndicator().getStartEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " ") 
-                    : "") + 
-                    ") > 0";
+                    ( params.getProgramIndicator().getEndEventBoundary() != null ? ( sqlHelper.whereAnd() + " " + 
+                    params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) 
+                    : "") + ( params.getProgramIndicator().getStartEventBoundary() != null ? ( sqlHelper.whereAnd() + " "  + 
+                    params.getProgramIndicator().getStartEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) 
+                    : "") + ") > 0";
             }
         }
         else

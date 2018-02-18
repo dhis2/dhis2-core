@@ -1059,4 +1059,22 @@ public class EventQueryParams
             return params;
         }
     }
+
+    /**
+     * Indicates whether the EventQueryParams has exactly one Period dimension. 
+     * @return true when exactly one Period dimension exists.
+     */
+    public boolean hasSinglePeriod()
+    {
+        return getPeriods().size() == 1;
+    }
+
+    /**
+     * Indicates whether the EventQueryParams has Period filters. 
+     * @return true when any Period filters exists.
+     */
+    public boolean hasFilterPeriods()
+    {
+        return getFilterPeriods().size() > 0;
+    }
 }
