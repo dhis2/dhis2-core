@@ -51,5 +51,4 @@ public class GeneratedMethodType
         format = format.replaceAll( "\\*", "[a-z0-9]" );
         return format;
     }
-
 }

@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
  */
 public enum TextPatternMethod
 {
-
     /**
      * Text method is just a fixed text that is a part of the pattern. It starts and ends with a quotation mark: "
      * A Text can contain quotation marks, but they need to be escaped.
@@ -85,16 +84,16 @@ public enum TextPatternMethod
      */
     CURRENT_DATE( new DateMethodType( Pattern.compile( "CURRENT_DATE\\((.+?)\\)" ) ) );
 
-    public static final ImmutableSet GENERATED = ImmutableSet.of(
+    public static final ImmutableSet<TextPatternMethod> GENERATED = ImmutableSet.of(
         RANDOM,
         SEQUENTIAL
     );
 
-    public static final ImmutableSet REQUIRED = ImmutableSet.of(
+    public static final ImmutableSet<TextPatternMethod> REQUIRED = ImmutableSet.of(
         ORG_UNIT_CODE
     );
 
-    public static final ImmutableSet OPTIONAL = ImmutableSet.of(
+    public static final ImmutableSet<TextPatternMethod> OPTIONAL = ImmutableSet.of(
         RANDOM,
         SEQUENTIAL
     );
