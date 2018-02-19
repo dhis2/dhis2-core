@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
@@ -40,10 +41,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-
 import java.util.Collection;
 import java.util.List;
+
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 
 /**
  * @author Abyot Asalefew
@@ -70,7 +71,7 @@ public class DefaultTrackedEntityAttributeValueService
     private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
     @Autowired
-    private TrackedEntityAttributeReservedValueService trackedEntityAttributeReservedValueService;
+    private ReservedValueService reservedValueService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -85,7 +86,8 @@ public class DefaultTrackedEntityAttributeValueService
     @Override
     public void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
-        TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit( attributeValue,
+        TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
+            attributeValue,
             attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
         trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
@@ -113,7 +115,8 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
-    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances )
+    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
+        Collection<TrackedEntityInstance> instances )
     {
         if ( instances != null && instances.size() > 0 )
         {
@@ -126,16 +129,18 @@ public class DefaultTrackedEntityAttributeValueService
     @Override
     public void addTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
-        if ( attributeValue == null || attributeValue.getAttribute() == null || attributeValue.getAttribute().getValueType() == null )
+        if ( attributeValue == null || attributeValue.getAttribute() == null ||
+            attributeValue.getAttribute().getValueType() == null )
         {
             throw new IllegalQueryException( "Attribute or type is null or empty" );
         }
 
-        if ( attributeValue.getAttribute().isConfidentialBool() && !dhisConfigurationProvider.getEncryptionStatus().isOk() )
+        if ( attributeValue.getAttribute().isConfidentialBool() &&
+            !dhisConfigurationProvider.getEncryptionStatus().isOk() )
         {
             throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
         }
-        
+
         String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
 
         if ( result != null )
@@ -147,13 +152,19 @@ public class DefaultTrackedEntityAttributeValueService
 
         if ( attributeValue.getAttribute().getValueType().isFile() && !addFileValue( attributeValue ) )
         {
-            throw new IllegalQueryException( String.format( "FileResource with id '%s' not found", attributeValue.getValue() ) );
+            throw new IllegalQueryException(
+                String.format( "FileResource with id '%s' not found", attributeValue.getValue() ) );
         }
 
         if ( attributeValue.getValue() != null )
         {
             attributeValueStore.saveVoid( attributeValue );
-            trackedEntityAttributeReservedValueService.markTrackedEntityAttributeReservedValueAsUtilized( attributeValue.getAttribute(), attributeValue.getEntityInstance(), attributeValue.getAuditValue() );
+
+            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+            {
+                reservedValueService
+                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+            }
         }
     }
 
@@ -167,56 +178,41 @@ public class DefaultTrackedEntityAttributeValueService
         }
         else
         {
-            if ( attributeValue == null || attributeValue.getAttribute() == null || attributeValue.getAttribute().getValueType() == null )
+            if ( attributeValue == null || attributeValue.getAttribute() == null ||
+                attributeValue.getAttribute().getValueType() == null )
             {
                 throw new IllegalQueryException( "Attribute or type is null or empty" );
             }
-            
+
             attributeValue.setAutoFields();
-            
+
             String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
 
             if ( result != null )
             {
                 throw new IllegalQueryException( "Value is not valid:  " + result );
             }
-            
-            TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit( attributeValue,
+
+            TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
+                attributeValue,
                 attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.UPDATE );
 
-            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+            trackedEntityAttributeValueAuditService
+                .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             attributeValueStore.update( attributeValue );
-            trackedEntityAttributeReservedValueService.markTrackedEntityAttributeReservedValueAsUtilized( attributeValue.getAttribute(), attributeValue.getEntityInstance(), attributeValue.getAuditValue() );
+
+            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+            {
+                reservedValueService
+                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+            }
         }
     }
-
-    @Override
-    public List<TrackedEntityAttributeValue> searchTrackedEntityAttributeValue( TrackedEntityAttribute attribute,
-        String searchText )
-    {
-        return attributeValueStore.searchByValue( attribute, searchText );
-    }
-    
-    @Override
-    public void copyTrackedEntityAttributeValues( TrackedEntityInstance source, TrackedEntityInstance destination )
-    {
-        destination.getTrackedEntityAttributeValues().stream()
-            .forEach( value -> deleteFileValue( value ) );
-        attributeValueStore.deleteByTrackedEntityInstance( destination );
-
-        for ( TrackedEntityAttributeValue attributeValue : getTrackedEntityAttributeValues( source ) )
-        {
-            TrackedEntityAttributeValue value = new TrackedEntityAttributeValue(
-                attributeValue.getAttribute(), destination, attributeValue.getValue() );
-
-            addTrackedEntityAttributeValue( value );
-        }
-    }
-
 
     private void deleteFileValue( TrackedEntityAttributeValue value )
     {
-        if ( !value.getAttribute().getValueType().isFile() || fileResourceService.getFileResource( value.getValue() ) == null )
+        if ( !value.getAttribute().getValueType().isFile() ||
+            fileResourceService.getFileResource( value.getValue() ) == null )
         {
             return;
         }

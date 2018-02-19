@@ -30,6 +30,7 @@ package org.hisp.dhis.dataadmin.action.lockexception;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -63,6 +64,13 @@ public class GetDataSetsAction
     public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
     {
         this.organisationUnitService = organisationUnitService;
+    }
+
+    private DataSetService dataSetService;
+
+    public void setDataSetService( DataSetService dataSetService )
+    {
+        this.dataSetService = dataSetService;
     }
 
     // -------------------------------------------------------------------------
@@ -125,7 +133,7 @@ public class GetDataSetsAction
 
         if ( !userCredentials.isSuper() )
         {
-            dataSets.retainAll( userCredentials.getAllDataSets() );
+            dataSets.retainAll( dataSetService.getUserDataSets() );
         }
 
         return new ArrayList<>( dataSets );

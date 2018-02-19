@@ -39,8 +39,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
@@ -71,26 +69,11 @@ public class DefaultTrackedEntityAttributeService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private TrackedEntityAttributeStore attributeStore;
 
-    public void setAttributeStore( TrackedEntityAttributeStore attributeStore )
-    {
-        this.attributeStore = attributeStore;
-    }
-
+    @Autowired
     private ProgramService programService;
-
-    public void setProgramService( ProgramService programService )
-    {
-        this.programService = programService;
-    }
-
-    private ProgramTrackedEntityAttributeStore programAttributeStore;
-
-    public void setProgramAttributeStore( ProgramTrackedEntityAttributeStore programAttributeStore )
-    {
-        this.programAttributeStore = programAttributeStore;
-    }
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -321,45 +304,6 @@ public class DefaultTrackedEntityAttributeService
     // -------------------------------------------------------------------------
     // ProgramTrackedEntityAttribute
     // -------------------------------------------------------------------------
-
-    @Override
-    public ProgramTrackedEntityAttribute getOrAddProgramTrackedEntityAttribute( String programUid, String attributeUid )
-    {
-        Program program = programService.getProgram( programUid );
-
-        TrackedEntityAttribute attribute = getTrackedEntityAttribute( attributeUid );
-
-        if ( program == null || attribute == null )
-        {
-            return null;
-        }
-
-        ProgramTrackedEntityAttribute programAttribute = programAttributeStore.get( program, attribute );
-
-        if ( programAttribute == null )
-        {
-            programAttribute = new ProgramTrackedEntityAttribute( program, attribute );
-
-            programAttributeStore.save( programAttribute );
-        }
-
-        return programAttribute;
-    }
-
-    @Override
-    public ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( String programUid, String attributeUid )
-    {
-        Program program = programService.getProgram( programUid );
-
-        TrackedEntityAttribute attribute = getTrackedEntityAttribute( attributeUid );
-
-        if ( program == null || attribute == null )
-        {
-            return null;
-        }
-
-        return new ProgramTrackedEntityAttribute( program, attribute );
-    }
 
     @Override
     public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()

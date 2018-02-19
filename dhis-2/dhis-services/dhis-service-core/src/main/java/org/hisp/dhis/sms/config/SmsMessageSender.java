@@ -60,6 +60,8 @@ public class SmsMessageSender
 
     private static final String NO_CONFIG = "No default gateway configured";
 
+    private static final String BATCH_ABORTED = "Aborted sending message batch";
+
     private static final Integer MAX_RECIPIENTS_ALLOWED = 200;
 
     private static final Pattern SUMMARY_PATTERN = Pattern.compile( "\\s*High\\s*[0-9]*\\s*,\\s*medium\\s*[0-9]*\\s*,\\s*low\\s*[0-9]*\\s*" );
@@ -85,14 +87,14 @@ public class SmsMessageSender
     public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
-        if ( users.isEmpty() )
+        if ( !hasRecipients( users ) )
         {
             log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
 
             return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(), GatewayResponse.NO_RECIPIENT, false );
         }
 
-        Set<User> toSendList = new HashSet<>();
+        Set<User> toSendList;
 
         toSendList = users.stream().filter( u -> forceSend || isQualifiedReceiver( u ) ).collect( Collectors.toSet() );
 
@@ -112,12 +114,19 @@ public class SmsMessageSender
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
-        return sendMessage( subject, text, Sets.newHashSet( recipient ) );
+        return sendMessage( subject, text, StringUtils.isBlank( recipient ) ? new HashSet<>() : Sets.newHashSet( recipient )  );
     }
 
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
+        if ( !hasRecipients( recipients ) )
+        {
+            log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
+
+            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(), GatewayResponse.NO_RECIPIENT, false );
+        }
+
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
         if ( defaultGateway == null )
@@ -133,11 +142,16 @@ public class SmsMessageSender
     @Override
     public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
+        if ( batch == null )
+        {
+            return createMessageResponseSummary( BATCH_ABORTED, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, 0 );
+        }
+
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
         if ( defaultGateway == null )
         {
-            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch );
+            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch.size() );
         }
 
         batch.getMessages().stream().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
@@ -154,7 +168,7 @@ public class SmsMessageSender
             }
         }
 
-        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch );
+        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, batch.size() );
     }
 
     @Override
@@ -211,15 +225,13 @@ public class SmsMessageSender
         return to.stream().map( SmsUtils::removePhoneNumberPrefix ).collect( Collectors.toSet() );
     }
 
-    private OutboundMessageBatch sliceBatchMessages( OutboundMessageBatch batch )
+    private void sliceBatchMessages( OutboundMessageBatch batch )
     {
-        List<OutboundMessage> messages = new ArrayList<>();
+        List<OutboundMessage> messages;
 
         messages = batch.getMessages().stream().flatMap( m -> sliceMessageRecipients( m ).stream() ).collect( Collectors.toList() );
 
         batch.setMessages( messages );
-
-        return batch;
     }
 
     private List<OutboundMessage> sliceMessageRecipients( OutboundMessage message )
@@ -233,7 +245,7 @@ public class SmsMessageSender
             .collect( Collectors.toList() );
     }
 
-    private OutboundMessageResponse handleResponse( OutboundMessageResponse status )
+    private void handleResponse( OutboundMessageResponse status )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
             GatewayResponse.RESULT_CODE_202 );
@@ -255,8 +267,6 @@ public class SmsMessageSender
 
         status.setDescription( gatewayResponse.getResponseMessage() );
         status.setResponseObject( gatewayResponse );
-
-        return status;
     }
 
     private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses, OutboundMessageBatch batch )
@@ -311,11 +321,16 @@ public class SmsMessageSender
         return summary;
     }
 
+    private boolean hasRecipients( Set<?> collection )
+    {
+        return collection != null && !collection.isEmpty();
+    }
+
     private OutboundMessageResponseSummary createMessageResponseSummary( String responseMessage, DeliveryChannel channel,
-        OutboundMessageBatchStatus batchStatus, OutboundMessageBatch batch )
+        OutboundMessageBatchStatus batchStatus, int total )
     {
         OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel, batchStatus );
-        summary.setTotal( batch.size() );
+        summary.setTotal( total );
 
         log.warn( responseMessage );
 

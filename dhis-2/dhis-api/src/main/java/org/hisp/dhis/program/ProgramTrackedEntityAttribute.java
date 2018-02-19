@@ -202,7 +202,12 @@ public class ProgramTrackedEntityAttribute
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isMandatory()
     {
-        return mandatory;
+        if ( mandatory != null )    
+        { 
+            return mandatory;
+        }
+        
+        return false;
     }
 
     public void setMandatory( Boolean mandatory )
