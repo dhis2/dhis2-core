@@ -1,4 +1,4 @@
-nguage: java
+language: java
 sudo : false
 dist : trusty
 jdk:
