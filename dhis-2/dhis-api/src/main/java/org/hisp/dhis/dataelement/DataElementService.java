@@ -28,6 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
@@ -104,6 +105,15 @@ public interface DataElementService
      * are no DataElements.
      */
     List<DataElement> getAllDataElements();
+
+    /**
+     * Returns all DataElements of a given type.
+     *
+     * @param valueType the value type restriction
+     * @return a list of all DataElements with the given value type,
+     * or an empty list if there are no DataElements.
+     */
+    List<DataElement> getAllDataElementsByValueType( ValueType valueType );
 
     /**
      * Returns all DataElements with the given domain type.

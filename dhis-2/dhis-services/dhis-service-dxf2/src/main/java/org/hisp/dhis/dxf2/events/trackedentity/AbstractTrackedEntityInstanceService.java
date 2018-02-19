@@ -45,6 +45,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
@@ -55,8 +57,10 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -122,7 +126,13 @@ public abstract class AbstractTrackedEntityInstanceService
     protected QueryService queryService;
 
     @Autowired
+    protected ReservedValueService reservedValueService;
+
+    @Autowired
     protected TrackerAccessManager trackerAccessManager;
+
+    @Autowired
+    protected FileResourceService fileResourceService;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
@@ -730,6 +740,19 @@ public abstract class AbstractTrackedEntityInstanceService
         return importConflicts;
     }
 
+    private List<ImportConflict> validateTextPatternValue( TrackedEntityAttribute attribute, String value )
+    {
+        List<ImportConflict> importConflicts = new ArrayList<>();
+
+        if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
+            && !reservedValueService.isReserved( attribute.getTextPattern(), value ) )
+        {
+            importConflicts.add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern." ) );
+        }
+
+        return importConflicts;
+    }
+
     private List<ImportConflict> checkScope( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit )
     {
@@ -754,6 +777,17 @@ public abstract class AbstractTrackedEntityInstanceService
     private List<ImportConflict> checkAttributes( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions )
     {
         List<ImportConflict> importConflicts = new ArrayList<>();
+        List<String> fileValues = new ArrayList<>();
+
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstanceTemp = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
+
+        if ( daoEntityInstanceTemp != null )
+        {
+            daoEntityInstanceTemp.getTrackedEntityAttributeValues().stream()
+                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
+                .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
+        }
+
 
         for ( Attribute attribute : dtoEntityInstance.getAttributes() )
         {
@@ -765,6 +799,11 @@ public abstract class AbstractTrackedEntityInstanceService
                 continue;
             }
 
+            if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
+            {
+                importConflicts.addAll( validateTextPatternValue( daoEntityAttribute, attribute.getValue() ) );
+            }
+
             if ( daoEntityAttribute.isUnique() )
             {
                 OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), dtoEntityInstance.getOrgUnit() );
@@ -773,6 +812,12 @@ public abstract class AbstractTrackedEntityInstanceService
             }
 
             importConflicts.addAll( validateAttributeType( attribute, importOptions ) );
+
+            if ( daoEntityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
+            {
+                importConflicts.add( new ImportConflict( "Attribute.value",
+                    String.format( " File Resource with uid '%s' has already been assigned to a different object", attribute.getValue() ) ) );
+            }
         }
 
         return importConflicts;
@@ -847,6 +892,12 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return storedBy;
+    }
+
+    private boolean checkAssigned( Attribute attribute, List<String> oldFileValues )
+    {
+        FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
+        return fileResource != null && fileResource.isAssigned() && !oldFileValues.contains( attribute.getValue() );
     }
 }
 

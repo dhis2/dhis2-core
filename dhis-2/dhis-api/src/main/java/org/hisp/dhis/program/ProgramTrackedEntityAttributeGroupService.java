@@ -36,8 +36,6 @@ import java.util.List;
  */
 public interface ProgramTrackedEntityAttributeGroupService
 {
-    String ID = ProgramTrackedEntityAttributeGroupService.class.getName();
-
     /**
      * Adds an {@link ProgramTrackedEntityAttributeGroup}
      * 
@@ -81,16 +79,6 @@ public interface ProgramTrackedEntityAttributeGroupService
      * @return the ProgramTrackedEntityAttributeGroup with the given id
      */
     ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( String uid );
-
-    /**
-     * Returns a {@link ProgramTrackedEntityAttributeGroup} with a given name.
-     * 
-     * @param name the name of the ProgramTrackedEntityAttributeGroup to return.
-     * 
-     * @return the ProgramTrackedEntityAttributeGroup with the given name, or null if
-     *         no match.
-     */
-    ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroupByName( String name );
 
     /**
      * Returns all {@link ProgramTrackedEntityAttributeGroup}

@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
@@ -67,7 +68,7 @@ public enum SettingKey
     APPLICATION_RIGHT_FOOTER( "keyApplicationRightFooter" ),
     FLAG( "keyFlag", "dhis2", String.class ),
     FLAG_IMAGE( "keyFlagImage" ),
-    START_MODULE( "startModule", "dhis-web-dashboard-integration", String.class ),
+    START_MODULE( "startModule", "dhis-web-dashboard", String.class ),
     FACTOR_OF_DEVIATION( "factorDeviation", 2d, Double.class ),
     EMAIL_HOST_NAME( "keyEmailHostName" ),
     EMAIL_PORT( "keyEmailPort", 587, Integer.class ),
@@ -149,7 +150,8 @@ public enum SettingKey
     LAST_SUCCESSFUL_SCHEDULED_DATASET_NOTIFICATIONS( "keyLastSuccessfulScheduledDataSetNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
-    STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class );
+    STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class ),
+    FILE_RESOURCE_RETENTION_STRATEGY( "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE, FileResourceRetentionStrategy.class );
 
     private final String name;
 

@@ -109,26 +109,16 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         // stub for ruleActionSendMessage
         when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
 
-        doAnswer( new Answer()
+        doAnswer( invocationOnMock ->
         {
-            @Override
-            public Object answer( InvocationOnMock invocationOnMock ) throws Throwable
-            {
-                actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
-                return actions;
-            }
-
+            actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
+            return actions;
         }).when( ruleActionSendMessage ).implement( any( RuleAction.class ), any( ProgramInstance.class ) );
 
-        doAnswer( new Answer()
+        doAnswer( invocationOnMock ->
         {
-            @Override
-            public Object answer( InvocationOnMock invocationOnMock ) throws Throwable
-            {
-                actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
-                return actions;
-            }
-
+            actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
+            return actions;
         }).when( ruleActionSendMessage ).implement( any( RuleAction.class ), any( ProgramStageInstance.class ) );
     }
 
