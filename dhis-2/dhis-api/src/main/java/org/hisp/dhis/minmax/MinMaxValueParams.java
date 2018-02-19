@@ -1,4 +1,4 @@
-package org.hisp.dhis.user;
+package org.hisp.dhis.minmax;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,35 +28,41 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public enum UserInvitationStatus
+import java.util.List;
+
+public class MinMaxValueParams
 {
-    NONE( "none" ), ALL( "all" ), EXPIRED( "expired" );
+    private List<String> dataSets;
 
-    private final String value;
+    private String organisationUnit;
 
-    UserInvitationStatus( String value )
+    public MinMaxValueParams()
     {
-        this.value = value;
     }
 
-    public static UserInvitationStatus fromValue( String value )
+    public MinMaxValueParams( List<String> dataSets, String organisationUnit )
     {
-        for ( UserInvitationStatus status : UserInvitationStatus.values() )
-        {
-            if ( status.value.equalsIgnoreCase( value ) )
-            {
-                return status;
-            }
-        }
-
-        return null;
+        this.dataSets = dataSets;
+        this.organisationUnit = organisationUnit;
     }
 
-    public String getValue()
+    public List<String> getDataSets()
     {
-        return value;
+        return dataSets;
+    }
+
+    public void setDataSets( List<String> dataSets )
+    {
+        this.dataSets = dataSets;
+    }
+
+    public String getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
+
+    public void setOrganisationUnit( String organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
     }
 }
