@@ -39,10 +39,10 @@ public interface MinMaxDataAnalysisService
     /**
      * Generate min-max values.
      * 
-     * @param parents the parent organisation units.
+     * @param parent the parent organisation unit.
      * @param dataElements the data elements.
      * @param stdDevFactor the std dev factor.
      */
-    void generateMinMaxValues( Collection<OrganisationUnit> parents,
+    void generateMinMaxValues( OrganisationUnit parent,
         Collection<DataElement> dataElements, Double stdDevFactor );
 }

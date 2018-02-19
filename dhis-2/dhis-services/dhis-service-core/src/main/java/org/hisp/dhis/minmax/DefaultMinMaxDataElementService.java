@@ -140,9 +140,9 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
-    public void removeMinMaxDataElements( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits )
+    public void removeMinMaxDataElements( Collection<DataElement> dataElements, OrganisationUnit parent )
     {
-        minMaxDataElementStore.delete( dataElements, organisationUnits );
+        minMaxDataElementStore.delete( dataElements, parent );
     }
 }
 
