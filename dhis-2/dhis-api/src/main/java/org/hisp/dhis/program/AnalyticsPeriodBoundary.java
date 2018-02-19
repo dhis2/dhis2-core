@@ -115,7 +115,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
             returnDate = new Date( reportingStartDate.getTime() );
         }
         
-        if ( offsetPeriods != 0 && offsetPeriodType != null )
+        if ( offsetPeriods != null && offsetPeriodType != null )
         {
            returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, this.offsetPeriods );
         }
