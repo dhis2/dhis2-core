@@ -9,14 +9,9 @@ addons:
     - oracle-java8-installer
 before_install:
 - rm ~/.m2/settings.xml
-cache:
-  directories:
-  - "$HOME/.m2"
 script:
-  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -f ./dhis-2/pom.xml
-  -  df -H
-  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -f ./dhis-2/dhis-web/pom.xml -U
-  -  df -H
+  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -q -f ./dhis-2/pom.xml
+  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -q -U -f ./dhis-2/dhis-web/pom.xml
 branches:
   only:
   - master
