@@ -91,15 +91,15 @@ public enum Objects
 
     private String value;
 
-    private Class clazz;
+    private Class<?> clazz;
 
-    Objects( String value, Class clazz )
+    Objects( String value, Class<?> clazz )
     {
         this.value = value;
         this.clazz = clazz;
     }
 
-    public static Objects fromClass( Class clazz )
+    public static Objects fromClass( Class<?> clazz )
         throws IllegalAccessException
     {
         if ( clazz == null )
@@ -115,7 +115,7 @@ public enum Objects
             }
         }
 
-        throw new IllegalAccessException( "No item found in enum Objects for Class '" + clazz.getSimpleName() + "'. " );
+        throw new IllegalAccessException( "No item found in enum Objects for class '" + clazz.getSimpleName() + "'. " );
     }
 
     public String getValue()
