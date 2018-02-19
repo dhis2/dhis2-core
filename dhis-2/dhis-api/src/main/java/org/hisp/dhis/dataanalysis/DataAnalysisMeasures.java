@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,57 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-public interface MinMaxDataAnalysisService
-    extends DataAnalysisService
+/**
+ * DataAnalysisMeasures contains the average and standard deviation measures
+ * of data for a given combination of organisation unit and
+ * category option combo. (The data element is fixed.)
+ *
+ * @author Jim Grace
+ */
+public class DataAnalysisMeasures
 {
-    /**
-     * Generate min-max values.
-     * 
-     * @param parent the parent organisation unit.
-     * @param dataElements the data elements.
-     * @param stdDevFactor the std dev factor.
-     */
-    void generateMinMaxValues( OrganisationUnit parent,
-        Collection<DataElement> dataElements, Double stdDevFactor );
+    private int orgUnitId;
+
+    private int categoryOptionComboId;
+
+    private double average;
+
+    private double standardDeviation;
+
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
+    public DataAnalysisMeasures( int orgUnitId, int categoryOptionComboId,
+        double average, double standardDeviation )
+    {
+        this.orgUnitId = orgUnitId;
+        this.categoryOptionComboId = categoryOptionComboId;
+        this.average = average;
+        this.standardDeviation = standardDeviation;
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
+
+    public int getOrgUnitId()
+    {
+        return orgUnitId;
+    }
+
+    public int getCategoryOptionComboId()
+    {
+        return categoryOptionComboId;
+    }
+
+    public double getAverage()
+    {
+        return average;
+    }
+
+    public double getStandardDeviation()
+    {
+        return standardDeviation;
+    }
 }
