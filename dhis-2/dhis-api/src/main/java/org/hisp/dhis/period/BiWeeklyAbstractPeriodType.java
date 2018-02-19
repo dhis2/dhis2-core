@@ -109,21 +109,9 @@ public class BiWeeklyAbstractPeriodType
     }
 
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    protected DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusWeeks( dateTimeUnit, 2 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusWeeks( dateTimeUnit, 2 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        return calendar.plusWeeks( dateTimeUnit, 2 * offset );
     }
 
     /**
@@ -152,10 +140,8 @@ public class BiWeeklyAbstractPeriodType
      * given date is inside.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit end )
+    public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-
         List<Period> periods = Lists.newArrayList();
         DateTimeUnit date = adjustToStartOfBiWeek( end, calendar );
         date = calendar.minusDays( date, 350 );
