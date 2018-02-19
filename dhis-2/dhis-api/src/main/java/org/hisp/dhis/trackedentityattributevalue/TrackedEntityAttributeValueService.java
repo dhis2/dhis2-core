@@ -28,11 +28,11 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -101,23 +101,4 @@ public interface TrackedEntityAttributeValueService
      */
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances );
 
-    /**
-     * Search TrackedEntityAttributeValue objects by a TrackedEntityAttribute and a attribute
-     * value (performs partial search )
-     * 
-     * @param attribute TrackedEntityAttribute
-     * @param searchText A string for searching by attribute values
-     * 
-     * @return TrackedEntityAttributeValue list
-     */
-    List<TrackedEntityAttributeValue> searchTrackedEntityAttributeValue( TrackedEntityAttribute attribute, String searchText );
-
-    /**
-     * Remove all attribute values of destination instance and copy attribute
-     * values of source instance to destination instance
-     * 
-     * @param source Source instance
-     * @param destination Destination instance
-     */
-    void copyTrackedEntityAttributeValues( TrackedEntityInstance source, TrackedEntityInstance destination );
 }
