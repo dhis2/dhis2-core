@@ -115,6 +115,6 @@ public class HibernateDataElementStore
     {
         String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
-        return getQuery( hql ).setInteger( "aggregationLevel", aggregationLevel ).list();
+        return getQuery( hql ).setParameter( "aggregationLevel", aggregationLevel ).list();
     }
 }
