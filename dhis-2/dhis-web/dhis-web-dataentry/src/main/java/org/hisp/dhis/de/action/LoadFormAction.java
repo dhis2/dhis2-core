@@ -45,9 +45,13 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,6 +91,22 @@ public class LoadFormAction
     public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
     {
         this.organisationUnitService = organisationUnitService;
+    }
+
+    @Autowired
+    private AggregateAccessManager accessManager;
+
+    public void setAccessManager( AggregateAccessManager accessManager )
+    {
+        this.accessManager = accessManager;
+    }
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
     private I18n i18n;
@@ -197,6 +217,13 @@ public class LoadFormAction
 
     private Map<Integer, Collection<Integer>> sectionCombos = new HashMap<>();
 
+    private Map<String, Boolean> optionComboAccessMap = new HashMap<>();
+
+    public Map<String, Boolean> getOptionComboAccessMap()
+    {
+        return optionComboAccessMap;
+    }
+
     public Map<Integer, Collection<Integer>> getSectionCombos()
     {
         return sectionCombos;
@@ -268,11 +295,15 @@ public class LoadFormAction
 
         orderedCategoryCombos = getDataElementCategoryCombos( dataElements, dataSet );
 
+        User currentUser = currentUserService.getCurrentUser();
+
         for ( DataElementCategoryCombo categoryCombo : orderedCategoryCombos )
         {
             List<DataElementCategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
 
             orderedCategoryOptionCombos.put( categoryCombo.getId(), optionCombos );
+
+            addOptionAccess( currentUser, optionComboAccessMap, optionCombos );
 
             // -----------------------------------------------------------------
             // Perform ordering of categories and their options so that they
@@ -409,18 +440,18 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            Set<Integer> categoryComboIds = new HashSet<>();
+            Set<Integer> categoryCombos = new HashSet<>();
             
             for( DataElementCategoryCombo categoryCombo : section.getCategoryCombos() )
             {
-                categoryComboIds.add( categoryCombo.getId() );
+                categoryCombos.add( categoryCombo.getId() );
                 
                 sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId() , section.getDataElementsByCategoryCombo( categoryCombo ) );
             }
             
-            if( !categoryComboIds.isEmpty() )
+            if( !categoryCombos.isEmpty() )
             {
-                sectionCombos.put( section.getId(), categoryComboIds );
+                sectionCombos.put( section.getId(), categoryCombos );
             }
 
             for ( DataElementOperand operand : section.getGreyedFields() )
@@ -447,5 +478,23 @@ public class LoadFormAction
         Collections.sort( listCategoryCombos, new DataElementCategoryComboSizeComparator() );
 
         return listCategoryCombos;
+    }
+
+    private void addOptionAccess( User user,  Map<String, Boolean> optionAccessMap, List<DataElementCategoryOptionCombo>
+        optionCombos )
+    {
+        optionCombos.forEach( o -> {
+
+           List<String> err = accessManager.canWrite( user, o );
+
+           if ( !err.isEmpty() )
+           {
+               optionAccessMap.put( o.getUid(), false );
+           }
+           else
+           {
+               optionAccessMap.put( o.getUid(), true );
+           }
+        } );
     }
 }

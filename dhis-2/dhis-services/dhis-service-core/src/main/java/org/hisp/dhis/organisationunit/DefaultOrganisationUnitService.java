@@ -34,6 +34,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
@@ -46,14 +47,7 @@ import org.hisp.dhis.version.VersionService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -77,7 +71,7 @@ public class DefaultOrganisationUnitService
     {
         this.organisationUnitStore = organisationUnitStore;
     }
-    
+
     private DataSetService dataSetService;
 
     public void setDataSetService( DataSetService dataSetService )
@@ -403,13 +397,19 @@ public class DefaultOrganisationUnitService
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( currentUser != null && !currentUser.getUserCredentials().isSuper() )
-        {            
-            Set<String> userDataSets = Sets.newHashSet( getUids( dataSetService.getUserDataSets() ) );
+        if ( currentUser != null && !currentUser.isSuper() )
+        {
+            List<DataSet> accessibleDataSets = dataSetService.getUserDataWrite( currentUser );
 
-            for ( Set<String> dataSets : associationMap.values() )
+            if ( accessibleDataSets.isEmpty() )
             {
-                dataSets.retainAll( userDataSets );
+                associationMap.values().iterator().forEachRemaining( Set::clear );
+            }
+            else
+            {
+                Set<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
+
+                associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
             }
         }
     }

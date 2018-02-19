@@ -115,9 +115,11 @@ import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
@@ -1208,7 +1210,7 @@ public abstract class DhisConvenienceTest
     public static LegendSet createLegendSet( char uniqueCharacter, Legend... legends )
     {
         LegendSet legendSet = createLegendSet( uniqueCharacter );
-        
+
         for ( Legend legend : legends )
         {
             legendSet.getLegends().add( legend );
@@ -1806,7 +1808,7 @@ public abstract class DhisConvenienceTest
             optionSet.getOptions().add( option );
             option.setOptionSet( optionSet );
         }
-        
+
         return optionSet;
     }
 
@@ -2186,5 +2188,14 @@ public abstract class DhisConvenienceTest
         return new ProgramDataElementDimensionItem( pr, de );
     }
 
+    protected void enableDataSharing( User user, IdentifiableObject object, String access )
+    {
+        object.getUserAccesses().clear();
 
+        UserAccess userAccess = new UserAccess();
+        userAccess.setUser( user );
+        userAccess.setAccess( access );
+
+        object.getUserAccesses().add( userAccess );
+    }
 }

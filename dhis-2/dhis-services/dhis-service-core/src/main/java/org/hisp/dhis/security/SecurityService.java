@@ -290,4 +290,20 @@ public interface SecurityService
      */
     Map<String, Object> verifyRecaptcha( String key, String remoteIp )
         throws IOException;
+
+    /**
+     * Check if current user has DATA_WRITE access for given object.
+     *
+     * @param identifiableObject Object to check for data write access.
+     * @return true of false depending on outcome of DATA_WRITE check
+     */
+    boolean canDataWrite( IdentifiableObject identifiableObject );
+
+    /**
+     * Check if current user has DATA_READ for given object.
+     *
+     * @param identifiableObject Object to check for data read access.
+     * @return true of false depending on outcome of DATA_READ check
+     */
+    boolean canDataRead( IdentifiableObject identifiableObject );
 }

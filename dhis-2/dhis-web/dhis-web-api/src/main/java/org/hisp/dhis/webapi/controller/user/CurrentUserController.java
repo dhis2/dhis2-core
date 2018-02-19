@@ -641,7 +641,7 @@ public class CurrentUserController
         }
         else
         {
-            userDataSets = Sets.newHashSet( dataSetService.getUserDataSets() );
+            userDataSets = Sets.newHashSet( dataSetService.getUserDataWrite( currentUser ) );
         }
 
         if ( parameters.containsKey( "includeDescendants" ) && Boolean.parseBoolean( parameters.get( "includeDescendants" ) ) )
