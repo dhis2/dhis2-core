@@ -1,4 +1,5 @@
-package org.hisp.dhis.trackedentityattributevalue.hibernate;
+package org.hisp.dhis.reservedvalue.hibernate;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -27,63 +28,66 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueStore;
-
-import org.hibernate.Criteria;
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
+import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
+import org.springframework.beans.factory.annotation.Required;
 
+import javax.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
- * @author Markus Bekken
+ * @author Stian Sandvold
  */
-public class HibernateTrackedEntityAttributeReservedValueStore
-    implements TrackedEntityAttributeReservedValueStore
+@Transactional
+public class HibernateSequentialNumberCounterStore
+    implements SequentialNumberCounterStore
 {
-    
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private SessionFactory sessionFactory;
+    protected SessionFactory sessionFactory;
 
     public void setSessionFactory( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-    
     @Override
-    public TrackedEntityAttributeReservedValue saveTrackedEntityAttributeReservedValue(
-        TrackedEntityAttributeReservedValue trackedEntityAttributeReservedValue )
+    public List<Integer> getNextValues( String uid, String key, int length )
     {
-        trackedEntityAttributeReservedValue.setAutoFields();
-        
         Session session = sessionFactory.getCurrentSession();
-        session.save( trackedEntityAttributeReservedValue );
-        session.flush();
-        
-        return trackedEntityAttributeReservedValue;
+
+        int count;
+
+        SequentialNumberCounter counter = (SequentialNumberCounter) session
+            .createQuery( "FROM SequentialNumberCounter WHERE owneruid = ? AND key = ?" )
+            .setParameter( 0, uid )
+            .setParameter( 1, key )
+            .uniqueResult();
+
+        if ( counter == null )
+        {
+            counter = new SequentialNumberCounter( uid, key, 1 );
+        }
+
+        count = counter.getCounter();
+        counter.setCounter( count + length );
+        session.saveOrUpdate( counter );
+
+        return IntStream.range( count, count + length ).boxed().collect( Collectors.toList() );
+
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
-    public List<TrackedEntityAttributeReservedValue> getTrackedEntityReservedValues(
-        TrackedEntityAttribute trackedEntityAttribute, String value )
+    public void deleteCounter( String uid )
     {
         Session session = sessionFactory.getCurrentSession();
-        Criteria criteria = session.createCriteria( TrackedEntityAttributeReservedValue.class );
-        criteria.add( Restrictions.eq( "trackedEntityAttribute", trackedEntityAttribute ) );
-        criteria.add( Restrictions.eq( "value", value ) );
-        criteria.setMaxResults( 2 );
-        return criteria.list();
+
+        sessionFactory.getCurrentSession()
+            .createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
+            .setParameter( "uid", uid )
+            .executeUpdate();
+
     }
-    
 }

@@ -34,6 +34,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -75,7 +77,10 @@ public class DefaultTrackedEntityAttributeService
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-    
+
+    @Autowired
+    private FileResourceService fileResourceService;
+
     @Autowired
     private UserService userService;
 
@@ -268,6 +273,10 @@ public class DefaultTrackedEntityAttributeService
         {
             return "Value '" + errorValue + "' is not a valid datetime for attribute " + trackedEntityAttribute.getUid();
         }
+        else if ( ValueType.IMAGE == valueType )
+        {
+            return validateImage( value );
+        }
         else if ( trackedEntityAttribute.hasOptionSet() && !trackedEntityAttribute.isValidOptionValue( value ) )
         {
             return "Value '" + errorValue + "' is not a valid option for attribute " +
@@ -299,6 +308,23 @@ public class DefaultTrackedEntityAttributeService
     @Override
     public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()
     {
-        return getAllTrackedEntityAttributes().stream().filter( ta -> ta.isSystemWideUnique() ).collect( Collectors.toList() );
+        return getAllTrackedEntityAttributes().stream().filter( ta -> ta.isSystemWideUnique() )
+            .collect( Collectors.toList() );
+    }
+
+    private String validateImage( String uid )
+    {
+        FileResource fileResource = fileResourceService.getFileResource( uid );
+
+        if ( fileResource == null )
+        {
+            return "Value '" + uid + "' is not the uid of a file";
+        }
+        else if ( !ValueType.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
+        {
+            return "File resource with uid '" + uid + "' is not a valid image";
+        }
+
+        return null;
     }
 }

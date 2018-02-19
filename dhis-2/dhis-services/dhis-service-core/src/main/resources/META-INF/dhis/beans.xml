@@ -247,6 +247,17 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateSequentialNumberCounterStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateReservedValueStore">
+    <property name="clazz" value="org.hisp.dhis.reservedvalue.ReservedValue" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <!--DataSetNotifications-->
+
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -711,14 +722,6 @@
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
-
-  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueStore"
-    class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeReservedValueStore">
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService"
-    class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeReservedValueService" />
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
@@ -1487,6 +1490,11 @@
     <property name="attributeGroupStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.textpattern.TextPatternService" class="org.hisp.dhis.textpattern.DefaultTextPatternService" />
+
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueService" class="org.hisp.dhis.reservedvalue.DefaultReservedValueService">
+  </bean>
+
   <!-- Outbound messaging services -->
 
   <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"
@@ -2034,6 +2042,16 @@
   <bean id="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler"
     class="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
+        class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" >
+    <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
+        class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" >
+    <constructor-arg ref="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" />
   </bean>
 
   <!-- AOP definitions -->

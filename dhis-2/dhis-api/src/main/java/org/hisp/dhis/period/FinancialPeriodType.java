@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -89,23 +90,11 @@ public abstract class FinancialPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-
+    
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public DateTimeUnit getDateWithOffset(  DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusYears( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusYears( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        return calendar.plusYears( dateTimeUnit, offset );
     }
 
     /**
@@ -147,9 +136,9 @@ public abstract class FinancialPeriodType
     }
 
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        return generateLast5Years( getCalendar().toIso( dateTimeUnit ).toJdkDate() );
+        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
     @Override

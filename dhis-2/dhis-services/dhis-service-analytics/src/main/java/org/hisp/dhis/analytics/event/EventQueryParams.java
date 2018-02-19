@@ -474,6 +474,22 @@ public class EventQueryParams
     {
         return !items.isEmpty() || !itemFilters.isEmpty();
     }
+    
+    /**
+     * Returns true if an aggregation type is defined, and this is type is {@link #AggregationType.LAST}
+     */
+    public boolean isLastPeriodAggregationType()
+    {
+        return getAggregationType() != null && getAggregationType().isLastPeriodAggregationType();
+    }
+    
+    /**
+     * Returns true if a program indicator exists with non-default analytics period boundaries.
+     */
+    public boolean hasNonDefaultBoundaries()
+    {
+        return hasProgramIndicatorDimension() && getProgramIndicator().hasNonDefaultBoundaries();
+    }
 
     public Set<OrganisationUnit> getOrganisationUnitChildren()
     {
@@ -1042,5 +1058,23 @@ public class EventQueryParams
         {
             return params;
         }
+    }
+
+    /**
+     * Indicates whether the EventQueryParams has exactly one Period dimension. 
+     * @return true when exactly one Period dimension exists.
+     */
+    public boolean hasSinglePeriod()
+    {
+        return getPeriods().size() == 1;
+    }
+
+    /**
+     * Indicates whether the EventQueryParams has Period filters. 
+     * @return true when any Period filters exists.
+     */
+    public boolean hasFilterPeriods()
+    {
+        return getFilterPeriods().size() > 0;
     }
 }

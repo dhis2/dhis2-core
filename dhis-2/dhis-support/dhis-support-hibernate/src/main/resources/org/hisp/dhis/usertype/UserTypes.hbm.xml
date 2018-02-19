@@ -22,6 +22,10 @@
     <param name="clazz">org.hisp.dhis.common.ObjectStyle</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
+    <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbRenderType">
     <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
   </typedef>
