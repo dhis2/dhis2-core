@@ -291,7 +291,7 @@ public class DefaultReservedValueServiceTest
         {
             TextPattern tp = TextPatternParser.parse( pattern );
             tp.setOwnerObject( Objects.fromClass( owner.getClass() ) );
-            tp.setOwnerUID( owner.getUid() );
+            tp.setOwnerUid( owner.getUid() );
 
             return tp;
         }

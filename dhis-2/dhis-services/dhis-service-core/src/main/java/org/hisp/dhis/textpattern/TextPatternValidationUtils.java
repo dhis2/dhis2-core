@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
  */
 public class TextPatternValidationUtils
 {
-
     public static boolean validateSegmentValue( TextPatternSegment segment, String value )
     {
         return segment.getMethod().getType().validateText( segment.getParameter(), value );
@@ -59,10 +58,8 @@ public class TextPatternValidationUtils
 
     public static int getTotalValuesPotential( TextPatternSegment generatedSegment )
     {
-
         if ( generatedSegment != null )
         {
-
             if ( generatedSegment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
             {
                 // Subtract by 1 since we don't use all zeroes.
@@ -125,7 +122,7 @@ public class TextPatternValidationUtils
 
     private static boolean isNumericOnly( TextPatternSegment segment )
     {
-        if (segment.getMethod().equals( TextPatternMethod.SEQUENTIAL ))
+        if ( segment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
         {
             return true;
         }
@@ -135,7 +132,7 @@ public class TextPatternValidationUtils
             return segment.getParameter().matches( "^#+$" );
         }
 
-        if ( segment.getMethod().equals( TextPatternMethod.TEXT ))
+        if ( segment.getMethod().equals( TextPatternMethod.TEXT ) )
         {
             return segment.getParameter().matches( "^[0-9]*$" );
         }

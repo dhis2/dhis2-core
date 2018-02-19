@@ -40,7 +40,6 @@ import java.util.regex.Pattern;
 public class DateMethodType
     extends BaseMethodType
 {
-
     DateMethodType( Pattern pattern )
     {
         super( pattern );
