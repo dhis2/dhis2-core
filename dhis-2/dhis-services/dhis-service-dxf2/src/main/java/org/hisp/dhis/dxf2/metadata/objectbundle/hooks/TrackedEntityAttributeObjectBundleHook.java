@@ -82,7 +82,7 @@ public class TrackedEntityAttributeObjectBundleHook
                 {
                     TextPattern textPattern = TextPatternParser.parse( attr.getPattern() );
                     textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
-                    textPattern.setOwnerUID( attr.getUid() );
+                    textPattern.setOwnerUid( attr.getUid() );
                     attr.setTextPattern( textPattern );
                 }
                 catch ( TextPatternParser.TextPatternParsingException e )
