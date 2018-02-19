@@ -110,10 +110,7 @@ public class DefaultQueryPlanner
             List<DataQueryParams> currentQueries = Lists.newArrayList( queries );
             queries.clear();
             
-            for ( DataQueryParams query : currentQueries )
-            {
-                queries.addAll( grouper.apply( query ) );
-            }
+            currentQueries.forEach( query -> queries.addAll( grouper.apply( query ) ) );
         }
 
         // ---------------------------------------------------------------------
@@ -204,9 +201,9 @@ public class DefaultQueryPlanner
     // -------------------------------------------------------------------------
 
     /**
-     * If periods appear as dimensions in the given query; groups the query into
+     * If periods appear as dimensions in the given query, groups the query into
      * sub queries based on the period type of the periods. Sets the period type
-     * name on each query. If periods appear as filters; replaces the period filter
+     * name on each query. If periods appear as filters, replaces the period filter
      * with one filter for each period type. Sets the dimension names and filter
      * names respectively.
      */

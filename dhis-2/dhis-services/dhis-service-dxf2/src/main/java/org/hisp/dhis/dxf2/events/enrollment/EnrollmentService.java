@@ -45,7 +45,7 @@ import java.util.List;
  */
 public interface EnrollmentService
 {
-    int FLUSH_FREQUENCY = 50;
+    int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
     // READ
@@ -88,6 +88,8 @@ public interface EnrollmentService
     ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
+
+    ImportSummary updateEnrollment( Enrollment enrollment, User user, ImportOptions importOptions );
 
     ImportSummary updateEnrollmentForNote( Enrollment enrollment );
 

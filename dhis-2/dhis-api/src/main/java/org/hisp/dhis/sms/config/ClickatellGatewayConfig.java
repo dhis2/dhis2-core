@@ -38,7 +38,7 @@ public class ClickatellGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
 
-    private final String URL_TEMPLATE = "https://platform.clickatell.com/messages";
+    private final String URL_TEMPLATE = "https://platform.clickatell.com/rest/messages";
     
     private String authToken;
 

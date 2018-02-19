@@ -113,7 +113,7 @@ public class BaseIdentifiableObject
     protected Map<String, String> translationCache = new HashMap<>();
 
     /**
-     * This object is available as external read-only
+     * This object is available as external read-only.
      */
     protected boolean externalAccess;
 
@@ -143,7 +143,12 @@ public class BaseIdentifiableObject
     protected transient Access access;
 
     /**
-     * The i18n variant of the name. Should not be persisted.
+     * Users who have marked this object as a favorite.
+     */
+    protected Set<String> favorites = new HashSet<>();
+    
+    /**
+     * The i18n variant of the name. Not persisted.
      */
     protected transient String displayName;
 
@@ -482,6 +487,52 @@ public class BaseIdentifiableObject
         this.access = access;
     }
 
+    @Override
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "favorites", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "favorite", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getFavorites()
+    {
+        return favorites;
+    }
+
+    public void setFavorites( Set<String> favorites )
+    {
+        this.favorites = favorites;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFavorite()
+    {
+        User user = UserContext.getUser();
+        
+        return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
+    }
+
+    @Override
+    public boolean setAsFavorite( User user )
+    {        
+        if ( this.favorites == null )
+        {
+            this.favorites = new HashSet<>();
+        }
+        
+        return this.favorites.add( user.getUid() );
+    }
+
+    @Override
+    public boolean removeAsFavorite( User user )
+    {        
+        if ( this.favorites == null )
+        {
+            this.favorites = new HashSet<>();
+        }
+        
+        return this.favorites.remove( user.getUid() );
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -600,6 +651,7 @@ public class BaseIdentifiableObject
      * @param idScheme the IdScheme.
      * @return the value of the property referred to by the IdScheme.
      */
+    @Override
     public String getPropertyValue( IdScheme idScheme )
     {
         if ( idScheme.isNull() || idScheme.is( IdentifiableProperty.UID ) )

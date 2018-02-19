@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -427,7 +428,7 @@ public class JdbcAnalyticsTableManager
             jdbcTemplate.execute( sql.toString() );
         }
 
-        return null;
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override
@@ -451,7 +452,7 @@ public class JdbcAnalyticsTableManager
             jdbcTemplate.execute( sql );
         }
 
-        return null;
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     /**

@@ -32,10 +32,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
+import org.hisp.dhis.program.notification.ProgramNotificationEventType;
+import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -79,18 +77,14 @@ public class DefaultProgramStageInstanceService
         this.currentUserService = currentUserService;
     }
 
-    private ProgramNotificationService programNotificationService;
-
-    public void setProgramNotificationService( ProgramNotificationService programNotificationService )
-    {
-        this.programNotificationService = programNotificationService;
-    }
-
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
 
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
+
+    @Autowired
+    private ProgramNotificationPublisher programNotificationPublisher;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -160,20 +154,6 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
-    public List<ProgramStageInstance> getProgramStageInstances( Collection<ProgramInstance> programInstances,
-        EventStatus status )
-    {
-        return programStageInstanceStore.get( programInstances, status );
-    }
-
-    @Override
-    public List<ProgramStageInstance> getProgramStageInstances( TrackedEntityInstance entityInstance,
-        EventStatus status )
-    {
-        return programStageInstanceStore.get( entityInstance, status );
-    }
-
-    @Override
     public long getProgramStageInstanceCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -200,7 +180,7 @@ public class DefaultProgramStageInstanceService
 
         if ( !skipNotifications )
         {
-            programNotificationService.sendCompletionNotifications( programStageInstance );
+            programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
 
             programRuleEngineService.evaluate( programStageInstance );
         }
@@ -226,52 +206,6 @@ public class DefaultProgramStageInstanceService
                 programInstanceService.completeProgramInstanceStatus( programStageInstance.getProgramInstance() );
             }
         }
-    }
-
-    @Override
-    public ProgramStageInstance createProgramStageInstance( TrackedEntityInstance instance, Program program,
-        Date executionDate, OrganisationUnit organisationUnit )
-    {
-        ProgramStage programStage = null;
-
-        if ( program.getProgramStages() != null )
-        {
-            programStage = program.getProgramStages().iterator().next();
-        }
-
-        ProgramInstance programInstance = null;
-
-        if ( program.isWithoutRegistration() )
-        {
-            Collection<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program );
-
-            if ( programInstances == null || programInstances.size() == 0 )
-            {
-                // Add a new program instance if it doesn't exist
-                programInstance = new ProgramInstance();
-                programInstance.setEnrollmentDate( executionDate );
-                programInstance.setIncidentDate( executionDate );
-                programInstance.setProgram( program );
-                programInstance.setStatus( ProgramStatus.ACTIVE );
-                programInstanceService.addProgramInstance( programInstance );
-            }
-            else
-            {
-                programInstance = programInstanceService.getProgramInstances( program ).iterator().next();
-            }
-        }
-
-        // Add a new program stage instance
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setDueDate( executionDate );
-        programStageInstance.setExecutionDate( executionDate );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-
-        addProgramStageInstance( programStageInstance );
-
-        return programStageInstance;
     }
 
     @Override
@@ -314,5 +248,4 @@ public class DefaultProgramStageInstanceService
 
         return programStageInstance;
     }
-
 }

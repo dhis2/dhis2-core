@@ -28,21 +28,7 @@ package org.hisp.dhis.calendar;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.period.BiMonthlyPeriodType;
-import org.hisp.dhis.period.DailyPeriodType;
-import org.hisp.dhis.period.FinancialAprilPeriodType;
-import org.hisp.dhis.period.FinancialJulyPeriodType;
-import org.hisp.dhis.period.FinancialOctoberPeriodType;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
-import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
-import org.hisp.dhis.period.SixMonthlyPeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
-import org.hisp.dhis.period.WeeklySaturdayPeriodType;
-import org.hisp.dhis.period.WeeklySundayPeriodType;
-import org.hisp.dhis.period.WeeklyThursdayPeriodType;
-import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
-import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.period.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,6 +41,7 @@ public enum DateUnitType
     WEEKLY_THURSDAY( WeeklyThursdayPeriodType.NAME, "\\b(\\d{4})ThuW(\\d[\\d]?)\\b" ),
     WEEKLY_SATURDAY( WeeklySaturdayPeriodType.NAME, "\\b(\\d{4})SatW(\\d[\\d]?)\\b" ),
     WEEKLY_SUNDAY( WeeklySundayPeriodType.NAME, "\\b(\\d{4})SunW(\\d[\\d]?)\\b" ),
+    BI_WEEKLY( BiWeeklyPeriodType.NAME, "\\b(\\d{4})BiW(\\d[\\d]?)\\b" ),
     MONTHLY( MonthlyPeriodType.NAME, "\\b(\\d{4})[-]?(\\d{2})\\b" ),
     BI_MONTHLY( BiMonthlyPeriodType.NAME, "\\b(\\d{4})(\\d{2})B\\b" ),
     QUARTERLY( QuarterlyPeriodType.NAME, "\\b(\\d{4})Q(\\d)\\b" ),

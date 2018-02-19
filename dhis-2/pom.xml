@@ -689,7 +689,7 @@
       <dependency>
         <groupId>com.cronutils</groupId>
         <artifactId>cron-utils</artifactId>
-        <version>6.0.3-SNAPSHOT</version>
+        <version>7.0.1</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -852,7 +852,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.1.1</version>
+        <version>42.2.1</version>
       </dependency>
 
       <!-- Apache jClouds -->
@@ -1143,13 +1143,13 @@
   <properties>
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>4.3.12.RELEASE</spring.version>
-    <spring-security.version>4.2.3.RELEASE</spring-security.version>
+    <spring.version>4.3.14.RELEASE</spring.version>
+    <spring-security.version>4.2.4.RELEASE</spring-security.version>
     <spring-security-oauth2.version>2.2.0.RELEASE</spring-security-oauth2.version>
     <struts.version>2.3.32</struts.version>
     <hibernate.version>5.2.11.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
-    <jclouds.version>1.9.3</jclouds.version>
+    <jclouds.version>2.0.3</jclouds.version>
     <!-- Keep in sync with Hibernate -->
     <javassist.version>3.20.0-GA</javassist.version>
     <!-- unit test dependencies-->

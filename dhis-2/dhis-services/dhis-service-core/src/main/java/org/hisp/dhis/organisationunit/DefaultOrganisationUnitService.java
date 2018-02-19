@@ -34,6 +34,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
@@ -73,23 +74,54 @@ public class DefaultOrganisationUnitService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private OrganisationUnitStore organisationUnitStore;
 
-    @Autowired
+    public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
+    {
+        this.organisationUnitStore = organisationUnitStore;
+    }
+
+    private DataSetService dataSetService;
+
+    public void setDataSetService( DataSetService dataSetService )
+    {
+        this.dataSetService = dataSetService;
+    }
+
     private OrganisationUnitLevelStore organisationUnitLevelStore;
 
-    @Autowired
+    public void setOrganisationUnitLevelStore( OrganisationUnitLevelStore organisationUnitLevelStore )
+    {
+        this.organisationUnitLevelStore = organisationUnitLevelStore;
+    }
+
     private CurrentUserService currentUserService;
 
-    @Autowired
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
     private VersionService versionService;
 
-    @Autowired
+    public void setVersionService( VersionService versionService )
+    {
+        this.versionService = versionService;
+    }
+
     private ConfigurationService configurationService;
 
-    @Autowired
+    public void setConfigurationService( ConfigurationService configurationService )
+    {
+        this.configurationService = configurationService;
+    }
+
     private DataSetStore dataSetStore;
+
+    public void setDataSetStore( DataSetStore dataSetStore )
+    {
+        this.dataSetStore = dataSetStore;
+    }
 
     // -------------------------------------------------------------------------
     // OrganisationUnit
@@ -806,10 +838,5 @@ public class DefaultOrganisationUnitService
         }
 
         return new ArrayList<>();
-    }
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 }

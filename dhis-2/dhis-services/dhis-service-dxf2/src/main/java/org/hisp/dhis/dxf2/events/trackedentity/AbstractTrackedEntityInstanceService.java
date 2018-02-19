@@ -33,10 +33,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -55,10 +57,10 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -123,6 +125,9 @@ public abstract class AbstractTrackedEntityInstanceService
     @Autowired
     protected QueryService queryService;
 
+    @Autowired
+    protected TrackerAccessManager trackerAccessManager;
+
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final CachingMap<String, TrackedEntityType> trackedEntityCache = new CachingMap<>();
@@ -137,21 +142,21 @@ public abstract class AbstractTrackedEntityInstanceService
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> teis = entityInstanceService.getTrackedEntityInstances( queryParams );
-
         List<TrackedEntityInstance> teiItems = new ArrayList<>();
+        User user = currentUserService.getCurrentUser();
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance : teis )
         {
-            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, params ) );
+            teiItems.add( getTrackedEntityInstance( trackedEntityInstance, params, user ) );
         }
 
         return teiItems;
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
     {
-        return entityInstanceService.getTrackedEntityInstanceCount( params );
+        return entityInstanceService.getTrackedEntityInstanceCount( params, sync );
     }
 
     @Override
@@ -176,9 +181,23 @@ public abstract class AbstractTrackedEntityInstanceService
     public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityInstanceParams params )
     {
+        return getTrackedEntityInstance( entityInstance, params, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        TrackedEntityInstanceParams params, User user )
+    {
         if ( entityInstance == null )
         {
             return null;
+        }
+
+        List<String> errors = trackerAccessManager.canRead( user, entityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
         }
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
@@ -230,20 +249,25 @@ public abstract class AbstractTrackedEntityInstanceService
             }
         }
 
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+
         for ( TrackedEntityAttributeValue attributeValue : entityInstance.getTrackedEntityAttributeValues() )
         {
-            Attribute attribute = new Attribute();
+            if ( readableAttributes.contains( attributeValue.getAttribute() ) )
+            {
+                Attribute attribute = new Attribute();
 
-            attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
-            attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
-            attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
-            attribute.setAttribute( attributeValue.getAttribute().getUid() );
-            attribute.setValueType( attributeValue.getAttribute().getValueType() );
-            attribute.setCode( attributeValue.getAttribute().getCode() );
-            attribute.setValue( attributeValue.getValue() );
-            attribute.setStoredBy( attributeValue.getStoredBy() );
+                attribute.setCreated( DateUtils.getIso8601NoTz( attributeValue.getCreated() ) );
+                attribute.setLastUpdated( DateUtils.getIso8601NoTz( attributeValue.getLastUpdated() ) );
+                attribute.setDisplayName( attributeValue.getAttribute().getDisplayName() );
+                attribute.setAttribute( attributeValue.getAttribute().getUid() );
+                attribute.setValueType( attributeValue.getAttribute().getValueType() );
+                attribute.setCode( attributeValue.getAttribute().getCode() );
+                attribute.setValue( attributeValue.getValue() );
+                attribute.setStoredBy( attributeValue.getStoredBy() );
 
-            trackedEntityInstance.getAttributes().add( attribute );
+                trackedEntityInstance.getAttributes().add( attribute );
+            }
         }
 
         return trackedEntityInstance;
@@ -314,6 +338,17 @@ public abstract class AbstractTrackedEntityInstanceService
                 queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
+            Collection<String> trackedEntityAttributes = new HashSet<>();
+            _trackedEntityInstances.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+            if ( !trackedEntityAttributes.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+            }
+
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
                 importSummaries.addImportSummary( addTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
@@ -360,6 +395,13 @@ public abstract class AbstractTrackedEntityInstanceService
         if ( entityInstance == null )
         {
             return importSummary;
+        }
+
+        List<String> errors = trackerAccessManager.canWrite( user, entityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
         teiService.addTrackedEntityInstance( entityInstance );
@@ -412,6 +454,17 @@ public abstract class AbstractTrackedEntityInstanceService
                 queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
             }
 
+            Collection<String> trackedEntityAttributes = new HashSet<>();
+            _trackedEntityInstances.forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
+
+            if ( !trackedEntityAttributes.isEmpty() )
+            {
+                Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
+                query.setUser( user );
+                query.add( Restrictions.in( "id", trackedEntityAttributes ) );
+                queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+            }
+
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
                 importSummaries.addImportSummary( updateTrackedEntityInstance( trackedEntityInstance, user, importOptions ) );
@@ -453,7 +506,14 @@ public abstract class AbstractTrackedEntityInstanceService
                 + " does not point to valid trackedEntityInstance" ) );
         }
 
-        OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, trackedEntityInstance.getOrgUnit() );
+        List<String> errors = trackerAccessManager.canWrite( user, entityInstance );
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+        }
+
+        OrganisationUnit organisationUnit = getOrganisationUnit( new IdSchemes(), trackedEntityInstance.getOrgUnit() );
 
         if ( organisationUnit == null )
         {

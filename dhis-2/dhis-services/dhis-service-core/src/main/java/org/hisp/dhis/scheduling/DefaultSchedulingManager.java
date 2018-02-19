@@ -61,8 +61,6 @@ public class DefaultSchedulingManager
     public static final String CONTINOUS_CRON = "* * * * * ?";
     public static final String HOUR_CRON = "0 0 * ? * *";
 
-    private Map<JobType, String> jobMap = new HashMap<>();
-
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
 
     private Map<String, ListenableFuture<?>> currentTasks = new HashMap<>();
@@ -94,12 +92,6 @@ public class DefaultSchedulingManager
         this.jobExecutor = jobExecutor;
     }
 
-    @Override
-    public void addJob( JobType jobType, String jobId )
-    {
-        jobMap.put( jobType, jobId );
-    }
-
     // -------------------------------------------------------------------------
     // Queue
     // -------------------------------------------------------------------------
@@ -108,6 +100,11 @@ public class DefaultSchedulingManager
 
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
+        if ( jobConfiguration.isInMemoryJob() )
+        {
+            return false;
+        }
+
         return !jobConfiguration.isContinuousExecution() && runningJobConfigurations.stream().anyMatch(
             jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) &&
                 !jobConfig.isContinuousExecution() );
@@ -115,8 +112,11 @@ public class DefaultSchedulingManager
 
     public void jobConfigurationStarted( JobConfiguration jobConfiguration )
     {
-        runningJobConfigurations.add( jobConfiguration );
-        jobConfigurationService.updateJobConfiguration( jobConfiguration );
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            runningJobConfigurations.add( jobConfiguration );
+            jobConfigurationService.updateJobConfiguration( jobConfiguration );
+        }
     }
 
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
@@ -165,7 +165,7 @@ public class DefaultSchedulingManager
 
                 futures.put( jobConfiguration.getUid(), future );
 
-                log.info( "Scheduled job:\n" + jobConfiguration + "\n");
+                log.info( "Scheduled job: " + jobConfiguration );
             }
         }
     }
@@ -214,7 +214,7 @@ public class DefaultSchedulingManager
 
     public Job getJob( JobType jobType )
     {
-        return (Job) applicationContext.getBean( jobMap.get( jobType ) );
+        return (Job) applicationContext.getBean( jobType.getKey() );
     }
 
     // -------------------------------------------------------------------------
@@ -243,7 +243,7 @@ public class DefaultSchedulingManager
         } );
         currentTasks.put( jobConfiguration.getUid(), future );
 
-        log.info( "Scheduler initiated execute of job:\n" + jobConfiguration + "\n");
+        log.info( "Scheduler initiated execute of job: " + jobConfiguration );
     }
 
     private boolean internalStopJob( String uid )

@@ -48,7 +48,10 @@
     
     <property name="thisWeek" />
     <property name="lastWeek" />
+    <property name="thisBiWeek" />
+    <property name="lastBiWeek" />
     <property name="last4Weeks" />
+    <property name="last4BiWeeks" />
     <property name="last12Weeks" />
     <property name="last52Weeks" />
     

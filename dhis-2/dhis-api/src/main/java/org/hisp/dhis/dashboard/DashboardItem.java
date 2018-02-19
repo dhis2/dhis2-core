@@ -36,9 +36,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -60,7 +60,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "dashboardItem", namespace = DxfNamespaces.DXF_2_0 )
 public class DashboardItem
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject implements EmbeddedObject
 {
     public static final int MAX_CONTENT = 8;
 

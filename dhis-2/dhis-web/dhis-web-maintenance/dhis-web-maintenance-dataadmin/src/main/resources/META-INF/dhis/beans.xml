@@ -162,6 +162,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     scope="prototype">
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataadmin.action.lockexception.PrepareBatchRemovalAction"

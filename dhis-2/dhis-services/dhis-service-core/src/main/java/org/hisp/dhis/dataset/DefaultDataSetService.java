@@ -37,8 +37,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -75,19 +77,18 @@ public class DefaultDataSetService
         this.lockExceptionStore = lockExceptionStore;
     }
 
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
     private DataApprovalService dataApprovalService;
 
     public void setDataApprovalService( DataApprovalService dataApprovalService )
     {
         this.dataApprovalService = dataApprovalService;
     }
+
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // DataSet
@@ -192,6 +193,24 @@ public class DefaultDataSetService
     public List<DataSet> getDataWriteAll()
     {
         return getDataWriteAll( currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public List<DataSet> getUserDataSets()
+    {
+        User user = currentUserService.getCurrentUser();
+
+        return getUserDataSets( user );
+    }
+
+    @Override
+    public List<DataSet> getUserDataSets( User user )
+    {
+        //TODO native query
+
+        return getAllDataSets().stream()
+            .filter( ds -> aclService.canDataWrite( user, ds ) )
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------
@@ -351,7 +370,6 @@ public class DefaultDataSetService
             }
         }
 
-
         return new ArrayList<>( returnList );
     }
 
@@ -405,6 +423,4 @@ public class DefaultDataSetService
         }
         return ids;
     }
-
-
 }

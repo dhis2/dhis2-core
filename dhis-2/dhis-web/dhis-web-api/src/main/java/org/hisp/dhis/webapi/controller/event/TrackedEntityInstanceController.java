@@ -69,7 +69,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -100,7 +99,6 @@ import java.util.stream.Collectors;
  */
 @Controller
 @RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
-@PreAuthorize( "hasAnyRole('ALL', 'F_TRACKED_ENTITY_INSTANCE_SEARCH')" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class TrackedEntityInstanceController
 {
@@ -196,7 +194,7 @@ public class TrackedEntityInstanceController
 
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {
-            int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams );
+            int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true );
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
@@ -469,11 +467,10 @@ public class TrackedEntityInstanceController
             eventStatus, eventStartDate, eventEndDate, true, TrackedEntityInstanceQueryParams.DEFAULT_PAGE, Pager.DEFAULT_PAGE_SIZE, true, true, includeDeleted,
             null );
 
-        return trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams );
+        return trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false );
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_SEARCH')" )
     public @ResponseBody RootNode getTrackedEntityInstanceById( @PathVariable( "id" ) String pvId )
         throws NotFoundException
     {
@@ -499,7 +496,6 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
     public void postTrackedEntityInstanceJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
@@ -531,7 +527,6 @@ public class TrackedEntityInstanceController
     }
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
     public void postTrackedEntityInstanceXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
@@ -566,7 +561,6 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
     public void updateTrackedEntityInstanceXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -578,7 +572,6 @@ public class TrackedEntityInstanceController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
     public void updateTrackedEntityInstanceJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -594,7 +587,6 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_DELETE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteTrackedEntityInstance( @PathVariable String id ) throws WebMessageException
     {

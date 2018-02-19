@@ -40,8 +40,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Access;
@@ -255,22 +253,6 @@ public class UserCredentials
         }
 
         return false;
-    }
-
-    /**
-     * Returns a set of the aggregated data sets for all user authority groups
-     * of this user credentials.
-     */
-    public Set<DataSet> getAllDataSets()
-    {
-        Set<DataSet> dataSets = new HashSet<>();
-
-        for ( UserAuthorityGroup group : userAuthorityGroups )
-        {
-            dataSets.addAll( group.getDataSets() );
-        }
-
-        return dataSets;
     }
 
     /**

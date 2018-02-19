@@ -52,16 +52,6 @@ public interface TrackedEntityInstanceStore
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Returns null if valid; a descriptive, non-null string if invalid.
-     *
-     * @param instance the tracked entity instance.
-     * @param attributeValue the attribute value.
-     * @param program the program.
-     * @return null if valid; a descriptive, non-null string if invalid.
-     */
-    String validate( TrackedEntityInstance instance, TrackedEntityAttributeValue attributeValue, Program program );
-
-    /**
      * Checks for the existence of a TEI by UID.
      *
      * @param uid PSI UID to check for.

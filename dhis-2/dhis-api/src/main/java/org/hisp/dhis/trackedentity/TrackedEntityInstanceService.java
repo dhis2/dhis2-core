@@ -37,7 +37,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.validation.ValidationCriteria;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -119,7 +118,7 @@ public interface TrackedEntityInstanceService
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
 
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.
@@ -200,15 +199,6 @@ public interface TrackedEntityInstanceService
     void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
-     * Deletes a {@link TrackedEntityInstance}. Depending on forceDelete, the TEI will either be
-     * soft deleted (false) or hard deleted (true)
-     *
-     * @param instance to be deleted
-     * @param forceDelete hard or soft delete
-     */
-    void deleteTrackedEntityInstance( TrackedEntityInstance instance, boolean forceDelete );
-
-    /**
      * Updates a {@link TrackedEntityInstance}.
      *
      * @param entityInstance the TrackedEntityInstance to update.
@@ -251,34 +241,6 @@ public interface TrackedEntityInstanceService
      */
     int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
-
-    /**
-     * Update information of an entityInstance existed
-     *
-     * @param entityInstance     TrackedEntityInstance
-     * @param representativeId   The id of representative of this entityInstance
-     * @param relationshipTypeId The id of relationship type of this person
-     * @param valuesForSave      The entityInstance attribute values for adding
-     * @param valuesForUpdate    The entityInstance attribute values for updating
-     * @param valuesForDelete    The entityInstance attribute values for deleting
-     */
-    void updateTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
-        Integer relationshipTypeId, List<TrackedEntityAttributeValue> valuesForSave,
-        List<TrackedEntityAttributeValue> valuesForUpdate, Collection<TrackedEntityAttributeValue> valuesForDelete );
-
-    /**
-     * Validate entityInstance attributes and validation criteria by program
-     * before registering or updating information
-     *
-     * @param entityInstance TrackedEntityInstance object
-     * @param program        Program which person needs to enroll. If this parameter is
-     *                       null, the system check unique attribute values of the
-     *                       entityInstance
-     * @return Error code 0 : Validation is OK 1_<duplicate-value> : The
-     * attribute value is duplicated 2_<validation-criteria-id> :
-     * Violate validation criteria of the program
-     */
-    String validateTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program );
 
     /**
      * Validate tracked entity instance enrollment

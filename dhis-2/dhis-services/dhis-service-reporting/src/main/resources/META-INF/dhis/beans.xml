@@ -160,6 +160,7 @@
 
   <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" >
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="analyticsService" ref="org.hisp.dhis.analytics.AnalyticsService" />
   </bean>
 
   <bean id="org.hisp.dhis.validation.ValidationRunContext" class="org.hisp.dhis.validation.ValidationRunContext" scope="prototype" />
@@ -170,8 +171,8 @@
   <bean id="dataStatisticsJob" class="org.hisp.dhis.datastatistics.DataStatisticsJob" />
   <bean id="credentialsExpiryAlertJob" class="org.hisp.dhis.credentials.CredentialsExpiryAlertJob" />
   <bean id="monitoringJob" class="org.hisp.dhis.validation.scheduling.MonitoringJob" />
-  <bean id="pushAnalysis" class="org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob" />
-  <bean id="predicatorJob" class="org.hisp.dhis.predictor.PredictorJob" />
+  <bean id="pushAnalysisJob" class="org.hisp.dhis.pushanalysis.scheduling.PushAnalysisJob" />
+  <bean id="predictorJob" class="org.hisp.dhis.predictor.PredictorJob" />
 
   <!-- Startup routine definitions -->
 

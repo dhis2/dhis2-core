@@ -28,7 +28,6 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 
 /**
@@ -56,18 +55,6 @@ public class UserAuthorityGroupDeletionHandler
     public String getClassName()
     {
         return UserAuthorityGroup.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteDataSet( DataSet dataSet )
-    {
-        for ( UserAuthorityGroup group : userService.getAllUserAuthorityGroups() )
-        {
-            if ( group.getDataSets().remove( dataSet ) )
-            {
-                userService.updateUserAuthorityGroup( group );
-            }
-        }
     }
 
     @Override

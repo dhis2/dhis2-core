@@ -75,19 +75,6 @@ public interface ProgramStageInstanceStore
     List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
-     * Get the number of events by completed status
-     *
-     * @param programStage Program
-     * @param orgunitIds   The ids of orgunits where the events happened
-     * @param startDate    Optional date the instance should be on or after.
-     * @param endDate      Optional date the instance should be on or before.
-     * @param completed    Optional flag to only get completed (<code>true</code> )
-     *                     or uncompleted (<code>false</code>) instances.
-     * @return A number
-     */
-    int count( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate, Boolean completed );
-
-    /**
      * Get the number of ProgramStageInstances updates since the given Date.
      *
      * @param time the time.

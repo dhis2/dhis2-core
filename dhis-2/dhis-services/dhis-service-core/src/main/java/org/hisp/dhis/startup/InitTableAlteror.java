@@ -80,6 +80,7 @@ public class InitTableAlteror
         removeDeprecatedConfigurationColumns();
         updateTimestamps();
         updateCompletedBy();
+        updateRelativePeriods();
 
         executeSql( "ALTER TABLE program ALTER COLUMN \"type\" TYPE varchar(255);" );
         executeSql( "update program set \"type\"='WITH_REGISTRATION' where type='1' or type='2'" );
@@ -130,7 +131,6 @@ public class InitTableAlteror
         executeSql( "UPDATE validationResult set notificationsent = false WHERE notificationsent is null" );
 
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
-
     }
 
     private void updateMessageConversationMessageTypes()
@@ -373,6 +373,16 @@ public class InitTableAlteror
             executeSql( dropSql );
 
             log.info( "Upgraded program stage data elements" );
+        }
+    }
+
+    private void updateRelativePeriods()
+    {
+        if ( tableExists( "relativeperiods" ) )
+        {
+            executeSql( "UPDATE relativeperiods SET thisbiweek='f' WHERE thisbiweek IS NULL" );
+            executeSql( "UPDATE relativeperiods SET lastbiweek='f' WHERE lastbiweek IS NULL" );
+            executeSql( "UPDATE relativeperiods SET last4biweeks='f' WHERE last4biweeks IS NULL" );
         }
     }
 

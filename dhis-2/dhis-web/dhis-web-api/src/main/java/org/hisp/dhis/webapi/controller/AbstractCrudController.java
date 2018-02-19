@@ -630,6 +630,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return null;
     }
 
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.OK )
+    public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
+
+        List<T> entity = getEntity( pvUid );
+        
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
+        }
+        
+        object.setAsFavorite( user );
+        manager.updateNoAcl( object );
+        
+        String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
     //--------------------------------------------------------------------------
     // PUT
     //--------------------------------------------------------------------------
@@ -759,6 +790,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
     }
 
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.OK )
+    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
+
+        List<T> entity = getEntity( pvUid );
+        
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();  
+
+        if ( user == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
+        }
+        
+        object.removeAsFavorite( user );
+        manager.updateNoAcl( object );
+        
+        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );        
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+    
     //--------------------------------------------------------------------------
     // Identifiable object collections add, delete
     //--------------------------------------------------------------------------

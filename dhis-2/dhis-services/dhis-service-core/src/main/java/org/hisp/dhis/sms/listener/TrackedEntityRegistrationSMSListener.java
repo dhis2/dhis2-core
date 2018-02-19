@@ -35,6 +35,7 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -106,6 +107,8 @@ public class TrackedEntityRegistrationSMSListener
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
+        Program program = smsCommand.getProgram();
+
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), senderPhoneNumber, WARNING );
@@ -114,6 +117,13 @@ public class TrackedEntityRegistrationSMSListener
         }
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
+
+        if ( !program.hasOrganisationUnit( orgUnit ) )
+        {
+            sendFeedback( SMSCommand.NO_OU_FOR_PROGRAM, senderPhoneNumber, WARNING );
+
+            throw new SMSParserException( SMSCommand.NO_OU_FOR_PROGRAM );
+        }
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setOrganisationUnit( orgUnit );
