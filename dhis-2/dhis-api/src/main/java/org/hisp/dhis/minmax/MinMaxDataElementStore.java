@@ -61,5 +61,5 @@ public interface MinMaxDataElementStore
     
     void delete( DataElementCategoryOptionCombo optionCombo );
     
-    void delete( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits );
+    void delete( Collection<DataElement> dataElements, OrganisationUnit parent );
 }
