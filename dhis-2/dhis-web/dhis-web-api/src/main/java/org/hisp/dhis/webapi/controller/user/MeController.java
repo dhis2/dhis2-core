@@ -187,7 +187,7 @@ public class MeController
         if ( fieldsContains( "dataSets", fields ) )
         {
             rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
-                NodeUtils.createSimples( dataSetService.getDataReadAll( user ).stream()
+                NodeUtils.createSimples( dataSetService.getUserDataRead( user ).stream()
                     .map( BaseIdentifiableObject::getUid )
                     .collect( Collectors.toList() ) )
             );

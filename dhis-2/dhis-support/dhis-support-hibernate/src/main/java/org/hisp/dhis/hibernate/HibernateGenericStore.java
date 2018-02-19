@@ -710,9 +710,21 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public final List<T> getUserDataReadAll( User user )
+    {
+        return getDataSharingCriteria( user,  AclService.LIKE_READ_DATA ).list();
+    }
+
+    @Override
     public final List<T> getDataWriteAll()
     {
         return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    public final List<T> getUserDataWriteAll( User user )
+    {
+        return getDataSharingCriteria( user,  AclService.LIKE_WRITE_DATA ).list();
     }
 
     @Override

@@ -139,7 +139,7 @@ public interface DataSetService
      * Returns the data sets which current user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
      */
-    List<DataSet> getDataReadAll();
+    List<DataSet> getAllDataRead();
 
     /**
      * Returns the data sets which given user have READ access. If the current
@@ -147,13 +147,13 @@ public interface DataSetService
      * @param User  user to query for data set list
      * @return List of dataset which given user has data read access
      */
-    List<DataSet> getDataReadAll( User user );
+    List<DataSet> getUserDataRead( User user );
 
     /**
      * Returns the data sets which current user have WRITE access. If the current
      * user has the ALL authority then all data sets are returned.
      */
-    List<DataSet> getDataWriteAll();
+    List<DataSet> getAllDataWrite();
 
     /**
      * Returns the data sets which current user have WRITE access. If the current
@@ -161,7 +161,7 @@ public interface DataSetService
      * @param User  user to query for data set list
      * @return List of dataset which given User has data write access
      */
-    List<DataSet> getDataWriteAll( User user );
+    List<DataSet> getUserDataWrite( User user );
 
     // -------------------------------------------------------------------------
     // DataSet LockExceptions

@@ -34,9 +34,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetStore;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
@@ -45,18 +44,10 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.version.VersionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -114,13 +105,6 @@ public class DefaultOrganisationUnitService
     public void setConfigurationService( ConfigurationService configurationService )
     {
         this.configurationService = configurationService;
-    }
-
-    private DataSetStore dataSetStore;
-
-    public void setDataSetStore( DataSetStore dataSetStore )
-    {
-        this.dataSetStore = dataSetStore;
     }
 
     // -------------------------------------------------------------------------
@@ -415,7 +399,7 @@ public class DefaultOrganisationUnitService
 
         if ( currentUser != null && !currentUser.isSuper() )
         {
-            List<DataSet> accessibleDataSets = dataSetStore.getDataWriteAll();
+            List<DataSet> accessibleDataSets = dataSetService.getUserDataWrite( currentUser );
 
             if ( accessibleDataSets.isEmpty() )
             {

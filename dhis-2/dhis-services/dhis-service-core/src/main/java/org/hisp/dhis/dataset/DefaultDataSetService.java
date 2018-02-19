@@ -43,13 +43,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -162,57 +156,41 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getDataReadAll( User user )
+    public List<DataSet> getUserDataRead( User user )
     {
         if ( user == null )
         {
             return Lists.newArrayList();
         }
 
-        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll();
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getUserDataReadAll( user );
     }
 
     @Override
-    public List<DataSet> getDataReadAll()
-    {
-        return getDataReadAll( currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public List<DataSet> getDataWriteAll( User user )
-    {
-        if ( user == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll();
-    }
-
-    @Override
-    public List<DataSet> getDataWriteAll()
-    {
-        return getDataWriteAll( currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public List<DataSet> getUserDataSets()
+    public List<DataSet> getAllDataRead()
     {
         User user = currentUserService.getCurrentUser();
-
-        return getUserDataSets( user );
+        return getUserDataRead( user );
     }
 
     @Override
-    public List<DataSet> getUserDataSets( User user )
+    public List<DataSet> getAllDataWrite()
     {
-        //TODO native query
 
-        return getAllDataSets().stream()
-            .filter( ds -> aclService.canDataWrite( user, ds ) )
-            .collect( Collectors.toList() );
+        User user = currentUserService.getCurrentUser();
+
+        return getUserDataWrite( user );
     }
 
+    public List<DataSet> getUserDataWrite( User user )
+    {
+        if ( user == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getUserDataWriteAll( user );
+    }
     // -------------------------------------------------------------------------
     // DataSet LockExceptions
     // -------------------------------------------------------------------------
