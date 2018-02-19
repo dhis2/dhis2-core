@@ -54,7 +54,7 @@ public enum JobType
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
     PROGRAM_NOTIFICATIONS( "programNotificationsJob", true, null, null ),
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false, null, null ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", true, null, null ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false, null, null ),
     MONITORING( "monitoringJob", true, MonitoringJobParameters.class, ImmutableMap.of(
         "relativePeriods", "/api/periodTypes/relativePeriodTypes",
         "validationRuleGroups", "/api/validationRuleGroups"
