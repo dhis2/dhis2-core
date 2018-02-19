@@ -33,6 +33,7 @@ import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,6 +42,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.utils.InputUtils;
@@ -59,8 +61,8 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -76,15 +78,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Lars Helge Overland
@@ -133,6 +134,9 @@ public class DataValueController
     @Autowired
     private CalendarService calendarService;
 
+    @Autowired
+    private AggregateAccessManager accessManager;
+
     // ---------------------------------------------------------------------
     // POST
     // ---------------------------------------------------------------------
@@ -180,6 +184,8 @@ public class DataValueController
         validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, organisationUnit, period );
 
         String valueValid = ValidationUtils.dataValueIsValid( value, dataElement );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         if ( valueValid != null )
         {
@@ -260,10 +266,32 @@ public class DataValueController
             dataValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
 
+            // ---------------------------------------------------------------------
+            // Data Sharing check
+            // ---------------------------------------------------------------------
+
+            List<String> errors = accessManager.canWrite( currentUser, dataValue );
+
+            if ( !errors.isEmpty() )
+            {
+                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
+            }
+
             dataValueService.addDataValue( dataValue );
         }
         else
         {
+            // ---------------------------------------------------------------------
+            // Data Sharing check
+            // ---------------------------------------------------------------------
+
+            List<String> errors = accessManager.canWrite( currentUser, dataValue );
+
+            if ( !errors.isEmpty() )
+            {
+                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
+            }
+
             if ( value == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
                 if ( comment == null )
@@ -438,6 +466,19 @@ public class DataValueController
         if ( dataValue == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Data Sharing check
+        // ---------------------------------------------------------------------
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        List<String> errors = accessManager.canRead( currentUser, dataValue );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
         }
 
         List<String> value = new ArrayList<>();

@@ -133,7 +133,7 @@ public class GetDataSetsAction
 
         if ( !userCredentials.isSuper() )
         {
-            dataSets.retainAll( dataSetService.getUserDataSets() );
+            dataSets.retainAll( dataSetService.getUserDataWrite( userCredentials.getUser() ) );
         }
 
         return new ArrayList<>( dataSets );

@@ -148,7 +148,6 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
     @Autowired
     protected ProgramService programService;
 
@@ -252,7 +251,7 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions )
+    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         User user = currentUserService.getCurrentUser();
@@ -288,7 +287,10 @@ public abstract class AbstractEventService
                 importSummaries.addImportSummary( addEvent( event, user, importOptions ) );
             }
 
-            clearSession();
+            if ( clearSession && events.size() >= FLUSH_FREQUENCY )
+            {
+                clearSession();
+            }
         }
 
         return importSummaries;
@@ -301,7 +303,7 @@ public abstract class AbstractEventService
 
         try
         {
-            ImportSummaries importSummaries = addEvents( events, importOptions );
+            ImportSummaries importSummaries = addEvents( events, importOptions, true );
 
             if ( jobId != null )
             {
@@ -923,7 +925,7 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummaries updateEvents( List<Event> events, boolean singleValue )
+    public ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
 
@@ -959,7 +961,10 @@ public abstract class AbstractEventService
                 importSummaries.addImportSummary( updateEvent( event, user, singleValue, null ) );
             }
 
-            clearSession();
+            if ( clearSession && events.size() >= FLUSH_FREQUENCY )
+            {
+                clearSession();
+            }
         }
 
         return importSummaries;
@@ -1545,13 +1550,11 @@ public abstract class AbstractEventService
         if ( programStageInstance.getId() == 0 )
         {
             programStageInstance.setAutoFields();
-            sessionFactory.getCurrentSession().save( programStageInstance );
+            programStageInstanceService.addProgramStageInstance( programStageInstance );
         }
         else
         {
-            sessionFactory.getCurrentSession().save( programStageInstance );
-            sessionFactory.getCurrentSession().flush();
-            sessionFactory.getCurrentSession().refresh( programStageInstance );
+            programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
 
         if ( programStageInstance.isCompleted() )

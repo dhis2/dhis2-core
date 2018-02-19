@@ -29,9 +29,11 @@
 
 dhis2.util.namespace( 'dhis2.sharing' );
 
+dhis2.sharing.baseUrl =  dhis2.baseUrl ? dhis2.baseUrl : "..";
+
 function loadSharingSettings(type, uid) {
   return $.ajax( {
-    url: '../api/sharing',
+    url: dhis2.sharing.baseUrl + '/api/sharing' ,
     data: {
       type: type,
       id: uid
@@ -42,7 +44,7 @@ function loadSharingSettings(type, uid) {
 
 function saveSharingSettings(type, uid, data) {
   return $.ajax( {
-    url: '../api/sharing?type=' + type + '&id=' + uid,
+    url: dhis2.sharing.baseUrl + '/api/sharing?type=' + type + '&id=' + uid,
     type: 'POST',
     dataType: 'text',
     contentType: 'application/json; charset=UTF-8',
@@ -242,7 +244,7 @@ function showSharingDialog(type, uid) {
     $( '#sharingSearch' ).autocomplete( {
       source: function(request, response) {
         $.ajax( {
-          url: '../api/sharing/search',
+          url: dhis2.sharing.baseUrl + '/api/sharing/search',
           dataType: 'json',
           data: {
             key: request.term,

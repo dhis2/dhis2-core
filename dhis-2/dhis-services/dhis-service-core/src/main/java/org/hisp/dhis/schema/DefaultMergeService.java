@@ -34,6 +34,7 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,8 +75,8 @@ public class DefaultMergeService implements MergeService
 
             if ( property.isCollection() )
             {
-                Collection sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
-                Collection targetObject = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+                Collection<T> sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
+                Collection<T> targetObject = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
 
                 if ( sourceObject == null )
                 {
@@ -87,8 +88,20 @@ public class DefaultMergeService implements MergeService
                     targetObject = ReflectionUtils.newCollectionInstance( property.getKlass() );
                 }
 
-                targetObject.clear();
-                targetObject.addAll( sourceObject );
+                if ( mergeParams.getMergeMode().isMerge() )
+                {
+                    Collection<T> merged = ReflectionUtils.newCollectionInstance( property.getKlass() );
+                    merged.addAll( targetObject );
+                    merged.addAll( sourceObject.stream().filter( o -> !merged.contains( o ) ).collect( Collectors.toList() ) );
+
+                    targetObject.clear();
+                    targetObject.addAll( merged );
+                }
+                else
+                {
+                    targetObject.clear();
+                    targetObject.addAll( sourceObject );
+                }
 
                 ReflectionUtils.invokeMethod( target, property.getSetterMethod(), targetObject );
             }

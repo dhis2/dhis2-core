@@ -2242,6 +2242,12 @@ dhis2.de.validateCompulsoryDataElements = function ()
   var compulsoryValid = true;
 
   $('[required=required]').each( function() {
+
+    if ( $(this).prop("disabled") )
+    {
+        return;
+    }
+
     if ( $(this).hasClass("entryselect") )
     {
       var entrySelectName =  $(this).attr("name");
@@ -2396,6 +2402,11 @@ dhis2.de.validateCompulsoryCombinations = function()
 
         $( '.entryfield' ).add( '[name="entryselect"]' ).each( function( i )
         {
+            if ( $(this).prop("disabled") )
+            {
+                return;
+            }
+	    
             var id = $( this ).attr( 'id' );
 
             var split = dhis2.de.splitFieldId( id );
@@ -3517,7 +3528,7 @@ dhis2.de.populateColumnTotals = function(){
                 {                    
                     $trTarget.each( function( idx, item ) 
                     {
-                        var inputs = $( item ).find( '.entryfield' );                        
+                        var inputs = $( item ).find( '.entryfield' );                        
                         inputs.each( function(k, e){
                             if( this.id.indexOf( ids[i] ) !== -1 && $(this).is(':visible') )
                             {

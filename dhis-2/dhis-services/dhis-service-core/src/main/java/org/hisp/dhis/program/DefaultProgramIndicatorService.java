@@ -39,6 +39,7 @@ import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.WeeksBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.YearsBetweenSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.MinutesBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
 import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
@@ -72,6 +73,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
 public class DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
+
     private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
         .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
         .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
@@ -80,6 +82,7 @@ public class DefaultProgramIndicatorService
         .put( WeeksBetweenSqlFunction.KEY, new WeeksBetweenSqlFunction() )
         .put( MonthsBetweenSqlFunction.KEY, new MonthsBetweenSqlFunction() )
         .put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() )
+        .put( MinutesBetweenSqlFunction.KEY, new MinutesBetweenSqlFunction() )
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
 

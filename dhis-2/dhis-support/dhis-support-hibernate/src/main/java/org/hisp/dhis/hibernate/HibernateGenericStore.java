@@ -231,6 +231,18 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public final Criteria getDataSharingCriteria( String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+    }
+
+    @Override
+    public final Criteria getDataSharingCriteria( User user, String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( UserInfo.fromUser( user ), access ) );
+    }
+
+    @Override
     public final Criteria getSharingCriteria( String access )
     {
         return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
@@ -332,7 +344,7 @@ public class HibernateGenericStore<T>
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
-        if ( !dataSharingEnabled( user ) || user == null )
+        if ( user == null || !dataSharingEnabled( user ) )
         {
             return criteria;
         }
@@ -692,9 +704,27 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataAll()
+    public final List<T> getDataReadAll()
     {
         return getDataSharingCriteria().list();
+    }
+
+    @Override
+    public final List<T> getUserDataReadAll( User user )
+    {
+        return getDataSharingCriteria( user,  AclService.LIKE_READ_DATA ).list();
+    }
+
+    @Override
+    public final List<T> getDataWriteAll()
+    {
+        return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    public final List<T> getUserDataWriteAll( User user )
+    {
+        return getDataSharingCriteria( user,  AclService.LIKE_WRITE_DATA ).list();
     }
 
     @Override
@@ -709,7 +739,7 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataAll( int first, int max )
+    public final List<T> getDataReadAll( int first, int max )
     {
         return getDataSharingCriteria()
             .setFirstResult( first )
