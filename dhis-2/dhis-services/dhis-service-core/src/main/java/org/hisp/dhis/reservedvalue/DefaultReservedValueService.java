@@ -86,7 +86,7 @@ public class DefaultReservedValueService
         // Used for searching value tables
         String valueKey = (generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key);
 
-        ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(),
+        ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(),
             key,
             valueKey,
             expires );
@@ -104,7 +104,7 @@ public class DefaultReservedValueService
             return reservedValueStore.reserveValues( reservedValue, Lists.newArrayList( key ) );
         }
 
-        List<String> usedGeneratedValues = new ArrayList();
+        List<String> usedGeneratedValues = new ArrayList<>();
 
         int numberOfValuesLeftToGenerate = numberOfReservations;
 
@@ -150,7 +150,7 @@ public class DefaultReservedValueService
         {
             log.warn( StringFormatter.format(
                 "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
-                textPattern.getOwnerObject().name(), textPattern.getOwnerUID(), resultList.size() ).getValue() );
+                textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), resultList.size() ).getValue() );
         }
 
         return resultList;
@@ -159,13 +159,13 @@ public class DefaultReservedValueService
     @Override
     public boolean useReservedValue( TextPattern textPattern, String value )
     {
-        return reservedValueStore.useReservedValue( textPattern.getOwnerUID(), value );
+        return reservedValueStore.useReservedValue( textPattern.getOwnerUid(), value );
     }
 
     @Override
     public boolean isReserved( TextPattern textPattern, String value )
     {
-        return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(), value );
+        return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value );
     }
 
     // Helper methods
@@ -187,7 +187,7 @@ public class DefaultReservedValueService
         if ( segment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
         {
             generatedValues.addAll( sequentialNumberCounterStore
-                .getNextValues( textPattern.getOwnerUID(), segment.getParameter(), numberOfValues )
+                .getNextValues( textPattern.getOwnerUid(), segment.getParameter(), numberOfValues )
                 .stream()
                 .map( ( n ) -> StringFormatter.format( "%0" + segment.getParameter().length() + "d", n ).getValue() )
                 .collect( Collectors.toList() ) );

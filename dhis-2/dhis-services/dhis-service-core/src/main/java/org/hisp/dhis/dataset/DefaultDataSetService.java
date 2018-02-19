@@ -37,7 +37,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,9 +76,6 @@ public class DefaultDataSetService
     {
         this.dataApprovalService = dataApprovalService;
     }
-
-    @Autowired
-    private AclService aclService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -170,13 +166,13 @@ public class DefaultDataSetService
     public List<DataSet> getAllDataRead()
     {
         User user = currentUserService.getCurrentUser();
+        
         return getUserDataRead( user );
     }
 
     @Override
     public List<DataSet> getAllDataWrite()
     {
-
         User user = currentUserService.getCurrentUser();
 
         return getUserDataWrite( user );
