@@ -114,6 +114,7 @@ public class DefaultSchemaService
         add( new PredictorSchemaDescriptor() ).
         add( new ProgramDataElementDimensionItemSchemaDescriptor() ).
         add( new ProgramIndicatorSchemaDescriptor() ).
+        add( new AnalyticsPeriodBoundarySchemaDescriptor() ).
         add( new ProgramRuleActionSchemaDescriptor() ).
         add( new ProgramRuleSchemaDescriptor() ).
         add( new ProgramRuleVariableSchemaDescriptor() ).

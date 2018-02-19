@@ -1,7 +1,7 @@
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,49 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
-import java.util.List;
-
 /**
  * @author Markus Bekken
  */
-public interface TrackedEntityAttributeReservedValueStore
-{
-    TrackedEntityAttributeReservedValue saveTrackedEntityAttributeReservedValue( TrackedEntityAttributeReservedValue trackedEntityAttributeReservedValue );
 
-    List<TrackedEntityAttributeReservedValue> getTrackedEntityReservedValues( TrackedEntityAttribute trackedEntityAttribute,
-        String value );
+public enum AnalyticsPeriodBoundaryType
+{
+    BEFORE_START_OF_REPORTING_PERIOD( "before_start_of_reporting_period" ), 
+    BEFORE_END_OF_REPORTING_PERIOD( "before_end_of_reporting_period" ),
+    AFTER_START_OF_REPORTING_PERIOD( "after_start_of_reporting_period" ), 
+    AFTER_END_OF_REPORTING_PERIOD( "after_end_of_reporting_period" );
+    
+    private final String value;
+
+    private AnalyticsPeriodBoundaryType( String value )
+    {
+        this.value = value;
+    }
+
+    public static AnalyticsPeriodBoundaryType fromValue( String value )
+    {
+        for ( AnalyticsPeriodBoundaryType analyticsPeriodBoundaryType : AnalyticsPeriodBoundaryType.values() )
+        {
+            if ( analyticsPeriodBoundaryType.getValue().equalsIgnoreCase( value ) )
+            {
+                return analyticsPeriodBoundaryType;
+            }
+        }
+
+        return null;
+    }
+    
+    public String getValue()
+    {
+        return value;
+    }
+    
+    public Boolean isEndBoundary()
+    {
+        return this == BEFORE_END_OF_REPORTING_PERIOD || this == BEFORE_START_OF_REPORTING_PERIOD;
+    }
+    
+    public Boolean isStartBoundary()
+    {
+        return this == AFTER_END_OF_REPORTING_PERIOD || this == AFTER_START_OF_REPORTING_PERIOD;
+    }
 }

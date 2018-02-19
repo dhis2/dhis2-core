@@ -369,7 +369,7 @@ public abstract class PeriodType
      */
     public static DateTimeUnit createLocalDateUnitInstance( Date date, org.hisp.dhis.calendar.Calendar calendar )
     {
-        return calendar.fromIso( DateTimeUnit.fromJdkDate( date ) );
+        return calendar.fromIso( date );
     }
 
     /**
@@ -587,8 +587,14 @@ public abstract class PeriodType
      * @param calendar the Calendar to use.
      * @return a Period which is the next of the given Period.
      */
-    public abstract Period getNextPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar );
+    public Period getNextPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
+    {
+        DateTimeUnit dateWithOffset = getDateWithOffset( createLocalDateUnitInstance( period.getStartDate(), calendar ),
+            1, calendar );
 
+        return createPeriod( dateWithOffset, calendar );
+    }
+    
     /**
      * Returns a Period which is the previous of the given Period. Only valid
      * Periods are returned. If the given Period is of different PeriodType than
@@ -636,7 +642,13 @@ public abstract class PeriodType
      * @param period the Period to base the previous Period on.
      * @return a Period which is the previous of the given Period.
      */
-    public abstract Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar );
+    public Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
+    {
+        DateTimeUnit dateWithOffset = getDateWithOffset( createLocalDateUnitInstance( period.getStartDate(), calendar ),
+            -1, calendar );
+        
+        return createPeriod( dateWithOffset, calendar );
+    }
 
     /**
      * Returns the period at the same time of year going back a number of years.
@@ -652,6 +664,33 @@ public abstract class PeriodType
         calendar.set( Calendar.YEAR, calendar.get( Calendar.YEAR ) - yearCount );
 
         return createPeriod( calendar );
+    }
+    
+    /**
+     * Offsets the input date with the provided number of periods within the current period type.
+     * If the offset number is positive, the date is offset into later periods. When the offset is
+     * negative, the date is offset into earlier periods.
+     * @param dateTimeUnit for where to start the offset.
+     * @param period how many periods to go back(if negative) or forward(if positive). A value of 0 will
+     * result in the original date to be returned.
+     * @return a new date object that has been offset from the original date passed into the function.
+     */
+    protected abstract DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar );
+    
+    /**
+    * Offsets the input date with the provided number of periods within the current period type.
+     * If the offset number is positive, the date is offset into later periods. When the offset is
+     * negative, the date is offset into earlier periods.
+     * @param date for where to start the offset.
+     * @param period how many periods to go back(if negative) or forward(if positive). A value of 0 will
+     * result in the original date to be returned.
+     * @return a new date object that has been offset from the original date passed into the function.
+     */
+    public Date getDateWithOffset( Date date, int offset )
+    {
+        org.hisp.dhis.calendar.Calendar calendar = getCalendar();
+        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date, calendar );
+        return getDateWithOffset( dateTimeUnit, offset, calendar ).toJdkDate();
     }
 
     // -------------------------------------------------------------------------
