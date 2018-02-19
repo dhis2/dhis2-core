@@ -46,13 +46,17 @@ public interface InternalHibernateGenericStore<T>
 
     Criteria getSharingCriteria();
 
-    Criteria getDataSharingCriteria();
+    Criteria getDataReadSharingCriteria();
+    
+    Criteria getDataWriteSharingCriteria();
 
     Criteria getSharingCriteria( String access );
 
     Criteria getSharingCriteria( User user );
 
-    DetachedCriteria getDataSharingDetachedCriteria( User user );
+    DetachedCriteria getDataReadSharingDetachedCriteria( User user );
+    
+    DetachedCriteria getDataWriteSharingDetachedCriteria( User user );
 
     Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
 
