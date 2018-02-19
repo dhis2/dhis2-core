@@ -41,7 +41,6 @@ import java.util.stream.IntStream;
  */
 public class TextPatternMethodUtils
 {
-
     /**
      * Returns a random String based on the format. The format (As specified in TextPatternMethod) can contain '#' digits,
      * 'X' capital letters and 'x' lower case letters.

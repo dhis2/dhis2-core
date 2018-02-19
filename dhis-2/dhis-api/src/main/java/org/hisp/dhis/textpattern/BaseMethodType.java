@@ -31,6 +31,9 @@ package org.hisp.dhis.textpattern;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * @author Stian Sandvold
+ */
 public abstract class BaseMethodType
     implements MethodType
 {
@@ -71,5 +74,4 @@ public abstract class BaseMethodType
     {
         return value;
     }
-
 }

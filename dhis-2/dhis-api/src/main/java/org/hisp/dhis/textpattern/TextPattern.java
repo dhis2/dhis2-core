@@ -54,7 +54,7 @@ public class TextPattern
 
     private Objects ownerObject;
 
-    private String ownerUID;
+    private String ownerUid;
 
     public TextPattern()
     {
@@ -66,16 +66,16 @@ public class TextPattern
         this.segments = ImmutableList.copyOf( segments );
     }
 
-    public void setOwnerUID( String ownerUID )
+    public void setOwnerUid( String ownerUid )
     {
-        this.ownerUID = ownerUID;
+        this.ownerUid = ownerUid;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOwnerUID()
+    public String getOwnerUid()
     {
-        return ownerUID;
+        return ownerUid;
     }
 
     public void setSegments( ArrayList<TextPatternSegment> segments )
@@ -101,5 +101,4 @@ public class TextPattern
     {
         return this.segments;
     }
-
 }
