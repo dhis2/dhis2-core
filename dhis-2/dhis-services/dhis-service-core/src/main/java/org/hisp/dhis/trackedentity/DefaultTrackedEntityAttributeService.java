@@ -37,8 +37,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
@@ -69,26 +67,11 @@ public class DefaultTrackedEntityAttributeService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private TrackedEntityAttributeStore attributeStore;
 
-    public void setAttributeStore( TrackedEntityAttributeStore attributeStore )
-    {
-        this.attributeStore = attributeStore;
-    }
-
+    @Autowired
     private ProgramService programService;
-
-    public void setProgramService( ProgramService programService )
-    {
-        this.programService = programService;
-    }
-
-    private ProgramTrackedEntityAttributeStore programAttributeStore;
-
-    public void setProgramAttributeStore( ProgramTrackedEntityAttributeStore programAttributeStore )
-    {
-        this.programAttributeStore = programAttributeStore;
-    }
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -191,9 +174,7 @@ public class DefaultTrackedEntityAttributeService
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
-        
-        //Search at least TEI's of the same type
-        params.setTrackedEntityType( trackedEntityInstance.getTrackedEntityType() );
+        params.setInternalSearch( true );
 
         if ( trackedEntityAttribute.getOrgunitScope() && trackedEntityAttribute.getProgramScope() )
         {
@@ -316,41 +297,8 @@ public class DefaultTrackedEntityAttributeService
     // -------------------------------------------------------------------------
 
     @Override
-    public ProgramTrackedEntityAttribute getOrAddProgramTrackedEntityAttribute( String programUid, String attributeUid )
+    public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()
     {
-        Program program = programService.getProgram( programUid );
-
-        TrackedEntityAttribute attribute = getTrackedEntityAttribute( attributeUid );
-
-        if ( program == null || attribute == null )
-        {
-            return null;
-        }
-
-        ProgramTrackedEntityAttribute programAttribute = programAttributeStore.get( program, attribute );
-
-        if ( programAttribute == null )
-        {
-            programAttribute = new ProgramTrackedEntityAttribute( program, attribute );
-
-            programAttributeStore.save( programAttribute );
-        }
-
-        return programAttribute;
-    }
-
-    @Override
-    public ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( String programUid, String attributeUid )
-    {
-        Program program = programService.getProgram( programUid );
-
-        TrackedEntityAttribute attribute = getTrackedEntityAttribute( attributeUid );
-
-        if ( program == null || attribute == null )
-        {
-            return null;
-        }
-
-        return new ProgramTrackedEntityAttribute( program, attribute );
+        return getAllTrackedEntityAttributes().stream().filter( ta -> ta.isSystemWideUnique() ).collect( Collectors.toList() );
     }
 }

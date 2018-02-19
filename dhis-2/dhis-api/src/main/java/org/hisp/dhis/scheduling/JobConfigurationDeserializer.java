@@ -85,7 +85,6 @@ public class JobConfigurationDeserializer
         String cronExpression = root.has( CRON_EXPRESSION ) ? root.get( CRON_EXPRESSION ).textValue() : "";
 
         return new JobConfiguration( root.get( NAME ).textValue(), jobType,
-            cronExpression, jobParameters,
-            continuousExecution, enabled );
+            cronExpression, jobParameters, continuousExecution, enabled );
     }
 }

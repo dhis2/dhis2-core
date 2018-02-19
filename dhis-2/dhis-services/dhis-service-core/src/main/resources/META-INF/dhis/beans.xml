@@ -868,7 +868,6 @@
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="fileResourceService" ref="org.hisp.dhis.fileresource.FileResourceService" />
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
@@ -925,7 +924,6 @@
   <bean id="org.hisp.dhis.dataset.DataSetService" class="org.hisp.dhis.dataset.DefaultDataSetService">
     <property name="dataSetStore" ref="org.hisp.dhis.dataset.DataSetStore" />
     <property name="lockExceptionStore" ref="org.hisp.dhis.dataset.LockExceptionStore" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="dataApprovalService" ref="org.hisp.dhis.dataapproval.DataApprovalService" />
   </bean>
 
@@ -989,6 +987,7 @@
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
     <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
@@ -1157,7 +1156,7 @@
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" />
 
-  <bean id="scheduledDataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
+  <bean id="dataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
   <bean id="org.hisp.dhis.security.oauth2.OAuth2ClientStore" class="org.hisp.dhis.security.oauth2.hibernate.HibernateOAuth2ClientStore">
     <property name="clazz" value="org.hisp.dhis.security.oauth2.OAuth2Client" />
@@ -1519,11 +1518,7 @@
   </bean>  
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
-    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService">
-    <property name="attributeStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore" />
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="programAttributeStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" />
-  </bean>
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService" />
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueService">
@@ -1653,7 +1648,7 @@
 
   <!-- Scheduled jobs -->
 
-  <bean id="scheduledProgramNotificationsJob"
+  <bean id="programNotificationsJob"
         class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
   <bean id="validationResultNotificationJob"
@@ -1675,7 +1670,6 @@
 
   <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
     <property name="jobConfigurationService" ref="jobConfigurationService" />
-    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
     <property name="runlevel" value="5" />
     <property name="skipInTests" value="true" />
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
