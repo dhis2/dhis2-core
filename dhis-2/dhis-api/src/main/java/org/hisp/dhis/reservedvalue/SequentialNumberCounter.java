@@ -68,7 +68,7 @@ public class SequentialNumberCounter
         return ownerUid;
     }
 
-    public void setOwnerUid( String ownerUID )
+    public void setOwnerUid( String ownerUid )
     {
         this.ownerUid = ownerUid;
     }
