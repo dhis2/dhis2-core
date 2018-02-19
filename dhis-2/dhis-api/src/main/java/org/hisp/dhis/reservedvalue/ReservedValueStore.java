@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.reservedvalue;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,17 +28,28 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.common.GenericStore;
 
 import java.util.List;
 
 /**
- * @author Markus Bekken
+ * @author Stian Sandvold
  */
-public interface TrackedEntityAttributeReservedValueStore
+public interface ReservedValueStore
+    extends GenericStore<ReservedValue>
 {
-    TrackedEntityAttributeReservedValue saveTrackedEntityAttributeReservedValue( TrackedEntityAttributeReservedValue trackedEntityAttributeReservedValue );
 
-    List<TrackedEntityAttributeReservedValue> getTrackedEntityReservedValues( TrackedEntityAttribute trackedEntityAttribute,
-        String value );
+    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+
+    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+
+    int getNumberOfUsedValues( ReservedValue reservedValue );
+
+    void removeExpiredReservations();
+
+    boolean useReservedValue( String ownerUID, String value );
+
+    void deleteReservedValueByUid( String uid );
+
+    boolean isReserved( String ownerObject, String ownerUID, String value );
 }
