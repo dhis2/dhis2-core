@@ -660,6 +660,13 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
+    <action name="getDataSets" class="org.hisp.dhis.commons.action.GetDataSetsAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonDataSets.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
     <action name="getIndicator" class="org.hisp.dhis.commons.action.GetIndicatorAction">
       <result name="success" type="velocity-json">
         /dhis-web-commons/ajax/jsonIndicator.vm
