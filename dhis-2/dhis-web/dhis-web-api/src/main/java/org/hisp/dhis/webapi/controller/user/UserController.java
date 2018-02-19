@@ -65,6 +65,7 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -76,6 +77,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
@@ -96,6 +98,7 @@ public class UserController
 {
     public static final String INVITE_PATH = "/invite";
     public static final String BULK_INVITE_PATH = "/invites";
+    public static final String TRANSFER_METADATA_PATH = "/transferMetadata";
 
     private static final String KEY_USERNAME = "username";
     private static final String KEY_PASSWORD = "password";
@@ -409,6 +412,25 @@ public class UserController
 
         response.addHeader( "Location", UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );
         webMessageService.send( WebMessageUtils.created( "User replica created" ), response, request );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRANSFER_METADATA')" )
+    @RequestMapping( value = TRANSFER_METADATA_PATH, method = RequestMethod.POST )
+    public void transferMetadata( @RequestParam String source, @RequestParam String target,
+        HttpServletRequest request, HttpServletResponse response ) throws IOException, WebMessageException
+    {
+        User sourceUser = userService.getUser( source );
+        User targetUser = userService.getUser( target );
+
+        if ( !ObjectUtils.allNonNull( sourceUser, targetUser ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Invalid source or target user" ) );
+        }
+
+        manager.changeObjectsOwner( sourceUser, targetUser );
+
+        webMessageService.send( WebMessageUtils.ok( "All objects are updated" ), response, request );
     }
 
     // -------------------------------------------------------------------------

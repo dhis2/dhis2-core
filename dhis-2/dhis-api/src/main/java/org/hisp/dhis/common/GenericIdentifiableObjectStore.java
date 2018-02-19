@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.Date;
@@ -300,4 +301,39 @@ public interface GenericIdentifiableObjectStore<T>
      * @return the number of objects equal or newer than given date.
      */
     int getCountGeCreated( Date created );
+
+    /**
+     * Count all objects created by given User
+     * @param user
+     * @return number of objects created by given User
+     */
+    long countByUser( User user);
+
+    /**
+     * Count all objects last updated by given User
+     * @param user
+     * @return number of objects last updated by given User
+     */
+    long countByLastUpdatedBy( User user);
+
+    /**
+     * Get all objects created by given User
+     * @param user
+     * @return all objects created by given User
+     */
+    List<T> getAllByUser( User user );
+
+    /**
+     * Update the owner of all objects from source User to target User
+     * @param source User to be updated
+     * @param target new owner of all objects
+     */
+    void changeObjectsOwner( User source, User target );
+
+    /**
+     * Update lastUpdatedBy user with target user
+     * @param source User need to be replace
+     * @param target User to be updated
+     */
+    void changeLastUpdatedBy( User source, User target );
 }

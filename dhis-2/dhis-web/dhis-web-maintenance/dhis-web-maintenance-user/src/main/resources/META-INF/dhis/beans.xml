@@ -63,6 +63,8 @@
   </bean>
 
   <bean id="org.hisp.dhis.user.action.DisableUserAction" class="org.hisp.dhis.user.action.DisableUserAction" scope="prototype" />
+
+  <bean id="org.hisp.dhis.user.action.TransferMetadataObjectAction" class="org.hisp.dhis.user.action.TransferMetadataObjectAction" scope="prototype" />
   
   <!-- Role -->
 

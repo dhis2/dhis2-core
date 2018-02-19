@@ -694,4 +694,30 @@ public class IdentifiableObjectManagerTest
         assertEquals( dataElementB, map.get( "DataElementCodeB" ) );
         assertNull( map.get( "DataElementCodeX" ) );
     }
+
+    @Test
+    public void testUpdateObjectsOwner()
+    {
+        User source = createUser( 'A' );
+        User target = createUser( 'B' );
+        identifiableObjectManager.save( source );
+        identifiableObjectManager.save( target );
+
+        DataElement deA = createDataElement( 'A' );
+        deA.setUser( source );
+        identifiableObjectManager.save( deA );
+
+        DataElement deB = createDataElement( 'B' );
+        deB.setUser( source );
+        identifiableObjectManager.save( deB );
+
+        identifiableObjectManager.changeObjectsOwner( source, target );
+
+        // flush does not work in unit test
+        identifiableObjectManager.refresh( deA );
+        identifiableObjectManager.refresh( deB );
+
+        assertEquals( target, deA.getUser() );
+        assertEquals( target, deB.getUser() );
+    }
 }

@@ -41,6 +41,8 @@ import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -100,11 +102,19 @@ public class DefaultIdentifiableObjectManager
     @Autowired
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private SchemaService schemaService;
+
     private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends NameableObject>, GenericNameableObjectStore<? extends NameableObject>> nameableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
+
+    private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> mapClassHasUserProperty;
+
+    private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> mapClassHasLastUpdatedBy;
+
 
     //--------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
@@ -1263,10 +1273,22 @@ public class DefaultIdentifiableObjectManager
         }
 
         identifiableObjectStoreMap = new HashMap<>();
+        mapClassHasUserProperty = new HashMap<>();
+        mapClassHasLastUpdatedBy = new HashMap<>();
 
         for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
             identifiableObjectStoreMap.put( store.getClazz(), store );
+
+            if ( hasProperty( store.getClazz(), "user" )  )
+            {
+                mapClassHasUserProperty.put( store.getClazz(), store );
+            }
+
+            if ( hasProperty( store.getClazz(), "lastUpdatedBy" ) )
+            {
+                mapClassHasLastUpdatedBy.put( store.getClazz(), store );
+            }
         }
 
         nameableObjectStoreMap = new HashMap<>();
@@ -1274,6 +1296,11 @@ public class DefaultIdentifiableObjectManager
         for ( GenericNameableObjectStore<? extends NameableObject> store : nameableObjectStores )
         {
             nameableObjectStoreMap.put( store.getClazz(), store );
+
+            if (  hasProperty( store.getClazz(), "user" )  )
+            {
+                mapClassHasUserProperty.put( store.getClazz(), store );
+            }
         }
 
         dimensionalObjectStoreMap = new HashMap<>();
@@ -1281,6 +1308,82 @@ public class DefaultIdentifiableObjectManager
         for ( GenericDimensionalObjectStore<? extends DimensionalObject> store : dimensionalObjectStores )
         {
             dimensionalObjectStoreMap.put( store.getClazz(), store );
+
+            if (  hasProperty( store.getClazz(), "user" )  )
+            {
+                mapClassHasUserProperty.put( store.getClazz(), store );
+            }
         }
+    }
+
+    @Override
+    public Set<Class<? extends IdentifiableObject>> listClazzCreatedByUser( User user )
+    {
+        initMaps();
+
+        Set<Class<? extends IdentifiableObject>> returnList = new HashSet<>();
+
+        mapClassHasUserProperty.forEach( ( clazz, store ) -> {
+            if ( store.countByUser( user ) > 0 )
+            {
+                returnList.add( clazz );
+            }
+        } );
+
+        return returnList;
+    }
+
+    @Override
+    public Set<Class<? extends IdentifiableObject>> listClazzLastUpdatedBy( User user )
+    {
+        Set<Class<? extends IdentifiableObject>> returnList = new HashSet<>();
+
+        mapClassHasLastUpdatedBy.forEach( ( clazz, store ) -> {
+            if ( store.countByLastUpdatedBy( user ) > 0 )
+            {
+                returnList.add( clazz );
+            }
+        }) ;
+
+        return returnList;
+    }
+
+    @Override
+    public void changeObjectsOwner( User source, User target )
+    {
+        mapClassHasLastUpdatedBy.forEach( ( clazz, store ) -> store.changeLastUpdatedBy( source, target ) );
+
+        Set<Class<? extends IdentifiableObject>> classes = listClazzCreatedByUser( source );
+
+        if ( !classes.isEmpty() )
+        {
+            classes.forEach( clazz ->
+            {
+                GenericIdentifiableObjectStore<? extends IdentifiableObject> store = mapClassHasUserProperty.get( clazz );
+                store.changeObjectsOwner( source, target );
+            } );
+        }
+
+        flush();
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<T> getAllByUser( Class<T> clazz, User user )
+    {
+        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAllByUser( user );
+    }
+
+    private boolean hasProperty( Class clazz, String property )
+    {
+        Schema schema = schemaService.getDynamicSchema( clazz );
+
+        return schema.havePersistedProperty( property );
     }
 }

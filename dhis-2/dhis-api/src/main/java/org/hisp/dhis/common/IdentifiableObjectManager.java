@@ -207,4 +207,13 @@ public interface IdentifiableObjectManager
     void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations );
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
+
+    Set<Class<? extends IdentifiableObject>> listClazzCreatedByUser( User user );
+
+    Set<Class<? extends IdentifiableObject>> listClazzLastUpdatedBy( User user );
+
+    <T extends IdentifiableObject> List<T> getAllByUser( Class<T> clazz, User user );
+
+    void changeObjectsOwner( User source, User target );
+
 }

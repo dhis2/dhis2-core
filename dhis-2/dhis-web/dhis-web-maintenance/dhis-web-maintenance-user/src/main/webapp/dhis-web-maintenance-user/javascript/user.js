@@ -211,6 +211,65 @@ function showUserOptions()
 	$( "#moreOptions" ).toggle();
 }
 
+function saveTransferMetadata(){
+
+   var source  = $("#fromUserId").val();
+   var target = $("#selectTargetUser").val();
+
+    $.ajax({
+        url: "../api/users/transferMetadata",
+        data: { source: source, target: target },
+        type: "post",
+        success: function() {
+            $( "#transferMetadataForm" ).dialog( "destroy" );
+            window.location.href = "alluser.action";
+        },
+        error: function( xhr, status, error ) {
+            var errorText = JSON.parse( xhr.responseText );
+            setHeaderDelayMessage( errorText.message );
+        }
+    });
+}
+
+function showTransferMetadataDialog( context )
+{
+    $("#fromUser").html(context.name);
+    $("#fromUserId").val(context.uid);
+    $.ajax({
+        url:"getUserForTransferMetadata.action",
+        type:"get",
+        data: { sourceUserId : context.uid },
+        success: function(data){
+            $("#userListContainer").html(data);
+
+            $( "#transferMetadataForm" ).dialog( {
+                modal: true,
+                width: 415,
+                height: 400,
+                resizable: false,
+                title: "Transfer metadata objects",
+                buttons: [{
+                    text: i18n_save_button_label,
+                    click: function(){
+                        saveTransferMetadata();
+                    }},{
+                    text: i18n_close_button_label,
+                    click: function(){
+                        $(this).dialog('close');
+                    }
+                }],
+                close: function(event,ui){
+                    $("#transferMetadataForm").dialog('destroy');
+                }
+                });
+        },
+        error: function( xhr, status, error ) {
+            var errorText = JSON.parse( xhr.responseText );
+            setHeaderDelayMessage( errorText.message );
+        }
+    });
+}
+
 // -----------------------------------------------------------------------------
 // Replicate user
 // -----------------------------------------------------------------------------
@@ -315,7 +374,7 @@ function searchOuTreePopup() {
 		buttons: [{
 			text: i18n_save_button_label,
 			click: function(){
-				assignOrgUnitsToUser();
+          assignOrgUnitsToUser();
 		}},{
 			text: i18n_close_button_label,
 			click: function(){

@@ -199,6 +199,7 @@ public class DefaultUserService
     public int getManagedUserCount( User user )
     {
         UserQueryParams params = new UserQueryParams( user );
+        handleUserQueryParams( params );
         params.setCanManage( true );
         params.setAuthSubset( true );
 
