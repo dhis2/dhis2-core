@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -36,6 +37,9 @@ import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternParser;
+import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.ArrayList;
@@ -44,7 +48,6 @@ import java.util.List;
 public class TrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook
 {
-
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -56,33 +59,105 @@ public class TrackedEntityAttributeObjectBundleHook
         if ( object != null && object.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
         {
             TrackedEntityAttribute attr = (TrackedEntityAttribute) object;
-            DeviceRenderTypeMap<ValueTypeRenderingObject> map = attr.getRenderType();
 
-            if ( map == null )
-            {
-                return errorReports;
-            }
+            errorReports.addAll( renderTypeConformsToConstrains( attr ) );
 
-            for ( RenderDevice device : map.keySet() )
-            {
-                if ( map.get( device ).getType() == null )
-                {
-                    errorReports
-                        .add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
-                }
+            errorReports.addAll( textPatternValid( attr ) );
 
-                if ( !ValidationUtils
-                    .validateRenderingType( TrackedEntityAttribute.class, attr.getValueType(), attr.hasOptionSet(),
-                        map.get( device ).getType() ) )
-                {
-                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4017,
-                        map.get( device ).getType(), attr.getValueType() ) );
-                }
-
-            }
         }
 
         return errorReports;
-
     }
+
+    @Override
+    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( persistedObject != null && persistedObject.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
+        {
+            TrackedEntityAttribute attr = (TrackedEntityAttribute) persistedObject;
+
+            if ( attr.isGenerated() )
+            {
+                try
+                {
+                    TextPattern textPattern = TextPatternParser.parse( attr.getPattern() );
+                    textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
+                    textPattern.setOwnerUID( attr.getUid() );
+                    attr.setTextPattern( textPattern );
+                }
+                catch ( TextPatternParser.TextPatternParsingException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private List<ErrorReport> textPatternValid( TrackedEntityAttribute attr )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        if ( attr.isGenerated() )
+        {
+            try
+            {
+                TextPattern tp = TextPatternParser.parse( attr.getPattern() );
+
+                long generatedSegments = tp.getSegments().stream().filter( ( s ) -> s.getMethod().isGenerated() )
+                    .count();
+
+                if ( generatedSegments != 1 )
+                {
+                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4021 ) );
+                }
+
+                if ( !TextPatternValidationUtils.validateValueType( tp, attr.getValueType() ) )
+                {
+                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4022, attr.getPattern(),
+                        attr.getValueType().name() ) );
+                }
+            }
+            catch ( TextPatternParser.TextPatternParsingException e )
+            {
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019, attr.getPattern(),
+                    e.getMessage() ) );
+            }
+
+        }
+
+        return errorReports;
+    }
+
+    private List<ErrorReport> renderTypeConformsToConstrains( TrackedEntityAttribute attr )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        DeviceRenderTypeMap<ValueTypeRenderingObject> map = attr.getRenderType();
+
+        if ( map == null )
+        {
+            return errorReports;
+        }
+
+        for ( RenderDevice device : map.keySet() )
+        {
+            if ( map.get( device ).getType() == null )
+            {
+                errorReports
+                    .add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
+            }
+
+            if ( !ValidationUtils
+                .validateRenderingType( TrackedEntityAttribute.class, attr.getValueType(), attr.hasOptionSet(),
+                    map.get( device ).getType() ) )
+            {
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4020,
+                    map.get( device ).getType(), attr.getValueType() ) );
+            }
+
+        }
+
+        return errorReports;
+    }
+
 }

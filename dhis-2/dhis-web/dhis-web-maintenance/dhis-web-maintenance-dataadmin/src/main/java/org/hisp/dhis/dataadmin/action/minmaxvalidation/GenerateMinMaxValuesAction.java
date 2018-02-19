@@ -149,8 +149,6 @@ public class GenerateMinMaxValuesAction
             return INPUT;
         }
 
-        Collection<OrganisationUnit> orgUnits = organisationUnitService.getOrganisationUnitWithChildren( unit.getId() );
-        
         Double factor = (Double) systemSettingManager.
             getSystemSetting( SettingKey.FACTOR_OF_DEVIATION );
 
@@ -164,11 +162,11 @@ public class GenerateMinMaxValuesAction
 
         if ( remove )
         {
-            minMaxDataElementService.removeMinMaxDataElements( dataElements, orgUnits );
+            minMaxDataElementService.removeMinMaxDataElements( dataElements, unit );
         }
         else
         {
-            dataAnalysisService.generateMinMaxValues( orgUnits, dataElements, factor );
+            dataAnalysisService.generateMinMaxValues( unit, dataElements, factor );
         }
         
         message = i18n.getString( "done" );

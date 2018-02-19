@@ -359,6 +359,9 @@ public class HibernateDbmsManager
         dropTable( "_dataelementcategoryoptioncombo" );
         dropTable( "_dataapprovalminlevel" );
 
+        emptyTable( "reservedvalue" );
+        emptyTable( "sequentialnumbercounter" );
+
         log.debug( "Cleared database contents" );
 
         cacheManager.clearCache();

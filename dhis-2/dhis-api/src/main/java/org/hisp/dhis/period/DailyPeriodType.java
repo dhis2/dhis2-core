@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -73,7 +74,7 @@ public class DailyPeriodType
     @Override
     public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        return toIsoPeriod( dateTimeUnit );
+        return toIsoPeriod( dateTimeUnit, dateTimeUnit, calendar );
     }
 
     @Override
@@ -87,25 +88,9 @@ public class DailyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusDays( dateTimeUnit, 1 );
-
-        Date date = calendar.toIso( dateTimeUnit ).toJdkDate();
-
-        return new Period( this, date, date );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusDays( dateTimeUnit, 1 );
-
-        Date date = calendar.toIso( dateTimeUnit ).toJdkDate();
-
-        return new Period( this, date, date );
+        return calendar.plusDays( dateTimeUnit, offset );
     }
 
     /**
@@ -138,18 +123,18 @@ public class DailyPeriodType
      * date.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         Calendar cal = getCalendar();
 
-        dateTimeUnit = cal.minusDays( dateTimeUnit, 364 );
+        DateTimeUnit iterationDateTimeUnit = cal.minusDays( dateTimeUnit, 364 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 365; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, null ) );
-            dateTimeUnit = cal.plusDays( dateTimeUnit, 1 );
+            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
+            iterationDateTimeUnit = cal.plusDays( iterationDateTimeUnit, 1 );
         }
 
         return periods;

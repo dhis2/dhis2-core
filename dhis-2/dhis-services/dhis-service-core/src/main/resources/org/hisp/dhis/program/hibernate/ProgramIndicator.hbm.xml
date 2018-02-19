@@ -61,14 +61,20 @@
 
     <property name="displayInForm" />
 
-    <property name="analyticsType" column="analyticstype" length="15">
+    <property name="analyticsType" column="analyticstype" length="15" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.AnalyticsType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
     </property>
-
+    
+    <set name="analyticsPeriodBoundaries" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <one-to-many class="org.hisp.dhis.program.AnalyticsPeriodBoundary" />
+    </set>
+    
     <!-- Object Translation -->
     <set name="translations" table="programindicatortranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />

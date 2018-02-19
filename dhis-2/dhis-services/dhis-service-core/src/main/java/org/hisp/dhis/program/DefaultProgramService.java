@@ -119,12 +119,6 @@ public class DefaultProgramService
     }
 
     @Override
-    public Program getProgramByName( String name )
-    {
-        return programStore.getByName( name );
-    }
-
-    @Override
     public List<Program> getPrograms( OrganisationUnit organisationUnit )
     {
         return programStore.get( organisationUnit );
@@ -134,12 +128,6 @@ public class DefaultProgramService
     public List<Program> getPrograms( ProgramType type )
     {
         return programStore.getByType( type );
-    }
-
-    @Override
-    public List<Program> getPrograms( ProgramType type, OrganisationUnit orgunit )
-    {
-        return programStore.get( type, orgunit );
     }
 
     @Override
@@ -161,30 +149,6 @@ public class DefaultProgramService
     }
 
     @Override
-    public Integer getProgramCountByName( String name )
-    {
-        return programStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<Program> getProgramBetweenByName( String name, int min, int max )
-    {
-        return programStore.getAllLikeName( name, min, max );
-    }
-
-    @Override
-    public Integer getProgramCount()
-    {
-        return programStore.getCount();
-    }
-
-    @Override
-    public List<Program> getProgramsBetween( int min, int max )
-    {
-        return programStore.getAllOrderedName( min, max );
-    }
-
-    @Override
     public Set<Program> getUserPrograms()
     {
         return getUserPrograms( currentUserService.getCurrentUser() );
@@ -198,6 +162,7 @@ public class DefaultProgramService
             return Sets.newHashSet( getAllPrograms() );
         }
 
+        //TODO should this be canDataWrite ?
         return getAllPrograms().stream()
             .filter( p -> aclService.canDataRead( user, p ) )
             .collect( Collectors.toSet() );

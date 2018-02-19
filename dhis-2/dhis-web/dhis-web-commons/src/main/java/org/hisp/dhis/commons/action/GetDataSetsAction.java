@@ -132,7 +132,7 @@ public class GetDataSetsAction
             
             if ( user != null && user.getUserCredentials() != null )
             {
-                dataSets.retainAll( user.getUserCredentials().getAllDataSets() );
+                dataSets.retainAll( dataSetService.getUserDataSets() );
             }            
         }
 

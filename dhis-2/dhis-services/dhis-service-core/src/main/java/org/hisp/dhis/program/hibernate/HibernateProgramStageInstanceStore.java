@@ -96,18 +96,6 @@ public class HibernateProgramStageInstanceStore
         return criteria.list();
     }
 
-
-
-    @Override
-    public int count( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate,
-        Boolean completed )
-    {
-        Number rs = (Number) getCriteria( programStage, orgunitIds, startDate, endDate, completed ).setProjection(
-            Projections.rowCount() ).uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
-    }
-
     @Override
     public long getProgramStageInstanceCountLastUpdatedAfter( Date time )
     {
@@ -169,55 +157,5 @@ public class HibernateProgramStageInstanceStore
     protected ProgramStageInstance postProcessObject( ProgramStageInstance programStageInstance )
     {
         return ( programStageInstance == null || programStageInstance.isDeleted() ) ? null : programStageInstance;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Criteria getCriteria( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate,
-        Date endDate, Boolean completed )
-    {
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "programInstance", "programInstance" );
-        criteria.add( Restrictions.eq( "programStage", programStage ) );
-
-        if ( completed == null )
-        {
-            criteria.createAlias( "programInstance.entityInstance", "entityInstance" );
-            criteria.createAlias( "entityInstance.organisationUnit", "regOrgunit" );
-            criteria.add( Restrictions.or( Restrictions.and( Restrictions.eq( "status", EventStatus.COMPLETED ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ), Restrictions.and(
-                    Restrictions.eq( "status", EventStatus.ACTIVE ), Restrictions.isNotNull( "executionDate" ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ),
-                Restrictions.and( Restrictions.eq( "status", EventStatus.ACTIVE ), Restrictions.isNull( "executionDate" ),
-                    Restrictions.between( "dueDate", startDate, endDate ),
-                    Restrictions.in( "regOrgunit.id", orgunitIds ) ), Restrictions.and(
-                    Restrictions.eq( "status", EventStatus.SKIPPED ),
-                    Restrictions.between( "dueDate", startDate, endDate ),
-                    Restrictions.in( "regOrgunit.id", orgunitIds ) ) ) );
-        }
-        else
-        {
-            if ( completed )
-            {
-                criteria.add( Restrictions.and( Restrictions.eq( "status", EventStatus.COMPLETED ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ) );
-            }
-            else
-            {
-                criteria.createAlias( "programInstance.entityInstance", "entityInstance" );
-                criteria.createAlias( "entityInstance.organisationUnit", "regOrgunit" );
-                criteria.add( Restrictions.and( Restrictions.eq( "status", EventStatus.ACTIVE ),
-                    Restrictions.isNotNull( "executionDate" ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ) );
-            }
-        }
-
-        return criteria;
     }
 }
