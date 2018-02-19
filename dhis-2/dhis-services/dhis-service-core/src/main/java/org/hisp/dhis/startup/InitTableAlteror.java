@@ -138,7 +138,7 @@ public class InitTableAlteror
     private void updateTrackedEntityAttributePatternAndTextPattern()
     {
         // Create textpattern jsonb
-        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUID\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
+        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUid\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
 
         // Update pattern to match new syntax
         executeSql( "UPDATE trackedentityattribute SET pattern = concat('RANDOM(', pattern, ')') WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NOT NULL" );
