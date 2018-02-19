@@ -1,4 +1,4 @@
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.dataanalysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,38 +28,57 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Collection;
-import java.util.List;
-
 /**
- * @author Kristian Nordal
- * @version $Id: MinMaxDataElementStore.java 5012 2008-04-24 21:14:40Z larshelg $
+ * DataAnalysisMeasures contains the average and standard deviation measures
+ * of data for a given combination of organisation unit and
+ * category option combo. (The data element is fixed.)
+ *
+ * @author Jim Grace
  */
-public interface MinMaxDataElementStore
-    extends GenericStore<MinMaxDataElement>
+public class DataAnalysisMeasures
 {
-    String ID = MinMaxDataElementStore.class.getName();
+    private int orgUnitId;
 
-    MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo );
-    
-    List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement );  
+    private int categoryOptionComboId;
 
-    List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
+    private double average;
 
-    List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
+    private double standardDeviation;
 
-    int countMinMaxDataElements( MinMaxDataElementQueryParams query );
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-    void delete( OrganisationUnit organisationUnit );
-    
-    void delete( DataElement dataElement );
-    
-    void delete( DataElementCategoryOptionCombo optionCombo );
-    
-    void delete( Collection<DataElement> dataElements, OrganisationUnit parent );
+    public DataAnalysisMeasures( int orgUnitId, int categoryOptionComboId,
+        double average, double standardDeviation )
+    {
+        this.orgUnitId = orgUnitId;
+        this.categoryOptionComboId = categoryOptionComboId;
+        this.average = average;
+        this.standardDeviation = standardDeviation;
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
+
+    public int getOrgUnitId()
+    {
+        return orgUnitId;
+    }
+
+    public int getCategoryOptionComboId()
+    {
+        return categoryOptionComboId;
+    }
+
+    public double getAverage()
+    {
+        return average;
+    }
+
+    public double getStandardDeviation()
+    {
+        return standardDeviation;
+    }
 }
