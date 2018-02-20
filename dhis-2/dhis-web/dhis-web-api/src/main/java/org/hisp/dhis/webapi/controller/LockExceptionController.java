@@ -180,7 +180,7 @@ public class LockExceptionController
     }
 
     @RequestMapping( value = "/combinations", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getLockExceptionCombinations( )
+    public @ResponseBody RootNode getLockExceptionCombinations()
         throws IOException, WebMessageException
     {
 
@@ -197,7 +197,6 @@ public class LockExceptionController
         for ( LockException lockException : lockExceptions )
         {
             lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
-
         }
 
         Collections.sort( lockExceptions, new LockExceptionNameComparator() );
@@ -276,7 +275,7 @@ public class LockExceptionController
 
     @RequestMapping( method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteLockException( @RequestParam( name = "ou", required = false  ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
+    public void deleteLockException( @RequestParam( name = "ou", required = false ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         User user = userService.getCurrentUser();
