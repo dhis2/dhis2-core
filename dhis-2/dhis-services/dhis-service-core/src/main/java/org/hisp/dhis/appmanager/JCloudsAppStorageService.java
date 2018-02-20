@@ -80,7 +80,6 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.inDirec
 public class JCloudsAppStorageService
     implements AppStorageService
 {
-
     private static final Log log = LogFactory.getLog( JCloudsAppStorageService.class );
 
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
