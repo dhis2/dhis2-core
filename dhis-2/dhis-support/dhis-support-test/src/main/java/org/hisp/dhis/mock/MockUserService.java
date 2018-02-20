@@ -64,7 +64,6 @@ public class MockUserService
     @Override
     public void updateUser( User user )
     {
-
     }
 
     @Override
@@ -94,7 +93,6 @@ public class MockUserService
     @Override
     public void deleteUser( User user )
     {
-
     }
 
     @Override
@@ -172,14 +170,15 @@ public class MockUserService
     @Override
     public void updateUserCredentials( UserCredentials userCredentials )
     {
-
     }
 
     @Override
     public UserCredentials getUserCredentialsByUsername( String username )
     {
-        for (User user: users) {
-            if (user.getUsername().equals( username )) {
+        for ( User user : users )
+        {
+            if ( user.getUsername().equals( username ) )
+            {
                 return user.getUserCredentials();
             }
         }
@@ -207,19 +206,16 @@ public class MockUserService
     @Override
     public void encodeAndSetPassword( User user, String rawPassword )
     {
-
     }
 
     @Override
     public void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword )
     {
-
     }
 
     @Override
     public void setLastLogin( String username )
     {
-
     }
 
     @Override
@@ -249,7 +245,6 @@ public class MockUserService
     @Override
     public void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
-
     }
 
     @Override
@@ -273,7 +268,6 @@ public class MockUserService
     @Override
     public void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
-
     }
 
     @Override
@@ -321,7 +315,6 @@ public class MockUserService
     @Override
     public void canIssueFilter( Collection<UserAuthorityGroup> userRoles )
     {
-
     }
 
     @Override
