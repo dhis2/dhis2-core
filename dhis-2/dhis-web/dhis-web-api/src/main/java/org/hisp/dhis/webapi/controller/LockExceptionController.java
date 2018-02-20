@@ -177,7 +177,6 @@ public class LockExceptionController
         for ( LockException lockException : lockExceptions )
         {
             lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
-
         }
 
         rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class, new FieldFilterParams( lockExceptions, fields ) ) );
