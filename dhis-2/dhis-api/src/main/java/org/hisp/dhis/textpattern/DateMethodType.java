@@ -63,7 +63,7 @@ public class DateMethodType
     @Override
     public String getValueRegex( String format )
     {
-        return StringFormatter.format( ".{%d}", format.length() ).getValue();
+        return String.format( ".{%d}", format.length() ).;
     }
 
 }
