@@ -31,7 +31,6 @@ package org.hisp.dhis.textpattern;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.sun.javafx.binding.StringFormatter;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -95,7 +94,7 @@ public class TextPatternSegment
         }
         else
         {
-            return StringFormatter.format( "%s(%s)", method.name(), parameter ).getValue();
+            return String.format( "%s(%s)", method.name(), parameter );
         }
     }
 }

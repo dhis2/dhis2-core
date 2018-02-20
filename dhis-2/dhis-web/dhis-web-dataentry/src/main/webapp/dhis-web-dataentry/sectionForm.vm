@@ -106,8 +106,8 @@
                             #foreach( $optionCombo in $optionCombos )
                                 #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                 #set( $compulsory = false )
-                                #foreach( $compulsoryDe in $dataSet.compulsoryDataElementOperands )
-                                    #if( $dataElement.uid == $compulsoryDe.dataElement.uid && $optionCombo.uid == $compulsoryDe.categoryOptionCombo.uid )
+                                #foreach( $cde in $dataSet.compulsoryDataElementOperands )                                    
+                                    #if( $dataElement.uid == $cde.dataElement.uid && ( $optionCombo.uid == $cde.categoryOptionCombo.uid || $optionCombo.isDefault() && !$cde.hasNonDefaultCategoryOptionCombo() ) )
                                         #set( $compulsory = true )
                                     #end
                                 #end

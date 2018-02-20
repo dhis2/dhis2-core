@@ -60,12 +60,12 @@ public class TextPatternValidationUtils
     {
         if ( generatedSegment != null )
         {
-            if ( generatedSegment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
+            if ( TextPatternMethod.SEQUENTIAL.equals( generatedSegment.getMethod() ) )
             {
                 // Subtract by 1 since we don't use all zeroes.
                 return ((int) Math.pow( 10, generatedSegment.getParameter().length() )) - 1;
             }
-            else if ( generatedSegment.getMethod().equals( TextPatternMethod.RANDOM ) )
+            else if ( TextPatternMethod.RANDOM.equals( generatedSegment.getMethod() ) )
             {
                 int res = 1;
 
@@ -99,11 +99,11 @@ public class TextPatternValidationUtils
 
     public static boolean validateValueType( TextPattern textPattern, ValueType valueType )
     {
-        if ( valueType.equals( ValueType.TEXT ) )
+        if ( ValueType.TEXT.equals( valueType ) )
         {
             return true;
         }
-        else if ( valueType.equals( ValueType.NUMBER ) )
+        else if ( ValueType.NUMBER.equals( valueType ) )
         {
             boolean isAllNumbers = true;
 
@@ -122,17 +122,17 @@ public class TextPatternValidationUtils
 
     private static boolean isNumericOnly( TextPatternSegment segment )
     {
-        if ( segment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
+        if ( TextPatternMethod.SEQUENTIAL.equals( segment.getMethod() ) )
         {
             return true;
         }
 
-        if ( segment.getMethod().equals( TextPatternMethod.RANDOM ) )
+        if ( TextPatternMethod.RANDOM.equals( segment.getMethod() ) )
         {
             return segment.getParameter().matches( "^#+$" );
         }
 
-        if ( segment.getMethod().equals( TextPatternMethod.TEXT ) )
+        if ( TextPatternMethod.TEXT.equals( segment.getMethod() ) )
         {
             return segment.getParameter().matches( "^[0-9]*$" );
         }
