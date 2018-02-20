@@ -74,12 +74,12 @@ public class DefaultTextPatternService
             .put( "REQUIRED", pattern.getSegments()
                 .stream()
                 .filter( this::isRequired )
-                .map( TextPatternSegment::getRawSegment )
+                .map( segment -> segment.getMethod().name() )
                 .collect( Collectors.toList() ) )
             .put( "OPTIONAL", pattern.getSegments()
                 .stream()
                 .filter( this::isOptional )
-                .map( TextPatternSegment::getRawSegment )
+                .map( (segment -> segment.getMethod().name()) )
                 .collect( Collectors.toList() ) )
             .build();
     }

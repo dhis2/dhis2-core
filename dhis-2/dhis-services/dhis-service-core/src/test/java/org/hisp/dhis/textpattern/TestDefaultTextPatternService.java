@@ -79,8 +79,8 @@ public class TestDefaultTextPatternService
 
         assertFalse( required.contains( "TEXT" ) );
         assertFalse( required.contains( "CURRENT_DATE" ) );
-        assertTrue( required.contains( "ORG_UNIT_CODE(...)" ) );
-        assertFalse( required.contains( "SEQUENTIAL(#)" ) );
+        assertTrue( required.contains( "ORG_UNIT_CODE" ) );
+        assertFalse( required.contains( "SEQUENTIAL" ) );
         assertEquals( 1, required.size() );
     }
 
@@ -91,8 +91,8 @@ public class TestDefaultTextPatternService
 
         assertFalse( optional.contains( "TEXT" ) );
         assertFalse( optional.contains( "CURRENT_DATE" ) );
-        assertFalse( optional.contains( "ORG_UNIT_CODE(...)" ) );
-        assertTrue( optional.contains( "SEQUENTIAL(#)" ) );
+        assertFalse( optional.contains( "ORG_UNIT_CODE" ) );
+        assertTrue( optional.contains( "SEQUENTIAL" ) );
         assertEquals( 1, optional.size() );
     }
 
