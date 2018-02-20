@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -52,10 +53,12 @@ import java.util.Set;
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
+    private final IdentifiableObjectManager manager;
 
-    public DefaultTrackerAccessManager( AclService aclService )
+    public DefaultTrackerAccessManager( AclService aclService, IdentifiableObjectManager manager )
     {
         this.aclService = aclService;
+        this.manager = manager;
     }
 
     @Override
@@ -348,14 +351,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || manager.isDefault( categoryOptionCombo ) )
         {
             return errors;
         }
 
         for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
-            if ( !aclService.canDataRead( user, categoryOption ) )
+            if ( !aclService.canDataRead( user, categoryOption ) && !manager.isDefault( categoryOption ) )
             {
                 errors.add( "User has no read access to category option: " + categoryOption.getUid() );
             }
@@ -369,14 +372,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || manager.isDefault( categoryOptionCombo ) )
         {
             return errors;
         }
 
         for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
-            if ( !aclService.canDataWrite( user, categoryOption ) )
+            if ( !aclService.canDataWrite( user, categoryOption ) && !manager.isDefault( categoryOption ) )
             {
                 errors.add( "User has no write access to category option: " + categoryOption.getUid() );
             }
