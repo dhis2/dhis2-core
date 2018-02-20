@@ -40,6 +40,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
@@ -110,6 +112,9 @@ public class LockExceptionController
     @Autowired
     private FieldFilterService fieldFilterService;
 
+    @Autowired
+    private I18nManager i18nManager;
+
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
@@ -165,6 +170,14 @@ public class LockExceptionController
         if ( pager != null )
         {
             rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        I18nFormat format = this.i18nManager.getI18nFormat();
+
+        for ( LockException lockException : lockExceptions )
+        {
+            lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
+
         }
 
         rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class, new FieldFilterParams( lockExceptions, fields ) ) );
