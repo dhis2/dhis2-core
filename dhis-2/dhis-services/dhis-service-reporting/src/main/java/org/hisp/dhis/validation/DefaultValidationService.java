@@ -28,7 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
 
@@ -80,9 +78,6 @@ public class DefaultValidationService
     implements ValidationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationService.class );
-
-    private static final ImmutableSet<DimensionItemType> EVENT_DIM_ITEM_TYPES = ImmutableSet.of(
-        PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE, PROGRAM_INDICATOR );
 
     @Autowired
     private PeriodService periodService;
@@ -218,19 +213,6 @@ public class DefaultValidationService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Gets the event dimension item for the validation rules.
-     *
-     * @param dimensionItemMap map from UIDs to all dimension items.
-     * @return Set with all event dimension items.
-     */
-    private Set<DimensionalItemObject> getEventItems( Map<String, DimensionalItemObject> dimensionItemMap )
-    {
-        return dimensionItemMap.values().stream()
-            .filter( di -> EVENT_DIM_ITEM_TYPES.contains( di.getDimensionItemType() ) )
-            .collect( Collectors.toSet() );
-    }
 
     /**
      * Returns a new Builder with basic configuration based on the input parameters.
