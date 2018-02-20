@@ -40,7 +40,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.jfree.data.time.Year;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -582,19 +581,24 @@ public class QueryServiceTest
     }
 
     @Test
-    @Ignore // failing
-    public void testCriteriaOrRootJunctionDEG()
+    public void testCriteriaOrRootJunctionDEG1()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
         query.add( Restrictions.eq( "dataElements.id", "deabcdefghA" ) );
-        query.add( Restrictions.eq( "dataElements.id", "deabcdefghB" ) );
-        query.add( Restrictions.eq( "dataElements.id", "deabcdefghC" ) );
         query.add( Restrictions.eq( "dataElements.id", "deabcdefghD" ) );
-        query.add( Restrictions.eq( "dataElements.id", "deabcdefghE" ) );
-        query.add( Restrictions.eq( "dataElements.id", "deabcdefghF" ) );
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
         assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testCriteriaOrRootJunctionDEG2()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghA" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 1, objects.size() );
     }
 
     private boolean collectionContainsUid( Collection<? extends IdentifiableObject> collection, String uid )
