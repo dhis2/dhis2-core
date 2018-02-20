@@ -525,7 +525,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
                     summary.getConflicts().add( new ImportConflict( "dataElementOperand",
-                        dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
+                        dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory." ) );
                 }
 
                 if ( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )

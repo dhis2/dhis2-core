@@ -2123,9 +2123,16 @@ function registerCompleteDataSet()
 	        type: 'post',
 	    	success: function( data, textStatus, xhr )
 	        {
-                $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-	    		disableCompleteButton();
-	    		dhis2.de.storageManager.clearCompleteDataSet( params );
+                dhis2.de.storageManager.clearCompleteDataSet( params );
+                if( data.status == 'SUCCESS' )
+                {
+                    $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
+                    disableCompleteButton();                    
+                }
+                else if( data.status == 'ERROR' )
+                {
+                    handleDataSetCompletenessResponse( data );
+                }
 	        },
 		    error:  function( xhr, textStatus, errorThrown )
 		    {
@@ -2142,6 +2149,24 @@ function registerCompleteDataSet()
 		    }
 	    } );
 	} );
+}
+
+function handleDataSetCompletenessResponse( data ){
+    var html = '<h3>' + i18n_dataset_completeness_errort + ' &nbsp;<img src="../images/warning_small.png"></h3>';
+                    
+    if( data && data.conflicts && data.conflicts.length > 0 )
+    {
+        html += '<table class="listTable" style="width:300px;">';
+        var alternate = false;
+        data.conflicts.forEach(function( conflict ) {
+            var style = alternate ? 'class="listAlternateRow"' : '';                            
+            html += '<tr><td ' + style + '>' + conflict.value + '</td></tr>';
+            alternate = !alternate;
+        });                        
+        html +='</table>';                        
+    }
+
+    dhis2.de.displayValidationDialog( html, 400 );
 }
 
 function undoCompleteDataSet()
@@ -2174,9 +2199,16 @@ function undoCompleteDataSet()
     	type: 'delete',
     	success: function( data, textStatus, xhr )
         {
-          $( document ).trigger( dhis2.de.event.uncompleted, dhis2.de.currentDataSetId );
-          disableUndoButton();
-          dhis2.de.storageManager.clearCompleteDataSet( params );
+            dhis2.de.storageManager.clearCompleteDataSet( params );
+            if( data.status == 'SUCCESS' )
+            {
+                $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
+                disableCompleteButton();                    
+            }
+            else if( data.status == 'ERROR' )
+            {
+                handleDataSetCompletenessResponse( data );
+            }          
         },
         error: function( xhr, textStatus, errorThrown )
         {
@@ -2302,7 +2334,7 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
         else
         {
             var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
-        	'<p class="bold">' + i18n_all_values_for_data_element_must_be_filled + '</p>';
+        	'<p class="bold">' + i18n_missing_compulsory_dataelements + '</p>';
 		
             dhis2.de.displayValidationDialog( html, 300 );
 
