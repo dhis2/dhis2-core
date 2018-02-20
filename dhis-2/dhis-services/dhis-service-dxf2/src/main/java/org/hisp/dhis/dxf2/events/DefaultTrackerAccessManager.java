@@ -67,7 +67,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || trackedEntityInstance == null )
         {
             return errors;
         }
@@ -98,7 +98,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || trackedEntityInstance == null )
         {
             return errors;
         }
@@ -129,7 +129,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || programInstance == null )
         {
             return errors;
         }
@@ -168,7 +168,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || programInstance == null )
         {
             return errors;
         }
@@ -207,7 +207,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || programStageInstance == null )
         {
             return errors;
         }
@@ -254,7 +254,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( programStageInstance == null || user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || programStageInstance == null )
         {
             return errors;
         }
@@ -307,7 +307,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || dataValue == null )
         {
             return errors;
         }
@@ -329,7 +329,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || dataValue == null )
         {
             return errors;
         }
@@ -351,7 +351,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || manager.isDefault( categoryOptionCombo ) )
+        if ( user == null || user.isSuper() || categoryOptionCombo == null || manager.isDefault( categoryOptionCombo ) )
         {
             return errors;
         }
@@ -372,7 +372,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         List<String> errors = new ArrayList<>();
 
-        if ( user == null || user.isSuper() || manager.isDefault( categoryOptionCombo ) )
+        if ( user == null || user.isSuper() || categoryOptionCombo == null || manager.isDefault( categoryOptionCombo ) )
         {
             return errors;
         }
