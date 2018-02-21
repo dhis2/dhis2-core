@@ -228,7 +228,9 @@ public abstract class AbstractEnrollmentService
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
 
-        List<String> errors = trackerAccessManager.canRead( currentUserService.getCurrentUser(), programInstance );
+        User user = currentUserService.getCurrentUser();
+
+        List<String> errors = trackerAccessManager.canRead( user, programInstance );
 
         if ( !errors.isEmpty() )
         {
@@ -310,7 +312,7 @@ public abstract class AbstractEnrollmentService
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                if ( !programStageInstance.isDeleted() )
+                if ( !programStageInstance.isDeleted() && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
                 {
                     enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
                 }

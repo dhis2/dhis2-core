@@ -252,7 +252,10 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             for ( ProgramInstance programInstance : daoTrackedEntityInstance.getProgramInstances() )
             {
-                trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
+                if ( trackerAccessManager.canRead( user, programInstance ).isEmpty() )
+                {
+                    trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
+                }
             }
         }
 
