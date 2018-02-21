@@ -69,7 +69,7 @@ public class ProgramStageInstanceDeletionHandler
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-        
+    
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
