@@ -72,7 +72,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import static org.jclouds.blobstore.options.ListContainerOptions.Builder.inDirectory;
+import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 /**
  * @author Stian Sandvold
@@ -201,9 +201,8 @@ public class JCloudsAppStorageService
 
         log.info( " Starting JCloud discovery..." );
 
-        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( APPS_DIR ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
         {
-
             log.info( "Found potential app: " + resource.getName() );
 
             // Found potential app
@@ -398,7 +397,7 @@ public class JCloudsAppStorageService
         log.info( "Deleting app " + app.getName() );
 
         // Delete all files related to app
-        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( app.getFolderName() ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
         {
             log.info( "Deleting app file: " + resource.getName() );
 
