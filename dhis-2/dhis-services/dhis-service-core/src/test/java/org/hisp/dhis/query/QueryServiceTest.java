@@ -601,6 +601,29 @@ public class QueryServiceTest
         assertEquals( 1, objects.size() );
     }
 
+    @Test
+    public void testMixedQSRootJunction1()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "id", "abcdefghijA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghD" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testMixedQSRootJunction2()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "id", "abcdefghijA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "does-not-exist" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 1, objects.size() );
+    }
+
     private boolean collectionContainsUid( Collection<? extends IdentifiableObject> collection, String uid )
     {
         for ( IdentifiableObject identifiableObject : collection )
