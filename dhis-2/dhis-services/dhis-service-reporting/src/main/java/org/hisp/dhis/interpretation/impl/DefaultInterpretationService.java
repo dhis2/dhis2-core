@@ -46,6 +46,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,6 +117,13 @@ public class DefaultInterpretationService
     public void setAclService( AclService aclService )
     {
         this.aclService = aclService;
+    }
+
+    private I18nManager i18nManager;
+
+    public void setI18nManager( I18nManager i18nManager )
+    {
+        this.i18nManager = i18nManager;
     }
 
     // -------------------------------------------------------------------------
@@ -251,21 +260,26 @@ public class DefaultInterpretationService
             }
 
             StringBuilder messageContent;
+            I18n i18n = i18nManager.getI18n();
+
             if ( comment != null )
             {
-                messageContent = new StringBuilder( "You were mentioned in the following comment: \n\n" )
+                messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( "\n\n" )
                     .append( comment.getText() );
             }
             else
             {
-                messageContent = new StringBuilder( "You were mentioned in the following interpretation: \n\n" )
-                    .append( interpretation.getText() );
+                messageContent = new StringBuilder( i18n.getString( "interpretation_mention_notification" ) )
+                    .append( "\n\n" ).append( interpretation.getText() );
 
             }
-            messageContent.append( "\n\n" ).append( "Go to " ).append( link );
+            messageContent.append( "\n\n" ).append( i18n.getString( "go_to" ) ).append( " " ).append( link );
+
             User user = currentUserService.getCurrentUser();
-            messageService.sendMessage( messageService.createPrivateMessage( users,
-                user.getDisplayName() + " mentioned you in DHIS2", messageContent.toString(), "Meta" ).build() );
+            StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
+                .append( i18n.getString( "dhis2_mention" ) );
+            messageService.sendMessage( messageService
+                .createPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" ).build() );
         }
     }
 
