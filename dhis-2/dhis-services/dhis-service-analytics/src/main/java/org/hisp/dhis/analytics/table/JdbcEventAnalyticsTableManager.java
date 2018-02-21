@@ -99,7 +99,10 @@ public class JdbcEventAnalyticsTableManager
                 table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
             }
             
-            tables.add( table );
+            if ( table.hasPartitionTables() )
+            {
+                tables.add( table );
+            }
         }
 
         return tables;
@@ -128,7 +131,7 @@ public class JdbcEventAnalyticsTableManager
         final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
         final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
-
+        
         String sql = "insert into " + partition.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( program );

@@ -66,7 +66,9 @@ public class JdbcCompletenessTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() ) );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() );
+        
+        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
     
     @Override
