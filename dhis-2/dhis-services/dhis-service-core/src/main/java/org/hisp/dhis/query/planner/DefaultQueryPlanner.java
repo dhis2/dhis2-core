@@ -64,7 +64,7 @@ public class DefaultQueryPlanner implements QueryPlanner
     @Override
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
-        if ( Junction.Type.OR == query.getRootJunctionType() )
+        if ( Junction.Type.OR == query.getRootJunctionType() && !persistedOnly )
         {
             return new QueryPlan(
                 Query.from( query.getSchema() ).setPlannedQuery( true ),
