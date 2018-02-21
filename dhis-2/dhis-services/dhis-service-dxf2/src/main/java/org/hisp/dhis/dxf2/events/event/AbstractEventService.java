@@ -705,8 +705,11 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( errors.toString() );
         }
 
-        event.setOrgUnit( ou.getUid() );
-        event.setOrgUnitName( ou.getName() );
+        if ( ou != null )
+        {
+            event.setOrgUnit( ou.getUid() );
+            event.setOrgUnitName( ou.getName() );
+        }
 
         Program program = programStageInstance.getProgramInstance().getProgram();
 

@@ -33,6 +33,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -66,6 +67,9 @@ public class FileResourceCleanUpJobTest
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private DataValueAuditService dataValueAuditService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -121,8 +125,16 @@ public class FileResourceCleanUpJobTest
         content = "filecontentB".getBytes();
         dataValueB = createFileResourceDataValue( 'B', content );
         assertNotNull( fileResourceService.getFileResource( dataValueA.getValue() ) );
-        fileResourceService.getFileResource( dataValueB.getValue() )
+
+        content = "fileResourceC".getBytes();
+        FileResource fileResource = createFileResource( 'C', content );
+        dataValueB.setValue( fileResource.getUid() );
+        dataValueService.updateDataValue( dataValueB );
+        fileResource.setAssigned( true );
+
+        dataValueAuditService.getDataValueAudits( dataValueB ).get( 0 )
             .setCreated( getDate( 2000, 1, 1 ) );
+
 
         cleanUpJob.execute( null );
 
