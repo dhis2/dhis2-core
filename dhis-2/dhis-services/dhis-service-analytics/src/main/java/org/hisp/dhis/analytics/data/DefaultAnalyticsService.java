@@ -686,7 +686,7 @@ public class DefaultAnalyticsService
                     }
                     else if ( !MathUtils.isZero( target) ) // REPORTING_RATE or REPORTING_RATE_ON_TIME
                     {
-                        value = ( actual * PERCENT ) / target;
+                        value = Math.min( ( ( actual * PERCENT ) / target ), 100d );
                     }
 
                     String reportingRate = DimensionalObjectUtils.getDimensionItem( dataRow.get( DX_INDEX ), metric );
