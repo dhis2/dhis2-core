@@ -144,8 +144,6 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             testResults.add( testResult );
         }
 
-        System.err.println( testResults );
-
         if ( query.getRootJunctionType() == Junction.Type.OR )
         {
             return testResults.contains( Boolean.TRUE );
