@@ -140,7 +140,7 @@ public class EnrollmentController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        List listEnrollments;
+        List<Enrollment> listEnrollments;
 
         if ( enrollment == null )
         {
