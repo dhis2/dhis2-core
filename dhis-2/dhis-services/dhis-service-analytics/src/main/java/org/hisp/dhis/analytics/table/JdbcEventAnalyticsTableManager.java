@@ -131,7 +131,7 @@ public class JdbcEventAnalyticsTableManager
         final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
         final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
-        
+
         String sql = "insert into " + partition.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( program );
