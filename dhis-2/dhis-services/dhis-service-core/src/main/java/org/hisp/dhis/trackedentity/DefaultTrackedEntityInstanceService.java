@@ -50,6 +50,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.DateUtils;
@@ -321,7 +322,7 @@ public class DefaultTrackedEntityInstanceService
         User user = params.isInternalSearch() ? null : currentUserService.getCurrentUser();        
         
         if ( params.isOrganisationUnitMode( ALL ) &&
-            !currentUserService.currentUserIsAuthorized( F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS ) &&
+            !currentUserService.currentUserIsAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() ) &&
             !params.isInternalSearch() )
         {
             throw new IllegalQueryException( "Current user is not authorized to query across all organisation units" );
