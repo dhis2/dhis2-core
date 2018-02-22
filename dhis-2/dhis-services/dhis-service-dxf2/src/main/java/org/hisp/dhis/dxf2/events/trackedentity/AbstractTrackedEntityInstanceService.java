@@ -154,7 +154,10 @@ public abstract class AbstractTrackedEntityInstanceService
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
         {
-            dtoTEIItems.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
+            if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance ).isEmpty() )
+            {
+                dtoTEIItems.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
+            }
         }
 
         return dtoTEIItems;

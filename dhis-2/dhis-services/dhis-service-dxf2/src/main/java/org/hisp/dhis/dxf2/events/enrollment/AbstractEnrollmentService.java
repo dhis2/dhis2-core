@@ -196,10 +196,12 @@ public abstract class AbstractEnrollmentService
     public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
+        User user = currentUserService.getCurrentUser();
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            if ( programInstance != null && programInstance.getEntityInstance() != null )
+            if ( programInstance != null && programInstance.getEntityInstance() != null
+                && trackerAccessManager.canRead( user, programInstance ).isEmpty() )
             {
                 enrollments.add( getEnrollment( programInstance ) );
             }
@@ -212,7 +214,6 @@ public abstract class AbstractEnrollmentService
     public Enrollment getEnrollment( String id )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-
         return programInstance != null ? getEnrollment( programInstance ) : null;
     }
 
