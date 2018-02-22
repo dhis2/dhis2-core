@@ -228,13 +228,14 @@ public class SmsMessageSenderTest
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testNumberNormalization()
     {
-        Set<String> temp_recipients = Sets.newHashSet();
+        Set<String> tempRecipients = Sets.newHashSet();
 
         when( bulkSmsGateway.send( anyString(), anyString(), anySetOf( String.class ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
         {
-            temp_recipients.addAll( (Collection) invocation.getArguments()[2] );
+            tempRecipients.addAll( (Set<String>) invocation.getArguments()[2] );
             return okStatus;
 
         });
@@ -245,12 +246,13 @@ public class SmsMessageSenderTest
         assertEquals( GatewayResponse.RESULT_CODE_0, status.getResponseObject() );
         assertEquals( "success", status.getDescription() );
 
-        Sets.SetView<String> setDifference = Sets.difference( temp_recipients, recipientsNormalized);
+        Sets.SetView<String> setDifference = Sets.difference( tempRecipients, recipientsNormalized);
 
         assertEquals( 0, setDifference.size() );
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testSendMessageWithMaxRecipients()
     {
         List<Set<String>> recipientList = new ArrayList<>();
@@ -259,7 +261,7 @@ public class SmsMessageSenderTest
 
         when( bulkSmsGateway.send( anyString(), anyString(), anySetOf( String.class ), Matchers.isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
         {
-            recipientList.add( (Set) invocation.getArguments()[2] );
+            recipientList.add( (Set<String>) invocation.getArguments()[2] );
 
             return okStatus;
         });
