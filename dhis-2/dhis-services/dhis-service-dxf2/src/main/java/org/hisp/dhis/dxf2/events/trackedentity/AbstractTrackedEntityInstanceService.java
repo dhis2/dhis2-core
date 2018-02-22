@@ -257,7 +257,7 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 if ( trackerAccessManager.canRead( user, programInstance ).isEmpty() )
                 {
-                    trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
+                    trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( user, programInstance, params ) );
                 }
             }
         }
