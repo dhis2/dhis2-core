@@ -196,12 +196,14 @@ public abstract class AbstractEnrollmentService
     public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
+        User user = currentUserService.getCurrentUser();
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            if ( programInstance != null && programInstance.getEntityInstance() != null )
+            if ( programInstance != null && programInstance.getEntityInstance() != null
+                && trackerAccessManager.canRead( user, programInstance ).isEmpty() )
             {
-                enrollments.add( getEnrollment( programInstance ) );
+                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE ) );
             }
         }
 
@@ -212,24 +214,26 @@ public abstract class AbstractEnrollmentService
     public Enrollment getEnrollment( String id )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-
         return programInstance != null ? getEnrollment( programInstance ) : null;
     }
 
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance )
     {
-        return getEnrollment( programInstance, TrackedEntityInstanceParams.FALSE );
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE );
     }
 
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params );
+    }
+
+    @Override
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
-
-        User user = currentUserService.getCurrentUser();
-
         List<String> errors = trackerAccessManager.canRead( user, programInstance );
 
         if ( !errors.isEmpty() )

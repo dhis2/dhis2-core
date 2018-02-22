@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.reservedvalue;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,33 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.scheduling.JobType;
 
 /**
  * @author Henning Håkonsen
  */
-@Controller
-@RequestMapping( value = "/scheduling" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SchedulingController
-    extends AbstractCrudController<JobConfiguration>
+public class RemoveExpiredReservedValuesJob
+    extends AbstractJob
 {
+    private ReservedValueStore reservedValueStore;
+
+    public void setReservedValueStore( ReservedValueStore reservedValueStore )
+    {
+        this.reservedValueStore = reservedValueStore;
+    }
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.REMOVE_EXPIRED_RESERVED_VALUES;
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+        throws Exception
+    {
+        reservedValueStore.removeExpiredReservations();
+    }
 }

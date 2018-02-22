@@ -25,41 +25,6 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_
 import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Resource;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -87,6 +52,48 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.query.Order;
+import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -99,7 +106,7 @@ public class JdbcEventStore
 {
     private static final Log log = LogFactory.getLog( JdbcEventStore.class );
 
-    private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String> builder()
+    private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String>builder()
         .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
         .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
         .put( "orgUnitName", "ou_name" ).put( "trackedEntityInstance", "tei_uid" )
@@ -119,6 +126,12 @@ public class JdbcEventStore
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // -------------------------------------------------------------------------
@@ -128,6 +141,17 @@ public class JdbcEventStore
     @Override
     public List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+        User user = currentUserService.getCurrentUser();
+
+        if ( !user.isSuper() )
+        {
+            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+
+            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+        }
+
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits );
@@ -158,7 +182,7 @@ public class JdbcEventStore
 
                 event.setUid( rowSet.getString( "psi_uid" ) );
 
-                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ) ,
+                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
                     idSchemes.getProgramStageInstanceIdScheme() ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
@@ -270,7 +294,7 @@ public class JdbcEventStore
     @Override
     public List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-      
+
         String sql = buildGridSql( params, organisationUnits );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -325,7 +349,7 @@ public class JdbcEventStore
                 continue;
             }
 
-            if (  eventRow.getUid() == null ||!eventRow.getUid().equals( rowSet.getString( "psi_uid" ) ) )
+            if ( eventRow.getUid() == null || !eventRow.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
                 eventRow = new EventRow();
 
@@ -411,7 +435,7 @@ public class JdbcEventStore
     public int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
         String sql = new String();
-        
+
         if ( params.hasFilters() )
         {
             sql = buildGridSql( params, organisationUnits );
@@ -420,13 +444,13 @@ public class JdbcEventStore
         {
             sql = getEventSelectQuery( params, organisationUnits );
         }
-        
-        sql = sql.replaceFirst( "select .*? from", "select count(*) from" );        
-        
+
+        sql = sql.replaceFirst( "select .*? from", "select count(*) from" );
+
         sql = sql.replaceFirst( "order .*? desc", "" );
-        
+
         sql = sql.replaceFirst( "limit \\d+ offset \\d+", "" );
-        
+
         log.debug( "Event query count SQL: " + sql );
 
         return jdbcTemplate.queryForObject( sql, Integer.class );
@@ -449,7 +473,7 @@ public class JdbcEventStore
 
     private String buildGridSql( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-    	SqlHelper hlp = new SqlHelper();
+        SqlHelper hlp = new SqlHelper();
 
         // ---------------------------------------------------------------------
         // Select clause
@@ -495,7 +519,7 @@ public class JdbcEventStore
 
         return sql;
     }
-    
+
     /**
      * Query is based on three sub queries on event, data value and comment,
      * which are joined using program stage instance id. The purpose of the
@@ -540,7 +564,7 @@ public class JdbcEventStore
         SqlHelper hlp = new SqlHelper();
 
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
-            + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, " 
+            + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, "
             + "psi.latitude as psi_latitude, psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
             + "deco.uid AS deco_uid, pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
@@ -653,6 +677,12 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " psi.deleted is false ";
         }
 
+        if ( params.hasSecurityFilter() )
+        {
+            sql += hlp.whereAnd() + " (p.uid in (" + getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) + ")) ";
+            sql += hlp.whereAnd() + " (ps.uid in (" + getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) + ")) ";
+        }
+
         return sql;
     }
 
@@ -705,7 +735,7 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " ps.programstageid = " + params.getProgramStage().getId() + " ";
         }
-        
+
         if ( params.getCategoryOptionCombo() != null )
         {
             sql += hlp.whereAnd() + " psi.attributeoptioncomboid = " + params.getCategoryOptionCombo().getId() + " ";
@@ -736,7 +766,7 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " psi.lastupdated <= '"
                 + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
         }
-        
+
         if ( params.getDueDateStart() != null )
         {
             sql += hlp.whereAnd() + " psi.duedate is not null and psi.duedate >= '"

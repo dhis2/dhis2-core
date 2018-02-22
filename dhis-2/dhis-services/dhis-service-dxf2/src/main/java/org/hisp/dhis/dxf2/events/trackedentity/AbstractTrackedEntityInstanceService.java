@@ -154,7 +154,10 @@ public abstract class AbstractTrackedEntityInstanceService
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
         {
-            dtoTEIItems.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
+            if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance ).isEmpty() )
+            {
+                dtoTEIItems.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
+            }
         }
 
         return dtoTEIItems;
@@ -254,7 +257,7 @@ public abstract class AbstractTrackedEntityInstanceService
             {
                 if ( trackerAccessManager.canRead( user, programInstance ).isEmpty() )
                 {
-                    trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
+                    trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( user, programInstance, params ) );
                 }
             }
         }

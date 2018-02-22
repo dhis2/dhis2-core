@@ -28,10 +28,6 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -40,6 +36,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -69,7 +69,7 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public TrackedEntityAttributeValue get( TrackedEntityInstance entityInstance, TrackedEntityAttribute attribute )
     {
-        return (TrackedEntityAttributeValue) getCriteria( 
+        return (TrackedEntityAttributeValue) getCriteria(
             Restrictions.eq( "entityInstance", entityInstance ),
             Restrictions.eq( "attribute", attribute ) ).uniqueResult();
     }
@@ -96,7 +96,7 @@ public class HibernateTrackedEntityAttributeValueStore
         {
             return new ArrayList<>();
         }
-        
+
         return getCriteria( Restrictions.in( "entityInstance", entityInstances ) ).list();
     }
 
@@ -104,16 +104,16 @@ public class HibernateTrackedEntityAttributeValueStore
     @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText )
     {
-        return getCriteria( 
+        return getCriteria(
             Restrictions.eq( "attribute", attribute ),
             Restrictions.ilike( "plainValue", "%" + searchText + "%" ) ).list();
     }
-    
+
     @Override
     @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, String value )
     {
-        return getCriteria( 
+        return getCriteria(
             Restrictions.eq( "attribute", attribute ),
             Restrictions.ilike( "plainValue", value ) ).list();
     }
@@ -124,6 +124,16 @@ public class HibernateTrackedEntityAttributeValueStore
     {
         return getCriteria(
             Restrictions.and( Restrictions.eq( "entityInstance", entityInstance ),
-            Restrictions.eq( "attribute.program", program ) ) ).list();
+            Restrictions.eq( "attribute.program", program ) ) )
+            .list();
+    }
+
+    @Override
+    public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
+    {
+        javax.persistence.Query query = getJpaQuery( "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
+        query.setParameter( "attribute", attribute );
+
+        return ((Long) query.getSingleResult()).intValue();
     }
 }

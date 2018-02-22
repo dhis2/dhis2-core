@@ -44,22 +44,21 @@ public interface TrackedEntityAttributeValueService
 
     /**
      * Adds an {@link TrackedEntityAttribute}
-     * 
+     *
      * @param attributeValue The to TrackedEntityAttribute add.
-     * 
      */
     void addTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
 
     /**
      * Updates an {@link TrackedEntityAttribute}.
-     * 
+     *
      * @param attributeValue the TrackedEntityAttribute to update.
      */
     void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
 
     /**
      * Deletes a {@link TrackedEntityAttribute}.
-     * 
+     *
      * @param attributeValue the TrackedEntityAttribute to delete.
      */
     void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
@@ -67,38 +66,43 @@ public interface TrackedEntityAttributeValueService
     /**
      * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntityInstance} and
      * {@link TrackedEntityAttribute}
-     * 
+     *
      * @param attribute {@link TrackedEntityAttribute}
-     * 
      * @return TrackedEntityAttributeValue
      */
     TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance, TrackedEntityAttribute attribute );
 
     /**
      * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityInstance}
-     * 
+     *
      * @param instance TrackedEntityAttributeValue
-     * 
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance );
 
     /**
      * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityAttribute}
-     * 
+     *
      * @param attribute {@link TrackedEntityAttribute}
-     * 
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute );
 
     /**
+     * Returns the number of assigned {@link TrackedEntityAttributeValue}s to the given {@link TrackedEntityAttribute}
+     *
+     * @param attribute {@link TrackedEntityAttribute}
+     * @return Number of assigned TrackedEntityAttributeValues
+     */
+    int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute );
+
+    /**
      * Retrieve {@link TrackedEntityAttributeValue} of a instance list
-     * 
+     *
      * @param instances TrackedEntityAttributeValue list
-     * 
      * @return TrackedEntityAttributeValue list
      */
+    //TODO: This method is never used except of the Unit Test
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances );
 
 }
