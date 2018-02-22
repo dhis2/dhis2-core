@@ -535,7 +535,6 @@ public abstract class AbstractEventService
         }
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits );
-
         events.setEvents( eventList );
 
         return events;

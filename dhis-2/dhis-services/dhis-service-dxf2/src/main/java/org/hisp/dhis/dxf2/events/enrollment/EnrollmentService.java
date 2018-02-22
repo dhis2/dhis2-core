@@ -70,6 +70,8 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
+    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params );
+
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
 
     ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
