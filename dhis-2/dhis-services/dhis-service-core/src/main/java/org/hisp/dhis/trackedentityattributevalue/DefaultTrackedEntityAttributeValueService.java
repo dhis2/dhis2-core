@@ -38,10 +38,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-
 import java.util.Collection;
 import java.util.List;
+
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 
 /**
  * @author Abyot Asalefew
@@ -118,6 +118,12 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
+    {
+        return attributeValueStore.getCountOfAssignedTEAValues( attribute );
+    }
+
+    @Override
     public void addTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         if ( attributeValue == null || attributeValue.getAttribute() == null || attributeValue.getAttribute().getValueType() == null )
@@ -129,7 +135,7 @@ public class DefaultTrackedEntityAttributeValueService
         {
             throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
         }
-        
+
         String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
 
         if ( result != null )
@@ -159,16 +165,16 @@ public class DefaultTrackedEntityAttributeValueService
             {
                 throw new IllegalQueryException( "Attribute or type is null or empty" );
             }
-            
+
             attributeValue.setAutoFields();
-            
+
             String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
 
             if ( result != null )
             {
                 throw new IllegalQueryException( "Value is not valid:  " + result );
             }
-            
+
             TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit( attributeValue,
                 attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.UPDATE );
 
@@ -184,7 +190,7 @@ public class DefaultTrackedEntityAttributeValueService
     {
         return attributeValueStore.searchByValue( attribute, searchText );
     }
-    
+
     @Override
     public boolean exists( TrackedEntityAttribute attribute, String value )
     {
