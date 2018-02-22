@@ -324,7 +324,7 @@ public class DataValueSetController
         JsonObject url_location = new JsonObject();
         url_location.addProperty("url_location", ContextUtils.getRootPath( request ) + "/system/tasks/" + DATAVALUE_IMPORT  + "/" + jobId.getUid());
 
-        JacksonUtils.addJsonToReponse( response, url_location );
+        JacksonUtils.fromObjectToReponse( response, url_location );
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + DATAVALUE_IMPORT );
     }
 

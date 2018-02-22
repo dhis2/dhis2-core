@@ -33,6 +33,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -100,7 +101,7 @@ public class JacksonUtils
         return jsonMapper.readValue( object, typeRef );
     }
 
-    public static <T> void fromObjectToReponse( HttpServletResponse response, Object clazz)
+    public static void fromObjectToReponse( HttpServletResponse response, Object clazz)
     {
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
         response.setContentType( "application/json" );
@@ -108,24 +109,14 @@ public class JacksonUtils
         try
         {
             jsonResponse = response.getWriter();
-            jsonResponse.print( toJson( clazz ) );
-            jsonResponse.flush();
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
-    }
-
-    public static <T> void addJsonToReponse( HttpServletResponse response, Object clazz)
-    {
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
-        response.setContentType( "application/json" );
-        PrintWriter jsonResponse;
-        try
-        {
-            jsonResponse = response.getWriter();
-            jsonResponse.print( clazz );
+            if ( JsonObject.class.isInstance( clazz ) )
+            {
+                jsonResponse.print( clazz );
+            }
+            else
+            {
+                jsonResponse.print( toJson( clazz ) );
+            }
             jsonResponse.flush();
         }
         catch ( IOException e )
