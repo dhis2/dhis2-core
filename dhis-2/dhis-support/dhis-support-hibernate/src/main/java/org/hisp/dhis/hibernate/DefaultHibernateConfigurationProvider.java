@@ -336,8 +336,8 @@ public class DefaultHibernateConfigurationProvider
      */
     private void setCacheReplicationConfigSystemProperties()
     {
-        String instanceHost = configurationProvider.getProperty( ConfigurationKey.CLUSTER_INSTANCE_HOSTNAME );
-        String instancePort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_INSTANCE_CACHE_PORT );
+        String instanceHost = configurationProvider.getProperty( ConfigurationKey.CLUSTER_HOSTNAME );
+        String instancePort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_PORT );
         
         String clusterMembers = configurationProvider.getProperty( ConfigurationKey.CLUSTER_MEMBERS );
         
