@@ -66,7 +66,7 @@ public enum JobType
         "predictors", "/api/predictors"
     ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
-    REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", true, null, null ),
+    REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
 
     // For tests
     MOCK( "mockJob", false, MockJobParameters.class, null ),
