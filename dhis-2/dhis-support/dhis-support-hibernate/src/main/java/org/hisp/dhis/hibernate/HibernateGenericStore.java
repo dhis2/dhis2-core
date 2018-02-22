@@ -353,6 +353,7 @@ public class HibernateGenericStore<T>
         Disjunction disjunction = Restrictions.disjunction();
 
         disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
 
         DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
         userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
@@ -705,25 +706,28 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public final List<T> getDataReadAll()
     {
-        return getDataSharingCriteria().list();
+        return getDataSharingCriteria( AclService.LIKE_READ_DATA ).list();
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public final List<T> getDataReadAll( User user )
     {
-        return getDataSharingCriteria( user,  AclService.LIKE_READ_DATA ).list();
+        return getDataSharingCriteria( user, AclService.LIKE_READ_DATA ).list();
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public final List<T> getDataWriteAll()
     {
         return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public final List<T> getDataWriteAll( User user )
     {
-        return getDataSharingCriteria( user,  AclService.LIKE_WRITE_DATA ).list();
+        return getDataSharingCriteria( user, AclService.LIKE_WRITE_DATA ).list();
     }
 
     @Override

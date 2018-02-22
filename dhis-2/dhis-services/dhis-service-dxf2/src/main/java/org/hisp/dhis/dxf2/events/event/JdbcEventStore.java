@@ -659,8 +659,8 @@ public class JdbcEventStore
 
         if ( params.hasSecurityFilter() )
         {
-            sql += hlp.whereAnd() + " (pi.uid in (" + getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) + ")) ";
-            sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) + ")) ";
+            sql += hlp.whereAnd() + " (p.uid in (" + getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) + ")) ";
+            sql += hlp.whereAnd() + " (ps.uid in (" + getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) + ")) ";
         }
 
         return sql;
