@@ -141,11 +141,11 @@ public interface GenericStore<T>
 
     List<T> getDataReadAll();
 
-    List<T> getUserDataReadAll( User user );
+    List<T> getDataReadAll( User user );
 
     List<T> getDataWriteAll();
 
-    List<T> getUserDataWriteAll( User user );
+    List<T> getDataWriteAll( User user );
 
     /**
      * Retrieves a paged List of all objects.
