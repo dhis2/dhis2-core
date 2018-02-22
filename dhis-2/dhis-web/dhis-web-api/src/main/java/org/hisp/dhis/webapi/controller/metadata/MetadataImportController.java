@@ -115,10 +115,7 @@ public class MetadataImportController
         MetadataAsyncImporter asyncImporter = new MetadataAsyncImporter( params );
         asyncImporter.run();
 
-        JsonObject url_location = new JsonObject();
-        url_location.addProperty("url_location", ContextUtils.getRootPath( request ) + "/system/tasks/" + METADATA_IMPORT  + "/" + params.getId().getUid());
-
-        JacksonUtils.fromObjectToReponse( response, url_location );
+        JacksonUtils.fromObjectToReponse( response, params.getId() );
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + METADATA_IMPORT );
     }
 

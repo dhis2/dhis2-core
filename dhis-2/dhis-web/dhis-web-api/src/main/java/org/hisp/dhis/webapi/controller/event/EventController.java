@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.event;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
-import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -849,10 +848,7 @@ public class EventController
             EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
-        JsonObject url_location = new JsonObject();
-        url_location.addProperty("url_location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT  + "/" + jobId.getUid());
-
-        JacksonUtils.fromObjectToReponse( response, url_location );
+        JacksonUtils.fromObjectToReponse( response, jobId );
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
     }
 

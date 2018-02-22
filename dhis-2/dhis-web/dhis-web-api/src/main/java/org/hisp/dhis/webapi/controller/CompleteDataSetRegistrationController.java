@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -323,10 +322,7 @@ public class CompleteDataSetRegistrationController
                 jobId )
         );
 
-        JsonObject url_location = new JsonObject();
-        url_location.addProperty("url_location", ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT  + "/" + jobId.getUid());
-
-        JacksonUtils.fromObjectToReponse( response, url_location );
+        JacksonUtils.fromObjectToReponse( response, jobId );
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
     }
 

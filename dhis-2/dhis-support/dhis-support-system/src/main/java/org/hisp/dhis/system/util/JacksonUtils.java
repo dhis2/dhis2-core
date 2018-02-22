@@ -33,7 +33,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -105,18 +104,12 @@ public class JacksonUtils
     {
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
         response.setContentType( "application/json" );
+
         PrintWriter jsonResponse;
         try
         {
             jsonResponse = response.getWriter();
-            if ( JsonObject.class.isInstance( clazz ) )
-            {
-                jsonResponse.print( clazz );
-            }
-            else
-            {
-                jsonResponse.print( toJson( clazz ) );
-            }
+            jsonResponse.print( toJson( clazz ) );
             jsonResponse.flush();
         }
         catch ( IOException e )
