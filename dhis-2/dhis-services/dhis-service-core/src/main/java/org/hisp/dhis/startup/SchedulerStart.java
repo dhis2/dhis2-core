@@ -57,14 +57,16 @@ public class SchedulerStart
 {
     private static final Log log = LogFactory.getLog( SchedulerStart.class );
 
-    private final String CRON_DAILY_2AM = "0 0 2 * * ?";
-    private final String CRON_DAILY_7AM = "0 0 7 * * ?";
+    private final String CRON_HOURLY = "0 0 * ? * *";
+    private final String CRON_DAILY_2AM = "0 0 2 ? * *";
+    private final String CRON_DAILY_7AM = "0 0 7 ? * *";
 
     private final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
     private final String DEFAULT_DATA_STATISTICS = "Data statistics";
     private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
     private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
+    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -170,6 +172,13 @@ public class SchedulerStart
             JobConfiguration dataSetNotification = new JobConfiguration( DEFAULT_DATA_SET_NOTIFICATION,
                 DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null, false, true );
             addAndScheduleJob( dataSetNotification );
+        }
+
+        if ( addDefaultJob( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES, jobConfigurations ) )
+        {
+            JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
+                REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
+            addAndScheduleJob( removeExpiredReservedValues );
         }
     }
 
