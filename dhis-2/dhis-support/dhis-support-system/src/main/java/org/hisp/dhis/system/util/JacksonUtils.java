@@ -116,4 +116,21 @@ public class JacksonUtils
             e.printStackTrace();
         }
     }
+
+    public static <T> void addJsonToReponse( HttpServletResponse response, Object clazz)
+    {
+        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        response.setContentType( "application/json" );
+        PrintWriter jsonResponse;
+        try
+        {
+            jsonResponse = response.getWriter();
+            jsonResponse.print( clazz );
+            jsonResponse.flush();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
+    }
 }
