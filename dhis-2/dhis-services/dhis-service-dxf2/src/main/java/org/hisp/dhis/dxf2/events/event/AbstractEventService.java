@@ -534,11 +534,24 @@ public abstract class AbstractEventService
             events.setPager( pager );
         }
 
-        List<Event> eventList = eventStore.getEvents( params, organisationUnits );
+        List<Event> eventList = filterBySecurity( eventStore.getEvents( params, organisationUnits ) );
 
         events.setEvents( eventList );
 
         return events;
+    }
+
+    private List<Event> filterBySecurity( List<Event> events )
+    {
+        Set<String> programs = manager.getDataReadAll( Program.class )
+            .stream().map( Program::getUid ).collect( Collectors.toSet() );
+
+        Set<String> programStages = manager.getDataReadAll( ProgramStage.class )
+            .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() );
+
+        return events.stream()
+            .filter( e -> programs.contains( e.getProgram() ) && programStages.contains( e.getProgramStage() ) )
+            .collect( Collectors.toList() );
     }
 
     @Override

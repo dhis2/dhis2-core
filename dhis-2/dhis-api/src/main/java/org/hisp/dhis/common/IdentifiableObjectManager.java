@@ -96,6 +96,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getAllByName( Class<T> clazz, String name );
 
+    @SuppressWarnings( "unchecked" ) <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> clazz );
+
     <T extends IdentifiableObject> List<T> getAllByNameIgnoreCase( Class<T> clazz, String name );
 
     <T extends IdentifiableObject> List<T> getAllSorted( Class<T> clazz );
