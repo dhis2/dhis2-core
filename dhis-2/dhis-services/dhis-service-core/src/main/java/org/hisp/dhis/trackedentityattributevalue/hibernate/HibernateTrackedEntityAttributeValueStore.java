@@ -124,13 +124,14 @@ public class HibernateTrackedEntityAttributeValueStore
     {
         return getCriteria(
             Restrictions.and( Restrictions.eq( "entityInstance", entityInstance ),
-                Restrictions.eq( "attribute.program", program ) ) ).list();
+            Restrictions.eq( "attribute.program", program ) ) )
+            .list();
     }
 
     @Override
     public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
     {
-        javax.persistence.Query query = getJpaQuery( "SELECT COUNT(distinct c) FROM TrackedEntityAttributeValue c where c.attribute = :attribute" );
+        javax.persistence.Query query = getJpaQuery( "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
         query.setParameter( "attribute", attribute );
 
         return ((Long) query.getSingleResult()).intValue();
