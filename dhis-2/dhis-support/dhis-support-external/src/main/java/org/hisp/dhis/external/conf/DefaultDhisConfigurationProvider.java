@@ -234,7 +234,7 @@ public class DefaultDhisConfigurationProvider
     @Override
     public boolean isClusterEnabled()
     {        
-        return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_INSTANCE_HOSTNAME ) );
+        return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) ) && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME) );
     }
 
     @Override
