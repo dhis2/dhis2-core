@@ -55,8 +55,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -83,6 +83,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 
@@ -313,7 +314,7 @@ public class CompleteDataSetRegistrationController
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        JobConfiguration jobId = new JobConfiguration( "completeDataSetRegistrationImport", JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport", COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         schedulingManager.executeJob(
             new ImportCompleteDataSetRegistrationsTask(
@@ -321,9 +322,8 @@ public class CompleteDataSetRegistrationController
                 jobId )
         );
 
-        response.setHeader(
-            "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT );
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        JacksonUtils.fromObjectToReponse( response, jobId );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
     }
 
     private Pair<InputStream, Path> saveTmpFile( InputStream in )
