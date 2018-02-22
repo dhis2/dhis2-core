@@ -1662,6 +1662,10 @@
   <bean id="validationResultNotificationJob"
         class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
 
+  <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob">
+    <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
+  </bean>
+
   <!-- Startup routine definitions -->
 
   <bean id="org.hisp.dhis.startup.InitTableAlteror" class="org.hisp.dhis.startup.InitTableAlteror">
