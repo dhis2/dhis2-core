@@ -149,6 +149,8 @@ public class MetadataSyncJob
 
         metadataSyncPreProcessor.handleAggregateDataPush( context );
 
+        metadataSyncPreProcessor.handleDataSetCompletenessPush( context );
+
         metadataSyncPreProcessor.handleEventDataPush( context );
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
@@ -160,7 +162,7 @@ public class MetadataSyncJob
             for ( MetadataVersion dataVersion : metadataVersionList )
             {
                 MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
-                boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+                boolean isSyncRequired = metadataSyncService.isSyncRequired( syncParams );
                 MetadataSyncSummary metadataSyncSummary = null;
 
                 if ( isSyncRequired )
