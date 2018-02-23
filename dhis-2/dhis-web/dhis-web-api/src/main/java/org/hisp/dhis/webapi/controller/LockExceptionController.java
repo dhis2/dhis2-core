@@ -174,6 +174,13 @@ public class LockExceptionController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
+        I18nFormat format = this.i18nManager.getI18nFormat();
+
+        for ( LockException lockException : lockExceptions )
+        {
+            lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
+        }
+
         rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class, new FieldFilterParams( lockExceptions, fields ) ) );
 
         return rootNode;
