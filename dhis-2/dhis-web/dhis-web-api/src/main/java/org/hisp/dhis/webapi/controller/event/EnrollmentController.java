@@ -124,7 +124,8 @@ public class EnrollmentController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted
     )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -145,7 +146,7 @@ public class EnrollmentController
         if ( enrollment == null )
         {
             ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
+                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging,includeDeleted );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
