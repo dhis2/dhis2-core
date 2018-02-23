@@ -527,11 +527,13 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );        
+        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
+        
+        User user = currentUserService.getCurrentUser();
 
         if ( entityInstance != null )
         {
-            if( !entityInstance.getProgramInstances().isEmpty() && !currentUserService.getCurrentUser().isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            if( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {                
                 return new ImportSummary( ImportStatus.ERROR, "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
             }
