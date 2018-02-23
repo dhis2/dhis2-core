@@ -315,11 +315,19 @@ public class EnrollmentController
             throw new WebMessageException( WebMessageUtils.notFound( "Enrollment not found for ID " + id ) );
         }
 
-        enrollmentService.deleteEnrollment( id );
+        ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
 
-        response.setStatus( HttpServletResponse.SC_OK );
-        WebMessage webMsg = WebMessageUtils.ok( "Object was deleted successfully" );
-        webMessageService.send( webMsg, response, request );
+        if ( importSummary.getStatus() == ImportStatus.SUCCESS )
+        {
+            response.setStatus( HttpServletResponse.SC_OK );
+            WebMessage webMsg = WebMessageUtils.ok( "Object was deleted successfully" );
+            webMessageService.send( webMsg, response, request );
+        }
+        else if ( importSummary.getStatus() == ImportStatus.ERROR )
+        {
+            response.setStatus( HttpServletResponse.SC_NOT_FOUND );
+            webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        }
     }
 
     // -------------------------------------------------------------------------
