@@ -97,9 +97,7 @@ public interface TrackedEntityInstanceService
     int ERROR_ENROLLMENT = 2;
 
     String SEPARATOR = "_";
-
-    String F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS = "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS";
-
+    
     /**
      * Returns a grid with tracked entity instance values based on the given
      * TrackedEntityInstanceQueryParams.
