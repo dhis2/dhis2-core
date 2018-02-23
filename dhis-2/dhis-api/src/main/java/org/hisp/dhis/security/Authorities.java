@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.security;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,47 +28,25 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
-
-import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
-
 /**
- * @author Henning Håkonsen
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public class PushAnalysisJobParameters
-    implements JobParameters
+public enum Authorities
 {
-    private static final long serialVersionUID = -1848833906375595488L;
-
-    @Property( required = TRUE )
-    private String pushAnalysis;
-
-    public PushAnalysisJobParameters()
+    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS("F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS"),
+    F_TEI_CASCADE_DELETE("F_TEI_CASCADE_DELETE"),
+    F_ENROLLMENT_CASCADE_DELETE("F_ENROLLMENT_CASCADE_DELETE");
+    
+    private String authority;
+    
+    Authorities( String authority )
     {
+        this.authority = authority;
     }
-
-    public PushAnalysisJobParameters( String pushAnalysis )
+    
+    public String getAuthority()
     {
-        this.pushAnalysis = pushAnalysis;
-    }
-
-    public String getPushAnalysis()
-    {
-        return pushAnalysis;
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-
-        if ( pushAnalysis == null )
-        {
-            return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
-        }
-
-        return null;
+        return authority;
     }
 }
