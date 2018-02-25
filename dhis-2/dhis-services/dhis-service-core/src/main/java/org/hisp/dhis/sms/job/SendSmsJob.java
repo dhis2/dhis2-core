@@ -91,4 +91,9 @@ public class SendSmsJob
         outboundSmsService.saveOutboundSms( sms );
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "sendSmsJob";
+    }
 }

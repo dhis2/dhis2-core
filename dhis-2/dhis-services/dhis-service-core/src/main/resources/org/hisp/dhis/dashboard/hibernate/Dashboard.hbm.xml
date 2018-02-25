@@ -51,8 +51,12 @@
       <key column="dashboardid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
-    
-    <property name="favorites" type="jbSet" />
+
+    <set name="favorites" table="dashboardfavorites">
+      <cache usage="read-write" />
+      <key column="dashboardid" foreign-key="fk_dashboardfavorites_dashboardid" />
+      <many-to-many class="org.hisp.dhis.user.User" column="userid" unique="true" foreign-key="fk_dashboardfavorites_userid" />
+    </set>
 
   </class>
 

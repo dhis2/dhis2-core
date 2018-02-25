@@ -28,12 +28,12 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * @author Chau Thu Tran
@@ -79,8 +79,18 @@ public class TrackedEntityAttributeValueDeletionHandler
     }
 
     @Override
-    public String allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
-        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? null : "Some values are still assigned to this attribute";
+        Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
+            .getTrackedEntityAttributeValues( attribute );
+
+        Iterator<TrackedEntityAttributeValue> iterator = attributeValues.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            TrackedEntityAttributeValue attributeValue = iterator.next();
+
+            attributeValueService.deleteTrackedEntityAttributeValue( attributeValue );
+        }
     }
 }

@@ -53,4 +53,9 @@ public class MockJob
         }
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "mockJob";
+    }
 }

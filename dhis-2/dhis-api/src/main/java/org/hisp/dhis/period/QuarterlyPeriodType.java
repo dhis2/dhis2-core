@@ -29,8 +29,6 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
-
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 import java.util.Date;
@@ -76,7 +74,7 @@ public class QuarterlyPeriodType
     }
 
     @Override
-    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
+    public Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
         DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
 
@@ -107,9 +105,21 @@ public class QuarterlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
+    public Period getNextPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
     {
-        return calendar.plusMonths( dateTimeUnit, offset * 3 );
+        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
+        dateTimeUnit = calendar.plusMonths( dateTimeUnit, 3 );
+
+        return createPeriod( dateTimeUnit, calendar );
+    }
+
+    @Override
+    public Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
+    {
+        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
+        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 3 );
+
+        return createPeriod( dateTimeUnit, calendar );
     }
 
     /**
@@ -145,47 +155,47 @@ public class QuarterlyPeriodType
     {
         date = createPeriod( date ).getStartDate();
 
-        return generateRollingPeriods( createLocalDateUnitInstance( date ), getCalendar() );
+        return generateRollingPeriods( createLocalDateUnitInstance( date ) );
     }
 
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
     {
+        org.hisp.dhis.calendar.Calendar cal = getCalendar();
+
         dateTimeUnit.setDay( 1 );
 
-        DateTimeUnit iterationDateTimeUnit = calendar.minusMonths( dateTimeUnit, 9 );
+        dateTimeUnit = cal.minusMonths( dateTimeUnit, 9 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 4; i++ )
         {
-            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
-            iterationDateTimeUnit = calendar.plusMonths( iterationDateTimeUnit, 3 );
+            periods.add( createPeriod( dateTimeUnit, cal ) );
+            dateTimeUnit = cal.plusMonths( dateTimeUnit, 3 );
         }
 
         return periods;
     }
 
     @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
+    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
-        DateTimeUnit newUnit = dateTimeUnit;
-        
-        if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && newUnit.isIso8601() )
+        if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && dateTimeUnit.isIso8601() )
         {
-            newUnit = calendar.fromIso( newUnit );
+            dateTimeUnit = calendar.fromIso( dateTimeUnit );
         }
 
-        switch ( newUnit.getMonth() )
+        switch ( dateTimeUnit.getMonth() )
         {
             case 1:
-                return newUnit.getYear() + "Q1";
+                return dateTimeUnit.getYear() + "Q1";
             case 4:
-                return newUnit.getYear() + "Q2";
+                return dateTimeUnit.getYear() + "Q2";
             case 7:
-                return newUnit.getYear() + "Q3";
+                return dateTimeUnit.getYear() + "Q3";
             case 10:
-                return newUnit.getYear() + "Q4";
+                return dateTimeUnit.getYear() + "Q4";
             default:
                 throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
         }
@@ -209,7 +219,7 @@ public class QuarterlyPeriodType
     @Override
     public Date getRewindedDate( Date date, Integer rewindedPeriods )
     {
-        Calendar cal = getCalendar();
+        org.hisp.dhis.calendar.Calendar cal = getCalendar();
 
         date = date != null ? date : new Date();
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;

@@ -56,13 +56,6 @@ public class HibernateDataElementStore
     {
         return getCriteria( Restrictions.eq( "domainType", domainType ) ).list();
     }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataElement> getDataElementsByValueType( ValueType valueType )
-    {
-        return getCriteria( Restrictions.eq( "valueType", valueType ) ).list();
-    }
     
     @Override
     @SuppressWarnings( "unchecked" )
@@ -115,6 +108,6 @@ public class HibernateDataElementStore
     {
         String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
-        return getQuery( hql ).setParameter( "aggregationLevel", aggregationLevel ).list();
+        return getQuery( hql ).setInteger( "aggregationLevel", aggregationLevel ).list();
     }
 }

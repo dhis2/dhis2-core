@@ -1,0 +1,297 @@
+<script type="text/javascript">
+  
+	jQuery(document).ready(	function()
+	{
+		validation( 'saveDataEntryForm', function( form )
+		{
+			setInnerHTML( 'designTextarea' , jQuery("#designTextarea").ckeditor().editor.getData() );
+			form.submit();
+		} );
+
+		jQuery('#designTextarea').ckeditor()
+		  .editor
+		  .setData('$encoder.jsEscape( $dataEntryValue, "'" )');
+
+		openDataElementSelector();
+		
+		checkValueIsExist( "name", "validateDataEntryForm.action", { dataEntryFormId: '$!programStage.dataEntryForm.id' } );
+	});
+
+    var i18n_dataelement_is_inserted = '$encoder.jsEscape( $i18n.getString( "dataelement_is_inserted" ) , "'" )';
+	var i18n_specify_dataelememt = '$encoder.jsEscape( $i18n.getString( "specify_dataelememt" ) , "'" )';
+    var i18n_choose_existing_dataentry ='$encoder.jsEscape( $i18n.getString( "choose_existing_dataentry" ) , "'" )';
+	var i18n_dataelement = '$encoder.jsEscape( $i18n.getString( "dataelement" ) , "'" )';
+	var i18n_dataelement_of_orther_program_stage = "$i18n.getString( 'dataelement_of_orther_program_stage' )";
+	var i18n_save_success = '$encoder.jsEscape( $i18n.getString( "save_success" ) , "'" )';
+	var autoSave=${autoSave};
+	var previousName = '';
+</script>
+
+<style type="text/css">
+#dataElementSelection,
+#existedDataEntry,
+#otherProgramStageDataElements{ 
+	z-index:999999;
+	font-size:10pt;
+	width:100%;
+}
+
+.ui-dialog-titlebar
+{
+	padding:0.1em 0.1em 0.1em 0.1em;
+}
+#ui-dialog-title-dataElementSelection,
+#ui-dialog-title-existedDataEntry,
+#ui-dialog-title-otherProgramStageDataElements{
+	font-size:10pt;
+	color:#FFFFFF;	
+	margin: 0;	
+}
+
+#dataElementSelection tr{
+	cursor:default;	
+}
+
+#dataElementSelection tr.selected{
+	background-color:#2B0AAF;
+	color:#FFFFFF;
+}
+
+#dataElementList{
+	margin-top:5px;
+}
+
+#message_{
+	display:block;
+	color:red;	
+}
+
+</style>
+
+<form id="saveDataEntryForm" name="saveDataEntryForm" action="saveDataEntryForm.action" method="post" class="inputForm">
+<input type="hidden" name="programStageId" id="programStageId" uid="$!programStage.uid" value="$!programStage.id"/>
+<h3>$i18n.getString( "dataentryform_management_for_program_stage" )</h3>
+<h4>$programStage.displayName</h4>
+
+<input type="hidden" name="dataEntryFormId" id="dataEntryFormId" value="$!programStage.dataEntryForm.id"/>
+<div class="container" >
+	<table id="detailsList" width="100%">
+		<col/>
+		<tr>
+			<th>$i18n.getString( "dataentryform_details" )</th>			
+		</tr>	
+		<tr>
+			<td>
+				<label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label>
+				<input type="text" id="name" value="$!encoder.htmlEncode($dataEntryForm.name)" name="name" class="{validate:{required:true,rangelength:[4,150],alphanumericwithbasicpuncspaces:true,firstletteralphabet:false}}" style="margin-left:15px;width:30em;">
+			</td>				
+		</tr>	
+	</table>  
+	<table width="100%">
+		<tr>
+			<th>$i18n.getString( "design_dataentry_form" )</th>
+		</tr>
+		<tr>
+			<td>
+	        	<div>
+	        		<textarea id="designTextarea" name="designTextarea"></textarea>
+	        	</div>
+			</td>
+		</tr>
+	</table>
+</div>
+
+<table width="100%">	
+    <tr>
+        <td>
+            <button type="button" id="saveButton" onclick="validateDataEntryForm();">$i18n.getString( 'save' )</button>
+            <button type="submit" id="saveAndCloseButton">$i18n.getString( 'save_and_close' )</button>
+            <button type="button" id="cancelButton" onclick="window.location='programStage.action?id=$!programStage.program.id'">$i18n.getString( 'cancel' )</button>          
+			&nbsp;&nbsp;<span style="color:#606060">|</span>&nbsp;
+			#if( !$existingDataEntryForms.isEmpty() )
+			<button type="button" id='loadExistForms' onclick="openloadExistedForm()">$i18n.getString( 'load_existed_form' )</button>
+			#end
+			#if(!$dataElements.isEmpty())
+			<button type="button" id='insertDataElements' onclick="openDataElementSelector()">$i18n.getString( 'insert_data_elements' )</button>
+			#end
+			<button type="button" id="insertImagesButton">$i18n.getString( 'insert_images' )</button>
+			
+			#if( $!dataEntryForm )
+			&nbsp;&nbsp;<span style="color:#606060">|</span>&nbsp;
+		    <button type="button" id="deleteButton" onclick="deleteDataEntryForm( $programStage.dataEntryForm.id, $programStage.id )">$i18n.getString( 'delete_this_form' )</button>
+			#end
+			
+			<input type="checkbox" id="autoSave" name="autoSave" #if($autoSave && $autoSave=="true") checked #end onchange="setAutoSaveDataEntrySetting(this.checked)" />$i18n.getString( 'auto_save_data_entry_forms' )
+        </td>
+    </tr>
+</table>
+  
+</form>
+
+<div id='dataElementDiv'>
+	<table id='dataElementSelection'>
+		<tr>
+			<td>
+				<input type="text" placeholder="$i18n.getString('filter')" id='dataElementFilter' style="width:380px;;" onchange="filterDataElements( this.value, '#dataElementSelection', '#dataElementIds')"/>
+			</td>
+			<td>	
+				<input type='button' value="$i18n.getString('filter')" style="width:80px;" onclick="filterDataElements( getFieldValue('dataElementFilter'), '#dataElementSelection', '#dataElementIds')" onclick="filterDataElements( getFieldValue('deKey'), '#dataElementSelection', '#dataElementIds')">
+				<input type='button' value="$i18n.getString('clear')" style="width:80px;" onclick="setFieldValue('dataElementFilter','');filterDataElements( '', '#dataElementSelection', '#dataElementIds')">
+			</td>
+		</tr>
+		<tr>
+			<td colspan='2'>
+			
+				<select id="dataElementIds" name="dataElementIds" style="height:200px; width:100%;"  multiple="multiple" size="10" ondblclick="insertDataElement( '#dataElementSelection', '$programStage.uid', false)">
+				
+					#if( $programStage.program.programType.value=="WITHOUT_REGISTRATION" )
+						#set($name = "$encoder.htmlEncode($programStage.excecutionDateLabel)")
+						#set($deJSON = '{"uid":"executionDate","name":"executionDate","executionDate":"executionDate","type":"date"}' )
+						<option value='$deJSON' decode="executionDate" dename="executionDate" title="$name">$encoder.htmlEncode($programStage.excecutionDateLabel)</option>
+					#end
+					
+					#foreach( $de in $dataElements)
+					#set($deJSON = '{' + '"uid"' + ':"' + "$de.uid" + '",' + '"name"' + ':"' + "$de.name" + '",' + '"shortName"' + ':"' + "$de.shortName" + '",' + '"type"' + ':"' + "$de.getDetailedTextType()"  + '"}' )
+					<option value='$deJSON' decode="$!de.code" dename="$encoder.htmlEncode($de.name)" title="$encoder.htmlEncode($de.name)">$encoder.htmlEncode( $de.name )</option>
+					#end
+				</select>
+				<select id="dataElementIdsStore" multiple="multiple" style="display:none">
+					#if( $programStage.program.programType.value=="WITHOUT_REGISTRATION" )
+						#set($name = "$encoder.htmlEncode($programStage.excecutionDateLabel)")#set($deJSON = '{"uid":"executionDate","name":"executionDate","executionDate":"executionDate","type":"date"}' )
+						<option value='$deJSON' decode="executionDate" dename="executionDate" title="$name">$encoder.htmlEncode($programStage.excecutionDateLabel)</option>
+					#end
+					
+					#foreach( $de in $dataElements)
+					#set($deJSON = '{' + '"uid"' + ':"' + "$de.uid" + '",' + '"name"' + ':"' + "$de.name" + '",' + '"shortName"' + ':"' + "$de.shortName" + '",' + '"type"' + ':"' + "$de.getDetailedTextType()"  + '"}' )
+					<option value='$deJSON' decode="$!de.code" dename="$encoder.htmlEncode($de.name)">$encoder.htmlEncode( $de.name )</option>
+					#end
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td colspan='2'>
+				<table>
+					<tr>
+						<td>$i18n.getString("display_name")</td>
+						<td>
+							<select id='displayNameOption' onchange='displayNameOnChange( "dataElementSelection",this.value )'>
+								<option value='1'>$i18n.getString("name")</option>
+								<option value='2'>$i18n.getString("code")</option>
+								<option value='3'>$i18n.getString("code_and_name")</option>
+							</select>
+						</td>
+						<td style="padding-left:190px;"></td>
+						<td>$i18n.getString("sort_by")</td>
+						<td>
+							<input type='radio' name='sortBy' value='1' onchange="sortByOnChange('dataElementSelection', '1')" checked >$i18n.getString("name")
+							<input type='radio' name='sortBy' value='2' onchange="sortByOnChange('dataElementSelection', '2')">$i18n.getString("code")
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td colspan='2'>
+				#if(!$programStages.isEmpty())
+				<input type="button" value="$i18n.getString('other_program_stages')" onclick="hideById('dataElementSelection');showById('otherProgramStageDataElements');" >
+				#end
+				<input type="button" id="insertButton" value="$i18n.getString('insert')" onclick="insertDataElement( '#dataElementSelection', '$programStage.uid', false)" style="width:100px">
+				<input type="button" id="insertLabelButton" value="$i18n.getString('insert_label')" onclick="insertDataElement( '#dataElementSelection', '$programStage.uid', true)" style="width:100px">
+			</td>
+		</tr>
+	</table>
+	
+	<table id='otherProgramStageDataElements' style='display:none;'>
+		<tr>
+			<td colspan='2'>
+				<table>
+					<tr>
+						<td>$i18n.getString( "program_stage" )</td>
+						<td>
+							<select id="programStageIds" style="height:200px;width:100%;" onchange="getProgramStageDataElements( this.value )" >
+								<option value=''>[$i18n.getString( "please_select" )]</option>
+								#foreach( $p in $programStages)
+								<option value='$p.id' uid='$p.uid'>$encoder.htmlEncode( $p.name )</option>
+								#end
+							</select>			
+						</td>			
+					</tr>
+					<tr>
+						<td>
+							$i18n.getString( "dataelement" )
+						</td>
+						<td>
+							<input type="text" id='otherDataElementFilter' style="width:240px;" onkeyup="filterDataElements( this.value, '#otherProgramStageDataElements', '#dataElementIds')"/>
+							<input type='button' value="$i18n.getString('clear')" style="width:80px;" onclick="setFieldValue('otherDataElementFilter','');filterDataElements('', '#otherProgramStageDataElements', '#dataElementIds')">
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td colspan='3'>
+				<select id="dataElementIds" name="dataElementIds" style="width:430px;"  multiple="multiple" size="10" ondblclick="insertDataElement( '#otherProgramStageDataElements', jQuery('#programStageIds option:selected').attr('uid'), false )"></select>
+				<select id="dataElementIdsStore" name="dataElementIdsStore" multiple="multiple" style="display:none"></select>
+			</td>
+		</tr>
+		<tr>
+			<td colspan='3'>
+				<table style="background-color:#DFEFEC;width:100%">
+					<tr>
+						<td>$i18n.getString("display_name")</td>
+						<td>
+							<select onchange='displayNameOnChange( "otherProgramStageDataElements",this.value )'>
+								<option selected value='1'>$i18n.getString("name")</option>
+								<option value='2'>$i18n.getString("code")</option>
+								<option value='3'>$i18n.getString("code_and_name")</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>$i18n.getString("sort_by")</td>
+						<td>
+							<input type='radio' name='sortBy' value='1' onchange="sortByOnChange('otherProgramStageDataElements', '1')" checked >$i18n.getString("name")
+							<input type='radio' name='sortBy' value='2' onchange="sortByOnChange('otherProgramStageDataElements', '2')">$i18n.getString("code")
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td colspan='2'>
+				<input type="button" value="$i18n.getString('selected_program_stages')" onclick="hideById('otherProgramStageDataElements');showById('dataElementSelection');" >
+				<input type="button" value="Insert" id="insert" name="insert" onclick="insertDataElement( '#otherProgramStageDataElements', byId('programStageIds').value, false )"/>
+			</td>
+		</tr>
+	</table>	
+	
+	<br><span id="message_"></span>
+</div>
+
+<div id="existedDataEntry">	
+	<select id="existedDataEntryId" style="width:300px;float:left">		
+		#foreach( $dataEntry in $existingDataEntryForms )
+			<option value="$dataEntry.id" >$encoder.htmlEncode( $!dataEntry.name )</option>
+		#end
+	</select>
+	<input type="button" value="$i18n.getString( 'load' )" style="float:left" onclick="loadExistedForm()"/>	
+</div>
+
+<div id="imageDialog" title="$i18n.getString( 'insert_images' )" style='display:none;'>
+	<div style="margin:4px">
+		<div>
+			<select id="imageSelector" multiple="multiple" style="height: 200px; width:100%;" ondblclick='insertImage();'>
+			#foreach( $flag in $flags )
+			<option value="../dhis-web-commons/flags/${flag}.png">$i18n.getString( ${flag} )</option>
+			#end
+			</select>
+		</div>
+		<div style="margin-top:6px"><button type="button" id="insertImageButton">$i18n.getString( "insert" )</button></div>
+	</div>
+</div>
+
+<script>
+	var i18n_delete_program_data_entry_confirm = '$encoder.jsEscape( $i18n.getString( "delete_program_data_entry_confirm" ) , "'" )';
+	var i18n_enter_a_name = '$encoder.jsEscape( $i18n.getString( "enter_a_name" ) , "'" )';
+	var i18n_label_is_assigned_to = '$encoder.jsEscape( $i18n.getString( "label_is_assigned_to" ) , "'" )';
+</script>

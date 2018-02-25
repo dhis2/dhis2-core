@@ -32,8 +32,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Saptarshi
@@ -81,8 +79,6 @@ public class App
     private String launchUrl;
 
     private String baseUrl;
-
-    private Set<String> authorities = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Logic
@@ -277,17 +273,6 @@ public class App
     public void setAppStorageSource( AppStorageSource appStorageSource )
     {
         this.appStorageSource = appStorageSource;
-    }
-
-    @JsonProperty
-    public Set<String> getAuthorities()
-    {
-        return authorities;
-    }
-
-    public void setAuthorities( Set<String> authorities )
-    {
-        this.authorities = authorities;
     }
 
     // -------------------------------------------------------------------------

@@ -67,6 +67,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -157,6 +158,16 @@ public class HibernateGenericStore<T>
         this.cacheable = cacheable;
     }
 
+    protected CriteriaBuilder builder;
+
+    protected CriteriaQuery query;
+
+    @PostConstruct
+    private void initiateCriteriaProperties()
+    {
+        builder = getCriteriaBuilder();
+    }
+
     // -------------------------------------------------------------------------
     // Convenience methods
     // -------------------------------------------------------------------------
@@ -227,18 +238,6 @@ public class HibernateGenericStore<T>
     public final Criteria getDataSharingCriteria()
     {
         return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
-    }
-
-    @Override
-    public final Criteria getDataSharingCriteria( String access )
-    {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
-    }
-
-    @Override
-    public final Criteria getDataSharingCriteria( User user, String access )
-    {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( UserInfo.fromUser( user ), access ) );
     }
 
     @Override
@@ -343,7 +342,7 @@ public class HibernateGenericStore<T>
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
-        if ( user == null || !dataSharingEnabled( user ) )
+        if ( !dataSharingEnabled( user ) || user == null )
         {
             return criteria;
         }
@@ -353,7 +352,6 @@ public class HibernateGenericStore<T>
         Disjunction disjunction = Restrictions.disjunction();
 
         disjunction.add( Restrictions.like( "c.publicAccess", access ) );
-        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
 
         DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
         userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
@@ -704,30 +702,9 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataReadAll()
+    public final List<T> getDataAll()
     {
-        return getDataSharingCriteria( AclService.LIKE_READ_DATA ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getDataReadAll( User user )
-    {
-        return getDataSharingCriteria( user, AclService.LIKE_READ_DATA ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getDataWriteAll()
-    {
-        return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getDataWriteAll( User user )
-    {
-        return getDataSharingCriteria( user, AclService.LIKE_WRITE_DATA ).list();
+        return getDataSharingCriteria().list();
     }
 
     @Override
@@ -742,7 +719,7 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataReadAll( int first, int max )
+    public final List<T> getDataAll( int first, int max )
     {
         return getDataSharingCriteria()
             .setFirstResult( first )
@@ -761,7 +738,7 @@ public class HibernateGenericStore<T>
             return new ArrayList<>();
         }
 
-        CriteriaQuery query = getCriteriaQuery();
+        query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
@@ -815,8 +792,7 @@ public class HibernateGenericStore<T>
             return new ArrayList<>();
         }
 
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
@@ -837,8 +813,7 @@ public class HibernateGenericStore<T>
             return null;
         }
 
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );

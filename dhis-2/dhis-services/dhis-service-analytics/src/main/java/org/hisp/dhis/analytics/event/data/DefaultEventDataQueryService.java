@@ -103,8 +103,9 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
         SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus,
-        ProgramStatus programStatus, boolean collapseDataDimensions, boolean aggregateData, boolean includeMetadataDetails, 
-        DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
+        ProgramStatus programStatus, boolean collapseDataDimensions,
+        boolean aggregateData, boolean includeMetadataDetails, DisplayProperty displayProperty, Date relativePeriodDate,
+        String userOrgUnit, DhisApiVersion apiVersion )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
             skipMeta, skipData, completedOnly, hierarchyMeta, false, false, eventStatus, programStatus, displayProperty,
@@ -136,8 +137,9 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
         boolean coordinatesOnly, boolean includeMetadataDetails, EventStatus eventStatus, ProgramStatus programStatus,
-        DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, String coordinateField, 
-        Integer page, Integer pageSize, DhisApiVersion apiVersion )
+        DisplayProperty displayProperty,
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize,
+        DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         

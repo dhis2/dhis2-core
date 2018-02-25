@@ -39,10 +39,4 @@ public class Conjunction extends Junction
     {
         super( schema, Type.AND );
     }
-
-    @Override
-    public String toString()
-    {
-        return "AND[" + criterions + "]";
-    }
 }

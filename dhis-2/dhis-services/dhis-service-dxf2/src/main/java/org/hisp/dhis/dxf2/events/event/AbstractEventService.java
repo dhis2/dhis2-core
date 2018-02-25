@@ -148,6 +148,7 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     @Autowired
     protected ProgramService programService;
 
@@ -251,7 +252,7 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
+    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         User user = currentUserService.getCurrentUser();
@@ -287,10 +288,7 @@ public abstract class AbstractEventService
                 importSummaries.addImportSummary( addEvent( event, user, importOptions ) );
             }
 
-            if ( clearSession && events.size() >= FLUSH_FREQUENCY )
-            {
-                clearSession();
-            }
+            clearSession();
         }
 
         return importSummaries;
@@ -303,7 +301,7 @@ public abstract class AbstractEventService
 
         try
         {
-            ImportSummaries importSummaries = addEvents( events, importOptions, true );
+            ImportSummaries importSummaries = addEvents( events, importOptions );
 
             if ( jobId != null )
             {
@@ -535,6 +533,7 @@ public abstract class AbstractEventService
         }
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits );
+
         events.setEvents( eventList );
 
         return events;
@@ -704,11 +703,8 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( errors.toString() );
         }
 
-        if ( ou != null )
-        {
-            event.setOrgUnit( ou.getUid() );
-            event.setOrgUnitName( ou.getName() );
-        }
+        event.setOrgUnit( ou.getUid() );
+        event.setOrgUnitName( ou.getName() );
 
         Program program = programStageInstance.getProgramInstance().getProgram();
 
@@ -927,7 +923,7 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession )
+    public ImportSummaries updateEvents( List<Event> events, boolean singleValue )
     {
         ImportSummaries importSummaries = new ImportSummaries();
 
@@ -963,10 +959,7 @@ public abstract class AbstractEventService
                 importSummaries.addImportSummary( updateEvent( event, user, singleValue, null ) );
             }
 
-            if ( clearSession && events.size() >= FLUSH_FREQUENCY )
-            {
-                clearSession();
-            }
+            clearSession();
         }
 
         return importSummaries;
@@ -1006,13 +999,6 @@ public abstract class AbstractEventService
         if ( organisationUnit == null )
         {
             organisationUnit = programStageInstance.getOrganisationUnit();
-        }
-
-        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
-
-        if ( !errors.isEmpty() )
-        {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
         Date executionDate = new Date();
@@ -1132,7 +1118,7 @@ public abstract class AbstractEventService
             TrackedEntityDataValue dataValue = dataValueService.getTrackedEntityDataValue( programStageInstance,
                 dataElement );
 
-            if ( !validateDataValue( programStageInstance, user, dataElement, value.getValue(), importSummary ) )
+            if ( !validateDataValue( dataElement, value.getValue(), importSummary ) )
             {
                 continue;
             }
@@ -1298,7 +1284,7 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
-    private boolean validateDataValue( ProgramStageInstance programStageInstance, User user, DataElement dataElement, String value, ImportSummary importSummary )
+    private boolean validateDataValue( DataElement dataElement, String value, ImportSummary importSummary )
     {
         String status = ValidationUtils.dataValueIsValid( value, dataElement );
 
@@ -1308,14 +1294,6 @@ public abstract class AbstractEventService
             importSummary.getImportCount().incrementIgnored();
 
             return false;
-        }
-
-        List<String> errors = trackerAccessManager.canWrite( user, new TrackedEntityDataValue( programStageInstance, dataElement, value ) );
-
-        if ( !errors.isEmpty() )
-        {
-            errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
-            importSummary.getImportCount().incrementIgnored();
         }
 
         return true;
@@ -1423,7 +1401,7 @@ public abstract class AbstractEventService
 
             if ( dataElement != null )
             {
-                if ( validateDataValue( programStageInstance, user, dataElement, dataValue.getValue(), importSummary ) )
+                if ( validateDataValue( dataElement, dataValue.getValue(), importSummary ) )
                 {
                     String dataValueStoredBy = dataValue.getStoredBy() != null ? dataValue.getStoredBy() : storedBy;
 
@@ -1552,11 +1530,13 @@ public abstract class AbstractEventService
         if ( programStageInstance.getId() == 0 )
         {
             programStageInstance.setAutoFields();
-            programStageInstanceService.addProgramStageInstance( programStageInstance );
+            sessionFactory.getCurrentSession().save( programStageInstance );
         }
         else
         {
-            programStageInstanceService.updateProgramStageInstance( programStageInstance );
+            sessionFactory.getCurrentSession().save( programStageInstance );
+            sessionFactory.getCurrentSession().flush();
+            sessionFactory.getCurrentSession().refresh( programStageInstance );
         }
 
         if ( programStageInstance.isCompleted() )

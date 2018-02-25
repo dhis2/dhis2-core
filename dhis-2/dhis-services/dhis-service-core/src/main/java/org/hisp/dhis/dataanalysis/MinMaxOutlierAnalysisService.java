@@ -32,9 +32,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Lists;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.apache.commons.logging.Log;
@@ -114,53 +114,61 @@ public class MinMaxOutlierAnalysisService
     }
 
     @Override
-    public void generateMinMaxValues( OrganisationUnit parent, Collection<DataElement> dataElements, Double stdDevFactor )
+    public void generateMinMaxValues( Collection<OrganisationUnit> parents,
+        Collection<DataElement> dataElements, Double stdDevFactor )
     {
-        log.info( "Starting min-max value generation, no of data elements: " + dataElements.size() + ", parent: " + parent.getUid() );
+        log.info( "Starting min-max value generation, no of data elements: " + dataElements.size() + ", no of org units: " + parents.size() );
 
         //Set<Integer> orgUnitIds = new HashSet<>( IdentifiableObjectUtils.getIdentifiers( organisationUnits ) );
 
         Date from = new DateTime( 1, 1, 1, 1, 1 ).toDate();
 
-        minMaxDataElementService.removeMinMaxDataElements( dataElements, parent );
+        minMaxDataElementService.removeMinMaxDataElements( dataElements, parents );
 
         log.debug( "Deleted existing min-max values" );
-
-        List<String> parentPaths = Lists.newArrayList( parent.getPath() );
 
         BatchHandler<MinMaxDataElement> batchHandler = batchHandlerFactory.createBatchHandler( MinMaxDataElementBatchHandler.class ).init();
 
         for ( DataElement dataElement : dataElements )
         {
-            if ( dataElement.getValueType().isNumeric() )
+            ValueType valueType = dataElement.getValueType();
+
+            if ( valueType.isNumeric() )
             {
-                Set<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
+                Collection<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
 
-                List<DataAnalysisMeasures> measuresList = dataAnalysisStore.getDataAnalysisMeasures( dataElement, categoryOptionCombos, parentPaths, from );
-
-                for ( DataAnalysisMeasures measures : measuresList )
+                for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryOptionCombos )
                 {
-                    int min = (int) Math.round( MathUtils.getLowBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
-                    int max = (int) Math.round( MathUtils.getHighBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
+                    Map<Integer, Double> standardDeviations = dataAnalysisStore.getStandardDeviation( dataElement, categoryOptionCombo, parents, from );
 
-                    switch ( dataElement.getValueType() )
+                    Map<Integer, Double> averages = dataAnalysisStore.getAverage( dataElement, categoryOptionCombo, parents, from );
+
+                    for ( Integer unit : averages.keySet() )
                     {
-                        case INTEGER_POSITIVE:
-                        case INTEGER_ZERO_OR_POSITIVE:
-                            min = Math.max( 0, min ); // Cannot be < 0
-                            break;
-                        case INTEGER_NEGATIVE:
-                            max = Math.min( 0, max ); // Cannot be > 0
-                            break;
+                        Double stdDev = standardDeviations.get( unit );
+                        Double avg = averages.get( unit );
+
+                        if ( stdDev != null && avg != null )
+                        {
+                            int min = (int) MathUtils.getLowBound( stdDev, stdDevFactor, avg );
+                            int max = (int) MathUtils.getHighBound( stdDev, stdDevFactor, avg );
+
+                            if ( ValueType.INTEGER_POSITIVE == valueType || ValueType.INTEGER_ZERO_OR_POSITIVE == valueType )
+                            {
+                                min = Math.max( 0, min ); // Cannot be < 0
+                            }
+
+                            if ( ValueType.INTEGER_NEGATIVE == valueType )
+                            {
+                                max = Math.min( 0, max ); // Cannot be > 0
+                            }
+
+                            OrganisationUnit source = new OrganisationUnit();
+                            source.setId( unit );
+
+                            batchHandler.addObject( new MinMaxDataElement( source, dataElement, categoryOptionCombo, min, max, true ) );
+                        }
                     }
-
-                    OrganisationUnit orgUnit = new OrganisationUnit();
-                    orgUnit.setId( measures.getOrgUnitId() );
-
-                    DataElementCategoryOptionCombo categoryOptionCombo = new DataElementCategoryOptionCombo();
-                    categoryOptionCombo.setId( measures.getCategoryOptionComboId() );
-
-                    batchHandler.addObject( new MinMaxDataElement( orgUnit, dataElement, categoryOptionCombo, min, max, true ) );
                 }
             }
         }

@@ -55,11 +55,6 @@ public class OrganisationUnitDataSetAssociationSet
      */
     private Set<String> distinctDataSets = new HashSet<>();
 
-    /**
-     * Map contains authorities for each DataSet for current user
-     */
-    private Map<String, String> dataSetAuthMap = new HashMap<>();
-
     public OrganisationUnitDataSetAssociationSet()
     {
     }
@@ -92,15 +87,5 @@ public class OrganisationUnitDataSetAssociationSet
     public void setDistinctDataSets( Set<String> distinctDataSets )
     {
         this.distinctDataSets = distinctDataSets;
-    }
-
-    public Map<String, String> getDataSetAuthMap()
-    {
-        return this.dataSetAuthMap;
-    }
-
-    public void setDataSetAuthMap( Map<String, String> dataSetAuthMap )
-    {
-        this.dataSetAuthMap = dataSetAuthMap;
     }
 }

@@ -76,13 +76,4 @@ public class AccessData
     {
         this.read = read;
     }
-
-    @Override
-    public String toString()
-    {
-        return "AccessData{" +
-            "write=" + write +
-            ", read=" + read +
-            '}';
-    }
 }

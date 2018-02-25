@@ -35,7 +35,6 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -66,9 +65,7 @@ public class JdbcCompletenessTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() );
-        
-        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
+        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() ) );
     }
     
     @Override
@@ -222,13 +219,13 @@ public class JdbcCompletenessTableManager
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
-        return ConcurrentUtils.getImmediateFuture();
+        return null; // Not relevant
     }
 
     @Override
     @Async
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
-        return ConcurrentUtils.getImmediateFuture();
+        return null; // Not needed
     }
 }

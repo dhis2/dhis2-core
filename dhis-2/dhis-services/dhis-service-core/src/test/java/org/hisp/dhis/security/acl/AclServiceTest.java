@@ -914,8 +914,6 @@ public class AclServiceTest
         assertTrue( access.isUpdate() );
         assertFalse( access.isDelete() );
 
-        assertTrue( aclService.canUpdate( user1, dataElement ) );
-
         manager.save( dataElement );
 
         dataElement.setPublicAccess( null );
@@ -925,11 +923,11 @@ public class AclServiceTest
 
         access = aclService.getAccess( dataElement, user2 );
         assertTrue( access.isRead() );
-        assertTrue( access.isWrite() );
-        assertTrue( access.isUpdate() );
+        assertFalse( access.isWrite() );
+        assertFalse( access.isUpdate() );
         assertFalse( access.isDelete() );
 
-        assertTrue( aclService.canUpdate( user2, dataElement ) );
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
 
         List<ErrorReport> errorReports = aclService.verifySharing( dataElement, user2 );
         assertTrue( errorReports.isEmpty() );

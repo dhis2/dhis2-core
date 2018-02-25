@@ -2123,16 +2123,9 @@ function registerCompleteDataSet()
 	        type: 'post',
 	    	success: function( data, textStatus, xhr )
 	        {
-                dhis2.de.storageManager.clearCompleteDataSet( params );
-                if( data.status == 'SUCCESS' )
-                {
-                    $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                    disableCompleteButton();                    
-                }
-                else if( data.status == 'ERROR' )
-                {
-                    handleDataSetCompletenessResponse( data );
-                }
+                $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
+	    		disableCompleteButton();
+	    		dhis2.de.storageManager.clearCompleteDataSet( params );
 	        },
 		    error:  function( xhr, textStatus, errorThrown )
 		    {
@@ -2149,24 +2142,6 @@ function registerCompleteDataSet()
 		    }
 	    } );
 	} );
-}
-
-function handleDataSetCompletenessResponse( data ){
-    var html = '<h3>' + i18n_dataset_completeness_errort + ' &nbsp;<img src="../images/warning_small.png"></h3>';
-                    
-    if( data && data.conflicts && data.conflicts.length > 0 )
-    {
-        html += '<table class="listTable" style="width:300px;">';
-        var alternate = false;
-        data.conflicts.forEach(function( conflict ) {
-            var style = alternate ? 'class="listAlternateRow"' : '';                            
-            html += '<tr><td ' + style + '>' + conflict.value + '</td></tr>';
-            alternate = !alternate;
-        });                        
-        html +='</table>';                        
-    }
-
-    dhis2.de.displayValidationDialog( html, 400 );
 }
 
 function undoCompleteDataSet()
@@ -2199,16 +2174,9 @@ function undoCompleteDataSet()
     	type: 'delete',
     	success: function( data, textStatus, xhr )
         {
-            dhis2.de.storageManager.clearCompleteDataSet( params );
-            if( data.status == 'SUCCESS' )
-            {
-                $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                disableCompleteButton();                    
-            }
-            else if( data.status == 'ERROR' )
-            {
-                handleDataSetCompletenessResponse( data );
-            }          
+          $( document ).trigger( dhis2.de.event.uncompleted, dhis2.de.currentDataSetId );
+          disableUndoButton();
+          dhis2.de.storageManager.clearCompleteDataSet( params );
         },
         error: function( xhr, textStatus, errorThrown )
         {
@@ -2274,12 +2242,6 @@ dhis2.de.validateCompulsoryDataElements = function ()
   var compulsoryValid = true;
 
   $('[required=required]').each( function() {
-
-    if ( $(this).prop("disabled") )
-    {
-        return;
-    }
-
     if ( $(this).hasClass("entryselect") )
     {
       var entrySelectName =  $(this).attr("name");
@@ -2334,7 +2296,7 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
         else
         {
             var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
-        	'<p class="bold">' + i18n_missing_compulsory_dataelements + '</p>';
+        	'<p class="bold">' + i18n_all_values_for_data_element_must_be_filled + '</p>';
 		
             dhis2.de.displayValidationDialog( html, 300 );
 
@@ -2434,11 +2396,6 @@ dhis2.de.validateCompulsoryCombinations = function()
 
         $( '.entryfield' ).add( '[name="entryselect"]' ).each( function( i )
         {
-            if ( $(this).prop("disabled") )
-            {
-                return;
-            }
-	    
             var id = $( this ).attr( 'id' );
 
             var split = dhis2.de.splitFieldId( id );
@@ -3560,7 +3517,7 @@ dhis2.de.populateColumnTotals = function(){
                 {                    
                     $trTarget.each( function( idx, item ) 
                     {
-                        var inputs = $( item ).find( '.entryfield' );                        
+                        var inputs = $( item ).find( '.entryfield' );                        
                         inputs.each( function(k, e){
                             if( this.id.indexOf( ids[i] ) !== -1 && $(this).is(':visible') )
                             {

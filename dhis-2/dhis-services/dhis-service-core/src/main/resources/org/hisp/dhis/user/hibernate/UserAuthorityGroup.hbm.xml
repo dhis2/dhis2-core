@@ -30,6 +30,16 @@
       <element type="string" column="authority" />
     </set>
 
+    <set name="dataSets" table="userroledataset">
+      <key column="userroleid" foreign-key="fk_userroledataset_userroleid" />
+      <many-to-many column="datasetid" class="org.hisp.dhis.dataset.DataSet" foreign-key="fk_userroledataset_datasetid" />
+    </set>
+
+    <set name="programs" table="program_userroles">
+      <key column="userroleid" foreign-key="fk_userroleprogram_userroleid" />
+      <many-to-many column="programid" class="org.hisp.dhis.program.Program" foreign-key="fk_userroleprogram_programid" />
+    </set>
+
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_userrole_userid" />
 

@@ -166,11 +166,6 @@ public class HibernateProgramInstanceStore
         {
             hql += hlp.whereAnd() + "pi.enrollmentDate <= '" + getMediumDateString( params.getProgramEndDate() ) + "'";
         }
-        
-        if ( !params.isIncludeDeleted() )
-        {
-            hql += hlp.whereAnd() + " pi.deleted is false ";
-        }
 
         return hql;
     }

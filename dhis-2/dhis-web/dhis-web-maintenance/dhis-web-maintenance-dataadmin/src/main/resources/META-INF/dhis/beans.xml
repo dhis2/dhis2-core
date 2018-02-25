@@ -55,6 +55,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
     <property name="dataAnalysisService" ref="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" />
     <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
   </bean>
 
   <!-- Sql View -->
@@ -161,7 +162,6 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     scope="prototype">
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataadmin.action.lockexception.PrepareBatchRemovalAction"

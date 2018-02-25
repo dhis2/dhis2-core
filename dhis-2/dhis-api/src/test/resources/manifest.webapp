@@ -32,11 +32,5 @@
       "dhis": {
         "href": "http://localhost:8080/dhis"
       }
-    },
-    "authorities": [
-      "APP_ADD_NEW",
-      "APP_UPDATE",
-      "APP_DELETE",
-      "APP_ALLOW_EXECUTE"
-    ]
+    }
 }

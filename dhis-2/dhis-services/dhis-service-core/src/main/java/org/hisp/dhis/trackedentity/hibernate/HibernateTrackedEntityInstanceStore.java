@@ -31,8 +31,10 @@ package org.hisp.dhis.trackedentity.hibernate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -43,9 +45,12 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +61,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceService.ERROR_DUPLICATE_IDENTIFIER;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceService.SEPARATOR;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -608,6 +615,55 @@ public class HibernateTrackedEntityInstanceStore
         sql += "and psi.deleted is false ";
 
         return sql;
+    }
+
+    @Override
+    public String validate( TrackedEntityInstance instance, TrackedEntityAttributeValue attributeValue, Program program )
+    {
+        TrackedEntityAttribute attribute = attributeValue.getAttribute();
+
+        try
+        {
+            if ( attribute.isUnique() )
+            {
+                Criteria criteria = getCriteria();
+                criteria.add( Restrictions.ne( "id", instance.getId() ) );
+                criteria.createAlias( "trackedEntityAttributeValues", "attributeValue" );
+                criteria.createAlias( "attributeValue.attribute", "attribute" );
+                criteria.add( Restrictions.eq( "attributeValue.value", attributeValue.getValue() ) );
+                criteria.add( Restrictions.eq( "attributeValue.attribute", attribute ) );
+
+                if ( attribute.getId() != 0 )
+                {
+                    criteria.add( Restrictions.ne( "id", attribute.getId() ) );
+                }
+
+                if ( attribute.getOrgunitScope() )
+                {
+                    criteria.add( Restrictions.eq( "organisationUnit", instance.getOrganisationUnit() ) );
+                }
+
+                if ( program != null && attribute.getProgramScope() )
+                {
+                    criteria.createAlias( "programInstances", "programInstance" );
+                    criteria.add( Restrictions.eq( "programInstance.program", program ) );
+                }
+
+                Number rs = (Number) criteria.setProjection(
+                    Projections.projectionList().add( Projections.property( "attribute.id" ) ) ).uniqueResult();
+
+                if ( rs != null && rs.intValue() > 0 )
+                {
+                    return ERROR_DUPLICATE_IDENTIFIER + SEPARATOR + rs.intValue();
+                }
+            }
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override

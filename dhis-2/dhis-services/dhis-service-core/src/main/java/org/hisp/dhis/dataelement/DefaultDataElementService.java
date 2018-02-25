@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.GenericNameableObjectStore;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -116,12 +115,6 @@ public class DefaultDataElementService
     public List<DataElement> getAllDataElements()
     {
         return dataElementStore.getAll();
-    }
-
-    @Override
-    public List<DataElement> getAllDataElementsByValueType( ValueType valueType )
-    {
-        return dataElementStore.getDataElementsByValueType( valueType );
     }
 
     @Override

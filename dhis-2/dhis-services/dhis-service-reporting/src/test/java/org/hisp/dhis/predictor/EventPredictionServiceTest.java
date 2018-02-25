@@ -32,11 +32,8 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.mock.MockAnalyticsService;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -65,7 +62,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -81,11 +77,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.junit.Assert.assertEquals;
 
@@ -144,7 +137,7 @@ public class EventPredictionServiceTest
     private DataValueService dataValueService;
 
     @Autowired
-    private AnalyticsService analyticsService;
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
     private ExpressionService expressionService;
@@ -181,14 +174,12 @@ public class EventPredictionServiceTest
         final String PROGRAM_UID = "ProgramUidA";
         final String PROGRAM_INDICATOR_A_UID = "ProgramIndA";
         final String PROGRAM_INDICATOR_B_UID = "ProgramIndB";
-        final String PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR + TRACKED_ENTITY_ATTRIBUTE_UID;
-        final String PROGRAM_DATA_ELEMENT_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID;
 
-        final String EXPRESSION_A = "SUM( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )"; // A - ProgramTrackedEntityAttribute
-        final String EXPRESSION_D = "SUM( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )"; // D - ProgramDataElement
+        final String EXPRESSION_A = "SUM( A{" + PROGRAM_UID + SEPARATOR + TRACKED_ENTITY_ATTRIBUTE_UID + "} )"; // A - ProgramTrackedEntityAttribute
+        final String EXPRESSION_D = "SUM( D{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID + "} )"; // D - ProgramDataElement
         final String EXPRESSION_I = "SUM( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )"; // I - ProgramIndicators
 
-        final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4"; // Program Indicator A expression
+        final String EX_INDICATOR_A = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID + "} + 4"; // Program Indicator A expression
         final String EX_INDICATOR_B = "V{enrollment_count}"; // Program Indicator B expression
 
         defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
@@ -315,25 +306,18 @@ public class EventPredictionServiceTest
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueA );
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
 
-        Map<String, Grid> itemGridMap = new HashMap<>();
-        itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );
-        itemGridMap.put( PROGRAM_DATA_ELEMENT_DIMENSION_ITEM, newGrid( PROGRAM_DATA_ELEMENT_DIMENSION_ITEM, 4.0, 5.0 ) );
-        itemGridMap.put( PROGRAM_INDICATOR_A_UID, newGrid( PROGRAM_INDICATOR_A_UID, 8.0, 9.0 ) );
-        itemGridMap.put( PROGRAM_INDICATOR_B_UID, newGrid( PROGRAM_INDICATOR_B_UID ) );
-
-        MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
-        mockAnalyticsSerivce.setItemGridMap( itemGridMap );
-
-        setDependency( predictionService, "analyticsService", mockAnalyticsSerivce, AnalyticsService.class );
-
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
         setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+
+        // Generate analytics tables:
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build() );
     }
 
     @Override
     public void tearDownTest()
     {
-        setDependency( predictionService, "analyticsService", analyticsService, AnalyticsService.class );
+        analyticsTableGenerator.dropTables();
+
         setDependency( predictionService, "currentUserService", currentUserService, CurrentUserService.class );
     }
 
@@ -347,44 +331,6 @@ public class EventPredictionServiceTest
     // Local convenience methods
     // -------------------------------------------------------------------------
 
-    /**
-     * Make a data grid for MockAnalyticsService to return.
-     *
-     * @param dimensionItem Dimension item to be queried for
-     * @param values (if any), starting with March 2017
-     * @return the Grid, as would be returned by analytics
-     */
-    private Grid newGrid( String dimensionItem, double ...values )
-    {
-        Grid grid = new ListGrid();
-        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
-        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
-        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
-        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
-        grid.addHeader( new GridHeader( VALUE_ID ) );
-
-        int month = 201703;
-
-        for ( double value : values )
-        {
-            grid.addRow();
-            grid.addValue( dimensionItem );
-            grid.addValue( Integer.toString( month++ ) );
-            grid.addValue( orgUnitA.getUid() );
-            grid.addValue( "HllvX50cXC0" );
-            grid.addValue( new Double( value ) );
-        }
-
-        return grid;
-    }
-
-    /**
-     * Gets a data value from the database.
-     *
-     * @param dataElement element of value to get
-     * @param period period of value to get
-     * @return the value
-     */
     private String getDataValue( DataElement dataElement, Period period )
     {
         DataValue dv = dataValueService.getDataValue( dataElement, period, orgUnitA, defaultCombo, defaultCombo );

@@ -29,7 +29,6 @@ package org.hisp.dhis.commons.util;
  */
 
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -62,16 +61,5 @@ public class ConcurrentUtils
                 throw new RuntimeException( "Thread interrupted", ex );
             }
         }
-    }
-    
-    /**
-     * Returns a {@link Future} which is immediately completed and has its
-     * value set to an empty string.
-     * 
-     * @return a future which is immediately completed.
-     */
-    public static Future<?> getImmediateFuture()
-    {
-        return CompletableFuture.completedFuture( "" );
     }
 }

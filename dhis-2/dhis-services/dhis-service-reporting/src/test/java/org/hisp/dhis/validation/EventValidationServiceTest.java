@@ -32,10 +32,8 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -43,7 +41,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -51,7 +48,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.*;
-import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -69,7 +65,6 @@ import java.util.*;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 
@@ -90,7 +85,7 @@ public class EventValidationServiceTest
     private TrackedEntityAttributeService entityAttributeService;
 
     @Autowired
-    private TrackedEntityAttributeValueService entityAttributeValueService;
+    TrackedEntityAttributeValueService entityAttributeValueService;
 
     @Autowired
     private ProgramService programService;
@@ -117,7 +112,7 @@ public class EventValidationServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private AnalyticsService analyticsService;
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
     private ExpressionService expressionService;
@@ -271,20 +266,14 @@ public class EventValidationServiceTest
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueA );
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
 
-        Map<Date, Grid> dateGridMap = new HashMap<>();
-        dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8 ) );
-        dateGridMap.put( periodApr.getStartDate(), newGrid( 5, 1, 9 ) );
-
-        MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
-        mockAnalyticsSerivce.setDateGridMap( dateGridMap );
-
-        setDependency( validationService, "analyticsService", mockAnalyticsSerivce, AnalyticsService.class );
+        // Generate analytics tables:
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build() );
     }
 
     @Override
     public void tearDownTest()
     {
-        setDependency( validationService, "analyticsService", analyticsService, AnalyticsService.class );
+        analyticsTableGenerator.dropTables();
     }
 
     @Override
@@ -296,43 +285,6 @@ public class EventValidationServiceTest
     // -------------------------------------------------------------------------
     // Local convenience methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Make a data grid for MockAnalyticsService to return.
-     *
-     * @param dataElementVal Program data element value
-     * @param teAttributeVal Tracked entity attribute value
-     * @param piVal Program Indicator value
-     * @return the Grid, as would be returned by analytics
-     */
-    private Grid newGrid( double dataElementVal, double teAttributeVal, double piVal )
-    {
-        Grid grid = new ListGrid();
-        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
-        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
-        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
-        grid.addHeader( new GridHeader( VALUE_ID ) );
-
-        grid.addRow();
-        grid.addValue( "ProgramABCD.DataElement" );
-        grid.addValue( orgUnitA.getUid() );
-        grid.addValue( "HllvX50cXC0" );
-        grid.addValue( new Double( dataElementVal ) );
-
-        grid.addRow();
-        grid.addValue( "ProgramABCD.TEAttribute" );
-        grid.addValue( orgUnitA.getUid() );
-        grid.addValue( "HllvX50cXC0" );
-        grid.addValue( new Double( teAttributeVal ) );
-
-        grid.addRow();
-        grid.addValue( "ProgramIndA" );
-        grid.addValue( orgUnitA.getUid() );
-        grid.addValue( "HllvX50cXC0" );
-        grid.addValue( new Double( piVal ) );
-
-        return grid;
-    }
 
     /**
      * Returns a naturally ordered list of ValidationResults.

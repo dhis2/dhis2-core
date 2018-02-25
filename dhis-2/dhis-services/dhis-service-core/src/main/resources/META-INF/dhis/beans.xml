@@ -165,8 +165,6 @@
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 
-  <bean id="org.hisp.dhis.datavalue.DataAccessManager" class="org.hisp.dhis.datavalue.DefaultAggregateAccessManager"/>
-
   <bean id="org.hisp.dhis.dataapproval.DataApprovalStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore">
     <property name="clazz" value="org.hisp.dhis.dataapproval.DataApproval" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
@@ -248,17 +246,6 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
-
-  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateSequentialNumberCounterStore">
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reservedvalue.ReservedValueStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateReservedValueStore">
-    <property name="clazz" value="org.hisp.dhis.reservedvalue.ReservedValue" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <!--DataSetNotifications-->
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
@@ -725,6 +712,14 @@
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
 
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueStore"
+    class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeReservedValueStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService"
+    class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeReservedValueService" />
+
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramStageDataElement" />
@@ -834,6 +829,12 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
   
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableHookStore">
+    <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableHook" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
   <!-- File resource jobs -->
 
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
@@ -867,6 +868,7 @@
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="fileResourceService" ref="org.hisp.dhis.fileresource.FileResourceService" />
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
@@ -923,6 +925,7 @@
   <bean id="org.hisp.dhis.dataset.DataSetService" class="org.hisp.dhis.dataset.DefaultDataSetService">
     <property name="dataSetStore" ref="org.hisp.dhis.dataset.DataSetStore" />
     <property name="lockExceptionStore" ref="org.hisp.dhis.dataset.LockExceptionStore" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="dataApprovalService" ref="org.hisp.dhis.dataapproval.DataApprovalService" />
   </bean>
 
@@ -986,7 +989,6 @@
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
     <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
@@ -1072,6 +1074,7 @@
     <property name="messageConversationStore" ref="org.hisp.dhis.message.MessageConversationStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+    <property name="emailService" ref="org.hisp.dhis.email.EmailService" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
@@ -1154,7 +1157,7 @@
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" class="org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" />
 
-  <bean id="dataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
+  <bean id="scheduledDataSetNotificationJob" class="org.hisp.dhis.dataset.notifications.DataSetNotificationJob" />
 
   <bean id="org.hisp.dhis.security.oauth2.OAuth2ClientStore" class="org.hisp.dhis.security.oauth2.hibernate.HibernateOAuth2ClientStore">
     <property name="clazz" value="org.hisp.dhis.security.oauth2.OAuth2Client" />
@@ -1351,6 +1354,8 @@
     <property name="colorSetStore" ref="org.hisp.dhis.color.ColorSetStore" />
   </bean>
   
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookService" class="org.hisp.dhis.analytics.DefaultAnalyticsTableHookService" />
+
   <!-- SMS Services -->
 
   <bean id="org.hisp.dhis.sms.MessageQueue" class="org.hisp.dhis.sms.DatabaseSupportedInternalMemoryMessageQueue" />
@@ -1483,11 +1488,6 @@
     <property name="attributeGroupStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.textpattern.TextPatternService" class="org.hisp.dhis.textpattern.DefaultTextPatternService" />
-
-  <bean id="org.hisp.dhis.reservedvalue.ReservedValueService" class="org.hisp.dhis.reservedvalue.DefaultReservedValueService">
-  </bean>
-
   <!-- Outbound messaging services -->
 
   <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"
@@ -1519,7 +1519,11 @@
   </bean>  
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
-    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService" />
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService">
+    <property name="attributeStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore" />
+    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+    <property name="programAttributeStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" />
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueService">
@@ -1649,15 +1653,11 @@
 
   <!-- Scheduled jobs -->
 
-  <bean id="programNotificationsJob"
+  <bean id="scheduledProgramNotificationsJob"
         class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
   <bean id="validationResultNotificationJob"
         class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
-
-  <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob">
-    <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
-  </bean>
 
   <!-- Startup routine definitions -->
 
@@ -1675,6 +1675,7 @@
 
   <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
     <property name="jobConfigurationService" ref="jobConfigurationService" />
+    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
     <property name="runlevel" value="5" />
     <property name="skipInTests" value="true" />
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
@@ -2039,16 +2040,6 @@
   <bean id="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler"
     class="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
-        class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" >
-    <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
-        class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" >
-    <constructor-arg ref="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" />
   </bean>
 
   <!-- AOP definitions -->

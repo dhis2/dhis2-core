@@ -1,0 +1,71 @@
+
+<h3>$i18n.getString( "relationship_type_management" ) #openHelp( "relationship_type" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="showUpdateRelationshipTypeForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li><a data-target-fn="removeRelationshipType"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showRelationshipTypeDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+  <tr>
+    <td style="vertical-align:top">
+    <table width="100%">
+      <tr>
+        <td>
+			#filterDiv( "relationshipType" )
+        </td>
+        <td colspan="3" style="text-align:right">
+          <input type="button" value="$i18n.getString( "add_new" )" onclick="window.location.href='showAddRelationshipTypeForm.action'" style="width:70px">
+        </td>
+      </tr>
+    </table>
+
+	<table class="listTable">
+      <col>
+	   <col>
+      <thead>
+        <tr>
+          <th>$i18n.getString( "relationship_type" )</th>
+          <th>$i18n.getString( "name" )</th>
+        </tr>
+      </thead>
+        <tbody id="list">
+        #foreach( $relationshipType in $relationshipTypes )
+          <tr id="tr${relationshipType.id}" data-id="$!relationshipType.id" 
+			  data-uid="$!relationshipType.uid" data-type="RelationshipType" 
+			  data-name="$encoder.htmlEncode( $relationshipType.aIsToB )/$encoder.htmlEncode( $relationshipType.bIsToA )"
+              data-can-manage="$security.canManage( $relationshipType )"
+              data-can-update="$security.canUpdate( $relationshipType )"
+              data-can-delete="$security.canDelete( $relationshipType )">
+              <td>$encoder.htmlEncode( $relationshipType.aIsToB )/$encoder.htmlEncode( $relationshipType.bIsToA )</td>
+              <td>$encoder.htmlEncode( $!relationshipType.displayName )</td>
+          </tr>
+        #end
+        </tbody>
+        </table>
+		<p></p>
+		#parse( "/dhis-web-commons/paging/paging.vm" )
+    </td>
+
+    <td id="detailsData">
+        <div id="detailsArea">
+          <div id="hideDetailsArea">
+            <a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"></a>
+			  </div>
+				<p><label class="bold">$i18n.getString( "a_is_to_b" ):</label><br><span id="aIsToBField"></span></p>
+				<p><label class="bold">$i18n.getString( "b_is_to_a" ):</label><br><span id="bIsToAField"></span></p>
+				<p><label class="bold">$i18n.getString( "description" ):</label><br><span id="descriptionField"></span></p>
+				<p><label class="bold">$i18n.getString( "id" ):</label><br><span id="idField"></span></p>
+			</div>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_relationship_type" ) , "'" )';
+	var i18n_adding_relationship_type_failed = '$encoder.jsEscape( $i18n.getString( "adding_relationshipt_type_failed" ), "'")';	
+</script>

@@ -207,8 +207,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
             delete.addAll( enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
         }
 
-        importSummaries.addImportSummaries( addEnrollments( create, importOptions, null, true ) );
-        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, null, true ) );
+        importSummaries.addImportSummaries( addEnrollments( create, importOptions ) );
+        importSummaries.addImportSummaries( updateEnrollments( update, importOptions ) );
         importSummaries.addImportSummaries( deleteEnrollments( delete ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )

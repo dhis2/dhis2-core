@@ -29,7 +29,6 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
@@ -107,11 +106,23 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
 
         return toIsoPeriod( start, end, calendar );
     }
-    
+
     @Override
-    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
+    public Period getNextPeriod( Period period, Calendar calendar )
     {
-        return calendar.plusWeeks( dateTimeUnit, offset );
+        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
+        dateTimeUnit = calendar.plusWeeks( dateTimeUnit, 1 );
+
+        return createPeriod( dateTimeUnit, calendar );
+    }
+
+    @Override
+    public Period getPreviousPeriod( Period period, Calendar calendar )
+    {
+        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
+        dateTimeUnit = calendar.minusWeeks( dateTimeUnit, 1 );
+
+        return createPeriod( dateTimeUnit, calendar );
     }
 
     /**
@@ -141,16 +152,18 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
      * given date is inside.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )
+    public List<Period> generateRollingPeriods( DateTimeUnit end )
     {
+        Calendar calendar = getCalendar();
+
         List<Period> periods = Lists.newArrayList();
-        DateTimeUnit iterationDateTimeUnit = adjustToStartOfWeek( end, calendar );
-        iterationDateTimeUnit = calendar.minusDays( iterationDateTimeUnit, 357 );
+        end = adjustToStartOfWeek( end, calendar );
+        end = calendar.minusDays( end, 357 );
 
         for ( int i = 0; i < 52; i++ )
         {
-            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
-            iterationDateTimeUnit = calendar.plusWeeks( iterationDateTimeUnit, 1 );
+            periods.add( createPeriod( end, calendar ) );
+            end = calendar.plusWeeks( end, 1 );
         }
 
         return periods;

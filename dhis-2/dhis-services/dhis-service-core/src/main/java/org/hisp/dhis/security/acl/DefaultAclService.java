@@ -413,14 +413,7 @@ public class DefaultAclService implements AclService
     {
         if ( user == null || user.isSuper() )
         {
-            Access access = new Access( true );
-
-            if ( isDataShareable( object.getClass() ) )
-            {
-                access.setData( new AccessData( true, true ) );
-            }
-
-            return access;
+            return new Access( true );
         }
 
         Access access = new Access();
@@ -512,7 +505,7 @@ public class DefaultAclService implements AclService
         {
             ErrorReport errorReport = null;
 
-            if ( object.getPublicAccess() != null && AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            if ( AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
             {
                 errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
             }
@@ -543,6 +536,11 @@ public class DefaultAclService implements AclService
             }
         }
 
+        if ( schema.isImplicitPrivateAuthority() && !checkUser( user, object ) )
+        {
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
+        }
+
         boolean canMakePublic = canMakePublic( user, object.getClass() );
         boolean canMakePrivate = canMakePrivate( user, object.getClass() );
         boolean canMakeExternal = canMakeExternal( user, object.getClass() );
@@ -554,8 +552,6 @@ public class DefaultAclService implements AclService
                 errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
             }
         }
-
-        errorReports.addAll( verifyImplicitSharing( user, object ) );
 
         if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
         {
@@ -574,24 +570,6 @@ public class DefaultAclService implements AclService
             }
 
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3008, user.getUsername(), object.getClass() ) );
-        }
-
-        return errorReports;
-    }
-
-    private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing( User user, T object )
-    {
-        List<ErrorReport> errorReports = new ArrayList<>();
-        Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) )
-        {
-            return errorReports;
-        }
-
-        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
-        {
-            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
         }
 
         return errorReports;

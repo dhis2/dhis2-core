@@ -137,6 +137,15 @@ public class ProgramServiceTest
     }
 
     @Test
+    public void testGetProgramByName()
+    {
+        int idA = programService.addProgram( programA );
+
+        assertNotNull( programService.getProgram( idA ) );
+        assertEquals( "ProgramA", programService.getProgramByName( "ProgramA" ).getName() );
+    }
+
+    @Test
     public void testGetAllPrograms()
     {
         programService.addProgram( programA );
@@ -173,6 +182,20 @@ public class ProgramServiceTest
 
         programs = programService.getPrograms( ProgramType.WITHOUT_REGISTRATION );
         assertTrue( equals( programs, programC ) );
+    }
+
+    @Test
+    public void testGetProgramsByTypeOu()
+    {
+        programService.addProgram( programA );
+        programService.addProgram( programB );
+        
+        programC.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        programService.addProgram( programC );
+
+        List<Program> programs = programService.getPrograms( ProgramType.WITH_REGISTRATION,
+            organisationUnitA );
+        assertTrue( equals( programs, programA, programB ) );
     }
 
     @Test

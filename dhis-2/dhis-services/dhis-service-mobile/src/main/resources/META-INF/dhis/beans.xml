@@ -20,6 +20,40 @@
 	</bean>
 
 	<bean id="org.hisp.dhis.mobile.api.ActivityReportingService"
-		class="org.hisp.dhis.mobile.service.ActivityReportingServiceImpl" />
+		class="org.hisp.dhis.mobile.service.ActivityReportingServiceImpl">
+		<property name="attValueService"
+			ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService" />
+		<property name="programStageInstanceService"
+			ref="org.hisp.dhis.program.ProgramStageInstanceService" />
+		<property name="programStageSectionService"
+			ref="org.hisp.dhis.program.ProgramStageSectionService" />
+		<property name="entityInstanceService"
+			ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceService" />
+		<property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+		<property name="relationshipService"
+			ref="org.hisp.dhis.relationship.RelationshipService" />
+		<property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+		<property name="dataValueService"
+			ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
+		<property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+		<property name="attributeService"
+			ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
+		<property name="relationshipTypeService"
+			ref="org.hisp.dhis.relationship.RelationshipTypeService" />
+		<property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+		<property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+		<property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+		<property name="smsSender" ref="smsMessageSender" />
+		<property name="userService" ref="org.hisp.dhis.user.UserService" />
+		<property name="interpretationService" ref="org.hisp.dhis.interpretation.InterpretationService" />
+		<property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
+		<property name="trackedEntityTypeService" ref="org.hisp.dhis.trackedentity.TrackedEntityTypeService" />
+		<property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.api.IProgramService" class="org.hisp.dhis.mobile.service.DefaultProgramService">
+		<property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+	</bean>
 
 </beans>

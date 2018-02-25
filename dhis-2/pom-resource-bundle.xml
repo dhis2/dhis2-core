@@ -144,6 +144,19 @@
             </configuration>
           </execution>
           <execution>
+            <id>validate-dhis-web-dashboard-integration</id>
+            <phase>test</phase>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+            <configuration>
+              <propertyDir>${project.basedir}/dhis-web/dhis-web-dashboard-integration/src/main/resources/org/hisp/dhis/dashboard/</propertyDir>
+              <ignoreFailure>true</ignoreFailure>
+              <reportsDir>${project.build.directory}/l10n-reports/dhis-web-dashboard-integration</reportsDir>
+              <formatter>messageFormat</formatter>
+            </configuration>
+          </execution>
+          <execution>
             <id>validate-dhis-web-dataentry</id>
             <phase>test</phase>
             <goals>
@@ -348,6 +361,19 @@
               <propertyDir>${project.basedir}/dhis-web/dhis-web-validationrule/src/main/resources/org/hisp/dhis/validationrule/</propertyDir>
               <ignoreFailure>true</ignoreFailure>
               <reportsDir>${project.build.directory}/l10n-reports/dhis-web-validationrule</reportsDir>
+              <formatter>messageFormat</formatter>
+            </configuration>
+          </execution>
+          <execution>
+            <id>validate-dhis-web-dashboard</id>
+            <phase>test</phase>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+            <configuration>
+              <propertyDir>${project.basedir}/dhis-web/dhis-web-apps/src/main/webapp/dhis-web-dashboard/</propertyDir>
+              <ignoreFailure>true</ignoreFailure>
+              <reportsDir>${project.build.directory}/l10n-reports/dhis-web-dashboard</reportsDir>
               <formatter>messageFormat</formatter>
             </configuration>
           </execution>

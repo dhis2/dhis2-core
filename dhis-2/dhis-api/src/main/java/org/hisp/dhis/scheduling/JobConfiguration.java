@@ -54,8 +54,6 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
  * <p>
  * The class uses a custom deserializer to handle several potential {@link JobParameters}.
  *
- * The configurable property in the configurable property in the method based on the job type we are adding.
- *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
@@ -81,6 +79,8 @@ public class JobConfiguration
     private JobParameters jobParameters;
 
     private boolean continuousExecution = false;
+
+    private boolean configurable = true;
 
     private boolean enabled = true;
 
@@ -195,6 +195,11 @@ public class JobConfiguration
         this.continuousExecution = continuousExecution;
     }
 
+    public void setConfigurable( boolean configurable )
+    {
+        this.configurable = configurable;
+    }
+
     public void setEnabled( boolean enabled )
     {
         this.enabled = enabled;
@@ -278,7 +283,7 @@ public class JobConfiguration
     @JsonProperty
     public boolean isConfigurable()
     {
-        return jobType.isConfigurable();
+        return configurable;
     }
 
     @JacksonXmlProperty
@@ -303,39 +308,7 @@ public class JobConfiguration
     @Override
     public int compareTo( IdentifiableObject jobConfiguration )
     {
-        JobConfiguration compareJobConfiguration = (JobConfiguration) jobConfiguration;
-
-        if ( jobType != compareJobConfiguration.getJobType() )
-        {
-            return -1;
-        }
-
-        if ( jobStatus != compareJobConfiguration.getJobStatus() )
-        {
-            return -1;
-        }
-
-        if ( jobParameters != compareJobConfiguration.getJobParameters() )
-        {
-            return -1;
-        }
-
-        if ( continuousExecution != compareJobConfiguration.isContinuousExecution() )
-        {
-            return -1;
-        }
-
-        if ( enabled != compareJobConfiguration.isEnabled() )
-        {
-            return -1;
-        }
-
-        if ( !cronExpression.equals( compareJobConfiguration.getCronExpression() ) )
-        {
-            return 1;
-        }
-
-        return -1;
+        return nextExecutionTime.compareTo( ((JobConfiguration) jobConfiguration).getNextExecutionTime() );
     }
 
     @Override

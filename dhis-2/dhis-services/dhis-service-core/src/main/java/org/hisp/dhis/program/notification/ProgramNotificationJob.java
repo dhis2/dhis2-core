@@ -96,4 +96,9 @@ public class ProgramNotificationJob
         programNotificationService.sendScheduledNotificationsForDay( calendar.getTime() );
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "scheduledProgramNotificationsJob";
+    }
 }

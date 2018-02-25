@@ -69,4 +69,10 @@ public class AnalyticsTableJob
 
         analyticsTableGenerator.generateTables( params );
     }
+
+    @Override
+    protected String getJobId()
+    {
+        return "analyticsTableJob";
+    }
 }

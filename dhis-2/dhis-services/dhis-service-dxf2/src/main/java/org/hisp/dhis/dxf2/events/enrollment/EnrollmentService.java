@@ -33,9 +33,8 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,7 +59,7 @@ public interface EnrollmentService
 
     List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
 
-    Enrollments getEnrollments( ProgramInstanceQueryParams params );
+    Enrollments getEnrollments( ProgramInstanceQueryParams params);
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -70,13 +69,11 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params );
-
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
+    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
 
     ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
 
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, TrackedEntityInstance trackedEntityInstance );
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     // -------------------------------------------------------------------------
     // UPDATE
@@ -88,11 +85,9 @@ public interface EnrollmentService
 
     ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
+    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions );
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
-
-    ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, TrackedEntityInstance trackedEntityInstance );
 
     ImportSummary updateEnrollmentForNote( Enrollment enrollment );
 

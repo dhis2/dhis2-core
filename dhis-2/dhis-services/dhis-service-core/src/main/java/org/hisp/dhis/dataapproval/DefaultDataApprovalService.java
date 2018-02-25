@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalNotFound;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
@@ -703,7 +704,7 @@ public class DefaultDataApprovalService
 
         Map<String, DataApproval> foundMap = foundList.stream().collect( Collectors.toMap( a -> approvalKey( a ), a -> a ) );
 
-        List<DataApproval> presentApprovals = new ArrayList<>();
+        List presentApprovals = new ArrayList<>();
 
         for ( DataApproval a : approvals )
         {

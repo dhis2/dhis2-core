@@ -649,12 +649,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
         
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-        
-        object.setAsFavorite( user );
+        object.getFavorites().add( user );
         manager.updateNoAcl( object );
         
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
@@ -809,12 +804,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();  
 
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-        
-        object.removeAsFavorite( user );
+        object.getFavorites().remove( user );        
         manager.updateNoAcl( object );
         
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );        

@@ -37,10 +37,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -53,11 +50,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -97,9 +92,6 @@ public class DataValueSetServiceExportTest
     @Autowired
     private DbmsManager dbmsManager;
 
-    @Autowired
-    private UserService _userService;
-
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
@@ -130,7 +122,6 @@ public class DataValueSetServiceExportTest
     @Override
     public void setUpTest()
     {
-        userService = _userService;
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
@@ -213,15 +204,9 @@ public class DataValueSetServiceExportTest
 
         user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        userService.addUser( user );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         setDependency( dataValueSetService, "currentUserService", currentUserService );
         setDependency( organisationUnitService, "currentUserService", currentUserService );
-
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
-        dataSetService.updateDataSet( dsA );
-        dataSetService.updateDataSet( dsB );
     }
 
     // -------------------------------------------------------------------------

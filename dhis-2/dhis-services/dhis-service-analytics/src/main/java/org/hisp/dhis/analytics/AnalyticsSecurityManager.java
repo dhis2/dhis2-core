@@ -44,10 +44,9 @@ public interface AnalyticsSecurityManager
      * 
      * @param params the data query parameters.
      * @throws IllegalQueryException if the current user does not have privileges
-     *          to execute the given query.
+     *         to execute the given query.
      */
-    void decideAccess( DataQueryParams params )
-        throws IllegalQueryException;
+    void decideAccess( DataQueryParams params );
     
     /**
      * Decides whether the current user has privileges to execute the given event
@@ -55,10 +54,9 @@ public interface AnalyticsSecurityManager
      * 
      * @param params the event data query parameters.
      * @throws IllegalQueryException if the current user does not have privileges
-     *          to execute the given query.
+     *         to execute the given query.
      */
-    void decideAccessEventQuery( EventQueryParams params )
-        throws IllegalQueryException;
+    void decideAccessEventQuery( EventQueryParams params );
     
     /**
      * Returns the current user. Looks for a current user to be specified for the

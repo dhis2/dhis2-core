@@ -33,8 +33,6 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
 import org.hisp.dhis.program.ProgramStage;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.List;
 
@@ -53,8 +51,7 @@ public class HibernateDataEntryFormStore
     @SuppressWarnings( "unchecked" )
     public DataEntryForm getDataEntryFormByName( String name )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        query = getCriteriaQuery();
 
         Root<DataEntryForm> dataEntryForm = query.from( DataEntryForm.class );
         query.select( dataEntryForm );
@@ -67,8 +64,7 @@ public class HibernateDataEntryFormStore
     @SuppressWarnings( "unchecked" )
     public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        query = getCriteriaQuery();
 
         Root<ProgramStage> programStage = query.from( ProgramStage.class );
         query.select( programStage.get( "dataEntryForm" ) ).distinct( true );

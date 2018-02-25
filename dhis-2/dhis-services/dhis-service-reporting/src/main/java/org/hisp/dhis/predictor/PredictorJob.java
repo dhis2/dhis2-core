@@ -72,4 +72,9 @@ public class PredictorJob
         predictionService.predictPredictors( predictors, startDate, endDate );
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "predicatorJob";
+    }
 }

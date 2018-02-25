@@ -1,0 +1,6 @@
+{ "scheduleTasks":
+  {
+    "status": "$status",
+	"running": "$running"
+  }
+}

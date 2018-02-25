@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
@@ -191,12 +190,6 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether to include soft-deleted elements
      */
     private boolean includeDeleted;
-    
-    /**
-     * Indicates whether the search is internal triggered by the system.
-     * The system should trigger superuser search to detect duplicates. 
-     */
-    private boolean internalSearch;
 
     /**
      * TEI order params
@@ -381,15 +374,6 @@ public class TrackedEntityInstanceQueryParams
         items.addAll( attributes );
         items.addAll( filters );
         return items;
-    }
-    
-    /**
-     * 
-     * Returns a list of of attributes and filters combined.
-     */
-    public Set<String> getAttributeAndFilterIds()
-    {
-        return getAttributesAndFilters().stream().map( QueryItem::getItemId ).collect( Collectors.toSet() );
     }
 
     /**
@@ -901,17 +885,7 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
     {
         this.includeDeleted = includeDeleted;
-        return this;
-    }
-    
-    public boolean isInternalSearch()
-    {
-        return internalSearch;
-    }
 
-    public TrackedEntityInstanceQueryParams setInternalSearch( boolean internalSearch )
-    {
-        this.internalSearch = internalSearch;        
         return this;
     }
 

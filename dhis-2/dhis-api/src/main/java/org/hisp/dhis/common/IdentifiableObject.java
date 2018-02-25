@@ -69,13 +69,9 @@ public interface IdentifiableObject
 
     Set<ObjectTranslation> getTranslations();
     
-    Set<String> getFavorites();
+    Set<User> getFavorites();
 
     boolean isFavorite();
-    
-    boolean setAsFavorite( User user );
-    
-    boolean removeAsFavorite( User user );
     
     //-----------------------------------------------------------------------------
     // Sharing

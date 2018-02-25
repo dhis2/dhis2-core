@@ -43,37 +43,38 @@ dhis2.availability._availableTimeoutHandler = -1;
  * @param offlineInterval How often to check for availability when offline,
  *            default is 1000.
  */
-dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineInterval ) {
+dhis2.availability.startAvailabilityCheck = function( onlineInterval, offlineInterval ) {
   onlineInterval = onlineInterval ? onlineInterval : 15000;
   offlineInterval = offlineInterval ? offlineInterval : 1000;
 
   function _checkAvailability() {
     $.ajax({
       url: "../dhis-web-commons-stream/ping.action",
-      beforeSend: function ( xhr ) {
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-      },
       cache: false,
       timeout: 30000,
       dataType: "text",
-      success: function ( data, textStatus, jqXHR ) {
-        if( !dhis2.availability._isAvailable ) {
-          dhis2.availability._isAvailable = true;
-          $(document).trigger("dhis2.online", [true]);
+      success: function( data, textStatus, jqXHR ) {
+        try {
+          data = JSON.parse(data);
+        } catch( e ) {
         }
-        dhis2.availability._isLoggedIn = true;
+
+        dhis2.availability._isAvailable = true;
+        var loggedIn = data.loggedIn ? true : false;
+
+        if( loggedIn != dhis2.availability._isLoggedIn ) {
+          dhis2.availability._isLoggedIn = loggedIn;
+          $(document).trigger("dhis2.online", [ loggedIn ]);
+        }
       },
-      error: function ( jqXHR, textStatus, errorThrown ) {
-        if( jqXHR.status == 401 ) {
-          $(document).trigger("dhis2.online", [false]);
-        }
-        else if( dhis2.availability._isAvailable ) {
+      error: function( jqXHR, textStatus, errorThrown ) {
+        if( dhis2.availability._isAvailable ) {
           dhis2.availability._isAvailable = false;
+          dhis2.availability._isLoggedIn = -1;
           $(document).trigger("dhis2.offline");
         }
-        dhis2.availability._isLoggedIn = false;
       },
-      complete: function () {
+      complete: function() {
         if( dhis2.availability._isAvailable ) {
           dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, onlineInterval);
         }
@@ -91,36 +92,34 @@ dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineIn
 /**
  * Stop checking for availability.
  */
-dhis2.availability.stopAvailabilityCheck = function () {
+dhis2.availability.stopAvailabilityCheck = function() {
   clearTimeout(dhis2.availability._availableTimeoutHandler);
 };
 
 /**
  * Synchronized one-off check of availability.
  */
-dhis2.availability.syncCheckAvailability = function () {
+dhis2.availability.syncCheckAvailability = function() {
   var isLoggedIn = false;
 
   $.ajax({
     url: "../dhis-web-commons-stream/ping.action",
-    beforeSend: function ( xhr ) {
-      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    },
     async: false,
     cache: false,
     timeout: 30000,
     dataType: "json",
-
-    success: function ( data, textStatus, jqXHR ) {
+    success: function( data, textStatus, jqXHR ) {
       dhis2.availability._isAvailable = true;
-      isLoggedIn = true;
+      var loggedIn = data.loggedIn ? true : false;
 
-      if( isLoggedIn != dhis2.availability._isLoggedIn ) {
-        dhis2.availability._isLoggedIn = isLoggedIn;
-        $(document).trigger("dhis2.online", [isLoggedIn]);
+      if( loggedIn != dhis2.availability._isLoggedIn ) {
+        dhis2.availability._isLoggedIn = loggedIn;
+        $(document).trigger("dhis2.online", [ loggedIn ]);
       }
+
+      isLoggedIn = loggedIn;
     },
-    error: function ( jqXHR, textStatus, errorThrown ) {
+    error: function( jqXHR, textStatus, errorThrown ) {
       if( dhis2.availability._isAvailable ) {
         dhis2.availability._isAvailable = false;
         dhis2.availability._isLoggedIn = -1;

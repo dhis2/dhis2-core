@@ -232,7 +232,6 @@ public class EventAnalyticsServiceTest
     // -------------------------------------------------------------------------
     // Internal Logic
     // -------------------------------------------------------------------------
-    
     private void parseEventData( ArrayList<String[]> lines )
     {
         String storedBy = "johndoe";

@@ -104,7 +104,7 @@ public class DefaultDataQueryService
         String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
         boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
-        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion, SortOrder order )
+        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         
@@ -140,7 +140,6 @@ public class DefaultDataQueryService
         return params
             .withStartDate( startDate )
             .withEndDate( endDate )
-            .withOrder(order)
             .withSkipMeta( skipMeta )
             .withSkipData( skipData )
             .withSkipRounding( skipRounding )

@@ -253,7 +253,7 @@ public class FormUtilsImpl
 
         if ( !userCredentials.isSuper() )
         {
-            dataSets.retainAll( dataSetService.getAllDataWrite() );
+            dataSets.retainAll( userCredentials.getAllDataSets() );
         }
 
         return dataSets;

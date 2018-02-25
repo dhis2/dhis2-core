@@ -33,8 +33,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,15 +46,9 @@ public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
     @Override
     public Collection<String> getSystemAuthorities()
     {
-        Set<String> authorities = new HashSet<>();
-
-        appManager.getApps( null ).stream()
+        return appManager.getApps( null ).stream()
             .filter( app -> !StringUtils.isEmpty( app.getName() ) )
-            .forEach( app -> {
-                authorities.add( "See " + app.getName().trim() );
-                authorities.addAll( app.getAuthorities() );
-            } );
-
-        return authorities;
+            .map( app -> "See " + app.getName().trim() )
+            .collect( Collectors.toList() );
     }
 }

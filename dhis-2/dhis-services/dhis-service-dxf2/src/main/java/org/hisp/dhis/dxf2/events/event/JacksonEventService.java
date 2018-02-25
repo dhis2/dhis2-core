@@ -254,8 +254,8 @@ public class JacksonEventService extends AbstractEventService
             delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
         }
 
-        importSummaries.addImportSummaries( addEvents( create, importOptions, true ) );
-        importSummaries.addImportSummaries( updateEvents( update, false, true ) );
+        importSummaries.addImportSummaries( addEvents( create, importOptions ) );
+        importSummaries.addImportSummaries( updateEvents( update, false ) );
         importSummaries.addImportSummaries( deleteEvents( delete ) );
 
         if ( jobId != null )

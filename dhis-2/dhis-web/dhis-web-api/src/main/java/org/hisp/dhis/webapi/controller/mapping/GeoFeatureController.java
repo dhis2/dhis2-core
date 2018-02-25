@@ -192,7 +192,7 @@ public class GeoFeatureController
         DataQueryParams params = dataQueryService
             .getFromUrl( dimensionParams, null, AggregationType.SUM, null, null, null, null, false, false,
                 false, false, false, false, false, false, false, false, false, displayProperty, null, null, false, null,
-                relativePeriodDate, userOrgUnit, false, apiVersion, null );
+                relativePeriodDate, userOrgUnit, false, apiVersion );
 
         boolean useOrgUnitGroup = ou == null;
         DimensionalObject dimensionalObject = params

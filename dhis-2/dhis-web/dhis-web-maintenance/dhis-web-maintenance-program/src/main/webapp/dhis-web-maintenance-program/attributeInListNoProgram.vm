@@ -1,0 +1,76 @@
+<script> 
+	jQuery(document).ready(	function(){
+		jQuery("#availableAttributes").dhisAjaxSelect({
+			source: 'getAttributes.action',
+			iterator: 'attributes',
+			connectedTo: 'selectedAttributeIds',
+			handler: function(item){
+				var option = jQuery( "<option/>" );
+				option.attr( "value", item.id );
+				option.text( item.name );
+				
+				return option;
+			}
+		});
+		
+		validation( 'saveAttributeInListNoProgramForm', function(form){
+			form.submit();
+		}, function(){
+			selectAllById('selectedAttributeIds');
+			if(jQuery("#selectedAttributeIds option").length > 0 ){
+				setFieldValue('hasAttributes', 'true');
+			}
+		});
+	});	
+</script>
+
+<h3>$i18n.getString( "tracked_entity_attributes_displayed_in_list" ) #openHelp( "tracked_entity_attribute_configuration" )</h3>
+																			
+<form id="saveAttributeInListNoProgramForm" name="saveAttributeInListNoProgramForm" action="saveAttributeInListNoProgram.action" method="post" action='saveAttributeVisitSchedule.action' onsubmit="selectAllById('selectedAttributeIds');">
+
+<table>
+	<colgroup>
+		<col style='width:500px'/>
+		<col/>
+		<col style='width:500px'/>
+	</colgroup>
+	<tr>
+		<th>$i18n.getString( "availableAttribute" )</th>
+		<th>$i18n.getString( "filter" )</th>
+		<th>$i18n.getString( "selectedAttribute" )
+			<input type='hidden' id='hasAttributes' name='hasAttributes' class="{validate:{required:true}}">
+		</th>
+	</tr>
+	<tr>
+		<td>
+			<select style="height:200px;width:100%;" multiple="multiple" id="availableAttributes" name="availableAttributes" size="15" ondblclick="moveSelectedById( 'availableAttributes', 'selectedAttributeIds' )" >
+				
+			</select>
+		</td>
+		<td>
+			<input type="button" value="&gt;" onclick="moveSelectedById( 'availableAttributes', 'selectedAttributeIds' )" class='filterButton' /><br/>
+			<input type="button" value="&lt;" onclick="moveSelectedById( 'selectedAttributeIds', 'availableAttributes' )" class='filterButton' /><br/>
+			<input type="button" value="&gt;&gt;" onclick="moveAllById( 'availableAttributes', 'selectedAttributeIds' )" class='filterButton' /><br/>
+			<input type="button" value="&lt;&lt;" onclick="moveAllById( 'selectedAttributeIds', 'availableAttributes' )" class='filterButton' />
+		</td>
+		<td>
+			<select style="height:200px;width:100%;margin-top:22px;" multiple="multiple" id="selectedAttributeIds" name="selectedAttributeIds" size="15" ondblclick="moveSelectedById( 'selectedAttributeIds', 'availableAttributes' )" >
+				#foreach($attribute in $selectedAttributes)
+					<option value='$attribute.id'>$encoder.htmlEncode($attribute.displayName)</option>
+				#end
+			</select>
+		</td>
+		<td>
+			<a href="javascript:moveUpSelectedOption( 'selectedAttributeIds')" title="$i18n.getString( 'move_up' )"><img src="../images/move_up.png" alt="$i18n.getString( 'move_up' )"/></a><br/><br/>
+			<a href="javascript:moveDownSelectedOption( 'selectedAttributeIds' )" title="$i18n.getString( 'move_down' )"><img src="../images/move_down.png" alt="$i18n.getString( 'move_up' )"/></a>
+		</td>
+	</tr>  
+	<tr>
+		<td colspan='2'>
+			<input type="submit" value="$i18n.getString( 'save' )" />
+			<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='attribute.action'"/>
+		</td>
+	</tr>
+</table>
+
+</form>

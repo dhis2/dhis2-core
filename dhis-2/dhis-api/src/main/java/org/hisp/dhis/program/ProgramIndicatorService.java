@@ -108,7 +108,7 @@ public interface ProgramIndicatorService
      * @param endDate the end date.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate );
+    String getAnalyticsSQl( String expression, AnalyticsType analyticsType, Date startDate, Date endDate );
     
     /**
      * Get the expression as an analytics SQL clause.
@@ -120,7 +120,7 @@ public interface ProgramIndicatorService
      * @param endDate the end date.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues, Date startDate, Date endDate );
+    String getAnalyticsSQl( String expression, AnalyticsType analyticsType, boolean ignoreMissingValues, Date startDate, Date endDate );
     
     /**
      * Returns a SQL clause which matches any value for the data elements and
@@ -150,7 +150,7 @@ public interface ProgramIndicatorService
      *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
      */
     String filterIsValid( String filter );
-    
+
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup
     // -------------------------------------------------------------------------

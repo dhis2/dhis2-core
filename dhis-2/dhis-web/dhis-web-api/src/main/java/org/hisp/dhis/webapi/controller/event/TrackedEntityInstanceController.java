@@ -30,17 +30,19 @@ package org.hisp.dhis.webapi.controller.event;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteSource;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -51,10 +53,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -63,16 +61,12 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -84,14 +78,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -129,15 +119,6 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private WebMessageService webMessageService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private FileResourceService fileResourceService;
-
-    @Autowired
-    private TrackerAccessManager trackerAccessManager;
 
     // -------------------------------------------------------------------------
     // READ
@@ -251,114 +232,6 @@ public class TrackedEntityInstanceController
         }
 
         return params;
-    }
-
-    @RequestMapping( value = "/{teiId}/{attributeId}/image", method = RequestMethod.GET )
-    public void getAttributeImage(
-            @PathVariable( "teiId" ) String teiId,
-            @PathVariable( "attributeId" ) String attributeId,
-            @RequestParam( required = false ) Integer width,
-            @RequestParam( required = false ) Integer height,
-            HttpServletResponse response,
-            HttpServletRequest request )
-            throws WebMessageException, NotFoundException
-    {
-        User user = currentUserService.getCurrentUser();
-
-        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = instanceService.getTrackedEntityInstance( teiId );
-
-        List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntityInstance );
-
-        List <TrackedEntityAttributeValue> attribute = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
-                .filter( val -> val.getAttribute().getUid().equals( attributeId ) )
-                .collect( Collectors.toList() );
-
-        if ( !trackerAccessErrors.isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.unathorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
-        }
-
-        if ( attribute.size() == 0 )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Attribute not found for ID " + attributeId ) );
-        }
-
-        TrackedEntityAttributeValue value = attribute.get( 0 );
-
-        if ( value == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Value not found for ID " + attributeId ) );
-        }
-
-        if ( value.getAttribute().getValueType() != ValueType.IMAGE )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Attribute must be of type image" ) );
-        }
-
-        // ---------------------------------------------------------------------
-        // Get file resource
-        // ---------------------------------------------------------------------
-
-        FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
-
-        if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
-        }
-
-        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
-        {
-            // -----------------------------------------------------------------
-            // The FileResource exists and is tied to DataValue, however the
-            // underlying file content still not stored to external file store
-            // -----------------------------------------------------------------
-
-            throw new WebMessageException( WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
-                    "The content requested is in transit to the file store and will be available at a later time." ) );
-        }
-
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
-
-        if ( content == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
-        }
-
-        // ---------------------------------------------------------------------
-        // Build response and return
-        // ---------------------------------------------------------------------
-
-        response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
-        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
-
-        URI uri = fileResourceService.getSignedGetFileResourceContentUri( value.getValue() );
-        InputStream inputStream = null;
-
-        try
-        {
-
-            inputStream = uri == null ? content.openStream() : uri.toURL().openStream();
-            BufferedImage img = ImageIO.read( inputStream );
-            height = height == null ? img.getHeight() : height;
-            width = width == null ? img.getWidth() : width;
-            BufferedImage resizedImg = new BufferedImage( width, height, BufferedImage.TYPE_3BYTE_BGR );
-            Graphics2D canvas = resizedImg.createGraphics();
-            canvas.setRenderingHint( RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR );
-            canvas.drawImage( img, 0, 0, width, height, null );
-            canvas.dispose();
-            ImageIO.write( resizedImg, fileResource.getFormat(), response.getOutputStream() );
-        }
-        catch ( IOException e )
-        {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                    "There was an exception when trying to fetch the file from the storage backend. " +
-                            "Depending on the provider the root cause could be network or file system related." ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
-        }
     }
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )

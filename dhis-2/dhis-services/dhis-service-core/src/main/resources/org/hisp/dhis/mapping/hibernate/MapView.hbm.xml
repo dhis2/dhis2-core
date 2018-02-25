@@ -153,8 +153,6 @@
     <property name="eventPointRadius" />
 
     <property name="config" type="text" />
-    
-    <property name="styleDataItem" type="jbObject" />
 
     <!-- Object Translation -->
     <set name="translations" table="mapviewtranslations" cascade="all-delete-orphan">

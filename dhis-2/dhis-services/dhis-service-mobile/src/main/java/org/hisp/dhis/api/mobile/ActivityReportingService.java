@@ -29,20 +29,95 @@ package org.hisp.dhis.api.mobile;
  */
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
+import org.hisp.dhis.api.mobile.model.ActivityPlan;
+import org.hisp.dhis.api.mobile.model.ActivityValue;
 import org.hisp.dhis.api.mobile.model.Interpretation;
 import org.hisp.dhis.api.mobile.model.Message;
 import org.hisp.dhis.api.mobile.model.MessageConversation;
+import org.hisp.dhis.api.mobile.model.PatientAttribute;
 import org.hisp.dhis.api.mobile.model.User;
+import org.hisp.dhis.api.mobile.model.LWUITmodel.LostEvent;
+import org.hisp.dhis.api.mobile.model.LWUITmodel.Notification;
+import org.hisp.dhis.api.mobile.model.LWUITmodel.Patient;
+import org.hisp.dhis.api.mobile.model.LWUITmodel.PatientList;
+import org.hisp.dhis.api.mobile.model.LWUITmodel.Program;
+import org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramStage;
+import org.hisp.dhis.api.mobile.model.LWUITmodel.Relationship;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 public interface ActivityReportingService
 {
+    ActivityPlan getCurrentActivityPlan( OrganisationUnit unit, String localeString );
+
+    ActivityPlan getAllActivityPlan( OrganisationUnit unit, String localeString );
+
+    void saveActivityReport( OrganisationUnit unit, ActivityValue activityValue, Integer programStageSectionId )
+        throws NotAllowedException;
+
+    Patient findPatient( String patientId )
+        throws NotAllowedException;
+
+    PatientList findPatients( String patientIds )
+        throws NotAllowedException;
+
+    String findPatientInAdvanced( String keyword, int orgUnitId, int programId )
+        throws NotAllowedException;
+
+    String saveProgramStage( ProgramStage programStage, int patientId, int orgUnitId )
+        throws NotAllowedException;
+
+    Patient enrollProgram( String enrollInfo,
+        List<org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramStage> mobileProgramStageList, Date incidentDate )
+        throws NotAllowedException;
+
+    public String completeProgramInstance( int programId )
+        throws NotAllowedException;
+
+    List<org.hisp.dhis.trackedentity.TrackedEntityAttribute> getPatientAtts( String programId );
+
+    List<PatientAttribute> getAttsForMobile();
+
+    List<PatientAttribute> getPatientAttributesForMobile( String programId );
+
+    Patient addRelationship( Relationship enrollmentRelationship, int orgUnitId )
+        throws NotAllowedException;
+
+    Program getAllProgramByOrgUnit( int orgUnitId, String programType )
+        throws NotAllowedException;
+
+    Program findProgram( String programInfo )
+        throws NotAllowedException;
+
+    Patient savePatient( Patient patient, int orgUnitId, String programId )
+        throws NotAllowedException;
+
+    Patient updatePatient( Patient patient, int orgUnitId, String programId )
+        throws NotAllowedException;
+
+    String findLostToFollowUp( int orgUnitId, String programId )
+        throws NotAllowedException;
+
+    Notification handleLostToFollowUp( LostEvent lostEvent )
+        throws NotAllowedException;
+
+    Patient generateRepeatableEvent( int orgUnitId, String eventInfo )
+        throws NotAllowedException;
+
+    String saveSingleEventWithoutRegistration( ProgramStage programStage, int orgUnitId )
+        throws NotAllowedException;
+
+    String sendFeedback( Message message )
+        throws NotAllowedException;
+
     Collection<User> findUser( String keyword )
         throws NotAllowedException;
 
-    String sendFeedback( org.hisp.dhis.api.mobile.model.Message message )
+    String findVisitSchedule( int orgUnitId, int programId, String info )
         throws NotAllowedException;
-    
+
     String sendMessage( Message message )
         throws NotAllowedException;
 
@@ -62,5 +137,8 @@ public interface ActivityReportingService
         throws NotAllowedException;
 
     String postInterpretationComment( String data )
+        throws NotAllowedException;
+    
+    Patient registerRelative( Patient patient, int orgUnitId, String programId )
         throws NotAllowedException;
 }

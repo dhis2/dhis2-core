@@ -114,4 +114,9 @@ public class DataSynchronizationJob
         return super.validate();
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "dataSynchJob";
+    }
 }

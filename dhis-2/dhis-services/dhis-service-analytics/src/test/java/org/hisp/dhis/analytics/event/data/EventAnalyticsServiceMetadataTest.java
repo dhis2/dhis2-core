@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
-import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
@@ -47,7 +46,6 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -96,8 +94,6 @@ public class EventAnalyticsServiceMetadataTest
     @Override
     public void setUpTest()
     {
-        userService = (UserService) getBean( UserService.ID );
-        
         leA = createLegend( 'A', 0d, 10d );
         leB = createLegend( 'B', 11d, 20d );
         leC = createLegend( 'C', 21d, 30d );
@@ -136,8 +132,6 @@ public class EventAnalyticsServiceMetadataTest
         prA = createProgram( 'A' );
         psA = createProgramStage( 'A', prA );
         prA.getProgramStages().add( psA );
-        
-        createAndInjectAdminUser( "ALL" );
     }
 
     // -------------------------------------------------------------------------
@@ -214,51 +208,7 @@ public class EventAnalyticsServiceMetadataTest
         assertTrue( itemsFilter.isEmpty() );
         assertTrue( !itemsOptionSet.isEmpty() );
         assertEquals( 2, itemsOptionSetFilter.size() );
-        assertTrue( itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( opA, opB ) ) ) );
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testGetQueryItemMetadata()
-    {
-        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA ) );
-        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) );
-        
-        QueryItem qiA = new QueryItem( deA, deA.getLegendSet(), deA.getValueType(), deA.getAggregationType(), null );
-        QueryItem qiB = new QueryItem( deE, null, deE.getValueType(), deE.getAggregationType(), deE.getOptionSet() );
-
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .addDimension( periods )
-            .addDimension( orgUnits )
-            .addItem( qiA )
-            .addItemFilter( qiB )
-            .withSkipData( true )
-            .withSkipMeta( false )
-            .withApiVersion( DhisApiVersion.V29 )
-            .build();
-
-        Grid grid = eventAnalyticsService.getAggregatedEventData( params );
-        
-        Map<String, Object> metadata = grid.getMetaData();
-        
-        Map<String, MetadataItem> itemMap = (Map<String, MetadataItem>) metadata.get( AnalyticsMetaDataKey.ITEMS.getKey() );
-
-        assertNotNull( itemMap.get( DimensionalObject.PERIOD_DIM_ID ) );
-        assertNotNull( itemMap.get( DimensionalObject.ORGUNIT_DIM_ID ) );
-        
-        for ( Legend legend : deA.getLegendSet().getLegends() )
-        {
-            assertNotNull( itemMap.get( legend.getUid() ) );
-        }
-        
-        for ( Option option : deE.getOptionSet().getOptions() )
-        {
-            assertNotNull( itemMap.get( option.getUid() ) );
-        }
-        
-        assertNotNull( itemMap.get( deA.getUid() ) );
-        assertNotNull( itemMap.get( deE.getUid() ) );
+        assertTrue( itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getCodes( Sets.newHashSet( opA, opB ) ) ) );
     }
     
     @Test

@@ -643,18 +643,4 @@ public class DefaultSecurityService
 
         return JacksonUtils.fromJsonToMap( result );
     }
-
-    @Override
-    public boolean canDataWrite( IdentifiableObject identifiableObject )
-    {
-        return !aclService.isSupported( identifiableObject.getClass() )
-            || aclService.canDataWrite( currentUserService.getCurrentUser(), identifiableObject );
-    }
-
-    @Override
-    public boolean canDataRead( IdentifiableObject identifiableObject )
-    {
-        return !aclService.isSupported( identifiableObject.getClass() )
-            || aclService.canDataRead( currentUserService.getCurrentUser(), identifiableObject );
-    }
 }

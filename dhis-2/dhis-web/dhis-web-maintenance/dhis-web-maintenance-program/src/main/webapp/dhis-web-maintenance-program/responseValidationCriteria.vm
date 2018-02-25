@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<validationCriteria>
+  <id>$validationCriteria.id</id>  
+  <name>$encoder.xmlEncode( $validationCriteria.name )</name>
+  <description>$encoder.xmlEncode($validationCriteria.description )</description>
+  <property>$i18n.getString($validationCriteria.property)</property>
+  <operator>$validationCriteria.operator</operator>
+</validationCriteria>

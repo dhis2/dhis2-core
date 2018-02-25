@@ -157,14 +157,13 @@ public class HibernateMinMaxDataElementStore
     }
     
     @Override
-    public void delete( Collection<DataElement> dataElements, OrganisationUnit parent )
+    public void delete( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits )
     {
-        String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) " +
-            "and m.source in (select ou from OrganisationUnit ou where path like :path)";
+        String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) and m.source in (:organisationUnits)";
         
         getQuery( hql ).
             setParameterList( "dataElements", dataElements ).
-            setParameter( "path", parent.getPath() + "%" ).executeUpdate();
+            setParameterList( "organisationUnits", organisationUnits ).executeUpdate();
     }
 
     private Criteria parseFilter( Criteria criteria, List<String> filters )

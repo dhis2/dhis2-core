@@ -104,6 +104,9 @@ public class DefaultPredictionService
     private DataValueService dataValueService;
 
     @Autowired
+    private AnalyticsService analyticsService;
+
+    @Autowired
     private DataElementCategoryService categoryService;
 
     @Autowired
@@ -111,14 +114,6 @@ public class DefaultPredictionService
 
     @Autowired
     private PeriodService periodService;
-
-    @Autowired
-    private AnalyticsService analyticsService;
-
-    public void setAnalyticsService( AnalyticsService analyticsService )
-    {
-        this.analyticsService = analyticsService;
-    }
 
     @Autowired
     private CurrentUserService currentUserService;

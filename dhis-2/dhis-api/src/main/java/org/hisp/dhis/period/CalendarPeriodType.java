@@ -90,10 +90,10 @@ public abstract class CalendarPeriodType
     {
         DateTimeUnit dateTime = createLocalDateUnitInstance( date );
 
-        return generateRollingPeriods( dateTime, getCalendar() );
+        return generateRollingPeriods( dateTime );
     }
 
-    public abstract List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar );
+    public abstract List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit );
 
     /**
      * Generates a list of Periods for the last 5 years. Must be overridden by

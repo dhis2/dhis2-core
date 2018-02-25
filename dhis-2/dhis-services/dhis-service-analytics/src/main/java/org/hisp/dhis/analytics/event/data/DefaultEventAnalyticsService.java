@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
+import org.hisp.dhis.analytics.EventDimensionalItemObject;
 import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -46,10 +47,9 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -106,9 +106,6 @@ public class DefaultEventAnalyticsService
     private static final String NAME_CENTER = "Center";
     private static final String NAME_EXTENT = "Extent";
     private static final String NAME_POINTS = "Points";
-    
-    private static final Option OPT_TRUE = new Option( "Yes", "1" );
-    private static final Option OPT_FALSE = new Option( "No", "0" );
 
     @Autowired
     private DataElementService dataElementService;
@@ -297,13 +294,15 @@ public class DefaultEventAnalyticsService
      * @param dimension the requested dimension
      */
     private void getEventDataObjects( Grid grid, EventQueryParams params,
-        Map<String, List<EventAnalyticsDimensionalItem>> table, String dimension ) throws Exception
+        Map<String, List<EventAnalyticsDimensionalItem>> table,
+        String dimension )
+        throws Exception
     {
         List<EventAnalyticsDimensionalItem> objects = params.getEventReportDimensionalItemArrayExploded( dimension );
 
         if ( objects.size() == 0 )
         {
-            ValueTypedDimensionalItemObject eventDimensionalItemObject = dataElementService.getDataElement( dimension );
+            EventDimensionalItemObject eventDimensionalItemObject = dataElementService.getDataElement( dimension );
 
             if ( eventDimensionalItemObject == null )
             {
@@ -322,7 +321,7 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Send in a list of {@link EventAnalyticsDimensionalItem} and add properties from {@link EventAnalyticsDimensionalItem} parameter.
+     * Send in a list of {@link EventAnalyticsDimensionalItem} and add properties from {@link EventDimensionalItemObject} parameter.
      *
      * @param eventDimensionalItemObject object to get properties from
      * @param objects the list with objects. We are adding objects to this list as well.
@@ -331,20 +330,28 @@ public class DefaultEventAnalyticsService
      * @throws Exception throws exception if the given dimension is invalid
      */
     @SuppressWarnings( "unchecked" )
-    private void addEventReportDimensionalItems( ValueTypedDimensionalItemObject eventDimensionalItemObject, 
-        List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension ) throws Exception
+    private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension )
+        throws Exception
     {
         if ( eventDimensionalItemObject == null )
         {
-            throw new IllegalStateException( String.format( "Data dimension '%s' is invalid", dimension ) );
+            throw new Exception( "Supplied data dimension '" + dimension + "' is invalid" );
         }
 
         String parentUid = eventDimensionalItemObject.getUid();
 
         if ( eventDimensionalItemObject.getValueType() == ValueType.BOOLEAN )
         {
-            objects.add( new EventAnalyticsDimensionalItem( OPT_TRUE, parentUid ) );
-            objects.add( new EventAnalyticsDimensionalItem( OPT_FALSE, parentUid ) );
+            Option t = new Option();
+            t.setCode( "1" );
+            t.setName( "Yes" );
+
+            Option f = new Option();
+            f.setCode( "0" );
+            f.setName( "No" );
+
+            objects.add( new EventAnalyticsDimensionalItem( t, parentUid ) );
+            objects.add( new EventAnalyticsDimensionalItem( f, parentUid ) );
         }
 
         if ( eventDimensionalItemObject.hasOptionSet() )
@@ -357,8 +364,7 @@ public class DefaultEventAnalyticsService
         else if ( eventDimensionalItemObject.hasLegendSet() )
         {
             List<String> legendOptions = (List<String>) ((Map<String, Object>) grid.getMetaData()
-                .get( DIMENSIONS.getKey() ))
-                .get( dimension );
+                .get( DIMENSIONS.getKey() )).get( dimension );
 
             if ( legendOptions.isEmpty() )
             {
@@ -368,8 +374,9 @@ public class DefaultEventAnalyticsService
                 {
                     for ( int i = legend.getStartValue().intValue(); i < legend.getEndValue(); i++ )
                     {
-                        objects.add( new EventAnalyticsDimensionalItem( new Option( 
-                            String.valueOf( i ), String.valueOf( i ) ), parentUid ) );
+                        objects.add(
+                            new EventAnalyticsDimensionalItem( new Option( String.valueOf( i ), String.valueOf( i ) ),
+                                parentUid ) );
                     }
                 }
             }
@@ -378,11 +385,10 @@ public class DefaultEventAnalyticsService
                 for ( String legend : legendOptions )
                 {
                     MetadataItem metadataItem = (MetadataItem) ((Map<String, Object>) grid.getMetaData()
-                        .get( ITEMS.getKey() ))
-                        .get( legend );
+                        .get( ITEMS.getKey() )).get( legend );
 
-                    objects.add( new EventAnalyticsDimensionalItem( 
-                        new Option( metadataItem.getName(), legend ), parentUid ) );
+                    objects.add(
+                        new EventAnalyticsDimensionalItem( new Option( metadataItem.getName(), legend ), parentUid ) );
                 }
             }
         }
@@ -451,7 +457,6 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
-                //TODO: As we make support for event reports with enrollment listings, we will have to change this.
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
                 {
                     enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
@@ -656,121 +661,115 @@ public class DefaultEventAnalyticsService
     {
         if ( !params.isSkipMeta() )
         {
-            final Map<String, Object> metadata = new HashMap<>();
+            Calendar calendar = PeriodType.getCalendar();
             
-            metadata.put( ITEMS.getKey(), getMetadataItems( params ) );
-            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params ) );
+            List<String> periodUids = calendar.isIso8601() ?
+                getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+                getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
-            if ( params.isHierarchyMeta() || params.isShowHierarchy() )
+            Map<String, Object> metaData = new HashMap<>();
+
+            Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+            boolean includeMetadataDetails = params.isIncludeMetadataDetails();
+
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
-                User user = securityManager.getCurrentUser( params );    
-                List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );                
-                Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-                
-                if ( params.isHierarchyMeta() )
+                Map<String, Object> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+
+                if ( params.hasValueDimension() )
                 {
-                    metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+                    metadataItemMap.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
                 }
-    
-                if ( params.isShowHierarchy() )
-                {
-                    metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
-                }
-            }
 
-            grid.setMetaData( metadata );
-        }
-    }
-    
-    /**
-     * Returns a map of metadata item identifiers and {@link MetadataItem}.
-     * 
-     * @param params the data query parameters.
-     * @return a map.
-     */
-    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params )
-    {
-        Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
+                params.getLegends().forEach( legend -> {
+                    metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeMetadataDetails ? legend.getUid() : null, legend.getCode() ) );
+                } );
 
-        boolean includeDetails = params.isIncludeMetadataDetails();
+                params.getOptions().forEach( option -> {
+                    metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeMetadataDetails ? option.getUid() : null, option.getCode() ) );
+                } );
 
-        if ( params.hasValueDimension() )
-        {
-            DimensionalItemObject value = params.getValue();            
-            metadataItemMap.put( value.getUid(), new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ), includeDetails ? value.getUid() : null, value.getCode() ) );
-        }
+                params.getItems().forEach( item -> {
+                    metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeMetadataDetails ? item.getItem() : null ) );
+                } );
 
-        params.getItemLegends().forEach( legend -> {
-            metadataItemMap.put( legend.getUid(), new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null, legend.getCode() ) );
-        } );
-
-        params.getItemOptions().forEach( option -> {
-            metadataItemMap.put( option.getUid(), new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) );
-        } );
-
-        params.getItemsAndItemFilters().forEach( item -> {
-            metadataItemMap.put( item.getItemId(), new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) );
-        } );
-
-        return metadataItemMap;
-    }
-    
-    /**
-     * Returns a map between dimension identifiers and lists of dimension item
-     * identifiers.
-     * 
-     * @param params the data query parameters.
-     * @return a map.
-     */
-    private Map<String, List<String>> getDimensionItems( EventQueryParams params )
-    {
-        Calendar calendar = PeriodType.getCalendar();
-        
-        List<String> periodUids = calendar.isIso8601() ?
-            getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
-            getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );        
-
-        Map<String, List<String>> dimensionItems = new HashMap<>();
-        
-        dimensionItems.put( PERIOD_DIM_ID, periodUids );
-
-        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
-        {
-            dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
-        }
-        
-        for ( QueryItem item : params.getItems() )
-        {
-            if ( item.hasOptionSet() )
-            {
-                dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
-            }
-            else if ( item.hasLegendSet() )
-            {
-                dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+                metaData.put( ITEMS.getKey(), metadataItemMap );
             }
             else
             {
-                dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+                metaData.put( NAMES.getKey(), uidNameMap );
             }
-        }
 
-        for ( QueryItem item : params.getItemFilters() )
-        {
-            if ( item.hasOptionSet() )
+            Map<String, Object> dimensionItems = new HashMap<>();
+            
+            dimensionItems.put( PERIOD_DIM_ID, periodUids );
+
+            for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
-                dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+                if ( !metaData.keySet().contains( dim.getDimension() ) )
+                {
+                    dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
+                }
             }
-            else if ( item.hasLegendSet() )
+            
+            for ( QueryItem item : params.getItems() )
             {
-                dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+                if ( item.hasOptionSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+                }
+                else if ( item.hasLegendSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+                }
+                else
+                {
+                    dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+                }
+            }
+
+            for ( QueryItem item : params.getItemFilters() )
+            {
+                if ( item.hasOptionSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+                }
+                else if ( item.hasLegendSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+                }
+                else
+                {
+                    dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
+                }
+            }
+
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
+            {
+                metaData.put( DIMENSIONS.getKey(), dimensionItems );
             }
             else
             {
-                dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
+                metaData.putAll( dimensionItems );
             }
-        }
 
-        return dimensionItems;
+            User user = securityManager.getCurrentUser( params );
+
+            List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            
+            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+            
+            if ( params.isHierarchyMeta() )
+            {
+                metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+            }
+
+            if ( params.isShowHierarchy() )
+            {
+                metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+            }
+
+            grid.setMetaData( metaData );
+        }
     }
 }

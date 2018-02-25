@@ -104,6 +104,18 @@ public class ProgramStoreTest
     }
 
     @Test
+    public void testGetProgramsByTypeOu()
+    {
+        programStore.save( programA );
+        programStore.save( programB );
+        programStore.save( programC );
+
+        List<Program> programs = programStore.get( ProgramType.WITH_REGISTRATION, organisationUnitA );
+        
+        assertTrue( equals( programs, programA, programB ) );
+    }
+
+    @Test
     public void testGetProgramsByDataEntryForm()
     {
         DataEntryForm formX = createDataEntryForm( 'X' );

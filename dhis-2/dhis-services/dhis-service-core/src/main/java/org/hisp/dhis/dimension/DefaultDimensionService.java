@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -75,6 +76,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -317,8 +319,11 @@ public class DefaultDimensionService
     @Override
     public DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead )
     {
-        BaseDimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
-        BaseDimensionalObject copy = mergeService.clone( dimension );
+        DimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
+
+        BaseDimensionalObject copy = new BaseDimensionalObject();
+        mergeService.merge( new MergeParams<>( dimension, copy )
+            .setMergeMode( MergeMode.MERGE ) );
 
         if ( filterCanRead )
         {

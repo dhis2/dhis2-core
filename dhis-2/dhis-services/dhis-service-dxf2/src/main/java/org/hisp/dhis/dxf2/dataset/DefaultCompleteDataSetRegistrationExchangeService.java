@@ -46,11 +46,10 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -91,7 +90,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -142,15 +140,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private CurrentUserService currentUserService;
-
+    
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
     
     @Autowired
     private InputUtils inputUtils;
-
-    @Autowired
-    private AggregateAccessManager accessManager;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -509,22 +504,22 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 summary.getConflicts().add( ic.getImportConflict() );
                 continue;
             }
-
+            
 
             // ---------------------------------------------------------------------
             // Compulsory fields validation
             // ---------------------------------------------------------------------
-
+            
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
                 mdProps.orgUnit, mdProps.attrOptCombo, false );
-
-
+            
+            
             if( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
                     summary.getConflicts().add( new ImportConflict( "dataElementOperand",
-                        dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory." ) );
+                        dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
                 }
 
                 if ( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )
@@ -542,17 +537,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
             CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null
                 : batchHandler.findObject( internalCdsr );
-
-            // ---------------------------------------------------------------------
-            // Data Sharing check
-            // ---------------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUserService.getCurrentUser(), internalCdsr.getDataSet() );
-            if ( !errors.isEmpty() )
-            {
-                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
-                continue;
-            }
 
             ImportStrategy strategy = config.strategy;
 

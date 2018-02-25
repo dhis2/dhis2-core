@@ -1,0 +1,30 @@
+CACHE MANIFEST
+# 2.19
+
+CACHE:
+../mobile/index
+../mobile/data-entry
+../dhis-web-commons/javascripts/jQuery/jquery.min.js
+../dhis-web-commons/javascripts/dhis2/dhis2.util.js
+../dhis-web-commons/javascripts/dhis2/dhis2.array.js
+../dhis-web-commons/i18nJavaScript.action
+../dhis-web-commons/javascripts/jQuery/jquery.glob.js
+../dhis-web-commons/javascripts/jQuery/jquery.date.js
+../dhis-web-commons/javascripts/underscore.min.js
+../dhis-web-commons/javascripts/date.js
+../dhis-web-commons/javascripts/periodType.js
+../dhis-web-commons/javascripts/jQuery/jquery.validate.js
+../dhis-web-commons/javascripts/jQuery/jquery.validate.ext.js
+../dhis-web-commons/i18nJavaScript.action
+../dhis-web-commons/css/light_blue/logo_banner.png
+../dhis-web-mobile-resources/css/jquery.mobile.min.css
+../dhis-web-mobile-resources/css/images/ajax-loader.gif
+../dhis-web-mobile-resources/css/images/icons-18-white.png
+../dhis-web-mobile-resources/css/images/icons-18-black.png
+../dhis-web-mobile-resources/css/images/icons-36-white.png
+../dhis-web-mobile-resources/css/images/icons-36-black.png
+../dhis-web-mobile-resources/js/jquery.mobile.min.js
+../dhis-web-mobile-resources/js/dhis2.storage.js
+
+NETWORK:
+*

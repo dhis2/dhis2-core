@@ -196,7 +196,7 @@ public class GetLockExceptionFormAction
 
         if ( !userCredentials.isSuper() )
         {
-            dataSets.retainAll( dataSetService.getUserDataWrite( userCredentials.getUser() ) );
+            dataSets.retainAll( userCredentials.getAllDataSets() );
         }
 
         return dataSets;

@@ -32,9 +32,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.authority.SystemAuthoritiesProvider;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
 
@@ -56,6 +61,13 @@ public class GetRoleAction
         this.userService = userService;
     }
 
+    private DataSetService dataSetService;
+
+    public void setDataSetService( DataSetService dataSetService )
+    {
+        this.dataSetService = dataSetService;
+    }
+
     private SystemAuthoritiesProvider authoritiesProvider;
 
     public void setAuthoritiesProvider( SystemAuthoritiesProvider authoritiesProvider )
@@ -63,6 +75,9 @@ public class GetRoleAction
         this.authoritiesProvider = authoritiesProvider;
     }
 
+    @Autowired
+    private ProgramService programService;
+    
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -83,6 +98,34 @@ public class GetRoleAction
     public UserAuthorityGroup getUserAuthorityGroup()
     {
         return userAuthorityGroup;
+    }
+
+    private List<DataSet> availableDataSets;
+
+    public List<DataSet> getAvailableDataSets()
+    {
+        return availableDataSets;
+    }
+
+    private List<DataSet> roleDataSets;
+
+    public List<DataSet> getRoleDataSets()
+    {
+        return roleDataSets;
+    }
+
+    private List<Program> availablePrograms;
+
+    public List<Program> getAvailablePrograms()
+    {
+        return availablePrograms;
+    }
+
+    private List<Program> rolePrograms;
+
+    public List<Program> getRolePrograms()
+    {
+        return rolePrograms;
     }
 
     private List<String> availableAuthorities;
@@ -108,6 +151,30 @@ public class GetRoleAction
         throws Exception
     {
         userAuthorityGroup = userService.getUserAuthorityGroup( id );
+
+        // ---------------------------------------------------------------------
+        // DataSets
+        // ---------------------------------------------------------------------
+
+        availableDataSets = new ArrayList<>( dataSetService.getAllDataSets() );
+
+        availableDataSets.removeAll( userAuthorityGroup.getDataSets() );
+
+        Collections.sort( availableDataSets );
+
+        roleDataSets = new ArrayList<>( userAuthorityGroup.getDataSets() );
+
+        Collections.sort( roleDataSets );
+        
+        availablePrograms = new ArrayList<>( programService.getAllPrograms() );
+
+        availablePrograms.removeAll( userAuthorityGroup.getPrograms() );
+
+        Collections.sort( availablePrograms );        
+        
+        rolePrograms = new ArrayList<>( userAuthorityGroup.getPrograms() );
+
+        Collections.sort( rolePrograms );
 
         // ---------------------------------------------------------------------
         // Authorities

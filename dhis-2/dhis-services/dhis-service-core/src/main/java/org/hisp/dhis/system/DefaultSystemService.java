@@ -129,7 +129,6 @@ public class DefaultSystemService
 
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
-        Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
 
@@ -142,7 +141,6 @@ public class DefaultSystemService
         info.setServerDate( new Date() );
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
-        info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
         info.setSystemId( config.getSystemId() );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
@@ -216,7 +214,6 @@ public class DefaultSystemService
         info.setCacheProvider( dhisConfig.getProperty( ConfigurationKey.CACHE_PROVIDER ) );
         info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
         info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
-        info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
 
         // ---------------------------------------------------------------------
         // Database

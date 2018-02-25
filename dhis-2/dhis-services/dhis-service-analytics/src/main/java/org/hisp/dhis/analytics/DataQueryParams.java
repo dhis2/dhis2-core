@@ -44,9 +44,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
@@ -256,11 +254,6 @@ public class DataQueryParams
     protected Date endDate;
     
     /**
-     * The order in which the data values has to be sorted, can be null.
-     */
-    protected SortOrder order;
-    
-    /**
      * The API version used for the request.
      */
     protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
@@ -424,7 +417,6 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
-        params.order = this.order;
         params.apiVersion = this.apiVersion;
         
         params.currentUser = this.currentUser;
@@ -1115,16 +1107,6 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query requires ordering of data values.
-     * 
-     * @return true if ordering is required , false otherwise.
-     */
-    public boolean hasOrder()
-    {
-        return order != null;
-    }
-    
-    /**
      * Indicates whether this object has a program.
      */
     public boolean hasProgram()
@@ -1188,19 +1170,6 @@ public class DataQueryParams
     public boolean hasCurrentUser()
     {
         return currentUser != null;
-    }
-    
-    /**
-     * Indicates whether one of the dimensions or filters is a program indicator.
-     * @return true if one or more of the dimensions is of type program indicator.
-     */
-    public boolean hasProgramIndicatorDimension(  )
-    {
-       DimensionalObject dimension = getDimensionOrFilter( DATA_X_DIM_ID );
-        
-       List<DimensionalItemObject> items = AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, dimension.getItems() );
-       
-       return items.size() > 0;
     }
     
     // -------------------------------------------------------------------------
@@ -1815,11 +1784,6 @@ public class DataQueryParams
     {
         return endDate;
     }
-    
-    public SortOrder getOrder()
-    {
-        return order;
-    }
 
     public DhisApiVersion getApiVersion()
     {
@@ -1950,17 +1914,6 @@ public class DataQueryParams
     {
         return ImmutableList.copyOf( ListUtils.union( getReportingRates(), getFilterReportingRates() ) );
     }
-    
-    /**
-     * Returns all data sets part of a dimension or filter.
-     */
-    public Set<DimensionalItemObject> getAllDataSets()
-    {
-        return getAllReportingRates().stream()
-            .map( r -> (ReportingRate) r )
-            .map( r -> r.getDataSet() )
-            .collect( Collectors.toSet() );
-    }
 
     /**
      * Returns all program attributes part of a dimension or filter.
@@ -2002,51 +1955,6 @@ public class DataQueryParams
         return ImmutableList.copyOf( ListUtils.union( getPeriods(), getFilterPeriods() ) );
     }
 
-    /**
-     * Returns all data element group sets specified as dimensions or filters.
-     */
-    public List<DimensionalObject> getDataElementGroupSets()
-    {
-        return ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
-    }
-    
-    /**
-     * Returns all category options parts of categories specified as dimensions
-     * or filters.
-     */
-    public Set<DimensionalItemObject> getCategoryOptions()
-    {
-        final Set<DimensionalItemObject> categoryOptions = new HashSet<>();
-        
-        ListUtils.union( dimensions, filters ).stream()
-            .filter( d -> DimensionType.CATEGORY.equals( d.getDimensionType() ) )
-            .forEach( d -> categoryOptions.addAll( d.getItems() ) );
-        
-        return categoryOptions;
-    }
-    
-    /**
-     * Returns all programs part of program attributes and program data elements
-     * part of a dimension or filter.
-     */
-    public Set<IdentifiableObject> getProgramsInAttributesAndDataElements()
-    {
-        final Set<IdentifiableObject> programs = new HashSet<>();
-        
-        getAllProgramAttributes().stream()
-            .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a)
-            .filter( a -> a.getProgram() != null )
-            .forEach( a -> programs.add( a.getProgram() ) );
-        
-        getAllProgramDataElements().stream()
-            .map( d -> (ProgramDataElementDimensionItem) d)
-            .filter( d -> d.getProgram() != null )
-            .forEach( d -> programs.add( d.getProgram() ) );
-        
-        return programs;            
-    }
-    
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
@@ -2121,6 +2029,15 @@ public class DataQueryParams
     public List<DimensionalItemObject> getOrganisationUnits()
     {
         return ImmutableList.copyOf( getDimensionOptions( ORGUNIT_DIM_ID ) );
+    }
+
+    /**
+     * Returns all data element group sets specified as dimensions.
+     */
+    public List<DimensionalObject> getDataElementGroupSets()
+    {
+        return ListUtils.union( dimensions, filters ).stream().
+            filter( d -> DimensionType.DATA_ELEMENT_GROUP_SET.equals( d.getDimensionType() ) ).collect( Collectors.toList() );
     }
 
     /**
@@ -2640,12 +2557,6 @@ public class DataQueryParams
         public Builder withEndDate( Date endDate )
         {
             this.params.endDate = endDate;
-            return this;
-        }
-        
-        public Builder withOrder( SortOrder order )
-        {
-            this.params.order = order;
             return this;
         }
         

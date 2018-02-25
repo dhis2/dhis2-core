@@ -34,7 +34,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -113,11 +112,10 @@ public class DimensionController
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/items", method = RequestMethod.GET )
     public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters, Model model,
-        OrderParams orderParams, HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
+        HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<Order> orders = orderParams.getOrders( getSchema( DimensionalItemObject.class ) );
 
         if ( fields.isEmpty() )
         {
@@ -125,7 +123,7 @@ public class DimensionController
         }
 
         List<DimensionalItemObject> items = dimensionService.getCanReadDimensionItems( uid );
-        Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>() );
         query.setObjects( items );
         query.setDefaultOrder();
 
@@ -133,7 +131,7 @@ public class DimensionController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.toCollectionNode( DimensionalItemObject.class,
+        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( items, fields ) ) );
         collectionNode.setName( "items" );
 

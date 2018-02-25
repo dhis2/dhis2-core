@@ -44,10 +44,12 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -602,6 +604,30 @@ public class OrganisationUnit
         }
 
         return uids;
+    }
+
+    public Set<DataElement> getDataElementsInDataSets()
+    {
+        Set<DataElement> dataElements = new HashSet<>();
+
+        for ( DataSet dataSet : dataSets )
+        {
+            dataElements.addAll( dataSet.getDataElements() );
+        }
+
+        return dataElements;
+    }
+
+    public Map<PeriodType, Set<DataElement>> getDataElementsInDataSetsByPeriodType()
+    {
+        SetMap<PeriodType, DataElement> map = new SetMap<>();
+
+        for ( DataSet dataSet : dataSets )
+        {
+            map.putValues( dataSet.getPeriodType(), dataSet.getDataElements() );
+        }
+
+        return map;
     }
 
     public void updateParent( OrganisationUnit newParent )

@@ -71,21 +71,12 @@ public enum ErrorCode
     E4015( "Property `{0}` refers to an object that does not exist, could not find `{1}`"),
     E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`"),
     E4017( "RenderingType `{0}` is not supported for ValueType `{1}`"),
-    E4018( "Property `{0}` must be set when property `{1}` is `{2}`"),
-
-    /* TextPattern Errors */
-    E4019( "Failed to parse pattern `{0}`. {1}"),
-    E4020( "The value `{0}` does not conform to the attribute pattern `{1}`"),
-
-    /* TextPattern for ID generation errors */
-    E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
-    E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
     E7001( "Failed to add/update job configuration - Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
     E7002( "Failed to add/update job configuration - Uid does not exist" ),
-    E7003( "Failed to add/update job configuration - Only interval can be configured for non configurable job type `{0}`" ),
+    E7003( "Failed to add/update job configuration - Given job type '{0}' is not configurable" ),
     E7004( "Failed to add/update job configuration - Cron Expression must not be null " ),
     E7005( "Failed to add/update job configuration - Failed to validate cron expression: `{0}` " ),
     E7006( "Failed to execute job `{0}`." ),
@@ -111,5 +102,4 @@ public enum ErrorCode
     {
         return message;
     }
-
 }

@@ -33,8 +33,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
@@ -71,9 +69,6 @@ public class DefaultMonitoringService
     private DhisConfigurationProvider config;
 
     @Autowired
-    private SystemSettingManager systemSettingManager;
-    
-    @Autowired
     private RestTemplate restTemplate;
     
     @Autowired
@@ -99,8 +94,6 @@ public class DefaultMonitoringService
     @Override
     public void pushMonitoringInfo()
     {
-        final Date startTime = new Date();
-        
         String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
         String username = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_USERNAME );
         String password = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
@@ -151,8 +144,6 @@ public class DefaultMonitoringService
         
         if ( response != null && sc != null && sc.is2xxSuccessful() )
         {
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime );
-            
             log.debug( String.format( "Monitoring request successfully sent, url: %s", url ) );
         }
         else

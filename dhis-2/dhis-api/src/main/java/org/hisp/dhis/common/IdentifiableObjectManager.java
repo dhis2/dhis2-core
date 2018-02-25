@@ -92,11 +92,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getAll( Class<T> clazz );
 
-    <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> clazz );
-
     <T extends IdentifiableObject> List<T> getAllByName( Class<T> clazz, String name );
-
-    @SuppressWarnings( "unchecked" ) <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> clazz );
 
     <T extends IdentifiableObject> List<T> getAllByNameIgnoreCase( Class<T> clazz, String name );
 
@@ -209,6 +205,4 @@ public interface IdentifiableObjectManager
     void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations );
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
-
-    boolean isDefault( IdentifiableObject object );
 }

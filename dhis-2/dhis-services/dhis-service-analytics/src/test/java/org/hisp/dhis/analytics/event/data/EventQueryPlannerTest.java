@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
@@ -49,7 +48,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
@@ -60,7 +58,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.*;
 
@@ -339,29 +336,4 @@ public class EventQueryPlannerTest
             assertTrue( query.isCollapseDataDimensions() );
         }
     }
-
-    @Test
-    public void testPlanAggregateDataQueryLastValue()
-    {
-        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeA ) )
-            .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ) ) )
-            .withAggregationType( AnalyticsAggregationType.LAST ).build();
-        
-        EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
-        
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        
-        assertEquals( 4, queries.size() );
-
-        for ( EventQueryParams query : queries )
-        {
-            assertEquals( 1, query.getPeriods().size() );
-            assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
-            assertEquals( MonthlyPeriodType.NAME.toLowerCase(), query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
-            assertTrue( query.hasValueDimension() );
-        }
-    }
-
 }

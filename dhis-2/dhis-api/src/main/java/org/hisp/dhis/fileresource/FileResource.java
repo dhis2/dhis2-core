@@ -192,11 +192,6 @@ public class FileResource
         this.domain = domain;
     }
 
-    public String getFormat()
-    {
-        return this.contentType.split("[/;]" )[1];
-    }
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

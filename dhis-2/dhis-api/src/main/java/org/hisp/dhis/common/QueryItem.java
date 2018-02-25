@@ -215,24 +215,8 @@ public class QueryItem
             return null;
         }
 
-        return hasFilter() ? getOptionSetQueryFilterItems() :
+        return hasFilter() ? getQueryFilterItems() :
             IdentifiableObjectUtils.getUids( optionSet.getOptions() );
-    }
-
-    /**
-     * Returns option filter items. Options are specified by code
-     * but returned as identifiers, so the codes are mapped to
-     * options and then to identifiers.
-     * 
-     * //TODO clean up and standardize on identifier.
-     */
-    private List<String> getOptionSetQueryFilterItems()
-    {        
-        return getQueryFilterItems().stream()
-            .map( code -> optionSet.getOptionByCode( code ) )
-            .filter( option -> option != null )
-            .map( option -> option.getUid() )
-            .collect( Collectors.toList() );
     }
     
     /**

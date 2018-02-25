@@ -28,99 +28,48 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.indicator.IndicatorGroupSet;
-import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.validation.ValidationRule;
-
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
 public enum Objects
 {
-    CONSTANT( "constant", Constant.class ),
-    DATAELEMENT( "dataElement", DataElement.class ),
-    EXTENDEDDATAELEMENT( "extendedDataElement", DataElement.class ),
-    DATAELEMENTGROUP( "dataElementGroup", DataElementGroup.class ),
-    DATAELEMENTGROUPSET( "dataElementGroupSet", DataElementGroupSet.class ),
-    INDICATORTYPE( "indicatorType", IndicatorType.class ),
-    INDICATOR( "indicator", Indicator.class ),
-    INDICATORGROUP( "indicatorGroup", IndicatorGroup.class ),
-    INDICATORGROUPSET( "indicatorGroupSet", IndicatorGroupSet.class ),
-    DATASET( "dataSet", DataSet.class ),
-    ORGANISATIONUNIT( "organisationUnit", OrganisationUnit.class ),
-    ORGANISATIONUNITGROUP( "organisationUnitGroup", OrganisationUnitGroup.class ),
-    ORGANISATIONUNITGROUPSET( "organisationUnitGroupSet", OrganisationUnitGroupSet.class ),
-    ORGANISATIONUNITLEVEL( "organisationUnitLevel", OrganisationUnitLevel.class ),
-    VALIDATIONRULE( "validationRule", ValidationRule.class ),
-    PERIOD( "period", Period.class ),
-    DATAVALUE( "dataValue", DataValue.class ),
-    USER( "user", User.class ),
-    USERGROUP( "userGroup", UserGroup.class ),
-    REPORTTABLE( "reportTable", ReportTable.class ),
-    REPORT( "report", Report.class ),
-    CHART( "chart", Chart.class ),
-    MAP( "map", Map.class ),
-    DASHBOARD( "dashboard", Dashboard.class ),
-    PROGRAM( "program", Program.class ),
-    PROGRAMSTAGEINSTANCE( "programStageInstance", ProgramStageInstance.class ),
-    TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class );
+    CONSTANT( "constant" ),
+    DATAELEMENT( "dataElement" ),
+    EXTENDEDDATAELEMENT( "extendedDataElement" ),
+    DATAELEMENTGROUP( "dataElementGroup" ),
+    DATAELEMENTGROUPSET( "dataElementGroupSet" ),
+    INDICATORTYPE( "indicatorType" ),
+    INDICATOR( "indicator" ),
+    INDICATORGROUP( "indicatorGroup" ),
+    INDICATORGROUPSET( "indicatorGroupSet" ),
+    DATASET( "dataSet" ),
+    ORGANISATIONUNIT( "organisationUnit" ),
+    ORGANISATIONUNITGROUP( "organisationUnitGroup" ),
+    ORGANISATIONUNITGROUPSET( "organisationUnitGroupSet" ),
+    ORGANISATIONUNITLEVEL( "organisationUnitLevel" ),
+    VALIDATIONRULE( "validationRule" ),
+    PERIOD( "period" ),
+    DATAVALUE( "dataValue" ),
+    USER( "user" ),
+    USERGROUP( "userGroup" ),
+    REPORTTABLE( "reportTable" ),
+    REPORT( "report" ),
+    CHART( "chart" ),
+    MAP( "map" ),
+    DASHBOARD( "dashboard" ),
+    PROGRAM( "program" ),
+    PROGRAMSTAGEINSTANCE( "programStageInstance" );
 
     private String value;
 
-    private Class<?> clazz;
-
-    Objects( String value, Class<?> clazz )
+    Objects( String value )
     {
         this.value = value;
-        this.clazz = clazz;
-    }
-
-    public static Objects fromClass( Class<?> clazz )
-        throws IllegalAccessException
-    {
-        if ( clazz == null )
-        {
-            throw new NullPointerException();
-        }
-
-        for ( Objects obj : Objects.values() )
-        {
-            if ( obj.clazz.equals( clazz ) )
-            {
-                return obj;
-            }
-        }
-
-        throw new IllegalAccessException( "No item found in enum Objects for class '" + clazz.getSimpleName() + "'. " );
     }
 
     public String getValue()
     {
         return value;
     }
-
 }

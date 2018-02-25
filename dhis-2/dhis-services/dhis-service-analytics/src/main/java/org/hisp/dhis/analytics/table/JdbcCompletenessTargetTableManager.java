@@ -41,7 +41,6 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -185,13 +184,13 @@ public class JdbcCompletenessTargetTableManager
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
-        return ConcurrentUtils.getImmediateFuture();
+        return null; // Not relevant
     }
 
     @Override
     @Async
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
-        return ConcurrentUtils.getImmediateFuture();
+        return null; // Not needed
     }
 }

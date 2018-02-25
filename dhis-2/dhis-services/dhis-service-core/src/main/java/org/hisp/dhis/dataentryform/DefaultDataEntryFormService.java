@@ -385,7 +385,7 @@ public class DefaultDataEntryFormService
 
                     appendCode += " name=\"entryfield\"" + required  + " class=\"entryfield entryarea\" tabindex=\"" + i++ + "\"" + "></textarea>";
                 }
-                else if ( valueType.isFile() )
+                else if ( ValueType.FILE_RESOURCE == valueType )
                 {
                     inputHtml = inputHtml.replace( "input", "div" );
 

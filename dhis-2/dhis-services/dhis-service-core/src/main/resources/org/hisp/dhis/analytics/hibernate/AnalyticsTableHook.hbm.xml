@@ -15,8 +15,6 @@
     </id>
     &identifiableProperties;
     
-    <property name="name" unique="true" not-null="true" />
-    
     <property name="phase" column="analyticstablephase" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.analytics.AnalyticsTablePhase</param>

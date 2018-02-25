@@ -1,0 +1,74 @@
+<script type="text/javascript">
+	jQuery('#expression-container').ready(	function(){
+		validation( 'expression-form', function(form){
+				insertExpression();
+			}); 
+	});
+		
+	var i18n_description_not_null = '$encoder.jsEscape( $i18n.getString( "description_not_null" ) , "'")';
+	var i18n_expression_not_null = '$encoder.jsEscape( $i18n.getString( "expression_not_null" ) , "'")';
+	var i18n_no_constant_to_select = '$encoder.jsEscape( $i18n.getString( "no_constant_to_select" ) , "'")';
+</script>
+
+<div id="expression-container" class="page">
+	<form id="expression-form" name="expression-form" method="post">
+		<table>
+			<tr>
+				<th>$i18n.getString( "description" ) <em title="$i18n.getString( "required" )" class="required">*</em></th>
+				<th>$i18n.getString("program_stage")</th>
+			</tr>
+			<tr>
+				<td>
+					<input type="text" id="description" name="description" /><br>
+					<span id="exp-descriptionInfo" generated="true" class="error"></span>
+				</td>
+				<td>
+					<select id='leftStage' name='leftStage' onchange="getLeftPrgramStageDataElements();" style='width:320px;'>
+						<option value=''>[$i18n.getString( "please_select" )]</option>
+						#foreach($stage in $program.programStages)
+						<option value='$stage.uid' id='$stage.id'>$encoder.htmlEncode($stage.name)</option>
+						#end
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2"></td>
+			</tr>
+			<tr>
+				<th>$i18n.getString( "expression" ) <em title="$i18n.getString( "required" )" class="required">*</em></th>
+				<th>$i18n.getString( "available_data_elements" )</th>
+			</tr>
+			<tr>
+				<td>
+					<textarea id="expression" name="expression" style="width:316px;height:138px" wrap="virtual" onchange="getExpressionText()" ></textarea><br/>
+					<span id="exp-expressionInfo" generated="true" class="error"></span>
+				</td>
+				<td valign="top">
+					<input type="text" id="filter" name="filter" style="width:240px" placeholder="$i18n.getString('filter')" onkeyup="filterList( this.value, 'dataElementId' )" >
+					<input type="button" value="$i18n.getString( 'clear' )" onclick="clearSearchText();" style="width:80px"><br/>
+					<select id="dataElementId" name="dataElementId" size="8" ondblclick="insertText( 'expression', this.value )" style="height:120px"></select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2">$i18n.getString( "description" )</th>		
+			</tr>
+			<tr>
+				<td colspan="2"><div id="formulaText" style="width:740px;height:100px;overflow:auto"></div></td>
+			</tr>
+			<tr>
+				<td colspan="2"></td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<input type="submit" value="$i18n.getString( 'save' )" onclick="validateExpression();"/>
+					<input type="button" value="$i18n.getString( 'cancel' )" onclick="dialog.dialog('close')"/>
+				</td>
+			</tr>	
+		</table>
+	</form>
+</div>
+
+<script>
+	var i18n_due_date = '$encoder.jsEscape( $i18n.getString( "due_date" ) , "'" )';
+	var i18n_report_date = '$encoder.jsEscape( $i18n.getString( "report_date" ) , "'" )';
+</script>	

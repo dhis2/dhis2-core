@@ -47,8 +47,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
  */
 public class ImportOptions
 {
-    private static final ImportOptions DEFAULT_OPTIONS = new ImportOptions()
-        .setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
+    private static final ImportOptions DEFAULT_OPTIONS = new ImportOptions().setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
 
     private IdSchemes idSchemes = new IdSchemes();
 
@@ -83,8 +82,6 @@ public class ImportOptions
     private boolean requireCategoryOptionCombo;
 
     private boolean requireAttributeOptionCombo;
-
-    private boolean skipPatternValidation;
 
     private String filename;
 
@@ -122,7 +119,6 @@ public class ImportOptions
         options.strictOrganisationUnits = this.strictOrganisationUnits;
         options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
         options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
-        options.skipPatternValidation = this.skipPatternValidation;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
 
@@ -297,13 +293,6 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipPatternValidation()
-    {
-        return skipPatternValidation;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFilename()
     {
         return filename;
@@ -473,12 +462,6 @@ public class ImportOptions
     public ImportOptions setRequireAttributeOptionCombo( boolean requireAttributeOptionCombo )
     {
         this.requireAttributeOptionCombo = requireAttributeOptionCombo;
-        return this;
-    }
-
-    public ImportOptions setSkipPatternValidation( boolean skipPatternValidation )
-    {
-        this.skipPatternValidation = skipPatternValidation;
         return this;
     }
 

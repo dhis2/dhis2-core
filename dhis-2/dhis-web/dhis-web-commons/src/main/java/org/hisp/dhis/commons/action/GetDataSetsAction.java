@@ -28,6 +28,10 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -36,10 +40,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -132,7 +132,7 @@ public class GetDataSetsAction
             
             if ( user != null && user.getUserCredentials() != null )
             {
-                dataSets.retainAll( dataSetService.getUserDataWrite( user ) );
+                dataSets.retainAll( user.getUserCredentials().getAllDataSets() );
             }            
         }
 

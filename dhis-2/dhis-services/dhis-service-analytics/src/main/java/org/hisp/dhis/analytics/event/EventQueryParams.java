@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -385,26 +386,50 @@ public class EventQueryParams
     /**
      * Get legend sets part of items and item filters.
      */
-    public Set<Legend> getItemLegends()
+    public Set<Legend> getLegends()
     {
-        return getItemsAndItemFilters().stream()
-            .filter( QueryItem::hasLegendSet )
-            .map( i -> i.getLegendSet().getLegends() )
-            .flatMap( i -> i.stream() )
-            .collect( Collectors.toSet() );
-            
+        Set<Legend> legends = new HashSet<>();
+
+        for ( QueryItem item : ListUtils.union( items, itemFilters ) )
+        {
+            if ( item.hasLegendSet() )
+            {
+                legends.addAll( item.getLegendSet().getLegends() );
+            }
+        }
+
+        return legends;
     }
 
     /**
-     * Get options for option sets part of items and item filters.
+     * Get option sets part of items.
      */
-    public Set<Option> getItemOptions()
+    private Set<OptionSet> getItemOptionSets()
     {
-        return getItemsAndItemFilters().stream()
-            .filter( QueryItem::hasOptionSet )
-            .map( q -> q.getOptionSet().getOptions() )
-            .flatMap( q -> q.stream() )
-            .collect( Collectors.toSet() );
+        Set<OptionSet> optionSets = new HashSet<>();
+
+        for ( QueryItem item : items )
+        {
+            if ( item.hasOptionSet() )
+            {
+                optionSets.add( item.getOptionSet() );
+            }
+        }
+
+        return optionSets;
+    }
+
+    /**
+     * Get options for option sets part of items.
+     */
+    public List<Option> getOptions()
+    {
+        List<Option> options = new ArrayList<>( );
+        Set<OptionSet> optionSets = getItemOptionSets();
+
+        optionSets.stream().map( OptionSet::getOptions ).forEach( options::addAll );
+
+        return options;
     }
 
     /**
@@ -473,22 +498,6 @@ public class EventQueryParams
     public boolean hasItemsOrItemFilters()
     {
         return !items.isEmpty() || !itemFilters.isEmpty();
-    }
-    
-    /**
-     * Returns true if an aggregation type is defined, and this is type is {@link #AggregationType.LAST}
-     */
-    public boolean isLastPeriodAggregationType()
-    {
-        return getAggregationType() != null && getAggregationType().isLastPeriodAggregationType();
-    }
-    
-    /**
-     * Returns true if a program indicator exists with non-default analytics period boundaries.
-     */
-    public boolean hasNonDefaultBoundaries()
-    {
-        return hasProgramIndicatorDimension() && getProgramIndicator().hasNonDefaultBoundaries();
     }
 
     public Set<OrganisationUnit> getOrganisationUnitChildren()
@@ -794,13 +803,6 @@ public class EventQueryParams
             this.params.endDate = endDate;
             return this;
         }
-
-        public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
-        {
-            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
-            this.params.periodType = periodType;
-            return this;
-        }
         
         public Builder addDimension( DimensionalObject dimension )
         {
@@ -1058,23 +1060,5 @@ public class EventQueryParams
         {
             return params;
         }
-    }
-
-    /**
-     * Indicates whether the EventQueryParams has exactly one Period dimension. 
-     * @return true when exactly one Period dimension exists.
-     */
-    public boolean hasSinglePeriod()
-    {
-        return getPeriods().size() == 1;
-    }
-
-    /**
-     * Indicates whether the EventQueryParams has Period filters. 
-     * @return true when any Period filters exists.
-     */
-    public boolean hasFilterPeriods()
-    {
-        return getFilterPeriods().size() > 0;
     }
 }

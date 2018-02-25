@@ -1,6 +1,32 @@
 <script type="text/javascript" src="javascript/updateRoleForm.js"></script>
 <script type="text/javascript">
 	jQuery(function() {
+		jQuery("#availableList").dhisAjaxSelect({
+			source: "../api/dataSets.json?paging=false&fields=id,displayName~rename(name)",
+			iterator: 'dataSets',
+			connectedTo: 'selectedList',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+		
+		jQuery("#availableProgramList").dhisAjaxSelect({
+			source: "../api/programs.json?paging=false&fields=id,displayName~rename(name),programType",
+			iterator: 'programs',
+			connectedTo: 'selectedProgramList',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+		
 		jQuery("#availableListAuthority").dhisAjaxSelect({
 			source: "getSystemAuthorities.action",
 			iterator: 'systemAuthorities',
@@ -49,6 +75,51 @@
 			<th>$i18n.getString( "available" )</th>
 			<th></th>
 			<th>$i18n.getString( "selected" )</th>
+		</tr>
+
+		<tr>
+			<td><label>$i18n.getString( "data_sets" )</label></td>	
+
+			<td>
+	        	<select id="availableList" name="availableList" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        	</td>
+
+	        <td style="text-align:center">
+	        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableList' );"/><br/>
+	            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedList' );"/><br/>
+				<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableList' );"/><br/>
+				<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedList' );"/>
+	        </td>
+
+        	<td>
+				<select id="selectedList" name="selectedList" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px;">
+            	#foreach ( $selectedDataSet in $roleDataSets )
+              		<option value="$selectedDataSet.uid">$encoder.htmlEncode( $selectedDataSet.name )</option>
+            	#end
+				</select>
+        	</td>
+		</tr>
+		
+		<tr>
+			<td><label>$i18n.getString( "programs" )</label></td>		
+			<td>
+			  <select id="availableProgramList" name="availableProgramList" multiple="multiple" style="height: 200px; width: 100%;"></select>
+			</td>
+
+			<td style="text-align:center">
+				<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableProgramList' );"/><br/>
+				<input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedProgramList' );"/><br/>
+				<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableProgramList' );"/><br/>
+				<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedProgramList' );"/>
+			</td>
+
+			<td>
+				<select id="selectedProgramList" name="selectedProgramList" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px;">
+				#foreach ( $selectedProgram in $rolePrograms )
+					<option value="$selectedProgram.uid">$encoder.htmlEncode( $selectedProgram.name )</option>
+            	#end
+				</select>
+			</td>
 		</tr>
 		
 		<tr>

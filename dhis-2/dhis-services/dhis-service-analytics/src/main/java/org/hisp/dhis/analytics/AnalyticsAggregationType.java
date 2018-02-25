@@ -120,7 +120,7 @@ public class AnalyticsAggregationType
     
     public boolean isLastPeriodAggregationType()
     {
-        return AggregationType.LAST == periodAggregationType || AggregationType.LAST_AVERAGE_ORG_UNIT == periodAggregationType;
+        return AggregationType.LAST == periodAggregationType;
     }
     
     public boolean isNumericDataType()

@@ -1,0 +1,179 @@
+
+<script>
+    var onlineStatus = true;
+    var loggedInStatus = true;
+
+    checkOnlineStatus();
+
+    function checkOnlineStatus() {
+        return $.ajax({
+            url: '$contextPath/mobile/messages',
+            type: 'POST'
+        }).error(function() {
+           onlineStatus = false;
+           loggedInStatus = false;
+           $('body').trigger('dhis2.offline');
+        }).success(function(data, status, e) {
+            onlineStatus = true;
+            loggedInStatus = !e.getResponseHeader('Login-Page');
+            $('body').trigger('dhis2.online');
+        }).complete(function() {
+            if( onlineStatus && !loggedInStatus ) {
+                document.location = '$contextPath/mobile';
+            }
+        });
+    }
+
+    function getDashboard() {
+        return $.ajax({
+            url: '$contextPath/api/me/dashboard',
+            dataType: 'json'
+        }).success(function(data) {
+            if( data.unreadMessageConversation > 0 ) {
+                $( '#messages a' ).append("<span class='ui-li-count'>" + data.unreadMessageConversation + "</span>");
+            }
+        });
+    }
+
+    function getApps() {
+        return $.ajax({
+            url: '$contextPath/api/apps',
+            dataType: 'json'
+        }).success(function(data) {
+            var tmpl = $('#app-template').html();
+
+            $.each(data, function(idx) {
+                var html = _.template(tmpl, {
+                    'idx': idx,
+                    'name': this.name,
+                    'launchUrl': this.launchUrl
+                });
+
+                if( $('#app-' + idx).length === 0 ) {
+                    $('#user-account').after(html);
+                } else {
+                    $('#app-' + idx).html(html);
+                }
+
+                $('#listview').listview('refresh');
+            });
+        });
+    }
+
+    $(document).bind('pagechange',function(){
+        $.mobile.loading( 'show' );
+
+        getDashboard().always(function() {
+            $('section[data-role="content"] ul').listview('refresh');
+
+            $.when( getApps(), fm.getMetaData(), fm.uploadDataValueSets()).always(function() {
+                updateMenu();
+                renderOfflineStatus();
+                $.mobile.loading( 'hide' );
+            });
+        });
+
+        $('body').bind('dhis2.online', function() {
+            if( loggedInStatus ) {
+                fm.uploadDataValueSets().always(function() {
+                    updateMenu();
+                    renderOfflineStatus();
+
+                    getDashboard().always(function() {
+                        $('section[data-role="content"] ul').listview('refresh');
+                    });
+                });
+            }
+        });
+
+        $('body').bind('dhis2.offline', function() {
+            updateMenu();
+            renderOfflineStatus();
+        });
+
+        onlineTimer();
+    });
+
+    function updateMenu() {
+        if( onlineStatus ) {
+            $( '#messages').removeClass('ui-disabled');
+            $( '#user-account').removeClass('ui-disabled');
+            $( '.app').removeClass('ui-disabled');
+        } else {
+            $( '#messages').addClass('ui-disabled');
+            $( '#user-account').addClass('ui-disabled');
+            $( '.app').addClass('ui-disabled');
+        }
+    }
+
+    function onlineTimer() {
+        setTimeout( function () {
+            checkOnlineStatus().complete( function () {
+                onlineTimer();
+            } );
+        }, 5000 );
+    }
+
+    function renderOfflineStatus() {
+        var dataValueSets = fm.dataValueSets();
+        var tmpl = jQuery('#offline-status-template').html();
+
+        $('#offline-status').html(
+            _.template(tmpl, {
+                'online': onlineStatus,
+                'dvsSize': _.size( dataValueSets )
+            })
+        );
+
+        $('section[data-role="content"] ul').listview('refresh');
+    }
+</script>
+
+<script id="offline-status-template"  type="text/template">
+    <h3></h3>
+
+    <% if( dvsSize == 0 ) { %>
+        <p>$i18n.getString( "no_data_is_stored" ).</p>
+    <% } else { %>
+        <% if( dvsSize == 1 ) { %>
+            <p>$i18n.getString("you_have") <strong><%= dvsSize %></strong> $i18n.getString("form_stored").</p>
+        <% } else { %>
+            <p>$i18n.getString("you_have") <strong><%= dvsSize %></strong> $i18n.getString("forms_stored").</p>
+        <% } %>
+    <% } %>
+
+    <% if( online ) { %>
+        <p class="ui-li-aside">$i18n.getString("status"): <strong>$i18n.getString("online")</strong></p>
+    <% } else { %>
+        <p class="ui-li-aside">$i18n.getString("status"): <strong>$i18n.getString("offline")</strong></p>
+    <% } %>
+</script>
+
+<script id="app-template" type="text/template">
+    <li class="app" id="app-<%= idx %>"><a href="<%= launchUrl %>"><%= name %></a></li>
+</script>
+
+<section data-role="page" id="index-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+	</header>
+
+	<section data-role="content">
+        <ul id="listview" data-role="listview" data-inset="true">
+            <li id="data-entry"><a href="data-entry">$i18n.getString("aggregate_reporting")</a></li>
+            <li id="messages"><a href="messages">$i18n.getString("messages")</a></li>
+            <li id="user-account"><a href="user-account">$i18n.getString("user_account")</a></li>
+
+            <li id="offline-status">
+                <h3></h3>
+                <p>&nbsp;</p>
+            </li>
+        </ul>
+	</section>
+
+    <footer data-role="footer" data-theme="b" class="ui-bar">
+        <a href="../dhis-web-commons-security/logout.action">$i18n.getString("logout")</a>
+   	</footer>
+
+</section>

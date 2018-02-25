@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -97,40 +96,25 @@ public class EmbeddedObjectObjectBundleHook
                 Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
                 objects.forEach( o ->
                 {
-                    handleProperty( o, bundle, property );
+                    if ( property.isIdentifiableObject() )
+                    {
+                        ((BaseIdentifiableObject) o).setAutoFields();
+                    }
+
+                    preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
                 } );
             }
             else
             {
                 Object o = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
-                handleProperty( o, bundle, property );
-            }
-        }
-    }
-    
-    private void handleProperty( Object o, ObjectBundle bundle, Property property ) 
-    {
-        if ( property.isIdentifiableObject() )
-        {
-            ((BaseIdentifiableObject) o).setAutoFields();
-        }
-        
-        Schema embeddedSchema = schemaService.getDynamicSchema( o.getClass() );
-        for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
-        {
-            if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
-            {
-                PeriodType periodType = ReflectionUtils.invokeMethod( o, embeddedProperty.getGetterMethod() );
-    
-                if ( periodType != null )
+                if ( property.isIdentifiableObject() )
                 {
-                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
-                    ReflectionUtils.invokeMethod( o, embeddedProperty.getSetterMethod(), periodType );
+                    ((BaseIdentifiableObject) o).setAutoFields();
                 }
+
+                preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             }
         }
-
-        preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
     }
 }

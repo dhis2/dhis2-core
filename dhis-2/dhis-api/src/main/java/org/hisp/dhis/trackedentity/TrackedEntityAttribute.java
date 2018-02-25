@@ -5,20 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.analytics.EventDimensionalItemObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.textpattern.TextPattern;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -54,7 +47,7 @@ import org.hisp.dhis.textpattern.TextPattern;
 @JacksonXmlRootElement( localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityAttribute
     extends BaseDimensionalItemObject
-    implements MetadataObject, ValueTypedDimensionalItemObject
+    implements MetadataObject, EventDimensionalItemObject
 {
     private String description;
 
@@ -80,13 +73,9 @@ public class TrackedEntityAttribute
 
     private Boolean unique = false;
 
-    // For TextPattern:
-
     private Boolean generated = false;
 
     private String pattern;
-
-    private TextPattern textPattern;
 
     /**
      * The style representing how TrackedEntityAttributes should be presented on the client
@@ -112,8 +101,7 @@ public class TrackedEntityAttribute
     {
     }
 
-    public TrackedEntityAttribute( String name, String description, ValueType valueType, Boolean inherit,
-        Boolean displayOnVisitSchedule )
+    public TrackedEntityAttribute( String name, String description, ValueType valueType, Boolean inherit, Boolean displayOnVisitSchedule )
     {
         this.name = name;
         this.description = description;
@@ -394,18 +382,7 @@ public class TrackedEntityAttribute
 
     public void setConfidential( Boolean confidential )
     {
-
         this.confidential = confidential;
-    }
-
-    public TextPattern getTextPattern()
-    {
-        return textPattern;
-    }
-
-    public void setTextPattern( TextPattern textPattern )
-    {
-        this.textPattern = textPattern;
     }
 
     @JsonProperty

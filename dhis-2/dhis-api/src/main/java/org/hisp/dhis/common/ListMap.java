@@ -61,16 +61,6 @@ public class ListMap<T, V>
         return null;
     }
 
-    public List<V> putValues( T key, Collection<V> values )
-    {
-        for ( V value : values )
-        {
-            putValue( key, value );
-        }
-
-        return null;
-    }
-
     public void putValueMap( Map<T, V> map )
     {
         for ( Map.Entry<T, V> entry : map.entrySet() )

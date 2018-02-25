@@ -38,13 +38,10 @@ import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -76,7 +73,6 @@ public class DefaultEventQueryPlanner
             .add( q -> groupByQueryItems( q ) )
             .add( q -> groupByOrgUnitLevel( q ) )
             .add( q -> groupByPeriodType( q ) )
-            .add( q -> groupByPeriod( q ) )
             .build();
 
         for ( Function<EventQueryParams, List<EventQueryParams>> grouper : groupers )
@@ -164,7 +160,7 @@ public class DefaultEventQueryPlanner
     {
         return QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( params ) );
     }
-
+        
     /**
      * Groups by items if query items are to be collapsed in order to aggregate
      * each item individually. Sets program on the given parameters.
@@ -226,43 +222,6 @@ public class DefaultEventQueryPlanner
             queries.add( new EventQueryParams.Builder( params ).build() );
         }
         
-        return queries;
-    }
-
-    /**
-     * Groups the given query in sub queries for each dimension period. This applies
-     * if the aggregation type is {@link AggregationType#LAST} or 
-     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query includes
-     * a {@link ProgramIndicator} that does not use default analytics period boundaries: 
-     * {@link EventQueryParams#hasNonDefaultBoundaries()}.
-     * In this case, each period must be aggregated individually. 
-     * 
-     * @param params the data query parameters.
-     * @return a list of {@link EventQueryParams}.
-     */
-    private List<EventQueryParams> groupByPeriod( EventQueryParams params )
-    {
-        List<EventQueryParams> queries = new ArrayList<>();
-        
-        
-        if ( ( params.isLastPeriodAggregationType() || params.hasNonDefaultBoundaries() )  &&
-            !params.getPeriods().isEmpty() )
-        {
-            for ( DimensionalItemObject period : params.getPeriods() )
-            {
-                String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
-                
-                EventQueryParams query = new EventQueryParams.Builder( params )
-                    .withPeriods( Lists.newArrayList( period ), periodType ).build();
-                
-                queries.add( query );
-            }
-        }
-        else
-        {
-            queries.add( params );
-        }
-
         return queries;
     }
 }

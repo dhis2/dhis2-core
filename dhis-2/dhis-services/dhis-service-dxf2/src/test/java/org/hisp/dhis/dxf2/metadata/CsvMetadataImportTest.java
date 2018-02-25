@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
@@ -37,13 +36,11 @@ import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -125,109 +122,4 @@ public class CsvMetadataImportTest
         assertEquals( 3, optionSets.get( 2 ).getOptions().size() );
         assertEquals( 3, optionSets.get( 3 ).getOptions().size() );
     }
-
-    @Test
-    public void testOptionSetMerge() throws IOException
-    {
-        // Import 1 OptionSet with 3 Options
-        input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        assertEquals( 4, importReport.getStats().getCreated() );
-
-        // Send payload with 2 new Options
-        input = new ClassPathResource( "metadata/optionSet_update.csv" ).getInputStream();
-
-        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-        params.setMergeMode( MergeMode.MERGE );
-
-        importReport = importService.importMetadata( params );
-
-        assertEquals( 2, importReport.getStats().getCreated() );
-
-        OptionSet optionSet = optionService.getOptionSetByCode( "COLOR" );
-
-        // Total 5 options added
-        assertEquals( 5, optionSet.getOptions().size() );
-    }
-
-    @Test
-    public void testOptionSetMergeDuplicate() throws IOException
-    {
-        // Import 1 OptionSet with 3 Options
-        input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        assertEquals( 4, importReport.getStats().getCreated() );
-
-        // Send payload with 5 Options, 2 new and 3 old from above
-        input = new ClassPathResource( "metadata/optionSet_update_duplicate.csv" ).getInputStream();
-
-        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-        params.setIdentifier( PreheatIdentifier.CODE );
-        params.setMergeMode( MergeMode.MERGE );
-
-        importReport = importService.importMetadata( params );
-
-        // Only 2 new Options are added
-        assertEquals( 2, importReport.getStats().getCreated() );
-
-        OptionSet optionSet = optionService.getOptionSetByCode( "COLOR" );
-
-        // Total 5 Options added
-        assertEquals( 5, optionSet.getOptions().size() );
-    }
-
-    @Test
-    public void testOptionSetReplace() throws IOException
-    {
-        // Import 1 OptionSet with 3 Options
-        input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        assertEquals( 4, importReport.getStats().getCreated() );
-
-        // Send payload with 2 new Options
-        input = new ClassPathResource( "metadata/optionSet_update.csv" ).getInputStream();
-
-        metadata = csvImportService.fromCsv( input, CsvImportClass.OPTION_SET );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        importReport = importService.importMetadata( params );
-
-        assertEquals( 2, importReport.getStats().getCreated() );
-
-        OptionSet optionSet = optionService.getOptionSetByCode( "COLOR" );
-
-        // 3 old Options are replaced by 2 new added Options
-        assertEquals( 2, optionSet.getOptions().size() );
-    }
-
-
 }

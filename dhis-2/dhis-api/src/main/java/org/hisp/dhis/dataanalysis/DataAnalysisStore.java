@@ -46,21 +46,31 @@ import java.util.Map;
 public interface DataAnalysisStore
 {
     String ID = DataAnalysisStore.class.getName();
-
+    
     /**
-     * Calculates the average and standard deviation measures of the DataValues
-     * registered for a given data element, set of category option combos,
-     * and organisation unit parents.
-     *
+     * Calculates the standard deviation of the DataValues registered for the given
+     * data element, category option combo and organisation unit.
+     * 
      * @param dataElement the DataElement.
-     * @param parentPaths the parent OrganisationUnits' paths.
+     * @param categoryOptionCombo the DataElementCategoryOptionCombo.
+     * @param parent the parent OrganisationUnits.
      * @param from the from date for which to include data values.
      * @return a mapping between OrganisationUnit identifier and its standard deviation.
      */
-    List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
-        Collection<DataElementCategoryOptionCombo> categoryOptionCombos,
-        Collection<String> parentPaths, Date from );
-
+    Map<Integer, Double> getStandardDeviation( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, Collection<OrganisationUnit> parents, Date from );
+    
+    /**
+     * Calculates the average of the DataValues registered for the given
+     * data element, category option combo and organisation unit.
+     * 
+     * @param dataElement the DataElement.
+     * @param categoryOptionCombo the DataElementCategoryOptionCombo.
+     * @param parent the parent OrganisationUnits.
+     * @param from the from date for which to include data values.
+     * @return a mapping between OrganisationUnit unit identifier and its average data value.
+     */
+    Map<Integer, Double> getAverage( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, Collection<OrganisationUnit> parents, Date from );
+    
     /**
      * Generates a collection of data value violations of min-max predefined values.
      * 
@@ -80,8 +90,9 @@ public interface DataAnalysisStore
      * @param dataElement the DataElement.
      * @param categoryOptionCombo the DataElementCategoryOptionCombo.
      * @param periods the collection of Periods.
-     * @param lowerBoundMap the lower bound for the registered MinMaxDataElement.
-     * @param upperBoundMap the upper bound for the registered MinMaxDataElement.
+     * @param organisationUnit the OrganisationUnit.
+     * @param lowerBound the lower bound for the registered MinMaxDataElement.
+     * @param upperBound the upper bound for the registered MinMaxDataElement.
      * @return a list of DeflatedDataValues.
      */
     List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,

@@ -36,6 +36,7 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
+import org.joda.time.Seconds;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -99,7 +100,8 @@ public class DefaultFileResourceService
     @Transactional
     public FileResource getFileResource( String uid )
     {
-        return fileResourceStore.getByUid( uid );
+        // TODO ensureStorageStatus(..) is a temp fix. Should be removed.
+        return ensureStorageStatus( fileResourceStore.getByUid( uid ) );
     }
 
     @Override
@@ -118,12 +120,14 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
     }
 
     @Override
+    @Transactional
     public String saveFileResource( FileResource fileResource, byte[] bytes )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, bytes ) );
@@ -190,7 +194,6 @@ public class DefaultFileResourceService
     {
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
-        updateFileResource( fileResource );
 
         final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( saveCallable );
 
@@ -199,5 +202,45 @@ public class DefaultFileResourceService
         saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
 
         return uid;
+    }
+
+    /**
+     * TODO Temporary fix. Remove at some point.
+     *
+     * Ensures correctness of the storageStatus of this FileResource.
+     *
+     * If the status has been 'PENDING' for more than 1 second we check to see if the content may actually have been stored.
+     * If this is the case the status is corrected to STORED.
+     *
+     * This method is a TEMPORARY fix for the for now unsolved issue with a race occurring between the Hibernate object cache
+     * and the upload callback attempting to modify the FileResource object upon completion.
+     *
+     * Resolving that issue (likely by breaking the StorageStatus into a separate table) should make this method redundant.
+     */
+    private FileResource ensureStorageStatus( FileResource fileResource )
+    {
+        if ( fileResource != null && fileResource.getStorageStatus() == FileResourceStorageStatus.PENDING )
+        {
+            Duration pendingDuration = new Duration( new DateTime( fileResource.getLastUpdated() ), DateTime.now() );
+
+            if ( pendingDuration.isLongerThan( Seconds.seconds( 1 ).toStandardDuration() ) )
+            {
+                // Upload has been finished for 5+ seconds and is still PENDING.
+                // Check if content has actually been stored and correct to STORED if this is the case.
+
+                boolean contentIsStored = fileResourceContentStore.fileResourceContentExists( fileResource.getStorageKey() );
+
+                if ( contentIsStored )
+                {
+                    // We fix
+                    fileResource.setStorageStatus( FileResourceStorageStatus.STORED );
+                    fileResourceStore.update( fileResource );
+                    log.warn( "Corrected issue: FileResource '" + fileResource.getUid() +
+                        "' had storageStatus PENDING but content was actually stored." );
+                }
+            }
+        }
+
+        return fileResource;
     }
 }

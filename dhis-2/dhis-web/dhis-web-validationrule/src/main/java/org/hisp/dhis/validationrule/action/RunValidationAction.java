@@ -195,6 +195,8 @@ public class RunValidationAction
     {
         organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 
+        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitWithChildren( organisationUnit.getId() );
+
         ValidationRuleGroup group = validationRuleGroupId == -1 ? null : validationRuleService.getValidationRuleGroup( validationRuleGroupId );
 
         DataElementCategoryOptionCombo attributeOptionCombo = attributeOptionComboId == null || attributeOptionComboId == -1 ? null : dataElementCategoryService.getDataElementCategoryOptionCombo( attributeOptionComboId );

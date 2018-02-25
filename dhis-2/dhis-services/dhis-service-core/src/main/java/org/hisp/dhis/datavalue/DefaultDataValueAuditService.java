@@ -33,7 +33,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -41,7 +40,6 @@ import java.util.List;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-@Transactional
 public class DefaultDataValueAuditService
     implements DataValueAuditService
 {

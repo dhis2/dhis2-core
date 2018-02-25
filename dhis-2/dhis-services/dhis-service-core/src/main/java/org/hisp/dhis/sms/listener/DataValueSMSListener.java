@@ -30,7 +30,10 @@ package org.hisp.dhis.sms.listener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -64,8 +67,6 @@ import javax.annotation.Resource;
 public class DataValueSMSListener
     extends BaseSMSListener
 {
-    private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -134,13 +135,11 @@ public class DataValueSMSListener
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
         Period period = getPeriod( smsCommand, date );
-        DataSet dataSet = smsCommand.getDataset();
 
-        if ( dataSetService.isLocked( dataSet, period, orgUnit, dataElementCategoryService.getDefaultDataElementCategoryOptionCombo(), null ) )
+        if ( dataSetService.isLocked( smsCommand.getDataset(), period, orgUnit, null, null ) )
         {
-            sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(), ERROR );
-
-            throw new SMSParserException( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ) );
+            throw new SMSParserException(
+                "Dataset is locked for the period " + period.getStartDate() + " - " + period.getEndDate() );
         }
 
         boolean valueStored = false;

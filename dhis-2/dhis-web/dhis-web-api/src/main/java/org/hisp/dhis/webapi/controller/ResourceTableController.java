@@ -106,9 +106,7 @@ public class ResourceTableController
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
         schedulingManager.executeJob( analyticsTableJob );
-
-        JacksonUtils.fromObjectToReponse( response, analyticsTableJob );
-
+        
         webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
     }
 

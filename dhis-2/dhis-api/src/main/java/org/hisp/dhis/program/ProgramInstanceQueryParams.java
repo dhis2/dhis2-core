@@ -116,11 +116,6 @@ public class ProgramInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
-    
-    /**
-     * Indicates whether to include soft-deleted enrollments
-     */
-    private boolean includeDeleted;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -420,17 +415,6 @@ public class ProgramInstanceQueryParams
     public ProgramInstanceQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
-        return this;
-    }
-    
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
-
-    public ProgramInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
-    {
-        this.includeDeleted = includeDeleted;
         return this;
     }
 }

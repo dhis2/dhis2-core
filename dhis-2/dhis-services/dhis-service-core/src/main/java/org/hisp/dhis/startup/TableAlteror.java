@@ -174,9 +174,6 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit DROP COLUMN uuid" );
 
         executeSql( "DROP INDEX datamart_crosstab" );
-        
-        // prepare uid function
-        insertUidDbFunction();
 
         // remove relative period type
         executeSql( "DELETE FROM period WHERE periodtypeid=(select periodtypeid from periodtype where name in ( 'Survey', 'OnChange', 'Relative' ))" );
@@ -1053,13 +1050,8 @@ public class TableAlteror
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
         
         updateDimensionFilterToText();
-        
-        insertDefaultBoundariesForBoundlessProgramIndicators();
-
-        executeSql("alter table jobconfiguration drop column configurable;");
 
         log.info( "Tables updated" );
-
     }
 
     private void upgradeEmbeddedObject( String table )
@@ -1684,46 +1676,6 @@ public class TableAlteror
             "drop table programdataelement;"; // Remove if program data element is to be reintroduced
         
         executeSql( sql );
-    }
-    
-    /**
-     * Creates an utility function in the database for generating uid values in select statements.
-     * Example usage: select uid();
-     */
-    private void insertUidDbFunction()
-    {
-        String uidFunction = 
-            "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' " + 
-            "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' " + 
-            " FROM (random()*61)::int + 1 FOR 1) FROM generate_series(1,10)), '') $$ LANGUAGE sql;";
-        executeSql( uidFunction );
-    }
-    
-    /**
-     * Inserts default {@link AnalyticsPeriodBoundary} objects for program indicators that has no boundaries defined.
-     * Based on the analyticsType if the program indicator, the insert is made 
-     */
-    private void insertDefaultBoundariesForBoundlessProgramIndicators()
-    {
-        String findBoundlessAndInsertDefaultBoundaries = 
-            "create temporary table temp_unbounded_programindicators (programindicatorid integer,analyticstype varchar(10)) on commit drop;" +
-            "insert into temp_unbounded_programindicators (programindicatorid,analyticstype ) select pi.programindicatorid,pi.analyticstype " + 
-            "from programindicator pi left join analyticsperiodboundary apb on apb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " + 
-            "having count(apb.*) = 0;" +
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" + 
-            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
-            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
-            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';";
-        executeSql( findBoundlessAndInsertDefaultBoundaries );
-        
     }
     
     private int executeSql( String sql )

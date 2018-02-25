@@ -87,7 +87,7 @@ public interface DataQueryService
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
         String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
         boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, 
-        IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion, SortOrder order );
+        IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.

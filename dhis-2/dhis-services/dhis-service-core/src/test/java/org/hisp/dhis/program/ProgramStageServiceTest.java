@@ -139,4 +139,15 @@ public class ProgramStageServiceTest
         assertEquals( stageA, programStageService.getProgramStage( "UID-A" ) );
         assertEquals( stageB, programStageService.getProgramStage( "UID-B" ) );
     }
+
+    @Test
+    public void testGetProgramStageByNameProgram()
+    {
+        programStageService.saveProgramStage( stageA );
+        programStageService.saveProgramStage( stageB );
+        
+        assertEquals( stageA, programStageService.getProgramStageByName( "A", program ) );
+        assertEquals( stageB, programStageService.getProgramStageByName( "B", program ) );
+    }
+
 }

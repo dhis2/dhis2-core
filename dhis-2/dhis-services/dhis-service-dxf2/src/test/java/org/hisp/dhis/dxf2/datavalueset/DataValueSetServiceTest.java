@@ -38,13 +38,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -68,16 +62,13 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
@@ -122,9 +113,6 @@ public class DataValueSetServiceTest
     @Autowired
     private AttributeService attributeService;
 
-    @Autowired
-    private UserService _userService;
-
     private Attribute attribute;
 
     private DataElementCategoryOptionCombo ocDef;
@@ -163,8 +151,6 @@ public class DataValueSetServiceTest
     @Override
     public void setUpTest()
     {
-        userService = _userService;
-
         mockDataValueBatchHandler = new MockBatchHandler<>();
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
@@ -243,12 +229,10 @@ public class DataValueSetServiceTest
         categoryService.addDataElementCategoryOption( categoryOptionB );
         categoryService.addDataElementCategory( categoryA );
         categoryService.addDataElementCategoryCombo( categoryComboA );
-
         categoryService.addDataElementCategoryOptionCombo( ocA );
         categoryService.addDataElementCategoryOptionCombo( ocB );
 
         attributeService.addAttributeValue( deA, createAttributeValue( attribute, "DE1" ) );
-
         dataElementService.addDataElement( deA );
         attributeService.addAttributeValue( deB, createAttributeValue( attribute, "DE2" ) );
         dataElementService.addDataElement( deB );
@@ -276,23 +260,15 @@ public class DataValueSetServiceTest
         dsA.addOrganisationUnit( ouA );
         dsA.addOrganisationUnit( ouC );
 
+        dataSetService.addDataSet( dsA );
         periodService.addPeriod( peA );
         periodService.addPeriod( peB );
         periodService.addPeriod( peC );
 
-        dataSetService.addDataSet( dsA );
-
         user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        userService.addUser( user );
-        injectSecurityContext( user );
-
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         setDependency( dataValueSetService, "currentUserService", currentUserService );
-
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
     }
 
     // -------------------------------------------------------------------------
@@ -300,7 +276,7 @@ public class DataValueSetServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testImportDataValueSetXm()
+    public void testImportDataValueSetXml()
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
@@ -1009,138 +985,6 @@ public class DataValueSetServiceTest
         assertTrue( dataValues.contains( new DataValue( deB, okBefore, ouA, ocDef, ocDef ) ) );
         assertTrue( dataValues.contains( new DataValue( deC, okAfter, ouA, ocDef, ocDef ) ) );
     }
-
-    /**
-     * User does not have data write access for DataSet
-     * Expect fail on data sharing check
-     * @throws IOException
-     */
-    @Test
-    public void testImportValueDataSetWriteFail() throws IOException
-    {
-        enableDataSharing( user, dsA, AccessStringHelper.READ );
-
-        dataSetService.updateDataSet( dsA );
-
-        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
-
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.ERROR, summary.getStatus() );
-    }
-
-    /**
-     * User has data write access for DataSet
-     * DataValue use default category combo
-     * Expect success
-     * @throws IOException
-     */
-    @Test
-    public void testImportValueDefaultCatComboOk() throws IOException
-    {
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-        dataSetService.updateDataSet( dsA );
-
-        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
-
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-    }
-
-    /**
-     * User has data write access for DataSet
-     * and data read access for categoryOptions
-     * Expect fail
-     * @throws IOException
-     */
-    @Test
-    public void testImportValueCatComboFail() throws IOException
-    {
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-
-        enableDataSharing( user, categoryOptionA, AccessStringHelper.READ );
-        enableDataSharing( user, categoryOptionB, AccessStringHelper.READ );
-
-        in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
-
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.WARNING, summary.getStatus() );
-    }
-
-    /**
-     * User has data write access for DataSet
-     * and also categoryOptions
-     * Expect success
-     * @throws IOException
-     */
-    @Test
-    public void testImportValueCatComboOk() throws IOException
-    {
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-
-        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
-        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
-
-        in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
-
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-    }
-
-    /**
-     * User does not have data write access for DataSet
-     * Expect fail
-     * @throws IOException
-     */
-    @Test
-    public void testImportValueCatComboFailDS() throws IOException
-    {
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ );
-
-        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
-        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
-
-        in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
-
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.ERROR, summary.getStatus() );
-    }
-
-    /**
-     * User has data write access for DataSet and CategoryOption
-     * @throws IOException
-     */
-    @Test
-    public void testImportValueCategoryOptionWriteOk() throws IOException
-    {
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-
-        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
-
-        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
-
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-    }
-
     
     // -------------------------------------------------------------------------
     // Supportive methods

@@ -64,8 +64,6 @@ public class JobConfigurationObjectBundleHook
 {
     private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
 
-    private static final int SUCCESS = 1;
-
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
@@ -130,20 +128,10 @@ public class JobConfigurationObjectBundleHook
     private List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
-
-        JobConfiguration persitedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
-        if ( persitedJobConfiguration != null && !persitedJobConfiguration.isConfigurable() )
+        if ( !jobConfiguration.isConfigurable() )
         {
-            if ( persitedJobConfiguration.compareTo( jobConfiguration ) !=  SUCCESS )
-            {
-                errorReports
-                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
-            }
-            else
-            {
-                persitedJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
-                jobConfiguration = persitedJobConfiguration;
-            }
+            errorReports
+                .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
         }
 
         if ( !jobConfiguration.isContinuousExecution() )
@@ -238,6 +226,7 @@ public class JobConfigurationObjectBundleHook
         newObject.setLastExecuted( persObject.getLastExecuted() );
         newObject.setLastExecutedStatus( persObject.getLastExecutedStatus() );
         newObject.setLastRuntimeExecution( persObject.getLastRuntimeExecution() );
+
 
         if ( setDefaultCronExpressionWhenDisablingContinuousExectution( newObject, persObject ) )
         {

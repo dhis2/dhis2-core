@@ -88,7 +88,7 @@ public class Enrollment
 
     private Coordinate coordinate;
 
-    private Boolean deleted = false;
+    private Boolean deleted;
     
     private String storedBy;
 
@@ -341,7 +341,7 @@ public class Enrollment
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isDeleted()
+    public Boolean getDeleted()
     {
         return deleted;
     }

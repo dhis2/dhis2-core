@@ -90,4 +90,9 @@ public class DataIntegrityJob
         }
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "dataIntegrityJob";
+    }
 }

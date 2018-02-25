@@ -72,7 +72,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
+import static org.jclouds.blobstore.options.ListContainerOptions.Builder.inDirectory;
 
 /**
  * @author Stian Sandvold
@@ -80,6 +80,7 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 public class JCloudsAppStorageService
     implements AppStorageService
 {
+
     private static final Log log = LogFactory.getLog( JCloudsAppStorageService.class );
 
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
@@ -201,8 +202,9 @@ public class JCloudsAppStorageService
 
         log.info( " Starting JCloud discovery..." );
 
-        for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( APPS_DIR ) ) )
         {
+
             log.info( "Found potential app: " + resource.getName() );
 
             // Found potential app
@@ -300,7 +302,7 @@ public class JCloudsAppStorageService
 
             String namespace = app.getActivities().getDhis().getNamespace();
 
-            if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
+            if ( namespace != null && !namespace.isEmpty() && !app.equals( reservedNamespaces.get( namespace ) ) )
             {
                 log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
                     app.getName(), namespace ) );
@@ -397,7 +399,7 @@ public class JCloudsAppStorageService
         log.info( "Deleting app " + app.getName() );
 
         // Delete all files related to app
-        for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( app.getFolderName() ) ) )
         {
             log.info( "Deleting app file: " + resource.getName() );
 

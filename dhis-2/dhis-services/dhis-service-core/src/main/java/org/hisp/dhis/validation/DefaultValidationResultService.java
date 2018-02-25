@@ -34,10 +34,10 @@ import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Stian Sandvold
@@ -103,7 +103,8 @@ public class DefaultValidationResultService
     public List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
         boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
     {
-        List<Period> persistedPeriods = periodService.reloadPeriods( new ArrayList<>( periods ) );
+        Set<Period> persistedPeriods = periods.stream().map( period -> periodService.getPeriod( period.getIsoDate() ) )
+            .collect( Collectors.toSet() );
         return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
     }
 }

@@ -4,6 +4,8 @@ jQuery( document ).ready( function()
 
 	validation2( 'updateRoleForm', function( form )
 	{
+		selectAllById( 'selectedList' );
+		selectAllById( 'selectedProgramList' );
 		selectAllById( 'selectedListAuthority' );
 		form.submit();
 	}, {

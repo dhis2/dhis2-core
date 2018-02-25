@@ -33,19 +33,12 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,20 +62,10 @@ public class DataQueryParamsTest
     private DataElement deB;
     private DataElement deC;
     
-    private DataSet dsA;
-    private DataSet dsB;
-    private DataSet dsC;
-    private DataSet dsD;
-    
     private ReportingRate rrA;
     private ReportingRate rrB;
     private ReportingRate rrC;
     private ReportingRate rrD;
-    
-    private Program prA;
-    private Program prB;
-    
-    private TrackedEntityAttribute atA;
     
     private Period peA;
     private Period peB;
@@ -90,10 +73,6 @@ public class DataQueryParamsTest
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
 
-    private DataElementCategoryOption coA;
-    private DataElementCategoryOption coB;
-    private DataElementCategory caA;
-    
     @Before
     public void setUpTest()
     {
@@ -106,34 +85,20 @@ public class DataQueryParamsTest
         deB = createDataElement( 'B', new DataElementCategoryCombo() );
         deC = createDataElement( 'C', new DataElementCategoryCombo() );
         
-        dsA = createDataSet( 'A' );
-        dsB = createDataSet( 'B' );
-        dsC = createDataSet( 'C' );
-        dsD = createDataSet( 'D' );
-        
-        rrA = new ReportingRate( dsA, ReportingRateMetric.REPORTING_RATE );
-        rrB = new ReportingRate( dsB, ReportingRateMetric.REPORTING_RATE );
-        rrC = new ReportingRate( dsC, ReportingRateMetric.EXPECTED_REPORTS );
-        rrD = new ReportingRate( dsD, ReportingRateMetric.ACTUAL_REPORTS );
-        
-        prA = createProgram( 'A' );
-        prB = createProgram( 'B' );
-        
-        atA = createTrackedEntityAttribute( 'A' );
+        rrA = new ReportingRate( createDataSet( 'A', null ), ReportingRateMetric.REPORTING_RATE );
+        rrB = new ReportingRate( createDataSet( 'B', null ), ReportingRateMetric.REPORTING_RATE );
+        rrC = new ReportingRate( createDataSet( 'C', null ), ReportingRateMetric.EXPECTED_REPORTS );
+        rrD = new ReportingRate( createDataSet( 'D', null ), ReportingRateMetric.ACTUAL_REPORTS );
         
         peA = createPeriod( "201601" );
         peB = createPeriod( "201603" );
         
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-        
-        coA = createCategoryOption( 'A' );
-        coB = createCategoryOption( 'B' );
-        caA = createDataElementCategory( 'A', coA, coB );
     }
 
     @Test
-    public void testAddDimension()
+    public void addDimension()
     {
         DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
         DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
@@ -494,51 +459,5 @@ public class DataQueryParamsTest
         assertEquals( 0, query.getPeriods().size() );
         assertEquals( getDate( 2017, 3, 1 ), query.getStartDate() );
         assertEquals( getDate( 2017, 5, 31 ), query.getEndDate() );        
-    }
-
-    @Test
-    public void testGetAllDataSets()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( peA, peB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
-            .withReportingRates( Lists.newArrayList( rrA, rrB, rrC ) )
-            .build();
-        
-        Set<DimensionalItemObject> expected = Sets.newHashSet( dsA, dsB, dsC );
-        
-        assertEquals( expected, params.getAllDataSets() );
-    }
-    
-    @Test
-    public void testGetCategoryOptions()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( peA, peB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
-            .withCategory( caA )
-            .build();
-        
-        Set<DimensionalItemObject> expected = Sets.newHashSet( coA, coB );
-        
-        assertEquals( expected, params.getCategoryOptions() );
-    }
-    
-    @Test
-    public void testGetAllProgramsInAttributesAndDataElements()
-    {
-        ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
-        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prB, deA );
-
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withProgramAttributes( Lists.newArrayList( ptaA ) )
-            .withProgramDataElements( Lists.newArrayList( pdeA ) )
-            .withPeriods( Lists.newArrayList( peA, peB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
-            .build();
-        
-        Set<Program> expected = Sets.newHashSet( prA, prB );
-        
-        assertEquals( expected, params.getProgramsInAttributesAndDataElements() );        
     }
 }

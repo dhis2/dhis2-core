@@ -2,24 +2,6 @@ package org.hisp.dhis.dataset;
 
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -48,6 +30,22 @@ import java.util.List;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationService;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -87,15 +85,6 @@ public class DefaultCompleteDataSetRegistrationService
 
     @Autowired
     private DataSetNotificationEventPublisher notificationEventPublisher;
-
-    @Autowired
-    private AggregateAccessManager accessManager;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private PeriodService periodService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService
@@ -200,10 +189,8 @@ public class DefaultCompleteDataSetRegistrationService
 
         if ( !dataSet.getCompulsoryDataElementOperands().isEmpty() )
         {
-            Period reloadedPeriod = periodService.reloadPeriod( period );
-
             List<Period> periods = new ArrayList<>();
-            periods.add( reloadedPeriod );
+            periods.add( period );
 
             List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
@@ -227,17 +214,8 @@ public class DefaultCompleteDataSetRegistrationService
             }
             else
             {
-                User currentUser = currentUserService.getCurrentUser();
-
                 for ( DataElementOperand dataElementOperand : dataSet.getCompulsoryDataElementOperands() )
                 {
-                    List<String> errors = accessManager.canWrite( currentUser, dataElementOperand );
-
-                    if ( !errors.isEmpty() )
-                    {
-                        continue;
-                    }
-
                     if ( multiOrgUnit )
                     {
                         for ( OrganisationUnit child : organisationUnit.getChildren() )

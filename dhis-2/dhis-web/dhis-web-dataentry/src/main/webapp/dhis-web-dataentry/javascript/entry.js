@@ -401,9 +401,6 @@ function ValueSaver( de, pe, co, ds, value, fieldId, resultColor )
 
         $.ajax( {
             url: '../api/dataValues',
-            beforeSend: function( xhr ) {
-              xhr.setRequestHeader('X-Requested-With','XMLHttpRequest');
-            },
             data: dataValue,
             type: 'post',
             success: handleSuccess,
@@ -433,12 +430,6 @@ function ValueSaver( de, pe, co, ds, value, fieldId, resultColor )
         var errorText = JSON.parse( xhr.responseText );
     		setHeaderDelayMessage( errorText.message );
     	}
-    	else if ( 401 == xhr.status )
-	    {
-        markValue( fieldId, resultColor );
-        dhis2.availability._isLoggedIn = false;
-        $(document).trigger("dhis2.online", [ false ]);
-	    }
     	else // Offline, keep local value
     	{
             $( document ).trigger( dhis2.de.event.dataValueSaved, [ dhis2.de.currentDataSetId, dataValue ] );

@@ -28,23 +28,15 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.h2.util.IOUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,15 +72,6 @@ public class SimplisticHttpGetGateWay
 {
     private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
 
-    private static final ImmutableMap<Integer, GatewayResponse> SIMPLISTIC_GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<Integer, GatewayResponse>()
-        .put( HttpURLConnection.HTTP_OK, GatewayResponse.RESULT_CODE_0 )
-        .put( HttpURLConnection.HTTP_CREATED, GatewayResponse.RESULT_CODE_0 )
-        .put( HttpURLConnection.HTTP_ACCEPTED, GatewayResponse.RESULT_CODE_0 )
-        .put( HttpURLConnection.HTTP_CONFLICT, GatewayResponse.FAILED ).build();
-
-    private static final ImmutableSet<Integer> OK_CODES = ImmutableSet.of( HttpURLConnection.HTTP_OK,
-        HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
-
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -111,53 +94,26 @@ public class SimplisticHttpGetGateWay
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
-        GenericHttpGatewayConfig genericHttpGatewayConfig = (GenericHttpGatewayConfig) config;
+        GenericHttpGatewayConfig genericHttpConfiguration = (GenericHttpGatewayConfig) config;
+
+        UriComponentsBuilder uri = buildUrl( genericHttpConfiguration, text, recipients );
 
         OutboundMessageResponse status = new OutboundMessageResponse();
 
-        UriComponentsBuilder uri = buildUrl( genericHttpGatewayConfig, text, recipients );
-
-        BufferedReader reader = null;
-
         try
         {
-            URL requestURL = new URL( uri.build().encode().toUriString() );
+            HttpEntity<?> request = new HttpEntity<>( getRequestHeaderParameters( genericHttpConfiguration.getParameters() ) );
 
-            URLConnection conn = requestURL.openConnection();
+            HttpStatus httpStatus = send( uri.build().encode().toUriString(), request, String.class );
 
-            conn = getRequestHeaderParameters( conn, genericHttpGatewayConfig.getParameters() );
-
-            reader = new BufferedReader( new InputStreamReader( conn.getInputStream() ) );
-
-            HttpURLConnection httpConnection = (HttpURLConnection) conn;
-
-            reader.close();
-
-            Integer responseCode = httpConnection.getResponseCode();
-
-            if ( OK_CODES.contains( responseCode ) )
-            {
-                status.setOk( true );
-            }
-            else
-            {
-                status.setOk( false );
-            }
-
-            GatewayResponse response = SIMPLISTIC_GATEWAY_RESPONSE_MAP.getOrDefault( responseCode, GatewayResponse.FAILED );
-
-            status.setResponseObject( response );
-            status.setDescription( response.getResponseMessage() );
-            return status;
+            return wrapHttpStatus( httpStatus );
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
             log.error( "Message failed: " + e.getMessage() );
 
-            IOUtils.closeSilently( reader );
-
-            status.setResponseObject( GatewayResponse.FAILED );
-            status.setDescription( GatewayResponse.FAILED.getResponseMessage() );
+            status.setResponseObject( GatewayResponse.RESULT_CODE_504 );
+            status.setDescription( GatewayResponse.RESULT_CODE_504.getResponseMessage() );
             status.setOk( false );
 
             return status;
@@ -186,10 +142,12 @@ public class SimplisticHttpGetGateWay
         return uriBuilder;
     }
 
-    private URLConnection getRequestHeaderParameters( URLConnection urlConnection, List<GenericGatewayParameter> parameters )
+    private HttpHeaders getRequestHeaderParameters( List<GenericGatewayParameter> parameters )
     {
-        parameters.stream().filter( GenericGatewayParameter::isHeader ).forEach(p -> urlConnection.setRequestProperty( p.getKey(), p.getValue() ) );
+        HttpHeaders headers = new HttpHeaders();
 
-        return urlConnection;
+        parameters.stream().filter( p -> p.isHeader() ).forEach( p -> headers.set( p.getKey(), p.getValue() ) );
+
+        return headers;
     }
 }

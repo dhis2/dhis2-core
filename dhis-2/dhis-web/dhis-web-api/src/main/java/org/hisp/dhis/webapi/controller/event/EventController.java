@@ -51,6 +51,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.event.ImportEventTask;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
@@ -81,10 +82,10 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -115,8 +116,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
-
-import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -637,9 +636,13 @@ public class EventController
         }
         else
         {
-            List<Event> events = eventService.getEventsJson( inputStream );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+            List<Event> events = eventService.getEventsXml( inputStream );
 
-            startAsyncImport( importOptions, events, request, response );
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
+            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }
 
@@ -680,9 +683,13 @@ public class EventController
         }
         else
         {
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
             List<Event> events = eventService.getEventsJson( inputStream );
 
-            startAsyncImport( importOptions, events, request, response );
+            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
+            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }
 
@@ -719,7 +726,11 @@ public class EventController
         }
         else
         {
-            startAsyncImport( importOptions, events.getEvents(), request, response );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+                JobType.EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+            schedulingManager.executeJob( new ImportEventsTask( events.getEvents(), eventService, importOptions, jobId ) );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.EVENT_IMPORT );
+            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
     }
 
@@ -833,24 +844,6 @@ public class EventController
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    /**
-     * Starts an asynchronous import task.
-     *
-     * @param importOptions the ImportOptions.
-     * @param events        the events to import.
-     * @param request       the HttpRequest.
-     * @param response      the HttpResponse.
-     */
-    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request, HttpServletResponse response )
-    {
-        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
-            EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-        schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
-
-        JacksonUtils.fromObjectToReponse( response, jobId );
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
-    }
 
     private boolean fieldsContains( String match, List<String> fields )
     {

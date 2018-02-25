@@ -161,4 +161,9 @@ public class MonitoringJob
         }
     }
 
+    @Override
+    protected String getJobId()
+    {
+        return "monitoringJob";
+    }
 }
