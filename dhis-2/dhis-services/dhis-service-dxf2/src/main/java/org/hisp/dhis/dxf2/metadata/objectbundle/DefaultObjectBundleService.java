@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-    /*
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -265,8 +265,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), object );
 
-            objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) );
-
             MetadataAudit audit = new MetadataAudit();
             audit.setCreatedAt( new Date() );
             audit.setCreatedBy( bundle.getUsername() );
@@ -309,6 +307,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
         }
+
+        session.flush();
+
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> {
+            hook.postCreate( object, bundle );
+        } ) );
 
         return typeReport;
     }
@@ -376,8 +380,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             session.update( persistedObject );
 
-            objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
-
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 
             MetadataAudit audit = new MetadataAudit();
@@ -422,6 +424,14 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
         }
+
+        session.flush();
+
+        objects.forEach( object ->
+        {
+            IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
+            objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
+        } );
 
         return typeReport;
     }
