@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.Status;
@@ -62,9 +61,6 @@ public class MetadataImportServiceTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     @Override
     protected void setUpTest() throws Exception

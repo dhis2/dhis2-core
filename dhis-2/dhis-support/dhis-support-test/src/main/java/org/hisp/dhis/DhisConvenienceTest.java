@@ -30,6 +30,7 @@ package org.hisp.dhis;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -64,6 +65,8 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -80,6 +83,9 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -112,6 +118,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
@@ -132,6 +139,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
 import javax.annotation.PostConstruct;
@@ -140,12 +148,14 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -1195,6 +1205,19 @@ public abstract class DhisConvenienceTest
 
         return legendSet;
     }
+
+    public static LegendSet createLegendSet( char uniqueCharacter, Legend... legends )
+    {
+        LegendSet legendSet = createLegendSet( uniqueCharacter );
+
+        for ( Legend legend : legends )
+        {
+            legendSet.getLegends().add( legend );
+            legend.setLegendSet( legendSet );
+        }
+
+        return legendSet;
+    }
     
     public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
     {
@@ -1476,6 +1499,11 @@ public abstract class DhisConvenienceTest
 
     public static ProgramIndicator createProgramIndicator( char uniqueCharacter, Program program, String expression, String filter )
     {
+        return createProgramIndicator( uniqueCharacter, AnalyticsType.EVENT, program, expression, filter );
+    }
+    
+    public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType, Program program, String expression, String filter )
+    {
         ProgramIndicator indicator = new ProgramIndicator();
         indicator.setAutoFields();
         indicator.setName( "Indicator" + uniqueCharacter );
@@ -1484,7 +1512,20 @@ public abstract class DhisConvenienceTest
         indicator.setDescription( "IndicatorDescription" + uniqueCharacter );
         indicator.setProgram( program );
         indicator.setExpression( expression );
+        indicator.setAnalyticsType( analyticsType );
         indicator.setFilter( filter );
+        
+        List<AnalyticsPeriodBoundary> boundaries = new ArrayList<AnalyticsPeriodBoundary>();
+        if ( analyticsType == AnalyticsType.EVENT )
+        {
+            boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+            boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+        }
+        else if ( analyticsType == AnalyticsType.ENROLLMENT )
+        {
+            boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+            boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+        }
 
         return indicator;
     }
@@ -1669,12 +1710,26 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
+    public static FileResource createFileResource( char uniqueChar, byte[] content )
+    {
+        String filename = "filename" + uniqueChar;
+        String contentMd5 = Hashing.md5().hashBytes( content ).toString();
+        String contentType = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+
+        FileResource fileResource = new FileResource( filename, contentType, content.length, contentMd5, FileResourceDomain.DATA_VALUE );
+        fileResource.setAssigned( false );
+        fileResource.setCreated( new Date() );
+        fileResource.setAutoFields();
+
+        return fileResource;
+    }
+
     /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param sql             A query statement to retreive record/data from database.
      * @return a sqlView instance
      */
-    protected static SqlView createSqlView( char uniqueCharacter, String sql )
+    public static SqlView createSqlView( char uniqueCharacter, String sql )
     {
         SqlView sqlView = new SqlView();
         sqlView.setAutoFields();
@@ -1693,7 +1748,7 @@ public abstract class DhisConvenienceTest
      * @param value           The value for constant
      * @return a constant instance
      */
-    protected static Constant createConstant( char uniqueCharacter, double value )
+    public static Constant createConstant( char uniqueCharacter, double value )
     {
         Constant constant = new Constant();
         constant.setAutoFields();
@@ -1704,7 +1759,7 @@ public abstract class DhisConvenienceTest
         return constant;
     }
 
-    protected static ProgramNotificationTemplate createProgramNotificationTemplate(
+    public static ProgramNotificationTemplate createProgramNotificationTemplate(
         String name, int days, NotificationTrigger trigger )
     {
         return new ProgramNotificationTemplate(
@@ -1719,7 +1774,7 @@ public abstract class DhisConvenienceTest
         );
     }
 
-    protected static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
+    public static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
     {
         ValidationNotificationTemplate template = new ValidationNotificationTemplate();
         template.setAutoFields();
@@ -1732,7 +1787,7 @@ public abstract class DhisConvenienceTest
         return template;
     }
 
-    protected static OptionSet createOptionSet( char uniqueCharacter )
+    public static OptionSet createOptionSet( char uniqueCharacter )
     {
         OptionSet optionSet = new OptionSet();
         optionSet.setAutoFields();
@@ -1743,7 +1798,20 @@ public abstract class DhisConvenienceTest
         return optionSet;
     }
 
-    protected static Option createOption( char uniqueCharacter )
+    public static OptionSet createOptionSet( char uniqueCharacter, Option... options )
+    {
+        OptionSet optionSet = createOptionSet( uniqueCharacter );
+
+        for ( Option option : options )
+        {
+            optionSet.getOptions().add( option );
+            option.setOptionSet( optionSet );
+        }
+
+        return optionSet;
+    }
+
+    public static Option createOption( char uniqueCharacter )
     {
         Option option = new Option();
         option.setAutoFields();
@@ -2119,4 +2187,14 @@ public abstract class DhisConvenienceTest
         return new ProgramDataElementDimensionItem( pr, de );
     }
 
+    protected void enableDataSharing( User user, IdentifiableObject object, String access )
+    {
+        object.getUserAccesses().clear();
+
+        UserAccess userAccess = new UserAccess();
+        userAccess.setUser( user );
+        userAccess.setAccess( access );
+
+        object.getUserAccesses().add( userAccess );
+    }
 }

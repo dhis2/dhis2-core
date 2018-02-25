@@ -72,7 +72,7 @@ public interface EventService
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
     List<Event> getEventsJson( InputStream inputStream ) throws IOException;
-    
+
     Grid getEventsGrid( EventSearchParams params );
 
     int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
@@ -85,7 +85,7 @@ public interface EventService
 
     ImportSummary addEvent( Event event, ImportOptions importOptions );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions );
+    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession );
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 
@@ -105,7 +105,7 @@ public interface EventService
 
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions );
 
-    ImportSummaries updateEvents( List<Event> events, boolean singleValue );
+    ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession );
 
     void updateEventForNote( Event event );
 

@@ -30,16 +30,12 @@ package org.hisp.dhis.validation.hibernate;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleStore;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**

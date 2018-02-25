@@ -187,7 +187,7 @@ public class MeController
         if ( fieldsContains( "dataSets", fields ) )
         {
             rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
-                NodeUtils.createSimples( dataSetService.getUserDataSets( user ).stream()
+                NodeUtils.createSimples( dataSetService.getUserDataRead( user ).stream()
                     .map( BaseIdentifiableObject::getUid )
                     .collect( Collectors.toList() ) )
             );
@@ -210,6 +210,7 @@ public class MeController
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );

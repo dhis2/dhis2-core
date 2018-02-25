@@ -69,7 +69,10 @@ public abstract class AbstractRelativePeriodsAction
     protected boolean last6BiMonths;
     protected boolean last5FinancialYears;
     protected boolean lastWeek;
+    protected boolean reportingBiWeek;
+    protected boolean lastBiWeek;
     protected boolean last4Weeks;
+    protected boolean last4BiWeeks;
     protected boolean last12Weeks;
     protected boolean last52Weeks;
     protected boolean yesterday;
@@ -263,7 +266,7 @@ public abstract class AbstractRelativePeriodsAction
             monthsLastYear, quartersLastYear, lastYear,
             last5Years, last12Months, last6Months, last3Months, last6BiMonths, last4Quarters, last2SixMonths,
             thisFinancialYear, lastFinancialYear, last5FinancialYears,
-            reportingWeek, lastWeek, last4Weeks, last12Weeks, last52Weeks );
+            reportingWeek, lastWeek, reportingBiWeek, lastBiWeek, last4Weeks, last4BiWeeks, last12Weeks, last52Weeks );
 
         return relatives;
     }

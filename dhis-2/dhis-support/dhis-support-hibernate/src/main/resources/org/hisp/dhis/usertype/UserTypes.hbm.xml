@@ -14,8 +14,16 @@
 
   <!-- Jsonb type -->
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObject">
+    <param name="clazz">java.lang.Object</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbObjectStyle">
     <param name="clazz">org.hisp.dhis.common.ObjectStyle</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
+    <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbRenderType">
@@ -24,6 +32,10 @@
   
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbFilterPeriod">
     <param name="clazz">org.hisp.dhis.trackedentityfilter.FilterPeriod</param>
+  </typedef>
+  
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSet">
+    <param name="clazz">java.util.HashSet</param>
   </typedef>
   
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventFilter">
