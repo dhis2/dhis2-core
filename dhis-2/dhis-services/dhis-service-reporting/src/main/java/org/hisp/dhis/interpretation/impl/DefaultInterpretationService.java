@@ -264,20 +264,20 @@ public class DefaultInterpretationService
 
             if ( comment != null )
             {
-                messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( "\n\n" )
-                    .append( comment.getText() );
+                messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( ":" )
+                    .append( "\n\n" ).append( comment.getText() );
             }
             else
             {
                 messageContent = new StringBuilder( i18n.getString( "interpretation_mention_notification" ) )
-                    .append( "\n\n" ).append( interpretation.getText() );
+                    .append( ":" ).append( "\n\n" ).append( interpretation.getText() );
 
             }
             messageContent.append( "\n\n" ).append( i18n.getString( "go_to" ) ).append( " " ).append( link );
 
             User user = currentUserService.getCurrentUser();
             StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
-                .append( i18n.getString( "dhis2_mention" ) );
+                .append( i18n.getString( "mentioned_you_in_dhis2" ) );
             messageService.sendMessage( messageService
                 .createPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" ).build() );
         }
