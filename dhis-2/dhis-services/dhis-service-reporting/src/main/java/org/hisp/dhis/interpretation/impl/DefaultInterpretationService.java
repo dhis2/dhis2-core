@@ -27,7 +27,7 @@ package org.hisp.dhis.interpretation.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -37,7 +37,10 @@ import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.query.Disjunction;
+import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -51,9 +54,12 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -291,6 +297,41 @@ public class DefaultInterpretationService implements InterpretationService
                 interpretation.getObject().getUserAccesses().add( new UserAccess( user, AccessStringHelper.READ ) );
             }
         }
+    }
+    
+    @Override
+    public List<String> removeCustomFilters( List<String> filters )
+    {
+
+        List<String> mentions = new ArrayList<String>();
+        ListIterator<String> filterIterator = filters.listIterator();
+        while ( filterIterator.hasNext() )
+        {
+            String[] filterSplit = filterIterator.next().split( ":" );
+            if ( filterSplit[1].equals( "in" ) && filterSplit[0].equals( "mentions" ) )
+            {
+                mentions.add( filterSplit[2] );
+                filterIterator.remove();
+            }
+        }
+        return mentions;
+    }
+
+    @Override
+    public Collection<Disjunction> getDisjunctionsFromCustomMentions( List<String> mentions, Schema schema )
+    {
+
+        Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
+        for ( String m : mentions )
+        {
+            Disjunction disjunction = new Disjunction( schema );
+            String[] split = m.substring( 1, m.length() - 1 ).split( "," );
+            List<String> items = Lists.newArrayList( split );
+            disjunction.add( Restrictions.in( "mentions.username", items ) );
+            disjunction.add( Restrictions.in( "comments.mentions.username", items ) );
+            disjunctions.add( disjunction );
+        }
+        return disjunctions;
     }
 
     @Override

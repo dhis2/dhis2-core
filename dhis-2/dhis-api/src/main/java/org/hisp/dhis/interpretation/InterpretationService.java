@@ -32,10 +32,12 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.schema.Schema;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.Collection;
 
 /**
  * @author Lars Helge Overland
@@ -97,4 +99,8 @@ public interface InterpretationService
     int countReportTableInterpretations( ReportTable reportTable );
     
     Interpretation getInterpretationByChart( int id );
+    
+    List<String> removeCustomFilters( List<String> filters);
+    
+    Collection<?> getDisjunctionsFromCustomMentions( List<String> mentions, Schema schema );
 }
