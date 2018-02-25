@@ -1,4 +1,4 @@
-package org.hisp.dhis.textpattern;
+package org.hisp.dhis.reservedvalue;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,40 +28,33 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.regex.Pattern;
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 
 /**
- * @author Stian Sandvold
+ * @author Henning Håkonsen
  */
-public class DateMethodType
-    extends BaseMethodType
+public class RemoveExpiredReservedValuesJob
+    extends AbstractJob
 {
-    DateMethodType( Pattern pattern )
+    private ReservedValueStore reservedValueStore;
+
+    public void setReservedValueStore( ReservedValueStore reservedValueStore )
     {
-        super( pattern );
+        this.reservedValueStore = reservedValueStore;
     }
 
     @Override
-    public boolean validateText( String format, String text )
+    public JobType getJobType()
     {
-        try
-        {
-            new SimpleDateFormat( format ).parse( text );
-        }
-        catch ( ParseException e )
-        {
-            return false;
-        }
-
-        return true;
+        return JobType.REMOVE_EXPIRED_RESERVED_VALUES;
     }
 
     @Override
-    public String getValueRegex( String format )
+    public void execute( JobConfiguration jobConfiguration )
+        throws Exception
     {
-        return String.format( ".{%d}", format.length() );
+        reservedValueStore.removeExpiredReservations();
     }
-
 }

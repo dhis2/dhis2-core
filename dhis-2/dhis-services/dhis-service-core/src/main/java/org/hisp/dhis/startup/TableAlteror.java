@@ -1062,6 +1062,8 @@ public class TableAlteror
         
         insertDefaultBoundariesForBoundlessProgramIndicators();
 
+        executeSql("alter table jobconfiguration drop column configurable;");
+
         log.info( "Tables updated" );
 
     }

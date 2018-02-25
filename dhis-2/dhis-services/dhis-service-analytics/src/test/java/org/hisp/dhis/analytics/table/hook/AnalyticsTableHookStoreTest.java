@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.hook;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,6 +31,10 @@ package org.hisp.dhis.analytics;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.analytics.AnalyticsTableHookStore;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +56,9 @@ public class AnalyticsTableHookStoreTest
     public void testGetByType()
     {
         AnalyticsTableHook hookA = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, ResourceTableType.ORG_UNIT_STRUCTURE, sql );
-        AnalyticsTableHook hookB = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
-        AnalyticsTableHook hookC = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
-        AnalyticsTableHook hookD = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.EVENT, sql );
+        AnalyticsTableHook hookB = new AnalyticsTableHook( "NameB", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
+        AnalyticsTableHook hookC = new AnalyticsTableHook( "NameC", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
+        AnalyticsTableHook hookD = new AnalyticsTableHook( "NameD", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.EVENT, sql );
         
         sqlHookStore.save( hookA );
         sqlHookStore.save( hookB );
@@ -66,6 +70,8 @@ public class AnalyticsTableHookStoreTest
         assertEquals( 2, hooks.size() );
         
         hooks.forEach( hook -> {
+            assertNotNull( hook.getName() );
+            assertNotNull( hook.getPhase() );
             assertEquals( AnalyticsTableType.DATA_VALUE, hook.getAnalyticsTableType() );
         });
     }

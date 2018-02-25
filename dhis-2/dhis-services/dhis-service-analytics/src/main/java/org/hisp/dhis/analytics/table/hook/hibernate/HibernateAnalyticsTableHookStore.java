@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.hibernate;
+package org.hisp.dhis.analytics.table.hook.hibernate;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo

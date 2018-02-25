@@ -70,6 +70,7 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -196,12 +197,14 @@ public abstract class AbstractEnrollmentService
     public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
+        User user = currentUserService.getCurrentUser();
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            if ( programInstance != null && programInstance.getEntityInstance() != null )
+            if ( programInstance != null && programInstance.getEntityInstance() != null
+                && trackerAccessManager.canRead( user, programInstance ).isEmpty() )
             {
-                enrollments.add( getEnrollment( programInstance ) );
+                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE ) );
             }
         }
 
@@ -212,23 +215,27 @@ public abstract class AbstractEnrollmentService
     public Enrollment getEnrollment( String id )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-
         return programInstance != null ? getEnrollment( programInstance ) : null;
     }
 
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance )
     {
-        return getEnrollment( programInstance, TrackedEntityInstanceParams.FALSE );
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE );
     }
 
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params );
+    }
+
+    @Override
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
-
-        List<String> errors = trackerAccessManager.canRead( currentUserService.getCurrentUser(), programInstance );
+        List<String> errors = trackerAccessManager.canRead( user, programInstance );
 
         if ( !errors.isEmpty() )
         {
@@ -310,7 +317,7 @@ public abstract class AbstractEnrollmentService
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                if ( !programStageInstance.isDeleted() )
+                if ( !programStageInstance.isDeleted() && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
                 {
                     enrollment.getEvents().add( eventService.getEvent( programStageInstance ) );
                 }
@@ -684,10 +691,17 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary deleteEnrollment( String uid )
     {
+        User user = currentUserService.getCurrentUser();
+        
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
 
         if ( programInstance != null )
-        {
+        {            
+            if( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            {                
+                return new ImportSummary( ImportStatus.ERROR, "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();                                
+            }
+            
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();

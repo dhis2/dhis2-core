@@ -82,7 +82,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nonnull;
@@ -525,7 +524,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
                     summary.getConflicts().add( new ImportConflict( "dataElementOperand",
-                        dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
+                        dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory." ) );
                 }
 
                 if ( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )

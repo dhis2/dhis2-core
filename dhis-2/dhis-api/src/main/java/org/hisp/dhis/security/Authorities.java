@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.security;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,25 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 /**
- * @author Henning Håkonsen
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@Controller
-@RequestMapping( value = "/scheduling" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SchedulingController
-    extends AbstractCrudController<JobConfiguration>
+public enum Authorities
 {
+    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS("F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS"),
+    F_TEI_CASCADE_DELETE("F_TEI_CASCADE_DELETE"),
+    F_ENROLLMENT_CASCADE_DELETE("F_ENROLLMENT_CASCADE_DELETE");
+    
+    private String authority;
+    
+    Authorities( String authority )
+    {
+        this.authority = authority;
+    }
+    
+    public String getAuthority()
+    {
+        return authority;
+    }
 }

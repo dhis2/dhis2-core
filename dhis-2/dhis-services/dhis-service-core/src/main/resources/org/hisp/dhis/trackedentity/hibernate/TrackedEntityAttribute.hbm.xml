@@ -73,6 +73,8 @@
 
     <property name="style" type="jbObjectStyle" column="style" />
 
+    <property name="renderType" type="jbRenderType" column="rendertype" />
+
     <property name="orgunitScope" />
 
     <property name="programScope" />

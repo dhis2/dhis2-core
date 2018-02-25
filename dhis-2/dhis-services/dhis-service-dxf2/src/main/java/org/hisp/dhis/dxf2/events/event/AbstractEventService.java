@@ -535,7 +535,6 @@ public abstract class AbstractEventService
         }
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits );
-
         events.setEvents( eventList );
 
         return events;
@@ -705,8 +704,11 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( errors.toString() );
         }
 
-        event.setOrgUnit( ou.getUid() );
-        event.setOrgUnitName( ou.getName() );
+        if ( ou != null )
+        {
+            event.setOrgUnit( ou.getUid() );
+            event.setOrgUnitName( ou.getName() );
+        }
 
         Program program = programStageInstance.getProgramInstance().getProgram();
 

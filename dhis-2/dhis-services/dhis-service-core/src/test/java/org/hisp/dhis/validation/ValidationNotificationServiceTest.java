@@ -114,8 +114,7 @@ public class ValidationNotificationServiceTest
         // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our List
         when(
             messageService.sendMessage( any() )
-        ).then(
-            invocation ->
+        ).then( invocation ->
             {
                 sentMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 42;
@@ -125,15 +124,14 @@ public class ValidationNotificationServiceTest
         when(
             messageService
                 .createValidationResultMessage( any( Collection.class ), any( String.class ), any( String.class ) )
-        )
-            .then( invocation ->
-                {
-                    builder = new MessageConversationParams.Builder( invocation.getArgumentAt( 0, Collection.class ), null,
-                        invocation.getArgumentAt( 1, String.class ), invocation.getArgumentAt( 2, String.class ),
-                        MessageType.VALIDATION_RESULT );
-                    return builder;
-                }
-            );
+        ).then( invocation ->
+            {
+                builder = new MessageConversationParams.Builder( invocation.getArgumentAt( 0, Collection.class ), null,
+                    invocation.getArgumentAt( 1, String.class ), invocation.getArgumentAt( 2, String.class ),
+                    MessageType.VALIDATION_RESULT );
+                return builder;
+            }
+        );
 
         // Stub renderer
         when(

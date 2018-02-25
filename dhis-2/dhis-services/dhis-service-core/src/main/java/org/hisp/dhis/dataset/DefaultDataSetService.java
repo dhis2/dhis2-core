@@ -159,7 +159,7 @@ public class DefaultDataSetService
             return Lists.newArrayList();
         }
 
-        return user.isSuper() ? getAllDataSets() : dataSetStore.getUserDataReadAll( user );
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll( user );
     }
 
     @Override
@@ -185,7 +185,7 @@ public class DefaultDataSetService
             return Lists.newArrayList();
         }
 
-        return user.isSuper() ? getAllDataSets() : dataSetStore.getUserDataWriteAll( user );
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll( user );
     }
     // -------------------------------------------------------------------------
     // DataSet LockExceptions

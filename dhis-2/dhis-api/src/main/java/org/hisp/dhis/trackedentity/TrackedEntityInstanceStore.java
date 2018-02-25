@@ -29,8 +29,6 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 import java.util.List;
 import java.util.Map;
