@@ -62,9 +62,7 @@ import java.util.regex.Pattern;
  * @author Lars Helge Overland
  */
 @Transactional
-public class DefaultInterpretationService
-    implements
-    InterpretationService
+public class DefaultInterpretationService implements InterpretationService
 {
     // -------------------------------------------------------------------------
     // Dependencies
