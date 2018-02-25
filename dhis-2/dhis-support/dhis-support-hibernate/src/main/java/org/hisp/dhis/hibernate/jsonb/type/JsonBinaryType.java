@@ -50,6 +50,7 @@ import java.util.Properties;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Stian Sandvold <stian@dhis2.org>
  */
+@SuppressWarnings("rawtypes")
 public class JsonBinaryType implements UserType, ParameterizedType
 {
     public static final ObjectMapper MAPPER = new ObjectMapper();
@@ -96,7 +97,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
         if ( !rs.wasNull() )
         {
-            String content;
+            String content = null;
 
             if ( result instanceof String )
             {
@@ -106,10 +107,9 @@ public class JsonBinaryType implements UserType, ParameterizedType
             {
                 content = ((PGobject) result).getValue();
             }
-            else
-            {
-                throw new IllegalArgumentException( "Unknown object type (expected PGObject or String)" );
-            }
+            
+            // Other types currently ignored
+            
             if ( content != null )
             {
                 return convertJsonToObject( content );
@@ -118,7 +118,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
         return null;
     }
-
+    
     @Override
     public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session ) throws HibernateException, SQLException
     {
@@ -183,8 +183,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
         catch ( ClassNotFoundException e )
         {
-            throw new IllegalArgumentException( "Class: " + clazz
-                + " is not a known class type." );
+            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
         }
     }
 
@@ -200,6 +199,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         try
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            
             if ( classLoader != null )
             {
                 return classLoader.loadClass( name );
@@ -212,11 +212,17 @@ public class JsonBinaryType implements UserType, ParameterizedType
         return Class.forName( name );
     }
 
-    private String convertObjectToJson( Object value )
+    /**
+     * Serializes an object to JSON.
+     * 
+     * @param object the object to convert.
+     * @return JSON content.
+     */
+    protected String convertObjectToJson( Object object )
     {
         try
         {
-            return writer.writeValueAsString( value );
+            return writer.writeValueAsString( object );
         }
         catch ( IOException e )
         {
@@ -224,7 +230,13 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    private Object convertJsonToObject( String content )
+    /**
+     * Deserializes JSON content to an object.
+     * 
+     * @param content the JSON content.
+     * @return an object.
+     */
+    protected Object convertJsonToObject( String content )
     {
         try
         {

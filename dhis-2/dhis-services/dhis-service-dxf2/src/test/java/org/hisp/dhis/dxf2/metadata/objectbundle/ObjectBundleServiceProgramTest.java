@@ -179,6 +179,8 @@ public class ObjectBundleServiceProgramTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
+        validate.getErrorReports().forEach( System.out::println );
+
         assertTrue( validate.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );

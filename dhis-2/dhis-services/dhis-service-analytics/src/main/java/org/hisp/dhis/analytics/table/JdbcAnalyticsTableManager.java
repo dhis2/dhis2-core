@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -96,7 +97,9 @@ public class JdbcAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() ) );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
+        
+        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
     
     @Override
@@ -139,7 +142,6 @@ public class JdbcAnalyticsTableManager
     {
         return Lists.newArrayList(
             "yearly = '" + partition.getYear() + "'",
-            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
@@ -177,8 +179,6 @@ public class JdbcAnalyticsTableManager
     private void populateTable( AnalyticsTablePartition partition, String valueExpression,
         String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
     {
-        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
-        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
@@ -228,8 +228,7 @@ public class JdbcAnalyticsTableManager
             approvalClause +
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
-            "and pe.startdate >= '" + start + "' " +
-            "and pe.startdate < '" + end + "' " +
+            "and ps.yearly = '" + partition.getYear() + "' " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -427,7 +426,7 @@ public class JdbcAnalyticsTableManager
             jdbcTemplate.execute( sql.toString() );
         }
 
-        return null;
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override
@@ -451,7 +450,7 @@ public class JdbcAnalyticsTableManager
             jdbcTemplate.execute( sql );
         }
 
-        return null;
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     /**

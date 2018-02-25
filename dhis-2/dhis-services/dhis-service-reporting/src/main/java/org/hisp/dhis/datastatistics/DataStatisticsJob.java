@@ -68,9 +68,4 @@ public class DataStatisticsJob
         }
     }
 
-    @Override
-    protected String getJobId()
-    {
-        return "dataStatisticsJob";
-    }
 }

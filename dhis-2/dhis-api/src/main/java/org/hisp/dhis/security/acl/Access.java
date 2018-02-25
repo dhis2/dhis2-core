@@ -74,9 +74,10 @@ public class Access
         return manage;
     }
 
-    public void setManage( boolean manage )
+    public Access setManage( boolean manage )
     {
         this.manage = manage;
+        return this;
     }
 
     @JsonProperty
@@ -86,9 +87,10 @@ public class Access
         return externalize;
     }
 
-    public void setExternalize( boolean externalize )
+    public Access setExternalize( boolean externalize )
     {
         this.externalize = externalize;
+        return this;
     }
 
     @JsonProperty
@@ -98,9 +100,10 @@ public class Access
         return write;
     }
 
-    public void setWrite( boolean write )
+    public Access setWrite( boolean write )
     {
         this.write = write;
+        return this;
     }
 
     @JsonProperty
@@ -110,9 +113,10 @@ public class Access
         return read;
     }
 
-    public void setRead( boolean read )
+    public Access setRead( boolean read )
     {
         this.read = read;
+        return this;
     }
 
     @JsonProperty
@@ -122,9 +126,10 @@ public class Access
         return update;
     }
 
-    public void setUpdate( boolean update )
+    public Access setUpdate( boolean update )
     {
         this.update = update;
+        return this;
     }
 
     @JsonProperty
@@ -134,9 +139,10 @@ public class Access
         return delete;
     }
 
-    public void setDelete( boolean delete )
+    public Access setDelete( boolean delete )
     {
         this.delete = delete;
+        return this;
     }
 
     @JsonProperty
@@ -146,9 +152,10 @@ public class Access
         return data;
     }
 
-    public void setData( AccessData data )
+    public Access setData( AccessData data )
     {
         this.data = data;
+        return this;
     }
 
     @Override
@@ -161,6 +168,7 @@ public class Access
             ", read=" + read +
             ", update=" + update +
             ", delete=" + delete +
+            ", data=" + data +
             '}';
     }
 }

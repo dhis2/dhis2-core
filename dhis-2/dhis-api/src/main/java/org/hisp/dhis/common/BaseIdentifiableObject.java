@@ -145,7 +145,7 @@ public class BaseIdentifiableObject
     /**
      * Users who have marked this object as a favorite.
      */
-    protected Set<User> favorites = new HashSet<>();
+    protected Set<String> favorites = new HashSet<>();
     
     /**
      * The i18n variant of the name. Not persisted.
@@ -488,16 +488,15 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @JsonProperty( "favorites" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JsonProperty
     @JacksonXmlElementWrapper( localName = "favorites", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "favorite", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<User> getFavorites()
+    public Set<String> getFavorites()
     {
         return favorites;
     }
 
-    public void setFavorites( Set<User> favorites )
+    public void setFavorites( Set<String> favorites )
     {
         this.favorites = favorites;
     }
@@ -507,7 +506,31 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFavorite()
     {
-        return favorites.contains( UserContext.getUser() );
+        User user = UserContext.getUser();
+        
+        return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
+    }
+
+    @Override
+    public boolean setAsFavorite( User user )
+    {        
+        if ( this.favorites == null )
+        {
+            this.favorites = new HashSet<>();
+        }
+        
+        return this.favorites.add( user.getUid() );
+    }
+
+    @Override
+    public boolean removeAsFavorite( User user )
+    {        
+        if ( this.favorites == null )
+        {
+            this.favorites = new HashSet<>();
+        }
+        
+        return this.favorites.remove( user.getUid() );
     }
 
     // -------------------------------------------------------------------------

@@ -38,7 +38,6 @@ import java.sql.Types;
 public class DhisH2Dialect
     extends H2Dialect
 {
-
     public DhisH2Dialect()
     {
         registerColumnType( Types.JAVA_OBJECT, "text" );

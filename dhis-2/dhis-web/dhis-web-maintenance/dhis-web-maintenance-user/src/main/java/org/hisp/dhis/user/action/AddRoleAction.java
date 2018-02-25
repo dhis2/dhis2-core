@@ -31,13 +31,8 @@ package org.hisp.dhis.user.action;
 import com.opensymphony.xwork2.Action;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,16 +54,6 @@ public class AddRoleAction
         this.userService = userService;
     }
 
-    private DataSetService dataSetService;
-
-    public void setDataSetService( DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
-    }
-
-    @Autowired
-    private ProgramService programService;
-    
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -87,25 +72,11 @@ public class AddRoleAction
         this.description = description;
     }
 
-    private Collection<String> selectedList = new ArrayList<>();
-
-    public void setSelectedList( Collection<String> selectedList )
-    {
-        this.selectedList = selectedList;
-    }
-
     private Collection<String> selectedListAuthority = new ArrayList<>();
 
     public void setSelectedListAuthority( Collection<String> selectedListAuthority )
     {
         this.selectedListAuthority = selectedListAuthority;
-    }
-
-    private Collection<String> selectedProgramList = new ArrayList<>();
-
-    public void setSelectedProgramList( Collection<String> selectedProgramList )
-    {
-        this.selectedProgramList = selectedProgramList;
     }
 
     // -------------------------------------------------------------------------
@@ -120,18 +91,6 @@ public class AddRoleAction
 
         group.setName( StringUtils.trimToNull( name ) );
         group.setDescription( StringUtils.trimToNull( description ) );
-
-        for ( String id : selectedList )
-        {
-            DataSet dataSet = dataSetService.getDataSet( id );
-            group.getDataSets().add( dataSet );
-        }
-
-        for ( String id : selectedProgramList )
-        {
-            Program program = programService.getProgram( id );
-            group.getPrograms().add( program );
-        }
         
         group.getAuthorities().addAll( selectedListAuthority );
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -95,21 +96,9 @@ public class MonthlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
-        dateTimeUnit = calendar.plusMonths( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = calendar.fromIso( DateTimeUnit.fromJdkDate( period.getStartDate() ) );
-        dateTimeUnit = calendar.minusMonths( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        return calendar.plusMonths( dateTimeUnit, offset );
     }
 
     /**
@@ -142,19 +131,17 @@ public class MonthlyPeriodType
      * given date is inside.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        Calendar cal = getCalendar();
-
         dateTimeUnit.setDay( 1 );
-        dateTimeUnit = cal.minusMonths( dateTimeUnit, 11 );
+        DateTimeUnit iterationDateTimeUnit = calendar.minusMonths( dateTimeUnit, 11 );
 
         List<Period> periods = Lists.newArrayList();
 
         for ( int i = 0; i < 12; i++ )
         {
-            periods.add( createPeriod( dateTimeUnit, cal ) );
-            dateTimeUnit = cal.plusMonths( dateTimeUnit, 1 );
+            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
+            iterationDateTimeUnit = calendar.plusMonths( iterationDateTimeUnit, 1 );
         }
 
         return periods;

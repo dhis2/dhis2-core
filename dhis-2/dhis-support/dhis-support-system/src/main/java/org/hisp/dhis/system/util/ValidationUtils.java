@@ -452,7 +452,7 @@ public class ValidationUtils
             return "value_not_valid_datetime";
         }
 
-        if ( ValueType.FILE_RESOURCE == valueType && !CodeGenerator.isValidUid( value ) )
+        if ( valueType.isFile() && !CodeGenerator.isValidUid( value ) )
         {
             return "value_not_valid_file_resource_uid";
         }

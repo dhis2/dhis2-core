@@ -29,8 +29,6 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 import java.util.List;
 import java.util.Map;
@@ -50,16 +48,6 @@ public interface TrackedEntityInstanceStore
     List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
-
-    /**
-     * Returns null if valid; a descriptive, non-null string if invalid.
-     *
-     * @param instance the tracked entity instance.
-     * @param attributeValue the attribute value.
-     * @param program the program.
-     * @return null if valid; a descriptive, non-null string if invalid.
-     */
-    String validate( TrackedEntityInstance instance, TrackedEntityAttributeValue attributeValue, Program program );
 
     /**
      * Checks for the existence of a TEI by UID.

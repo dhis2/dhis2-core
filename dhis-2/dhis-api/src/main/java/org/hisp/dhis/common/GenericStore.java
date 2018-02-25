@@ -139,7 +139,13 @@ public interface GenericStore<T>
      */
     List<T> getAll();
 
-    List<T> getDataAll();
+    List<T> getDataReadAll();
+
+    List<T> getDataReadAll( User user );
+
+    List<T> getDataWriteAll();
+
+    List<T> getDataWriteAll( User user );
 
     /**
      * Retrieves a paged List of all objects.
@@ -148,7 +154,7 @@ public interface GenericStore<T>
      */
     List<T> getAll( int first, int max );
 
-    List<T> getDataAll( int first, int max );
+    List<T> getDataReadAll( int first, int max );
 
     List<T> getAllByAttributes( List<Attribute> attributes );
 

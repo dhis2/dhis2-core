@@ -452,49 +452,6 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns quoted names of all non-dimensional columns of the aggregate data 
-     * analytics table. It is assumed that {@link AggregationType#LAST} type only
-     * applies to aggregate data analytics. The period dimension is replaced by
-     * the name of the single period in the given query.
-     */
-    private List<String> getLastValueSubqueryQuotedColumns( DataQueryParams params )
-    {
-        Period period = params.getLatestPeriod();
-        
-        List<String> cols = Lists.newArrayList( "yearly", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
-
-        cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
-
-        if ( params.isDataApproval() )
-        {
-            cols.add( statementBuilder.columnQuote( COL_APPROVALLEVEL ) );
-
-            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
-            {                
-                cols.add( statementBuilder.columnQuote( LEVEL_PREFIX + unit.getLevel() ) );
-            }
-        }
-
-        for ( DimensionalObject dim : params.getDimensions() )
-        {            
-            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
-            {
-                String alias = statementBuilder.columnQuote( dim.getDimensionName() );
-                String col = "'" + period.getDimensionItem() + "' as " + alias;
-                
-                cols.remove( alias ); // Remove column if already present, i.e. "yearly"
-                cols.add( col );
-            }
-            else
-            {
-                cols.add( statementBuilder.columnQuote( dim.getDimensionName() ) );
-            }
-        }
-
-        return cols;
-    }
-
-    /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the start date, then end date of the data value period, latest first.
      * The data is partitioned by data element, org unit, category option combo and 
@@ -521,12 +478,55 @@ public class JdbcAnalyticsManager
             "from analytics " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "'" +
-            "and (value is not null or textvalue is not null) " +
-            ") as " + params.getTableName();
+            "and (value is not null or textvalue is not null)) " +
+            "as " + params.getTableName();
         
         return sql;
     }
     
+    /**
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
+     * It is assumed that {@link AggregationType#LAST} type only applies to aggregate 
+     * data analytics. The period dimension is replaced by the name of the single period 
+     * in the given query.
+     */
+    private List<String> getLastValueSubqueryQuotedColumns( DataQueryParams params )
+    {
+        Period period = params.getLatestPeriod();
+        
+        List<String> cols = Lists.newArrayList( "yearly", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
+
+        cols = cols.stream().map( col -> statementBuilder.columnQuote( col ) ).collect( Collectors.toList() );
+
+        if ( params.isDataApproval() )
+        {
+            cols.add( statementBuilder.columnQuote( COL_APPROVALLEVEL ) );
+
+            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
+            {                
+                cols.add( statementBuilder.columnQuote( LEVEL_PREFIX + unit.getLevel() ) );
+            }
+        }
+
+        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
+        {            
+            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
+            {
+                String alias = statementBuilder.columnQuote( dim.getDimensionName() );
+                String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
+                
+                cols.remove( alias ); // Remove column if already present, i.e. "yearly"
+                cols.add( col );
+            }
+            else
+            {
+                cols.add( statementBuilder.columnQuote( dim.getDimensionName() ) );
+            }
+        }
+
+        return cols;
+    }
+
     /**
      * Generates a sub query which provides a filtered view of the data according 
      * to the criteria. If not, returns the full view of the partition.
@@ -550,7 +550,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a HAVING clause restricting the result based on the measure criteria.
+     * Returns a having clause restricting the result based on the measure criteria.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {

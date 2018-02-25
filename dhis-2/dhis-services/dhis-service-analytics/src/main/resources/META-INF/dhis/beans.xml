@@ -47,7 +47,6 @@
   <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
     <property name="tableManager" ref="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" />
   </bean>
-
   
   <!-- Table generator -->
   
@@ -57,6 +56,16 @@
   
   <bean id="org.hisp.dhis.analytics.partition.PartitionManager" class="org.hisp.dhis.analytics.partition.JdbcPartitionManager" />
   
+  <!-- Table hooks -->
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookStore" class="org.hisp.dhis.analytics.table.hook.hibernate.HibernateAnalyticsTableHookStore">
+    <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableHook" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+    
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableHookService" class="org.hisp.dhis.analytics.table.hook.DefaultAnalyticsTableHookService" />
+
   <!-- Routine analytics -->
   
   <bean id="org.hisp.dhis.analytics.AnalyticsManager" class="org.hisp.dhis.analytics.data.JdbcAnalyticsManager" />

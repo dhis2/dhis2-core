@@ -811,7 +811,7 @@
       <dependency>
         <groupId>com.github.mihaicostin</groupId>
         <artifactId>hibernate-l2-memcached</artifactId>
-        <version>5.1.5.1</version>
+        <version>5.2.10.0</version>
       </dependency>
       <!-- javassist in use by hibernate - make sure versions are kept in sync  -->
       <dependency>
@@ -1149,7 +1149,7 @@
     <struts.version>2.3.32</struts.version>
     <hibernate.version>5.2.11.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
-    <jclouds.version>1.9.3</jclouds.version>
+    <jclouds.version>2.0.3</jclouds.version>
     <!-- Keep in sync with Hibernate -->
     <javassist.version>3.20.0-GA</javassist.version>
     <!-- unit test dependencies-->

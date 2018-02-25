@@ -64,6 +64,14 @@ public class DefaultQueryPlanner implements QueryPlanner
     @Override
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
+        if ( Junction.Type.OR == query.getRootJunctionType() && !persistedOnly )
+        {
+            return new QueryPlan(
+                Query.from( query.getSchema() ).setPlannedQuery( true ),
+                Query.from( query ).setPlannedQuery( true )
+            );
+        }
+
         Query npQuery = Query.from( query ).setPlannedQuery( true );
         Query pQuery = getQuery( npQuery, persistedOnly )
             .setUser( query.getUser() ).setPlannedQuery( true );

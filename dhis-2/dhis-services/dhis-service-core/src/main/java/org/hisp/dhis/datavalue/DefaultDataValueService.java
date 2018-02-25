@@ -34,15 +34,13 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -102,13 +100,6 @@ public class DefaultDataValueService
     public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
-    }
-
-    private FileResourceService fileResourceService;
-
-    public void setFileResourceService( FileResourceService fileResourceService )
-    {
-        this.fileResourceService = fileResourceService;
     }
 
     // -------------------------------------------------------------------------
@@ -208,11 +199,6 @@ public class DefaultDataValueService
         DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
         dataValueAuditService.addDataValueAudit( dataValueAudit );
-
-        if ( dataValue.getDataElement().isFileType() )
-        {
-            fileResourceService.deleteFileResource( dataValue.getValue() );
-        }
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
@@ -357,13 +343,12 @@ public class DefaultDataValueService
     }
 
     @Override
-    public MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        SetMap<String, DataElementOperand> dataElementOperandsToGet, Date date, OrganisationUnit source,
+    public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+        Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
         Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<String, DataElementOperand, Date> lastUpdatedMap )
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
     {
-        return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperandsToGet, date, source,
-            periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints, lastUpdatedMap );
+        return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperands, date, orgUnits,
+            periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints );
     }
 }

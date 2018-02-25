@@ -40,7 +40,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.*;
+import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
+import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_MOBILE_VERSION;
 
 /**
  * @author mortenoh
@@ -86,7 +87,7 @@ public class MappedRedirectStrategy
         // ---------------------------------------------------------------------
 
         String authOnly = (String) request.getAttribute( PARAM_AUTH_ONLY );
-        
+
         if ( "true".equals( authOnly ) )
         {
             return;
@@ -116,10 +117,6 @@ public class MappedRedirectStrategy
         if ( (device.isMobile() || device.isTablet()) && mobileVersion.equals( "basic" ) )
         {
             url = getRootPath( request ) + "/light/index.action";
-        }
-        else if ( (device.isMobile() || device.isTablet()) && mobileVersion.equals( "smartphone" ) )
-        {
-            url = getRootPath( request ) + "/mobile";
         }
         else if ( (device.isMobile() || device.isTablet()) && mobileVersion.equals( "desktop" ) )
         {
