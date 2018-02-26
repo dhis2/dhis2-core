@@ -108,9 +108,6 @@ public class DefaultAnalyticsTableGenerator
             {
                 notifier.notify( jobId, "Updating resource tables" );
                 generateResourceTables();
-                
-                notifier.notify( jobId, "Invoking resource table hooks" );
-                invokeSqlHooks();
             }
 
             for ( AnalyticsTableService service : analyticsTableServices )
@@ -197,11 +194,5 @@ public class DefaultAnalyticsTableGenerator
         resourceTableService.createAllSqlViews();
 
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );
-    }
-    
-    private void invokeSqlHooks()
-    {
-        List<AnalyticsTableHook> hooks = tableHookService.getByPhase( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED );
-        tableHookService.executeAnalyticsTableSqlHooks( hooks );
     }
 }
