@@ -260,8 +260,16 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataelementcategoryoption DROP CONSTRAINT fk_dataelement_categoryid" );
         executeSql( "ALTER TABLE dataelementcategoryoption DROP CONSTRAINT dataelementcategoryoption_shortname_key" );
 
-        // minmaxdataelement query index
-        executeSql( "CREATE INDEX index_minmaxdataelement ON minmaxdataelement( sourceid, dataelementid, categoryoptioncomboid )" );
+        // minmaxdataelement - If the old, non-unique index exists, drop it, make sure there are no duplicate values (delete the older ones), then create the unique index.
+        if ( executeSql( "DROP INDEX index_minmaxdataelement" ) == 0 )
+        {
+            executeSql( "delete from minmaxdataelement where minmaxdataelementid in (" +
+                "select a.minmaxdataelementid from minmaxdataelement a " +
+                "join minmaxdataelement b on a.sourceid = b.sourceid and a.dataelementid = b.dataelementid " +
+                "and a.categoryoptioncomboid = b.categoryoptioncomboid and a.minmaxdataelementid < b.minmaxdataelementid)" );
+
+            executeSql( "CREATE UNIQUE INDEX minmaxdataelement_unique_key ON minmaxdataelement USING btree (sourceid, dataelementid, categoryoptioncomboid)" );
+        }
 
         // update periodType field to ValidationRule
         executeSql( "UPDATE validationrule SET periodtypeid = (SELECT periodtypeid FROM periodtype WHERE name='Monthly') WHERE periodtypeid is null" );
