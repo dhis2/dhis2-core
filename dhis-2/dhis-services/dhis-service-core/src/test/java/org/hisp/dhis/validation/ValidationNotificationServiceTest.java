@@ -108,6 +108,7 @@ public class ValidationNotificationServiceTest
      * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
      */
     @Before
+    @SuppressWarnings("unchecked")
     public void initTest()
     {
         sentMessages = new ArrayList<>();
@@ -317,8 +318,7 @@ public class ValidationNotificationServiceTest
         User uB = createUser( 'B' ),
             uC = createUser( 'C' ),
             uD = createUser( 'D' ),
-            uE = createUser( 'E' ),
-            uF = createUser( 'F' );
+            uE = createUser( 'E' );
 
         UserGroup groupA = createUserGroup( 'A', Sets.newHashSet() );
         groupA.addUser( uD );
@@ -486,7 +486,6 @@ public class ValidationNotificationServiceTest
         /**
          * Danger danger! Will break if MessageService API changes.
          */
-        @SuppressWarnings( "unchecked" )
         MockMessage( Object[] args )
         {
             MessageConversationParams params = (MessageConversationParams) args[0];
