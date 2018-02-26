@@ -61,6 +61,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -123,10 +124,10 @@ public class ValidationNotificationServiceTest
 
         when(
             messageService
-                .createValidationResultMessage( any( Collection.class ), any( String.class ), any( String.class ) )
+                .createValidationResultMessage( anyListOf( User.class ), anyString(), anyString() )
         ).then( invocation ->
             {
-                builder = new MessageConversationParams.Builder( invocation.getArgumentAt( 0, Collection.class ), null,
+                builder = new MessageConversationParams.Builder( (Set<User>) invocation.getArguments()[0] , null,
                     invocation.getArgumentAt( 1, String.class ), invocation.getArgumentAt( 2, String.class ),
                     MessageType.VALIDATION_RESULT );
                 return builder;
@@ -313,13 +314,11 @@ public class ValidationNotificationServiceTest
         configureHierarchy( root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight );
 
         // Users
-        User uA = createUser( 'A' ),
-            uB = createUser( 'B' ),
+        User uB = createUser( 'B' ),
             uC = createUser( 'C' ),
             uD = createUser( 'D' ),
             uE = createUser( 'E' ),
-            uF = createUser( 'F' ),
-            uG = createUser( 'G' );
+            uF = createUser( 'F' );
 
         UserGroup groupA = createUserGroup( 'A', Sets.newHashSet() );
         groupA.addUser( uD );
@@ -494,7 +493,6 @@ public class ValidationNotificationServiceTest
             this.subject = params.getSubject();
             this.text = params.getText();
             this.metaData = params.getMetadata();
-            ;
             this.users = params.getRecipients();
             this.sender = params.getSender();
             this.includeFeedbackRecipients = false;
