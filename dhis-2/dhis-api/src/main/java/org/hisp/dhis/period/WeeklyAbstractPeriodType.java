@@ -29,7 +29,6 @@ package org.hisp.dhis.period;
  */
 
 import com.google.common.collect.Lists;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
@@ -107,7 +106,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
 
         return toIsoPeriod( start, end, calendar );
     }
-    
+
     @Override
     public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
@@ -123,6 +122,9 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     {
         Calendar calendar = getCalendar();
         List<Period> periods = new ArrayList<>();
+
+        start.setMonth( 1 );
+        start.setDay( 4 );
         start = adjustToStartOfWeek( start, calendar );
 
         for ( int i = 0; i < calendar.weeksInYear( start.getYear() ); i++ )
@@ -165,7 +167,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
         if ( calendar.isIso8601() )
         {
             LocalDate date = LocalDate.of( dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay() );
-            WeekFields weekFields = WeekFields.of(PeriodType.MAP_WEEK_TYPE.get( getName() ), 4 );
+            WeekFields weekFields = WeekFields.of( PeriodType.MAP_WEEK_TYPE.get( getName() ), 4 );
 
             year = date.get( weekFields.weekBasedYear() );
             week = date.get( weekFields.weekOfWeekBasedYear() );
