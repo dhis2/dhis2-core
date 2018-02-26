@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.table.hook;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -32,11 +32,6 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTableHookStore;
-import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.springframework.beans.factory.annotation.Autowired;
 
