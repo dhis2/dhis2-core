@@ -32,7 +32,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.springframework.beans.factory.annotation.Required;
 
 import javax.transaction.Transactional;
 import java.util.List;
