@@ -214,58 +214,59 @@ public class DefaultInterpretationService implements InterpretationService
     @Override
     public void sendNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users )
     {
-        if ( interpretation != null && users.size() > 0 )
+        if ( interpretation == null || users.isEmpty() )
         {
-            String link = systemSettingManager.getInstanceBaseUrl();
-
-            switch ( interpretation.getType() )
-            {
-            case MAP:
-                link += "/dhis-web-mapping/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
-                    + interpretation.getUid();
-                break;
-            case REPORT_TABLE:
-                link += "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid()
-                    + "&interpretationid=" + interpretation.getUid();
-                break;
-            case CHART:
-                link += "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid()
-                    + "&interpretationid=" + interpretation.getUid();
-                break;
-            case EVENT_REPORT:
-                link += "/dhis-web-event-reports/index.html?id=" + interpretation.getChart().getUid()
-                    + "&interpretationid=" + interpretation.getUid();
-                break;
-            case EVENT_CHART:
-                link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getChart().getUid()
-                    + "&interpretationid=" + interpretation.getUid();
-                break;
-            default:
-                break;
-            }
-
-            StringBuilder messageContent;
-            I18n i18n = i18nManager.getI18n();
-
-            if ( comment != null )
-            {
-                messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( ":" )
-                    .append( "\n\n" ).append( comment.getText() );
-            }
-            else
-            {
-                messageContent = new StringBuilder( i18n.getString( "interpretation_mention_notification" ) )
-                    .append( ":" ).append( "\n\n" ).append( interpretation.getText() );
-
-            }
-            messageContent.append( "\n\n" ).append( i18n.getString( "go_to" ) ).append( " " ).append( link );
-
-            User user = currentUserService.getCurrentUser();
-            StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
-                .append( i18n.getString( "mentioned_you_in_dhis2" ) );
-            messageService.sendMessage( messageService
-                .createPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" ).build() );
+            return;
         }
+        String link = systemSettingManager.getInstanceBaseUrl();
+
+        switch ( interpretation.getType() )
+        {
+        case MAP:
+            link += "/dhis-web-mapping/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case REPORT_TABLE:
+            link += "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case CHART:
+            link += "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case EVENT_REPORT:
+            link += "/dhis-web-event-reports/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
+                + interpretation.getUid();
+            break;
+        case EVENT_CHART:
+            link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getChart().getUid()
+                + "&interpretationid=" + interpretation.getUid();
+            break;
+        default:
+            break;
+        }
+
+        StringBuilder messageContent;
+        I18n i18n = i18nManager.getI18n();
+
+        if ( comment != null )
+        {
+            messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( ":" )
+                .append( "\n\n" ).append( comment.getText() );
+        }
+        else
+        {
+            messageContent = new StringBuilder( i18n.getString( "interpretation_mention_notification" ) ).append( ":" )
+                .append( "\n\n" ).append( interpretation.getText() );
+
+        }
+        messageContent.append( "\n\n" ).append( i18n.getString( "go_to" ) ).append( " " ).append( link );
+
+        User user = currentUserService.getCurrentUser();
+        StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
+            .append( i18n.getString( "mentioned_you_in_dhis2" ) );
+        messageService.sendMessage( messageService
+            .createPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" ).build() );
     }
 
     @Override
@@ -279,7 +280,7 @@ public class DefaultInterpretationService implements InterpretationService
             }
         }
     }
-    
+
     @Override
     public List<String> removeCustomFilters( List<String> filters )
     {
