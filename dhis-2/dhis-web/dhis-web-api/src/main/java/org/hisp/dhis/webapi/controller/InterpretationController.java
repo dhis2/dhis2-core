@@ -102,7 +102,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     {
         // If custom filter (mentions:in:[username]) in filters -> Remove from
         // filters
-        List<String> mentionsFromCustomFilters = interpretationService.removeCustomFilters( filters );
+        List<String> mentionsFromCustomFilters = MentionUtils.removeCustomFilters( filters );
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();

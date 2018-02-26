@@ -282,23 +282,6 @@ public class DefaultInterpretationService implements InterpretationService
     }
 
     @Override
-    public List<String> removeCustomFilters( List<String> filters )
-    {
-        List<String> mentions = new ArrayList<String>();
-        ListIterator<String> filterIterator = filters.listIterator();
-        while ( filterIterator.hasNext() )
-        {
-            String[] filterSplit = filterIterator.next().split( ":" );
-            if ( filterSplit[1].equals( "in" ) && filterSplit[0].equals( "mentions" ) )
-            {
-                mentions.add( filterSplit[2] );
-                filterIterator.remove();
-            }
-        }
-        return mentions;
-    }
-
-    @Override
     public Collection<Disjunction> getDisjunctionsFromCustomMentions( List<String> mentions, Schema schema )
     {
         Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
