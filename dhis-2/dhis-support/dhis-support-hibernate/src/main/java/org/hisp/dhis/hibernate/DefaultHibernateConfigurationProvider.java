@@ -70,7 +70,7 @@ public class DefaultHibernateConfigurationProvider
     private static final String PROP_EHCACHE_PEER_PROVIDER_RIM_URLS = "ehcache.peer.provider.rmi.urls";
     private static final String PROP_EHCACHE_PEER_LISTENER_HOSTNAME = "ehcache.peer.listener.hostname";
     private static final String PROP_EHCACHE_PEER_LISTENER_PORT = "ehcache.peer.listener.port";
-    private static final String PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT = "ehcache.peer.listener.remoteObject.port";
+    private static final String PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT = "ehcache.peer.listener.remote.object.port";
     private static final String FORMAT_CLUSTER_INSTANCE_HOSTNAME = "cluster.instance%d.hostname";
     private static final String FORMAT_CLUSTER_INSTANCE_CACHE_PORT = "cluster.instance%d.cache.port";
     private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
