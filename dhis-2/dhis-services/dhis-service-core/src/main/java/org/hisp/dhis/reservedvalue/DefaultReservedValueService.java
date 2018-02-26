@@ -137,7 +137,7 @@ public class DefaultReservedValueService
                     resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
                         ImmutableMap.<String, String>builder()
                             .putAll( values )
-                            .put( generatedSegment.getRawSegment(), generatedValues.get( i ) )
+                            .put( generatedSegment.getMethod().name(), generatedValues.get( i ) )
                             .build() ) );
                 }
 
