@@ -28,11 +28,13 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -86,6 +88,8 @@ public class Interpretation
     private int likes;
 
     private Set<User> likedBy = new HashSet<>();
+    
+    private List<Mention> mentions = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -482,5 +486,24 @@ public class Interpretation
     public void setLikedBy( Set<User> likedBy )
     {
         this.likedBy = likedBy;
+    }
+    
+    @JsonProperty( "mentions" )
+    @JacksonXmlElementWrapper( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Mention> getMentions()
+    {
+        return mentions;
+    }
+
+    public void setMentions( List<Mention> mentions )
+    {
+        this.mentions = mentions;
+    }
+    
+    @JsonIgnore
+    public void setMentions( Set<User> users )
+    {
+        this.mentions = MentionUtils.convertUsersToMentions( users );
     }
 }

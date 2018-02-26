@@ -35,12 +35,12 @@ import java.sql.Types;
 /**
  * @author Lars Helge Overland
  */
-public class DhisH2Dialect
-    extends H2Dialect
+public class DhisH2Dialect extends H2Dialect
 {
     public DhisH2Dialect()
     {
         registerColumnType( Types.JAVA_OBJECT, "text" );
+        registerColumnType( Types.JAVA_OBJECT - 1, "jsonb" );
     }
 
     @Override
@@ -53,7 +53,8 @@ public class DhisH2Dialect
     @Override
     public boolean dropConstraints()
     {
-        // No need to drop constraints before dropping tables, leads to error messages
+        // No need to drop constraints before dropping tables, leads to error
+        // messages
         return false;
     }
 }
