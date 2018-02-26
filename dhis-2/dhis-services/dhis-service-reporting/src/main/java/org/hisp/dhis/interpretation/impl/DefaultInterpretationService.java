@@ -34,6 +34,7 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.interpretation.InterpretationStore;
+import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
@@ -47,7 +48,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -61,8 +61,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
@@ -152,7 +150,7 @@ public class DefaultInterpretationService implements InterpretationService
             }
 
             interpretation.updateSharing();
-            users = this.getMentionedUsers( interpretation.getText() );
+            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
             interpretation.setMentions( users );
             this.updateSharingForMentions( interpretation, users );
         }
@@ -181,7 +179,7 @@ public class DefaultInterpretationService implements InterpretationService
     {
         interpretation.updateSharing();
 
-        Set<User> users = this.getMentionedUsers( interpretation.getText() );
+        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
         interpretation.setMentions( users );
         this.updateSharingForMentions( interpretation, users );
         interpretationStore.update( interpretation );
@@ -211,23 +209,6 @@ public class DefaultInterpretationService implements InterpretationService
     public List<Interpretation> getInterpretations( int first, int max )
     {
         return interpretationStore.getAllOrderedLastUpdated( first, max );
-    }
-
-    @Override
-    public Set<User> getMentionedUsers( String text )
-    {
-        Set<User> users = new HashSet<>();
-        Matcher matcher = Pattern.compile( "(?:\\s|^)@([\\w+._-]+)" ).matcher( text );
-        while ( matcher.find() )
-        {
-            String username = matcher.group( 1 );
-            UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
-            if ( userCredentials != null )
-            {
-                users.add( userCredentials.getUserInfo() );
-            }
-        }
-        return users;
     }
 
     @Override
@@ -344,7 +325,7 @@ public class DefaultInterpretationService implements InterpretationService
         comment.setLastUpdated( new Date() );
         comment.setUid( CodeGenerator.generateUid() );
 
-        Set<User> users = this.getMentionedUsers( text );
+        Set<User> users = MentionUtils.getMentionedUsers( text, userService );
         comment.setMentions( users );
         this.updateSharingForMentions( interpretation, users );
 

@@ -66,8 +66,6 @@ public interface InterpretationService
     
     void updateSharingForMentions( Interpretation interpretation, Set<User> users );
     
-    Set<User> getMentionedUsers( String text );
-    
     void updateCurrentUserLastChecked();
 
     long getNewInterpretationCount();

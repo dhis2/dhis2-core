@@ -54,6 +54,7 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,9 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+    
+    @Autowired
+    private UserService userService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -401,7 +405,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
                 }
 
                 comment.setText( content );
-                Set<User> users = interpretationService.getMentionedUsers( content );
+                Set<User> users = MentionUtils.getMentionedUsers( content, userService);
                 comment.setMentions( users );
                 interpretationService.updateSharingForMentions( interpretation, users );
                 interpretationService.updateInterpretation( interpretation );

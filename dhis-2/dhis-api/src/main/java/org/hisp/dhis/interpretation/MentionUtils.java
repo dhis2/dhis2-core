@@ -30,10 +30,15 @@ package org.hisp.dhis.interpretation;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 
 public final class MentionUtils
 {
@@ -52,6 +57,22 @@ public final class MentionUtils
             mentions.add( mention );
         }
         return mentions;
+    }
+
+    public static Set<User> getMentionedUsers( String text, UserService userService )
+    {
+        Set<User> users = new HashSet<>();
+        Matcher matcher = Pattern.compile( "(?:\\s|^)@([\\w+._-]+)" ).matcher( text );
+        while ( matcher.find() )
+        {
+            String username = matcher.group( 1 );
+            UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
+            if ( userCredentials != null )
+            {
+                users.add( userCredentials.getUserInfo() );
+            }
+        }
+        return users;
     }
 
 }
