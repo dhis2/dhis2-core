@@ -70,6 +70,7 @@ public class DefaultHibernateConfigurationProvider
     private static final String PROP_EHCACHE_PEER_PROVIDER_RIM_URLS = "ehcache.peer.provider.rmi.urls";
     private static final String PROP_EHCACHE_PEER_LISTENER_HOSTNAME = "ehcache.peer.listener.hostname";
     private static final String PROP_EHCACHE_PEER_LISTENER_PORT = "ehcache.peer.listener.port";
+    private static final String PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT = "ehcache.peer.listener.remote.object.port";
     private static final String FORMAT_CLUSTER_INSTANCE_HOSTNAME = "cluster.instance%d.hostname";
     private static final String FORMAT_CLUSTER_INSTANCE_CACHE_PORT = "cluster.instance%d.cache.port";
     private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
@@ -340,6 +341,7 @@ public class DefaultHibernateConfigurationProvider
     {
         String instanceHost = configurationProvider.getProperty( ConfigurationKey.CLUSTER_INSTANCE_HOSTNAME );
         String instancePort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_INSTANCE_CACHE_PORT );
+        String remoteObjectPort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_INSTANCE_CACHE_REMOTE_OBJECT_PORT );
         
         Properties dhisProps = configurationProvider.getProperties();
         
@@ -375,8 +377,9 @@ public class DefaultHibernateConfigurationProvider
         System.setProperty( PROP_EHCACHE_PEER_LISTENER_HOSTNAME, instanceHost );
         System.setProperty( PROP_EHCACHE_PEER_LISTENER_PORT, instancePort );
         System.setProperty( PROP_EHCACHE_PEER_PROVIDER_RIM_URLS, rmiUrls );
+        System.setProperty( PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT, remoteObjectPort );
 
-        log.info( "Ehcache config properties: " + instanceHost + ", " + instancePort + ", " + rmiUrls );
+        log.info( "Ehcache config properties: " + instanceHost + ", " + instancePort + ", " + rmiUrls + ", " + remoteObjectPort  );
     }
     
     /**
