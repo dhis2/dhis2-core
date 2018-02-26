@@ -128,6 +128,10 @@ public class TrackedEntityAttributeController
             throw new Exception( "No attribute found with id " + id );
         }
 
+        if ( attribute.getTextPattern() == null )
+        {
+            throw new Exception( "Attribute does not contain pattern." );
+        }
 
         return textPatternService.getRequiredValues( attribute.getTextPattern() );
 
