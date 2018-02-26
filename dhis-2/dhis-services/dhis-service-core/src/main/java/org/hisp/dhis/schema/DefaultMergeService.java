@@ -52,7 +52,6 @@ public class DefaultMergeService implements MergeService
     }
 
     @Override
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
     public <T> T merge( MergeParams<T> mergeParams )
     {
         T source = mergeParams.getSource();
