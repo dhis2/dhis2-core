@@ -42,9 +42,7 @@ import org.hisp.dhis.user.UserService;
 /**
  * @author Adrian Quintana
  */
-public class MockUserService
-    implements
-    UserService
+public class MockUserService implements UserService
 {
 
     private List<User> users;
