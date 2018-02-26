@@ -67,8 +67,8 @@ public class TestDefaultTextPatternService
         pattern = new TextPattern( segments );
 
         values = ImmutableMap.<String, String>builder()
-            .put( "ORG_UNIT_CODE(...)", "OSLO" )
-            .put( "SEQUENTIAL(#)", "1" )
+            .put( "ORG_UNIT_CODE", "OSLO" )
+            .put( "SEQUENTIAL", "1" )
             .build();
     }
 

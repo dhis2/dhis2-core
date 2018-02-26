@@ -255,7 +255,7 @@ public class DefaultReservedValueServiceTest
         throws TextPatternService.TextPatternGenerationException, ReservedValueService.ReserveValueException
     {
         Map<String, String> map = new HashMap<>();
-        map.put( "ORG_UNIT_CODE(..)", "OSLO" );
+        map.put( "ORG_UNIT_CODE", "OSLO" );
 
         List<ReservedValue> result = reservedValueService.reserve( simpleStringPattern, 1, map, future );
 
