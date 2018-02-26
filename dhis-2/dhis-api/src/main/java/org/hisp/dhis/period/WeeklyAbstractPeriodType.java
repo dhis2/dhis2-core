@@ -31,13 +31,10 @@ package org.hisp.dhis.period;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateInterval;
-import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -131,18 +128,21 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
      * startDate exists.
      */
     @Override
-    public List<Period> generatePeriods( DateTimeUnit start )
+    public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
     {
-        Calendar calendar = getCalendar();
-        List<Period> periods = new ArrayList<>();
-        start = adjustToStartOfWeek( start, calendar );
+        Calendar cal = getCalendar();
 
-        for ( int i = 0; i < calendar.weeksInYear( start.getYear() ); i++ )
+        dateTimeUnit.setMonth( 1 );
+        dateTimeUnit.setDay( 1 );
+
+        List<Period> periods = Lists.newArrayList();
+
+        int year = dateTimeUnit.getYear();
+
+        while ( dateTimeUnit.getYear() == year )
         {
-            DateInterval interval = calendar.toInterval( start, DateIntervalType.ISO8601_WEEK );
-            periods.add( new Period( this, interval.getFrom().toJdkDate(), interval.getTo().toJdkDate() ) );
-
-            start = calendar.plusWeeks( start, 1 );
+            periods.add( createPeriod( dateTimeUnit, cal ) );
+            dateTimeUnit = cal.plusWeeks( dateTimeUnit, 1 );
         }
 
         return periods;
