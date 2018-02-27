@@ -102,12 +102,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 {
     private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
 
-    private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen
-                                                         // from dxf2
-                                                         // DefaultDataValueSetService
+    private static final int CACHE_MISS_THRESHOLD = 500;
 
-    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME,
-        IdScheme.CODE );
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
 
     // -------------------------------------------------------------------------
     // Dependencies
