@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
@@ -135,7 +136,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
     @Autowired
     protected FileResourceService fileResourceService;
-    
+
     @Autowired
     private I18nManager i18nManager;
 
@@ -465,41 +466,45 @@ public abstract class AbstractTrackedEntityInstanceService
         importConflicts.addAll( checkAttributes( dtoEntityInstance, importOptions ) );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
-
-        if ( daoEntityInstance == null )
-        {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance", "trackedEntityInstance " + dtoEntityInstance.getTrackedEntityInstance()
-                + " does not point to valid trackedEntityInstance" ) );
-        }
-
         List<String> errors = trackerAccessManager.canWrite( user, daoEntityInstance );
-
-        if ( !errors.isEmpty() )
-        {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
-        }
-
         OrganisationUnit organisationUnit = getOrganisationUnit( new IdSchemes(), dtoEntityInstance.getOrgUnit() );
 
-        if ( organisationUnit == null )
+        if ( daoEntityInstance == null || !errors.isEmpty() || organisationUnit == null || !importConflicts.isEmpty() )
         {
-            importConflicts.add( new ImportConflict( "OrganisationUnit", "orgUnit " + dtoEntityInstance.getOrgUnit()
-                + " does not point to valid organisation unit" ) );
-        }
-        else
-        {
-            daoEntityInstance.setOrganisationUnit( organisationUnit );
-        }
-
-        if ( !importConflicts.isEmpty() )
-        {
-            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
+            String errorMsg = "";
 
+            if ( daoEntityInstance == null )
+            {
+                errorMsg = "trackedEntityInstance " + dtoEntityInstance.getTrackedEntityInstance()
+                    + " does not point to valid trackedEntityInstance";
+                importConflicts.add( new ImportConflict( "TrackedEntityInstance", errorMsg ) );
+                importSummary.setWebMessage( WebMessageUtils.notFound( errorMsg ) );
+            }
+            else if ( !errors.isEmpty() )
+            {
+                importSummary.setDescription( errors.toString() );
+                importSummary.setWebMessage( WebMessageUtils.unathorized( errors.toString() ) );
+            }
+            else if ( organisationUnit == null )
+            {
+                errorMsg = "orgUnit " + dtoEntityInstance.getOrgUnit()
+                    + " does not point to valid organisation unit";
+                importConflicts.add( new ImportConflict( "OrganisationUnit", errorMsg ) );
+                importSummary.setWebMessage( WebMessageUtils.unathorized( errorMsg ) );
+            }
+            else
+            {
+                importSummary.setWebMessage( WebMessageUtils.badRequest( importConflicts.toString() ) );
+            }
+
+
+            importSummary.setConflicts( importConflicts );
             return importSummary;
         }
 
+        daoEntityInstance.setOrganisationUnit( organisationUnit );
         daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
         daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
         daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
@@ -519,6 +524,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
+        importSummary.setWebMessage( WebMessageUtils.importSummary( importSummary ) );
 
         return importSummary;
     }
@@ -531,16 +537,16 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
-        
+
         User user = currentUserService.getCurrentUser();
 
         if ( entityInstance != null )
         {
-            if( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
-            {                
+            if ( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            {
                 return new ImportSummary( ImportStatus.ERROR, "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
             }
-            
+
             teiService.deleteTrackedEntityInstance( entityInstance );
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
         }

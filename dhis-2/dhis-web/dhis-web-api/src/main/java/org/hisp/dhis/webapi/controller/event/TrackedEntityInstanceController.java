@@ -34,7 +34,13 @@ import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -255,13 +261,13 @@ public class TrackedEntityInstanceController
 
     @RequestMapping( value = "/{teiId}/{attributeId}/image", method = RequestMethod.GET )
     public void getAttributeImage(
-            @PathVariable( "teiId" ) String teiId,
-            @PathVariable( "attributeId" ) String attributeId,
-            @RequestParam( required = false ) Integer width,
-            @RequestParam( required = false ) Integer height,
-            HttpServletResponse response,
-            HttpServletRequest request )
-            throws WebMessageException, NotFoundException
+        @PathVariable( "teiId" ) String teiId,
+        @PathVariable( "attributeId" ) String attributeId,
+        @RequestParam( required = false ) Integer width,
+        @RequestParam( required = false ) Integer height,
+        HttpServletResponse response,
+        HttpServletRequest request )
+        throws WebMessageException, NotFoundException
     {
         User user = currentUserService.getCurrentUser();
 
@@ -269,9 +275,9 @@ public class TrackedEntityInstanceController
 
         List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntityInstance );
 
-        List <TrackedEntityAttributeValue> attribute = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
-                .filter( val -> val.getAttribute().getUid().equals( attributeId ) )
-                .collect( Collectors.toList() );
+        List<TrackedEntityAttributeValue> attribute = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
+            .filter( val -> val.getAttribute().getUid().equals( attributeId ) )
+            .collect( Collectors.toList() );
 
         if ( !trackerAccessErrors.isEmpty() )
         {
@@ -314,7 +320,7 @@ public class TrackedEntityInstanceController
             // -----------------------------------------------------------------
 
             throw new WebMessageException( WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
-                    "The content requested is in transit to the file store and will be available at a later time." ) );
+                "The content requested is in transit to the file store and will be available at a later time." ) );
         }
 
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );
@@ -352,8 +358,8 @@ public class TrackedEntityInstanceController
         catch ( IOException e )
         {
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                    "There was an exception when trying to fetch the file from the storage backend. " +
-                            "Depending on the provider the root cause could be network or file system related." ) );
+                "There was an exception when trying to fetch the file from the storage backend. " +
+                    "Depending on the provider the root cause could be network or file system related." ) );
         }
         finally
         {
@@ -695,7 +701,7 @@ public class TrackedEntityInstanceController
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        webMessageService.send( importSummary.getWebMessage(), response, request );
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -706,7 +712,7 @@ public class TrackedEntityInstanceController
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        webMessageService.send( importSummary.getWebMessage(), response, request );
     }
 
     // -------------------------------------------------------------------------
