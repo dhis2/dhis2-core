@@ -173,4 +173,16 @@ public class ProgramTrackedEntityAttributeDimensionItem
     {
         this.attribute = attribute;
     }
+    
+    @Override
+    public String getName()
+    {
+        return program.getName() + " " + attribute.getName();
+    }
+    
+    @Override
+    public String getDisplayName()
+    {
+        return program.getDisplayName() + " " + attribute.getDisplayName();
+    }
 }
