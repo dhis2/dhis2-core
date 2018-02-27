@@ -528,7 +528,7 @@ public class DataValueSMSListener
             registration.setDate( new Date() );
             registration.setStoredBy( storedBy );
             registration.setPeriodName( registration.getPeriod().toString() );
-            registrationService.saveCompleteDataSetRegistration( registration, false );
+            registrationService.saveCompleteDataSetRegistration( registration );
         }
     }
 
