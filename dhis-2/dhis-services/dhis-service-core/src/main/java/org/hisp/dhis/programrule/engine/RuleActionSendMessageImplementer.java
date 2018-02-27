@@ -83,7 +83,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
 
         if ( !notificationLoggingService.isValidForSending( key ) )
         {
-            log.info( String.format( "Skipped notification for %s", template.getUid() ) );
+            log.info( String.format( "Skipped notification for template id: %s", template.getUid() ) );
             return;
         }
 
@@ -110,7 +110,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
 
         if ( !notificationLoggingService.isValidForSending( key ) )
         {
-            log.info( String.format( "Skipped notification for %s", template.getUid() ) );
+            log.info( String.format( "Skipped notification for template id: %s", template.getUid() ) );
             return;
         }
 
