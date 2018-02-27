@@ -263,21 +263,6 @@ public class Interpretation
         return period != null ? period.getPeriodType() : null;
     }
 
-    public void updateSharing()
-    {
-        IdentifiableObject object = getObject();
-
-        if ( object == null )
-        {
-            setPublicAccess( AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ ).build() );
-            return;
-        }
-
-        setPublicAccess( object.getPublicAccess() );
-        object.getUserAccesses().forEach( ua -> userAccesses.add( new UserAccess( ua.getUser(), ua.getAccess() ) ) );
-        object.getUserGroupAccesses().forEach( uga -> userGroupAccesses.add( new UserGroupAccess( uga.getUserGroup(), uga.getAccess() ) ) );
-    }
-
     /**
      * Attempts to add the given user to the set of users liking this
      * interpretation. If user not already present, increments the like count

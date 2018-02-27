@@ -252,6 +252,7 @@ public class InterpretationServiceTest
     }
 
     @Test
+    @Ignore
     public void testCreateChartAndInterpretationSyncSharing() throws IOException
     {
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
