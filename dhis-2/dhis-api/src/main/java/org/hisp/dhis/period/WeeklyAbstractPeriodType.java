@@ -135,6 +135,10 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     {
         Calendar calendar = getCalendar();
         List<Period> periods = new ArrayList<>();
+        start = new DateTimeUnit( start ); // create clone so we don't modify the original start DT
+
+        start.setMonth( 1 );
+        start.setDay( 4 );
         start = adjustToStartOfWeek( start, calendar );
 
         for ( int i = 0; i < calendar.weeksInYear( start.getYear() ); i++ )
