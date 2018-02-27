@@ -64,6 +64,7 @@ public enum ConfigurationKey
     CLUSTER_HOSTNAME( "cluster.hostname", "", false ),
     CLUSTER_MEMBERS( "cluster.members", "", false ),
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
+    CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
     CACHE_PROVIDER( "cache.provider", "ehcache", false ),
     CACHE_SERVERS( "cache.servers", "localhost:11211", false ),
     CACHE_TIME( "cache.time", "600", false ),

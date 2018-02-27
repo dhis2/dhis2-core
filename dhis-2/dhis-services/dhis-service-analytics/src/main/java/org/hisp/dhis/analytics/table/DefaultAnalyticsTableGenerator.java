@@ -31,9 +31,6 @@ package org.hisp.dhis.analytics.table;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -73,9 +70,6 @@ public class DefaultAnalyticsTableGenerator
     @Autowired
     private MessageService messageService;
     
-    @Autowired
-    private AnalyticsTableHookService tableHookService;
-
     @Autowired
     private SystemSettingManager systemSettingManager;
 
