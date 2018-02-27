@@ -27,6 +27,6 @@
     properties="peerDiscovery=manual,rmiUrls=${ehcache.peer.provider.rmi.urls}" />
   
   <cacheManagerPeerListenerFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"
-    properties="hostName=${ehcache.peer.listener.hostname},port=${ehcache.peer.listener.port},socketTimeoutMillis=2000" />
+    properties="hostName=${ehcache.peer.listener.hostname},port=${ehcache.peer.listener.port},remoteObjectPort=${ehcache.peer.listener.remote.object.port},socketTimeoutMillis=2000" />
     
 </ehcache>
