@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule.engine;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -77,7 +78,8 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         }
         catch( Exception ex )
         {
-            ex.printStackTrace();
+            log.error( DebugUtils.getStackTrace( ex ) );
+            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
         }
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
@@ -113,7 +115,8 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         }
         catch( Exception ex )
         {
-            ex.printStackTrace();
+            log.error( DebugUtils.getStackTrace( ex ) );
+            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
         }
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );

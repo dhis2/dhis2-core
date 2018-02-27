@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule.engine;
 import org.apache.commons.jexl2.JexlException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.rules.RuleExpressionEvaluator;
 
@@ -64,9 +65,8 @@ public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
         {
             result = "false";
 
-            log.error( je.getMessage() );
-
-            je.printStackTrace();
+            log.error( DebugUtils.getStackTrace( je ) );
+            log.error( DebugUtils.getStackTrace( je.getCause() ) );
         }
 
        return result;
