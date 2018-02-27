@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.calendar.DateTimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.junit.Before;
@@ -49,27 +50,6 @@ public class WeeklyPeriodTypeTest
     public void init()
     {
         periodType = new WeeklyPeriodType();
-    }
-
-    @Test
-    public void testGeneratePeriods()
-    {
-        DateTime testDate = new DateTime();
-
-        WeeklyPeriodType wpt = new WeeklyPeriodType();
-
-        for ( int year = 1990; year < 2020; year++ )
-        {
-            for ( int day = -7; day < 7; day++ )
-            {
-                testDate = new DateTime( year, 1, 1, 0, 0 ); // 1st day of year
-                testDate = testDate.minusDays( day );
-
-                Period p1 = wpt.createPeriod( testDate.toDate() );
-                List<Period> generatedPeriods = wpt.generatePeriods( p1 );
-                assertTrue( "Period " + p1 + " in generated set", generatedPeriods.contains( p1 ) );
-            }
-        }
     }
 
     @Test
@@ -143,27 +123,6 @@ public class WeeklyPeriodTypeTest
 
         periods = periodType.generatePeriods( new GregorianCalendar( 2011, 0, 3 ).getTime() );
         assertEquals( 52, periods.size() );
-    }
-
-    @Test
-    public void testGeneratePeriodsWithPeriod()
-    {
-        Period period = new Period( periodType, new GregorianCalendar( 2008, 11, 28 ).getTime(),
-            new GregorianCalendar( 2009, 0, 3 ).getTime() );
-
-        List<Period> periods = periodType.generatePeriods( period );
-        assertEquals( 53, periods.size() );
-
-        period = new Period( periodType, new GregorianCalendar( 2012, 11, 31 ).getTime(),
-            new GregorianCalendar( 2013, 0, 6 ).getTime() );
-        periods = periodType.generatePeriods( period );
-        assertEquals( 52, periods.size() );
-
-        assertEquals( new Period( periodType, new GregorianCalendar( 2012, 11, 31 ).getTime(),
-            new GregorianCalendar( 2013, 0, 6 ).getTime() ), periods.get( 0 ) );
-
-        assertEquals( new Period( periodType, new GregorianCalendar( 2013, 11, 23 ).getTime(),
-            new GregorianCalendar( 2013, 11, 29 ).getTime() ), periods.get( periods.size() - 1 ) );
     }
 
     @Test
@@ -321,5 +280,71 @@ public class WeeklyPeriodTypeTest
         period = periodType.createPeriod( "2017SunW18" );
         assertNotNull( period );
         assertEquals( "2017SunW18", periodType.getIsoDate( period ) );
+    }
+
+    @Test
+    public void testGenerateWeeklyPeriodWithinAYear()
+    {
+        periodType = new WeeklyPeriodType();
+
+        List<Period> periods = periodType.generatePeriods( new DateTimeUnit( 2019, 4, 1 ) );
+        assertEquals( 52, periods.size() );
+        assertFalse( periodsInYear( periods, 2018 ) );
+        assertFalse( periodsInYear( periods, 2019 ) );
+        assertFalse( periodsInYear( periods, 2020 ) );
+        assertEquals( 2018, DateTimeUnit.fromJdkDate( periods.get( 0 ).getStartDate() ).getYear() );
+        assertEquals( 2019, DateTimeUnit.fromJdkDate( periods.get( 1 ).getStartDate() ).getYear() );
+
+        periods = periodType.generatePeriods( new DateTimeUnit( 2018, 1, 1 ) );
+        assertEquals( 52, periods.size() );
+        assertFalse( periodsInYear( periods, 2017 ) );
+        assertTrue( periodsInYear( periods, 2018 ) );
+        assertFalse( periodsInYear( periods, 2019 ) );
+
+        periods = periodType.generatePeriods( new DateTimeUnit( 2015, 4, 1 ) );
+        assertEquals( 53, periods.size() );
+        assertFalse( periodsInYear( periods, 2014 ) );
+        assertFalse( periodsInYear( periods, 2015 ) );
+        assertFalse( periodsInYear( periods, 2016 ) );
+        assertEquals( 2014, DateTimeUnit.fromJdkDate( periods.get( 0 ).getStartDate() ).getYear() );
+        assertEquals( 2015, DateTimeUnit.fromJdkDate( periods.get( 1 ).getStartDate() ).getYear() );
+
+        periods = periodType.generatePeriods( new DateTimeUnit( 1990, 1, 1 ) );
+        assertEquals( 52, periods.size() );
+        assertFalse( periodsInYear( periods, 1989 ) );
+        assertTrue( periodsInYear( periods, 1990 ) );
+        assertFalse( periodsInYear( periods, 1991 ) );
+        assertEquals( 1990, DateTimeUnit.fromJdkDate( periods.get( 0 ).getStartDate() ).getYear() );
+
+        periods = periodType.generatePeriods( new DateTimeUnit( 1981, 1, 1 ) );
+        assertEquals( 53, periods.size() );
+        assertFalse( periodsInYear( periods, 1980 ) );
+        assertFalse( periodsInYear( periods, 1981 ) );
+        assertFalse( periodsInYear( periods, 1982 ) );
+        assertEquals( 1980, DateTimeUnit.fromJdkDate( periods.get( 0 ).getStartDate() ).getYear() );
+        assertEquals( 1981, DateTimeUnit.fromJdkDate( periods.get( 1 ).getStartDate() ).getYear() );
+
+        periods = periodType.generatePeriods( new DateTimeUnit( 1980, 12, 29 ) );
+        assertEquals( 52, periods.size() );
+        assertFalse( periodsInYear( periods, 1980 ) );
+        assertFalse( periodsInYear( periods, 1980 ) );
+        assertFalse( periodsInYear( periods, 1981 ) );
+        assertEquals( 1979, DateTimeUnit.fromJdkDate( periods.get( 0 ).getStartDate() ).getYear() );
+        assertEquals( 1980, DateTimeUnit.fromJdkDate( periods.get( 1 ).getStartDate() ).getYear() );
+    }
+
+    private boolean periodsInYear( List<Period> periods, int year )
+    {
+        for ( Period period : periods )
+        {
+            DateTimeUnit start = DateTimeUnit.fromJdkDate( period.getStartDate() );
+
+            if ( start.getYear() != year )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
