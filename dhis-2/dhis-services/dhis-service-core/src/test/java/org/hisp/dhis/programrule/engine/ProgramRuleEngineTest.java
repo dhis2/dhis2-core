@@ -307,7 +307,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-     public void testDisplayTextAction() throws Exception
+    public void testDisplayTextAction() throws Exception
     {
         setUpDisplayTextAction();
 

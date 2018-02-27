@@ -8,8 +8,6 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PeriodTypeObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.InterpretableObjectObjectBundleHook" />
-
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.EmbeddedObjectObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.VersionedObjectObjectBundleHook" />

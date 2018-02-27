@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule.engine;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -69,7 +70,17 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
         log.info( "RuleEngine triggered" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+        List<RuleEffect> ruleEffects = new ArrayList<>();
+
+        try
+        {
+            ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+        }
+        catch( Exception ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
+        }
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
 
@@ -77,7 +88,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         {
             ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking %s", i.getClass().getSimpleName() ) );
+                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( action, programInstance );
             } );
@@ -96,7 +107,17 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
         log.info( "RuleEngine triggered" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+        List<RuleEffect> ruleEffects = new ArrayList<>();
+
+        try
+        {
+            ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+        }
+        catch( Exception ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
+        }
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
 
@@ -104,7 +125,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         {
             ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking %s", i.getClass().getSimpleName() ) );
+                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( action, programStageInstance );
             } );
