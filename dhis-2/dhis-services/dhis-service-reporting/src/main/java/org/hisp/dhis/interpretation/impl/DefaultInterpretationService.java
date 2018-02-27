@@ -105,8 +105,6 @@ public class DefaultInterpretationService
             {
                 interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
             }
-
-            interpretation.updateSharing();
         }
 
         interpretationStore.save( interpretation );
@@ -129,7 +127,6 @@ public class DefaultInterpretationService
     @Override
     public void updateInterpretation( Interpretation interpretation )
     {
-        interpretation.updateSharing();
         interpretationStore.update( interpretation );
     }
 
@@ -208,24 +205,24 @@ public class DefaultInterpretationService
 
         return count;
     }
-    
+
     @Transactional( isolation = Isolation.REPEATABLE_READ )
     public boolean likeInterpretation( int id )
     {
         Interpretation interpretation = getInterpretation( id );
-        
+
         if ( interpretation == null )
         {
             return false;
         }
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user == null )
         {
             return false;
         }
-        
+
         return interpretation.like( user );
     }
 
@@ -233,22 +230,22 @@ public class DefaultInterpretationService
     public boolean unlikeInterpretation( int id )
     {
         Interpretation interpretation = getInterpretation( id );
-        
+
         if ( interpretation == null )
         {
             return false;
         }
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user == null )
         {
             return false;
         }
-        
+
         return interpretation.unlike( user );
     }
-    
+
     @Override
     public int countMapInterpretations( Map map )
     {
