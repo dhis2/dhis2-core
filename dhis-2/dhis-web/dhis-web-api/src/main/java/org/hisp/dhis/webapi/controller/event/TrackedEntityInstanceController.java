@@ -79,7 +79,6 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -88,7 +87,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -720,15 +718,10 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteTrackedEntityInstance( @PathVariable String id ) throws WebMessageException
+    public void deleteTrackedEntityInstance( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
     {
-        if ( !instanceService.trackedEntityInstanceExists( id ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Tracked entity instance not found: " + id ) );
-        }
-
-        trackedEntityInstanceService.deleteTrackedEntityInstance( id );
+        ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
+        webMessageService.send( importSummary.getWebMessage(), response, request );
     }
 
     // -------------------------------------------------------------------------

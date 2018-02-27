@@ -96,6 +96,14 @@ public class ImportSummary extends AbstractWebMessageResponse
         this.importCount = importCount;
     }
 
+    public ImportSummary( ImportStatus status, String description, WebMessage webMessage )
+    {
+        this();
+        this.status = status;
+        this.description = description;
+        this.webMessage = webMessage;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

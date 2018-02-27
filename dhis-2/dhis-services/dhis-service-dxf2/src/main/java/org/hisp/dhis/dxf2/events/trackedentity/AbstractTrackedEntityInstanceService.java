@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -485,14 +486,14 @@ public abstract class AbstractTrackedEntityInstanceService
             else if ( !errors.isEmpty() )
             {
                 importSummary.setDescription( errors.toString() );
-                importSummary.setWebMessage( WebMessageUtils.unathorized( errors.toString() ) );
+                importSummary.setWebMessage( WebMessageUtils.forbidden( errors.toString() ) );
             }
             else if ( organisationUnit == null )
             {
                 errorMsg = "orgUnit " + dtoEntityInstance.getOrgUnit()
                     + " does not point to valid organisation unit";
                 importConflicts.add( new ImportConflict( "OrganisationUnit", errorMsg ) );
-                importSummary.setWebMessage( WebMessageUtils.unathorized( errorMsg ) );
+                importSummary.setWebMessage( WebMessageUtils.badRequest( errorMsg ) );
             }
             else
             {
@@ -537,21 +538,32 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
-
-        User user = currentUserService.getCurrentUser();
+        String descMsg;
+        WebMessage webMsg;
 
         if ( entityInstance != null )
         {
+            User user = currentUserService.getCurrentUser();
+
             if ( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
-                return new ImportSummary( ImportStatus.ERROR, "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
+                descMsg = "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+                webMsg = WebMessageUtils.forbidden( descMsg );
+                return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
             }
 
             teiService.deleteTrackedEntityInstance( entityInstance );
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
+
+            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
+            webMsg = WebMessageUtils.importSummary( importSummary );
+            importSummary.setWebMessage( webMsg );
+
+            return importSummary;
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid tracked entity instance" ).incrementIgnored();
+        descMsg = "TrackedEntityInstance UID " + uid + " does not point to a valid tracked entity instance";
+        webMsg = WebMessageUtils.notFound( descMsg );
+        return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
     }
 
     @Override
