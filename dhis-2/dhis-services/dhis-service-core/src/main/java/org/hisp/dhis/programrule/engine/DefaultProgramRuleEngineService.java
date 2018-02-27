@@ -69,7 +69,16 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
         log.info( "RuleEngine triggered" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+        List<RuleEffect> ruleEffects = new ArrayList<>();
+
+        try
+        {
+            ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
 
@@ -77,7 +86,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         {
             ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking %s", i.getClass().getSimpleName() ) );
+                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( action, programInstance );
             } );
@@ -96,7 +105,16 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
         log.info( "RuleEngine triggered" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+        List<RuleEffect> ruleEffects = new ArrayList<>();
+
+        try
+        {
+            ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
 
         List<RuleAction> ruleActions = ruleEffects.stream().map( RuleEffect::ruleAction ).collect( Collectors.toList() );
 
@@ -104,7 +122,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         {
             ruleActionImplementers.stream().filter( i -> i.accept( action ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking %s", i.getClass().getSimpleName() ) );
+                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( action, programStageInstance );
             } );

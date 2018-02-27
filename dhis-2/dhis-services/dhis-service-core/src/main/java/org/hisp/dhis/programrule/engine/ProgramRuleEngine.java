@@ -85,7 +85,7 @@ public class ProgramRuleEngine
             ruleEffects.stream().map( RuleEffect::ruleAction )
                 .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
-        catch ( Exception e)
+        catch ( Exception e )
         {
             e.printStackTrace();
         }
