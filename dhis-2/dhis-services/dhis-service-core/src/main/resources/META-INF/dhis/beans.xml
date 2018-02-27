@@ -935,7 +935,6 @@
   <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationService"
     class="org.hisp.dhis.dataset.DefaultCompleteDataSetRegistrationService">
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
-    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
