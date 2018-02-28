@@ -616,11 +616,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                         if ( !isDryRun )
                         {
                             added = batchHandler.addObject( internalCdsr );
+
+                            if ( added )
+                            {
+                                sendNotifications( config, internalCdsr );
+                            }
                         }
 
                         if ( isDryRun || added )
                         {
-                            sendNotifications( config, internalCdsr );
                             importCount++;
                         }
                     }
