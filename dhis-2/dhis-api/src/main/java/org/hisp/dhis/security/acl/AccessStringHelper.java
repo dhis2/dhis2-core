@@ -29,6 +29,8 @@ package org.hisp.dhis.security.acl;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.util.Assert;
 
 /**
@@ -227,7 +229,9 @@ public class AccessStringHelper
         target.setPublicAccess( source.getPublicAccess() );
         target.setExternalAccess( source.getExternalAccess() );
 
-        target.getUserAccesses().addAll( source.getUserAccesses() );
-        target.getUserGroupAccesses().addAll( source.getUserGroupAccesses() );
+        source.getUserAccesses().forEach(
+            ua -> target.getUserAccesses().add( new UserAccess( ua.getUser(), ua.getAccess() ) ) );
+        source.getUserGroupAccesses().forEach(
+            uga -> target.getUserGroupAccesses().add( new UserGroupAccess( uga.getUserGroup(), uga.getAccess() ) ) );
     }
 }
