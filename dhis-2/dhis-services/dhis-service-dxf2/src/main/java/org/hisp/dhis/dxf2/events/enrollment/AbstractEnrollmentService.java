@@ -54,6 +54,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -689,23 +691,33 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary deleteEnrollment( String uid )
     {
-        User user = currentUserService.getCurrentUser();
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
+        String descMsg;
+        WebMessage webMsg;
 
         if ( programInstance != null )
         {
+            User user = currentUserService.getCurrentUser();
             if ( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
             {
-                return new ImportSummary( ImportStatus.ERROR, "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();
+                descMsg = "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+                webMsg = WebMessageUtils.forbidden( descMsg );
+                return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
             }
 
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
+
+            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
+            webMsg = WebMessageUtils.importSummary( importSummary );
+            importSummary.setWebMessage( webMsg );
+
+            return importSummary;
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid enrollment" ).incrementIgnored();
+        descMsg = "ID " + uid + " does not point to a valid enrollment";
+        webMsg = WebMessageUtils.notFound( descMsg );
+        return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
     }
 
     @Override
