@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.dataset;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -86,7 +85,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jmx.export.notification.NotificationPublisher;
 
 import javax.annotation.Nonnull;
 import java.io.InputStream;
