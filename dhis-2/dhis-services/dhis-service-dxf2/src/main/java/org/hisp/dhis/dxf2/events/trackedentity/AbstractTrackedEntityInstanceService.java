@@ -561,7 +561,7 @@ public abstract class AbstractTrackedEntityInstanceService
             return importSummary;
         }
 
-        descMsg = "TrackedEntityInstance UID " + uid + " does not point to a valid tracked entity instance";
+        descMsg = "ID " + uid + " does not point to a valid tracked entity instance";
         webMsg = WebMessageUtils.notFound( descMsg );
         return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
     }

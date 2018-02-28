@@ -41,7 +41,6 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -147,7 +146,7 @@ public class EnrollmentController
         if ( enrollment == null )
         {
             ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging,includeDeleted );
+                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -309,26 +308,10 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+    public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
     {
-        if ( !programInstanceService.programInstanceExists( id ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Enrollment not found for ID " + id ) );
-        }
-
         ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
-
-        if ( importSummary.getStatus() == ImportStatus.SUCCESS )
-        {
-            response.setStatus( HttpServletResponse.SC_OK );
-            WebMessage webMsg = WebMessageUtils.ok( "Object was deleted successfully" );
-            webMessageService.send( webMsg, response, request );
-        }
-        else if ( importSummary.getStatus() == ImportStatus.ERROR )
-        {
-            response.setStatus( HttpServletResponse.SC_NOT_FOUND );
-            webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
-        }
+        webMessageService.send( importSummary.getWebMessage(), response, request );
     }
 
     // -------------------------------------------------------------------------
