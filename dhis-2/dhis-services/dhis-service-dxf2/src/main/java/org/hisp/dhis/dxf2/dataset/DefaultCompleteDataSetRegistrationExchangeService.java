@@ -29,6 +29,9 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +86,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jmx.export.notification.NotificationPublisher;
 
 import javax.annotation.Nonnull;
 import java.io.InputStream;
@@ -148,6 +152,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private AggregateAccessManager accessManager;
+
+    @Autowired
+    private DataSetNotificationEventPublisher notificationPublisher;
+
+    @Autowired
+    private MessageService messageService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -612,6 +622,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                         if ( isDryRun || added )
                         {
+                            sendNotifications( config, internalCdsr );
                             importCount++;
                         }
                     }
@@ -655,6 +666,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             throw new ImportConflictException( new ImportConflict( mdProps.orgUnit.getUid(),
                 "Organisation unit is not in hierarchy of user: " + currentUsername ) );
+        }
+    }
+
+    private void sendNotifications( ImportConfig config, CompleteDataSetRegistration registration )
+    {
+        if ( !config.skipNotifications )
+        {
+            if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
+            {
+                messageService.sendCompletenessMessage( registration );
+            }
+
+            notificationPublisher.publishEvent( registration );
         }
     }
 
@@ -923,7 +947,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         ImportStrategy strategy;
 
         boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits,
-            requireAttrOptionCombos;
+            requireAttrOptionCombos, skipNotifications;
 
         DataElementCategoryOptionCombo fallbackCatOptCombo;
 
@@ -940,6 +964,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 : options.getImportStrategy();
 
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
+
+            skipNotifications = options.isSkipNotifications();
 
             skipExistingCheck = options.isSkipExistingCheck();
 
