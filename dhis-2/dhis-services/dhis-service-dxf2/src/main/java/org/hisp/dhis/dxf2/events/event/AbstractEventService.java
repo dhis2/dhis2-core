@@ -543,6 +543,12 @@ public abstract class AbstractEventService
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
+        
+        if( params.getProgramStage() == null )
+        {
+            throw new IllegalQueryException( "Program stage can not be null." );
+        }        
+        
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
