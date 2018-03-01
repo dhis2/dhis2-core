@@ -810,24 +810,10 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid ) throws WebMessageException
+        @PathVariable( "uid" ) String uid )
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
-        response.setStatus( HttpServletResponse.SC_OK );
-
-        try
-        {
-            ImportSummary importSummary = eventService.deleteEvent( uid );
-            webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
-        }
-        catch ( Exception ex )
-        {
-            webMessageService.send( WebMessageUtils.conflict( "Unable to delete event " + uid, ex.getMessage() ), response, request );
-        }
+        ImportSummary importSummary = eventService.deleteEvent( uid );
+        webMessageService.send( importSummary.getWebMessage(), response, request );
     }
 
     // -------------------------------------------------------------------------

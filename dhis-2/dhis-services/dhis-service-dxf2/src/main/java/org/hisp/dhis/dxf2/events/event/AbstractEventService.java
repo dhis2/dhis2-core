@@ -70,6 +70,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
@@ -1238,12 +1240,28 @@ public abstract class AbstractEventService
         if ( programStageInstance != null )
         {
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
+
+            if ( programStageInstance.getProgramStage().getProgram().getProgramType() == ProgramType.WITH_REGISTRATION )
+            {
+                entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+            }
+
+            String descMsg = "Deletion of event " + uid + " was successful";
+            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg )
                 .incrementDeleted();
+
+            WebMessage webMsg = WebMessageUtils.importSummary( importSummary );
+            importSummary.setWebMessage( webMsg );
+
+            return importSummary;
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event: " + uid )
+        String descMsg = "ID " + uid + " does not point to a valid event.";
+        WebMessage webMsg = WebMessageUtils.notFound( descMsg );
+        ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, descMsg, webMsg )
             .incrementIgnored();
+
+        return importSummary;
     }
 
     @Override
