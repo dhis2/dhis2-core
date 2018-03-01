@@ -555,32 +555,50 @@ public abstract class AbstractEnrollmentService
 
         if ( enrollment == null || enrollment.getEnrollment() == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, "No enrollment or enrollment ID was supplied" ).incrementIgnored();
+            String descMsg = "No enrollment or enrollment ID was supplied";
+            WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
+            return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
         }
 
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
-
-        if ( programInstance == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Enrollment ID was not valid." ).incrementIgnored();
-        }
-
         List<String> errors = trackerAccessManager.canWrite( user, programInstance );
 
-        if ( !errors.isEmpty() )
+        if ( programInstance == null || !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            String descMsg;
+            WebMessage webMsg;
+
+            if ( programInstance == null )
+            {
+                descMsg = "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment.";
+                webMsg = WebMessageUtils.notFound( descMsg );
+            }
+            else
+            {
+                descMsg = errors.toString();
+                webMsg = WebMessageUtils.forbidden( errors.toString() );
+            }
+
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
+            importSummary.setDescription( descMsg );
+            importSummary.setWebMessage( webMsg );
+
+            return importSummary;
         }
 
         Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
 
         if ( !importConflicts.isEmpty() )
         {
+            WebMessage webMsg = WebMessageUtils.badRequest( importConflicts.toString() );
+
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setConflicts( importConflicts );
             importSummary.getImportCount().incrementIgnored();
+            importSummary.setWebMessage( webMsg );
 
             return importSummary;
         }
@@ -593,8 +611,6 @@ public abstract class AbstractEnrollmentService
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
 
         programInstance.setProgram( program );
-        //TODO: Do I need to set TEI at all? Can it change? If not, then no need for it.
-        programInstance.setEntityInstance( daoTrackedEntityInstance );
 
         if ( enrollment.getIncidentDate() != null )
         {
@@ -616,9 +632,13 @@ public abstract class AbstractEnrollmentService
 
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
         {
+            String descMsg = "DisplayIncidentDate is true but IncidentDate is null";
+            WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
+
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
+            importSummary.setDescription( descMsg );
             importSummary.incrementIgnored();
+            importSummary.setWebMessage( webMsg );
 
             return importSummary;
         }
@@ -645,7 +665,6 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
-        //TODO: Do I need to update daoTrackedEntityInstance at all? Nothing changed as I am aware of.
         teiService.updateTrackedEntityInstance( daoTrackedEntityInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
@@ -655,6 +674,9 @@ public abstract class AbstractEnrollmentService
 
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+
+        WebMessage webMsg = WebMessageUtils.importSummary( importSummary );
+        importSummary.setWebMessage( webMsg );
 
         return importSummary;
     }
