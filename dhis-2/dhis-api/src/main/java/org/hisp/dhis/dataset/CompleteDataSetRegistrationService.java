@@ -33,7 +33,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
