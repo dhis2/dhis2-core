@@ -250,6 +250,10 @@
 
   <!-- Security import -->
   <import resource="security.xml" />
+  
+  <!-- Spring Sessions import -->
+  <bean class="org.hisp.dhis.session.RedisSessionConfiguration" depends-on="dhisConfigurationProvider"/>
+  <bean class="org.hisp.dhis.session.FallbackSessionConfiguration" depends-on="dhisConfigurationProvider"/>
 
   <!-- i18n -->
 

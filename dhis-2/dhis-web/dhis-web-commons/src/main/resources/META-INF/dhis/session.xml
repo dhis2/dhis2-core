@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+	<context:annotation-config />
+	<bean
+		class="org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration" />
+
+
+	<bean id="lettuceConnectionFactory "
+		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+		<property name="hostName" ref="redisHost" />
+		<property name="port" ref="redisPort" />
+		<property name="password" ref="redisPassword" />
+	</bean>
+
+	<bean id="redisHost"
+		class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean">
+		<constructor-arg value="REDIS_HOST" />
+	</bean>
+	<bean id="redisPort"
+		class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean">
+		<constructor-arg value="REDIS_PORT" />
+	</bean>
+	<bean id="redisPassword"
+		class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean">
+		<constructor-arg value="REDIS_PASSWORD" />
+	</bean>
+
+
+</beans>

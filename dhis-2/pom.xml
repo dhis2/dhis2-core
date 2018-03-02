@@ -579,6 +579,18 @@
         <version>1.1.5.RELEASE</version>
       </dependency>
 
+	<!-- Spring Session -->
+	  <dependency>
+	    	<groupId>org.springframework.session</groupId>
+		<artifactId>spring-session-data-redis</artifactId>
+		<version>${spring-session-data-redis.version}</version>
+	  </dependency>
+	  <dependency>
+		<groupId>biz.paluch.redis</groupId>
+		<artifactId>lettuce</artifactId>
+		<version>${lettuce.version}</version>
+	  </dependency>
+
       <!-- Jasypt -->
       <dependency>
         <groupId>org.jasypt</groupId>
@@ -1146,6 +1158,8 @@
     <spring.version>4.3.14.RELEASE</spring.version>
     <spring-security.version>4.2.4.RELEASE</spring-security.version>
     <spring-security-oauth2.version>2.2.0.RELEASE</spring-security-oauth2.version>
+    <spring-session-data-redis.version>1.3.2.RELEASE</spring-session-data-redis.version>
+    <lettuce.version>3.5.0.Final</lettuce.version>
     <struts.version>2.3.32</struts.version>
     <hibernate.version>5.2.11.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
