@@ -85,6 +85,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -553,7 +554,7 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        if ( enrollment == null || enrollment.getEnrollment() == null )
+        if ( enrollment == null || StringUtils.isEmpty( enrollment.getEnrollment() ) )
         {
             String descMsg = "No enrollment or enrollment ID was supplied";
             WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
