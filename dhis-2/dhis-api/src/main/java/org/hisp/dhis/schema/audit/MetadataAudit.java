@@ -50,7 +50,7 @@ public class MetadataAudit
 
     private String createdBy;
 
-    private Class<?> klass;
+    private String klass;
 
     private String uid;
 
@@ -100,12 +100,12 @@ public class MetadataAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getKlass()
+    public String getKlass()
     {
         return klass;
     }
 
-    public void setKlass( Class<?> klass )
+    public void setKlass( String klass )
     {
         this.klass = klass;
     }

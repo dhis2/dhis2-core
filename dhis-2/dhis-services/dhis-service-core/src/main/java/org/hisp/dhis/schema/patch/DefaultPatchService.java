@@ -575,7 +575,7 @@ public class DefaultPatchService implements PatchService
         MetadataAudit audit = new MetadataAudit();
         audit.setCreatedAt( new Date() );
         audit.setCreatedBy( currentUserService.getCurrentUsername() );
-        audit.setKlass( schema.getKlass() );
+        audit.setKlass( schema.getKlass().getName() );
 
         if ( IdentifiableObject.class.isInstance( target ) )
         {
