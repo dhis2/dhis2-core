@@ -800,7 +800,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
         });
     }
     else if ("USERS" == dashboardItem.type) {
-        dhis2.db.renderLinkItem($d, dashboardItem.id, dashboardItem.users, "Users", "../dhis-web-dashboard-integration/profile.action?id=", "");
+        dhis2.db.renderLinkItem($d, dashboardItem.id, dashboardItem.users, "Users", "../dhis-web-user-profile/#/profile?_k=", "");
     }
     else if ("REPORTS" == dashboardItem.type) {
         dhis2.db.renderLinkItem($d, dashboardItem.id, dashboardItem.reports, "Reports", "../dhis-web-reporting/getReportParams.action?mode=report&uid=", "");

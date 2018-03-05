@@ -206,7 +206,7 @@ public class JCloudsAppStorageService
             log.info( "Found potential app: " + resource.getName() );
 
             // Found potential app
-            Blob manifest = blobStore.getBlob( config.container, resource.getName() + "/manifest.webapp" );
+            Blob manifest = blobStore.getBlob( config.container, resource.getName() + "manifest.webapp" );
 
             if ( manifest == null )
             {
@@ -393,11 +393,10 @@ public class JCloudsAppStorageService
     @Override
     public boolean deleteApp( App app )
     {
-
         log.info( "Deleting app " + app.getName() );
 
         // Delete all files related to app
-        for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, prefix( app.getFolderName() ).recursive() ) )
         {
             log.info( "Deleting app file: " + resource.getName() );
 
@@ -424,6 +423,7 @@ public class JCloudsAppStorageService
 
         if ( uri == null )
         {
+
             String filepath = configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) + "/" + key;
             filepath = filepath.replaceAll( "//", "/" );
             File res = locationManager.getFileForReading( filepath );

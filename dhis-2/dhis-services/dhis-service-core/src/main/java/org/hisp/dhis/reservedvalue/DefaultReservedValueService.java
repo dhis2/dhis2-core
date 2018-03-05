@@ -30,7 +30,6 @@ package org.hisp.dhis.reservedvalue;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.sun.javafx.binding.StringFormatter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.textpattern.TextPattern;
@@ -137,7 +136,7 @@ public class DefaultReservedValueService
                     resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
                         ImmutableMap.<String, String>builder()
                             .putAll( values )
-                            .put( generatedSegment.getRawSegment(), generatedValues.get( i ) )
+                            .put( generatedSegment.getMethod().name(), generatedValues.get( i ) )
                             .build() ) );
                 }
 
@@ -148,9 +147,9 @@ public class DefaultReservedValueService
         }
         catch ( TimeoutException ex )
         {
-            log.warn( StringFormatter.format(
+            log.warn( String.format(
                 "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
-                textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), resultList.size() ).getValue() );
+                textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), resultList.size() ) );
         }
 
         return resultList;
@@ -189,7 +188,7 @@ public class DefaultReservedValueService
             generatedValues.addAll( sequentialNumberCounterStore
                 .getNextValues( textPattern.getOwnerUid(), segment.getParameter(), numberOfValues )
                 .stream()
-                .map( ( n ) -> StringFormatter.format( "%0" + segment.getParameter().length() + "d", n ).getValue() )
+                .map( ( n ) -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
                 .collect( Collectors.toList() ) );
         }
         else if ( segment.getMethod().equals( TextPatternMethod.RANDOM ) )

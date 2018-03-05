@@ -28,31 +28,52 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InterpretableObjectObjectBundleHook
-    extends AbstractObjectBundleHook
+public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    public void postCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !InterpretableObject.class.isInstance( persistedObject ) )
+        if ( !Program.class.isInstance( object ) )
         {
             return;
         }
 
-        InterpretableObject interpretableObject = (InterpretableObject) persistedObject;
-        Session session = sessionFactory.getCurrentSession();
+        syncSharingForEventProgram( (Program) object );
+    }
 
-        interpretableObject.getInterpretations().forEach( interpretation -> {
-            interpretation.updateSharing();
-            session.update( interpretation );
-        } );
+    @Override
+    public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
+    {
+        if ( !Program.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        syncSharingForEventProgram( (Program) object );
+    }
+
+    private void syncSharingForEventProgram( Program program )
+    {
+        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
+            || program.getProgramStages().isEmpty() )
+        {
+            return;
+        }
+
+        ProgramStage programStage = program.getProgramStages().iterator().next();
+        AccessStringHelper.copySharing( program, programStage );
+
+        programStage.setUser( program.getUser() );
+        sessionFactory.getCurrentSession().update( programStage );
     }
 }

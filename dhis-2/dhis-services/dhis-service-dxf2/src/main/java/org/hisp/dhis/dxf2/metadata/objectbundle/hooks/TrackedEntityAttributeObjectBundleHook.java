@@ -74,21 +74,33 @@ public class TrackedEntityAttributeObjectBundleHook
     {
         if ( persistedObject != null && persistedObject.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
         {
-            TrackedEntityAttribute attr = (TrackedEntityAttribute) persistedObject;
+            updateTextPattern( (TrackedEntityAttribute) persistedObject );
+        }
+    }
 
-            if ( attr.isGenerated() )
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    {
+        if ( persistedObject != null && persistedObject.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
+        {
+            updateTextPattern( (TrackedEntityAttribute) persistedObject );
+        }
+    }
+
+    private void updateTextPattern( TrackedEntityAttribute attr )
+    {
+        if ( attr.isGenerated() )
+        {
+            try
             {
-                try
-                {
-                    TextPattern textPattern = TextPatternParser.parse( attr.getPattern() );
-                    textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
-                    textPattern.setOwnerUid( attr.getUid() );
-                    attr.setTextPattern( textPattern );
-                }
-                catch ( TextPatternParser.TextPatternParsingException e )
-                {
-                    e.printStackTrace();
-                }
+                TextPattern textPattern = TextPatternParser.parse( attr.getPattern() );
+                textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
+                textPattern.setOwnerUid( attr.getUid() );
+                attr.setTextPattern( textPattern );
+            }
+            catch ( TextPatternParser.TextPatternParsingException e )
+            {
+                e.printStackTrace();
             }
         }
     }
