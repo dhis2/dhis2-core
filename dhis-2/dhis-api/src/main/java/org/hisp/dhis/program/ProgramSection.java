@@ -37,6 +37,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.ArrayList;
@@ -61,6 +63,11 @@ public class ProgramSection
     private ObjectStyle style;
 
     private String formName;
+
+    /**
+     * The renderType defines how the ProgramStageSection should be rendered on the client
+     */
+    private DeviceRenderTypeMap<SectionRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -159,5 +166,18 @@ public class ProgramSection
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<SectionRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType(
+        DeviceRenderTypeMap<SectionRenderingObject> renderType )
+    {
+        this.renderType = renderType;
     }
 }

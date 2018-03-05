@@ -46,7 +46,8 @@ public enum DataSetNotificationTemplateVariables
     COMPLETE_REG_PERIOD( "registration_period" ),
     COMPLETE_REG_USER( "registration_user" ),
     COMPLETE_REG_TIME( "registration_time" ),
-    COMPLETE_REG_ATT_OPT_COMBO( "att_opt_combo" );
+    COMPLETE_REG_ATT_OPT_COMBO( "att_opt_combo" ),
+    CURRENT_DATE( "current_date" );
 
     private static final Map<String, DataSetNotificationTemplateVariables> variableNameMap =
         EnumSet.allOf( DataSetNotificationTemplateVariables.class ).stream()

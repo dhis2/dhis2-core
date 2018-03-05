@@ -35,26 +35,26 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * This class represents the renderingType of a ProgramStageSection
  */
-public class ProgramStageSectionRenderingObject
+public class SectionRenderingObject
 {
     /**
      * The renderingType of the ProgramStageSection
      */
-    private ProgramStageSectionRenderType type;
+    private SectionRenderingType type;
 
-    public ProgramStageSectionRenderingObject()
+    public SectionRenderingObject()
     {
-        this.type = ProgramStageSectionRenderType.LISTING;
+        this.type = SectionRenderingType.LISTING;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageSectionRenderType getType()
+    public SectionRenderingType getType()
     {
         return type;
     }
 
-    public void setType( ProgramStageSectionRenderType type )
+    public void setType( SectionRenderingType type )
     {
         this.type = type;
     }
