@@ -80,6 +80,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
  * @author Ken Haase
@@ -259,7 +260,8 @@ public class DefaultPredictionService
                             Double value = expressionService.getExpressionValue( generator, nonAggregateValueMap,
                                 constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
 
-                            if ( value != null && !value.isNaN() && !value.isInfinite() )
+                            if ( value != null && !value.isNaN() && !value.isInfinite() &&
+                                !dataValueIsZeroAndInsignificant( Double.toString( value ), outputDataElement ) )
                             {
                                 String valueString = outputDataElement.getValueType().isInteger() ?
                                     Long.toString( Math.round( value ) ) :
