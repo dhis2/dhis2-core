@@ -36,6 +36,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 
 /**
  * @author Viet Nguyen
@@ -62,7 +64,13 @@ public class ProgramStageDataElement
 
     private Boolean allowFutureDate = false;
 
+    // Remove this in the future, will be replaced by renderType
     private Boolean renderOptionsAsRadio = false;
+
+    /**
+     * The renderType defines how the ProgramStageSection should be rendered on the client
+     */
+    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -194,6 +202,18 @@ public class ProgramStageDataElement
     public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
     {
         this.renderOptionsAsRadio = renderOptionsAsRadio;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType( DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
+    {
+        this.renderType = renderType;
     }
 
     // -------------------------------------------------------------------------

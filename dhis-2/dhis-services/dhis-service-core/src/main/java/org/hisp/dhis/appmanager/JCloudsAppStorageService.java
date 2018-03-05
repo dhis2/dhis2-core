@@ -418,7 +418,7 @@ public class JCloudsAppStorageService
             return null;
         }
 
-        String key = app.getFolderName() + ("/" + pageName).replaceAll( "//", "/" );
+        String key = ( app.getFolderName() + ("/" + pageName) ).replaceAll( "//", "/" );
         URI uri = getSignedGetContentUri( key );
 
         if ( uri == null )
