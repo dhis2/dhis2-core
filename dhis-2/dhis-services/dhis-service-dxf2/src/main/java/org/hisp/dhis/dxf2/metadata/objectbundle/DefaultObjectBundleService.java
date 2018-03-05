@@ -268,7 +268,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             MetadataAudit audit = new MetadataAudit();
             audit.setCreatedAt( new Date() );
             audit.setCreatedBy( bundle.getUsername() );
-            audit.setKlass( klass );
+            audit.setKlass( klass.getName() );
             audit.setUid( object.getUid() );
             audit.setCode( object.getCode() );
             audit.setType( AuditType.CREATE );
@@ -385,7 +385,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             MetadataAudit audit = new MetadataAudit();
             audit.setCreatedAt( new Date() );
             audit.setCreatedBy( bundle.getUsername() );
-            audit.setKlass( klass );
+            audit.setKlass( klass.getName() );
             audit.setUid( object.getUid() );
             audit.setCode( object.getCode() );
             audit.setType( AuditType.UPDATE );
@@ -477,7 +477,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             MetadataAudit audit = new MetadataAudit();
             audit.setCreatedAt( new Date() );
             audit.setCreatedBy( bundle.getUsername() );
-            audit.setKlass( klass );
+            audit.setKlass( klass.getName() );
             audit.setUid( object.getUid() );
             audit.setCode( object.getCode() );
             audit.setType( AuditType.DELETE );
