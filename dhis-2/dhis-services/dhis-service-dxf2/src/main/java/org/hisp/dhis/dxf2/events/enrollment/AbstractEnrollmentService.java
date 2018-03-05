@@ -414,7 +414,6 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
         programInstance.setFollowup( enrollment.getFollowup() );
         programInstance.setStoredBy( storedBy );
-        programInstance.setDeleted( enrollment.isDeleted() );
 
         programInstanceService.updateProgramInstance( programInstance );
 
@@ -612,7 +611,6 @@ public abstract class AbstractEnrollmentService
         }
 
         programInstance.setFollowup( enrollment.getFollowup() );
-        programInstance.setDeleted( enrollment.isDeleted() );
 
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
         {
