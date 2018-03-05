@@ -211,8 +211,7 @@ public class ProgramStageDataElement
         return renderType;
     }
 
-    public void setRenderType(
-        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
+    public void setRenderType( DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
     {
         this.renderType = renderType;
     }
