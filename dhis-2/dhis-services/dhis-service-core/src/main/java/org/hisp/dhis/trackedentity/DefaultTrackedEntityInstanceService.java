@@ -328,9 +328,18 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Current user is not authorized to query across all organisation units" );
         }
         
-        if( params.hasProgram() && !aclService.canDataRead( user, params.getProgram() ) )
+        if( params.hasProgram() )
         {
-            throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
+            if( !aclService.canDataRead( user, params.getProgram() ) )
+            {
+                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
+            }
+            
+            if( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( user, params.getProgram().getTrackedEntityType() ) )
+            {
+                throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
+            }
+            
         }
         
         if( params.hasTrackedEntityType() && !aclService.canDataRead( user, params.getTrackedEntityType() ) )

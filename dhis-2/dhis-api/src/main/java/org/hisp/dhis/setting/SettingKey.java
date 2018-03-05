@@ -252,6 +252,10 @@ public enum SettingKey
             {
                 return AnalyticsFinancialYearStartKey.valueOf( value );
             }
+            else if ( FileResourceRetentionStrategy.class.isAssignableFrom( settingClazz ) )
+            {
+                return FileResourceRetentionStrategy.valueOf( value );
+            }
 
             //TODO handle Dates
         }
