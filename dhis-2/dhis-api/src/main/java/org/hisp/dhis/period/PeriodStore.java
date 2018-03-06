@@ -42,8 +42,6 @@ import java.util.List;
 public interface PeriodStore
     extends GenericStore<Period>
 {
-    String ID = PeriodStore.class.getName();
-
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------

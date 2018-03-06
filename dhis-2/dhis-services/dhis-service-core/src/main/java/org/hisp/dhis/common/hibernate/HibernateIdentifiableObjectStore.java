@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -41,9 +42,12 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +59,7 @@ import java.util.Set;
  * @author bobj
  */
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
-    extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>
+    extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
 
@@ -76,6 +80,60 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void setTransientIdentifiableProperties( boolean transientIdentifiableProperties )
     {
         this.transientIdentifiableProperties = transientIdentifiableProperties;
+    }
+
+    // -------------------------------------------------------------------------
+    // InternalHibernateGenericStore implementation
+    // -------------------------------------------------------------------------
+
+    public final Criteria getDataSharingCriteria()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+    }
+
+    public final Criteria getDataSharingCriteria( String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+    }
+
+    public final Criteria getDataSharingCriteria( User user, String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( UserInfo.fromUser( user ), access ) );
+    }
+
+    public final Criteria getSharingCriteria( String access )
+    {
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+    }
+
+    public final Criteria getSharingCriteria( User user )
+    {
+        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria()
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria( String access )
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
+    {
+        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria( User user )
+    {
+        return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
+    }
+
+    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
+    {
+        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
     }
 
     // -------------------------------------------------------------------------
@@ -144,25 +202,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return object;
     }
 
-    /**
-     * Uses query since name property might not be unique.
-     */
-    @Override
-    public final T getByShortName( String shortName )
-    {
-        List<T> list = getList( Restrictions.eq( "shortName", shortName ) );
-
-        T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
-
-        if ( !isReadAllowed( object ) )
-        {
-            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
-            throw new ReadAccessDeniedException( object.toString() );
-        }
-
-        return object;
-    }
-
     @Override
     public final T getByCode( String code )
     {
@@ -197,36 +236,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingCriteria()
             .add( Restrictions.eq( "name", name ) )
             .addOrder( Order.asc( "name" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqNameIgnoreCase( String name )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "name", name ).ignoreCase() )
-            .addOrder( Order.asc( "name" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqShortName( String shortName )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "shortName", shortName ) )
-            .addOrder( Order.asc( "shortName" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqShortNameIgnoreCase( String shortName )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "shortName", shortName ).ignoreCase() )
-            .addOrder( Order.asc( "shortName" ) )
             .list();
     }
 
@@ -273,21 +282,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<T> getAllLikeShortName( String shortName )
-    {
-        if ( NameableObject.class.isAssignableFrom( clazz ) )
-        {
-            return getSharingCriteria()
-                .add( Restrictions.like( "shortName", "%" + shortName + "%" ).ignoreCase() )
-                .addOrder( Order.asc( "shortName" ) )
-                .list();
-        }
-
-        return getAllLikeName( shortName ); // Fallback to name
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedName()
     {
         return getSharingCriteria()
@@ -302,15 +296,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingCriteria()
             .addOrder( Order.asc( "name" ) )
             .setFirstResult( first ).setMaxResults( max )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllOrderedLastUpdated()
-    {
-        return getSharingCriteria()
-            .addOrder( Order.desc( "lastUpdated" ) )
             .list();
     }
 
@@ -334,28 +319,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public int getCountEqShortName( String shortName )
-    {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.eq( "shortName", shortName ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
-    }
-
-    @Override
     public int getCountLikeName( String name )
     {
         return ((Number) getSharingCriteria()
             .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
-    }
-
-    @Override
-    public int getCountLikeShortName( String shortName )
-    {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.like( "shortName", "%" + shortName + "%" ).ignoreCase() )
             .setProjection( Projections.countDistinct( "id" ) )
             .uniqueResult()).intValue();
     }
@@ -405,26 +372,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingCriteria()
             .add( Restrictions.le( "created", created ) )
             .addOrder( Order.desc( "created" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllGeCreatedOrderedName( Date created )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "created", created ) )
-            .addOrder( Order.asc( "name" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllGeLastUpdatedOrderedName( Date lastUpdated )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "lastUpdated", lastUpdated ) )
-            .addOrder( Order.asc( "name" ) )
             .list();
     }
 
@@ -523,24 +470,44 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     //----------------------------------------------------------------------------------------------------------------
-    // No ACL (unfiltered methods)
+    // Data sharing
     //----------------------------------------------------------------------------------------------------------------
 
     @Override
-    public int getCountEqNameNoAcl( String name )
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll()
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.name = :name" );
-        query.setParameter( "name", name );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return getDataSharingCriteria( AclService.LIKE_READ_DATA ).list();
     }
 
     @Override
-    public int getCountEqShortNameNoAcl( String shortName )
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll( User user )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.shortName = :shortName" );
-        query.setParameter( "shortName", shortName );
+        return getDataSharingCriteria( user, AclService.LIKE_READ_DATA ).list();
+    }
 
-        return ((Long) query.uniqueResult()).intValue();
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataWriteAll()
+    {
+        return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataWriteAll( User user )
+    {
+        return getDataSharingCriteria( user, AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll( int first, int max )
+    {
+        return getDataSharingCriteria()
+            .setFirstResult( first )
+            .setMaxResults( max )
+            .list();
     }
 }
