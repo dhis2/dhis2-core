@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.commons.lang.RandomStringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
@@ -57,10 +56,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * @author Nguyen Hong Duc
@@ -70,8 +66,6 @@ public class UserCredentials
     extends BaseIdentifiableObject
     implements UserDetails
 {
-    private static final String BACKUP_CODE_CHARS = "0123456789";
-
     /**
      * Required and unique.
      */
@@ -112,11 +106,6 @@ public class UserCredentials
      * Required. Automatically set in constructor
      */
     private String secret;
-
-    /**
-     * Required if the user has two factor authentication
-     */
-    private Map<String, Boolean> oneTimeBackupCodes;
 
     /**
      * Date when password was changed.
@@ -556,21 +545,12 @@ public class UserCredentials
     }
 
     /**
-     * Set 2FA on user and generate backup codes each time the user activates the feature.
-     * Clear the codes if the user deactivates the feature.
+     * Set 2FA on user.
      *
      * @param twoFA true/false depending on activate or deactivate
      */
     public void setTwoFA( boolean twoFA )
     {
-        if ( twoFA != this.twoFA && !this.twoFA )
-        {
-            generateOneTimeBackupCodes();
-        }
-        else
-        {
-            this.oneTimeBackupCodes.clear();
-        }
         this.twoFA = twoFA;
     }
 
@@ -598,43 +578,6 @@ public class UserCredentials
         {
             this.secret = Base32.random();
         }
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Map<String, Boolean> getOneTimeBackupCodes()
-    {
-        return oneTimeBackupCodes;
-    }
-
-    public void generateOneTimeBackupCodes()
-    {
-        Map<String, Boolean> backupCodes = IntStream.range( 0, 10 ).boxed().collect(
-            Collectors.toMap( i -> RandomStringUtils.random( 8, BACKUP_CODE_CHARS ), i -> true, ( a, b ) -> b ) );
-
-        setOneTimeBackupCodes( backupCodes );
-    }
-
-    public void setOneTimeBackupCodes( Map<String, Boolean> oneTimeBackupCodes )
-    {
-        this.oneTimeBackupCodes = oneTimeBackupCodes;
-    }
-
-    /**
-     * Verify the code against remaining codes for the user. Mark the code unvalid when used
-     *
-     * @param code input code which is verified
-     * @return true if the code is verified, false if not
-     */
-    public boolean verifyBackupCode( String code )
-    {
-        Boolean valid = oneTimeBackupCodes.get( code );
-        if ( valid )
-        {
-            oneTimeBackupCodes.put( code, false );
-        }
-
-        return valid;
     }
 
     @JsonProperty
