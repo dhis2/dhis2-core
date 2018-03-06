@@ -94,11 +94,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> clazz );
 
-    <T extends IdentifiableObject> List<T> getAllByName( Class<T> clazz, String name );
-
     <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> clazz );
-
-    <T extends IdentifiableObject> List<T> getAllByNameIgnoreCase( Class<T> clazz, String name );
 
     <T extends IdentifiableObject> List<T> getAllSorted( Class<T> clazz );
 
@@ -116,17 +112,9 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> clazz, int first, int max );
 
-    <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, String name, int first, int max );
-
     <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, Set<String> words, int first, int max );
 
-    <T extends IdentifiableObject> List<T> getByLastUpdated( Class<T> clazz, Date lastUpdated );
-
-    <T extends IdentifiableObject> List<T> getByCreated( Class<T> clazz, Date created );
-
     <T extends IdentifiableObject> Date getLastUpdated( Class<T> clazz );
-
-    <T extends IdentifiableObject> Set<Integer> convertToId( Class<T> clazz, Collection<String> uids );
 
     <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> clazz, IdentifiableProperty property );
 

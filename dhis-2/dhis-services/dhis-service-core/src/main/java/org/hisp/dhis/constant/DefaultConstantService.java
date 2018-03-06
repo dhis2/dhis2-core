@@ -88,26 +88,6 @@ public class DefaultConstantService
     {
         return constantStore.getByUid( uid );
     }
-
-    @Override
-    public Constant getConstantByName( String constantName )
-    {
-        return constantStore.getByName( constantName );
-    }
-
-
-    @Override
-    public Constant getConstantByShortName( String shortName )
-    {
-        return constantStore.getByShortName( shortName );
-    }
-
-    @Override
-    public Constant getConstantByCode( String code )
-    {
-        return constantStore.getByCode( code );
-    }
-
     
     @Override
     public List<Constant> getAllConstants()

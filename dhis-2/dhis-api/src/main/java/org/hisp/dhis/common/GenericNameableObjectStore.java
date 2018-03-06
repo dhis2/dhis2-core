@@ -36,19 +36,4 @@ import java.util.List;
 public interface GenericNameableObjectStore<T>
     extends GenericIdentifiableObjectStore<T>
 {
-    /**
-     * Retrieves the object with the given short name.
-     *
-     * @param shortName the short name.
-     * @return the object with the given short name.
-     */
-    T getByShortName( String shortName );
-
-    /**
-     * Retrieves a List of objects where the name is like the given name.
-     *
-     * @param shortName the name.
-     * @return a List of objects.
-     */
-    List<T> getAllEqShortName( String shortName );
 }

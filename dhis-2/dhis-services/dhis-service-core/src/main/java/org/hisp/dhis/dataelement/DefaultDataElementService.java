@@ -228,25 +228,6 @@ public class DefaultDataElementService
         return !dataElementGroups.isEmpty() ? dataElementGroups.get( 0 ) : null;
     }
 
-    @Override
-    public DataElementGroup getDataElementGroupByShortName( String shortName )
-    {
-        List<DataElementGroup> dataElementGroups = dataElementGroupStore.getAllEqShortName( shortName );
-
-        if ( dataElementGroups.isEmpty() )
-        {
-            return null;
-        }
-
-        return dataElementGroups.get( 0 );
-    }
-
-    @Override
-    public DataElementGroup getDataElementGroupByCode( String code )
-    {
-        return dataElementGroupStore.getByCode( code );
-    }
-
     // -------------------------------------------------------------------------
     // DataElementGroupSet
     // -------------------------------------------------------------------------

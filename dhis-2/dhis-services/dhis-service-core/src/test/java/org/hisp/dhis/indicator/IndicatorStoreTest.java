@@ -296,32 +296,6 @@ public class IndicatorStoreTest
     }
 
     @Test
-    public void testGetIndicatorByShortName()
-    {
-        IndicatorType type = new IndicatorType( "IndicatorType", 100, false );
-
-        indicatorTypeStore.save( type );
-
-        Indicator indicatorA = createIndicator( 'A', type );
-        Indicator indicatorB = createIndicator( 'B', type );
-
-        indicatorStore.save( indicatorA );
-        int idA = indicatorA.getId();
-        indicatorStore.save( indicatorB );
-        int idB = indicatorB.getId();
-
-        assertNotNull( indicatorStore.get( idA ) );
-        assertNotNull( indicatorStore.get( idB ) );
-
-        indicatorA = indicatorStore.getByShortName( "IndicatorShortA" );
-        assertNotNull( indicatorA );
-        assertEq( 'A', indicatorA );
-
-        Indicator indicatorC = indicatorStore.getByShortName( "IndicatorShortC" );
-        assertNull( indicatorC );
-    }
-
-    @Test
     public void testGetIndicatorsWithoutGroups()
     {
         IndicatorType type = new IndicatorType( "IndicatorType", 100, false );

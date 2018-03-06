@@ -202,25 +202,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return object;
     }
 
-    /**
-     * Uses query since name property might not be unique.
-     */
-    @Override
-    public final T getByShortName( String shortName )
-    {
-        List<T> list = getList( Restrictions.eq( "shortName", shortName ) );
-
-        T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
-
-        if ( !isReadAllowed( object ) )
-        {
-            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
-            throw new ReadAccessDeniedException( object.toString() );
-        }
-
-        return object;
-    }
-
     @Override
     public final T getByCode( String code )
     {
@@ -255,26 +236,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingCriteria()
             .add( Restrictions.eq( "name", name ) )
             .addOrder( Order.asc( "name" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqNameIgnoreCase( String name )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "name", name ).ignoreCase() )
-            .addOrder( Order.asc( "name" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqShortName( String shortName )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "shortName", shortName ) )
-            .addOrder( Order.asc( "shortName" ) )
             .list();
     }
 

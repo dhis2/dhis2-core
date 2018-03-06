@@ -116,14 +116,6 @@ public interface GenericIdentifiableObjectStore<T>
     List<T> getAllEqName( String name );
 
     /**
-     * Retrieves a List of objects where the name is equal the given name (ignore case).
-     *
-     * @param name the name.
-     * @return a List of objects.
-     */
-    List<T> getAllEqNameIgnoreCase( String name );
-
-    /**
      * Retrieves a List of objects where the name is like the given name.
      *
      * @param name the name.
