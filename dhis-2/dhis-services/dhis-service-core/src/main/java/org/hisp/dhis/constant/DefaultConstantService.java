@@ -28,7 +28,8 @@ package org.hisp.dhis.constant;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -47,9 +48,9 @@ public class DefaultConstantService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericNameableObjectStore<Constant> constantStore;
+    private GenericIdentifiableObjectStore<Constant> constantStore;
 
-    public void setConstantStore( GenericNameableObjectStore<Constant> constantStore )
+    public void setConstantStore( GenericIdentifiableObjectStore<Constant> constantStore )
     {
         this.constantStore = constantStore;
     }
