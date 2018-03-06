@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.Date;
@@ -115,25 +116,6 @@ public interface GenericIdentifiableObjectStore<T>
     List<T> getAllEqName( String name );
 
     /**
-     * Retrieves a List of objects where the name is equal the given name (ignore case).
-     *
-     * @param name the name.
-     * @return a List of objects.
-     */
-    List<T> getAllEqNameIgnoreCase( String name );
-
-    /**
-     * Return the number of objects where the name is equal the given name.
-     * <p>
-     * This count is _unfiltered_ (no ACL!), so this is not the same as
-     * getAllEqName().size().
-     *
-     * @param name the name.
-     * @return Count of objects.
-     */
-    int getCountEqNameNoAcl( String name );
-
-    /**
      * Retrieves a List of objects where the name is like the given name.
      *
      * @param name the name.
@@ -161,13 +143,6 @@ public interface GenericIdentifiableObjectStore<T>
      * @return a List of objects.
      */
     List<T> getAllLikeName( Set<String> words, int first, int max );
-
-    /**
-     * The returned list is ordered by the last updated property descending.
-     *
-     * @return List of objects.
-     */
-    List<T> getAllOrderedLastUpdated();
 
     /**
      * Retrieves the objects determined by the given first result and max result.
@@ -261,24 +236,6 @@ public interface GenericIdentifiableObjectStore<T>
     List<T> getAllGeLastUpdated( Date lastUpdated );
 
     /**
-     * Returns all objects that are equal to or newer than given date.
-     * (ordered by name)
-     *
-     * @param created Date to compare to.
-     * @return All objects equal or newer than given date.
-     */
-    List<T> getAllGeCreatedOrderedName( Date created );
-
-    /**
-     * Returns all objects that are equal to or newer than given date.
-     * (ordered by name)
-     *
-     * @param lastUpdated Date to compare to.
-     * @return All objects equal or newer than given date.
-     */
-    List<T> getAllGeLastUpdatedOrderedName( Date lastUpdated );
-
-    /**
      * Returns the date of the last updated object.
      *
      * @return a Date / time stamp.
@@ -300,4 +257,14 @@ public interface GenericIdentifiableObjectStore<T>
      * @return the number of objects equal or newer than given date.
      */
     int getCountGeCreated( Date created );
+
+    List<T> getDataReadAll();
+
+    List<T> getDataReadAll( User user );
+
+    List<T> getDataWriteAll();
+
+    List<T> getDataWriteAll( User user );
+
+    List<T> getDataReadAll( int first, int max );
 }
