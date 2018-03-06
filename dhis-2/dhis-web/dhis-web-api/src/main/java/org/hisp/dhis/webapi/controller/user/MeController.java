@@ -383,6 +383,7 @@ public class MeController
 
     @PostMapping( value = "/dashboard/interpretations/read" )
     @ResponseStatus( value = HttpStatus.OK )
+    @ApiVersion( include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
     public void updateInterpretationsLastRead()
     {
         interpretationService.updateCurrentUserLastChecked();
