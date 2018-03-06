@@ -102,8 +102,6 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getAllSorted( Class<T> clazz );
 
-    <T extends IdentifiableObject> List<T> getAllSortedByLastUpdated( Class<T> clazz );
-
     <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
@@ -113,8 +111,6 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
 
     <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name );
-
-    <T extends NameableObject> List<T> getLikeShortName( Class<T> clazz, String shortName );
 
     <T extends IdentifiableObject> List<T> getBetween( Class<T> clazz, int first, int max );
 
@@ -127,10 +123,6 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> List<T> getByLastUpdated( Class<T> clazz, Date lastUpdated );
 
     <T extends IdentifiableObject> List<T> getByCreated( Class<T> clazz, Date created );
-
-    <T extends IdentifiableObject> List<T> getByLastUpdatedSorted( Class<T> clazz, Date lastUpdated );
-
-    <T extends IdentifiableObject> List<T> getByCreatedSorted( Class<T> clazz, Date created );
 
     <T extends IdentifiableObject> Date getLastUpdated( Class<T> clazz );
 
@@ -158,17 +150,9 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> int getCount( Class<T> clazz );
 
-    <T extends IdentifiableObject> int getCountByName( Class<T> clazz, String name );
-
-    <T extends NameableObject> int getCountByShortName( Class<T> clazz, String shortName );
-
     <T extends IdentifiableObject> int getCountByCreated( Class<T> clazz, Date created );
 
     <T extends IdentifiableObject> int getCountByLastUpdated( Class<T> clazz, Date lastUpdated );
-
-    <T extends IdentifiableObject> int getCountLikeName( Class<T> clazz, String name );
-
-    <T extends NameableObject> int getCountLikeShortName( Class<T> clazz, String shortName );
 
     <T extends DimensionalObject> List<T> getDataDimensions( Class<T> clazz );
 
@@ -200,11 +184,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> void updateNoAcl( T object );
 
-    <T extends IdentifiableObject> int getCountNoAcl( Class<T> clazz );
-
     <T extends IdentifiableObject> List<T> getAllNoAcl( Class<T> clazz );
-
-    <T extends IdentifiableObject> List<T> getBetweenNoAcl( Class<T> clazz, int first, int max );
 
     void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations );
 

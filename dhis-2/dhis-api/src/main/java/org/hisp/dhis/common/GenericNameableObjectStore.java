@@ -45,50 +45,10 @@ public interface GenericNameableObjectStore<T>
     T getByShortName( String shortName );
 
     /**
-     * Gets the count of objects which shortName is equal the given shortName.
-     *
-     * @param shortName the shortName which result object shortNames must be like.
-     * @return the count of objects.
-     */
-    int getCountEqShortName( String shortName );
-
-    /**
-     * Gets the count of objects which shortName is like the given shortName.
-     *
-     * @param shortName the shortName which result object shortNames must be like.
-     * @return the count of objects.
-     */
-    int getCountLikeShortName( String shortName );
-
-    /**
-     * Return the number of objects where the name is equal the given name.
-     *
-     * @param shortName the name.
-     * @return Count of objects.
-     */
-    int getCountEqShortNameNoAcl( String shortName );
-
-    /**
-     * Retrieves a List of objects where the shortName is like the given shortName.
-     *
-     * @param shortName the shortName.
-     * @return a List of objects.
-     */
-    List<T> getAllLikeShortName( String shortName );
-
-    /**
      * Retrieves a List of objects where the name is like the given name.
      *
      * @param shortName the name.
      * @return a List of objects.
      */
     List<T> getAllEqShortName( String shortName );
-
-    /**
-     * Retrieves a List of objects where the name is like the given name (ignore case).
-     *
-     * @param shortName the name.
-     * @return a List of objects.
-     */
-    List<T> getAllEqShortNameIgnoreCase( String shortName );
 }
