@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -43,9 +44,11 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +60,7 @@ import java.util.Set;
  * @author bobj
  */
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
-    extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>
+    extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
 
@@ -78,6 +81,60 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void setTransientIdentifiableProperties( boolean transientIdentifiableProperties )
     {
         this.transientIdentifiableProperties = transientIdentifiableProperties;
+    }
+
+    // -------------------------------------------------------------------------
+    // InternalHibernateGenericStore implementation
+    // -------------------------------------------------------------------------
+
+    public final Criteria getDataSharingCriteria()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+    }
+
+    public final Criteria getDataSharingCriteria( String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+    }
+
+    public final Criteria getDataSharingCriteria( User user, String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( UserInfo.fromUser( user ), access ) );
+    }
+
+    public final Criteria getSharingCriteria( String access )
+    {
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+    }
+
+    public final Criteria getSharingCriteria( User user )
+    {
+        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria()
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria( String access )
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
+    {
+        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria( User user )
+    {
+        return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
+    }
+
+    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
+    {
+        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
     }
 
     // -------------------------------------------------------------------------
