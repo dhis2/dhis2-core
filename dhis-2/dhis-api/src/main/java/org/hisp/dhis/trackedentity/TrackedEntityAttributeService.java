@@ -92,23 +92,6 @@ public interface TrackedEntityAttributeService
     TrackedEntityAttribute getTrackedEntityAttributeByName( String name );
 
     /**
-     * Returns a {@link TrackedEntityAttribute} with a given short name.
-     *
-     * @param name the short name of the TrackedEntityAttribute to return.
-     * @return the TrackedEntityAttribute with the given short name, or null if no
-     * match.
-     */
-    TrackedEntityAttribute getTrackedEntityAttributeByShortName( String name );
-
-    /**
-     * Returns a {@link TrackedEntityAttribute} with a given code.
-     *
-     * @param code The code of the TrackedEntityAttribute to return.
-     * @return the TrackedEntityAttribute with the given code, or null if no match.
-     */
-    TrackedEntityAttribute getTrackedEntityAttributeByCode( String code );
-
-    /**
      * Returns all {@link TrackedEntityAttribute}
      *
      * @return a List of all TrackedEntityAttribute, or an empty
