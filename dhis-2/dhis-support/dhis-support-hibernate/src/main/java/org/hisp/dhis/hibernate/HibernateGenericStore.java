@@ -704,47 +704,9 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataReadAll()
-    {
-        return getDataSharingCriteria( AclService.LIKE_READ_DATA ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getDataReadAll( User user )
-    {
-        return getDataSharingCriteria( user, AclService.LIKE_READ_DATA ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getDataWriteAll()
-    {
-        return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getDataWriteAll( User user )
-    {
-        return getDataSharingCriteria( user, AclService.LIKE_WRITE_DATA ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getAll( int first, int max )
     {
         return getSharingCriteria()
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getDataReadAll( int first, int max )
-    {
-        return getDataSharingCriteria()
             .setFirstResult( first )
             .setMaxResults( max )
             .list();

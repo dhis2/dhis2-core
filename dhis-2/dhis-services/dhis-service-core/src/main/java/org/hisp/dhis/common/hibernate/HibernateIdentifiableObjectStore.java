@@ -44,6 +44,8 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -520,6 +522,48 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         return list;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
+    // Data sharing
+    //----------------------------------------------------------------------------------------------------------------
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll()
+    {
+        return getDataSharingCriteria( AclService.LIKE_READ_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll( User user )
+    {
+        return getDataSharingCriteria( user, AclService.LIKE_READ_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataWriteAll()
+    {
+        return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataWriteAll( User user )
+    {
+        return getDataSharingCriteria( user, AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll( int first, int max )
+    {
+        return getDataSharingCriteria()
+            .setFirstResult( first )
+            .setMaxResults( max )
+            .list();
     }
 
     //----------------------------------------------------------------------------------------------------------------
