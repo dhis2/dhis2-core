@@ -112,6 +112,11 @@ div#orgUnitTree
 	</tr>
 
     <tr class="account">
+        <td><label for="twoFA">$i18n.getString( "two_factor_authentication" ) </label></td>
+        <td colspan="3"><input type="checkbox" id="twoFA" name="twoFA" value="true"> </td>
+    </tr>
+
+    <tr class="account">
 		<td><label for="externalAuth">$i18n.getString( "external_authentication_only" ) (OpenID or LDAP)</label></td>
 		<td colspan="3"><input type="checkbox" id="externalAuth" name="externalAuth" value="true" onchange="javascript:externalAuthChanged()"></td>
 	</tr>

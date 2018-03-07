@@ -1064,6 +1064,9 @@ public class TableAlteror
 
         executeSql("alter table jobconfiguration drop column configurable;");
 
+        // 2FA fixes for 2.30
+        executeSql( "ALTER TABLE users alter column secret set not null" );
+
         log.info( "Tables updated" );
 
     }

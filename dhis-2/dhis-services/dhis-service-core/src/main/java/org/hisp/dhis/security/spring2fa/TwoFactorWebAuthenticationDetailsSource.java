@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.filter;
+package org.hisp.dhis.security.spring2fa;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,49 +28,21 @@ package org.hisp.dhis.security.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import java.io.IOException;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Henning Håkonsen
  */
-public class CustomAuthenticationFilter
-    implements Filter
+public class TwoFactorWebAuthenticationDetailsSource
+    implements AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails>
 {
-    public static final String PARAM_MOBILE_VERSION = "mobileVersion";
-    public static final String PARAM_AUTH_ONLY = "authOnly";
-    
     @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
+    public WebAuthenticationDetails buildDetails( HttpServletRequest request )
     {
-    }
-
-    @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException
-    {
-        String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
-        String authOnly = request.getParameter( PARAM_AUTH_ONLY );
-        
-        if ( mobileVersion != null )
-        {
-            request.setAttribute( PARAM_MOBILE_VERSION, mobileVersion );
-        }
-
-        if ( authOnly != null )
-        {
-            request.setAttribute( PARAM_AUTH_ONLY, authOnly );
-        }
-        
-        filterChain.doFilter( request, response );
-    }
-
-    @Override
-    public void destroy()
-    {
+        return new TwoFactorWebAuthenticationDetails( request );
     }
 }
+
