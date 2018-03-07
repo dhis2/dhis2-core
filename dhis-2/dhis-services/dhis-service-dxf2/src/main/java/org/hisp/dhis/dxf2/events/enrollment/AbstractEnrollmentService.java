@@ -467,6 +467,16 @@ public abstract class AbstractEnrollmentService
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
+        if ( !program.isRegistration() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Provided program " + program.getUid() +
+                " is a program without registration. An enrollment cannot be created into program without registration." );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setSkipPaging( true );
@@ -616,6 +626,20 @@ public abstract class AbstractEnrollmentService
         }
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
+
+        if ( !program.isRegistration() )
+        {
+            String descMsg = "Provided program " + program.getUid() +
+                " is a program without registration. An enrollment cannot be created into program without registration.";
+            WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
+
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( descMsg );
+            importSummary.incrementIgnored();
+            importSummary.setWebMessage( webMsg );
+
+            return importSummary;
+        }
 
         programInstance.setProgram( program );
 
