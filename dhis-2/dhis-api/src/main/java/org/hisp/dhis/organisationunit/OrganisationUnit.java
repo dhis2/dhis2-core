@@ -36,32 +36,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Kristian Nordal
@@ -115,7 +102,7 @@ public class OrganisationUnit
 
     private Set<User> users = new HashSet<>();
 
-    private Set<DataElementCategoryOption> categoryOptions = new HashSet<>();
+    private Set<CategoryOption> categoryOptions = new HashSet<>();
 
     private FeatureType featureType = FeatureType.NONE;
 
@@ -268,13 +255,13 @@ public class OrganisationUnit
         user.getOrganisationUnits().remove( this );
     }
 
-    public void addCategoryOption( DataElementCategoryOption categoryOption )
+    public void addCategoryOption( CategoryOption categoryOption )
     {
         categoryOptions.add( categoryOption );
         categoryOption.getOrganisationUnits().add( this );
     }
 
-    public void removeCategoryOption( DataElementCategoryOption categoryOption )
+    public void removeCategoryOption( CategoryOption categoryOption )
     {
         categoryOptions.remove( categoryOption );
         categoryOption.getOrganisationUnits().remove( this );
@@ -1019,12 +1006,12 @@ public class OrganisationUnit
         this.users = users;
     }
 
-    public Set<DataElementCategoryOption> getCategoryOptions()
+    public Set<CategoryOption> getCategoryOptions()
     {
         return categoryOptions;
     }
 
-    public void setCategoryOptions( Set<DataElementCategoryOption> categoryOptions )
+    public void setCategoryOptions( Set<CategoryOption> categoryOptions )
     {
         this.categoryOptions = categoryOptions;
     }

@@ -58,11 +58,11 @@ public class CategoryComboMapTest
 
     private DataElementCategoryOption categoryOptionF;
 
-    private DataElementCategory categoryA;
+    private Category categoryA;
 
-    private DataElementCategory categoryB;
+    private Category categoryB;
 
-    private DataElementCategory categoryC;
+    private Category categoryC;
 
     private DataElementCategoryCombo categoryCombo;
 
@@ -87,9 +87,9 @@ public class CategoryComboMapTest
         categoryOptionE.setAutoFields();
         categoryOptionF.setAutoFields();
 
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
 
         categoryA.setAutoFields();
         categoryB.setAutoFields();

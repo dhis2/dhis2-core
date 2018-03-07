@@ -132,7 +132,7 @@ public class DefaultDataElementCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElementCategory( DataElementCategory dataElementCategory )
+    public int addDataElementCategory( Category dataElementCategory )
     {
         categoryStore.save( dataElementCategory );
 
@@ -140,39 +140,39 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public void updateDataElementCategory( DataElementCategory dataElementCategory )
+    public void updateDataElementCategory( Category dataElementCategory )
     {
         categoryStore.update( dataElementCategory );
     }
 
     @Override
-    public void deleteDataElementCategory( DataElementCategory dataElementCategory )
+    public void deleteDataElementCategory( Category dataElementCategory )
     {
         categoryStore.delete( dataElementCategory );
     }
 
     @Override
-    public List<DataElementCategory> getAllDataElementCategories()
+    public List<Category> getAllDataElementCategories()
     {
         return categoryStore.getAll();
     }
 
     @Override
-    public DataElementCategory getDataElementCategory( int id )
+    public Category getDataElementCategory( int id )
     {
         return categoryStore.get( id );
     }
 
     @Override
-    public DataElementCategory getDataElementCategory( String uid )
+    public Category getDataElementCategory( String uid )
     {
         return categoryStore.getByUid( uid );
     }
 
     @Override
-    public DataElementCategory getDataElementCategoryByName( String name )
+    public Category getDataElementCategoryByName( String name )
     {
-        List<DataElementCategory> dataElementCategories = new ArrayList<>(
+        List<Category> dataElementCategories = new ArrayList<>(
             categoryStore.getAllEqName( name ) );
 
         if ( dataElementCategories.isEmpty() )
@@ -184,31 +184,31 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public DataElementCategory getDefaultDataElementCategory()
+    public Category getDefaultDataElementCategory()
     {
-        return getDataElementCategoryByName( DataElementCategory.DEFAULT_NAME );
+        return getDataElementCategoryByName( Category.DEFAULT_NAME );
     }
 
     @Override
-    public List<DataElementCategory> getDisaggregationCategories()
+    public List<Category> getDisaggregationCategories()
     {
         return categoryStore.getCategoriesByDimensionType( DataDimensionType.DISAGGREGATION );
     }
 
     @Override
-    public List<DataElementCategory> getDisaggregationDataDimensionCategoriesNoAcl()
+    public List<Category> getDisaggregationDataDimensionCategoriesNoAcl()
     {
         return categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true );
     }
 
     @Override
-    public List<DataElementCategory> getAttributeCategories()
+    public List<Category> getAttributeCategories()
     {
         return categoryStore.getCategoriesByDimensionType( DataDimensionType.ATTRIBUTE );
     }
 
     @Override
-    public List<DataElementCategory> getAttributeDataDimensionCategoriesNoAcl()
+    public List<Category> getAttributeDataDimensionCategoriesNoAcl()
     {
         return categoryStore.getCategoriesNoAcl( DataDimensionType.ATTRIBUTE, true );
     }
@@ -268,7 +268,7 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<DataElementCategoryOption> getDataElementCategoryOptions( DataElementCategory category )
+    public List<DataElementCategoryOption> getDataElementCategoryOptions( Category category )
     {
         return categoryOptionStore.getCategoryOptions( category );
     }
@@ -278,13 +278,13 @@ public class DefaultDataElementCategoryService
     {
         Set<DataElementCategoryOption> options = null;
 
-        Set<DataElementCategory> catConstraints = userCredentials.getCatDimensionConstraints();
+        Set<Category> catConstraints = userCredentials.getCatDimensionConstraints();
 
         if ( catConstraints != null && !catConstraints.isEmpty() )
         {
             options = new HashSet<>();
 
-            for ( DataElementCategory category : catConstraints )
+            for ( Category category : catConstraints )
             {
                 options.addAll( getDataElementCategoryOptions( category ) );
             }
@@ -379,7 +379,7 @@ public class DefaultDataElementCategoryService
 
         Set<DataElementCategoryOption> categoryOptions = new HashSet<DataElementCategoryOption>();
 
-        for ( DataElementCategory category : categoryCombo.getCategories() )
+        for ( Category category : categoryCombo.getCategories() )
         {
             if ( category == null || category.getCategoryOptions().isEmpty() )
             {
@@ -479,10 +479,10 @@ public class DefaultDataElementCategoryService
         addDataElementCategoryOption( categoryOption );
 
         // ---------------------------------------------------------------------
-        // DataElementCategory
+        // Category
         // ---------------------------------------------------------------------
 
-        DataElementCategory category = new DataElementCategory( DataElementCategory.DEFAULT_NAME, DataDimensionType.DISAGGREGATION );
+        Category category = new Category( Category.DEFAULT_NAME, DataDimensionType.DISAGGREGATION );
         category.setUid( "GLevLNI9wkl" );
         category.setCode( "default" );
         category.setDataDimension( false );
@@ -548,7 +548,7 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public void updateOptionCombos( DataElementCategory category )
+    public void updateOptionCombos( Category category )
     {
         for ( DataElementCategoryCombo categoryCombo : getAllDataElementCategoryCombos() )
         {

@@ -28,14 +28,14 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -49,9 +49,9 @@ public class DataElementCategoryComboTest
     private DataElementCategoryOption categoryOptionE;
     private DataElementCategoryOption categoryOptionF;
     
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
-    private DataElementCategory categoryC;
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
     
     private DataElementCategoryCombo categoryCombo;
     
@@ -69,9 +69,9 @@ public class DataElementCategoryComboTest
         categoryOptionE = new DataElementCategoryOption( "OptionE" );
         categoryOptionF = new DataElementCategoryOption( "OptionF" );
         
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
         
         categoryA.getCategoryOptions().add( categoryOptionA );
         categoryA.getCategoryOptions().add( categoryOptionB );

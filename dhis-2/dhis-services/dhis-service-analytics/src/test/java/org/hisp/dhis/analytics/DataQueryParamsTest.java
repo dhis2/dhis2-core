@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.Category;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataset.DataSet;
@@ -92,7 +92,7 @@ public class DataQueryParamsTest
 
     private DataElementCategoryOption coA;
     private DataElementCategoryOption coB;
-    private DataElementCategory caA;
+    private Category caA;
     
     @Before
     public void setUpTest()

@@ -322,7 +322,7 @@
   <bean id="org.hisp.dhis.commons.action.GetCategoryOptionCombosAction" class="org.hisp.dhis.commons.action.GetCategoryOptionCombosAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetDataElementAction" class="org.hisp.dhis.commons.action.GetDataElementAction"
@@ -359,13 +359,13 @@
   <bean id="org.hisp.dhis.commons.action.GetDataElementNameAction" class="org.hisp.dhis.commons.action.GetDataElementNameAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetDataElementsAction" class="org.hisp.dhis.commons.action.GetDataElementsAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
@@ -377,7 +377,7 @@
 
   <bean id="org.hisp.dhis.commons.action.GetDataElementCategoriesAction" class="org.hisp.dhis.commons.action.GetDataElementCategoriesAction"
     scope="prototype">
-    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetDataSetsAction" class="org.hisp.dhis.commons.action.GetDataSetsAction"

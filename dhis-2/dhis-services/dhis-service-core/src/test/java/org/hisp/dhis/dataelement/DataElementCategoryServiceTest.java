@@ -28,21 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -57,9 +53,9 @@ public class DataElementCategoryServiceTest
     private DataElementCategoryOption categoryOptionB;
     private DataElementCategoryOption categoryOptionC;
 
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
-    private DataElementCategory categoryC;
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
 
     private DataElementCategoryCombo ccA;
     
@@ -120,9 +116,9 @@ public class DataElementCategoryServiceTest
     @Test
     public void testDelete()
     {
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION, categoryOptions );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, categoryOptions );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
 
         int idA = categoryService.addDataElementCategory( categoryA );
         int idB = categoryService.addDataElementCategory( categoryB );
@@ -156,7 +152,7 @@ public class DataElementCategoryServiceTest
         categoryService.addDataElementCategory( categoryB );
         categoryService.addDataElementCategory( categoryC );
 
-        List<DataElementCategory> categories = categoryService.getAllDataElementCategories();
+        List<Category> categories = categoryService.getAllDataElementCategories();
 
         assertEquals( 4, categories.size() ); // Including default
         assertTrue( categories.contains( categoryA ) );

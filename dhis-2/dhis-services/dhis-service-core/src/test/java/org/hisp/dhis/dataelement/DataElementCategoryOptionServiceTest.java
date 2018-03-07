@@ -28,20 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.DataDimensionType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -57,9 +54,9 @@ public class DataElementCategoryOptionServiceTest
     private DataElementCategoryOption categoryOptionB;
     private DataElementCategoryOption categoryOptionC;
     
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
-    private DataElementCategory categoryC;
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
     
     // -------------------------------------------------------------------------
     // Tests
@@ -146,12 +143,12 @@ public class DataElementCategoryOptionServiceTest
         optionsA.add( categoryOptionB );
         optionsB.add( categoryOptionC );
         
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION, optionsA );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION, optionsB );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, optionsA );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, optionsB );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
         
-        Set<DataElementCategory> categoriesA = new HashSet<>();
-        Set<DataElementCategory> categoriesB = new HashSet<>();
+        Set<Category> categoriesA = new HashSet<>();
+        Set<Category> categoriesB = new HashSet<>();
         
         categoriesA.add( categoryA );
         categoriesB.add( categoryB );

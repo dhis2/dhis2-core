@@ -28,19 +28,16 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.DataDimensionType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -50,7 +47,7 @@ public class DataElementCategoryComboServiceTest
     extends DhisSpringTest
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
     
     private DataElementCategoryOption categoryOptionA;
     private DataElementCategoryOption categoryOptionB;
@@ -60,15 +57,15 @@ public class DataElementCategoryComboServiceTest
     private DataElementCategoryOption categoryOptionF;
     private DataElementCategoryOption categoryOptionG;
     
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
-    private DataElementCategory categoryC;
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
     
     private DataElementCategoryCombo categoryComboA;
     private DataElementCategoryCombo categoryComboB;
     private DataElementCategoryCombo categoryComboC;
     
-    private List<DataElementCategory> categories;
+    private List<Category> categories;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -95,9 +92,9 @@ public class DataElementCategoryComboServiceTest
         categoryService.addDataElementCategoryOption( categoryOptionF );
         categoryService.addDataElementCategoryOption( categoryOptionG );
         
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
         
         categoryA.addCategoryOption( categoryOptionA );
         categoryA.addCategoryOption( categoryOptionB );
@@ -126,59 +123,59 @@ public class DataElementCategoryComboServiceTest
         categoryComboB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new DataElementCategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
         
-        int idA = categoryService.addDataElementCategoryCombo( categoryComboA );
-        int idB = categoryService.addDataElementCategoryCombo( categoryComboB );
-        int idC = categoryService.addDataElementCategoryCombo( categoryComboC );
+        int idA = categoryService.addCategoryCombo( categoryComboA );
+        int idB = categoryService.addCategoryCombo( categoryComboB );
+        int idC = categoryService.addCategoryCombo( categoryComboC );
         
-        assertEquals( categoryComboA, categoryService.getDataElementCategoryCombo( idA ) );
-        assertEquals( categoryComboB, categoryService.getDataElementCategoryCombo( idB ) );
-        assertEquals( categoryComboC, categoryService.getDataElementCategoryCombo( idC ) );
+        assertEquals( categoryComboA, categoryService.getCategoryCombo( idA ) );
+        assertEquals( categoryComboB, categoryService.getCategoryCombo( idB ) );
+        assertEquals( categoryComboC, categoryService.getCategoryCombo( idC ) );
         
-        assertEquals( categories, categoryService.getDataElementCategoryCombo( idA ).getCategories() );
-        assertEquals( categories, categoryService.getDataElementCategoryCombo( idB ).getCategories() );
-        assertEquals( categories, categoryService.getDataElementCategoryCombo( idC ).getCategories() );        
+        assertEquals( categories, categoryService.getCategoryCombo( idA ).getCategories() );
+        assertEquals( categories, categoryService.getCategoryCombo( idB ).getCategories() );
+        assertEquals( categories, categoryService.getCategoryCombo( idC ).getCategories() );
     }
 
     @Test
     public void testDelete()
     {
-        categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
-        categoryComboB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
-        categoryComboC = new DataElementCategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
         
-        int idA = categoryService.addDataElementCategoryCombo( categoryComboA );
-        int idB = categoryService.addDataElementCategoryCombo( categoryComboB );
-        int idC = categoryService.addDataElementCategoryCombo( categoryComboC );
+        int idA = categoryService.addCategoryCombo( categoryComboA );
+        int idB = categoryService.addCategoryCombo( categoryComboB );
+        int idC = categoryService.addCategoryCombo( categoryComboC );
         
-        assertNotNull( categoryService.getDataElementCategoryCombo( idA ) );
-        assertNotNull( categoryService.getDataElementCategoryCombo( idB ) );
-        assertNotNull( categoryService.getDataElementCategoryCombo( idC ) );
+        assertNotNull( categoryService.getCategoryCombo( idA ) );
+        assertNotNull( categoryService.getCategoryCombo( idB ) );
+        assertNotNull( categoryService.getCategoryCombo( idC ) );
         
-        categoryService.deleteDataElementCategoryCombo( categoryComboA );
+        categoryService.deleteCategoryCombo( categoryComboA );
 
-        assertNull( categoryService.getDataElementCategoryCombo( idA ) );
-        assertNotNull( categoryService.getDataElementCategoryCombo( idB ) );
-        assertNotNull( categoryService.getDataElementCategoryCombo( idC ) );
+        assertNull( categoryService.getCategoryCombo( idA ) );
+        assertNotNull( categoryService.getCategoryCombo( idB ) );
+        assertNotNull( categoryService.getCategoryCombo( idC ) );
         
-        categoryService.deleteDataElementCategoryCombo( categoryComboB );
+        categoryService.deleteCategoryCombo( categoryComboB );
 
-        assertNull( categoryService.getDataElementCategoryCombo( idA ) );
-        assertNull( categoryService.getDataElementCategoryCombo( idB ) );
-        assertNotNull( categoryService.getDataElementCategoryCombo( idC ) );        
+        assertNull( categoryService.getCategoryCombo( idA ) );
+        assertNull( categoryService.getCategoryCombo( idB ) );
+        assertNotNull( categoryService.getCategoryCombo( idC ) );
     }
 
     @Test
     public void testGetAll()
     {
-        categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
-        categoryComboB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
-        categoryComboC = new DataElementCategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
         
-        categoryService.addDataElementCategoryCombo( categoryComboA );
-        categoryService.addDataElementCategoryCombo( categoryComboB );
-        categoryService.addDataElementCategoryCombo( categoryComboC );
+        categoryService.addCategoryCombo( categoryComboA );
+        categoryService.addCategoryCombo( categoryComboB );
+        categoryService.addCategoryCombo( categoryComboC );
         
-        List<DataElementCategoryCombo> categoryCombos = categoryService.getAllDataElementCategoryCombos();
+        List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
         
         assertEquals( 4, categoryCombos.size() ); // Including default
         assertTrue( categoryCombos.contains( categoryComboA ) );
@@ -189,12 +186,12 @@ public class DataElementCategoryComboServiceTest
     @Test
     public void testGenerateCategoryOptionCombos()
     {        
-        categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
+        categoryService.addCategoryCombo( categoryComboA );
         
         categoryService.generateOptionCombos( categoryComboA );
         
-        Set<DataElementCategoryOptionCombo> optionCombos = categoryComboA.getOptionCombos();
+        Set<CategoryOptionCombo> optionCombos = categoryComboA.getOptionCombos();
         
         assertEquals( 8, optionCombos.size() );
         
@@ -204,8 +201,8 @@ public class DataElementCategoryComboServiceTest
     @Test
     public void testUpdateCategoryOptionCombosA()
     {
-        categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
+        categoryService.addCategoryCombo( categoryComboA );
         
         categoryService.generateOptionCombos( categoryComboA );
         
@@ -214,7 +211,7 @@ public class DataElementCategoryComboServiceTest
         assertOptionCombos( categoryComboA.getOptionCombos() );
         
         categoryC.addCategoryOption( categoryOptionG );
-        categoryService.updateDataElementCategory( categoryC );
+        categoryService.updateCategory( categoryC );
         
         categoryService.updateOptionCombos( categoryComboA );
         
@@ -231,8 +228,8 @@ public class DataElementCategoryComboServiceTest
     @Test
     public void testUpdateCategoryOptionCombosB()
     {
-        categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
+        categoryService.addCategoryCombo( categoryComboA );
         
         categoryService.generateOptionCombos( categoryComboA );
         
@@ -250,8 +247,8 @@ public class DataElementCategoryComboServiceTest
     @Test
     public void testUpdateCategoryOptionCombosC()
     {
-        categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
+        categoryService.addCategoryCombo( categoryComboA );
         
         categoryService.generateOptionCombos( categoryComboA );
         
@@ -260,7 +257,7 @@ public class DataElementCategoryComboServiceTest
         assertOptionCombos( categoryComboA.getOptionCombos() );
         
         categoryC.addCategoryOption( categoryOptionG );
-        categoryService.updateDataElementCategory( categoryC );
+        categoryService.updateCategory( categoryC );
         
         categoryService.updateOptionCombos( categoryC );
         
@@ -274,7 +271,7 @@ public class DataElementCategoryComboServiceTest
         assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG ) ) );
     }
   
-    private void assertOptionCombos( Set<DataElementCategoryOptionCombo> optionCombos )
+    private void assertOptionCombos( Set<CategoryOptionCombo> optionCombos )
     {
         assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionE ) ) );
         assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionF ) ) );

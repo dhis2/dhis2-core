@@ -56,8 +56,8 @@ public class DataElementCategoryOptionComboServiceTest
     @Autowired
     private AttributeService attributeService;
 
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
+    private Category categoryA;
+    private Category categoryB;
 
     private DataElementCategoryCombo categoryComboA;
     private DataElementCategoryCombo categoryComboB;
@@ -89,8 +89,8 @@ public class DataElementCategoryOptionComboServiceTest
         categoryService.addDataElementCategoryOption( categoryOptionC );
         categoryService.addDataElementCategoryOption( categoryOptionD );
 
-        categoryA = new DataElementCategory( "Gender", DataDimensionType.DISAGGREGATION );
-        categoryB = new DataElementCategory( "Agegroup", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "Gender", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "Agegroup", DataDimensionType.DISAGGREGATION );
 
         categoryA.addCategoryOption( categoryOptionA );
         categoryA.addCategoryOption( categoryOptionB );

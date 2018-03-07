@@ -28,11 +28,11 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+
+import java.util.Collection;
 
 /**
  * When storing DataValues without associated dimensions there is a need to
@@ -76,13 +76,13 @@ public class DataElementDefaultDimensionPopulator
     @Override
     public void executeInTransaction()
     {
-        DataElementCategory defaultCategory = categoryService.getDataElementCategoryByName( DataElementCategory.DEFAULT_NAME );
+        Category defaultCategory = categoryService.getDataElementCategoryByName( Category.DEFAULT_NAME );
 
         if ( defaultCategory == null )
         {
             categoryService.generateDefaultDimension();
 
-            defaultCategory = categoryService.getDataElementCategoryByName( DataElementCategory.DEFAULT_NAME );
+            defaultCategory = categoryService.getDataElementCategoryByName( Category.DEFAULT_NAME );
 
             log.info( "Added default category" );
         }

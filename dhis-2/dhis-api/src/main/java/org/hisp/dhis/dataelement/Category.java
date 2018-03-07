@@ -55,33 +55,33 @@ import java.util.List;
  * @author Abyot Asalefew
  */
 @JacksonXmlRootElement( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElementCategory
+public class Category
     extends BaseDimensionalObject implements MetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 
     private DataDimensionType dataDimensionType;
 
-    private List<DataElementCategoryOption> categoryOptions = new ArrayList<>();
+    private List<CategoryOption> categoryOptions = new ArrayList<>();
 
-    private List<DataElementCategoryCombo> categoryCombos = new ArrayList<>();
+    private List<CategoryCombo> categoryCombos = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public DataElementCategory()
+    public Category()
     {
 
     }
 
-    public DataElementCategory( String name, DataDimensionType dataDimensionType )
+    public Category( String name, DataDimensionType dataDimensionType )
     {
         this.dataDimensionType = dataDimensionType;
         this.name = name;
     }
 
-    public DataElementCategory( String name, DataDimensionType dataDimensionType, List<DataElementCategoryOption> categoryOptions )
+    public Category( String name, DataDimensionType dataDimensionType, List<CategoryOption> categoryOptions )
     {
         this( name, dataDimensionType );
         this.categoryOptions = categoryOptions;
@@ -91,13 +91,13 @@ public class DataElementCategory
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addCategoryOption( DataElementCategoryOption dataElementCategoryOption )
+    public void addCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptions.add( dataElementCategoryOption );
         dataElementCategoryOption.getCategories().add( this );
     }
 
-    public void removeCategoryOption( DataElementCategoryOption dataElementCategoryOption )
+    public void removeCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptions.remove( dataElementCategoryOption );
         dataElementCategoryOption.getCategories().remove( this );
@@ -105,7 +105,7 @@ public class DataElementCategory
 
     public void removeAllCategoryOptions()
     {
-        for ( DataElementCategoryOption categoryOption : categoryOptions )
+        for ( CategoryOption categoryOption : categoryOptions )
         {
             categoryOption.getCategories().remove( this );
         }
@@ -113,13 +113,13 @@ public class DataElementCategory
         categoryOptions.clear();
     }
 
-    public void addCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void addCategoryCombo( CategoryCombo categoryCombo )
     {
         categoryCombos.add( categoryCombo );
         categoryCombo.getCategories().add( this );
     }
 
-    public void removeCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void removeCategoryCombo( CategoryCombo categoryCombo )
     {
         categoryCombos.remove( categoryCombo );
         categoryCombo.getCategories().remove( this );
@@ -127,7 +127,7 @@ public class DataElementCategory
 
     public void removeAllCategoryCombos()
     {
-        for ( DataElementCategoryCombo categoryCombo : categoryCombos )
+        for ( CategoryCombo categoryCombo : categoryCombos )
         {
             categoryCombo.getCategories().remove( this );
         }
@@ -135,9 +135,9 @@ public class DataElementCategory
         categoryCombos.clear();
     }
 
-    public DataElementCategoryOption getCategoryOption( DataElementCategoryOptionCombo categoryOptionCombo )
+    public CategoryOption getCategoryOption( CategoryOptionCombo categoryOptionCombo )
     {
-        for ( DataElementCategoryOption categoryOption : categoryOptions )
+        for ( CategoryOption categoryOption : categoryOptions )
         {
             if ( categoryOption.getCategoryOptionCombos().contains( categoryOptionCombo ) )
             {
@@ -206,12 +206,12 @@ public class DataElementCategory
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOption> getCategoryOptions()
+    public List<CategoryOption> getCategoryOptions()
     {
         return categoryOptions;
     }
 
-    public void setCategoryOptions( List<DataElementCategoryOption> categoryOptions )
+    public void setCategoryOptions( List<CategoryOption> categoryOptions )
     {
         this.categoryOptions = categoryOptions;
     }
@@ -220,12 +220,12 @@ public class DataElementCategory
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryCombo> getCategoryCombos()
+    public List<CategoryCombo> getCategoryCombos()
     {
         return categoryCombos;
     }
 
-    public void setCategoryCombos( List<DataElementCategoryCombo> categoryCombos )
+    public void setCategoryCombos( List<CategoryCombo> categoryCombos )
     {
         this.categoryCombos = categoryCombos;
     }
