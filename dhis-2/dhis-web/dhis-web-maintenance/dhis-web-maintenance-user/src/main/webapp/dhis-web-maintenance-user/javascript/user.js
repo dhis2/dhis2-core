@@ -329,9 +329,15 @@ function searchOuTreePopup() {
 }
 
 function initializeTree( ) {
-	var selectedOus = [];
-	for(var i=0; i<userJsonObject.teiSearchOrganisationUnits.length; i++){
-		selectedOus.push(userJsonObject.teiSearchOrganisationUnits[i].id);
-	}	
+    var selectedOus = [];
+	selection.clearSelected();
+	selection.setOfflineLevel( 1 );
+	selection.setMultipleSelectionAllowed( true );
+	selection.setUnselectAllowed( true );
+	selection.setAutoSelectRoot( false );
+
+		for(var i=0; i<userJsonObject.teiSearchOrganisationUnits.length; i++){
+			selectedOus.push(userJsonObject.teiSearchOrganisationUnits[i].id);
+		}
 	selection.setSelected( selectedOus );
 }
