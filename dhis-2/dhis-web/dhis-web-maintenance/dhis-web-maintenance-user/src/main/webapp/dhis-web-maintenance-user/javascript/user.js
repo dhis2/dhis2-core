@@ -33,14 +33,11 @@ function filterUsers() {
 // View details
 // -----------------------------------------------------------------------------
 function checkPasswordForUsername() {
-
 	checkPassword("username", "rawPassword");
-
 }
 
 function checkPasswordForEmail() {
 	checkPassword("email", "rawPassword");
-
 }
 
 function showUpdateUserForm( context ) {
@@ -167,7 +164,7 @@ function externalAuthChanged() {
 	else {
 		$('#rawPassword, #retypePassword').prop('disabled', false);
 	}
-}		
+}
 
 // -----------------------------------------------------------------------------
 // Remove user

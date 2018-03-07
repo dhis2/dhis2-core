@@ -28,11 +28,11 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,6 +133,9 @@ public class InitTableAlteror
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
         updateTrackedEntityAttributePatternAndTextPattern();
 
+        // 2FA fixes for 2.30
+        executeSql( "UPDATE users set twofa = false where twofa is null" );
+        executeSql( "ALTER TABLE  users alter column twofa set not null" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
@@ -170,7 +173,6 @@ public class InitTableAlteror
         executeSql( "UPDATE messageconversation SET messagetype = 'PRIVATE' WHERE messagetype IS NULL" );
 
         executeSql( "ALTER TABLE messageconversation ALTER COLUMN messagetype set not null" );
-
     }
 
     private void updateLegendSetAssociationAndDeleteOldAssociation()
