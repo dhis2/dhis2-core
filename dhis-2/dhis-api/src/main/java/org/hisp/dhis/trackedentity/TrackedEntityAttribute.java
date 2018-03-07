@@ -15,8 +15,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
 
@@ -98,11 +96,6 @@ public class TrackedEntityAttribute
     private Boolean orgunitScope = false;
 
     private Boolean programScope = false;
-
-    /**
-     * Represents how the client should render the TrackedEntityAttribute
-     */
-    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -437,16 +430,4 @@ public class TrackedEntityAttribute
         return isUnique() && !getProgramScope() && !getOrgunitScope();
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
-    {
-        return renderType;
-    }
-
-    public void setRenderType(
-        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
-    {
-        this.renderType = renderType;
-    }
 }

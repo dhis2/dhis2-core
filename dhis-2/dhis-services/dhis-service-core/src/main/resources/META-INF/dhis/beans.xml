@@ -935,7 +935,6 @@
   <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationService"
     class="org.hisp.dhis.dataset.DefaultCompleteDataSetRegistrationService">
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
-    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
@@ -1646,9 +1645,7 @@
 
   <bean id="org.hisp.dhis.i18n.I18nManager" class="org.hisp.dhis.i18n.ui.DefaultI18nManager">
     <property name="resourceBundleManager" ref="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" />
-    <property name="localeManager">
-      <ref bean="org.hisp.dhis.i18n.locale.LocaleManager" />
-    </property>
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" class="org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager">
@@ -1680,6 +1677,13 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="name" value="PeriodTypePopulator" />
     <property name="runlevel" value="2" />
+  </bean>
+
+  <bean id="twoFAPopulator" class="org.hisp.dhis.startup.TwoFAPopulator">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="runlevel" value="2" />
+    <property name="skipInTests" value="true" />
   </bean>
 
   <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">

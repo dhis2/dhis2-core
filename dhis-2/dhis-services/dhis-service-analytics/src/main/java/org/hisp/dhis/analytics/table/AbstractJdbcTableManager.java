@@ -184,7 +184,7 @@ public abstract class AbstractJdbcTableManager
     {
         table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
         
-        dropTable( table.getTempTableName() );
+        dropTableCascade( table.getTempTableName() );
     }
     
     @Override

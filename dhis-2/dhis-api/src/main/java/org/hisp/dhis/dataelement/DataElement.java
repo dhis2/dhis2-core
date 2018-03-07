@@ -162,11 +162,6 @@ public class DataElement
      */
     private ObjectStyle style;
 
-    /**
-     * The RenderType defines how the DataElement should be rendered
-     */
-    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -744,18 +739,5 @@ public class DataElement
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
-    {
-        return renderType;
-    }
-
-    public void setRenderType(
-        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
-    {
-        this.renderType = renderType;
     }
 }

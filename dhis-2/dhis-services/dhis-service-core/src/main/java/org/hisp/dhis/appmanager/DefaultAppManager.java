@@ -62,10 +62,10 @@ public class DefaultAppManager
     private CurrentUserService currentUserService;
 
     @Autowired
-    private LocalAppStorageService LocalAppStorageService;
+    private LocalAppStorageService localAppStorageService;
 
     @Autowired
-    private org.hisp.dhis.appmanager.JCloudsAppStorageService jCloudsAppStorageService;
+    private JCloudsAppStorageService jCloudsAppStorageService;
 
     @Autowired
     private KeyJsonValueService keyJsonValueService;
@@ -77,13 +77,22 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        Collection<App> apps = this.getAppMap().values();
-
+        List<App> apps = Lists.newArrayList( getAppMap().values() );
+        
         apps.forEach( a -> a.init( contextPath ) );
-
-        return Lists.newArrayList( apps );
+        
+        return apps;
     }
 
+    @Override
+    public List<App> getApps( AppType appType, int max )
+    {
+        return getApps( null ).stream()
+            .filter( app -> appType == app.getAppType() )
+            .limit( max )
+            .collect( Collectors.toList() );
+    }
+    
     @Override
     public App getApp( String appName )
     {
@@ -225,7 +234,7 @@ public class DefaultAppManager
     @Override
     public void reloadApps()
     {
-        LocalAppStorageService.discoverInstalledApps();
+        localAppStorageService.discoverInstalledApps();
         jCloudsAppStorageService.discoverInstalledApps();
     }
 
@@ -271,7 +280,7 @@ public class DefaultAppManager
     {
         if ( app != null && app.getAppStorageSource().equals( AppStorageSource.LOCAL ) )
         {
-            return LocalAppStorageService;
+            return localAppStorageService;
         }
         else
         {
@@ -284,7 +293,7 @@ public class DefaultAppManager
         Map<String, App> apps = new HashMap<>();
 
         apps.putAll( jCloudsAppStorageService.getApps() );
-        apps.putAll( LocalAppStorageService.getApps() );
+        apps.putAll( localAppStorageService.getApps() );
 
         return apps;
     }
@@ -294,7 +303,7 @@ public class DefaultAppManager
         Map<String, App> apps = new HashMap<>();
 
         apps.putAll( jCloudsAppStorageService.getReservedNamespaces() );
-        apps.putAll( LocalAppStorageService.getReservedNamespaces() );
+        apps.putAll( localAppStorageService.getReservedNamespaces() );
 
         return apps;
     }

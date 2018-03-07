@@ -1,4 +1,4 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,12 +28,52 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+
 /**
- * This class represents the different ways to render a ProgramStageSection
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ProgramStageSectionRenderType
+public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
-    LISTING,
-    SEQUENTIAL,
-    MATRIX
+    @Override
+    public void postCreate( IdentifiableObject object, ObjectBundle bundle )
+    {
+        if ( !Program.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        syncSharingForEventProgram( (Program) object );
+    }
+
+    @Override
+    public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
+    {
+        if ( !Program.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        syncSharingForEventProgram( (Program) object );
+    }
+
+    private void syncSharingForEventProgram( Program program )
+    {
+        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
+            || program.getProgramStages().isEmpty() )
+        {
+            return;
+        }
+
+        ProgramStage programStage = program.getProgramStages().iterator().next();
+        AccessStringHelper.copySharing( program, programStage );
+
+        programStage.setUser( program.getUser() );
+        sessionFactory.getCurrentSession().update( programStage );
+    }
 }

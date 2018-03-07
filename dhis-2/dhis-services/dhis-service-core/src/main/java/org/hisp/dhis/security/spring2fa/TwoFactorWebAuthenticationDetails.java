@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.security.spring2fa;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,31 +28,41 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Henning Håkonsen
+ * @author Lars Helge Øverland
  */
-public class InterpretableObjectObjectBundleHook
-    extends AbstractObjectBundleHook
+public class TwoFactorWebAuthenticationDetails
+    extends WebAuthenticationDetails
 {
-    @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+
+    private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+
+    private String code;
+
+    private String ip;
+
+    TwoFactorWebAuthenticationDetails( HttpServletRequest request )
     {
-        if ( !InterpretableObject.class.isInstance( persistedObject ) )
-        {
-            return;
-        }
+        super( request );
+        code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
+        ip = ObjectUtils.firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
+    }
 
-        InterpretableObject interpretableObject = (InterpretableObject) persistedObject;
-        Session session = sessionFactory.getCurrentSession();
+    public String getCode()
+    {
+        return code;
+    }
 
-        interpretableObject.getInterpretations().forEach( interpretation -> {
-            interpretation.updateSharing();
-            session.update( interpretation );
-        } );
+    public String getIp()
+    {
+        return ip;
     }
 }
+

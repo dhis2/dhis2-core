@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -102,12 +104,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 {
     private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
 
-    private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen
-                                                         // from dxf2
-                                                         // DefaultDataValueSetService
+    private static final int CACHE_MISS_THRESHOLD = 500;
 
-    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME,
-        IdScheme.CODE );
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -151,6 +150,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private AggregateAccessManager accessManager;
+
+    @Autowired
+    private DataSetNotificationEventPublisher notificationPublisher;
+
+    @Autowired
+    private MessageService messageService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -518,7 +523,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
                 mdProps.orgUnit, mdProps.attrOptCombo, false );
 
-
             if( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
@@ -612,6 +616,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                         if ( !isDryRun )
                         {
                             added = batchHandler.addObject( internalCdsr );
+
+                            if ( added )
+                            {
+                                sendNotifications( config, internalCdsr );
+                            }
                         }
 
                         if ( isDryRun || added )
@@ -659,6 +668,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             throw new ImportConflictException( new ImportConflict( mdProps.orgUnit.getUid(),
                 "Organisation unit is not in hierarchy of user: " + currentUsername ) );
+        }
+    }
+
+    private void sendNotifications( ImportConfig config, CompleteDataSetRegistration registration )
+    {
+        if ( !config.skipNotifications )
+        {
+            if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
+            {
+                messageService.sendCompletenessMessage( registration );
+            }
+
+            notificationPublisher.publishEvent( registration );
         }
     }
 
@@ -927,7 +949,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         ImportStrategy strategy;
 
         boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits,
-            requireAttrOptionCombos;
+            requireAttrOptionCombos, skipNotifications;
 
         DataElementCategoryOptionCombo fallbackCatOptCombo;
 
@@ -944,6 +966,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 : options.getImportStrategy();
 
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
+
+            skipNotifications = options.isSkipNotifications();
 
             skipExistingCheck = options.isSkipExistingCheck();
 

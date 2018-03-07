@@ -8,7 +8,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -68,13 +67,6 @@ public class DefaultCompleteDataSetRegistrationService
         this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
     }
 
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
-
     private DataElementCategoryService categoryService;
 
     public void setCategoryService( DataElementCategoryService categoryService )
@@ -110,32 +102,8 @@ public class DefaultCompleteDataSetRegistrationService
         }
 
         completeDataSetRegistrationStore.saveCompleteDataSetRegistration( registration );
-    }
-
-    @Override
-    public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration, boolean skipNotification )
-    {
-        saveCompleteDataSetRegistration( registration );
-
-        if ( !skipNotification )
-        {
-            if ( registration.getDataSet() != null && registration.getDataSet().isNotifyCompletingUser() )
-            {
-                messageService.sendCompletenessMessage( registration );
-            }
-
-            notificationEventPublisher.publishEvent( registration );
-        }
-    }
-
-    @Override
-    public void saveCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations,
-        boolean skipNotification )
-    {
-        for ( CompleteDataSetRegistration registration : registrations )
-        {
-            saveCompleteDataSetRegistration( registration, skipNotification );
-        }
+        
+        notificationEventPublisher.publishEvent( registration );
     }
 
     @Override
@@ -171,13 +139,6 @@ public class DefaultCompleteDataSetRegistrationService
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
         return completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations();
-    }
-
-    @Override
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations( Collection<DataSet> dataSets,
-        Collection<OrganisationUnit> sources, Collection<Period> periods )
-    {
-        return completeDataSetRegistrationStore.getCompleteDataSetRegistrations( dataSets, sources, periods );
     }
 
     @Override
@@ -251,8 +212,7 @@ public class DefaultCompleteDataSetRegistrationService
                     }
                     else
                     {
-                        if ( dataValues.getValue( organisationUnit, period, attributeOptionCombo.getUid(),
-                            dataElementOperand ) == null )
+                        if ( dataValues.getValue( organisationUnit, period, attributeOptionCombo.getUid(), dataElementOperand ) == null )
                         {
                             missingDataElementOperands.add( dataElementOperand );
                         }
