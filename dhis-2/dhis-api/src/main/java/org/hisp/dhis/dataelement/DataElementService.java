@@ -235,22 +235,6 @@ public interface DataElementService
     List<DataElementGroup> getAllDataElementGroups();
 
     /**
-     * Returns a DataElementGroup with a given short name.
-     *
-     * @param shortName the short name of the DataElementGroup to return.
-     * @return the DataElementGroup with the given short name, or null if no match.
-     */
-    DataElementGroup getDataElementGroupByShortName( String shortName );
-
-    /**
-     * Returns a DataElementGroup with a given code.
-     *
-     * @param code the shortName of the DataElementGroup to return.
-     * @return the DataElementGroup with the given code, or null if no match.
-     */
-    DataElementGroup getDataElementGroupByCode( String code );
-
-    /**
      * Returns all DataElements which zeroIsSignificant property is true or false.
      *
      * @param zeroIsSignificant whether zero is significant is true for this query.

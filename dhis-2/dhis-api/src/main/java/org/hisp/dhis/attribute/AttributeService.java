@@ -30,7 +30,6 @@ package org.hisp.dhis.attribute;
 
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.feedback.ErrorReport;
 
 import java.util.List;
 import java.util.Set;
@@ -144,30 +143,6 @@ public interface AttributeService
      * @return the attribute value with the given id.
      */
     AttributeValue getAttributeValue( int id );
-
-    /**
-     * Gets all attribute values.
-     *
-     * @return a set with all attribute values.
-     */
-    List<AttributeValue> getAllAttributeValues();
-
-    List<AttributeValue> getAllAttributeValuesByAttributes( List<Attribute> attributes );
-
-    List<AttributeValue> getAllAttributeValuesByAttribute( Attribute attribute );
-
-    List<AttributeValue> getAllAttributeValuesByAttributeAndValue( Attribute attribute, String value );
-
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( T object, AttributeValue attributeValue );
-
-    /**
-     * Gets the number of attribute values.
-     *
-     * @return the number of attribute values.
-     */
-    int getAttributeValueCount();
-
-    <T extends IdentifiableObject> List<ErrorReport> validateAttributeValues( T object, Set<AttributeValue> attributeValues );
 
     <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception;
 
