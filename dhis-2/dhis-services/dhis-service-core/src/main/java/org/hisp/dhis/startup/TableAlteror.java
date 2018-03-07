@@ -1067,6 +1067,9 @@ public class TableAlteror
         updateDimensionFilterToText();
         
         insertDefaultBoundariesForBoundlessProgramIndicators();
+        
+        executeSql( "UPDATE trackedentitytype SET publicaccess='rwrw----' WHERE publicaccess IS NULL;" );
+        executeSql( "UPDATE programstage SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
 
         executeSql("alter table jobconfiguration drop column configurable;");
 
