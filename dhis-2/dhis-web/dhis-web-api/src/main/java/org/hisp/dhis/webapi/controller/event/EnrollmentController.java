@@ -269,7 +269,7 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/cancelled", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void cancelEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
+    public void cancelEnrollment( @PathVariable String id ) throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
@@ -281,7 +281,7 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/completed", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void completeEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
+    public void completeEnrollment( @PathVariable String id ) throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
@@ -293,7 +293,7 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/incompleted", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void incompleteEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
+    public void incompleteEnrollment( @PathVariable String id ) throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {

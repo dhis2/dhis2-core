@@ -368,6 +368,12 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
+        if ( teiService.trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Tracked entity instance ID " + dtoEntityInstance.getTrackedEntityInstance() + " was already used. The ID is unique and cannot be used more than once" ).setReference( dtoEntityInstance.getTrackedEntityInstance() ).incrementIgnored();
+        }
+
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
 
         dtoEntityInstance.trimValuesToNull();

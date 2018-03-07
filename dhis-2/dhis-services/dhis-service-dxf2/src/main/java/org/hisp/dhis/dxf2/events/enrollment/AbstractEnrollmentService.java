@@ -382,6 +382,12 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
+        if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Enrollment ID " + enrollment.getEnrollment() + " was already used. The ID is unique and cannot be used more than once" ).setReference( enrollment.getEnrollment() ).incrementIgnored();
+        }
+
         if ( daoTrackedEntityInstance == null )
         {
             daoTrackedEntityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );

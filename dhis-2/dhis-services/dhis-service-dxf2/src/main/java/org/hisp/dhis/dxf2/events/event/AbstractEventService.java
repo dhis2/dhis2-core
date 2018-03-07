@@ -262,27 +262,7 @@ public abstract class AbstractEventService
 
         for ( List<Event> _events : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> dataElements = new HashSet<>();
-            events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
-
-            if ( !dataElements.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", dataElements ) );
-                queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
-            }
+            prepareCaches( user, _events );
 
             for ( Event event : _events )
             {
@@ -330,11 +310,17 @@ public abstract class AbstractEventService
         return addEvent( event, currentUserService.getCurrentUser(), importOptions );
     }
 
-    protected ImportSummary addEvent( Event event, User user, ImportOptions importOptions )
+    private ImportSummary addEvent( Event event, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
+        }
+
+        if ( programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Event ID " + event.getEvent() + " was already used. The ID is unique and cannot be used more than once" ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
@@ -938,27 +924,7 @@ public abstract class AbstractEventService
 
         for ( List<Event> _events : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> dataElements = new HashSet<>();
-            events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
-
-            if ( !dataElements.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", dataElements ) );
-                queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
-            }
+            prepareCaches( user, _events );
 
             for ( Event event : _events )
             {
@@ -1338,6 +1304,31 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private void prepareCaches( User user, List<Event> events )
+    {
+        // prepare caches
+        Collection<String> orgUnits = events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
+
+        if ( !orgUnits.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", orgUnits ) );
+            queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
+        }
+
+        Collection<String> dataElements = new HashSet<>();
+        events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
+
+        if ( !dataElements.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", dataElements ) );
+            queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
+        }
+    }
 
     private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
     {
