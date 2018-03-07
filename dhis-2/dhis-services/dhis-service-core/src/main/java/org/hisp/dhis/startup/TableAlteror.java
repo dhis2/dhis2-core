@@ -324,6 +324,12 @@ public class TableAlteror
         executeSql( "UPDATE section SET showcolumntotals = false WHERE showcolumntotals IS NULL" );
         executeSql( "UPDATE dataelement SET aggregationtype='avg_sum_org_unit' where aggregationtype='average'" );
 
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_SUM_INT'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_SUM_INT_DISAGGREGATION'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_INT'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_INT_DISAGGREGATION'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_BOOL'" );
+
         // revert prepare aggregate*Value tables for offline diffs
 
         executeSql( "ALTER TABLE aggregateddatavalue DROP COLUMN modified" );
