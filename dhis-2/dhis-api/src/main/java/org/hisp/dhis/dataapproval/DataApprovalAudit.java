@@ -31,7 +31,7 @@ package org.hisp.dhis.dataapproval;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
@@ -79,7 +79,7 @@ public class DataApprovalAudit
     /**
      * The attribute category option combo being approved (optional).
      */
-    private DataElementCategoryOptionCombo attributeOptionCombo;
+    private CategoryOptionCombo attributeOptionCombo;
 
     /**
      * Type of data approval action done.
@@ -181,12 +181,12 @@ public class DataApprovalAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryOptionCombo getAttributeOptionCombo()
+    public CategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }

@@ -43,27 +43,27 @@ import static org.junit.Assert.*;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class DataElementCategoryComboServiceTest
+public class CategoryComboServiceTest
     extends DhisSpringTest
 {
     @Autowired
     private CategoryService categoryService;
     
-    private DataElementCategoryOption categoryOptionA;
-    private DataElementCategoryOption categoryOptionB;
-    private DataElementCategoryOption categoryOptionC;
-    private DataElementCategoryOption categoryOptionD;
-    private DataElementCategoryOption categoryOptionE;
-    private DataElementCategoryOption categoryOptionF;
-    private DataElementCategoryOption categoryOptionG;
+    private CategoryOption categoryOptionA;
+    private CategoryOption categoryOptionB;
+    private CategoryOption categoryOptionC;
+    private CategoryOption categoryOptionD;
+    private CategoryOption categoryOptionE;
+    private CategoryOption categoryOptionF;
+    private CategoryOption categoryOptionG;
     
     private Category categoryA;
     private Category categoryB;
     private Category categoryC;
     
-    private DataElementCategoryCombo categoryComboA;
-    private DataElementCategoryCombo categoryComboB;
-    private DataElementCategoryCombo categoryComboC;
+    private CategoryCombo categoryComboA;
+    private CategoryCombo categoryComboB;
+    private CategoryCombo categoryComboC;
     
     private List<Category> categories;
 
@@ -76,21 +76,21 @@ public class DataElementCategoryComboServiceTest
     {  
         categories = new ArrayList<>();
         
-        categoryOptionA = new DataElementCategoryOption( "OptionA" );
-        categoryOptionB = new DataElementCategoryOption( "OptionB" );
-        categoryOptionC = new DataElementCategoryOption( "OptionC" );
-        categoryOptionD = new DataElementCategoryOption( "OptionD" );
-        categoryOptionE = new DataElementCategoryOption( "OptionE" );
-        categoryOptionF = new DataElementCategoryOption( "OptionF" );
-        categoryOptionG = new DataElementCategoryOption( "OptionG" );
+        categoryOptionA = new CategoryOption( "OptionA" );
+        categoryOptionB = new CategoryOption( "OptionB" );
+        categoryOptionC = new CategoryOption( "OptionC" );
+        categoryOptionD = new CategoryOption( "OptionD" );
+        categoryOptionE = new CategoryOption( "OptionE" );
+        categoryOptionF = new CategoryOption( "OptionF" );
+        categoryOptionG = new CategoryOption( "OptionG" );
         
-        categoryService.addDataElementCategoryOption( categoryOptionA );
-        categoryService.addDataElementCategoryOption( categoryOptionB );
-        categoryService.addDataElementCategoryOption( categoryOptionC );
-        categoryService.addDataElementCategoryOption( categoryOptionD );
-        categoryService.addDataElementCategoryOption( categoryOptionE );
-        categoryService.addDataElementCategoryOption( categoryOptionF );
-        categoryService.addDataElementCategoryOption( categoryOptionG );
+        categoryService.addCategoryOption( categoryOptionA );
+        categoryService.addCategoryOption( categoryOptionB );
+        categoryService.addCategoryOption( categoryOptionC );
+        categoryService.addCategoryOption( categoryOptionD );
+        categoryService.addCategoryOption( categoryOptionE );
+        categoryService.addCategoryOption( categoryOptionF );
+        categoryService.addCategoryOption( categoryOptionG );
         
         categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
         categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
@@ -103,9 +103,9 @@ public class DataElementCategoryComboServiceTest
         categoryC.addCategoryOption( categoryOptionE );
         categoryC.addCategoryOption( categoryOptionF );
         
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategory( categoryB );
-        categoryService.addDataElementCategory( categoryC );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+        categoryService.addCategory( categoryC );
         
         categories.add( categoryA );
         categories.add( categoryB );
@@ -119,9 +119,9 @@ public class DataElementCategoryComboServiceTest
     @Test
     public void testAddGet()
     {        
-        categoryComboA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
-        categoryComboB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
-        categoryComboC = new DataElementCategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
+        categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
         
         int idA = categoryService.addCategoryCombo( categoryComboA );
         int idB = categoryService.addCategoryCombo( categoryComboB );

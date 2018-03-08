@@ -30,8 +30,8 @@ package org.hisp.dhis.minmax;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -56,7 +56,7 @@ public class MinMaxDataElementStoreTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private MinMaxDataElementStore minMaxDataElementStore;
@@ -80,7 +80,7 @@ public class MinMaxDataElementStoreTest
         dataElementService.addDataElement( dataElement3 );
         dataElementService.addDataElement( dataElement4 );
 
-        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
         
         MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100, false );
         MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100, false );

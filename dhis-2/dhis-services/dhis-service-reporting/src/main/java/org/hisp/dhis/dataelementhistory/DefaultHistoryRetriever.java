@@ -31,7 +31,7 @@ package org.hisp.dhis.dataelementhistory;
 import org.apache.commons.math3.util.MathUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -78,8 +78,8 @@ public class DefaultHistoryRetriever
     // -------------------------------------------------------------------------
 
     @Override
-    public DataElementHistory getHistory( DataElement dataElement, DataElementCategoryOptionCombo optionCombo,
-    		DataElementCategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod, int historyLength )
+    public DataElementHistory getHistory( DataElement dataElement, CategoryOptionCombo optionCombo,
+    		CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod, int historyLength )
     {
         if ( !dataElement.getValueType().isNumeric() )
         {
@@ -159,7 +159,7 @@ public class DefaultHistoryRetriever
     // -------------------------------------------------------------------------
 
     private void addMinMaxLimits( OrganisationUnit organisationUnit, DataElement dataElement,
-        DataElementCategoryOptionCombo optionCombo, DataElementHistory history )
+        CategoryOptionCombo optionCombo, DataElementHistory history )
     {
         MinMaxDataElement minMaxDataElement = minMaxDataElementService.getMinMaxDataElement( organisationUnit,
             dataElement, optionCombo );
@@ -225,8 +225,8 @@ public class DefaultHistoryRetriever
         return value;
     }
 
-    private Double getValue( DataElement dataElement, DataElementCategoryOptionCombo optionCombo,
-    		DataElementCategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period period )
+    private Double getValue( DataElement dataElement, CategoryOptionCombo optionCombo,
+    		CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period period )
     {
         DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, optionCombo, attributeOptionCombo );
 

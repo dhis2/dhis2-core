@@ -143,7 +143,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    public List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo )
     {
         return dataElementStore.getDataElementByCategoryCombo( categoryCombo );
     }

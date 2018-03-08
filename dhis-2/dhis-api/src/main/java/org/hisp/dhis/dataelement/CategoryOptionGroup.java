@@ -50,7 +50,7 @@ import java.util.Set;
 public class CategoryOptionGroup
     extends BaseDimensionalItemObject implements MetadataObject
 {
-    private Set<DataElementCategoryOption> members = new HashSet<>();
+    private Set<CategoryOption> members = new HashSet<>();
 
     private Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
 
@@ -90,12 +90,12 @@ public class CategoryOptionGroup
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElementCategoryOption> getMembers()
+    public Set<CategoryOption> getMembers()
     {
         return members;
     }
 
-    public void setMembers( Set<DataElementCategoryOption> members )
+    public void setMembers( Set<CategoryOption> members )
     {
         this.members = members;
     }
@@ -130,13 +130,13 @@ public class CategoryOptionGroup
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addCategoryOption( DataElementCategoryOption categoryOption )
+    public void addCategoryOption( CategoryOption categoryOption )
     {
         members.add( categoryOption );
         categoryOption.getGroups().add( this );
     }
 
-    public void removeCategoryOption( DataElementCategoryOption categoryOption )
+    public void removeCategoryOption( CategoryOption categoryOption )
     {
         members.remove( categoryOption );
         categoryOption.getGroups().remove( this );

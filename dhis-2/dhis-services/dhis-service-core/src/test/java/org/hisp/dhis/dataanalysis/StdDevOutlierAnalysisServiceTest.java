@@ -28,24 +28,9 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.Resource;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -58,7 +43,10 @@ import org.hisp.dhis.period.PeriodService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import javax.annotation.Resource;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -74,7 +62,7 @@ public class StdDevOutlierAnalysisServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private DataSetService dataSetService;
@@ -102,9 +90,9 @@ public class StdDevOutlierAnalysisServiceTest
 
     private Set<DataElement> dataElementsA = new HashSet<>();
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
-    private DataElementCategoryOptionCombo categoryOptionCombo;
+    private CategoryOptionCombo categoryOptionCombo;
 
     private Period periodA;
 
@@ -137,7 +125,7 @@ public class StdDevOutlierAnalysisServiceTest
     @Override
     public void setUpTest()
     {
-        categoryCombo = categoryService.getDefaultDataElementCategoryCombo();
+        categoryCombo = categoryService.getDefaultCategoryCombo();
 
         dataElementA = createDataElement( 'A', categoryCombo );
         dataElementB = createDataElement( 'B', categoryCombo );
@@ -152,7 +140,7 @@ public class StdDevOutlierAnalysisServiceTest
         dataElementsA.add( dataElementA );
         dataElementsA.add( dataElementB );
 
-        categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         periodA = createPeriod( new MonthlyPeriodType(), getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( new MonthlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );

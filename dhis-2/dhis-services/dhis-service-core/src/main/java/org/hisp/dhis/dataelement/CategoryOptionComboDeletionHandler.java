@@ -37,16 +37,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class DataElementCategoryOptionComboDeletionHandler
+public class CategoryOptionComboDeletionHandler
     extends DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -67,11 +67,11 @@ public class DataElementCategoryOptionComboDeletionHandler
     @Override
     public String getClassName()
     {
-        return DataElementCategoryOptionCombo.class.getSimpleName();
+        return CategoryOptionCombo.class.getSimpleName();
     }
     
     @Override
-    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
+    public String allowDeleteCategoryOption( CategoryOption categoryOption )
     {
         final String dvSql =
             "select count(*) from datavalue dv " +
@@ -102,7 +102,7 @@ public class DataElementCategoryOptionComboDeletionHandler
     }
     
     @Override
-    public String allowDeleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
         final String dvSql =
             "select count(*) from datavalue dv " +
@@ -133,28 +133,28 @@ public class DataElementCategoryOptionComboDeletionHandler
     }
     
     @Override
-    public void deleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
+    public void deleteCategoryOption( CategoryOption categoryOption )
     {
-        Iterator<DataElementCategoryOptionCombo> iterator = categoryOption.getCategoryOptionCombos().iterator();
+        Iterator<CategoryOptionCombo> iterator = categoryOption.getCategoryOptionCombos().iterator();
 
         while ( iterator.hasNext() )
         {
-            DataElementCategoryOptionCombo optionCombo = iterator.next();
+            CategoryOptionCombo optionCombo = iterator.next();
             iterator.remove();
-            categoryService.deleteDataElementCategoryOptionCombo( optionCombo );
+            categoryService.deleteCategoryOptionCombo( optionCombo );
         }
     }
     
     @Override
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        Iterator<DataElementCategoryOptionCombo> iterator = categoryCombo.getOptionCombos().iterator();
+        Iterator<CategoryOptionCombo> iterator = categoryCombo.getOptionCombos().iterator();
         
         while ( iterator.hasNext() )
         {
-            DataElementCategoryOptionCombo optionCombo = iterator.next();
+            CategoryOptionCombo optionCombo = iterator.next();
             iterator.remove();
-            categoryService.deleteDataElementCategoryOptionCombo( optionCombo );
+            categoryService.deleteCategoryOptionCombo( optionCombo );
         }
     }
 }

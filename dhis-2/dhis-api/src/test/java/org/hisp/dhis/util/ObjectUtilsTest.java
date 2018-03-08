@@ -28,18 +28,18 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Test;
 
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.junit.Test;
-
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -64,22 +64,22 @@ public class ObjectUtilsTest
     @Test
     public void testGetAll()
     {
-        DataElementCategory ctA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
-        DataElementCategory ctB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
-        DataElementCategory ctC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
-        DataElementCategory ctD = new DataElementCategory( "CategoryD", DataDimensionType.DISAGGREGATION );
+        Category ctA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
+        Category ctB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
+        Category ctC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
+        Category ctD = new Category( "CategoryD", DataDimensionType.DISAGGREGATION );
 
-        DataElementCategoryCombo ccA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
-        DataElementCategoryCombo ccB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
+        CategoryCombo ccA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        CategoryCombo ccB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
         
-        ccA.addDataElementCategory( ctA );
-        ccA.addDataElementCategory( ctB );
-        ccB.addDataElementCategory( ctC );
-        ccB.addDataElementCategory( ctD );
+        ccA.addCategory( ctA );
+        ccA.addCategory( ctB );
+        ccB.addCategory( ctC );
+        ccB.addCategory( ctD );
         
-        List<DataElementCategoryCombo> ccs = Lists.newArrayList( ccA, ccB );
+        List<CategoryCombo> ccs = Lists.newArrayList( ccA, ccB );
         
-        Set<DataElementCategory> cts = ObjectUtils.getAll( ccs, cc -> cc.getCategories() );
+        Set<Category> cts = ObjectUtils.getAll( ccs, cc -> cc.getCategories() );
         
         assertEquals( 4, cts.size() );
         assertTrue( cts.contains( ctA ) );

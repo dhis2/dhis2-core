@@ -28,22 +28,10 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.expression.Operator.greater_than;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -57,6 +45,15 @@ import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import static junit.framework.TestCase.*;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.expression.Operator.greater_than;
 
 /**
  * @author Lars Helge Overland
@@ -72,7 +69,7 @@ public class ValidationRuleServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -89,9 +86,9 @@ public class ValidationRuleServiceTest
     private DataElement dataElementD;
     private DataElement dataElementE;
 
-    private Set<DataElementCategoryOptionCombo> optionCombos;
+    private Set<CategoryOptionCombo> optionCombos;
 
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
 
     private Expression expressionA;
     private Expression expressionB;
@@ -146,7 +143,7 @@ public class ValidationRuleServiceTest
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementE );
 
-        optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         String suffix = SEPARATOR + optionCombo.getUid();
 

@@ -75,13 +75,13 @@ public interface DimensionalObject
         ORGUNIT_DIM_ID, "Organisation unit" );
     
     Set<Class<? extends IdentifiableObject>> DYNAMIC_DIMENSION_CLASSES = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
-        add( DataElementCategory.class ).
+        add( Category.class ).
         add( DataElementGroupSet.class ).
         add( OrganisationUnitGroupSet.class ).
         add( CategoryOptionGroupSet.class ).build();
     
     Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> DIMENSION_CLASS_ITEM_CLASS_MAP = ImmutableMap.<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>>builder().
-        put( DataElementCategory.class, DataElementCategoryOption.class ).
+        put( Category.class, CategoryOption.class ).
         put( DataElementGroupSet.class, DataElementGroup.class ).
         put( OrganisationUnitGroupSet.class, OrganisationUnitGroup.class ).
         put( CategoryOptionGroupSet.class, CategoryOptionGroup.class ).build();

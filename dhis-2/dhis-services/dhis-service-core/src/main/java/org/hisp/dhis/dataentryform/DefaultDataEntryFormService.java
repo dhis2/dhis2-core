@@ -36,7 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -203,7 +203,7 @@ public class DefaultDataEntryFormService
             return null;
         }
 
-        CachingMap<String, DataElementCategoryOptionCombo> optionComboMap = new CachingMap<>();
+        CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
 
         optionComboMap.putAll( IdentifiableObjectUtils.getUidObjectMap( dataSet.getDataElementOptionCombos() ) );
 
@@ -229,7 +229,7 @@ public class DefaultDataEntryFormService
 
                 String optionComboId = identifierMatcher.group( 2 );
 
-                DataElementCategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( DataElementCategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
+                CategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( CategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
 
                 String optionComboName = categoryOptionCombo != null ? escapeHtml3( categoryOptionCombo.getName() ) : "[ " + i18n.getString( "cat_option_combo_not_exist" ) + " ]";
 
@@ -297,7 +297,7 @@ public class DefaultDataEntryFormService
 
         Map<String, DataElement> dataElementMap = Maps.uniqueIndex( dataSet.getDataElements(), de -> de.getUid() );
 
-        CachingMap<String, DataElementCategoryOptionCombo> optionComboMap = new CachingMap<>();
+        CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
 
         optionComboMap.putAll( IdentifiableObjectUtils.getUidObjectMap( dataSet.getDataElementOptionCombos() ) );
 
@@ -331,7 +331,7 @@ public class DefaultDataEntryFormService
                     return i18n.getString( "dataelement_with_id" ) + ": " + dataElementId + " " + i18n.getString( "does_not_exist_in_data_set" );
                 }
 
-                DataElementCategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( DataElementCategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
+                CategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( CategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
 
                 if ( categoryOptionCombo == null )
                 {

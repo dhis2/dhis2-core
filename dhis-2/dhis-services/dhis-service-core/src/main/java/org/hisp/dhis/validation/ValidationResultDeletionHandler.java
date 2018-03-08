@@ -27,7 +27,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -87,7 +87,7 @@ public class ValidationResultDeletionHandler
     }
 
     @Override
-    public void deleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo )
+    public void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         validationResultService.getAllValidationResults().forEach( validationResult ->
         {

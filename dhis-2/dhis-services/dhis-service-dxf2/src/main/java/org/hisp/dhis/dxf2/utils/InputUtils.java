@@ -4,10 +4,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -47,7 +47,7 @@ import java.util.Set;
 public class InputUtils
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -64,7 +64,7 @@ public class InputUtils
      * @return the attribute option combo identified from the given input, or
      *         null. if the input was invalid.
      */
-    public DataElementCategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
+    public CategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
     {
         Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
 
@@ -77,9 +77,9 @@ public class InputUtils
             throw new IllegalQueryException( "Both or none of category combination and category options must be present" );
         }
 
-        DataElementCategoryCombo categoryCombo = null;
+        CategoryCombo categoryCombo = null;
 
-        if ( cc != null && (categoryCombo = idObjectManager.get( DataElementCategoryCombo.class, cc )) == null )
+        if ( cc != null && (categoryCombo = idObjectManager.get( CategoryCombo.class, cc )) == null )
         {
             throw new IllegalQueryException( "Illegal category combo identifier: " + cc );
         }
@@ -91,7 +91,7 @@ public class InputUtils
                 return null;
             }
 
-            categoryCombo = categoryService.getDefaultDataElementCategoryCombo();
+            categoryCombo = categoryService.getDefaultCategoryCombo();
         }
 
         return getAttributeOptionCombo( categoryCombo, cp, null, IdScheme.UID );
@@ -108,7 +108,7 @@ public class InputUtils
      * @return the attribute option combo identified from the given input, or
      *         null if the input was invalid.
      */
-    public DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, String cp, String attributeOptionCombo, IdScheme idScheme )
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String cp, String attributeOptionCombo, IdScheme idScheme )
     {
         Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
 
@@ -125,7 +125,7 @@ public class InputUtils
      * @return the attribute option combo identified from the given input, or
      *         null if the input was invalid.
      */
-    public DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, Set<String> opts, IdScheme idScheme )
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts, IdScheme idScheme )
     {
         return getAttributeOptionCombo( categoryCombo, opts, null, idScheme );
     }
@@ -142,7 +142,7 @@ public class InputUtils
      * @return the attribute option combo identified from the given input, or
      *         null if the input was invalid.
      */
-    public DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, Set<String> opts, String attributeOptionCombo, IdScheme idScheme )
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts, String attributeOptionCombo, IdScheme idScheme )
     {
         if ( categoryCombo == null )
         {
@@ -153,15 +153,15 @@ public class InputUtils
         // Attribute category options validation
         // ---------------------------------------------------------------------
 
-        DataElementCategoryOptionCombo attrOptCombo = null;
+        CategoryOptionCombo attrOptCombo = null;
 
         if ( opts != null )
         {
-            Set<DataElementCategoryOption> categoryOptions = new HashSet<>();
+            Set<CategoryOption> categoryOptions = new HashSet<>();
 
             for ( String uid : opts )
             {
-                DataElementCategoryOption categoryOption = idObjectManager.getObject( DataElementCategoryOption.class, idScheme, uid );
+                CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, idScheme, uid );
 
                 if ( categoryOption == null )
                 {
@@ -171,7 +171,7 @@ public class InputUtils
                 categoryOptions.add( categoryOption );
             }
 
-            attrOptCombo = categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions );
+            attrOptCombo = categoryService.getCategoryOptionCombo( categoryCombo, categoryOptions );
 
             if ( attrOptCombo == null )
             {
@@ -180,7 +180,7 @@ public class InputUtils
         }
         else if ( attributeOptionCombo != null )
         {
-            attrOptCombo = categoryService.getDataElementCategoryOptionCombo( attributeOptionCombo );
+            attrOptCombo = categoryService.getCategoryOptionCombo( attributeOptionCombo );
         }
 
         // ---------------------------------------------------------------------
@@ -189,7 +189,7 @@ public class InputUtils
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+            attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
         }
 
         if ( attrOptCombo == null )

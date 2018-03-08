@@ -28,14 +28,14 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.user.User;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jim Grace
@@ -107,7 +107,7 @@ public interface DataApprovalLevelService
      * @param attributeOptionCombo attribute option combination.
      * @return a data approval level, or null if not found.
      */
-    DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+    DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Gets a list of all data approval levels, ordered by level in ascending order,

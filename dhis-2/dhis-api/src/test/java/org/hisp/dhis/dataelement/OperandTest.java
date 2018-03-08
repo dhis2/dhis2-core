@@ -49,10 +49,10 @@ public class OperandTest
         DataElement dataElementB = new DataElement();
         dataElementB.setUid( "DE_UID_BBB" );
 
-        DataElementCategoryOptionCombo categoryOptionComboA = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboA = new CategoryOptionCombo();
         categoryOptionComboA.setUid( "COC_UID_AAA" );
 
-        DataElementCategoryOptionCombo categoryOptionComboB = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboB = new CategoryOptionCombo();
         categoryOptionComboB.setUid( "COC_UID_BBB" );
 
         DataElementOperand dataElementOperandA = new DataElementOperand( dataElementA, categoryOptionComboA );
@@ -78,10 +78,10 @@ public class OperandTest
         DataElement dataElementB = new DataElement();
         dataElementB.setUid( "DE_UID_BBB" );
 
-        DataElementCategoryOptionCombo categoryOptionComboA = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboA = new CategoryOptionCombo();
         categoryOptionComboA.setUid( "COC_UID_AAA" );
 
-        DataElementCategoryOptionCombo categoryOptionComboB = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboB = new CategoryOptionCombo();
         categoryOptionComboB.setUid( "COC_UID_BBB" );
 
         DataElementOperand dataElementOperandA = new DataElementOperand( dataElementA, categoryOptionComboA );

@@ -39,7 +39,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Iterator;
 
-import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
@@ -51,7 +51,7 @@ public class DataElementDeletionHandler
     private IdentifiableObjectManager idObjectManager;
     
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     private JdbcTemplate jdbcTemplate;
 
@@ -71,16 +71,16 @@ public class DataElementDeletionHandler
     }
 
     @Override
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        DataElementCategoryCombo defaultCategoryCombo = categoryService
-            .getDataElementCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+        CategoryCombo defaultCategoryCombo = categoryService
+            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
 
         for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
-            if ( dataElement != null && dataElement.getDataElementCategoryCombo().equals( categoryCombo ) )
+            if ( dataElement != null && dataElement.getCategoryCombo().equals( categoryCombo ) )
             {
-                dataElement.setDataElementCategoryCombo( defaultCategoryCombo );
+                dataElement.setCategoryCombo( defaultCategoryCombo );
 
                 idObjectManager.updateNoAcl( dataElement );
             }

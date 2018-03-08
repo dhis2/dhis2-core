@@ -36,7 +36,7 @@ import org.hibernate.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.Category;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -181,17 +181,17 @@ public class HibernateValidationResultStore
         // Restrict by the user's category dimension constraints, if any
         // ---------------------------------------------------------------------
 
-        Set<DataElementCategory> categories = user.getUserCredentials().getCatDimensionConstraints();
+        Set<Category> categories = user.getUserCredentials().getCatDimensionConstraints();
 
         if ( !CollectionUtils.isEmpty( categories ) )
         {
             String validCategoryOptionByCategory =
                 isReadable( "co", user ) +
-                " and exists (select 'x' from DataElementCategory c where co in elements(c.categoryOptions)" +
+                " and exists (select 'x' from Category c where co in elements(c.categoryOptions)" +
                 " and c.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( categories ), "," ) + ") )";
 
             restrictions += " " + whereAnd + " 1 = (select min(case when " +  validCategoryOptionByCategory + " then 1 else 0 end)" +
-                " from DataElementCategoryOption co" +
+                " from CategoryOption co" +
                 " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
 
             whereAnd = "and";
@@ -214,7 +214,7 @@ public class HibernateValidationResultStore
 
             restrictions += " " + whereAnd +
                 " 1 = (select min(case when " +  validCategoryOptionByCategoryOptionGroup + " then 1 else 0 end)" +
-                " from DataElementCategoryOption co" +
+                " from CategoryOption co" +
                 " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
         }
 

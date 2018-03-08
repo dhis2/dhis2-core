@@ -49,10 +49,10 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -144,13 +144,13 @@ public class Metadata
 
     private List<OptionSet> optionSets = new ArrayList<>();
 
-    private List<DataElementCategory> categories = new ArrayList<>();
+    private List<Category> categories = new ArrayList<>();
 
-    private List<DataElementCategoryOption> categoryOptions = new ArrayList<>();
+    private List<CategoryOption> categoryOptions = new ArrayList<>();
 
-    private List<DataElementCategoryCombo> categoryCombos = new ArrayList<>();
+    private List<CategoryCombo> categoryCombos = new ArrayList<>();
 
-    private List<DataElementCategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
+    private List<CategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
 
     private List<CategoryOptionGroup> categoryOptionGroups = new ArrayList<>();
 
@@ -468,12 +468,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categories", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategory> getCategories()
+    public List<Category> getCategories()
     {
         return categories;
     }
 
-    public void setCategories( List<DataElementCategory> categories )
+    public void setCategories( List<Category> categories )
     {
         this.categories = categories;
     }
@@ -481,12 +481,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOption> getCategoryOptions()
+    public List<CategoryOption> getCategoryOptions()
     {
         return categoryOptions;
     }
 
-    public void setCategoryOptions( List<DataElementCategoryOption> categoryOptions )
+    public void setCategoryOptions( List<CategoryOption> categoryOptions )
     {
         this.categoryOptions = categoryOptions;
     }
@@ -494,12 +494,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryCombo> getCategoryCombos()
+    public List<CategoryCombo> getCategoryCombos()
     {
         return categoryCombos;
     }
 
-    public void setCategoryCombos( List<DataElementCategoryCombo> categoryCombos )
+    public void setCategoryCombos( List<CategoryCombo> categoryCombos )
     {
         this.categoryCombos = categoryCombos;
     }
@@ -507,12 +507,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOptionCombo> getCategoryOptionCombos()
+    public List<CategoryOptionCombo> getCategoryOptionCombos()
     {
         return categoryOptionCombos;
     }
 
-    public void setCategoryOptionCombos( List<DataElementCategoryOptionCombo> categoryOptionCombos )
+    public void setCategoryOptionCombos( List<CategoryOptionCombo> categoryOptionCombos )
     {
         this.categoryOptionCombos = categoryOptionCombos;
     }

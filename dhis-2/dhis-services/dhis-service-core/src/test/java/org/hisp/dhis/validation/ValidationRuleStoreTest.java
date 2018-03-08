@@ -32,8 +32,8 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -63,7 +63,7 @@ public class ValidationRuleStoreTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -81,7 +81,7 @@ public class ValidationRuleStoreTest
 
     private Set<DataElement> dataElements;
 
-    private Set<DataElementCategoryOptionCombo> optionCombos;
+    private Set<CategoryOptionCombo> optionCombos;
 
     private Expression expressionA;
 
@@ -115,7 +115,7 @@ public class ValidationRuleStoreTest
         dataElements.add( dataElementC );
         dataElements.add( dataElementD );
 
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );

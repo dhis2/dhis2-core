@@ -177,13 +177,13 @@ public class CategoryOptionCombo
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addDataElementCategoryOption( CategoryOption dataElementCategoryOption )
+    public void addCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptions.add( dataElementCategoryOption );
         dataElementCategoryOption.getCategoryOptionCombos().add( this );
     }
 
-    public void removeDataElementCategoryOption( CategoryOption dataElementCategoryOption )
+    public void removeCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptions.remove( dataElementCategoryOption );
         dataElementCategoryOption.getCategoryOptionCombos().remove( this );

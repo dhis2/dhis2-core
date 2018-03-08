@@ -29,7 +29,7 @@ package org.hisp.dhis.dataintegrity;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -65,7 +65,7 @@ public class DataIntegrityReport
 
     private SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm = new TreeMap<>();
     
-    private List<DataElementCategoryCombo> invalidCategoryCombos = new ArrayList<>();
+    private List<CategoryCombo> invalidCategoryCombos = new ArrayList<>();
 
     private List<DataSet> dataSetsNotAssignedToOrganisationUnits = new ArrayList<>();
     
@@ -164,12 +164,12 @@ public class DataIntegrityReport
         this.dataElementsInDataSetNotInForm = dataElementsInDataSetNotInForm;
     }
 
-    public List<DataElementCategoryCombo> getInvalidCategoryCombos()
+    public List<CategoryCombo> getInvalidCategoryCombos()
     {
         return invalidCategoryCombos;
     }
 
-    public void setInvalidCategoryCombos( List<DataElementCategoryCombo> invalidCategoryCombos )
+    public void setInvalidCategoryCombos( List<CategoryCombo> invalidCategoryCombos )
     {
         this.invalidCategoryCombos = invalidCategoryCombos;
     }

@@ -28,8 +28,8 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
@@ -103,7 +103,7 @@ public interface DataApprovalStore
      * @return matching DataApproval object, if any
      */
     DataApproval getDataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+        Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Returns DataApproval objects (if any) for given collections of approval
@@ -117,7 +117,7 @@ public interface DataApprovalStore
      * @return matching DataApproval object, if any
      */
      List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<DataElementCategoryOptionCombo> attributeOptionCombos );
+        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<CategoryOptionCombo> attributeOptionCombos );
 
     /**
      * Returns a list of data approval results and corresponding states for
@@ -146,6 +146,6 @@ public interface DataApprovalStore
      */
     List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
         Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
-        DataElementCategoryCombo attributeCombo,
-        Set<DataElementCategoryOptionCombo> attributeOptionCombos );
+        CategoryCombo attributeCombo,
+        Set<CategoryOptionCombo> attributeOptionCombos );
 }

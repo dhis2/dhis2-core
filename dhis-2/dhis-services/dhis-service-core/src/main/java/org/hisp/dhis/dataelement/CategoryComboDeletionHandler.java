@@ -28,20 +28,26 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class DataElementCategoryOptionDeletionHandler
+public class CategoryComboDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-    
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private CategoryService categoryService;
+
+    public void setCategoryService( CategoryService categoryService )
+    {
+        this.categoryService = categoryService;
+    }
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
@@ -49,16 +55,20 @@ public class DataElementCategoryOptionDeletionHandler
     @Override
     public String getClassName()
     {
-        return DataElementCategoryOption.class.getSimpleName();
+        return CategoryCombo.class.getSimpleName();
     }
     
     @Override
-    public void deleteDataElementCategory( DataElementCategory category )
+    public String allowDeleteCategory( Category category )
     {
-        for ( DataElementCategoryOption categoryOption : category.getCategoryOptions() )
+        for ( CategoryOptionCombo categoryOptionCombo : categoryService.getAllCategoryOptionCombos() )
         {
-            categoryOption.getCategories().remove( category );
-            idObjectManager.updateNoAcl( categoryOption );
+            if ( categoryOptionCombo.getCategoryCombo().getCategories().contains( category ) )
+            {
+                return categoryOptionCombo.getCategoryCombo().getName();
+            }
         }
+        
+        return null;
     }
 }

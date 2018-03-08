@@ -36,11 +36,11 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -94,7 +94,7 @@ public class ValidationResultStoreTest
     private PeriodService periodService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -147,16 +147,16 @@ public class ValidationResultStoreTest
 
     private User userZ;
 
-    private DataElementCategoryOption optionA;
-    private DataElementCategoryOption optionB;
+    private CategoryOption optionA;
+    private CategoryOption optionB;
 
-    private DataElementCategory categoryA;
+    private Category categoryA;
 
-    private DataElementCategoryCombo categoryComboA;
+    private CategoryCombo categoryComboA;
 
-    private DataElementCategoryOptionCombo optionComboA;
-    private DataElementCategoryOptionCombo optionComboB;
-    private DataElementCategoryOptionCombo optionComboC;
+    private CategoryOptionCombo optionComboA;
+    private CategoryOptionCombo optionComboB;
+    private CategoryOptionCombo optionComboC;
 
     private CategoryOptionGroup optionGroupA;
     private CategoryOptionGroup optionGroupB;
@@ -252,23 +252,23 @@ public class ValidationResultStoreTest
         userGroupService.addUserGroup( userGroupC );
         userGroupService.addUserGroup( userGroupD );
 
-        optionA = new DataElementCategoryOption( "CategoryOptionA" );
-        optionB = new DataElementCategoryOption( "CategoryOptionB" );
-        categoryService.addDataElementCategoryOption( optionA );
-        categoryService.addDataElementCategoryOption( optionB );
+        optionA = new CategoryOption( "CategoryOptionA" );
+        optionB = new CategoryOption( "CategoryOptionB" );
+        categoryService.addCategoryOption( optionA );
+        categoryService.addCategoryOption( optionB );
 
-        categoryA = createDataElementCategory( 'A', optionA, optionB );
-        categoryService.addDataElementCategory( categoryA );
+        categoryA = createCategory( 'A', optionA, optionB );
+        categoryService.addCategory( categoryA );
 
         categoryComboA = createCategoryCombo( 'A', categoryA );
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryService.addCategoryCombo( categoryComboA );
 
         optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
         optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
         optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
-        categoryService.addDataElementCategoryOptionCombo( optionComboA );
-        categoryService.addDataElementCategoryOptionCombo( optionComboB );
-        categoryService.addDataElementCategoryOptionCombo( optionComboC );
+        categoryService.addCategoryOptionCombo( optionComboA );
+        categoryService.addCategoryOptionCombo( optionComboB );
+        categoryService.addCategoryOptionCombo( optionComboC );
 
         optionGroupA = createCategoryOptionGroup( 'A', optionA );
         optionGroupB = createCategoryOptionGroup( 'B', optionB );
