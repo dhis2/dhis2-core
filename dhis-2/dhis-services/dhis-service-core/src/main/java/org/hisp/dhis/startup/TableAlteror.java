@@ -812,7 +812,7 @@ public class TableAlteror
 
         executeSql( "ALTER TABLE dataset DROP COLUMN symbol" );
         executeSql( "ALTER TABLE users ALTER COLUMN password DROP NOT NULL" );
-
+        executeSql( "UPDATE users SET twofa = false WHERE twofa IS NULL" );
 
         // set default dataDimension on orgUnitGroupSet and deGroupSet
         executeSql( "UPDATE dataelementgroupset SET datadimension=true WHERE datadimension IS NULL" );
