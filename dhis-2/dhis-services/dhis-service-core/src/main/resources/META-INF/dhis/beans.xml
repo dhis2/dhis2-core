@@ -46,7 +46,7 @@
 
   <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
 
-  <bean class="org.hisp.dhis.schema.patch.DefaultPatchService" />
+  <bean class="org.hisp.dhis.patch.DefaultPatchService" />
 
   <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.patch;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -44,6 +44,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.patch.Mutation;
+import org.hisp.dhis.patch.Patch;
+import org.hisp.dhis.patch.PatchParams;
+import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;

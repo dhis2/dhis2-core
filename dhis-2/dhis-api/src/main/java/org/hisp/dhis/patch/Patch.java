@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.patch;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,92 +33,54 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "mutation", namespace = DxfNamespaces.DXF_2_0 )
-public class Mutation
+@JacksonXmlRootElement( localName = "patch", namespace = DxfNamespaces.DXF_2_0 )
+public class Patch
 {
-    /**
-     * Full dot separated path of this mutation (e.g a.b.c).
-     */
-    private final String path;
+    private List<Mutation> mutations = new ArrayList<>();
 
-    /**
-     * New value for given path.
-     */
-    private final Object value;
-
-    /**
-     * Is the mutation an ADD or DEL, this mainly applies to collections.
-     */
-    private Operation operation = Operation.ADDITION;
-
-    enum Operation
+    public Patch()
     {
-        ADDITION, DELETION
     }
 
-    public Mutation( String path )
+    public Patch( List<Mutation> mutations )
     {
-        this.path = path;
-        this.value = null;
-    }
-
-    public Mutation( String path, Object value )
-    {
-        this.path = path;
-        this.value = value;
-    }
-
-    public Mutation( String path, Object value, Operation operation )
-    {
-        this.path = path;
-        this.value = value;
-        this.operation = operation;
+        this.mutations = mutations;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPath()
+    public List<Mutation> getMutations()
     {
-        return path;
+        return mutations;
     }
 
-    public Object getValue()
+    public void setMutations( List<Mutation> mutations )
     {
-        return value;
+        this.mutations = mutations;
     }
 
-    @JsonProperty( "value" )
-    @JacksonXmlProperty( localName = "value", namespace = DxfNamespaces.DXF_2_0 )
-    public Object getLogValue()
+    public Patch addMutation( Mutation mutation )
     {
-        if ( IdentifiableObject.class.isInstance( value ) && !EmbeddedObject.class.isInstance( value ) )
+        if ( mutation != null )
         {
-            return ((IdentifiableObject) value).getUid();
+            mutations.add( mutation );
         }
 
-        return value;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Operation getOperation()
-    {
-        return operation;
+        return this;
     }
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "path", path )
-            .add( "operation", operation )
-            .add( "value", getLogValue() )
+            .add( "mutations", mutations )
             .toString();
     }
 }

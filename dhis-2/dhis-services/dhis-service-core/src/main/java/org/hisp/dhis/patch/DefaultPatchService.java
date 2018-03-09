@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.patch;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -37,6 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.patch.Mutation.Operation;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
