@@ -44,6 +44,8 @@ import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -97,6 +99,9 @@ public class DefaultIdentifiableObjectManager
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    protected SchemaService schemaService;
 
     private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
@@ -460,6 +465,13 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes )
     {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
         GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
 
         if ( store == null )
@@ -923,6 +935,13 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute )
     {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        {
+            return new ArrayList<>();
+        }
+
         GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
 
         if ( store == null )
@@ -936,6 +955,13 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
     {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        {
+            return null;
+        }
+
         GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
 
         if ( store == null )
