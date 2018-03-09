@@ -87,7 +87,7 @@ a:hover
   padding: 3px 0 20px 0;
 }
 
-#loginField input[type=text],input[type=password]
+#loginField input[type=text],input[type=password],input[type=code]
 {
   width: 255px;
   height: 22px;

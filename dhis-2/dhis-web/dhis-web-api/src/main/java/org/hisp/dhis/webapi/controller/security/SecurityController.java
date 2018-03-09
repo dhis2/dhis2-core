@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.filter;
+package org.hisp.dhis.webapi.controller.security;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,49 +28,46 @@ package org.hisp.dhis.security.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import java.io.IOException;
+import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.system.util.JacksonUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Henning Håkonsen
  */
-public class CustomAuthenticationFilter
-    implements Filter
+@RestController
+@RequestMapping( value = "/2fa" )
+public class SecurityController
 {
-    public static final String PARAM_MOBILE_VERSION = "mobileVersion";
-    public static final String PARAM_AUTH_ONLY = "authOnly";
-    
-    @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
-    {
-    }
+    @Autowired
+    private CurrentUserService currentUserService;
 
-    @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException
+    @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
+    public void getQrCode( HttpServletRequest request, HttpServletResponse response )
     {
-        String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
-        String authOnly = request.getParameter( PARAM_AUTH_ONLY );
-        
-        if ( mobileVersion != null )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
         {
-            request.setAttribute( PARAM_MOBILE_VERSION, mobileVersion );
+            throw new BadCredentialsException( "No current user" );
         }
 
-        if ( authOnly != null )
-        {
-            request.setAttribute( PARAM_AUTH_ONLY, authOnly );
-        }
-        
-        filterChain.doFilter( request, response );
-    }
+        String url = SecurityUtils.generateQrUrl( currentUser );
 
-    @Override
-    public void destroy()
-    {
+        Map<String, Object> map = new HashMap<>();
+        map.put( "url", url );
+
+        JacksonUtils.fromObjectToReponse( response, map );
     }
 }

@@ -45,6 +45,8 @@
     
     externalAuthChanged();
 
+    console.log($userCredentials.twoFA);
+
     $('#urAvailable').selected({
       url: '../api/userRoles.json?canIssue=true',
       target: $('#urSelected'),
@@ -98,9 +100,14 @@
     </tr>
 
     <tr class="account">
-		<td><label for="externalAuth">$i18n.getString( "external_authentication_only" ) (OpenID or LDAP)</label></td>
-		<td colspan="3"><input type="checkbox" id="externalAuth" name="externalAuth" value="true" onchange="javascript:externalAuthChanged()"#if( $!userCredentials.externalAuth ) checked="checked"#end></td>
-	</tr>
+      <td><label for="twoFA">$i18n.getString( "two_factor_authentication" ) </label></td>
+      <td colspan="3"><input type="checkbox" id="twoFA" name="twoFA" value="true" #if( $!userCredentials.twoFA ) checked="checked"#end></td>
+    </tr>
+
+    <tr class="account">
+      <td><label for="externalAuth">$i18n.getString( "external_authentication_only" ) (OpenID or LDAP) </label></td>
+      <td colspan="3"><input type="checkbox" id="externalAuth" name="externalAuth" value="true" onchange="javascript:externalAuthChanged()"#if( $!userCredentials.externalAuth ) checked="checked"#end></td>
+    </tr>
 
     <tr>
       <td><label for="rawPassword">$i18n.getString( "password" )</label></td>
