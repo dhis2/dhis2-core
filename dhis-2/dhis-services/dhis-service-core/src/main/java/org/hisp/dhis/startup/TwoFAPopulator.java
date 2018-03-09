@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.filter;
+package org.hisp.dhis.startup;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,49 +28,44 @@ package org.hisp.dhis.security.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import java.io.IOException;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserService;
+
+import javax.transaction.Transactional;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Henning Håkonsen
  */
-public class CustomAuthenticationFilter
-    implements Filter
+@Transactional
+public class TwoFAPopulator
+    extends AbstractStartupRoutine
 {
-    public static final String PARAM_MOBILE_VERSION = "mobileVersion";
-    public static final String PARAM_AUTH_ONLY = "authOnly";
-    
-    @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
+    private UserService userService;
+
+    public void setUserService( UserService userService )
     {
+        this.userService = userService;
+    }
+
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
     @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException
+    public void execute()
+        throws Exception
     {
-        String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
-        String authOnly = request.getParameter( PARAM_AUTH_ONLY );
-        
-        if ( mobileVersion != null )
-        {
-            request.setAttribute( PARAM_MOBILE_VERSION, mobileVersion );
-        }
+        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
+        userQueryParams.setNot2FA( true );
 
-        if ( authOnly != null )
-        {
-            request.setAttribute( PARAM_AUTH_ONLY, authOnly );
-        }
-        
-        filterChain.doFilter( request, response );
-    }
-
-    @Override
-    public void destroy()
-    {
+        userService.getUsers( userQueryParams ).forEach( user -> {
+            user.getUserCredentials().setSecret( null );
+            userService.updateUser( user );
+        } );
     }
 }
