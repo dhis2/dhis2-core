@@ -33,10 +33,6 @@ import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.RenderDevice;
-import org.hisp.dhis.render.type.ValueTypeRenderingObject;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
@@ -59,8 +55,6 @@ public class TrackedEntityAttributeObjectBundleHook
         if ( object != null && object.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
         {
             TrackedEntityAttribute attr = (TrackedEntityAttribute) object;
-
-            errorReports.addAll( renderTypeConformsToConstrains( attr ) );
 
             errorReports.addAll( textPatternValid( attr ) );
 
@@ -139,37 +133,4 @@ public class TrackedEntityAttributeObjectBundleHook
 
         return errorReports;
     }
-
-    private List<ErrorReport> renderTypeConformsToConstrains( TrackedEntityAttribute attr )
-    {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
-        DeviceRenderTypeMap<ValueTypeRenderingObject> map = attr.getRenderType();
-
-        if ( map == null )
-        {
-            return errorReports;
-        }
-
-        for ( RenderDevice device : map.keySet() )
-        {
-            if ( map.get( device ).getType() == null )
-            {
-                errorReports
-                    .add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
-            }
-
-            if ( !ValidationUtils
-                .validateRenderingType( TrackedEntityAttribute.class, attr.getValueType(), attr.hasOptionSet(),
-                    map.get( device ).getType() ) )
-            {
-                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4020,
-                    map.get( device ).getType(), attr.getValueType() ) );
-            }
-
-        }
-
-        return errorReports;
-    }
-
 }

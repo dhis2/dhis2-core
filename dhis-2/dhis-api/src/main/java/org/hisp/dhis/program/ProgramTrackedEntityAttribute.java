@@ -36,6 +36,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.HashSet;
@@ -60,7 +62,14 @@ public class ProgramTrackedEntityAttribute
 
     private Boolean allowFutureDate;
 
+    // Remove later, replaced by renderType
     private Boolean renderOptionsAsRadio = false;
+
+    /**
+     * Represents how the client should render the TrackedEntityAttribute
+     */
+    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
+
 
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
     
@@ -286,5 +295,18 @@ public class ProgramTrackedEntityAttribute
     public void setSearchable( Boolean searchable )
     {
         this.searchable = searchable;
-    }    
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType(
+        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
+    {
+        this.renderType = renderType;
+    }
 }

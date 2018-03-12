@@ -1,4 +1,4 @@
-package org.hisp.dhis.render.type;
+package org.hisp.dhis.webapi.controller.security;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,34 +28,46 @@ package org.hisp.dhis.render.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.system.util.JacksonUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * This class represents the renderingType of a ProgramStageSection
+ * @author Henning Håkonsen
  */
-public class ProgramStageSectionRenderingObject
+@RestController
+@RequestMapping( value = "/2fa" )
+public class SecurityController
 {
-    /**
-     * The renderingType of the ProgramStageSection
-     */
-    private ProgramStageSectionRenderType type;
+    @Autowired
+    private CurrentUserService currentUserService;
 
-    public ProgramStageSectionRenderingObject()
+    @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
+    public void getQrCode( HttpServletRequest request, HttpServletResponse response )
     {
-        this.type = ProgramStageSectionRenderType.LISTING;
-    }
+        User currentUser = currentUserService.getCurrentUser();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageSectionRenderType getType()
-    {
-        return type;
-    }
+        if ( currentUser == null )
+        {
+            throw new BadCredentialsException( "No current user" );
+        }
 
-    public void setType( ProgramStageSectionRenderType type )
-    {
-        this.type = type;
+        String url = SecurityUtils.generateQrUrl( currentUser );
+
+        Map<String, Object> map = new HashMap<>();
+        map.put( "url", url );
+
+        JacksonUtils.fromObjectToReponse( response, map );
     }
 }

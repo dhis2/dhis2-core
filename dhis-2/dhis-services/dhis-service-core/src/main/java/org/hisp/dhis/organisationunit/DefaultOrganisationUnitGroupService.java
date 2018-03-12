@@ -102,41 +102,9 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsByUid( Collection<String> uids )
-    {
-        return organisationUnitGroupStore.getByUid( uids );
-    }
-
-    @Override
     public OrganisationUnitGroup getOrganisationUnitGroup( String uid )
     {
         return organisationUnitGroupStore.getByUid( uid );
-    }
-
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupByName( String name )
-    {
-        return new ArrayList<>( organisationUnitGroupStore.getAllEqName( name ) );
-    }
-
-    @Override
-    public OrganisationUnitGroup getOrganisationUnitGroupByCode( String code )
-    {
-        return organisationUnitGroupStore.getByCode( code );
-    }
-
-    @Override
-    public OrganisationUnitGroup getOrganisationUnitGroupByShortName( String shortName )
-    {
-        List<OrganisationUnitGroup> organisationUnitGroups = new ArrayList<>(
-            organisationUnitGroupStore.getAllEqShortName( shortName ) );
-
-        if ( organisationUnitGroups.isEmpty() )
-        {
-            return null;
-        }
-
-        return organisationUnitGroups.get( 0 );
     }
 
     @Override
@@ -149,30 +117,6 @@ public class DefaultOrganisationUnitGroupService
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
     {
         return organisationUnitGroupStore.getOrganisationUnitGroupsWithGroupSets();
-    }
-
-    @Override
-    public int getOrganisationUnitGroupCount()
-    {
-        return organisationUnitGroupStore.getCount();
-    }
-
-    @Override
-    public int getOrganisationUnitGroupCountByName( String name )
-    {
-        return organisationUnitGroupStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsBetween( int first, int max )
-    {
-        return organisationUnitGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsBetweenByName( String name, int first, int max )
-    {
-        return organisationUnitGroupStore.getAllLikeName( name, first, max );
     }
 
     // -------------------------------------------------------------------------
@@ -209,18 +153,6 @@ public class DefaultOrganisationUnitGroupService
     public OrganisationUnitGroupSet getOrganisationUnitGroupSet( String uid )
     {
         return organisationUnitGroupSetStore.getByUid( uid );
-    }
-
-    @Override
-    public List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetsByUid( Collection<String> uids )
-    {
-        return  organisationUnitGroupSetStore.getByUid( uids );
-    }
-
-    @Override
-    public List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetByName( String name )
-    {
-        return new ArrayList<>( organisationUnitGroupSetStore.getAllEqName( name ) );
     }
 
     @Override
@@ -286,31 +218,6 @@ public class DefaultOrganisationUnitGroupService
         }
 
         return groupSets;
-    }
-
-    @Override
-    public int getOrganisationUnitGroupSetCount()
-    {
-        return organisationUnitGroupSetStore.getCount();
-    }
-
-    @Override
-    public int getOrganisationUnitGroupSetCountByName( String name )
-    {
-        return organisationUnitGroupSetStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetsBetween( int first, int max )
-    {
-        return organisationUnitGroupSetStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetsBetweenByName( String name, int first,
-        int max )
-    {
-        return organisationUnitGroupSetStore.getAllLikeName( name, first, max ) ;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.startup;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,44 @@ package org.hisp.dhis.schema.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface PatchService
-{
-    /**
-     * Creates a patch by checking the differences between a source object and
-     * a target object (given by PatchParams).
-     *
-     * @param params PatchParams instance containing source and target object
-     * @return Patch containing the differences between source and target
-     */
-    Patch diff( PatchParams params );
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserService;
 
-    /**
-     * Applies given patch on the given object.
-     *
-     * @param patch  Patch instance (either created manually or by using the diff function)
-     * @param target Object to apply the patch to
-     */
-    void apply( Patch patch, Object target );
+import javax.transaction.Transactional;
+
+/**
+ * @author Henning Håkonsen
+ */
+@Transactional
+public class TwoFAPopulator
+    extends AbstractStartupRoutine
+{
+    private UserService userService;
+
+    public void setUserService( UserService userService )
+    {
+        this.userService = userService;
+    }
+
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
+    @Override
+    public void execute()
+        throws Exception
+    {
+        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
+        userQueryParams.setNot2FA( true );
+
+        userService.getUsers( userQueryParams ).forEach( user -> {
+            user.getUserCredentials().setSecret( null );
+            userService.updateUser( user );
+        } );
+    }
 }

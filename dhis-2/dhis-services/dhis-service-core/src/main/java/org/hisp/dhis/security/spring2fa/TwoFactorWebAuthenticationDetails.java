@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.security.spring2fa;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,59 +28,41 @@ package org.hisp.dhis.schema.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Henning Håkonsen
+ * @author Lars Helge Øverland
  */
-@JacksonXmlRootElement( localName = "patch", namespace = DxfNamespaces.DXF_2_0 )
-public class Patch
+public class TwoFactorWebAuthenticationDetails
+    extends WebAuthenticationDetails
 {
-    private List<Mutation> mutations = new ArrayList<>();
+    private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
 
-    public Patch()
+    private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+
+    private String code;
+
+    private String ip;
+
+    TwoFactorWebAuthenticationDetails( HttpServletRequest request )
     {
+        super( request );
+        code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
+        ip = ObjectUtils.firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
     }
 
-    public Patch( List<Mutation> mutations )
+    public String getCode()
     {
-        this.mutations = mutations;
+        return code;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Mutation> getMutations()
+    public String getIp()
     {
-        return mutations;
-    }
-
-    public void setMutations( List<Mutation> mutations )
-    {
-        this.mutations = mutations;
-    }
-
-    public Patch addMutation( Mutation mutation )
-    {
-        if ( mutation != null )
-        {
-            mutations.add( mutation );
-        }
-
-        return this;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "mutations", mutations )
-            .toString();
+        return ip;
     }
 }
+
