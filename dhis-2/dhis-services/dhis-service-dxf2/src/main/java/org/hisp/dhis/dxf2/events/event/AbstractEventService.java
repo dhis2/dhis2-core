@@ -88,6 +88,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -213,6 +214,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected AclService aclService;
+
+    @Autowired
+    protected ProgramRuleEngineService programRuleEngineService;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -1123,6 +1127,12 @@ public abstract class AbstractEventService
         programStageInstance.setDeleted( event.isDeleted() );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
+
+        if ( !importOptions.isSkipNotifications() )
+        {
+            programRuleEngineService.evaluate( programStageInstance );
+        }
+
         updateTrackedEntityInstance( programStageInstance, user );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
