@@ -1076,6 +1076,8 @@ public class TableAlteror
         // 2FA fixes for 2.30
         executeSql( "ALTER TABLE users alter column secret set not null" );
 
+        executeSql( "drop table userroleprogram");
+        
         log.info( "Tables updated" );
 
     }
