@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.patch;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,66 @@ package org.hisp.dhis.schema.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PatchService
+public class PatchParams
 {
-    /**
-     * Creates a patch by checking the differences between a source object and
-     * a target object (given by PatchParams).
-     *
-     * @param params PatchParams instance containing source and target object
-     * @return Patch containing the differences between source and target
-     */
-    Patch diff( PatchParams params );
+    private final Object source;
+
+    private final Object target;
+
+    private final JsonNode jsonNode;
 
     /**
-     * Applies given patch on the given object.
-     *
-     * @param patch  Patch instance (either created manually or by using the diff function)
-     * @param target Object to apply the patch to
+     * Ignore properties that are not owned by the source class.
      */
-    void apply( Patch patch, Object target );
+    private boolean ignoreTransient;
+
+    public PatchParams( Object source, Object target )
+    {
+        this.source = source;
+        this.target = target;
+        this.jsonNode = null;
+    }
+
+    public PatchParams( JsonNode jsonNode )
+    {
+        this.source = null;
+        this.target = null;
+        this.jsonNode = jsonNode;
+    }
+
+    public Object getSource()
+    {
+        return source;
+    }
+
+    public Object getTarget()
+    {
+        return target;
+    }
+
+    public JsonNode getJsonNode()
+    {
+        return jsonNode;
+    }
+
+    public boolean haveJsonNode()
+    {
+        return jsonNode != null;
+    }
+
+    public boolean isIgnoreTransient()
+    {
+        return ignoreTransient;
+    }
+
+    public PatchParams setIgnoreTransient( boolean ignoreTransient )
+    {
+        this.ignoreTransient = ignoreTransient;
+        return this;
+    }
 }
