@@ -28,8 +28,8 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.paging.ActionPagingSupport;
 
 import java.util.ArrayList;
@@ -40,9 +40,9 @@ import java.util.List;
  * @author mortenoh
  */
 public class GetDataElementCategoriesAction
-    extends ActionPagingSupport<DataElementCategory>
+    extends ActionPagingSupport<Category>
 {
-    static enum DataElementCategoryType
+    static enum CategoryType
     {
         DISAGGREGATION,
         ATTRIBUTE
@@ -52,9 +52,9 @@ public class GetDataElementCategoriesAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService dataElementCategoryService;
 
-    public void setDataElementCategoryService( DataElementCategoryService dataElementCategoryService )
+    public void setCategoryService( CategoryService dataElementCategoryService )
     {
         this.dataElementCategoryService = dataElementCategoryService;
     }
@@ -63,16 +63,16 @@ public class GetDataElementCategoriesAction
     // Input & Output
     // -------------------------------------------------------------------------
 
-    private List<DataElementCategory> dataElementCategories;
+    private List<Category> dataElementCategories;
 
-    public List<DataElementCategory> getDataElementCategories()
+    public List<Category> getDataElementCategories()
     {
         return dataElementCategories;
     }
 
-    private DataElementCategoryType type;
+    private CategoryType type;
 
-    public void setType( DataElementCategoryType type )
+    public void setType( CategoryType type )
     {
         this.type = type;
     }
@@ -90,12 +90,12 @@ public class GetDataElementCategoriesAction
             dataElementCategories = new ArrayList<>(
                 dataElementCategoryService.getAllDataElementCategories() );
         }
-        else if ( type.equals( DataElementCategoryType.ATTRIBUTE ) )
+        else if ( type.equals( CategoryType.ATTRIBUTE ) )
         {
             dataElementCategories = new ArrayList<>(
                 dataElementCategoryService.getAttributeCategories() );
         }
-        else if ( type.equals( DataElementCategoryType.DISAGGREGATION ) )
+        else if ( type.equals( CategoryType.DISAGGREGATION ) )
         {
             dataElementCategories = new ArrayList<>(
                 dataElementCategoryService.getDisaggregationCategories() );

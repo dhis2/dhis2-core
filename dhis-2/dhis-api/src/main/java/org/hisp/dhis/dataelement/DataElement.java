@@ -218,7 +218,7 @@ public class DataElement
      * given data set for this data element. If not present, returns the
      * category combination for this data element.
      */
-    public CategoryCombo getCategoryCombo( DataSet dataSet )
+    public CategoryCombo getDataElementCategoryCombo(DataSet dataSet )
     {
         for ( DataSetElement element : dataSetElements )
         {
@@ -603,12 +603,12 @@ public class DataElement
     @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getCategoryCombo()
+    public CategoryCombo getDataElementCategoryCombo()
     {
         return dataElementCategoryCombo;
     }
 
-    public void setCategoryCombo( CategoryCombo dataElementCategoryCombo )
+    public void setDataElementCategoryCombo( CategoryCombo dataElementCategoryCombo )
     {
         this.dataElementCategoryCombo = dataElementCategoryCombo;
     }

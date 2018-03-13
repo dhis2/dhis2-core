@@ -111,9 +111,9 @@ public class DataElementDefaultDimensionPopulator
 
         for ( DataElement dataElement : dataElements )
         {
-            if ( dataElement.getCategoryCombo() == null )
+            if ( dataElement.getDataElementCategoryCombo() == null )
             {
-                dataElement.setCategoryCombo( categoryCombo );
+                dataElement.setDataElementCategoryCombo( categoryCombo );
 
                 dataElementService.updateDataElement( dataElement );
             }

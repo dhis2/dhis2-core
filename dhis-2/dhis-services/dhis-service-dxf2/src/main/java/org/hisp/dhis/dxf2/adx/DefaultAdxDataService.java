@@ -470,7 +470,7 @@ public class DefaultAdxDataService
 
             //TODO expand to allow for category combos part of DataSetElements.
 
-            CategoryCombo categoryCombo = dataElement.getCategoryCombo();
+            CategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
 
             convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, 
                     categoryOptionIdScheme, categoryOptionComboIdScheme );

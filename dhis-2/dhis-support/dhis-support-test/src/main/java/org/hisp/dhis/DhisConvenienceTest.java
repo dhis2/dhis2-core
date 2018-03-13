@@ -383,11 +383,11 @@ public abstract class DhisConvenienceTest
 
         if ( categoryCombo != null )
         {
-            dataElement.setCategoryCombo( categoryCombo );
+            dataElement.setDataElementCategoryCombo( categoryCombo );
         }
         else if ( categoryService != null )
         {
-            dataElement.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
+            dataElement.setDataElementCategoryCombo( categoryService.getDefaultCategoryCombo() );
         }
 
         return dataElement;

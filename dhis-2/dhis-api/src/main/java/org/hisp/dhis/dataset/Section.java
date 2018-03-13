@@ -101,7 +101,7 @@ public class Section
 
         for ( DataElement dataElement : dataElements )
         {
-            CategoryCombo categoryCombo = dataElement.getCategoryCombo( dataSet );
+            CategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo( dataSet );
 
             if ( categoryCombo != null )
             {
@@ -123,7 +123,7 @@ public class Section
 
         for ( DataElement dataElement : this.dataElements )
         {
-            if ( dataElement.getCategoryCombo( this.dataSet ).equals( categoryCombo ) )
+            if ( dataElement.getDataElementCategoryCombo( this.dataSet ).equals( categoryCombo ) )
             {
                 dataElements.add( dataElement );
             }

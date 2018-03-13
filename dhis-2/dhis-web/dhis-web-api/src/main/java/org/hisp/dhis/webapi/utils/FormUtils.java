@@ -30,12 +30,7 @@ package org.hisp.dhis.webapi.utils;
 
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.Category;
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOption;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
@@ -45,21 +40,13 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.webapi.webdomain.form.Field;
-import org.hisp.dhis.webapi.webdomain.form.Form;
-import org.hisp.dhis.webapi.webdomain.form.Group;
-import org.hisp.dhis.webapi.webdomain.form.Option;
+import org.hisp.dhis.webapi.webdomain.form.Category;
+import org.hisp.dhis.webapi.webdomain.form.*;
+import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -121,8 +108,8 @@ public class FormUtils
             List<Field> fields = inputFromDataElements( new ArrayList<>( dataSet.getDataElements() ) );
 
             Group group = new Group();
-            group.setLabel( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-            group.setDescription( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+            group.setLabel( org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+            group.setDescription( org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
             group.setDataElementCount( dataSet.getDataElements().size() );
             group.setFields( fields );
 
@@ -138,19 +125,19 @@ public class FormUtils
         return form;
     }
 
-    private static CategoryCombo getCategoryCombo( DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
+    private static CategoryCombo getCategoryCombo(DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
     {
         if ( dataset.hasCategoryCombo() )
         {
-            CategoryCombo categoryCombo = dataset.getCategoryCombo();
+            org.hisp.dhis.dataelement.CategoryCombo categoryCombo = dataset.getCategoryCombo();
             CategoryCombo catCombo = new CategoryCombo();
             catCombo.setId( categoryCombo.getUid() );
 
-            List<Category> cats = categoryCombo.getCategories();
+            List<org.hisp.dhis.dataelement.Category> cats = categoryCombo.getCategories();
 
             if ( cats != null && cats.size() > 0 )
             {
-                for ( Category cat : cats )
+                for ( org.hisp.dhis.dataelement.Category cat : cats )
                 {
                     if ( cat.getAccess() != null && !cat.getAccess().isRead() )
                     {

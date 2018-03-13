@@ -100,7 +100,7 @@ public class DataSetElement implements EmbeddedObject
      */
     public CategoryCombo getResolvedCategoryCombo()
     {
-        return hasCategoryCombo() ? getCategoryCombo() : dataElement.getCategoryCombo();
+        return hasCategoryCombo() ? getCategoryCombo() : dataElement.getDataElementCategoryCombo();
     }
 
     public boolean hasCategoryCombo()

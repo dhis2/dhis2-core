@@ -58,14 +58,14 @@ public class DataElementTest
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
         
-        deA.setCategoryCombo( ccA );
+        deA.setDataElementCategoryCombo( ccA );
         dsA.addDataSetElement( deA );
         dsB.addDataSetElement( deA, ccB );
         
         assertEquals( 2, deA.getCategoryCombos().size() );
         assertEquals( Sets.newHashSet( ccA, ccB ), deA.getCategoryCombos() );
         
-        deB.setCategoryCombo( ccA );
+        deB.setDataElementCategoryCombo( ccA );
         dsB.addDataSetElement( deB );
 
         assertEquals( 1, deB.getCategoryCombos().size() );
@@ -84,18 +84,18 @@ public class DataElementTest
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
         
-        deA.setCategoryCombo( ccA );
+        deA.setDataElementCategoryCombo( ccA );
         dsA.addDataSetElement( deA );
         dsB.addDataSetElement( deA, ccB );
         
-        assertEquals( ccA, deA.getCategoryCombo( dsA ) );
-        assertEquals( ccB, deA.getCategoryCombo( dsB ) );
+        assertEquals( ccA, deA.getDataElementCategoryCombo( dsA ) );
+        assertEquals( ccB, deA.getDataElementCategoryCombo( dsB ) );
         
-        deB.setCategoryCombo( ccA );
+        deB.setDataElementCategoryCombo( ccA );
         dsA.addDataSetElement( deB );
 
-        assertEquals( ccA, deB.getCategoryCombo( dsA ) );
-        assertEquals( ccA, deB.getCategoryCombo( dsB ) );
+        assertEquals( ccA, deB.getDataElementCategoryCombo( dsA ) );
+        assertEquals( ccA, deB.getDataElementCategoryCombo( dsB ) );
     }
     
     @Test

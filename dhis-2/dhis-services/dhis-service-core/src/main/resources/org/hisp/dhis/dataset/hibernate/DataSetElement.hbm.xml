@@ -19,7 +19,7 @@
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
       foreign-key="fk_datasetelement_dataelementid" unique-key="datasetelement_unique_key" not-null="true" />
 
-    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo" column="categorycomboid"
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.CategoryCombo" column="categorycomboid"
       foreign-key="fk_datasetelement_categorycomboid" />
 
   </class>

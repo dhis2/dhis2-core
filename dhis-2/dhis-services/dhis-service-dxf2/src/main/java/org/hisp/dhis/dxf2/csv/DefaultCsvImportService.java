@@ -338,7 +338,7 @@ public class DefaultCsvImportService
                     cc.setUid( categoryCombo.getUid() );
                 }
 
-                object.setCategoryCombo( cc );
+                object.setDataElementCategoryCombo( cc );
 
                 if ( optionSetUid != null )
                 {

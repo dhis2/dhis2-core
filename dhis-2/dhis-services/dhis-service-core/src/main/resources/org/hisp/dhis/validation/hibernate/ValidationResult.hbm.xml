@@ -28,7 +28,7 @@
             <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
                          column="organisationunitid" foreign-key="fk_validationresult_organisationunitid"/>
 
-            <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+            <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.CategoryOptionCombo"
                          column="attributeoptioncomboid" foreign-key="fk_validationresult_attributeoptioncomboid"/>
 
             <property name="dayInPeriod" column="dayInPeriod" />

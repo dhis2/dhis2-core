@@ -133,8 +133,8 @@ public class ObjectBundleServiceAttributesTest
 
         for ( DataElement dataElement : dataElements )
         {
-            assertNotNull( dataElement.getCategoryCombo() );
-            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getCategoryCombo() );
+            assertNotNull( dataElement.getDataElementCategoryCombo() );
+            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
         }
 
         assertFalse( dataSet.getSources().isEmpty() );

@@ -32,7 +32,7 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.Category;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
@@ -56,7 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
-public class DataElementCategoryControllerDocumentation
+public class CategoryControllerDocumentation
     extends AbstractWebApiTest<Category>
 {
     private static final String ENDPOINT = "categories";
@@ -161,9 +161,9 @@ public class DataElementCategoryControllerDocumentation
     {
         MockHttpSession session = getSession( "F_CATEGORY_PUBLIC_ADD" );
 
-        DataElementCategoryOption categoryOptionA = createCategoryOption( 'A' );
-        DataElementCategoryOption categoryOptionB = createCategoryOption( 'B' );
-        DataElementCategoryOption categoryOptionC = createCategoryOption( 'C' );
+        CategoryOption categoryOptionA = createCategoryOption( 'A' );
+        CategoryOption categoryOptionB = createCategoryOption( 'B' );
+        CategoryOption categoryOptionC = createCategoryOption( 'C' );
 
         Category cat = createCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
 

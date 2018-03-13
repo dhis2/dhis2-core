@@ -527,8 +527,8 @@ public class ObjectBundleServiceTest
 
         for ( DataElement dataElement : dataElements )
         {
-            assertNotNull( dataElement.getCategoryCombo() );
-            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getCategoryCombo() );
+            assertNotNull( dataElement.getDataElementCategoryCombo() );
+            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
         }
 
         assertFalse( dataSet.getSources().isEmpty() );
@@ -1520,7 +1520,7 @@ public class ObjectBundleServiceTest
 
         assertEquals( "CCCC", dataElement.getName() );
         assertEquals( "CCCC", dataElement.getShortName() );
-        assertNotNull( dataElement.getCategoryCombo() );
+        assertNotNull( dataElement.getDataElementCategoryCombo() );
     }
 
     @Test
