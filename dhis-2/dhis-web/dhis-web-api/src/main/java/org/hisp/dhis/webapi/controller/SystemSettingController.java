@@ -82,7 +82,8 @@ public class SystemSettingController
     @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_TEXT,
         ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @ApiVersion( include = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 }, exclude = { DhisApiVersion.V29, DhisApiVersion.DEFAULT } )
+    @ApiVersion( include = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 },
+        exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.DEFAULT } )
     public void setSystemSetting(
         @PathVariable( value = "key" ) String key,
         @RequestParam( value = "value", required = false ) String value,
@@ -114,7 +115,8 @@ public class SystemSettingController
 
     @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @ApiVersion( include = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 }, exclude = { DhisApiVersion.V29, DhisApiVersion.DEFAULT } )
+    @ApiVersion( include = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 },
+        exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.DEFAULT } )
     public void setSystemSetting( @RequestBody Map<String, Object> settings, HttpServletResponse response,
         HttpServletRequest request )
         throws WebMessageException
@@ -131,7 +133,8 @@ public class SystemSettingController
     @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_TEXT,
         ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.V29 }, exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.V29, DhisApiVersion.V30 },
+        exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
     public void setSystemSettingV29(
         @PathVariable( value = "key" ) String key,
         @RequestParam( value = "value", required = false ) String value,
@@ -168,7 +171,8 @@ public class SystemSettingController
 
     @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.V29 }, exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.V29, DhisApiVersion.V30 },
+        exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
     public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response,
         HttpServletRequest request )
         throws WebMessageException

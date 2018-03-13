@@ -93,7 +93,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
 public class MeController
 {
     @Autowired
@@ -383,7 +383,7 @@ public class MeController
 
     @PostMapping( value = "/dashboard/interpretations/read" )
     @ResponseStatus( value = HttpStatus.OK )
-    @ApiVersion( include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
+    @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
     public void updateInterpretationsLastRead()
     {
         interpretationService.updateCurrentUserLastChecked();
