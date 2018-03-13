@@ -496,7 +496,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) );
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
+                .setUser( user ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {

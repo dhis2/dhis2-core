@@ -175,10 +175,14 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         final FieldMap finalFieldMap = fieldMap;
-        User user = currentUserService.getCurrentUser();
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
 
         objects.forEach( object -> {
-            AbstractNode node = buildNode( finalFieldMap, wrapper, object, user, params.getDefaults() );
+            AbstractNode node = buildNode( finalFieldMap, wrapper, object, params.getUser(), params.getDefaults() );
 
             if ( node != null )
             {
