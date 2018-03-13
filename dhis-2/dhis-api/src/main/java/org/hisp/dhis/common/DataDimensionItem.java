@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.Map;
 import java.util.Set;
@@ -53,13 +54,13 @@ public class DataDimensionItem
 {
     public static final Set<Class<? extends IdentifiableObject>> DATA_DIMENSION_CLASSES = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
         add( Indicator.class ).add( DataElement.class ).add( DataElementOperand.class ).add( ReportingRate.class ).
-        add( ProgramIndicator.class ).add( ProgramDataElementDimensionItem.class ).add( ProgramTrackedEntityAttributeDimensionItem.class ).build();
+        add( ProgramIndicator.class ).add( ProgramDataElementDimensionItem.class ).add( ProgramTrackedEntityAttributeDimensionItem.class ).add( ValidationRule.class ).build();
 
     public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = ImmutableMap.<DataDimensionItemType, Class<? extends NameableObject>>builder().
         put( DataDimensionItemType.INDICATOR, Indicator.class ).put( DataDimensionItemType.DATA_ELEMENT, DataElement.class ).
         put( DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class ).put( DataDimensionItemType.REPORTING_RATE, ReportingRate.class ).
         put( DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class ).put( DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class ).
-        put( DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class ).build();
+        put( DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class ).put( DataDimensionItemType.VALIDATION_RULE, ValidationRule.class).build();
 
     private int id;
 

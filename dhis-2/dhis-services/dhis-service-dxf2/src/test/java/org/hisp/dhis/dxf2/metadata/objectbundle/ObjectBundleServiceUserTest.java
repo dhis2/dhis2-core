@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -218,32 +218,6 @@ public class ObjectBundleServiceUserTest
 
         objectBundleService.commit( bundle );
         assertEquals( 2, manager.getAll( User.class ).size() );
-    }
-
-    @Test
-    public void testCreateUserRoleWithDataSetProgramAssignment() throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/userrole_program_dataset_assignment.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.ALL );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
-
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
-        assertEquals( 1, userRoles.size() );
-
-        UserAuthorityGroup userRole = userRoles.get( 0 );
-        assertNotNull( userRole );
-        assertEquals( 1, userRole.getDataSets().size() );
-        assertEquals( 1, userRole.getPrograms().size() );
     }
 
     @Test

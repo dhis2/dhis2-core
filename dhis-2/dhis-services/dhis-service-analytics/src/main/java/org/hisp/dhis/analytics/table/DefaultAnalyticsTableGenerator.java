@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
@@ -68,7 +69,7 @@ public class DefaultAnalyticsTableGenerator
 
     @Autowired
     private MessageService messageService;
-
+    
     @Autowired
     private SystemSettingManager systemSettingManager;
 
@@ -80,24 +81,26 @@ public class DefaultAnalyticsTableGenerator
     // -------------------------------------------------------------------------
 
     @Override
-    public void generateTables( Integer lastYears, TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables )
+    public void generateTables( AnalyticsTableUpdateParams params )
     {
         final Date startTime = new Date();
         final Clock clock = new Clock( log ).startClock();
-        final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( skipTableTypes );
-        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.
-            stream().map( AnalyticsTableService::getAnalyticsTableType ).collect( Collectors.toSet() );
+        final JobConfiguration jobId = params.getJobId();
+        final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
+        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
+            .map( AnalyticsTableService::getAnalyticsTableType )
+            .collect( Collectors.toSet() );
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Skip %d analytics table types: %s", skipTypes.size(), skipTypes ) );
 
         try
         {
-            notifier.clear( taskId ).notify( taskId, "Analytics table update process started" );
+            notifier.clear( jobId ).notify( jobId, "Analytics table update process started" );
 
-            if ( !skipResourceTables )
+            if ( !params.isSkipResourceTables() )
             {
-                notifier.notify( taskId, "Updating resource tables" );
+                notifier.notify( jobId, "Updating resource tables" );
                 generateResourceTables();
             }
 
@@ -107,19 +110,19 @@ public class DefaultAnalyticsTableGenerator
 
                 if ( !skipTypes.contains( tableType ) )
                 {
-                    notifier.notify( taskId, "Updating tables: " + tableType );
+                    notifier.notify( jobId, "Updating tables: " + tableType );
 
-                    service.update( lastYears, taskId );
+                    service.update( params );
                 }
             }
 
             clock.logTime( "Analytics tables updated" );
 
-            notifier.notify( taskId, INFO, "Analytics tables updated: " + clock.time(), true );
+            notifier.notify( jobId, INFO, "Analytics tables updated: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Analytics table process failed", ex );
 
@@ -140,21 +143,21 @@ public class DefaultAnalyticsTableGenerator
     }
 
     @Override
-    public void generateResourceTables( TaskId taskId )
+    public void generateResourceTables( JobConfiguration jobId )
     {
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( taskId, "Generating resource tables" );
+        notifier.notify( jobId, "Generating resource tables" );
 
         try
         {
             generateResourceTables();
 
-            notifier.notify( taskId, NotificationLevel.INFO, "Resource tables generated: " + clock.time(), true );
+            notifier.notify( jobId, INFO, "Resource tables generated: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
-            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
 
             messageService.sendSystemErrorNotification( "Resource table process failed", ex );
 

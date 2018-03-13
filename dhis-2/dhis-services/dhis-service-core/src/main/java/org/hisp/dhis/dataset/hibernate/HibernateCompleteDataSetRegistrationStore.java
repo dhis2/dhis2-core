@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,27 +113,6 @@ public class HibernateCompleteDataSetRegistrationStore
     public void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         sessionFactory.getCurrentSession().delete( registration );
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations( 
-        DataSet dataSet, Collection<OrganisationUnit> sources, Period period )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
-
-        if ( storedPeriod == null )
-        {
-            return null;
-        }
-
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( CompleteDataSetRegistration.class );
-        
-        criteria.add( Restrictions.eq( "dataSet", dataSet ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.in( "source", sources ) );
-        
-        return criteria.list();
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.outboundmessage;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.outboundmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.DeliveryChannel;
@@ -38,8 +39,8 @@ import org.hisp.dhis.common.DeliveryChannel;
 
 public class OutboundMessageBatch
 {
-    private final List<OutboundMessage> messages;
-    
+    private List<OutboundMessage> messages = new ArrayList<>();
+
     private final DeliveryChannel deliveryChannel;
 
     public OutboundMessageBatch( List<OutboundMessage> messages, DeliveryChannel deliveryChannel )
@@ -47,7 +48,12 @@ public class OutboundMessageBatch
         this.messages = messages;
         this.deliveryChannel = deliveryChannel;
     }
-    
+
+    public OutboundMessageBatch( DeliveryChannel deliveryChannel )
+    {
+        this.deliveryChannel = deliveryChannel;
+    }
+
     public List<OutboundMessage> getMessages()
     {
         return messages;
@@ -56,5 +62,15 @@ public class OutboundMessageBatch
     public DeliveryChannel getDeliveryChannel()
     {
         return deliveryChannel;
+    }
+
+    public void setMessages( List<OutboundMessage> messages )
+    {
+        this.messages = messages;
+    }
+
+    public int size()
+    {
+        return messages.size();
     }
 }

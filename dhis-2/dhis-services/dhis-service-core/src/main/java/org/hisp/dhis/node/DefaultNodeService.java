@@ -1,7 +1,7 @@
 package org.hisp.dhis.node;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.node;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
@@ -150,7 +151,7 @@ public class DefaultNodeService implements NodeService
     public ComplexNode toNode( Object object )
     {
         Assert.notNull( object, "object can not be null" );
-        return fieldFilterService.filter( object, new ArrayList<>() );
+        return fieldFilterService.toComplexNode( new FieldFilterParams( Lists.newArrayList( object ), new ArrayList<>() ) );
     }
 
     @Override
@@ -159,6 +160,6 @@ public class DefaultNodeService implements NodeService
         Assert.notNull( objects, "objects can not be null" );
         Assert.isTrue( objects.size() > 0, "objects list must be larger than 0" );
 
-        return fieldFilterService.filter( objects.get( 0 ).getClass(), objects, new ArrayList<>() );
+        return fieldFilterService.toCollectionNode( objects.get( 0 ).getClass(), new FieldFilterParams( objects, new ArrayList<>() ) );
     }
 }

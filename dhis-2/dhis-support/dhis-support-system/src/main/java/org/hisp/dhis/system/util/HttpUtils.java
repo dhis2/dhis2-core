@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -304,7 +305,7 @@ public class HttpUtils
                 {
                     GzipDecompressingEntity gzipDecompressingEntity = new GzipDecompressingEntity( response.getEntity() );
                     InputStream content = gzipDecompressingEntity.getContent();
-                    output = IOUtils.toString( content );
+                    output = IOUtils.toString( content, StandardCharsets.UTF_8 );
                 }
                 else
                 {

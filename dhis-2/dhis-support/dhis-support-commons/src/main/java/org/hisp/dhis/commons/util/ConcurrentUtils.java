@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.commons.util;
  */
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -61,5 +62,16 @@ public class ConcurrentUtils
                 throw new RuntimeException( "Thread interrupted", ex );
             }
         }
+    }
+    
+    /**
+     * Returns a {@link Future} which is immediately completed and has its
+     * value set to an empty string.
+     * 
+     * @return a future which is immediately completed.
+     */
+    public static Future<?> getImmediateFuture()
+    {
+        return CompletableFuture.completedFuture( "" );
     }
 }

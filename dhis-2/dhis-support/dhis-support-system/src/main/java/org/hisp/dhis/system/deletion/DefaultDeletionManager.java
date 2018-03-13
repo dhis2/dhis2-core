@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,7 @@ public class DefaultDeletionManager
 
         try
         {
-            Method allowMethod = DeletionHandler.class.getMethod( allowMethodName, new Class[]{ clazz } );
+            Method allowMethod = DeletionHandler.class.getMethod( allowMethodName, clazz );
 
             for ( DeletionHandler handler : deletionHandlers )
             {
@@ -136,7 +136,7 @@ public class DefaultDeletionManager
 
         try
         {
-            Method deleteMethod = DeletionHandler.class.getMethod( deleteMethodName, new Class[]{ clazz } );
+            Method deleteMethod = DeletionHandler.class.getMethod( deleteMethodName, clazz );
 
             for ( DeletionHandler handler : deletionHandlers )
             {

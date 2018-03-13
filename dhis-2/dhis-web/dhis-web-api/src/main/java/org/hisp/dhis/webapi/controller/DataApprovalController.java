@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,8 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -49,6 +48,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -64,7 +64,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.approval.Approval;
@@ -85,14 +84,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.collect.Lists.newArrayList;
+import java.util.stream.Collectors;
 
 /**
  * This controller uses both /dataApprovals and /dataAcceptances.
@@ -156,14 +155,15 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response )
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response )
         throws IOException, WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-
-        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         DataApprovalStatus status = dataApprovalService
             .getDataApprovalStatusAndPermissions( workflow, period, organisationUnit, optionCombo );
@@ -175,6 +175,8 @@ public class DataApprovalController
         renderService.toJson( response.getOutputStream(), status.getPermissions() );
     }
 
+    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
+    // Note that it does not accept wf or aoc parameter input, because the response cannot include them.
     @RequestMapping( value = STATUS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getApproval(
         @RequestParam Set<String> ds,
@@ -186,7 +188,7 @@ public class DataApprovalController
         HttpServletResponse response )
         throws IOException, WebMessageException
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> fields = new ArrayList<>( contextService.getParameterValues( "fields" ) );
 
         if ( fields.isEmpty() )
         {
@@ -240,7 +242,8 @@ public class DataApprovalController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        rootNode.addChild( fieldFilterService.filter( DataApprovalStateResponse.class, dataApprovalStateResponses.getDataApprovalStateResponses(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( DataApprovalStateResponse.class,
+            new FieldFilterParams( dataApprovalStateResponses.getDataApprovalStateResponses(), fields ) ) );
 
         return rootNode;
     }
@@ -264,20 +267,14 @@ public class DataApprovalController
 
     @RequestMapping( value = APPROVALS_PATH + "/categoryOptionCombos", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getApprovalByCategoryOptionCombos(
-        @RequestParam Set<String> ds,
+        @RequestParam( required = false ) Set<String> ds,
+        @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
         @RequestParam( required = false ) String ou,
         HttpServletResponse response ) throws IOException, WebMessageException
     {
-        Set<DataSet> dataSets = parseDataSetsWithWorkflow( ds );
-
-        Period period = PeriodType.getPeriodFromIsoString( pe );
-
-        if ( period == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
-        }
-
+        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
+        Period period = getAndValidatePeriod( pe );
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
 
         if ( orgUnit != null && orgUnit.isRoot() )
@@ -285,18 +282,18 @@ public class DataApprovalController
             orgUnit = null; // Look for all org units.
         }
 
-        SetMap<DataApprovalWorkflow, DataElementCategoryCombo> workflowCategoryComboMap = new SetMap<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            workflowCategoryComboMap.putValue( dataSet.getWorkflow(), dataSet.getCategoryCombo() );
-        }
-
         List<DataApprovalStatus> statusList = new ArrayList<>();
 
-        for ( DataApprovalWorkflow workflow : workflowCategoryComboMap.keySet() )
+        for ( DataApprovalWorkflow workflow : workflows )
         {
-            for ( DataElementCategoryCombo attributeCombo : workflowCategoryComboMap.get( workflow ) )
+            Set<DataElementCategoryCombo> attributeCombos = new HashSet<>();
+
+            for ( DataSet dataSet : workflow.getDataSets() )
+            {
+                attributeCombos.add( dataSet.getCategoryCombo() );
+            }
+
+            for ( DataElementCategoryCombo attributeCombo : attributeCombos )
             {
                 statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit, attributeCombo ) );
             }
@@ -341,17 +338,20 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
         List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, false, new Date(), user ); //TODO fix category stuff
+            period, organisationUnit, optionCombo, false, new Date(), user );
 
         dataApprovalService.approveData( dataApprovalList );
     }
@@ -361,11 +361,6 @@ public class DataApprovalController
     public void saveApprovalBatch( @RequestBody Approvals approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
-        if ( approvals.getDs() == null || approvals.getDs().isEmpty() || approvals.getPe() == null || approvals.getPe().isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Approval must have data sets and periods" ) );
-        }
-
         dataApprovalService.approveData( getDataApprovalList( approvals ) );
     }
 
@@ -374,14 +369,10 @@ public class DataApprovalController
     public void removeApprovalBatch( @RequestBody Approvals approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
-        if ( approvals.getDs() == null || approvals.getDs().isEmpty() || approvals.getPe() == null || approvals.getPe().isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Approval must have data sets and periods" ) );
-        }
-
         dataApprovalService.unapproveData( getDataApprovalList( approvals ) );
     }
 
+    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
     @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
     @RequestMapping( value = MULTIPLE_SAVE_RESOURCE_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -389,6 +380,8 @@ public class DataApprovalController
         HttpServletResponse response ) throws WebMessageException
     {
         List<DataApproval> dataApprovalList = new ArrayList<>();
+
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
         {
@@ -404,7 +397,7 @@ public class DataApprovalController
             Date approvalDate = approvalStateRequest.getAd() == null ? new Date() : approvalStateRequest.getAd();
 
             dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, false, approvalDate, user ) );
+                period, organisationUnit, optionCombo, false, approvalDate, user ) );
         }
 
         dataApprovalService.approveData( dataApprovalList );
@@ -421,17 +414,20 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
         List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, false, new Date(), user );
+            period, organisationUnit, optionCombo, false, new Date(), user );
 
         dataApprovalService.acceptData( dataApprovalList );
     }
@@ -441,11 +437,6 @@ public class DataApprovalController
     public void saveAcceptanceBatch( @RequestBody Approvals approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
-        if ( approvals.getDs() == null || approvals.getDs().isEmpty() || approvals.getPe() == null || approvals.getPe().isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Approval must have data sets and periods" ) );
-        }
-
         dataApprovalService.acceptData( getDataApprovalList( approvals ) );
     }
 
@@ -454,14 +445,10 @@ public class DataApprovalController
     public void removeAcceptancesBatch( @RequestBody Approvals approvals,
         HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
-        if ( approvals.getDs() == null || approvals.getDs().isEmpty() || approvals.getPe() == null || approvals.getPe().isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Approval must have data sets and periods" ) );
-        }
-
         dataApprovalService.unacceptData( getDataApprovalList( approvals ) );
     }
 
+    // TODO Remove this entry point? Not documented, was implemented by a third party, is it still needed?
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
     @RequestMapping( value = MULTIPLE_ACCEPTANCES_RESOURCE_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -469,6 +456,8 @@ public class DataApprovalController
         HttpServletResponse response ) throws WebMessageException
     {
         List<DataApproval> dataApprovalList = new ArrayList<>();
+
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
         {
@@ -483,7 +472,7 @@ public class DataApprovalController
             Date approvalDate = (approvalStateRequest.getAd() == null) ? new Date() : approvalStateRequest.getAd();
 
             dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, false, approvalDate, user ) );
+                period, organisationUnit, optionCombo, false, approvalDate, user ) );
         }
 
         dataApprovalService.acceptData( dataApprovalList );
@@ -497,29 +486,28 @@ public class DataApprovalController
     @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeApproval(
-        @RequestParam Set<String> ds,
+        @RequestParam( required = false ) Set<String> ds,
+        @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
-        Set<DataSet> dataSets = parseDataSetsWithWorkflow( ds );
-
-        if ( dataSets.size() != ds.size() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal data set identifier in this list: " + ds ) );
-        }
+        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
 
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
-        List<DataApproval> dataApprovalList = newArrayList();
+        List<DataApproval> dataApprovalList = new ArrayList<>();
 
-        for ( DataSet dataSet : dataSets )
+        for ( DataApprovalWorkflow workflow : workflows )
         {
-            dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, dataSet.getWorkflow(),
-                period, organisationUnit, false, new Date(), user ) );
+            dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
+                period, organisationUnit, optionCombo, false, new Date(), user ) );
         }
 
         dataApprovalService.unapproveData( dataApprovalList );
@@ -532,17 +520,20 @@ public class DataApprovalController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response ) throws WebMessageException
+        @RequestParam String ou,
+        @RequestParam( required = false ) String aoc,
+        HttpServletResponse response ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
         List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, false, new Date(), user );
+            period, organisationUnit, optionCombo, false, new Date(), user );
 
         dataApprovalService.unacceptData( dataApprovalList );
     }
@@ -566,58 +557,65 @@ public class DataApprovalController
         return dataSets;
     }
 
-    private List<DataApproval> getApprovalsAsList( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit organisationUnit, boolean accepted, Date created, User creator )
+    private List<DataApproval> getApprovalsAsList( DataApprovalLevel dataApprovalLevel,
+        DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
+        DataElementCategoryOptionCombo optionCombo, boolean accepted, Date created, User creator )
     {
         List<DataApproval> approvals = new ArrayList<>();
 
-        DataElementCategoryOptionCombo combo = categoryService.getDefaultDataElementCategoryOptionCombo();
         period = periodService.reloadPeriod( period );
 
-        approvals.add( new DataApproval( dataApprovalLevel, workflow, period, organisationUnit, combo, accepted, created, creator ) );
+        approvals.add( new DataApproval( dataApprovalLevel, workflow, period,
+            organisationUnit, optionCombo, accepted, created, creator ) );
 
         return approvals;
     }
 
     private List<DataApproval> getDataApprovalList( Approvals approvals ) throws WebMessageException
     {
-        List<DataSet> dataSets = objectManager.getByUid( DataSet.class, approvals.getDs() );
+        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( approvals.getDs(), approvals.getWf() );
         List<Period> periods = PeriodType.getPeriodsFromIsoStrings( approvals.getPe() );
         periods = periodService.reloadPeriods( periods );
+
+        if ( periods.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Approvals must have periods" ) );
+        }
 
         User user = currentUserService.getCurrentUser();
         DataElementCategoryOptionCombo defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         Date date = new Date();
 
-        Set<DataApproval> set = new HashSet<>(); // Avoid duplicates when different data sets have the same work flow
+        List<DataApproval> dataApprovals = new ArrayList<>();
 
-        for ( DataSet dataSet : dataSets )
+        List<DataElementCategoryOptionCombo> optionCombos = categoryService.getAllDataElementCategoryOptionCombos();
+
+        Map<String, DataElementCategoryOptionCombo> comboMap = optionCombos.stream().collect( Collectors.toMap( DataElementCategoryOptionCombo::getUid, c -> c ) );
+
+        Map<String, OrganisationUnit> ouCache = new HashMap<>();
+
+        for ( Approval approval : approvals.getApprovals() )
         {
-            if ( dataSet.getWorkflow() == null )
+            DataElementCategoryOptionCombo atributeOptionCombo = comboMap.get( approval.getAoc() );
+            atributeOptionCombo = ObjectUtils.firstNonNull( atributeOptionCombo, defaultOptionCombo );
+            OrganisationUnit unit = ouCache.get( approval.getOu() );
+
+            if ( unit == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "DataSet has no approval workflow: " + dataSet.getName() ) );
+                unit = getAndValidateOrgUnit( approval.getOu() );
+                ouCache.put( approval.getOu(), unit );
             }
 
-            Set<DataElementCategoryOptionCombo> dataSetOptionCombos = dataSet.getCategoryCombo() != null ? dataSet.getCategoryCombo().getOptionCombos() : null;
-
-            for ( Approval approval : approvals.getApprovals() )
+            for ( DataApprovalWorkflow workflow : workflows )
             {
-                OrganisationUnit unit = organisationUnitService.getOrganisationUnit( approval.getOu() );
-                DataElementCategoryOptionCombo optionCombo = categoryService.getDataElementCategoryOptionCombo( approval.getAoc() );
-                optionCombo = ObjectUtils.firstNonNull( optionCombo, defaultOptionCombo );
-
                 for ( Period period : periods )
                 {
-                    if ( dataSetOptionCombos != null && dataSetOptionCombos.contains( optionCombo ) )
-                    {
-                        DataApproval dataApproval = new DataApproval( null, dataSet.getWorkflow(), period, unit, optionCombo, false, date, user );
-                        set.add( dataApproval );
-                    }
+                    dataApprovals.add( new DataApproval( null, workflow, period, unit, atributeOptionCombo, false, date, user ) );
                 }
             }
         }
 
-        return new ArrayList<>( set );
+        return dataApprovals;
     }
 
     // -------------------------------------------------------------------------
@@ -625,7 +623,8 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     /**
-     * Validates the input parameters and returns a data approval workflow.
+     * Validates the data set and workflow parameters and returns a data
+     * approval workflow.
      *
      * @param ds the data set identifier.
      * @param wf the data approval workflow identifier.
@@ -668,6 +667,44 @@ public class DataApprovalController
         }
     }
 
+    /**
+     * Validates the sets of data set and workflow parameters and returns a set
+     * of data approval workflows.
+     *
+     * @param dss the data set identifiers.
+     * @param wfs the data approval workflow identifiers.
+     * @return a set of DataApprovalWorkflows.
+     * @throws WebMessageException if workflows are not found.
+     */
+    private Set<DataApprovalWorkflow> getAndValidateWorkflows( Collection<String> dss, Collection<String> wfs )
+        throws WebMessageException
+    {
+        Set<DataApprovalWorkflow> workflows = new HashSet<>();
+
+        if ( dss != null )
+        {
+            for ( String ds : dss )
+            {
+                workflows.add( getAndValidateWorkflow( ds, null ) );
+            }
+        }
+
+        if ( wfs != null )
+        {
+            for ( String wf : wfs)
+            {
+                workflows.add( getAndValidateWorkflow( null, wf ) );
+            }
+        }
+
+        if ( workflows.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Either data sets or data approval workflows must be specified" ) );
+        }
+
+        return workflows;
+    }
+
     private Period getAndValidatePeriod( String pe )
         throws WebMessageException
     {
@@ -705,5 +742,23 @@ public class DataApprovalController
         }
 
         return dataApprovalLevel;
+    }
+
+    private DataElementCategoryOptionCombo getAndValidateAttributeOptionCombo( String aoc )
+        throws WebMessageException
+    {
+        if ( aoc != null )
+        {
+            DataElementCategoryOptionCombo optionCombo = categoryService.getDataElementCategoryOptionCombo( aoc );
+
+            if ( optionCombo == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attribute option combo does not exist: " + aoc ) );
+            }
+
+            return optionCombo;
+        }
+
+        return categoryService.getDefaultDataElementCategoryOptionCombo();
     }
 }

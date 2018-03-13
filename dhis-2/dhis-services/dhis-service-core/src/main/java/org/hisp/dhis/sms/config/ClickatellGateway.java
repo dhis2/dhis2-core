@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ public class ClickatellGateway
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
         return batch.getMessages()
-            .stream()
+            .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
     }

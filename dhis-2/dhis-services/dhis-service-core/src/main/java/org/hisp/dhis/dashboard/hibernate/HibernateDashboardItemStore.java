@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,19 @@ package org.hisp.dhis.dashboard.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemStore;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+
+import javax.persistence.Query;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,63 +51,73 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countMapDashboardItems( Map map )
     {
-        Query query = getQuery( "select count(distinct c) from DashboardItem c where c.map=:map" );
-        query.setEntity( "map", map );
+        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where c.map=:map" );
+        query.setParameter( "map", map );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
     public int countChartDashboardItems( Chart chart )
     {
-        Query query = getQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
-        query.setEntity( "chart", chart );
+        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
+        query.setParameter( "chart", chart );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return ((Long) query.getSingleResult()).intValue();
+    }
+
+    @Override
+    public int countEventChartDashboardItems( EventChart eventChart )
+    {
+        Query query = getJpaQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
+
+        query.setParameter( "eventChart", eventChart );
+
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
     public int countReportTableDashboardItems( ReportTable reportTable )
     {
-        Query query = getQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
-        query.setEntity( "reportTable", reportTable );
+        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
+        query.setParameter( "reportTable", reportTable );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
     public int countReportDashboardItems( Report report )
     {
-        Query query = getQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
-        query.setEntity( "report", report );
+        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
+        query.setParameter( "report", report );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
     public int countDocumentDashboardItems( Document document )
     {
-        Query query = getQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
-        query.setEntity( "document", document );
+        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
+        query.setParameter( "document", document );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
     public int countUserDashboardItems( User user )
     {
-        Query query = getQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
-        query.setEntity( "user", user );
+        Query query = getJpaQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
+        query.setParameter( "user", user );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
     public Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem )
     {
-        Query query = getQuery( "from Dashboard d where :item in elements(d.items)" );
-        query.setEntity( "item", dashboardItem );
+        Query query = getJpaQuery( "from Dashboard d where :item in elements(d.items)" );
+        query.setParameter( "item", dashboardItem );
 
-        return (Dashboard) query.uniqueResult();
+        return (Dashboard) query.getSingleResult();
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.utils;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ public class ContextUtils
     public static final String CONTENT_TYPE_TEXT = "text/plain; charset=UTF-8";
     public static final String CONTENT_TYPE_CSS = "text/css; charset=UTF-8";
     public static final String CONTENT_TYPE_XML = "application/xml; charset=UTF-8";
-    public static final String CONTENT_TYPE_XML_ADX = "application/xml+adx; charset=UTF-8";
+    public static final String CONTENT_TYPE_XML_ADX = "application/adx+xml; charset=UTF-8";
     public static final String CONTENT_TYPE_CSV = "application/csv; charset=UTF-8";
     public static final String CONTENT_TYPE_PNG = "image/png";
     public static final String CONTENT_TYPE_JPG = "image/jpeg";
@@ -82,6 +82,7 @@ public class ContextUtils
     public static final String HEADER_EXPIRES = "Expires";
     public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
+    public static final String HEADER_VALUE_NO_STORE = "no-cache, no-store, max-age=0, must-revalidate";
 
     public static final String QUERY_PARAM_SEP = ";";
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
@@ -158,7 +159,7 @@ public class ContextUtils
         {
             Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY );
 
-            if (cacheability.equals( Cacheability.PUBLIC ))
+            if ( cacheability.equals( Cacheability.PUBLIC ) )
             {
                 cacheControl.cachePublic();
             }
@@ -178,11 +179,18 @@ public class ContextUtils
         }
     }
 
-    public static void setCacheControl( HttpServletResponse response, CacheControl value )
+    public static HttpServletResponse setCacheControl( HttpServletResponse response, CacheControl value )
     {
         response.setHeader( HEADER_CACHE_CONTROL, value.getHeaderValue() );
+        return response;
     }
 
+    public static HttpServletResponse setNoStore( HttpServletResponse response )
+    {
+        response.setHeader( HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE );
+        return response;
+    }
+    
     public static void okResponse( HttpServletResponse response, String message ) //TODO remove message
     {
         setResponse( response, HttpServletResponse.SC_OK, message );

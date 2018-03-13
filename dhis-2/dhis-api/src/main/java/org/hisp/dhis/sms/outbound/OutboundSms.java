@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.outbound;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,15 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "outboundsms" )
 public class OutboundSms
@@ -51,6 +50,8 @@ public class OutboundSms
 
     private Date date;
 
+    private String subject;
+
     private String message;
 
     private OutboundSmsStatus status = OutboundSmsStatus.OUTBOUND;
@@ -59,9 +60,10 @@ public class OutboundSms
     {
     }
 
-    public OutboundSms( String msg, String... recipients )
+    public OutboundSms( String subject, String message, String... recipients )
     {
-        message = msg;
+        this.subject = subject;
+        this.message = message;
         this.recipients = new HashSet<>();
         Collections.addAll( this.recipients, recipients );
     }
@@ -141,5 +143,15 @@ public class OutboundSms
         }
 
         return numbers.substring( 0, numbers.length() - 2 );
+    }
+
+    public String getSubject()
+    {
+        return subject;
+    }
+
+    public void setSubject( String subject )
+    {
+        this.subject = subject;
     }
 }

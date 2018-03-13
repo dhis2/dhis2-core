@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.dialect;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,19 @@ package org.hisp.dhis.hibernate.dialect;
 
 import org.hibernate.dialect.H2Dialect;
 
+import java.sql.Types;
+
 /**
  * @author Lars Helge Overland
  */
 public class DhisH2Dialect
     extends H2Dialect
 {
+    public DhisH2Dialect()
+    {
+        registerColumnType( Types.JAVA_OBJECT, "text" );
+    }
+
     @Override
     public String getDropSequenceString( String sequenceName )
     {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.query;
 
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
@@ -59,6 +60,8 @@ public class Query extends Criteria
 
     private boolean plannedQuery;
 
+    private Defaults defaults = Defaults.EXCLUDE;
+
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
@@ -73,7 +76,7 @@ public class Query extends Criteria
 
     public static Query from( Query query )
     {
-        Query clone = Query.from( query.getSchema(), query.getRootJunction().getType() );
+        Query clone = Query.from( query.getSchema(), query.getRootJunctionType() );
         clone.setUser( query.getUser() );
         clone.setLocale( query.getLocale() );
         clone.addOrders( query.getOrders() );
@@ -188,17 +191,9 @@ public class Query extends Criteria
         return this;
     }
 
-    public Junction getRootJunction()
+    public Junction.Type getRootJunctionType()
     {
-        switch ( rootJunctionType )
-        {
-            case AND:
-                return addConjunction();
-            case OR:
-                return addDisjunction();
-        }
-
-        throw new QueryException( "Unhandled junction type: " + rootJunctionType );
+        return rootJunctionType;
     }
 
     public boolean isPlannedQuery()
@@ -209,6 +204,17 @@ public class Query extends Criteria
     public Query setPlannedQuery( boolean plannedQuery )
     {
         this.plannedQuery = plannedQuery;
+        return this;
+    }
+
+    public Defaults getDefaults()
+    {
+        return defaults;
+    }
+
+    public Query setDefaults( Defaults defaults )
+    {
+        this.defaults = defaults;
         return this;
     }
 

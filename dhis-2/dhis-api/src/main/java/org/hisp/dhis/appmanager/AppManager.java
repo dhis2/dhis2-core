@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.appmanager;
  */
 
 import org.hisp.dhis.user.User;
+import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,15 +43,24 @@ public interface AppManager
 {
     String ID = AppManager.class.getName();
 
-    String APPS_DIR = "/apps";
-
     /**
-     * Returns a list of all the installed apps at @see getAppFolderPath
+     * Returns a list of all installed apps.
      *
      * @param contextPath the context path of this instance.
      * @return list of installed apps
      */
     List<App> getApps( String contextPath );
+
+    /**
+     * Returns a list of installed apps.
+     *
+     * @param appType the app type filter.
+     * @param max the max number of apps to return.
+     * @return a list of apps.
+     */
+    List<App> getApps( AppType appType, int max );
+
+    App getApp( String appName );
 
     /**
      * Returns a list of all installed apps with AppType equal the given Type
@@ -100,8 +110,7 @@ public interface AppManager
      * @param fileName the name of the app file.
      * @throws IOException if the app manifest file could not be read.
      */
-    AppStatus installApp( File file, String fileName )
-        throws IOException;
+    AppStatus installApp( File file, String fileName );
 
     /**
      * Does the app with name appName exist?
@@ -112,27 +121,20 @@ public interface AppManager
     boolean exists( String appName );
 
     /**
-     * Deletes the app with the given name.
+     * Deletes the given app.
      *
-     * @param name          the app name.
+     * @param app           the app to delete.
      * @param deleteAppData decide if associated data in dataStore should be deleted or not.
      * @return true if the delete was successful, false if there is no app with
      * the given name or if the app could not be removed from the file
      * system.
      */
-    boolean deleteApp( String name, boolean deleteAppData );
+    boolean deleteApp( App app, boolean deleteAppData );
 
     /**
      * Reload list of apps.
      */
     void reloadApps();
-
-    /**
-     * Returns the full path to the folder where apps are extracted
-     *
-     * @return app folder path
-     */
-    String getAppFolderPath();
 
     /**
      * Returns the url of the app repository
@@ -172,4 +174,13 @@ public interface AppManager
      * @return App or null
      */
     App getAppByNamespace( String namespace );
+
+    /**
+     * Looks up and returns the file associated with the app and pageName, if it exists
+     * @param app the app to look up files for
+     * @param pageName the page requested
+     * @return the Resource representing the file, or null if no file was found
+     */
+    Resource getAppResource( App app, String pageName )
+        throws IOException;
 }

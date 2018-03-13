@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.dashboard;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -45,6 +46,8 @@ public interface DashboardItemStore
     int countMapDashboardItems( Map map );
 
     int countChartDashboardItems( Chart chart );
+
+    int countEventChartDashboardItems( EventChart eventChart );
 
     int countReportTableDashboardItems( ReportTable reportTable );
 

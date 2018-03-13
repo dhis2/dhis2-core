@@ -14,9 +14,10 @@ import org.hisp.dhis.legend.LegendSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,6 +122,12 @@ public class BaseDimensionalObject
         this.uid = dimension;
         this.dimensionType = dimensionType;
         this.items = new ArrayList<>( items );
+    }
+
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String displayName, List<? extends DimensionalItemObject> items )
+    {
+        this( dimension, dimensionType, items );
+        this.displayName = displayName;
     }
 
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items )
@@ -344,16 +351,17 @@ public class BaseDimensionalObject
     @Override
     public String toString()
     {
+        List<String> itemStr = items.stream().map( item -> MoreObjects.toStringHelper( DimensionalItemObject.class )
+            .add( "uid", item.getUid() )
+            .add( "name", item.getName() )
+            .toString() )
+            .collect( Collectors.toList() );
+        
         return MoreObjects.toStringHelper( this )
             .add( "Dimension", uid )
             .add( "type", dimensionType )
-            .add( "dimension name", dimensionName )
             .add( "display name", displayName )
-            .add( "object name", name )
-            .add( "items", items )
-            .add( "all items", allItems )
-            .add( "legend set", legendSet )
-            .add( "aggregation type", aggregationType )
-            .add( "filter", filter ).toString();
+            .add( "items", itemStr )
+            .toString();
     }
 }

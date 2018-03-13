@@ -29,6 +29,10 @@
     
     <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
 
+    <property name="renderType" type="jbRenderType" column="rendertype" />
+    
+    <property name="searchable" column="searchable" />
+
     <set name="groups" table="programtrackedentityattributegroupmembers" >
       <cache usage="read-write" />
       <key column="programtrackedentityattributeid" foreign-key="fk_programtrackedentityattributegroupmembers_attributeid" />

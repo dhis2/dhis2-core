@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,8 @@ import java.util.List;
  */
 public class DefaultQueryParser implements QueryParser
 {
+    private static final String IDENTIFIABLE = "identifiable";
+
     private final SchemaService schemaService;
 
     public DefaultQueryParser( SchemaService schemaService )
@@ -60,8 +62,6 @@ public class DefaultQueryParser implements QueryParser
         Schema schema = schemaService.getDynamicSchema( klass );
         Query query = Query.from( schema, rootJunction );
 
-        Junction junction = query.getRootJunction();
-
         for ( String filter : filters )
         {
             String[] split = filter.split( ":" );
@@ -74,15 +74,31 @@ public class DefaultQueryParser implements QueryParser
             if ( split.length >= 3 )
             {
                 int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-                junction.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
+
+                if ( split[0].equals( IDENTIFIABLE ) && !schema.haveProperty( IDENTIFIABLE ) )
+                {
+                    query = Query.from( schema, Junction.Type.OR );
+                    handleIdentifiablePath( schema, split[1], filter.substring( index ), query );
+                }
+                else
+                {
+                    query.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
+                }
             }
             else
             {
-                junction.add( getRestriction( schema, split[0], split[1], null ) );
+                query.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
 
         return query;
+    }
+
+    private void handleIdentifiablePath( Schema schema, String operator, Object arg, Query query )
+    {
+        query.add( getRestriction( schema, "displayName", operator, arg ) );
+        query.add( getRestriction( schema, "id", operator, arg ) );
+        query.add( getRestriction( schema, "code", operator, arg ) );
     }
 
     @Override
@@ -145,19 +161,19 @@ public class DefaultQueryParser implements QueryParser
             {
                 return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
             }
-            case "^like":
+            case "$like":
             {
                 return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
-            case "!^like":
+            case "!$like":
             {
                 return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
-            case "$like":
+            case "like$":
             {
                 return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }
-            case "!$like":
+            case "!like$":
             {
                 return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }
@@ -170,20 +186,28 @@ public class DefaultQueryParser implements QueryParser
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
             }
             case "startsWith":
-            case "^ilike":
+            case "$ilike":
             {
                 return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
-            case "!^ilike":
+            case "!$ilike":
             {
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
             }
+            case "token":
+            {
+                return Restrictions.token(path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+            }
+            case "!token":
+            {
+                return Restrictions.notToken( path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+            }
             case "endsWith":
-            case "$ilike":
+            case "ilike$":
             {
                 return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }
-            case "!$ilike":
+            case "!ilike$":
             {
                 return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
             }
@@ -216,6 +240,10 @@ public class DefaultQueryParser implements QueryParser
             case "!null":
             {
                 return Restrictions.isNotNull( path );
+            }
+            case "empty":
+            {
+                return Restrictions.isEmpty( path );
             }
             default:
             {

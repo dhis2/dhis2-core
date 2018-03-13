@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard.message.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ public class SendFeedbackAction
         String metaData = MessageService.META_USER_AGENT + 
             ServletActionContext.getRequest().getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        messageService.sendTicketMessage( subject, text, metaData );
+        messageService.sendMessage( messageService.createTicketMessage( subject, text, metaData ).build() );
         
         return SUCCESS;
     }

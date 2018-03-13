@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporttable.impl;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -212,45 +212,10 @@ public class DefaultReportTableService
         return reportTableStore.getByUidNoAcl( uid );
     }
 
-    @Override
-    public List<ReportTable> getReportTablesByUid( List<String> uids )
-    {
-        return reportTableStore.getByUid( uids );
-    }
 
     @Override
     public List<ReportTable> getAllReportTables()
     {
         return reportTableStore.getAll();
-    }
-
-    @Override
-    public List<ReportTable> getReportTableByName( String name )
-    {
-        return reportTableStore.getAllEqName( name );
-    }
-
-    @Override
-    public List<ReportTable> getReportTablesBetweenByName( String name, int first, int max )
-    {
-        return reportTableStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public int getReportTableCount()
-    {
-        return reportTableStore.getCount();
-    }
-
-    @Override
-    public int getReportTableCountByName( String name )
-    {
-        return reportTableStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<ReportTable> getReportTablesBetween( int first, int max )
-    {
-        return reportTableStore.getAllOrderedName( first, max );
     }
 }

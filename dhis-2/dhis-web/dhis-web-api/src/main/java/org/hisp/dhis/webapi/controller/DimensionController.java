@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,11 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
@@ -94,6 +97,7 @@ public class DimensionController
         List<DimensionalObject> dimensionalObjects;
         Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( dimensionService.getAllDimensions() );
         dimensionalObjects = (List<DimensionalObject>) queryService.query( query );
 
@@ -109,10 +113,11 @@ public class DimensionController
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/items", method = RequestMethod.GET )
     public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters, Model model,
-        HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
+        OrderParams orderParams, HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        List<Order> orders = orderParams.getOrders( getSchema( DimensionalItemObject.class ) );
 
         if ( fields.isEmpty() )
         {
@@ -120,7 +125,7 @@ public class DimensionController
         }
 
         List<DimensionalItemObject> items = dimensionService.getCanReadDimensionItems( uid );
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>() );
+        Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
         query.setObjects( items );
         query.setDefaultOrder();
 
@@ -128,7 +133,8 @@ public class DimensionController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.filter( getEntityClass(), items, fields ) );
+        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.toCollectionNode( DimensionalItemObject.class,
+            new FieldFilterParams( items, fields ) ) );
         collectionNode.setName( "items" );
 
         for ( Node node : collectionNode.getChildren() )
@@ -151,7 +157,7 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( getEntityClass(), dimensionConstraints, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensionConstraints, fields ) ) );
 
         return rootNode;
     }
@@ -193,7 +199,7 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.filter( getEntityClass(), metadata.getDimensions(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( metadata.getDimensions(), fields ) ) );
 
         return rootNode;
     }

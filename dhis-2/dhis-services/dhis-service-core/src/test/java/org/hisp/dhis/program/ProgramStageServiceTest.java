@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,15 +139,4 @@ public class ProgramStageServiceTest
         assertEquals( stageA, programStageService.getProgramStage( "UID-A" ) );
         assertEquals( stageB, programStageService.getProgramStage( "UID-B" ) );
     }
-
-    @Test
-    public void testGetProgramStageByNameProgram()
-    {
-        programStageService.saveProgramStage( stageA );
-        programStageService.saveProgramStage( stageB );
-        
-        assertEquals( stageA, programStageService.getProgramStageByName( "A", program ) );
-        assertEquals( stageB, programStageService.getProgramStageByName( "B", program ) );
-    }
-
 }

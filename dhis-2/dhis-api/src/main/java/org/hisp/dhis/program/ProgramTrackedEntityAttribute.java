@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.HashSet;
@@ -60,9 +62,18 @@ public class ProgramTrackedEntityAttribute
 
     private Boolean allowFutureDate;
 
+    // Remove later, replaced by renderType
     private Boolean renderOptionsAsRadio = false;
 
+    /**
+     * Represents how the client should render the TrackedEntityAttribute
+     */
+    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
+
+
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
+    
+    private Boolean searchable = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -200,7 +211,12 @@ public class ProgramTrackedEntityAttribute
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isMandatory()
     {
-        return mandatory;
+        if ( mandatory != null )    
+        { 
+            return mandatory;
+        }
+        
+        return false;
     }
 
     public void setMandatory( Boolean mandatory )
@@ -267,5 +283,30 @@ public class ProgramTrackedEntityAttribute
     public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
     {
         this.renderOptionsAsRadio = renderOptionsAsRadio;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isSearchable()
+    {
+        return searchable;
+    }
+
+    public void setSearchable( Boolean searchable )
+    {
+        this.searchable = searchable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
+
+    public void setRenderType(
+        DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
+    {
+        this.renderType = renderType;
     }
 }

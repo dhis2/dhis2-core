@@ -16,7 +16,7 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
       column="legendsetid" foreign-key="fk_tedataelementdimension_legendsetid" />
 
-    <property name="filter" />
+    <property name="filter" type="text" />
 
   </class>
 </hibernate-mapping>

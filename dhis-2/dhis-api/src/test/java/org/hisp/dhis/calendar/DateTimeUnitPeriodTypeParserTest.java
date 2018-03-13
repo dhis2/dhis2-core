@@ -1,7 +1,7 @@
 package org.hisp.dhis.calendar;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,8 +53,17 @@ public class DateTimeUnitPeriodTypeParserTest
         assertEquals( new DateInterval( new DateTimeUnit( 2014, 2, 4, true ), new DateTimeUnit( 2014, 2, 4, true ) ), format.parse( "20140204" ) );
 
         // weekly
-        assertEquals( new DateInterval( new DateTimeUnit( 2013, 12, 30, true ), new DateTimeUnit( 2014, 1, 5, true ) ), format.parse( "2014W1" ) );
+        assertEquals( new DateInterval( new DateTimeUnit( 2013, 12, 30, 1, true ),
+            new DateTimeUnit( 2014, 1, 5, 7, true ) ), format.parse( "2014W1" ) );
         assertEquals( new DateInterval( new DateTimeUnit( 2014, 1, 6, true ), new DateTimeUnit( 2014, 1, 12, true ) ), format.parse( "2014W2" ) );
+
+        //biWeekly
+        assertNull( format.parse( "2018BiW0" ) );
+        assertNull( format.parse( "2018BiW27") );
+        assertNull( format.parse( "2009BiW28") );
+        assertNotNull( format.parse( "2009BiW27") );
+        assertEquals( new DateInterval( new DateTimeUnit( 2013, 12, 30, 1, true ),
+            new DateTimeUnit( 2014, 1, 12, 7, true ) ), format.parse( "2014BiW1" ) );
 
         // monthly
         assertNull( format.parse( "2014W0" ) );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,14 @@ package org.hisp.dhis.sms.listener;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -48,14 +45,9 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
+@Transactional
 public class UnregisteredSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
 
     public static final String USER_NAME = "anonymous";
@@ -72,13 +64,6 @@ public class UnregisteredSMSListener
 
     @Autowired
     private MessageService messageService;
-    
-    @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
-    
-    @Autowired
-    private IncomingSmsService incomingSmsService;
 
     // -------------------------------------------------------------------------
     // IncomingSmsListener implementation
@@ -96,72 +81,59 @@ public class UnregisteredSMSListener
     @Override
     public void receive( IncomingSms sms )
     {
-        String message = sms.getText();
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.UNREGISTERED_PARSER );
 
         UserGroup userGroup = smsCommand.getUserGroup();
 
-        String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
+        String userName = sms.getOriginator();
 
         if ( userGroup != null )
         {
-            Collection<User> users = userService.getUsersByPhoneNumber( senderPhoneNumber );
+            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( userName );
 
-            if ( users != null && users.size() >= 1 )
+            if ( anonymousUser == null )
             {
-                String messageError = "This number is already registered for user: ";
-                for ( Iterator<User> iterator = users.iterator(); iterator.hasNext(); )
-                {
-                    User user = iterator.next();
-                    messageError += user.getName();
+                User user = new User();
 
-                    if ( iterator.hasNext() )
-                    {
-                        messageError += ", ";
-                    }
-                }
+                UserCredentials usercredential = new UserCredentials();
+                usercredential.setUsername( userName );
+                usercredential.setPassword( USER_NAME );
+                usercredential.setUserInfo( user );
 
-                throw new SMSParserException( messageError );
+                user.setSurname( userName );
+                user.setFirstName( "" );
+                user.setUserCredentials( usercredential );
+
+                userService.addUserCredentials( usercredential );
+                userService.addUser( user );
+
+                anonymousUser = userService.getUserCredentialsByUsername( userName );
             }
-            else
-            {
-                Set<User> receivers = new HashSet<>( userGroup.getMembers() );
 
-                UserCredentials anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
 
-                if ( anonymousUser == null )
-                {
-                    User user = new User();
-                    UserCredentials usercredential = new UserCredentials();
-                    usercredential.setUsername( USER_NAME );
-                    usercredential.setPassword( USER_NAME );
-                    usercredential.setUserInfo( user );
-                    user.setSurname( USER_NAME );
-                    user.setFirstName( USER_NAME );
-                    user.setUserCredentials( usercredential );
+            messageService.sendMessage(
+                new MessageConversationParams.Builder( userGroup.getMembers(), anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM )
+                    .build()
+            );
 
-                    userService.addUserCredentials( usercredential );
-                    userService.addUser( user );
-                    anonymousUser = userService.getUserCredentialsByUsername( "anonymous" );
-                }
+            sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
 
-                // forward to user group by SMS, E-mail, DHIS conversation
-                messageService.sendMessage( smsCommand.getName(), message, null, receivers, anonymousUser.getUserInfo(),
-                    MessageType.SYSTEM, false );
-
-                // confirm SMS was received and forwarded completely
-                Set<User> feedbackList = new HashSet<>();
-                User sender = new User();
-                sender.setPhoneNumber( senderPhoneNumber );
-                feedbackList.add( sender );
-                
-                smsSender.sendMessage( smsCommand.getName(), smsCommand.getReceivedMessage(), null, null, feedbackList, true );
-                
-                sms.setStatus( SmsMessageStatus.PROCESSED );
-                sms.setParsed( true );
-                incomingSmsService.update( sms );
-            }
+            update( sms, SmsMessageStatus.PROCESSED, true );
         }
+    }
+
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for UnregisteredSMSListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for UnregisteredSMSListener
+        return StringUtils.EMPTY;
     }
 }

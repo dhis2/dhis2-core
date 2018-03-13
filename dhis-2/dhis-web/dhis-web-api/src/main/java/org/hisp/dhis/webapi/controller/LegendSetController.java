@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,24 +26,14 @@ package org.hisp.dhis.webapi.controller;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,61 +46,24 @@ import javax.servlet.http.HttpServletResponse;
 public class LegendSetController
     extends AbstractCrudController<LegendSet>
 {
-    @Autowired
-    private LegendSetService legendSetService;
-
     @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
-    @ResponseStatus( HttpStatus.CREATED )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        LegendSet legendSet = renderService.fromJson( request.getInputStream(), LegendSet.class );
-        legendSet.getTranslations().clear();
-
-        legendSetService.addLegendSet( legendSet );
-
-        response.addHeader( "Location", LegendSetSchemaDescriptor.API_ENDPOINT + "/" + legendSet.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Legend set created" ), response, request );
+        super.postJsonObject( request, response );
     }
 
     @Override
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        LegendSet legendSet = legendSetService.getLegendSet( uid );
-
-        if ( legendSet == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Legend set does not exist: " + uid ) );
-        }
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-
-        LegendSet newLegendSet = renderService.fromJson( request.getInputStream(), LegendSet.class );
-        newLegendSet.setUser( currentUserService.getCurrentUser() );
-        newLegendSet.setUid( legendSet.getUid() );
-
-        mergeService.merge( new MergeParams<>( newLegendSet, legendSet ).setMergeMode( params.getMergeMode() ) );
-        legendSetService.updateLegendSet( legendSet );
+        super.putJsonObject( uid, request, response );
     }
 
     @Override
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
-        LegendSet legendSet = legendSetService.getLegendSet( uid );
-
-        if ( legendSet == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Legend set does not exist: " + uid ) );
-        }
-
-        legendSet.getLegends().clear();
-        legendSetService.deleteLegendSet( legendSet );
+        super.deleteObject( uid, request, response );
     }
 }

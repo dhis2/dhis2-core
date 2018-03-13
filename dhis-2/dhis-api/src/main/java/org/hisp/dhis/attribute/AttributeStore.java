@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,8 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.GenericNameableObjectStore;
+
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,7 +52,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -62,7 +63,7 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AttributeStore
-    extends GenericNameableObjectStore<Attribute>
+    extends GenericIdentifiableObjectStore<Attribute>
 {
     String ID = AttributeStore.class.getName();
 
@@ -79,7 +80,7 @@ public interface AttributeStore
         .put( UserGroup.class, "userGroupAttribute" )
         .put( Program.class, "programAttribute" )
         .put( ProgramStage.class, "programStageAttribute" )
-        .put( TrackedEntity.class, "trackedEntityAttribute" )
+        .put( TrackedEntityType.class, "trackedEntityTypeAttribute" )
         .put( TrackedEntityAttribute.class, "trackedEntityAttributeAttribute" )
         .put( DataElementCategoryOption.class, "categoryOptionAttribute" )
         .put( CategoryOptionGroup.class, "categoryOptionGroupAttribute" )

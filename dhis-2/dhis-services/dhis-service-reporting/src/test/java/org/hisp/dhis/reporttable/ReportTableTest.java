@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporttable;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -69,6 +69,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -77,7 +78,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 public class ReportTableTest
-    extends DhisSpringTest
+    extends DhisConvenienceTest
 {
     private List<DataElement> dataElements;
     private List<DataElementCategoryOptionCombo> categoryOptionCombos;
@@ -133,9 +134,8 @@ public class ReportTableTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Override
-    public void setUpTest()
-        throws Exception
+    @Before
+    public void before()
     {
         dataElements = new ArrayList<>();
         categoryOptionCombos = new ArrayList<>();

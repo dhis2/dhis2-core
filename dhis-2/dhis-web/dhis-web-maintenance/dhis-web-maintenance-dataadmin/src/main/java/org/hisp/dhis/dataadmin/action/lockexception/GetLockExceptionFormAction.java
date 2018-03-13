@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataadmin.action.lockexception;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -196,7 +196,7 @@ public class GetLockExceptionFormAction
 
         if ( !userCredentials.isSuper() )
         {
-            dataSets.retainAll( userCredentials.getAllDataSets() );
+            dataSets.retainAll( dataSetService.getUserDataWrite( userCredentials.getUser() ) );
         }
 
         return dataSets;

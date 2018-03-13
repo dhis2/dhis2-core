@@ -21,6 +21,10 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
+
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programindicator_program" not-null="true" />
 
@@ -57,14 +61,20 @@
 
     <property name="displayInForm" />
 
-    <property name="analyticsType" column="analyticstype" length="15">
+    <property name="analyticsType" column="analyticstype" length="15" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.AnalyticsType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
     </property>
-
+    
+    <set name="analyticsPeriodBoundaries" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <one-to-many class="org.hisp.dhis.program.AnalyticsPeriodBoundary" />
+    </set>
+    
     <!-- Object Translation -->
     <set name="translations" table="programindicatortranslations" cascade="all-delete-orphan">
       <cache usage="read-write" />

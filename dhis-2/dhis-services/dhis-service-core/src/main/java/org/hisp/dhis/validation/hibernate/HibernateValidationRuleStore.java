@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -86,21 +88,12 @@ public class HibernateValidationRuleStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements )
+    public List<ValidationRule> getAllFormValidationRules()
     {
-        List<ValidationRule> validationRules = new ArrayList<>();
+        Criteria criteria = getSharingCriteria();
+        criteria.add( Restrictions.eq( "skipFormValidation", false ) );
 
-        Collection<Integer> ids = IdentifiableObjectUtils.getIdentifiers( dataElements );
-
-        String hql = "select distinct v from ValidationRule v join v.leftSide ls join ls.dataElementsInExpression lsd where lsd.id in (:ids)";
-
-        validationRules.addAll( getSession().createQuery( hql ).setParameterList( "ids", ids ).list() );
-
-        hql = "select distinct v from ValidationRule v join v.rightSide rs join rs.dataElementsInExpression rsd where rsd.id in (:ids)";
-
-        validationRules.addAll( getQuery( hql ).setParameterList( "ids", ids ).list() );
-
-        return validationRules;
+        return criteria.list();
     }
 
     @Override

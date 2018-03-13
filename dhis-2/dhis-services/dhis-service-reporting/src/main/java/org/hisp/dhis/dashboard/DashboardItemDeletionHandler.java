@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.dashboard;
 
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -61,6 +62,12 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     public String allowDeleteChart( Chart chart )
     {
         return dashboardService.countChartDashboardItems( chart ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    public String allowDeleteEventChart( EventChart eventChart )
+    {
+        return dashboardService.countEventChartDashboardItems( eventChart ) == 0 ? null : ERROR;
     }
 
     @Override

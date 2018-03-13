@@ -1,7 +1,7 @@
 package org.hisp.dhis.mobile.action.smscommand;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,7 @@ package org.hisp.dhis.mobile.action.smscommand;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -196,21 +192,23 @@ public class SMSCommandAction
                 {
                     codes.put( "" + smsCode.getTrackedEntityAttribute().getId(), smsCode.getCode() );
                 }
-                else if ( smsCode.getDataElement() != null )
+                else if ( smsCommand.getParserType() == ParserType.KEY_VALUE_PARSER && smsCode.getDataElement() != null )
                 {
                     codes.put( "" + smsCode.getDataElement().getId() + smsCode.getOptionId(), smsCode.getCode() );
+
+                    if ( smsCode.getFormula() != null )
+                    {
+                        formulas.put( "" + smsCode.getDataElement().getId() + smsCode.getOptionId(), smsCode.getFormula() );
+                    }
                 }
 
-                if ( smsCode.getFormula() != null )
+                if ( smsCommand.getParserType().equals( ParserType.EVENT_REGISTRATION_PARSER ) || smsCommand.getParserType().equals( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER ) )
                 {
-                    formulas.put( "" + smsCode.getDataElement().getId() + smsCode.getOptionId(), smsCode.getFormula() );
+                    if ( smsCode.getDataElement() != null )
+                    {
+                        codes.put( "" + smsCode.getDataElement().getId(), smsCode.getCode() );
+                    }
                 }
-
-                if ( smsCommand.getParserType().equals(ParserType.EVENT_REGISTRATION_PARSER ))
-                {
-                    codes.put( "" + smsCode.getDataElement().getId(), smsCode.getCode() );
-                }
-
             }
         }
 
@@ -219,7 +217,7 @@ public class SMSCommandAction
         programList = new ArrayList<>( programService.getPrograms( ProgramType.WITH_REGISTRATION ) );
 
         programWithoutRegistration = new ArrayList<>( programService.getPrograms( ProgramType.WITHOUT_REGISTRATION ) );
-
+        
         return SUCCESS;
     }
 
@@ -235,6 +233,16 @@ public class SMSCommandAction
             if ( d != null )
             {
                 dataElements = new ArrayList<>( d.getDataElements() );
+
+                Collections.sort( dataElements, new Comparator<DataElement>()
+                {
+                    @Override
+                    public int compare( DataElement o1, DataElement o2 )
+                    {
+                        return o1.getName().compareTo( o2.getName() );
+                    }
+                });
+
                 return dataElements;
             }
         }
@@ -279,14 +287,25 @@ public class SMSCommandAction
     {
         if ( smsCommand != null )
         {
-
             Program program = smsCommand.getProgram();
 
-            ProgramStage programStage = program.getProgramStages().iterator().next();
-
-            if ( programStage != null )
+            if ( ParserType.EVENT_REGISTRATION_PARSER.equals( smsCommand.getParserType() ) )
             {
-                programStageDataElementList = programStage.getProgramStageDataElements();
+                ProgramStage programStage = program.getProgramStages().iterator().next();
+
+                if ( programStage != null )
+                {
+                    programStageDataElementList = programStage.getProgramStageDataElements();
+                }
+            }
+            else if ( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER.equals( smsCommand.getParserType() ) )
+            {
+                ProgramStage programStage = smsCommand.getProgramStage();
+
+                if ( programStage != null )
+                {
+                    programStageDataElementList = programStage.getProgramStageDataElements();
+                }
             }
 
             return programStageDataElementList;

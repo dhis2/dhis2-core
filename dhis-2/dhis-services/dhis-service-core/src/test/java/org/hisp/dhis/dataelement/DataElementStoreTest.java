@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -188,30 +187,6 @@ public class DataElementStoreTest
     }
 
     @Test
-    public void testGetDataElementByShortName()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementStore.save( dataElementA );
-        int idA = dataElementA.getId();
-        dataElementStore.save( dataElementB );
-        int idB = dataElementB.getId();
-
-        dataElementA = dataElementStore.getByShortName( "DataElementShortA" );
-        assertNotNull( dataElementA );
-        assertEquals( idA, dataElementA.getId() );
-        assertEquals( "DataElementA", dataElementA.getName() );
-
-        dataElementB = dataElementStore.getByShortName( "DataElementShortB" );
-        assertNotNull( dataElementB );
-        assertEquals( idB, dataElementB.getId() );
-        assertEquals( "DataElementB", dataElementB.getName() );
-
-        DataElement dataElementC = dataElementStore.getByShortName( "DataElementShortC" );
-        assertNull( dataElementC );
-    }
-
-    @Test
     public void testGetAllDataElements()
     {
         assertEquals( 0, dataElementStore.getAll().size() );
@@ -360,29 +335,6 @@ public class DataElementStoreTest
         List<DataElement> dataElements = dataElementStore.getDataElementsByZeroIsSignificant( true );
 
         assertTrue( equals( dataElements, dataElementA, dataElementB ) );
-    }
-
-    @Ignore // Fails with expected:<null> but was:<{"class":"class org.hisp.dhis.dataelement.DataElement"
-    @Test
-    public void testDataElementFromAttribute() throws NonUniqueAttributeValueException
-    {
-        Attribute attribute = new Attribute( "test", ValueType.TEXT );
-        attribute.setDataElementAttribute( true );
-        attributeService.addAttribute( attribute );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-
-        AttributeValue attributeValue = new AttributeValue( "SOME VALUE", attribute );
-        attributeService.addAttributeValue( dataElementA, attributeValue );
-
-        dataElementA.getAttributeValues().add( attributeValue );
-        dataElementStore.update( dataElementA );
-
-        DataElement dataElement = dataElementStore.getByAttribute( attribute );
-        assertEquals( dataElement, dataElementA );
     }
 
     @Test

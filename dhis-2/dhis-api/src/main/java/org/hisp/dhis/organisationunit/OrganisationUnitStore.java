@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * Defines methods for persisting OrganisationUnits.
@@ -42,7 +42,7 @@ import org.hisp.dhis.common.GenericNameableObjectStore;
  * @version $Id: OrganisationUnitStore.java 5645 2008-09-04 10:01:02Z larshelg $
  */
 public interface OrganisationUnitStore
-    extends GenericNameableObjectStore<OrganisationUnit>
+    extends GenericIdentifiableObjectStore<OrganisationUnit>
 {
     String ID = OrganisationUnitStore.class.getName();
 

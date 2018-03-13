@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
@@ -92,29 +92,21 @@ public interface TrackedEntityAttributeService
     TrackedEntityAttribute getTrackedEntityAttributeByName( String name );
 
     /**
-     * Returns a {@link TrackedEntityAttribute} with a given short name.
-     *
-     * @param name the short name of the TrackedEntityAttribute to return.
-     * @return the TrackedEntityAttribute with the given short name, or null if no
-     * match.
-     */
-    TrackedEntityAttribute getTrackedEntityAttributeByShortName( String name );
-
-    /**
-     * Returns a {@link TrackedEntityAttribute} with a given code.
-     *
-     * @param code The code of the TrackedEntityAttribute to return.
-     * @return the TrackedEntityAttribute with the given code, or null if no match.
-     */
-    TrackedEntityAttribute getTrackedEntityAttributeByCode( String code );
-
-    /**
      * Returns all {@link TrackedEntityAttribute}
      *
      * @return a List of all TrackedEntityAttribute, or an empty
      * List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
+    
+    
+    /**
+     * Returns all {@link TrackedEntityAttribute}
+     *
+     * @return a List of all system wide uniqe TrackedEntityAttribute, or an empty
+     * List if there are no TrackedEntityAttributes.
+     */
+    List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes();
 
     /**
      * Get attributes which are displayed in visit schedule
@@ -130,14 +122,15 @@ public interface TrackedEntityAttributeService
      *
      * @return List of attributes
      */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutProgram();
-
+    List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram();
+    
     /**
-     * Get attributes which are displayed in visit schedule
-     *
-     * @return List of attributes
+     * Get all attributes that user is allowed to read 
+     * (through program and tracked entity type)
+     * 
+     * @return
      */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList();
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
 
     /**
      * Validate scope of tracked entity attribute. Will return true if attribute is non-unique.
@@ -160,25 +153,4 @@ public interface TrackedEntityAttributeService
      * @return null if valid, a message if not
      */
     String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value );
-
-    /**
-     * Gets or adds a program tracked entity attribute for the given program and 
-     * attribute.
-     * 
-     * @param programUid the program identifier.
-     * @param attributeUid the tracked entity attribute identifier.
-     * @return a program tracked entity attribute.
-     */
-    ProgramTrackedEntityAttribute getOrAddProgramTrackedEntityAttribute( String programUid, String attributeUid );
-    
-    /**
-     * Returns a program tracked entity attribute. The program tracked entity
-     * attribute itself will be transient and the associated program and tracked
-     * entity attribute will be persistent.
-     * 
-     * @param programUid the program identifier.
-     * @param attributeUid the tracked entity attribute identifier.
-     * @return a tracked entity attribute.
-     */
-    ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( String programUid, String attributeUid );
 }

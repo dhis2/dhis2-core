@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +59,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of EventService that uses Jackson for serialization and 
+ * Implementation of EventService that uses Jackson for serialization and
  * deserialization. This class has the prototype scope and can hence have
  * class scoped variables such as caches.
  *
@@ -142,12 +143,12 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseXmlEvents( input );
 
-        return addEvents( events, taskId, importOptions );
+        return addEvents( events, jobId, importOptions );
     }
 
     @Override
@@ -157,13 +158,13 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
 
         List<Event> events = parseJsonEvents( input );
 
-        return addEvents( events, taskId, importOptions );
+        return addEvents( events, jobId, importOptions );
     }
 
     // -------------------------------------------------------------------------
@@ -206,11 +207,11 @@ public class JacksonEventService extends AbstractEventService
         return events;
     }
 
-    private ImportSummaries addEvents( List<Event> events, TaskId taskId, ImportOptions importOptions )
+    private ImportSummaries addEvents( List<Event> events, JobConfiguration jobId, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
 
-        notifier.clear( taskId ).notify( taskId, "Importing events" );
+        notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
 
         List<Event> create = new ArrayList<>();
@@ -253,18 +254,23 @@ public class JacksonEventService extends AbstractEventService
             delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
         }
 
-        importSummaries.addImportSummaries( addEvents( create, importOptions ) );
-        importSummaries.addImportSummaries( updateEvents( update, false ) );
+        importSummaries.addImportSummaries( addEvents( create, importOptions, true ) );
+        importSummaries.addImportSummaries( updateEvents( update, false, true ) );
         importSummaries.addImportSummaries( deleteEvents( delete ) );
 
-        if ( taskId != null )
+        if ( jobId != null )
         {
-            notifier.notify( taskId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
-                addTaskSummary( taskId, importSummaries );
+            notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
+                addJobSummary( jobId, importSummaries );
         }
         else
         {
             clock.logTime( "Import done" );
+        }
+
+        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+        {
+            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
         }
 
         return importSummaries;

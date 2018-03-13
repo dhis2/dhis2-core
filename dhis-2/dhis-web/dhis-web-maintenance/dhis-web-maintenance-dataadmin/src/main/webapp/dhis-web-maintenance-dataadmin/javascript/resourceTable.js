@@ -11,6 +11,6 @@ function generateResourceTable()
 
 function pingNotificationsTimeout()
 {
-	pingNotifications( "RESOURCETABLE_UPDATE", "notificationTable" );
+	pingNotifications( "RESOURCE_TABLE", "notificationTable" );
 	setTimeout( "pingNotificationsTimeout()", 2500 );
 }

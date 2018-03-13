@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -53,17 +53,17 @@ public interface SynchronizationManager
      * @return an {@link ImportSummaries}.
      */
     ImportSummaries executeEventPush() throws WebMessageParseException;
-    
+
     /**
      * Returns the time of the last successful data sync operation.
-     * 
+     *
      * @return the time of the last successful data sync operation as a {@link Date}.
      */
     Date getLastDataSynchSuccess();
 
     /**
      * Returns the time of the last successful event sync operation.
-     * 
+     *
      * @return the time of the last successful event sync operation as a {@link Date}.
      */
     Date getLastEventSynchSuccess();

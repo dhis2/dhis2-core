@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset.tasks;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class ImportCompleteDataSetRegistrationsTask
 
     private ImportOptions importOptions;
 
-    private TaskId taskId;
+    private JobConfiguration id;
 
     private SessionFactory sessionFactory;
 
@@ -75,7 +75,7 @@ public class ImportCompleteDataSetRegistrationsTask
     // -------------------------------------------------------------------------
 
     public ImportCompleteDataSetRegistrationsTask( CompleteDataSetRegistrationExchangeService registrationService,
-        SessionFactory sessionFactory, InputStream input, Path tmpFile, ImportOptions importOptions, String format, TaskId taskId )
+        SessionFactory sessionFactory, InputStream input, Path tmpFile, ImportOptions importOptions, String format, JobConfiguration id )
     {
         this.registrationService = registrationService;
         this.sessionFactory = sessionFactory;
@@ -83,7 +83,7 @@ public class ImportCompleteDataSetRegistrationsTask
         this.tmpFile = tmpFile;
         this.importOptions = importOptions;
         this.format = format;
-        this.taskId = taskId;
+        this.id = id;
     }
 
     // -------------------------------------------------------------------------
@@ -97,11 +97,11 @@ public class ImportCompleteDataSetRegistrationsTask
         {
             if ( FORMAT_XML.equals( format ) )
             {
-                registrationService.saveCompleteDataSetRegistrationsXml( input, importOptions, taskId );
+                registrationService.saveCompleteDataSetRegistrationsXml( input, importOptions, id );
             }
             else if ( FORMAT_JSON.equals( format ) )
             {
-                registrationService.saveCompleteDataSetRegistrationsJson( input, importOptions, taskId );
+                registrationService.saveCompleteDataSetRegistrationsJson( input, importOptions, id );
             }
         }
         finally

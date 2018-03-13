@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
@@ -104,6 +105,15 @@ public interface DataElementService
      * are no DataElements.
      */
     List<DataElement> getAllDataElements();
+
+    /**
+     * Returns all DataElements of a given type.
+     *
+     * @param valueType the value type restriction
+     * @return a list of all DataElements with the given value type,
+     * or an empty list if there are no DataElements.
+     */
+    List<DataElement> getAllDataElementsByValueType( ValueType valueType );
 
     /**
      * Returns all DataElements with the given domain type.
@@ -203,7 +213,7 @@ public interface DataElementService
     /**
      * Returns the DataElementGroup with the given UID.
      *
-     * @param id the UID of the DataElementGroup to return.
+     * @param uid the UID of the DataElementGroup to return.
      * @return the DataElementGroup with the given UID, or null if no match.
      */
     DataElementGroup getDataElementGroup( String uid );
@@ -224,28 +234,11 @@ public interface DataElementService
      */
     List<DataElementGroup> getAllDataElementGroups();
 
-
     /**
-     * Returns a DataElementGroup with a given short name.
+     * Returns all DataElements which zeroIsSignificant property is true or false.
      *
-     * @param shortName the short name of the DataElementGroup to return.
-     * @return the DataElementGroup with the given short name, or null if no match.
-     */
-    DataElementGroup getDataElementGroupByShortName( String shortName );
-
-    /**
-     * Returns a DataElementGroup with a given code.
-     *
-     * @param code the shortName of the DataElementGroup to return.
-     * @return the DataElementGroup with the given code, or null if no match.
-     */
-    DataElementGroup getDataElementGroupByCode( String code );
-
-    /**
-     * Returns all DataElement which zeroIsSignificant property is true or false
-     *
-     * @param list is zeroIsSignificant property
-     * @return a collection of all DataElement
+     * @param zeroIsSignificant whether zero is significant is true for this query.
+     * @return a collection of DataElements.
      */
     List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant );
 

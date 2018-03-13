@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * Defines the functionality for persisting DataApproval objects.
@@ -37,6 +37,6 @@ import org.hisp.dhis.common.GenericNameableObjectStore;
  */
 
 public interface DataApprovalWorkflowStore
-    extends GenericNameableObjectStore<DataApprovalWorkflow>
+    extends GenericIdentifiableObjectStore<DataApprovalWorkflow>
 {
 }

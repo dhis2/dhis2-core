@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
@@ -206,9 +207,14 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
             delete.addAll( enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
         }
 
-        importSummaries.addImportSummaries( addEnrollments( create, importOptions ) );
-        importSummaries.addImportSummaries( updateEnrollments( update, importOptions ) );
+        importSummaries.addImportSummaries( addEnrollments( create, importOptions, null, true ) );
+        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, null, true ) );
         importSummaries.addImportSummaries( deleteEnrollments( delete ) );
+
+        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+        {
+            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+        }
 
         return importSummaries;
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,6 +126,11 @@ public class Schema implements Ordered, Klass
     private Boolean shareable;
 
     /**
+     * Is data sharing supported for instances of this class.
+     */
+    private boolean dataShareable;
+
+    /**
      * Points to relative Web-API endpoint (if exposed).
      */
     private String relativeApiEndpoint;
@@ -235,13 +240,6 @@ public class Schema implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getShareable()
-    {
-        return shareable;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSingular()
     {
         return singular;
@@ -324,6 +322,18 @@ public class Schema implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataShareable()
+    {
+        return dataShareable;
+    }
+
+    public void setDataShareable( boolean dataShareable )
+    {
+        this.dataShareable = dataShareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRelativeApiEndpoint()
     {
         return relativeApiEndpoint;
@@ -375,12 +385,18 @@ public class Schema implements Ordered, Klass
         this.persisted = persisted;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isTranslatable()
     {
         return isIdentifiableObject() && havePersistedProperty( "translations" );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFavoritable()
+    {
+        return isIdentifiableObject() && havePersistedProperty( "favorites" );
     }
 
     @JsonProperty

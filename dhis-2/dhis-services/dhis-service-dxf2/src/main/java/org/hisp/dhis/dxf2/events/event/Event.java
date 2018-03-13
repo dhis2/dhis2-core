@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -317,6 +317,7 @@ public class Event
 
     public void setCreated( String created )
     {
+        this.created = created;
     }
 
     @JsonProperty
@@ -328,6 +329,7 @@ public class Event
 
     public void setLastUpdated( String lastUpdated )
     {
+        this.lastUpdated = lastUpdated;
     }
 
     @JsonProperty( required = true )

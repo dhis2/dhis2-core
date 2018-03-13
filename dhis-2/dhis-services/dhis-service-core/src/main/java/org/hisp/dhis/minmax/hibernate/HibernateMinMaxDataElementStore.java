@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,13 +157,14 @@ public class HibernateMinMaxDataElementStore
     }
     
     @Override
-    public void delete( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits )
+    public void delete( Collection<DataElement> dataElements, OrganisationUnit parent )
     {
-        String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) and m.source in (:organisationUnits)";
+        String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) " +
+            "and m.source in (select ou from OrganisationUnit ou where path like :path)";
         
         getQuery( hql ).
             setParameterList( "dataElements", dataElements ).
-            setParameterList( "organisationUnits", organisationUnits ).executeUpdate();
+            setParameter( "path", parent.getPath() + "%" ).executeUpdate();
     }
 
     private Criteria parseFilter( Criteria criteria, List<String> filters )

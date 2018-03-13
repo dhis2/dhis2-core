@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics;
 import com.google.common.collect.Lists;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -44,16 +43,12 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
 
-import java.sql.Date;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +59,6 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.junit.Assert.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
 
 /**
  * @author Lars Helge Overland
@@ -479,71 +473,41 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testGetUidNameMapEventQuery()
-    {
-        ProgramStage psA = createProgramStage( 'A', 0 );
-        ProgramStage psB = createProgramStage( 'B', 0 );
-        Program prA = createProgram( 'A' );
-        prA.getProgramStages().add( psA );
-        prA.getProgramStages().add( psB );
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'A' );
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .addItem( new QueryItem( deA ) )
-            .addItem( new QueryItem( deB ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) ) )
-            .withDisplayProperty( DisplayProperty.NAME )
-            .build();
-        
-        Map<String, String> map = AnalyticsUtils.getUidNameMap( params );
-        
-        assertEquals( psA.getName(), map.get( psA.getUid() ) );
-        assertEquals( psB.getName(), map.get( psB.getUid() ) );
-        assertEquals( prA.getName(), map.get( prA.getUid() ) );
-        assertEquals( deA.getName(), map.get( deA.getUid() ) );
-        assertEquals( deB.getName(), map.get( deB.getUid() ) );
-        assertEquals( ouA.getName(), map.get( ouA.getUid() ) );
-    }
-
-    @Test
     public void testIsPeriodOverApprovalThreshold()
     {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         int currentYear = calendar.get( Calendar.YEAR );
 
-        YearlyPeriodType pt = new YearlyPeriodType();
-
-        calendar.set( currentYear, 1, 1 );
-        Period thisYear = pt.createPeriod( Date.from( calendar.toInstant() ) );
-
-        calendar.set( currentYear-1, 1, 1 );
-        Period oneYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
-
-        calendar.set( currentYear-2, 1, 1 );
-        Period twoYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
-
-        calendar.set( currentYear-3, 1, 1 );
-        Period threeYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ) );
+        Integer thisYear = currentYear;
+        Integer oneYearAgo = currentYear - 1;
+        Integer twoYearsAgo = currentYear - 2;
+        Integer threeYearsAgo = currentYear - 3;
 
         // maxYears = 0 should always return false
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 0 ) );
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 0 ) );
 
         // maxYears = 1 should only return true for years other than thisYear
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 1 ) );
         assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 1 ) );
-        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 1 ) );
-        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 1 ) );
 
         // maxYears = 4 should only return false for all three years defined
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 5 ) );
         assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 5 ) );
+    }
+    
+    @Test
+    public void testGetLevelFromOrgUnitDimensionName()
+    {
+        assertEquals( 3, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "oulevel3" ) );
+        assertEquals( 5, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "oulevel5" ) );
+        assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "notalevel" ) );
+        assertEquals( -1, AnalyticsUtils.getLevelFromOrgUnitDimensionName( "oulevel" ) );
     }
 }

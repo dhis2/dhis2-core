@@ -1,7 +1,7 @@
 package org.hisp.dhis.system;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,14 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -67,6 +66,8 @@ public class SystemInfo
     private String intervalSinceLastAnalyticsTableSuccess;
 
     private String lastAnalyticsTableRuntime;
+    
+    private Date lastSystemMonitoringSuccess;
 
     // -------------------------------------------------------------------------
     // Stable properties
@@ -87,7 +88,7 @@ public class SystemInfo
     private String cacheProvider;
 
     private String readOnlyMode;
-    
+
     private String nodeId;
 
     private String javaVersion;
@@ -113,18 +114,26 @@ public class SystemInfo
     private Integer cpuCores;
 
     private boolean encryption;
-    
+
     private String systemId;
-    
+
     private String systemName;
 
     private String systemMetadataVersion;
 
+    private String instanceBaseUrl;
+    
+    private String systemMonitoringUrl;
+    
     private Boolean isMetadataVersionEnabled;
 
     private Date lastMetadataVersionSyncAttempt;
 
     private boolean isMetadataSyncEnabled;
+
+    private MetadataAudit metadataAudit;
+
+    private RabbitMQ rabbitMQ;
 
     public SystemInfo instance()
     {
@@ -154,6 +163,8 @@ public class SystemInfo
         this.readReplicaCount = null;
         this.memoryInfo = null;
         this.cpuCores = null;
+        this.systemMonitoringUrl = null;
+        this.metadataAudit = null;
 
         if ( this.databaseInfo != null )
         {
@@ -259,6 +270,18 @@ public class SystemInfo
     public void setLastAnalyticsTableRuntime( String lastAnalyticsTableRuntime )
     {
         this.lastAnalyticsTableRuntime = lastAnalyticsTableRuntime;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastSystemMonitoringSuccess()
+    {
+        return lastSystemMonitoringSuccess;
+    }
+
+    public void setLastSystemMonitoringSuccess( Date lastSystemMonitoringSuccess )
+    {
+        this.lastSystemMonitoringSuccess = lastSystemMonitoringSuccess;
     }
 
     @JsonProperty
@@ -551,6 +574,30 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getInstanceBaseUrl()
+    {
+        return instanceBaseUrl;
+    }
+
+    public void setInstanceBaseUrl( String instanceBaseUrl )
+    {
+        this.instanceBaseUrl = instanceBaseUrl;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemMonitoringUrl()
+    {
+        return systemMonitoringUrl;
+    }
+
+    public void setSystemMonitoringUrl( String systemMonitoringUrl )
+    {
+        this.systemMonitoringUrl = systemMonitoringUrl;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getIsMetadataVersionEnabled()
     {
         return isMetadataVersionEnabled;
@@ -573,15 +620,39 @@ public class SystemInfo
         this.lastMetadataVersionSyncAttempt = lastMetadataVersionSyncAttempt;
     }
 
-    public void setIsMetadataSyncEnabled( boolean isMetadataSyncEnabled )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMetadataSyncEnabled()
+    {
+        return isMetadataSyncEnabled;
+    }
+
+    public void setMetadataSyncEnabled( boolean isMetadataSyncEnabled )
     {
         this.isMetadataSyncEnabled = isMetadataSyncEnabled;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getIsMetadataSyncEnabled()
+    public MetadataAudit getMetadataAudit()
     {
-        return isMetadataSyncEnabled;
+        return metadataAudit;
+    }
+
+    public void setMetadataAudit( MetadataAudit metadataAudit )
+    {
+        this.metadataAudit = metadataAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RabbitMQ getRabbitMQ()
+    {
+        return rabbitMQ;
+    }
+
+    public void setRabbitMQ( RabbitMQ rabbitMQ )
+    {
+        this.rabbitMQ = rabbitMQ;
     }
 }

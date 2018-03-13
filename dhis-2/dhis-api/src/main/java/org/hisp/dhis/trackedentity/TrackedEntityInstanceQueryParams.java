@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
@@ -139,7 +140,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Tracked entity of the instances in the response.
      */
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     /**
      * Selection mode for the specified organisation units, default is ACCESSIBLE.
@@ -190,6 +191,12 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether to include soft-deleted elements
      */
     private boolean includeDeleted;
+    
+    /**
+     * Indicates whether the search is internal triggered by the system.
+     * The system should trigger superuser search to detect duplicates. 
+     */
+    private boolean internalSearch;
 
     /**
      * TEI order params
@@ -286,8 +293,6 @@ public class TrackedEntityInstanceQueryParams
      * to the given user, and mode CHILDREN is converted to CHILDREN for organisation
      * units including all their children. Mode can be DESCENDANTS, SELECTED, ALL
      * only after invoking this method.
-     *
-     * @param user the user.
      */
     public void handleOrganisationUnits()
     {
@@ -376,6 +381,15 @@ public class TrackedEntityInstanceQueryParams
         items.addAll( attributes );
         items.addAll( filters );
         return items;
+    }
+    
+    /**
+     * 
+     * Returns a list of of attributes and filters combined.
+     */
+    public Set<String> getAttributeAndFilterIds()
+    {
+        return getAttributesAndFilters().stream().map( QueryItem::getItemId ).collect( Collectors.toSet() );
     }
 
     /**
@@ -518,9 +532,9 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Indicates whether this parameters specifies a tracked entity.
      */
-    public boolean hasTrackedEntity()
+    public boolean hasTrackedEntityType()
     {
-        return trackedEntity != null;
+        return trackedEntityType != null;
     }
 
     /**
@@ -617,7 +631,7 @@ public class TrackedEntityInstanceQueryParams
             ", program: " + program + ", program status " + programStatus + ", follow up: " + followUp +
             ", program enrollemnt start date: " + programEnrollmentStartDate + ", program enrollment end date: " + programEnrollmentEndDate +
             ", program incident start date: " + programIncidentStartDate + ", program incident end date: " + programIncidentEndDate +
-            ", tracked entity: " + trackedEntity + ", org unit mode: " + organisationUnitMode +
+            ", tracked entity type: " + trackedEntityType + ", org unit mode: " + organisationUnitMode +
             ", event start date: " + eventStartDate + ", event end date: " + eventEndDate +
             ", event status: " + eventStatus + "]";
     }
@@ -769,14 +783,14 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
-    public TrackedEntity getTrackedEntity()
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public TrackedEntityInstanceQueryParams setTrackedEntity( TrackedEntity trackedEntity )
+    public TrackedEntityInstanceQueryParams setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
         return this;
     }
 
@@ -887,7 +901,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
     {
         this.includeDeleted = includeDeleted;
+        return this;
+    }
+    
+    public boolean isInternalSearch()
+    {
+        return internalSearch;
+    }
 
+    public TrackedEntityInstanceQueryParams setInternalSearch( boolean internalSearch )
+    {
+        this.internalSearch = internalSearch;        
         return this;
     }
 

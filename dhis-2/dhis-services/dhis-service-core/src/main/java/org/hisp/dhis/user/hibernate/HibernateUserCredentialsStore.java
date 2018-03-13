@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserCredentialsStore;
@@ -44,22 +44,22 @@ public class HibernateUserCredentialsStore
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         Query query = getQuery( "from UserCredentials uc where uc.username = :username" );
-        query.setString( "username", username );
-        return (UserCredentials) query.uniqueResult();
+        query.setParameter( "username", username );
+        return ( UserCredentials ) query.uniqueResult();
     }
 
     @Override
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
         Query query = getQuery( "from UserCredentials uc where uc.openId = :openId" );
-        query.setString( "openId", openId );
-        return (UserCredentials) query.uniqueResult();
+        query.setParameter( "openId", openId );
+        return ( UserCredentials ) query.uniqueResult();
     }
     
     public UserCredentials getUserCredentialsByLdapId( String ldapId )
     {
         Query query = getQuery( "from UserCredentials uc where uc.ldapId = :ldapId" );
-        query.setString( "ldapId", ldapId );
-        return (UserCredentials) query.uniqueResult();
+        query.setParameter( "ldapId", ldapId );
+        return ( UserCredentials ) query.uniqueResult();
     }
 }

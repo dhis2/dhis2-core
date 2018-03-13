@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,19 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,10 +69,20 @@ public class DataQueryParamsTest
     private DataElement deB;
     private DataElement deC;
     
+    private DataSet dsA;
+    private DataSet dsB;
+    private DataSet dsC;
+    private DataSet dsD;
+    
     private ReportingRate rrA;
     private ReportingRate rrB;
     private ReportingRate rrC;
     private ReportingRate rrD;
+    
+    private Program prA;
+    private Program prB;
+    
+    private TrackedEntityAttribute atA;
     
     private Period peA;
     private Period peB;
@@ -73,6 +90,10 @@ public class DataQueryParamsTest
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
 
+    private DataElementCategoryOption coA;
+    private DataElementCategoryOption coB;
+    private DataElementCategory caA;
+    
     @Before
     public void setUpTest()
     {
@@ -85,20 +106,34 @@ public class DataQueryParamsTest
         deB = createDataElement( 'B', new DataElementCategoryCombo() );
         deC = createDataElement( 'C', new DataElementCategoryCombo() );
         
-        rrA = new ReportingRate( createDataSet( 'A', null ), ReportingRateMetric.REPORTING_RATE );
-        rrB = new ReportingRate( createDataSet( 'B', null ), ReportingRateMetric.REPORTING_RATE );
-        rrC = new ReportingRate( createDataSet( 'C', null ), ReportingRateMetric.EXPECTED_REPORTS );
-        rrD = new ReportingRate( createDataSet( 'D', null ), ReportingRateMetric.ACTUAL_REPORTS );
+        dsA = createDataSet( 'A' );
+        dsB = createDataSet( 'B' );
+        dsC = createDataSet( 'C' );
+        dsD = createDataSet( 'D' );
+        
+        rrA = new ReportingRate( dsA, ReportingRateMetric.REPORTING_RATE );
+        rrB = new ReportingRate( dsB, ReportingRateMetric.REPORTING_RATE );
+        rrC = new ReportingRate( dsC, ReportingRateMetric.EXPECTED_REPORTS );
+        rrD = new ReportingRate( dsD, ReportingRateMetric.ACTUAL_REPORTS );
+        
+        prA = createProgram( 'A' );
+        prB = createProgram( 'B' );
+        
+        atA = createTrackedEntityAttribute( 'A' );
         
         peA = createPeriod( "201601" );
         peB = createPeriod( "201603" );
         
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
+        
+        coA = createCategoryOption( 'A' );
+        coB = createCategoryOption( 'B' );
+        caA = createDataElementCategory( 'A', coA, coB );
     }
 
     @Test
-    public void addDimension()
+    public void testAddDimension()
     {
         DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
         DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
@@ -341,6 +376,27 @@ public class DataQueryParamsTest
         assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
         assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );        
     }
+    
+    @Test
+    public void testGetLatestPeriod()
+    {
+        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
+        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .build();        
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( mar_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( jan_2016, feb_2016 ) )
+            .build();
+        
+        assertEquals( mar_2016, paramsA.getLatestPeriod() );
+        assertEquals( mar_2016, paramsB.getLatestPeriod() );
+    }
 
     @Test
     public void testGetLatestEndDate()
@@ -349,23 +405,140 @@ public class DataQueryParamsTest
         Period q2_2016 = PeriodType.getPeriodFromIsoString( "2016Q2");
         Calendar today = Calendar.getInstance();
 
-        DataQueryParams dqp1 = DataQueryParams.newBuilder()
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
             .withEndDate( today.getTime() )
             .withPeriods( Lists.newArrayList( q1_2016 ) )
             .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
             .build();
 
-        DataQueryParams dqp2 = DataQueryParams.newBuilder()
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
             .withEndDate( q1_2016.getEndDate() )
             .build();
 
-        DataQueryParams dqp3 = DataQueryParams.newBuilder()
+        DataQueryParams paramsC = DataQueryParams.newBuilder()
             .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
             .withPeriods( Lists.newArrayList( q1_2016 ) )
             .build();
 
-        assertEquals( today.getTime(), dqp1.getLatestEndDate() );
-        assertEquals( q1_2016.getEndDate(), dqp2.getLatestEndDate() );
-        assertEquals( q2_2016.getEndDate(), dqp3.getLatestEndDate() );
+        assertEquals( today.getTime(), paramsA.getLatestEndDate() );
+        assertEquals( q1_2016.getEndDate(), paramsB.getLatestEndDate() );
+        assertEquals( q2_2016.getEndDate(), paramsC.getLatestEndDate() );
+    }
+
+    @Test
+    public void testGetEarliestStartDate()
+    {
+        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
+        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Date dec_2015 = getDate( 2015, 12, 1 );
+
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withStartDate( dec_2015 )
+            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .build();
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withStartDate( jan_2016.getStartDate() )
+            .build();
+
+        DataQueryParams paramsC = DataQueryParams.newBuilder()
+            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .build();
+
+        assertEquals( dec_2015, paramsA.getEarliestStartDate() );
+        assertEquals( jan_2016.getStartDate(), paramsB.getEarliestStartDate() );
+        assertEquals( jan_2016.getStartDate(), paramsC.getEarliestStartDate() );
+    }
+    
+    @Test
+    public void testSetPeriodDimensionWithoutOptionsA()
+    {
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Period apr_2016 = PeriodType.getPeriodFromIsoString( "201604");
+        Period may_2016 = PeriodType.getPeriodFromIsoString( "201605");
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( mar_2016, apr_2016, may_2016 ) ).build();
+        
+        assertEquals( 3, params.getPeriods().size() );
+        
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions()
+            .build();
+
+        assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
+        assertEquals( 0, query.getPeriods().size() );
+        assertEquals( getDate( 2016, 3, 1 ), query.getStartDate() );
+        assertEquals( getDate( 2016, 5, 31 ), query.getEndDate() );        
+    }
+    
+    @Test
+    public void testSetPeriodDimensionWithoutOptionsB()
+    {        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withStartDate( getDate( 2017, 3, 1 ) )
+            .withEndDate( getDate( 2017, 5, 31 ) ).build();
+        
+        assertEquals( 0, params.getPeriods().size() );
+        
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withEarliestStartDateLatestEndDate()
+            .withPeriodDimensionWithoutOptions()
+            .build();
+
+        assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
+        assertEquals( 0, query.getPeriods().size() );
+        assertEquals( getDate( 2017, 3, 1 ), query.getStartDate() );
+        assertEquals( getDate( 2017, 5, 31 ), query.getEndDate() );        
+    }
+
+    @Test
+    public void testGetAllDataSets()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .withReportingRates( Lists.newArrayList( rrA, rrB, rrC ) )
+            .build();
+        
+        Set<DimensionalItemObject> expected = Sets.newHashSet( dsA, dsB, dsC );
+        
+        assertEquals( expected, params.getAllDataSets() );
+    }
+    
+    @Test
+    public void testGetCategoryOptions()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .withCategory( caA )
+            .build();
+        
+        Set<DimensionalItemObject> expected = Sets.newHashSet( coA, coB );
+        
+        assertEquals( expected, params.getCategoryOptions() );
+    }
+    
+    @Test
+    public void testGetAllProgramsInAttributesAndDataElements()
+    {
+        ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
+        ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prB, deA );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withProgramAttributes( Lists.newArrayList( ptaA ) )
+            .withProgramDataElements( Lists.newArrayList( pdeA ) )
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+        
+        Set<Program> expected = Sets.newHashSet( prA, prB );
+        
+        assertEquals( expected, params.getProgramsInAttributesAndDataElements() );        
     }
 }

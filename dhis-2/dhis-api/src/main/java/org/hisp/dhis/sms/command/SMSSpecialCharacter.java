@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.command;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,17 @@ package org.hisp.dhis.sms.command;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+
 /**
  * @author Nguyen Kim Lai
  *
  * @version SMSSpecialCharacter.java 1:57:35 PM Nov 18, 2013 $
  */
+@JacksonXmlRootElement( localName = "smsspecialcharacter", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSSpecialCharacter
 {
     private int id;
@@ -61,6 +67,8 @@ public class SMSSpecialCharacter
         this.id = id;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public String getName()
     {
         return name;
@@ -71,6 +79,8 @@ public class SMSSpecialCharacter
         this.name = name;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public String getValue()
     {
         return value;

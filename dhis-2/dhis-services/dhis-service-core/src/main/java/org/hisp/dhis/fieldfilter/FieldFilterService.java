@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ package org.hisp.dhis.fieldfilter;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -40,19 +38,11 @@ public interface FieldFilterService
 {
     /**
      * Perform inclusion/exclusion on a list of objects.
-     *
-     * @param object    Object to filter on
-     * @param fieldList Field filter
-     * @return List of objects with only wanted properties
      */
-    ComplexNode filter( Object object, List<String> fieldList );
+    ComplexNode toComplexNode( FieldFilterParams params );
 
     /**
      * Perform inclusion/exclusion on a list of objects.
-     *
-     * @param objects   List to filter
-     * @param fieldList Field filter
-     * @return List of objects with only wanted properties
      */
-    CollectionNode filter( Class<?> klass, List<?> objects, List<String> fieldList );
+    CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params );
 }

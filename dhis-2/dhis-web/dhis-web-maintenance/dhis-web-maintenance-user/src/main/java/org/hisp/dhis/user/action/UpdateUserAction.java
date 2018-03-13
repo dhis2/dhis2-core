@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,6 +123,13 @@ public class UpdateUserAction
     public void setId( Integer id )
     {
         this.id = id;
+    }
+
+    private boolean twoFA;
+
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
     }
 
     private boolean externalAuth;
@@ -258,6 +265,7 @@ public class UpdateUserAction
         user.setPhoneNumber( StringUtils.trimToNull( phoneNumber ) );
 
         UserCredentials userCredentials = user.getUserCredentials();
+        userCredentials.setTwoFA( twoFA );
         userCredentials.setExternalAuth( externalAuth );
         userCredentials.setOpenId( StringUtils.trimToNull( openId ) );
         userCredentials.setLdapId( StringUtils.trimToNull( ldapId ) );

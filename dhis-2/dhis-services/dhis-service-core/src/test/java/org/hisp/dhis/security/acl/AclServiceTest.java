@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -69,6 +70,9 @@ public class AclServiceTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Override
     protected void setUpTest() throws Exception
@@ -128,7 +132,18 @@ public class AclServiceTest
     }
 
     @Test
-    public void testUpdateObjectWithPublicRWSuccessPrivate()
+    public void testUpdateObjectWithPublicRWSuccessPrivate1()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user );
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+
+        assertFalse( aclService.canUpdate( user, dataElement ) );
+    }
+
+    @Test
+    public void testUpdateObjectWithPublicRWSuccessPrivate2()
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
@@ -732,9 +747,6 @@ public class AclServiceTest
         User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
         User user3 = createUser( "user3", "ALL" );
 
-        manager.save( user1 );
-        manager.save( user2 );
-
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
 
@@ -802,5 +814,197 @@ public class AclServiceTest
         assertTrue( errorReports.isEmpty() );
 
         manager.update( program );
+    }
+
+    @Test
+    public void testShouldBlockUpdatesForNoAuthorityUser()
+    {
+        User adminUser = createAndInjectAdminUser();
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        User userNoAuthorities = createUser( "user1" );
+        manager.save( userNoAuthorities );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setName( "RT" );
+        reportTable.setUser( adminUser );
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.READ );
+        reportTable.setExternalAccess( true );
+
+        manager.save( reportTable );
+
+        injectSecurityContext( userNoAuthorities );
+        assertEquals( userNoAuthorities, currentUserService.getCurrentUser() );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, userNoAuthorities );
+        assertFalse( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void testShouldBlockUpdatesForNoAuthorityUserEvenWithNonPublicObject()
+    {
+        User adminUser = createAndInjectAdminUser();
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        User user1 = createUser( "user1" );
+        User user2 = createUser( "user2" );
+
+        injectSecurityContext( user1 );
+        assertEquals( user1, currentUserService.getCurrentUser() );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setName( "RT" );
+        reportTable.setUser( user1 );
+        reportTable.setAutoFields();
+        reportTable.setExternalAccess( false );
+
+        manager.save( reportTable );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( reportTable );
+
+        injectSecurityContext( user2 );
+        assertEquals( user2, currentUserService.getCurrentUser() );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, user2 );
+        assertFalse( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void testNotShouldBlockAdminUpdatesForNoAuthorityUserEvenWithNonPublicObject()
+    {
+        User adminUser = createAndInjectAdminUser();
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        User user1 = createUser( "user1" );
+        injectSecurityContext( user1 );
+        assertEquals( user1, currentUserService.getCurrentUser() );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setName( "RT" );
+        reportTable.setUser( user1 );
+        reportTable.setAutoFields();
+        reportTable.setExternalAccess( false );
+
+        manager.save( reportTable );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( reportTable );
+
+        injectSecurityContext( adminUser );
+        assertEquals( adminUser, currentUserService.getCurrentUser() );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( reportTable, adminUser );
+        assertTrue( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void shouldUseAuthoritiesIfSharingPropsAreNullOrEmptyWithPublicAuth()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PUBLIC_ADD" );
+
+        injectSecurityContext( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        Access access = aclService.getAccess( dataElement, user1 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        assertTrue( aclService.canUpdate( user1, dataElement ) );
+
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( null );
+        manager.update( dataElement );
+
+        injectSecurityContext( user2 );
+
+        access = aclService.getAccess( dataElement, user2 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        assertTrue( aclService.canUpdate( user2, dataElement ) );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( dataElement, user2 );
+        assertTrue( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void shouldUseAuthoritiesIfSharingPropsAreNullOrEmptyWithPrivateAuth()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PRIVATE_ADD" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PRIVATE_ADD" );
+
+        injectSecurityContext( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        Access access = aclService.getAccess( dataElement, user1 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( dataElement );
+
+        injectSecurityContext( user2 );
+
+        access = aclService.getAccess( dataElement, user2 );
+        assertFalse( access.isRead() );
+        assertFalse( access.isWrite() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( dataElement, user2 );
+        assertTrue( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void testDefaultShouldBlockReadsFromOtherUsers()
+    {
+        User user1 = createUser( "user1", "F_DATAELEMENT_PUBLIC_ADD" );
+        User user2 = createUser( "user2", "F_DATAELEMENT_PUBLIC_ADD" );
+
+        injectSecurityContext( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setUser( user1 );
+
+        Access access = aclService.getAccess( dataElement, user1 );
+        assertTrue( access.isRead() );
+        assertTrue( access.isWrite() );
+        assertTrue( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        manager.save( dataElement );
+
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.update( dataElement );
+
+        injectSecurityContext( user2 );
+
+        access = aclService.getAccess( dataElement, user2 );
+        assertFalse( access.isRead() );
+        assertFalse( access.isWrite() );
+        assertFalse( access.isUpdate() );
+        assertFalse( access.isDelete() );
+
+        assertFalse( aclService.canUpdate( user2, dataElement ) );
+
+        List<ErrorReport> errorReports = aclService.verifySharing( dataElement, user2 );
+        assertTrue( errorReports.isEmpty() );
     }
 }

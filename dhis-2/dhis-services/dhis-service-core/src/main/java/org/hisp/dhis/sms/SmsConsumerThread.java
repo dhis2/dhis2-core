@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,7 @@ public class SmsConsumerThread
             }
             catch ( Exception e )
             {
-                log.error( "Parse Error " + e.getMessage() );
+                e.printStackTrace();
 
                 message.setStatus( SmsMessageStatus.FAILED );
                 message.setParsed( false );

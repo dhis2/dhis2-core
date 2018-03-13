@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,11 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +80,7 @@ public class InitTableAlteror
         removeDeprecatedConfigurationColumns();
         updateTimestamps();
         updateCompletedBy();
+        updateRelativePeriods();
 
         executeSql( "ALTER TABLE program ALTER COLUMN \"type\" TYPE varchar(255);" );
         executeSql( "update program set \"type\"='WITH_REGISTRATION' where type='1' or type='2'" );
@@ -129,6 +130,32 @@ public class InitTableAlteror
         executeSql( "UPDATE expression SET slidingWindow = FALSE WHERE slidingWindow IS NULL" );
         executeSql( "UPDATE validationResult set notificationsent = false WHERE notificationsent is null" );
 
+        executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
+        updateTrackedEntityAttributePatternAndTextPattern();
+
+        // 2FA fixes for 2.30
+        executeSql( "UPDATE users set twofa = false where twofa is null" );
+        executeSql( "ALTER TABLE  users alter column twofa set not null" );
+    }
+
+    private void updateTrackedEntityAttributePatternAndTextPattern()
+    {
+        // Create textpattern jsonb
+        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUid\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
+
+        // Update pattern to match new syntax
+        executeSql( "UPDATE trackedentityattribute SET pattern = concat('RANDOM(', pattern, ')') WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NOT NULL" );
+
+        // Move all reserved values into the new table
+        executeSql( "INSERT INTO reservedvalue(owneruid, key, value, expires, ownerobject, reservedvalueid) " +
+            "SELECT TEA.uid, TEA.pattern, TEARV.value, TEARV.expirydate, 'TRACKEDENTITYATTRIBUTE', nextval('hibernate_sequence') " +
+            "FROM trackedentityattributereservedvalue TEARV, trackedentityattribute TEA " +
+            "WHERE TEARV.trackedentityattributeid = TEA.trackedentityattributeid " +
+            "AND TEARV.expirydate > NOW() " +
+            "AND TEARV.trackedentityinstanceid IS NULL" );
+
+        // Drop the old table
+        executeSql( "DROP TABLE trackedentityattributereservedvalue" );
     }
 
     private void updateMessageConversationMessageTypes()
@@ -146,7 +173,6 @@ public class InitTableAlteror
         executeSql( "UPDATE messageconversation SET messagetype = 'PRIVATE' WHERE messagetype IS NULL" );
 
         executeSql( "ALTER TABLE messageconversation ALTER COLUMN messagetype set not null" );
-
     }
 
     private void updateLegendSetAssociationAndDeleteOldAssociation()
@@ -371,6 +397,16 @@ public class InitTableAlteror
             executeSql( dropSql );
 
             log.info( "Upgraded program stage data elements" );
+        }
+    }
+
+    private void updateRelativePeriods()
+    {
+        if ( tableExists( "relativeperiods" ) )
+        {
+            executeSql( "UPDATE relativeperiods SET thisbiweek='f' WHERE thisbiweek IS NULL" );
+            executeSql( "UPDATE relativeperiods SET lastbiweek='f' WHERE lastbiweek IS NULL" );
+            executeSql( "UPDATE relativeperiods SET last4biweeks='f' WHERE last4biweeks IS NULL" );
         }
     }
 

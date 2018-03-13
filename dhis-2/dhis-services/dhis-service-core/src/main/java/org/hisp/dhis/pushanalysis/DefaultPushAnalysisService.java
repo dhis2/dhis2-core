@@ -1,7 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.fileresource.ExternalFileResource;
@@ -49,18 +48,16 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -69,8 +66,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
@@ -85,7 +80,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -95,7 +89,6 @@ import java.util.Set;
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
-    private static final int HOUR_TO_RUN = 4; // should run at 04:00
 
     private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
 
@@ -106,9 +99,6 @@ public class DefaultPushAnalysisService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private Scheduler scheduler;
 
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
@@ -135,50 +125,11 @@ public class DefaultPushAnalysisService
     @Qualifier( "emailMessageSender" )
     private MessageSender messageSender;
 
-    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>();
-
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
     public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         this.pushAnalysisStore = pushAnalysisStore;
-    }
-
-    //----------------------------------------------------------------------
-    // Scheduling methods
-    //----------------------------------------------------------------------
-
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent event )
-    {
-        List<PushAnalysis> pushAnalyses = pushAnalysisStore.getAll();
-
-        for ( PushAnalysis pushAnalysis : pushAnalyses )
-        {
-            if ( pushAnalysis.canSchedule() )
-                refreshPushAnalysisScheduling( pushAnalysis );
-        }
-    }
-
-    public boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis )
-    {
-        if ( !pushAnalysis.canSchedule() )
-        {
-            return false;
-        }
-
-        return scheduler.refreshTask(
-            pushAnalysis.getSchedulingKey(),
-            new PushAnalysisTask(
-                pushAnalysis.getId(),
-                new TaskId(
-                    TaskCategory.PUSH_ANALYSIS,
-                    currentUserService.getCurrentUser()
-                ),
-                this
-            ),
-            getPushAnalysisCronExpression( pushAnalysis )
-        );
     }
 
     //----------------------------------------------------------------------
@@ -192,65 +143,58 @@ public class DefaultPushAnalysisService
     }
 
     @Override
-    public void runPushAnalysis( int id, TaskId taskId )
+    public void runPushAnalysis( String uid, JobConfiguration jobId )
     {
         //----------------------------------------------------------------------
         // Set up
         //----------------------------------------------------------------------
 
-        PushAnalysis pushAnalysis = pushAnalysisStore.get( id );
+        PushAnalysis pushAnalysis = pushAnalysisStore.getByUid( uid );
         Set<User> receivingUsers = new HashSet<>();
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         //----------------------------------------------------------------------
         // Pre-check
         //----------------------------------------------------------------------
 
-        log( taskId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
-
-        if ( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
-        {
-            log( taskId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null );
-            return;
-        }
+        log( jobId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
 
         if ( pushAnalysis == null )
         {
-            log( taskId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' was not found. Terminating PushAnalysis", true, null );
+            log( jobId, NotificationLevel.ERROR,
+                "PushAnalysis with uid '" + uid + "' was not found. Terminating PushAnalysis", true, null );
             return;
         }
 
         if ( pushAnalysis.getRecipientUserGroups().size() == 0 )
         {
-            log( taskId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' has no userGroups assigned. Terminating PushAnalysis.", true, null );
+            log( jobId, NotificationLevel.ERROR,
+                "PushAnalysis with uid '" + uid + "' has no userGroups assigned. Terminating PushAnalysis.", true, null );
             return;
         }
 
         if ( pushAnalysis.getDashboard() == null )
         {
-            log( taskId, NotificationLevel.ERROR,
-                "PushAnalysis with id '" + id + "' has no dashboard assigned. Terminating PushAnalysis.", true, null );
+            log( jobId, NotificationLevel.ERROR,
+                "PushAnalysis with uid '" + uid + "' has no dashboard assigned. Terminating PushAnalysis.", true, null );
             return;
         }
 
         if ( systemSettingManager.getInstanceBaseUrl() == null )
         {
-            log( taskId, NotificationLevel.ERROR,
+            log( jobId, NotificationLevel.ERROR,
                 "Missing system setting '" + SettingKey.INSTANCE_BASE_URL.getName() + "'. Terminating PushAnalysis.",
                 true, null );
             return;
         }
 
-        log( taskId, NotificationLevel.INFO, "pre-check completed successfully", false, null );
+        log( jobId, NotificationLevel.INFO, "pre-check completed successfully", false, null );
 
         //----------------------------------------------------------------------
         // Compose list of users that can receive PushAnalysis
         //----------------------------------------------------------------------
 
-        log( taskId, NotificationLevel.INFO, "Composing list of receiving users", false, null );
+        log( jobId, NotificationLevel.INFO, "Composing list of receiving users", false, null );
 
         for ( UserGroup userGroup : pushAnalysis.getRecipientUserGroups() )
         {
@@ -258,7 +202,7 @@ public class DefaultPushAnalysisService
             {
                 if ( !user.hasEmail() )
                 {
-                    log( taskId, NotificationLevel.WARN,
+                    log( jobId, NotificationLevel.WARN,
                         "Skipping user: User '" + user.getUsername() + "' is missing a valid email.", false, null );
                     continue;
                 }
@@ -267,21 +211,21 @@ public class DefaultPushAnalysisService
             }
         }
 
-        log( taskId, NotificationLevel.INFO, "List composed. " + receivingUsers.size() + " eligible users found.",
+        log( jobId, NotificationLevel.INFO, "List composed. " + receivingUsers.size() + " eligible users found.",
             false, null );
 
         //----------------------------------------------------------------------
         // Generating reports
         //----------------------------------------------------------------------
 
-        log( taskId, NotificationLevel.INFO, "Generating and sending reports", false, null );
+        log( jobId, NotificationLevel.INFO, "Generating and sending reports", false, null );
 
         for ( User user : receivingUsers )
         {
             try
             {
                 String title = pushAnalysis.getTitle();
-                String html = generateHtmlReport( pushAnalysis, user, taskId );
+                String html = generateHtmlReport( pushAnalysis, user, jobId );
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
                 @SuppressWarnings( "unused" )
@@ -291,32 +235,25 @@ public class DefaultPushAnalysisService
             }
             catch ( Exception e )
             {
-                log( taskId, NotificationLevel.ERROR,
+                log( jobId, NotificationLevel.ERROR,
                     "Could not create or send report for PushAnalysis '" + pushAnalysis.getName() + "' and User '" +
                         user.getUsername() + "': " + e.getMessage(), false, e );
             }
         }
-
-        // Update lastRun date
-        
-        pushAnalysis.setLastRun( new Date() );
-        pushAnalysisStore.update( pushAnalysis );
-
-        setPushAnalysisIsRunningFlag( pushAnalysis, false );
     }
 
     @Override
-    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
+    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
         throws IOException
     {
-        if ( taskId == null )
+        if ( jobId == null )
         {
-            taskId = new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() );
-            notifier.clear( taskId );
+            jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid(), true );
+            notifier.clear( jobId );
         }
 
         user = user == null ? currentUserService.getCurrentUser() : user;
-        log( taskId, NotificationLevel.INFO, "Generating PushAnalysis for user '" + user.getUsername() + "'.", false,
+        log( jobId, NotificationLevel.INFO, "Generating PushAnalysis for user '" + user.getUsername() + "'.", false,
             null );
 
         //----------------------------------------------------------------------
@@ -328,7 +265,7 @@ public class DefaultPushAnalysisService
 
         for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
         {
-            itemHtml.put( item.getUid(), getItemHtml( item, user, taskId ) );
+            itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
             itemLink.put( item.getUid(), getItemLink( item ));
         }
 
@@ -356,7 +293,7 @@ public class DefaultPushAnalysisService
 
         new VelocityManager().getEngine().getTemplate( "push-analysis-main-html.vm" ).merge( context, stringWriter );
 
-        log( taskId, NotificationLevel.INFO, "Finished generating PushAnalysis for user '" + user.getUsername() + "'.",
+        log( jobId, NotificationLevel.INFO, "Finished generating PushAnalysis for user '" + user.getUsername() + "'.",
             false, null );
 
         return stringWriter.toString().replaceAll( "\\R", "" );
@@ -372,11 +309,11 @@ public class DefaultPushAnalysisService
      *
      * @param item   to generate resource
      * @param user   to generate for
-     * @param taskId for logging
+     * @param jobId for logging
      * @return
      * @throws Exception
      */
-    private String getItemHtml( DashboardItem item, User user, TaskId taskId )
+    private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
         throws IOException
     {
         switch ( item.getType() )
@@ -394,7 +331,7 @@ public class DefaultPushAnalysisService
                 // TODO: Add support for EventReports
                 return "";
             default:
-                log( taskId, NotificationLevel.WARN,
+                log( jobId, NotificationLevel.WARN,
                     "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
                 return "";
         }
@@ -516,16 +453,16 @@ public class DefaultPushAnalysisService
     /**
      * Helper method for logging both for custom logger and for notifier.
      *
-     * @param taskId            associated with the task running (for notifier)
+     * @param jobId            associated with the task running (for notifier)
      * @param notificationLevel The level this message should be logged
      * @param message           message to be logged
      * @param completed         a flag indicating the task is completed (notifier)
      * @param exception         exception if one exists (logger)
      */
-    private void log( TaskId taskId, NotificationLevel notificationLevel, String message, boolean completed,
+    private void log( JobConfiguration jobId, NotificationLevel notificationLevel, String message, boolean completed,
         Throwable exception )
     {
-        notifier.notify( taskId, notificationLevel, message, completed );
+        notifier.notify( jobId, notificationLevel, message, completed );
 
         switch ( notificationLevel )
         {
@@ -544,48 +481,4 @@ public class DefaultPushAnalysisService
                 break;
         }
     }
-
-    /**
-     * synchronized method for claiming and releasing a flag that indicates whether a given
-     * push analysis is currently running. This is to avoid race conditions from multiple api requests.
-     * when setting the flag to true (running), the method will return false if the flag is already set to true,
-     * indicating the push analysis is already running.
-     *
-     * @param pushAnalysis to run
-     * @param running      indicates whether to claim (true) or release (false) flag.
-     * @return true if the flag was claimed or released, false if the flag was already claimed
-     */
-    private synchronized boolean setPushAnalysisIsRunningFlag( PushAnalysis pushAnalysis, boolean running )
-    {
-        if ( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
-        {
-            return false;
-        }
-
-        pushAnalysisIsRunning.put( pushAnalysis, running );
-
-        return true;
-    }
-
-    /**
-     * Returns the correct cronExpression for the pushAnalysis
-     *
-     * @param pushAnalysis
-     * @return
-     */
-    private String getPushAnalysisCronExpression( PushAnalysis pushAnalysis )
-    {
-        switch ( pushAnalysis.getSchedulingFrequency() )
-        {
-            case DAILY:
-                return CronUtils.getDailyCronExpression( 0, HOUR_TO_RUN );
-            case WEEKLY:
-                return CronUtils.getWeeklyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-            case MONTHLY:
-                return CronUtils.getMonthlyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-            default:
-                return null;
-        }
-    }
-
 }

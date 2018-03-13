@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ public interface UserSettingService
      *
      * @param key the user setting key.
      * @param value the setting value.
-     * @param username the username of user.
+     * @param user the user.
      */
     void saveUserSetting( UserSettingKey key, Serializable value, User user );
 
@@ -93,7 +93,7 @@ public interface UserSettingService
      * Deletes the user setting with the given name for the given user.
      *
      * @param key the user setting key.
-     * @user the user.
+     * @param user the user.
      */
     void deleteUserSetting( UserSettingKey key, User user );
 
@@ -143,4 +143,11 @@ public interface UserSettingService
      * Invalidates in-memory caches.
      */
     void invalidateCache();
+
+    /**
+     * Returns all user settings for currently logged in user. Setting will not be
+     * included in map if its value is null.
+     * @return a map of setting names and their values
+     */
+    Map<String, Serializable> getUserSettingsAsMap();
 }

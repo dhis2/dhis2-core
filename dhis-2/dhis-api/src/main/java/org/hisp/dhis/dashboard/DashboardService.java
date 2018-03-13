@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,15 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -51,6 +52,8 @@ public interface DashboardService
     DashboardSearchResult search( String query );
 
     DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes );
+    
+    DashboardSearchResult search( Set<DashboardItemType> maxTypes );
 
     DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid );
 
@@ -83,6 +86,8 @@ public interface DashboardService
     int countMapDashboardItems( Map map );
 
     int countChartDashboardItems( Chart chart );
+
+    int countEventChartDashboardItems( EventChart eventChart );
 
     int countReportTableDashboardItems( ReportTable reportTable );
 

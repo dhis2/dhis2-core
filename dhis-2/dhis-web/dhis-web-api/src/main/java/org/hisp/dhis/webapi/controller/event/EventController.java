@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -50,7 +51,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.event.ImportEventTask;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
@@ -65,6 +65,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -79,11 +80,11 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -115,6 +116,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
+import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -135,7 +138,7 @@ public class EventController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private EventService eventService;
@@ -196,7 +199,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Grid getEventsGrid(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -219,7 +221,8 @@ public class EventController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -249,9 +252,12 @@ public class EventController
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement, includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            dataElement, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
 
@@ -260,7 +266,6 @@ public class EventController
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody RootNode getEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -283,7 +288,8 @@ public class EventController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -313,9 +319,12 @@ public class EventController
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null, includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null,
+            includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -346,13 +355,12 @@ public class EventController
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
-        rootNode.addChild( fieldFilterService.filter( Event.class, events.getEvents(), fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( Event.class, new FieldFilterParams( events.getEvents(), fields ) ) );
 
         return rootNode;
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getCsvEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -374,7 +382,8 @@ public class EventController
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -393,9 +402,12 @@ public class EventController
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null, includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null,
+            includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -430,7 +442,8 @@ public class EventController
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
         @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam Map<String, String> parameters, Model model )
@@ -438,19 +451,21 @@ public class EventController
     {
         DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null, null, null, eventStatus, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null, includeDeleted );
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null,
+            includeDeleted );
 
         return eventRowService.getEventRows( params );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( uid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
 
         if ( event == null )
         {
@@ -463,11 +478,10 @@ public class EventController
     }
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
         HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( eventUid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
 
         if ( event == null )
         {
@@ -587,7 +601,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postXmlEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
@@ -624,16 +637,13 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
-            List<Event> events = eventService.getEventsXml( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+            List<Event> events = eventService.getEventsJson( inputStream );
+
+            startAsyncImport( importOptions, events, request, response );
         }
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postJsonEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
@@ -670,16 +680,13 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
             List<Event> events = eventService.getEventsJson( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+
+            startAsyncImport( importOptions, events, request, response );
         }
     }
 
     @RequestMapping( value = "/{uid}/note", method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -697,7 +704,6 @@ public class EventController
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException
     {
@@ -713,10 +719,7 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
-            scheduler.executeTask( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+            startAsyncImport( importOptions, events.getEvents(), request, response );
         }
     }
 
@@ -725,7 +728,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -744,7 +746,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -763,7 +764,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}/{dataElementUid}", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid ) throws IOException, WebMessageException
     {
@@ -788,7 +788,6 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEventForEventDate( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -810,7 +809,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_DELETE')" )
     public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid ) throws WebMessageException
     {
@@ -835,6 +833,24 @@ public class EventController
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Starts an asynchronous import task.
+     *
+     * @param importOptions the ImportOptions.
+     * @param events        the events to import.
+     * @param request       the HttpRequest.
+     * @param response      the HttpResponse.
+     */
+    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request, HttpServletResponse response )
+    {
+        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+            EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
+
+        JacksonUtils.fromObjectToReponse( response, jobId );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
+    }
 
     private boolean fieldsContains( String match, List<String> fields )
     {

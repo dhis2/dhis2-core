@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,11 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -78,6 +80,9 @@ public class DefaultProgramService
         this.organisationUnitService = organisationUnitService;
     }
 
+    @Autowired
+    private AclService aclService;
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -114,12 +119,6 @@ public class DefaultProgramService
     }
 
     @Override
-    public Program getProgramByName( String name )
-    {
-        return programStore.getByName( name );
-    }
-
-    @Override
     public List<Program> getPrograms( OrganisationUnit organisationUnit )
     {
         return programStore.get( organisationUnit );
@@ -132,51 +131,21 @@ public class DefaultProgramService
     }
 
     @Override
-    public List<Program> getPrograms( ProgramType type, OrganisationUnit orgunit )
-    {
-        return programStore.get( type, orgunit );
-    }
-
-    @Override
     public Program getProgram( String uid )
     {
         return programStore.getByUid( uid );
     }
 
     @Override
-    public List<Program> getProgramsByTrackedEntity( TrackedEntity trackedEntity )
+    public List<Program> getProgramsByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        return programStore.getByTrackedEntity( trackedEntity );
+        return programStore.getByTrackedEntityType( trackedEntityType );
     }
 
     @Override
     public List<Program> getProgramsByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return programStore.getByDataEntryForm( dataEntryForm );
-    }
-
-    @Override
-    public Integer getProgramCountByName( String name )
-    {
-        return programStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<Program> getProgramBetweenByName( String name, int min, int max )
-    {
-        return programStore.getAllLikeName( name, min, max );
-    }
-
-    @Override
-    public Integer getProgramCount()
-    {
-        return programStore.getCount();
-    }
-
-    @Override
-    public List<Program> getProgramsBetween( int min, int max )
-    {
-        return programStore.getAllOrderedName( min, max );
     }
 
     @Override
@@ -193,7 +162,10 @@ public class DefaultProgramService
             return Sets.newHashSet( getAllPrograms() );
         }
 
-        return user.getUserCredentials().getAllPrograms();
+        //TODO should this be canDataWrite ?
+        return getAllPrograms().stream()
+            .filter( p -> aclService.canDataRead( user, p ) )
+            .collect( Collectors.toSet() );
     }
 
     @Override

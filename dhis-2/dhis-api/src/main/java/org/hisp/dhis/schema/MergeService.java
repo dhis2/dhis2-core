@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.schema;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 /**
@@ -36,11 +35,15 @@ public interface MergeService
 {
     /**
      * Merges source object into target object, requires a "schema friendly" class.
+     *
+     * @param mergeParams MergeParams instance containing source and target object
      */
     <T> T merge( MergeParams<T> mergeParams );
 
     /**
-     * Clones source into target, using REPLACE mode.
+     * Creates a clone of given object and returns it.
+     *
+     * @param source Object to clone
      */
     <T> T clone( T source );
 }

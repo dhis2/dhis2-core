@@ -18,6 +18,8 @@
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
     <property name="description" type="text" />
+    
+    <property name="measureCriteria" />
 
     <property name="regression" />
 
@@ -252,6 +254,8 @@
       <key column="reporttableid" foreign-key="fk_objecttranslation_reporttableid" />
       <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
+
+    <property name="favorites" type="jbSet" />
 
   </class>
 

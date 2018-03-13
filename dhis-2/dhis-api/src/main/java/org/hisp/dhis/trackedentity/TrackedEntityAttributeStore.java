@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ import java.util.List;
  * @author Abyot Asalefew Gizaw
  */
 public interface TrackedEntityAttributeStore
-    extends GenericNameableObjectStore<TrackedEntityAttribute>
+    extends GenericIdentifiableObjectStore<TrackedEntityAttribute>
 {
     String ID = TrackedEntityAttributeStore.class.getName();
 
@@ -55,6 +55,6 @@ public interface TrackedEntityAttributeStore
      * 
      * @return List of attributes
      */
-    List<TrackedEntityAttribute> getDisplayInList();
+    List<TrackedEntityAttribute> getDisplayInListNoProgram();
 
 }

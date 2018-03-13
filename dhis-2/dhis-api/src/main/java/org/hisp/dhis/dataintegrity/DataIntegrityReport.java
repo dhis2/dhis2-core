@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.ArrayList;
@@ -95,6 +96,10 @@ public class DataIntegrityReport
     private Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions = new HashMap<>();
     
     private Map<ValidationRule, String> invalidValidationRuleRightSideExpressions = new HashMap<>();
+
+    private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions = new HashMap<>();
+
+    private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
 
     //-------------------------------------------------------------------------
     // Constructors
@@ -317,5 +322,25 @@ public class DataIntegrityReport
     public void setInvalidValidationRuleRightSideExpressions( Map<ValidationRule, String> invalidValidationRuleRightSideExpressions )
     {
         this.invalidValidationRuleRightSideExpressions = invalidValidationRuleRightSideExpressions;
+    }
+
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
+    {
+        return invalidProgramIndicatorFilters;
+    }
+
+    public void setInvalidProgramIndicatorFilters( Map<ProgramIndicator, String> invalidProgramIndicatorFilters )
+    {
+        this.invalidProgramIndicatorFilters = invalidProgramIndicatorFilters;
+    }
+
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
+    {
+        return invalidProgramIndicatorExpressions;
+    }
+
+    public void setInvalidProgramIndicatorExpressions( Map<ProgramIndicator, String> invalidProgramIndicatorExpressions )
+    {
+        this.invalidProgramIndicatorExpressions = invalidProgramIndicatorExpressions;
     }
 }

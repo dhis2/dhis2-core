@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" table="datasetnotificationtemplate">
+
+        <id name="id" column="datasetnotificationtemplateid">
+            <generator class="native" />
+        </id>
+        &identifiableProperties;
+
+        <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+        <property name="subjectTemplate" column="subjecttemplate" not-null="false" length="100" />
+
+        <property name="messageTemplate" column="messagetemplate" not-null="true" type="text" />
+
+        <property name="relativeScheduledDays" column="relativeScheduledDays" not-null="false" />
+
+        <property name="sendStrategy" length="50" column="sendstrategy">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.notification.SendStrategy</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
+                     column="usergroupid" foreign-key="fk_datasetnotification_usergroup" not-null="false" />
+
+        <property name="dataSetNotificationTrigger" column="datasetnotificationtrigger">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <property name="notificationRecipient" column="notificationrecipienttype">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <set name="dataSets" table="datasetnotification_datasets">
+            <key column="datasetnotificationtemplateid"
+                 foreign-key="fk_datasets_datasetnotificationtemplateid" />
+            <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
+        </set>
+
+        <set name="deliveryChannels" table="datasetnotificationtemplate_deliverychannel" fetch="select">
+            <key column="datasetnotificationtemplateid" />
+            <element column="deliverychannel">
+                <type name="org.hibernate.type.EnumType">
+                    <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>
+                    <param name="useNamed">true</param>
+                    <param name="type">12</param>
+                </type>
+            </element>
+        </set>
+
+    </class>
+</hibernate-mapping>

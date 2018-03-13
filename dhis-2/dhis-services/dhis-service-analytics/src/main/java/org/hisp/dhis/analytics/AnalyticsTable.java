@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,50 +32,60 @@ import java.util.List;
 import java.util.Date;
 
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
+import org.springframework.util.Assert;
 
 /**
+ * Class representing an analytics database table.
+ * 
  * @author Lars Helge Overland
  */
 public class AnalyticsTable
 {
+    /**
+     * Name of the base analytics table.
+     */
     private String baseName;
 
+    /**
+     * Columns representing dimensions.
+     */
     private List<AnalyticsTableColumn> dimensionColumns;
+    
+    /**
+     * Columns representing values.
+     */
+    private List<AnalyticsTableColumn> valueColumns;
 
-    private Period period;
-
+    /**
+     * Program for analytics tables, applies to events and enrollments.
+     */
     private Program program;
     
-    private Date created;
+    /**
+     * Analytics partition tables for this base analytics table.
+     */
+    private List<AnalyticsTablePartition> partitionTables = new UniqueArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public AnalyticsTable()
+    protected AnalyticsTable()
     {
-        this.created = new Date();
     }
 
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns )
+    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
         this.baseName = baseName;
         this.dimensionColumns = dimensionColumns;
-        this.created = new Date();
+        this.valueColumns = valueColumns;
     }
 
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Period period )
+    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns, Program program )
     {
-        this( baseName, dimensionColumns );
-        this.period = period;
-    }
-
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, Period period, Program program )
-    {
-        this( baseName, dimensionColumns, period );
+        this( baseName, dimensionColumns, valueColumns );
         this.program = program;
     }
 
@@ -83,14 +93,26 @@ public class AnalyticsTable
     // Logic
     // -------------------------------------------------------------------------
 
+    /**
+     * Adds an analytics partition table to this master table.
+     * 
+     * @param year the year.
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return this analytics table.
+     */
+    public AnalyticsTable addPartitionTable( Integer year, Date startDate, Date endDate )
+    {
+        Assert.notNull( year, "Year must be specified" );
+        
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval        
+        this.partitionTables.add( partitionTable );
+        return this;
+    }
+        
     public String getTableName()
     {
         String name = baseName;
-
-        if ( period != null )
-        {
-            name += PartitionUtils.SEP + PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
-        }
 
         if ( program != null )
         {
@@ -104,11 +126,6 @@ public class AnalyticsTable
     {
         String name = baseName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
 
-        if ( period != null )
-        {
-            name += PartitionUtils.SEP + PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
-        }
-
         if ( program != null )
         {
             name += PartitionUtils.SEP + program.getUid().toLowerCase();
@@ -117,18 +134,18 @@ public class AnalyticsTable
         return name;
     }
 
-    public boolean hasPeriod()
-    {
-        return period != null;
-    }
-
     public boolean hasProgram()
     {
         return program != null;
     }
+    
+    public boolean hasPartitionTables()
+    {
+        return !partitionTables.isEmpty();
+    }
 
     // -------------------------------------------------------------------------
-    // Getters and setters
+    // Getters
     // -------------------------------------------------------------------------
 
     public String getBaseName()
@@ -136,29 +153,14 @@ public class AnalyticsTable
         return baseName;
     }
 
-    public void setBaseName( String baseName )
-    {
-        this.baseName = baseName;
-    }
-
     public List<AnalyticsTableColumn> getDimensionColumns()
     {
         return dimensionColumns;
     }
 
-    public void setDimensionColumns( List<AnalyticsTableColumn> dimensionColumns )
+    public List<AnalyticsTableColumn> getValueColumns()
     {
-        this.dimensionColumns = dimensionColumns;
-    }
-
-    public Period getPeriod()
-    {
-        return period;
-    }
-
-    public void setPeriod( Period period )
-    {
-        this.period = period;
+        return valueColumns;
     }
 
     public Program getProgram()
@@ -166,14 +168,9 @@ public class AnalyticsTable
         return program;
     }
 
-    public void setProgram( Program program )
+    public List<AnalyticsTablePartition> getPartitionTables()
     {
-        this.program = program;
-    }
-
-    public Date getCreated()
-    {
-        return created;
+        return partitionTables;
     }
 
     // -------------------------------------------------------------------------
@@ -186,7 +183,6 @@ public class AnalyticsTable
         final int prime = 31;
         int result = 1;
         result = prime * result + ( ( baseName == null ) ? 0 : baseName.hashCode() );
-        result = prime * result + ( ( period == null ) ? 0 : period.hashCode() );
         result = prime * result + ( ( program == null ) ? 0 : program.hashCode() );
         return result;
     }
@@ -222,19 +218,7 @@ public class AnalyticsTable
         {
             return false;
         }
-        
-        if ( period == null )
-        {
-            if ( other.period != null )
-            {
-                return false;
-            }
-        }
-        else if ( !period.equals( other.period ) )
-        {
-            return false;
-        }
-        
+                
         if ( program == null )
         {
             if ( other.program != null )
@@ -253,6 +237,6 @@ public class AnalyticsTable
     @Override
     public String toString()
     {
-        return getTableName();
+        return "[Table name: " + getTableName() + ", partitions: " + partitionTables + "]";
     }
 }

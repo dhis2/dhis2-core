@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -54,6 +49,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -78,9 +74,11 @@ import java.util.stream.Collectors;
 @JacksonXmlRootElement( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
 public class DataSet
     extends BaseDimensionalItemObject
-    implements VersionedObject, MetadataObject
+    implements VersionedObject, MetadataObject, InterpretableObject
 {
     public static final int NO_EXPIRY = 0;
+
+    private String formName;
 
     /**
      * The PeriodType indicating the frequency that this DataSet should be used
@@ -170,6 +168,11 @@ public class DataSet
      */
     private DataApprovalWorkflow workflow;
 
+    /**
+     * Interpretations of this data set.
+     */
+    private Set<Interpretation> interpretations = new HashSet<>();
+
     // -------------------------------------------------------------------------
     // Form properties
     // -------------------------------------------------------------------------
@@ -217,6 +220,14 @@ public class DataSet
      * Render multi-organisationUnit forms either with OU vertically or horizontally.
      */
     private boolean renderHorizontally;
+    
+    /**
+    * Property indicating whether all compulsory fields should be filled before completing 
+    * data set
+    */
+    private boolean compulsoryFieldsCompleteOnly;
+
+    private ObjectStyle style;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -739,7 +750,31 @@ public class DataSet
 
     public void setWorkflow( DataApprovalWorkflow workflow )
     {
+        if ( this.workflow != null )
+        {
+            this.workflow.getDataSets().remove( this );
+        }
+
+        if ( workflow != null )
+        {
+            workflow.getDataSets().add( this );
+        }
+
         this.workflow = workflow;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Interpretation> getInterpretations()
+    {
+        return interpretations;
+    }
+
+    public void setInterpretations( Set<Interpretation> interpretations )
+    {
+        this.interpretations = interpretations;
     }
 
     @JsonProperty
@@ -837,4 +872,41 @@ public class DataSet
     {
         this.dataElementDecoration = dataElementDecoration;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCompulsoryFieldsCompleteOnly()
+    {
+        return compulsoryFieldsCompleteOnly;
+    }
+
+    public void setCompulsoryFieldsCompleteOnly( boolean compulsoryFieldsCompleteOnly )
+    {
+        this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
+    }    
+    
 }

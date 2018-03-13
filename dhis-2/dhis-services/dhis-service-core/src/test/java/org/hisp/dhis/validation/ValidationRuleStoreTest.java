@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -220,6 +220,21 @@ public class ValidationRuleStoreTest
 
         assertTrue( rules.size() == 2 );
         assertTrue( rules.contains( validationRuleA ) );
+        assertTrue( rules.contains( validationRuleB ) );
+    }
+
+    @Test
+    public void testGetAllFormValidationRules()
+    {
+        ValidationRule validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodType, true );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+
+        validationRuleStore.save( validationRuleA );
+        validationRuleStore.save( validationRuleB );
+
+        List<ValidationRule> rules = validationRuleStore.getAllFormValidationRules();
+
+        assertTrue( rules.size() == 1 );
         assertTrue( rules.contains( validationRuleB ) );
     }
 

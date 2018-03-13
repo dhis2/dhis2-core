@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
+
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 import java.util.List;
 
@@ -45,9 +46,9 @@ public class DefaultValidationCriteriaService
     // Dependency
     // -------------------------------------------------------------------------
 
-    private GenericNameableObjectStore<ValidationCriteria> validationCriteriaStore;
+    private GenericIdentifiableObjectStore<ValidationCriteria> validationCriteriaStore;
 
-    public void setValidationCriteriaStore( GenericNameableObjectStore<ValidationCriteria> validationCriteriaStore )
+    public void setValidationCriteriaStore( GenericIdentifiableObjectStore<ValidationCriteria> validationCriteriaStore )
     {
         this.validationCriteriaStore = validationCriteriaStore;
     }

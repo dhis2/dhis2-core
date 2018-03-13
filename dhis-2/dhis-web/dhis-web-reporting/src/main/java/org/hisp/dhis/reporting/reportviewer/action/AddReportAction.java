@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporting.reportviewer.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Lars Helge Overland
@@ -229,7 +230,7 @@ public class AddReportAction
 
         if ( file != null )
         {
-            report.setDesignContent( FileUtils.readFileToString( file ) );
+            report.setDesignContent( FileUtils.readFileToString( file, StandardCharsets.UTF_8 ) );
         }
 
         // ---------------------------------------------------------------------

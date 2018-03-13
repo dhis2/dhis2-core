@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -40,12 +41,14 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +63,7 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "userCredentials", namespace = DxfNamespaces.DXF_2_0 )
 public class UserCredentials
     extends BaseIdentifiableObject
+    implements UserDetails
 {
     /**
      * Required and unique.
@@ -91,6 +95,16 @@ public class UserCredentials
      * Required. Will be stored as a hash.
      */
     private String password;
+
+    /**
+     * Required. Does this user have two factor authentication
+     */
+    private boolean twoFA;
+
+    /**
+     * Required. Automatically set in constructor
+     */
+    private String secret;
 
     /**
      * Date when password was changed.
@@ -159,9 +173,11 @@ public class UserCredentials
 
     public UserCredentials()
     {
-        this.lastLogin = new Date();
+        this.twoFA = false;
+        this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // needed to support userCredentials uniqueness
+        this.setSecret();
     }
 
     // -------------------------------------------------------------------------
@@ -249,57 +265,6 @@ public class UserCredentials
         for ( UserAuthorityGroup group : userAuthorityGroups )
         {
             if ( group.isSuper() )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Returns a set of the aggregated data sets for all user authority groups
-     * of this user credentials.
-     */
-    public Set<DataSet> getAllDataSets()
-    {
-        Set<DataSet> dataSets = new HashSet<>();
-
-        for ( UserAuthorityGroup group : userAuthorityGroups )
-        {
-            dataSets.addAll( group.getDataSets() );
-        }
-
-        return dataSets;
-    }
-
-    /**
-     * Returns a set of the programs for all user authority groups
-     * of this user credentials.
-     */
-    public Set<Program> getAllPrograms()
-    {
-        Set<Program> programs = new HashSet<>();
-
-        for ( UserAuthorityGroup group : userAuthorityGroups )
-        {
-            programs.addAll( group.getPrograms() );
-        }
-
-        return programs;
-    }
-
-    /**
-     * Indicates if the given program is accessible.
-     *
-     * @param program the program.
-     * @return true if if the given program is accessible.
-     */
-    public boolean canAccessProgram( Program program )
-    {
-        for ( UserAuthorityGroup group : userAuthorityGroups )
-        {
-            if ( group.getPrograms().contains( program ) )
             {
                 return true;
             }
@@ -557,6 +522,49 @@ public class UserCredentials
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isTwoFA()
+    {
+        return twoFA;
+    }
+
+    /**
+     * Set 2FA on user.
+     *
+     * @param twoFA true/false depending on activate or deactivate
+     */
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
+    }
+
+    @JsonIgnore
+    public String getSecret()
+    {
+        return secret;
+    }
+
+    public void setSecret( String secret )
+    {
+        if ( secret == null )
+        {
+            setSecret();
+        }
+        else
+        {
+            this.secret = secret;
+        }
+    }
+
+    private void setSecret()
+    {
+        if ( this.secret == null )
+        {
+            this.secret = Base32.random();
+        }
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isExternalAuth()
     {
         return externalAuth;
@@ -761,5 +769,43 @@ public class UserCredentials
             "\"selfRegistered\":\"" + selfRegistered + "\", " +
             "\"disabled\":\"" + disabled + "\" " +
             "}";
+    }
+
+    // -------------------------------------------------------------------------
+    // Two Factor Authentication methods
+    // -------------------------------------------------------------------------
+    @Override
+    public Collection<GrantedAuthority> getAuthorities()
+    {
+        Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+        getAllAuthorities()
+            .forEach( authority -> grantedAuthorities.add( new SimpleGrantedAuthority( authority ) ) );
+
+        return grantedAuthorities;
+    }
+
+    @Override
+    public boolean isAccountNonExpired()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return !isDisabled();
     }
 }

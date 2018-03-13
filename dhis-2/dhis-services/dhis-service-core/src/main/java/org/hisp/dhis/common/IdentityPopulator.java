@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,8 @@ public class IdentityPopulator
         "dataelementcategoryoption", "categoryoptionid",
         "dataelementcategory", "categoryid",
         "program_attributes", "programtrackedentityattributeid",
-        "users", "userid"
+        "users", "userid",
+        "smscommands","smscommandid"
     );
 
     private List<String> tables = new ArrayList<>();

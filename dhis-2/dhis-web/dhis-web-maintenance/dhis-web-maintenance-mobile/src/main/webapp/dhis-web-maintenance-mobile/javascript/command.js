@@ -17,6 +17,15 @@ function changeParserType( value )
     	showById( "registrationParser" );
 		enable("selectedProgramId");
     }
+	else if (value == 'PROGRAM_STAGE_DATAENTRY_PARSER') {
+		showById("stageRegistrationParser");
+		showById( "selectedParentProgramId" );
+		showById( "selectedProgramStageId" );
+		enable("selectedParentProgramId");
+		enable("selectedProgramStageId");
+
+	}
+
 	currentType = value;
 }
 
@@ -33,7 +42,10 @@ function hideAll()
 
 	hideById( "registrationParser" );
 	disable( "selectedProgramId" );
-}
+
+	hideById("stageRegistrationParser");
+	disable("selectedProgramStageId");
+	disable("selectedParentProgramId");}
 
 function generateSpecialCharactersForm()
 {

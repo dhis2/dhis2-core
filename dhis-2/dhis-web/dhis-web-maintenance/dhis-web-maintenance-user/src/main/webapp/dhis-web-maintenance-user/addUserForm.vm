@@ -4,9 +4,9 @@
 
   jQuery(function() {
     validation2('addUserForm', function( form ) {
-      jQuery("#urSelected").children().attr("selected", "selected");
-      jQuery("#ugSelected").children().attr("selected", "selected");
-      jQuery("#dcSelected").children().attr("selected", "selected");
+      jQuery("#urSelected").children().prop("selected", true);
+      jQuery("#ugSelected").children().prop("selected", true);
+      jQuery("#dcSelected").children().prop("selected", true);
 
       if( $('#orgUnitTree').find('.selected').size() == 0 ) {
         setHeaderDelayMessage(i18n_data_capture_org_unit_required);
@@ -110,6 +110,11 @@ div#orgUnitTree
 		<td><label for="username">$i18n.getString( "username" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
 		<td colspan="3"><input type="text" id="username" name="username" autocomplete="off"></td>
 	</tr>
+
+    <tr class="account">
+        <td><label for="twoFA">$i18n.getString( "two_factor_authentication" ) </label></td>
+        <td colspan="3"><input type="checkbox" id="twoFA" name="twoFA" value="true"> </td>
+    </tr>
 
     <tr class="account">
 		<td><label for="externalAuth">$i18n.getString( "external_authentication_only" ) (OpenID or LDAP)</label></td>

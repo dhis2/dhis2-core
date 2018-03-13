@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ package org.hisp.dhis.common;
  */
 public enum AuditType
 {
-    UPDATE( "update" ), DELETE( "delete" );
+    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" );
 
     private final String value;
 

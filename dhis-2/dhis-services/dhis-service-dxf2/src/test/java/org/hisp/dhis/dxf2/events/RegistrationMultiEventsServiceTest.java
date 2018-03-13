@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -75,7 +76,7 @@ public class RegistrationMultiEventsServiceTest
     private EventService eventService;
 
     @Autowired
-    private TrackedEntityService trackedEntityService;
+    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -90,33 +91,26 @@ public class RegistrationMultiEventsServiceTest
     private SessionFactory sessionFactory;
 
     @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+    private IdentifiableObjectManager manager;
 
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
-
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
-
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
-
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
-
     private OrganisationUnit organisationUnitA;
-
     private OrganisationUnit organisationUnitB;
-
     private Program programA;
-
     private DataElement dataElementA;
-
     private DataElement dataElementB;
-
     private ProgramStage programStageA;
-
     private ProgramStage programStageB;
 
     @Override
@@ -127,26 +121,26 @@ public class RegistrationMultiEventsServiceTest
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
-        identifiableObjectManager.save( organisationUnitA );
-        identifiableObjectManager.save( organisationUnitB );
+        manager.save( organisationUnitA );
+        manager.save( organisationUnitB );
 
-        TrackedEntity trackedEntity = createTrackedEntity( 'A' );
-        trackedEntityService.addTrackedEntity( trackedEntity );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
         maleA = createTrackedEntityInstance( 'A', organisationUnitA );
         maleB = createTrackedEntityInstance( 'B', organisationUnitB );
         femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
         femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
 
-        maleA.setTrackedEntity( trackedEntity );
-        maleB.setTrackedEntity( trackedEntity );
-        femaleA.setTrackedEntity( trackedEntity );
-        femaleB.setTrackedEntity( trackedEntity );
+        maleA.setTrackedEntityType( trackedEntityType );
+        maleB.setTrackedEntityType( trackedEntityType );
+        femaleA.setTrackedEntityType( trackedEntityType );
+        femaleB.setTrackedEntityType( trackedEntityType );
 
-        identifiableObjectManager.save( maleA );
-        identifiableObjectManager.save( maleB );
-        identifiableObjectManager.save( femaleA );
-        identifiableObjectManager.save( femaleB );
+        manager.save( maleA );
+        manager.save( maleB );
+        manager.save( femaleA );
+        manager.save( femaleB );
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
@@ -155,19 +149,19 @@ public class RegistrationMultiEventsServiceTest
         dataElementA.setValueType( ValueType.INTEGER );
         dataElementB.setValueType( ValueType.INTEGER );
 
-        identifiableObjectManager.save( dataElementA );
-        identifiableObjectManager.save( dataElementB );
+        manager.save( dataElementA );
+        manager.save( dataElementB );
 
         programStageA = createProgramStage( 'A', 0 );
         programStageB = createProgramStage( 'B', 0 );
         programStageB.setRepeatable( true );
 
-        identifiableObjectManager.save( programStageA );
-        identifiableObjectManager.save( programStageB );
+        manager.save( programStageA );
+        manager.save( programStageB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        identifiableObjectManager.save( programA );
+        manager.save( programA );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
@@ -189,9 +183,9 @@ public class RegistrationMultiEventsServiceTest
         programA.getProgramStages().add( programStageA );
         programA.getProgramStages().add( programStageB );
 
-        identifiableObjectManager.update( programStageA );
-        identifiableObjectManager.update( programStageB );
-        identifiableObjectManager.update( programA );
+        manager.update( programStageA );
+        manager.update( programStageB );
+        manager.update( programA );
 
         createUserAndInjectSecurityContext( true );
     }
@@ -224,7 +218,7 @@ public class RegistrationMultiEventsServiceTest
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -260,7 +254,7 @@ public class RegistrationMultiEventsServiceTest
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),

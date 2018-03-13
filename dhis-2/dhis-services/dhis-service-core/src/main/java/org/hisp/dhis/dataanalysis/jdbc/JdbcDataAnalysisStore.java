@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis.jdbc;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,15 @@ package org.hisp.dhis.dataanalysis.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.AggregatedValue.ZERO;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.system.util.MathUtils.isEqual;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataanalysis.DataAnalysisMeasures;
 import org.hisp.dhis.dataanalysis.DataAnalysisStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,6 +45,15 @@ import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 /**
  * @author Lars Helge Overland
@@ -91,93 +90,56 @@ public class JdbcDataAnalysisStore
     // -------------------------------------------------------------------------
 
     @Override
-    public Map<Integer, Double> getStandardDeviation( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, 
-        Collection<OrganisationUnit> parents, Date from )
+    public List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
+        Collection<DataElementCategoryOptionCombo> categoryOptionCombos,
+        Collection<String> parentPaths, Date from )
     {
-        Map<Integer, Double> map = new HashMap<>();
-        
-        if ( parents.isEmpty() )
+        List<DataAnalysisMeasures> measures = new ArrayList<>();
+
+        if ( categoryOptionCombos.isEmpty() || parentPaths.isEmpty() )
         {
-            return map;
-        }
-        
-        String sql = 
-            "select ou.organisationunitid, " +
-                "(select stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) " +
-                "from datavalue dv " +
-                "inner join period pe on dv.periodid = pe.periodid " +
-                "where dv.dataelementid = " + dataElement.getId() + " " +
-                "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
-                "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
-                "and dv.sourceid = ou.organisationunitid " +
-                "and dv.deleted is false) as deviation " +
-            "from organisationunit ou where (";
-        
-        for ( OrganisationUnit parent : parents )
-        {
-            sql += "ou.path like '" + parent.getPath() + "%' or ";
+            return measures;
         }
 
-        sql = TextUtils.removeLastOr( sql ) + ")";
-        
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-        
-        while ( rowSet.next() )
+        String catOptionComboIds = TextUtils.getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
+
+        String matchPaths = "(";
+        for ( String path : parentPaths )
         {
-            Object stdDev = rowSet.getObject( "deviation" );
-            
-            if ( stdDev != null && !isEqual( (Double) stdDev, ZERO ) )
-            {
-                map.put( rowSet.getInt( "organisationunitid" ), (Double) stdDev );
-            }
+            matchPaths += "ou.path like '" + path + "%' or ";
         }
-        
-        return map;
-    }
-    
-    @Override
-    public Map<Integer, Double> getAverage( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, 
-        Collection<OrganisationUnit> parents, Date from )
-    {
-        Map<Integer, Double> map = new HashMap<>();
-        
-        if ( parents.isEmpty() )
-        {
-            return map;
-        }
-                
-        String sql = 
-            "select ou.organisationunitid, " +
-                "(select avg( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) " +
+        matchPaths = TextUtils.removeLastOr( matchPaths ) + ") ";
+
+        String sql =
+            "select dv.sourceid, dv.categoryoptioncomboid, " +
+                "avg( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as average, " +
+                "stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation " +
                 "from datavalue dv " +
-                "inner join period pe on dv.periodid = pe.periodid " +
+                "join organisationunit ou on ou.organisationunitid = dv.sourceid " +
+                "join period pe on dv.periodid = pe.periodid " +
                 "where dv.dataelementid = " + dataElement.getId() + " " +
-                "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
+                "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") " +
                 "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
-                "and dv.sourceid = ou.organisationunitid " +
-                "and dv.deleted is false) as average " +
-            "from organisationunit ou where (";
-        
-        for ( OrganisationUnit parent : parents )
-        {
-            sql += "ou.path like '" + parent.getPath() + "%' or ";
-        }
-        
-        sql = TextUtils.removeLastOr( sql ) + ")";
-        
+                "and " + matchPaths +
+                "and dv.deleted is false " +
+                "group by dv.sourceid, dv.categoryoptioncomboid";
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-        
+
         while ( rowSet.next() )
         {
-            Object avg = rowSet.getObject( "average" );
-            
-            if ( avg != null )
+            int orgUnitId = rowSet.getInt( 1 );
+            int categoryOptionComboId = rowSet.getInt( 2 );
+            double average = rowSet.getDouble( 3 );
+            double standardDeviation = rowSet.getDouble( 4 );
+
+            if ( standardDeviation != 0.0 )
             {
-                map.put( rowSet.getInt( "organisationunitid" ), (Double) avg );
+                measures.add( new DataAnalysisMeasures( orgUnitId, categoryOptionComboId, average, standardDeviation ) );
             }
         }
-        
-        return map;        
+
+        return measures;
     }
     
     @Override
@@ -194,7 +156,7 @@ public class JdbcDataAnalysisStore
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
                 
         String sql = 
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
             "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
             "from datavalue dv " +
@@ -236,7 +198,7 @@ public class JdbcDataAnalysisStore
         
         //TODO parallel processes?
                 
-        List<List<Integer>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 100 ).getPages();
+        List<List<Integer>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 1000 ).getPages();
         
         log.debug( "No of pages: " + organisationUnitPages.size() );
         
@@ -256,7 +218,7 @@ public class JdbcDataAnalysisStore
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
         
         String sql = 
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, " +
             "'" + dataElement.getName() + "' as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " + 
             "'" + categoryOptionCombo.getName() + "' as categoryoptioncomboname " +
@@ -282,10 +244,13 @@ public class JdbcDataAnalysisStore
     }
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet, int limit )
     {
+        String dataSetIdCheck = dataSet != null ? " and dse.datasetid =" + dataSet.getId() + " " : " ";
+        String joinDataSet =  dataSet != null ?  " join datasetelement dse on dse.dataelementid = de.dataelementid" + " " : " ";
+
         final String sql =
-            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.value, " +
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, " +
             "dv.storedby, dv.lastupdated, dv.created, dv.comment, dv.followup, mm.minimumvalue, mm.maximumvalue, de.name AS dataelementname, " +
             "pe.startdate, pe.enddate, pt.name AS periodtypename, ou.name AS sourcename, cc.name AS categoryoptioncomboname " +
             "from datavalue dv " +
@@ -294,10 +259,10 @@ public class JdbcDataAnalysisStore
             "join period pe on dv.periodid = pe.periodid " +
             "join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "join organisationunit ou on ou.organisationunitid = dv.sourceid " +
-            "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " +
+            "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " + joinDataSet +
             "where ou.path like '%" + organisationUnit.getUid() + "%' " +
             "and dv.followup = true " +
-            "and dv.deleted is false " +
+            "and dv.deleted is false " + dataSetIdCheck +
             statementBuilder.limitRecord( 0, limit );
         
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper() );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,6 @@ public interface ProgramInstanceService
      */
     void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
 
-
     /**
      * Updates an {@link ProgramInstance}.
      *
@@ -111,18 +110,19 @@ public interface ProgramInstanceService
      * @param programStartDate      the start date for enrollment in the given
      *                              Program.
      * @param programEndDate        the end date for enrollment in the given Program.
-     * @param trackedEntity         the TrackedEntity uid.
+     * @param trackedEntityType         the TrackedEntityType uid.
      * @param trackedEntityInstance the TrackedEntityInstance uid.
      * @param followUp              indicates follow up status in the given Program.
      * @param page                  the page number.
      * @param pageSize              the page size.
      * @param totalPages            indicates whether to include the total number of pages.
      * @param skipPaging            whether to skip paging.
+     * @param includeDeleted        whether to include soft deleted ones
      * @return a ProgramInstanceQueryParams.
      */
     ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program,
-        ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntity, String trackedEntityInstance,
-        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging );
+        ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
+        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
 
     /**
      * Returns a list with program instance values based on the given

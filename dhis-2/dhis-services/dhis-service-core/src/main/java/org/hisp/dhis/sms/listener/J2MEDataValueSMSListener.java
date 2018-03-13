@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,27 +50,22 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+@Transactional
 public class J2MEDataValueSMSListener
-    implements IncomingSmsListener
+    extends BaseSMSListener
 {
 
     // -------------------------------------------------------------------------
@@ -85,9 +80,6 @@ public class J2MEDataValueSMSListener
 
     @Autowired
     private SMSCommandService smsCommandService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
@@ -120,8 +112,7 @@ public class J2MEDataValueSMSListener
         Map<String, String> parsedMessage = this.parse( token[1], smsCommand );
 
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = SmsUtils.getOrganisationUnitsByPhoneNumber( senderPhoneNumber,
-            userService.getUsersByPhoneNumber( senderPhoneNumber ) );
+        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         if ( orgUnits == null || orgUnits.size() == 0 )
         {
@@ -141,9 +132,9 @@ public class J2MEDataValueSMSListener
 
         for ( SMSCode code : smsCommand.getCodes() )
         {
-            if ( parsedMessage.containsKey( code.getCode().toUpperCase() ) )
+            if ( parsedMessage.containsKey( code.getCode() ) )
             {
-                storeDataValue( senderPhoneNumber, orgUnit, parsedMessage, code, smsCommand, period,
+                storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, period,
                     smsCommand.getDataset() );
                 valueStored = true;
             }
@@ -164,6 +155,20 @@ public class J2MEDataValueSMSListener
         this.registerCompleteDataSet( smsCommand.getDataset(), period, orgUnit, "mobile" );
 
         this.sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, period, orgUnit );
+    }
+
+    @Override
+    protected String getDefaultPattern()
+    {
+        // Not supported for J2MEListener
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    protected String getSuccessMessage()
+    {
+        // Not supported for J2MEListener
+        return StringUtils.EMPTY;
     }
 
     private Map<String, String> parse( String sms, SMSCommand smsCommand )
@@ -190,12 +195,13 @@ public class J2MEDataValueSMSListener
         return keyValueMap;
     }
 
-    private void storeDataValue( String sender, OrganisationUnit orgUnit, Map<String, String> parsedMessage,
+    private void storeDataValue( IncomingSms sms, OrganisationUnit orgUnit, Map<String, String> parsedMessage,
         SMSCode code, SMSCommand command, Period period, DataSet dataset )
     {
         String upperCaseCode = code.getCode().toUpperCase();
+        String sender = sms.getOriginator();
 
-        String storedBy = SmsUtils.getUser( sender, command, userService.getUsersByPhoneNumber( sender ) )
+        String storedBy = SmsUtils.getUser( sender, command, Collections.singletonList( getUser( sms ) ) )
             .getUsername();
 
         if ( StringUtils.isBlank( storedBy ) )
@@ -272,7 +278,7 @@ public class J2MEDataValueSMSListener
             registration.setDate( new Date() );
             registration.setStoredBy( storedBy );
             registration.setPeriodName( registration.getPeriod().toString() );
-            registrationService.saveCompleteDataSetRegistration( registration, false );
+            registrationService.saveCompleteDataSetRegistration( registration );
         }
     }
 

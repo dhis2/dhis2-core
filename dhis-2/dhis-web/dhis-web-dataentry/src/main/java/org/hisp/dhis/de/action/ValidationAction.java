@@ -1,7 +1,7 @@
 package org.hisp.dhis.de.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,17 +43,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @author Margrethe Store
@@ -241,7 +237,11 @@ public class ValidationAction
                 dataValues.put( organisationUnit.getUid(), values );
             }
 
-            List<ValidationResult> results = new ArrayList<>( validationService.startInteractiveValidationAnalysis( dataSet, period, organisationUnit, attributeOptionCombo ) );
+            ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, organisationUnit, period )
+                .withAttributeOptionCombo( attributeOptionCombo )
+                .build();
+
+            List<ValidationResult> results = new ArrayList<>( validationService.validationAnalysis( params ) );
 
             if ( !results.isEmpty() )
             {

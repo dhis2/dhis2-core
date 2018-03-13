@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,7 @@ public class DisableUserAction
             return ERROR;
         }
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( credentials.getUser().getGroups() ) )
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( credentials.getUserInfo().getGroups() ) )
             || !currentUser.getUserCredentials().canModifyUser( credentials ) )
         {
             return ERROR;

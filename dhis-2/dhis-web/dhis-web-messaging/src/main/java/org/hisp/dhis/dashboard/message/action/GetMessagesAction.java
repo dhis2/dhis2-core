@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard.message.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,11 @@ package org.hisp.dhis.dashboard.message.action;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.user.CurrentUserService;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,6 +113,13 @@ public class GetMessagesAction
         return showTicketTools;
     }
 
+    private boolean ticketAccess;
+
+    public boolean getTicketAccess()
+    {
+        return ticketAccess;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -118,7 +127,6 @@ public class GetMessagesAction
     @Override
     public String execute()
     {
-        showTicketTools = messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() );
 
         this.paging = createPaging( messageService.getMessageConversationCount( followUp, unread ) );
 
@@ -133,6 +141,21 @@ public class GetMessagesAction
                     Collectors.toList() );
         }
 
+        ticketAccess = messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() );
+        showTicketTools = showTicketTools();
+
         return SUCCESS;
+    }
+
+    private boolean showTicketTools()
+    {
+        return (messageContainsMessageType( conversations, MessageType.TICKET )
+            && ticketAccess)
+            || messageContainsMessageType( conversations, MessageType.VALIDATION_RESULT );
+    }
+
+    private boolean messageContainsMessageType( Collection<MessageConversation> conversations, MessageType type )
+    {
+        return conversations.stream().filter( ( m ) -> m.getMessageType().equals( type ) ).count() > 0;
     }
 }

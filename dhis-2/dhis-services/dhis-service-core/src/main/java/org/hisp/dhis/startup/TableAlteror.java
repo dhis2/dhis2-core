@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -174,6 +174,9 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit DROP COLUMN uuid" );
 
         executeSql( "DROP INDEX datamart_crosstab" );
+        
+        // prepare uid function
+        insertUidDbFunction();
 
         // remove relative period type
         executeSql( "DELETE FROM period WHERE periodtypeid=(select periodtypeid from periodtype where name in ( 'Survey', 'OnChange', 'Relative' ))" );
@@ -191,6 +194,15 @@ public class TableAlteror
         executeSql( "ALTER TABLE mapview DROP COLUMN legendtype" );
         executeSql( "ALTER TABLE mapview ALTER COLUMN opacity TYPE double precision" );
 
+        executeSql( "UPDATE incomingsms SET userid = 0 WHERE userid IS NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN completenessmethod TYPE text" );
+        executeSql( "UPDATE smscommands SET completenessmethod='ALL_DATAVALUE' WHERE completenessmethod='1'" );
+        executeSql( "UPDATE smscommands SET completenessmethod='AT_LEAST_ONE_DATAVALUE' WHERE completenessmethod='2'" );
+        executeSql( "UPDATE smscommands SET completenessmethod='DO_NOT_MARK_COMPLETE' WHERE completenessmethod='3'" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN uid set NOT NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN created set NOT NULL" );
+        executeSql( "ALTER TABLE smscommands ALTER COLUMN lastUpdated set NOT NULL" );
+
         executeSql( "ALTER TABLE maplegend DROP CONSTRAINT maplegend_name_key" );
 
         executeSql( "UPDATE mapview SET layer = 'thematic1' WHERE layer IS NULL" );
@@ -202,6 +214,9 @@ public class TableAlteror
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );
+        executeSql( "DELETE FROM systemsetting WHERE name = 'keySystemMonitoringUrl'" );
+        executeSql( "DELETE FROM systemsetting WHERE name = 'keySystemMonitoringUsername'" );
+        executeSql( "DELETE FROM systemsetting WHERE name = 'keySystemMonitoringPassword'" );
 
         executeSql( "ALTER TABLE maplayer DROP CONSTRAINT maplayer_mapsource_key" );
         executeSql( "ALTER TABLE maplayer DROP COLUMN mapsource" );
@@ -260,8 +275,16 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataelementcategoryoption DROP CONSTRAINT fk_dataelement_categoryid" );
         executeSql( "ALTER TABLE dataelementcategoryoption DROP CONSTRAINT dataelementcategoryoption_shortname_key" );
 
-        // minmaxdataelement query index
-        executeSql( "CREATE INDEX index_minmaxdataelement ON minmaxdataelement( sourceid, dataelementid, categoryoptioncomboid )" );
+        // minmaxdataelement - If the old, non-unique index exists, drop it, make sure there are no duplicate values (delete the older ones), then create the unique index.
+        if ( executeSql( "DROP INDEX index_minmaxdataelement" ) == 0 )
+        {
+            executeSql( "delete from minmaxdataelement where minmaxdataelementid in (" +
+                "select a.minmaxdataelementid from minmaxdataelement a " +
+                "join minmaxdataelement b on a.sourceid = b.sourceid and a.dataelementid = b.dataelementid " +
+                "and a.categoryoptioncomboid = b.categoryoptioncomboid and a.minmaxdataelementid < b.minmaxdataelementid)" );
+
+            executeSql( "CREATE UNIQUE INDEX minmaxdataelement_unique_key ON minmaxdataelement USING btree (sourceid, dataelementid, categoryoptioncomboid)" );
+        }
 
         // update periodType field to ValidationRule
         executeSql( "UPDATE validationrule SET periodtypeid = (SELECT periodtypeid FROM periodtype WHERE name='Monthly') WHERE periodtypeid is null" );
@@ -301,6 +324,12 @@ public class TableAlteror
         executeSql( "UPDATE section SET showcolumntotals = false WHERE showcolumntotals IS NULL" );
         executeSql( "UPDATE dataelement SET aggregationtype='avg_sum_org_unit' where aggregationtype='average'" );
 
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_SUM_INT'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_SUM_INT_DISAGGREGATION'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_INT'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_INT_DISAGGREGATION'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_BOOL'" );
+
         // revert prepare aggregate*Value tables for offline diffs
 
         executeSql( "ALTER TABLE aggregateddatavalue DROP COLUMN modified" );
@@ -326,6 +355,7 @@ public class TableAlteror
         executeSql( "UPDATE chart SET type='line' where type='line3d'" );
         executeSql( "UPDATE chart SET type='pie' where type='pie'" );
         executeSql( "UPDATE chart SET type='pie' where type='pie3d'" );
+        executeSql( "UPDATE programruleaction SET programnotificationtemplateid= 0 where programnotificationtemplateid is NULL" );
 
         executeSql( "UPDATE chart SET type=lower(type), series=lower(series), category=lower(category), filter=lower(filter)" );
 
@@ -408,7 +438,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE indicator ALTER COLUMN code TYPE varchar(50)" );
 
         // remove uuid
-
+                
         executeSql( "ALTER TABLE attribute DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categorycombo DROP COLUMN uuid" );
         executeSql( "ALTER TABLE categoryoptioncombo DROP COLUMN uuid" );
@@ -441,6 +471,7 @@ public class TableAlteror
         executeSql( "update chart set userorganisationunit = false where userorganisationunit is null" );
         executeSql( "update chart set percentstackedvalues = false where percentstackedvalues is null" );
         executeSql( "update chart set cumulativevalues = false where cumulativevalues is null" );
+        executeSql( "update chart set nospacebetweencolumns = false where nospacebetweencolumns is null" );
         executeSql( "update indicator set annualized = false where annualized is null" );
         executeSql( "update indicatortype set indicatornumber = false where indicatornumber is null" );
         executeSql( "update dataset set mobile = false where mobile is null" );
@@ -459,9 +490,11 @@ public class TableAlteror
         executeSql( "update eventchart set hidenadata = false where hidenadata is null" );
         executeSql( "update eventchart set percentstackedvalues = false where percentstackedvalues is null" );
         executeSql( "update eventchart set cumulativevalues = false where cumulativevalues is null" );
+        executeSql( "update eventchart set nospacebetweencolumns = false where nospacebetweencolumns is null" );
         executeSql( "update reporttable set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update eventreport set showdimensionlabels = false where showdimensionlabels is null" );
         executeSql( "update reporttable set skiprounding = false where skiprounding is null" );
+        executeSql( "update validationrule set skipformvalidation = false where skipformvalidation is null" );
         executeSql( "update validationnotificationtemplate set sendstrategy = 'COLLECTIVE_SUMMARY' where sendstrategy is null" );
 
         // move timelydays from system setting => dataset property
@@ -625,6 +658,7 @@ public class TableAlteror
         executeSql( "UPDATE dataset SET novaluerequirescomment = false WHERE novaluerequirescomment IS NULL" );
         executeSql( "UPDATE dataset SET openfutureperiods = 12 where allowfutureperiods is true" );
         executeSql( "UPDATE dataset SET openfutureperiods = 0 where allowfutureperiods is false" );
+        executeSql( "update dataset SET compulsoryfieldscompleteonly = false WHERE compulsoryfieldscompleteonly IS NULL" );
         executeSql( "ALTER TABLE dataset DROP COLUMN allowfutureperiods" );
 
         executeSql( "UPDATE categorycombo SET skiptotal = false WHERE skiptotal IS NULL" );
@@ -778,7 +812,7 @@ public class TableAlteror
 
         executeSql( "ALTER TABLE dataset DROP COLUMN symbol" );
         executeSql( "ALTER TABLE users ALTER COLUMN password DROP NOT NULL" );
-
+        executeSql( "UPDATE users SET twofa = false WHERE twofa IS NULL" );
 
         // set default dataDimension on orgUnitGroupSet and deGroupSet
         executeSql( "UPDATE dataelementgroupset SET datadimension=true WHERE datadimension IS NULL" );
@@ -1023,7 +1057,29 @@ public class TableAlteror
         executeSql( "update programindicator set analyticstype = programindicatoranalyticstype" );
         executeSql( "alter table programindicator drop programindicatoranalyticstype" );
 
+        // Scheduler fixes for 2.29
+        executeSql( "delete from systemsetting where name='keyScheduledTasks'" );
+        executeSql( "delete from systemsetting where name='keyDataMartTask'" );
+
+        executeSql( "delete from systemsetting where name='dataSyncCron'" );
+        executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
+        
+        updateDimensionFilterToText();
+        
+        insertDefaultBoundariesForBoundlessProgramIndicators();
+        
+        executeSql( "UPDATE trackedentitytype SET publicaccess='rwrw----' WHERE publicaccess IS NULL;" );
+        executeSql( "UPDATE programstage SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
+
+        executeSql("alter table jobconfiguration drop column configurable;");
+
+        // 2FA fixes for 2.30
+        executeSql( "ALTER TABLE users alter column secret set not null" );
+
+        executeSql( "drop table userroleprogram");
+        
         log.info( "Tables updated" );
+
     }
 
     private void upgradeEmbeddedObject( String table )
@@ -1248,7 +1304,7 @@ public class TableAlteror
             "section", "dataset", "sqlview", "dataelement", "dataelementgroup", "dataelementgroupset", "categorycombo",
             "dataelementcategory", "dataelementcategoryoption", "indicator", "indicatorgroup", "indicatorgroupset", "indicatortype",
             "validationrule", "validationrulegroup", "constant", "attribute", "attributegroup",
-            "program", "programstage", "programindicator", "trackedentity", "trackedentityattribute" );
+            "program", "programstage", "programindicator", "trackedentitytype", "trackedentityattribute" );
 
         for ( String table : tables )
         {
@@ -1650,6 +1706,46 @@ public class TableAlteror
         executeSql( sql );
     }
     
+    /**
+     * Creates an utility function in the database for generating uid values in select statements.
+     * Example usage: select uid();
+     */
+    private void insertUidDbFunction()
+    {
+        String uidFunction = 
+            "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' " + 
+            "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' " + 
+            " FROM (random()*61)::int + 1 FOR 1) FROM generate_series(1,10)), '') $$ LANGUAGE sql;";
+        executeSql( uidFunction );
+    }
+    
+    /**
+     * Inserts default {@link AnalyticsPeriodBoundary} objects for program indicators that has no boundaries defined.
+     * Based on the analyticsType if the program indicator, the insert is made 
+     */
+    private void insertDefaultBoundariesForBoundlessProgramIndicators()
+    {
+        String findBoundlessAndInsertDefaultBoundaries = 
+            "create temporary table temp_unbounded_programindicators (programindicatorid integer,analyticstype varchar(10)) on commit drop;" +
+            "insert into temp_unbounded_programindicators (programindicatorid,analyticstype ) select pi.programindicatorid,pi.analyticstype " + 
+            "from programindicator pi left join analyticsperiodboundary apb on apb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " + 
+            "having count(apb.*) = 0;" +
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" + 
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';";
+        executeSql( findBoundlessAndInsertDefaultBoundaries );
+        
+    }
+    
     private int executeSql( String sql )
     {
         try
@@ -1745,7 +1841,7 @@ public class TableAlteror
         addTranslationTable( listTables, "RelationshipType", "relationshiptypetranslations", "relationshiptype", "relationshiptypeid" );
         addTranslationTable( listTables, "Report", "reporttranslations", "report", "reportid" );
         addTranslationTable( listTables, "ReportTable", "reporttabletranslations", "reporttable", "reporttableid" );
-        addTranslationTable( listTables, "TrackedEntity", "trackedentitytranslations", "trackedentity", "trackedentityid" );
+        addTranslationTable( listTables, "TrackedEntityType", "trackedentitytranslations", "trackedentitytype", "trackedentitytypeid" );
         addTranslationTable( listTables, "TrackedEntityAttribute", "trackedentityattributetranslations", "trackedentityattribute", "trackedentityattributeid" );
         addTranslationTable( listTables, "TrackedEntityInstance", "trackedentityinstancetranslations", "trackedentityinstance", "trackedentityinstanceid" );
         addTranslationTable( listTables, "User", "userinfotranslations", "userinfo", "userinfoid" );
@@ -1807,5 +1903,12 @@ public class TableAlteror
 
         sql = " drop table maplegendsetmaplegend";
         executeSql( sql );
+    }
+    
+    private void updateDimensionFilterToText()
+    {
+        executeSql( "alter table trackedentityattributedimension alter column \"filter\" type text;" );
+        executeSql( "alter table trackedentitydataelementdimension alter column \"filter\" type text;" );
+        executeSql( "alter table trackedentityprogramindicatordimension alter column \"filter\" type text;" );
     }
 }

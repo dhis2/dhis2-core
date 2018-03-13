@@ -1,6 +1,6 @@
 package org.hisp.dhis.validation;
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,14 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +48,9 @@ public class DefaultValidationResultService
 {
     @Autowired
     private ValidationResultStore validationResultStore;
+
+    @Autowired
+    private PeriodService periodService;
 
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )
@@ -90,5 +97,13 @@ public class DefaultValidationResultService
     public int countValidationResults( ValidationResultQuery query )
     {
         return validationResultStore.count( query );
+    }
+
+    @Override
+    public List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
+    {
+        List<Period> persistedPeriods = periodService.reloadPeriods( new ArrayList<>( periods ) );
+        return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
     }
 }

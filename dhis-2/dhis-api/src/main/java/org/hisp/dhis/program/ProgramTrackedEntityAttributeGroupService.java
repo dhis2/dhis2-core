@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,27 +33,23 @@ import java.util.List;
 
 /**
  * @author Viet Nguyen
- * @version $Id$
  */
 public interface ProgramTrackedEntityAttributeGroupService
 {
-    String ID = ProgramTrackedEntityAttributeGroupService.class.getName();
-
     /**
      * Adds an {@link ProgramTrackedEntityAttributeGroup}
      * 
-     * @param ProgramTrackedEntityAttributeGroup The to ProgramTrackedEntityAttributeGroup
-     *        add.
+     * @param programTrackedEntityAttributeGroup The to ProgramTrackedEntityAttributeGroup
+     *         add.
      * 
-     * @return A generated unique id of the added
-     *         {@link ProgramTrackedEntityAttributeGroup}.
+     * @return A generated unique id of the added {@link ProgramTrackedEntityAttributeGroup}.
      */
     int addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
 
     /**
      * Deletes a {@link ProgramTrackedEntityAttributeGroup}.
      * 
-     * @param ProgramTrackedEntityAttributeGroup the ProgramTrackedEntityAttributeGroup to
+     * @param programTrackedEntityAttributeGroup the ProgramTrackedEntityAttributeGroup to
      *        delete.
      */
     void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
@@ -61,7 +57,7 @@ public interface ProgramTrackedEntityAttributeGroupService
     /**
      * Updates a {@link ProgramTrackedEntityAttributeGroup}.
      * 
-     * @param ProgramTrackedEntityAttributeGroup the ProgramTrackedEntityAttributeGroup to
+     * @param programTrackedEntityAttributeGroup the ProgramTrackedEntityAttributeGroup to
      *        update.
      */
     void updateProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
@@ -83,16 +79,6 @@ public interface ProgramTrackedEntityAttributeGroupService
      * @return the ProgramTrackedEntityAttributeGroup with the given id
      */
     ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( String uid );
-
-    /**
-     * Returns a {@link ProgramTrackedEntityAttributeGroup} with a given name.
-     * 
-     * @param name the name of the ProgramTrackedEntityAttributeGroup to return.
-     * 
-     * @return the ProgramTrackedEntityAttributeGroup with the given name, or null if
-     *         no match.
-     */
-    ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroupByName( String name );
 
     /**
      * Returns all {@link ProgramTrackedEntityAttributeGroup}

@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -57,7 +58,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setThisDay( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
@@ -68,7 +70,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setYesterday( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 2 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 2 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
@@ -79,7 +82,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLast3Days( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 4 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 4 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 3, relatives.size() );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
@@ -92,7 +96,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLast7Days( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 8 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 8 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 7, relatives.size() );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
@@ -109,7 +114,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLast14Days( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 14, relatives.size() );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
@@ -133,7 +139,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setThisMonth( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 31 ) ), relatives.get( 0 ) );
@@ -144,10 +151,35 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLastMonth( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
+    }
+
+    @Test
+    public void testGetThisBiWeek()
+    {
+        RelativePeriods periods = new RelativePeriods().setThisBiWeek( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 1, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        assertEquals( 1, relatives.size() );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 15 ), getDate( 2001, 1, 28 ) ), relatives.get( 0 ) );
+    }
+
+    @Test
+    public void testGetLastBiWeek()
+    {
+        RelativePeriods periods = new RelativePeriods().setLastBiWeek( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 1, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        assertEquals( 1, relatives.size() );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 14 ) ), relatives.get( 0 ) );
     }
 
     @Test
@@ -155,7 +187,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setThisBimonth( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 8, 31 ) ), relatives.get( 0 ) );
@@ -166,7 +199,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLastBimonth( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
@@ -177,7 +211,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setThisQuarter( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 9, 30 ) ), relatives.get( 0 ) );
@@ -188,7 +223,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLastQuarter( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
@@ -199,7 +235,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setThisSixMonth( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 12, 31 ) ), relatives.get( 0 ) );
@@ -210,7 +247,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLastSixMonth( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
@@ -243,7 +281,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLast12Months( true );
             
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 12, relatives.size() );
         assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) ), relatives.get( 0 ) );
@@ -265,7 +304,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLast3Months( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 3, relatives.size() );
         assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) ), relatives.get( 0 ) );
@@ -278,7 +318,8 @@ public class RelativePeriodTest
     {
         RelativePeriods periods = new RelativePeriods().setLast6Months( true );
 
-        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 7, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 6, relatives.size() );
         assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 31 ) ), relatives.get( 0 ) );
@@ -294,7 +335,8 @@ public class RelativePeriodTest
     {
         RelativePeriods relativePeriods = new RelativePeriods().setLast4Quarters( true );
         
-        List<Period> relatives = relativePeriods.getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = relativePeriods.getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 4, relatives.size() );
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 3, 31 ) ), relatives.get( 0 ) );
@@ -303,10 +345,30 @@ public class RelativePeriodTest
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 12, 31 ) ), relatives.get( 3 ) );
     }
 
+
+
+    @Test
+    public void testGetLast4BiWeeks()
+    {
+        RelativePeriods relativePeriods = new RelativePeriods().setLast4BiWeeks( true );
+        relativePeriods.setLastBiWeek(false);
+        relativePeriods.setThisBiWeek( false );
+
+        List<Period> relatives = relativePeriods.getRelativePeriods( getDate( 2002, 1, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        assertEquals( 4, relatives.size() );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 5 ), getDate( 2001, 11, 18 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 19 ), getDate( 2001, 12, 2 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 3 ), getDate( 2001, 12, 16 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 17 ), getDate( 2001, 12, 30 ) ), relatives.get( 3 ) );
+    }
+
     @Test
     public void testGetLast2SixMonths()
     {
-        List<Period> relatives = new RelativePeriods().setLast2SixMonths( true ).getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = new RelativePeriods().setLast2SixMonths( true ).getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 2, relatives.size() );
         assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 6, 30 ) ), relatives.get( 0 ) );
@@ -316,7 +378,8 @@ public class RelativePeriodTest
     @Test
     public void testGetLast5Years()
     {
-        List<Period> relatives = new RelativePeriods().setLast5Years( true ).getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = new RelativePeriods().setLast5Years( true ).getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 5, relatives.size() );
         assertEquals( new Period( new YearlyPeriodType(), getDate( 1996, 1, 1 ), getDate( 1996, 12, 31 ) ), relatives.get( 0 ) );
@@ -329,7 +392,8 @@ public class RelativePeriodTest
     @Test
     public void testGetMonthsThisYear()
     {
-        List<Period> relatives = new RelativePeriods().setMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = new RelativePeriods().setMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 12, relatives.size() );
         assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 31 ) ), relatives.get( 0 ) );
@@ -349,7 +413,8 @@ public class RelativePeriodTest
     @Test
     public void testGetBiMonthsThisYear()
     {
-        List<Period> relatives = new RelativePeriods().setBiMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false );
+        List<Period> relatives = new RelativePeriods().setBiMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 6, relatives.size() );
         assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 2, 28 ) ), relatives.get( 0 ) );
@@ -363,7 +428,8 @@ public class RelativePeriodTest
     @Test
     public void testGetLastWeek()
     {
-        List<Period> relatives = new RelativePeriods().setLastWeek( true ).getRelativePeriods( getDate( 2012, 1, 20 ), I18N_FORMAT, false );
+        List<Period> relatives = new RelativePeriods().setLastWeek( true ).getRelativePeriods( getDate( 2012, 1, 20 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
         assertEquals( new Period( new WeeklyPeriodType(), getDate( 2012, 1, 9 ), getDate( 2012, 1, 15 ) ), relatives.get( 0 ) );
@@ -372,7 +438,8 @@ public class RelativePeriodTest
     @Test
     public void testGetLast4Weeks()
     {
-        List<Period> relatives = new RelativePeriods().setLast4Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ), null, false );
+        List<Period> relatives = new RelativePeriods().setLast4Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ), null, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 4, relatives.size() );
         assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 5 ), getDate( 2010, 4, 11 ) ), relatives.get( 0 ) );
@@ -384,7 +451,8 @@ public class RelativePeriodTest
     @Test
     public void testGetLast12Weeks()
     {
-        List<Period> relatives = new RelativePeriods().setLast12Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ), null, false );
+        List<Period> relatives = new RelativePeriods().setLast12Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ), null, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 12, relatives.size() );
         assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 2, 8 ), getDate( 2010, 2, 14 ) ), relatives.get( 0 ) );
@@ -404,7 +472,8 @@ public class RelativePeriodTest
     @Test
     public void testGetQuartersThisYear()
     {
-        List<Period> relatives = new RelativePeriods().setQuartersThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), null, false );
+        List<Period> relatives = new RelativePeriods().setQuartersThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), null, false,
+            FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 4, relatives.size() );
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 3, 31 ) ), relatives.get( 0 ) );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard.impl;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,6 +127,23 @@ public class DefaultDashboardService
         result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0, getMax( DashboardItemType.RESOURCES, maxTypes ) ) );
         result.setApps( appManager.getAppsByName( query, dashboardApps, "ilike" ) );
 
+        return result;
+    }
+
+    @Override
+    public DashboardSearchResult search( Set<DashboardItemType> maxTypes )
+    {
+        DashboardSearchResult result = new DashboardSearchResult();
+
+        result.setCharts( objectManager.getBetweenSorted( Chart.class, 0, getMax( DashboardItemType.CHART, maxTypes ) ) );
+        result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes ) ) );
+        result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes ) ) );
+        result.setReportTables( objectManager.getBetweenSorted( ReportTable.class, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes ) ) );
+        result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes ) ) );
+        result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes ) ) );
+        result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes ) ) );
+        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET, getMax( DashboardItemType.APP, maxTypes ) ) );
+        
         return result;
     }
 
@@ -348,6 +365,12 @@ public class DefaultDashboardService
     public int countChartDashboardItems( Chart chart )
     {
         return dashboardItemStore.countChartDashboardItems( chart );
+    }
+
+    @Override
+    public int countEventChartDashboardItems( EventChart eventChart )
+    {
+        return dashboardItemStore.countEventChartDashboardItems( eventChart );
     }
 
     @Override

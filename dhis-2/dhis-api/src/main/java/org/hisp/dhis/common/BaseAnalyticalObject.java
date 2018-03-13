@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
-import org.hisp.dhis.dataelement.CategoryDimension;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -63,19 +59,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
@@ -394,7 +381,7 @@ public abstract class BaseAnalyticalObject
 
             if ( hasRelativePeriods() )
             {
-                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames ) );
+                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER ) );
             }
 
             type = DimensionType.PERIOD;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,48 @@ package org.hisp.dhis.system.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 
-import org.hisp.dhis.scheduling.TaskId;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
  */
 public interface Notifier
 {
-    Notifier notify( TaskId id, String message );
+    Notifier notify( JobConfiguration id, String message );
     
-    Notifier notify( TaskId id, NotificationLevel level, String message );
+    Notifier notify( JobConfiguration id, NotificationLevel level, String message );
     
-    Notifier notify( TaskId id, NotificationLevel level, String message, boolean completed );
+    Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    Notifier update( TaskId id, String message );
+    Notifier update( JobConfiguration id, String message );
 
-    Notifier update( TaskId id, NotificationLevel level, String message );
+    Notifier update( JobConfiguration id, NotificationLevel level, String message );
 
-    Notifier update( TaskId id, NotificationLevel level, String message, boolean completed );
+    Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    List<Notification> getNotifications( TaskId id, String lastUid );
+    Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications( );
+
+    List<Notification> getLastNotificationsByJobType( JobType jobType, String lastId );
+
+    List<Notification> getNotificationsByJobId( JobType jobType, String jobId );
+
+    Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType );
     
-    Notifier clear( TaskId id );
+    Notifier clear( JobConfiguration id );
     
-    Notifier addTaskSummary( TaskId id, Object taskSummary );
+    Notifier addJobSummary( JobConfiguration id, Object taskSummary );
     
-    Notifier addTaskSummary( TaskId id, NotificationLevel level, Object taskSummary );
-    
-    Object getTaskSummary( TaskId id );
+    Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary );
+
+    Object getJobSummariesForJobType( JobType jobType );
+
+    Object getJobSummary( JobType jobType );
+
+    Object getJobSummaryByJobId( JobType jobType, String jobId );
 }

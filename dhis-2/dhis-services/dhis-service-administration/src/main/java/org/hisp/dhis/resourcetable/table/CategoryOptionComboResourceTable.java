@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import java.util.Optional;
 
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
@@ -48,9 +49,9 @@ public class CategoryOptionComboResourceTable
     }
     
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_dataelementcategoryoptioncombo";
+        return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
     }
 
     @Override

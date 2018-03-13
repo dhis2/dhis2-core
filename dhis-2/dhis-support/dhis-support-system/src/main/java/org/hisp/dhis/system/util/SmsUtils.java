@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -38,6 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.text.SimpleDateFormat;
+import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,32 +55,37 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
  */
 public class SmsUtils
 {
-    private static int MAX_CHAR = 160;
+    private static final int MAX_CHAR = 160;
+
+    private static final String COMMAND_PATTERN = "([A-Za-z])\\w+";
 
     public static String getCommandString( IncomingSms sms )
     {
-        String message = sms.getText();
-        String commandString = null;
-
-        for ( int i = 0; i < message.length(); i++ )
-        {
-            String c = String.valueOf( message.charAt( i ) );
-
-            if ( c.matches( "\\W" ) )
-            {
-                commandString = message.substring( 0, i );
-                message = message.substring( commandString.length() + 1 );
-                break;
-            }
-        }
-
-        return commandString.trim();
+        return getCommandString( sms.getText() );
     }
 
-    public static Collection<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
+    public static String getCommandString( String text )
+    {
+        String commandString = null;
+
+        Pattern pattern = Pattern.compile( COMMAND_PATTERN );
+
+        Matcher matcher = pattern.matcher( text );
+
+        if ( matcher.find() )
+        {
+            commandString = matcher.group();
+            commandString.trim();
+        }
+
+        return commandString;
+    }
+
+    public static Set<OrganisationUnit> getOrganisationUnitsByPhoneNumber( String sender,
         Collection<User> users )
     {
-        Collection<OrganisationUnit> orgUnits = new ArrayList<>();
+        Set<OrganisationUnit> orgUnits = new HashSet<>();
+
         for ( User u : users )
         {
             if ( u.getOrganisationUnits() != null )
@@ -206,18 +213,10 @@ public class SmsUtils
 
     public static Set<String> getRecipientsPhoneNumber( Collection<User> users )
     {
-        Set<String> recipients = new HashSet<>();
-
-        for ( User user : users )
-        {
-            String phoneNumber = user.getPhoneNumber();
-
-            if ( phoneNumber != null && !phoneNumber.isEmpty() )
-            {
-                recipients.add( phoneNumber );
-            }
-        }
-        return recipients;
+        return users.parallelStream()
+            .filter( u -> u.getPhoneNumber() != null && !u.getPhoneNumber().isEmpty() )
+            .map( u -> u.getPhoneNumber() )
+            .collect( Collectors.toSet() );
     }
 
     public static Set<String> getRecipientsEmail( Collection<User> users )

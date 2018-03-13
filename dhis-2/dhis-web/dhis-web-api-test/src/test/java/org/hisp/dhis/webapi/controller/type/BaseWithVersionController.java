@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.type;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ApiVersion( DhisApiVersion.V23 )
+@ApiVersion( DhisApiVersion.V26 )
 public abstract class BaseWithVersionController
 {
     @RequestMapping( value = "/{id}", method = RequestMethod.POST )

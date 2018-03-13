@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 
 /**
@@ -87,14 +87,6 @@ public interface ProgramService
     Program getProgram( int id );
 
     /**
-     * Returns a {@link Program} with a given name.
-     *
-     * @param name the name of the Program to return.
-     * @return the Program with the given name, or null if no match.
-     */
-    Program getProgramByName( String name );
-
-    /**
      * Returns all {@link Program}.
      *
      * @return a collection of all Program, or an empty collection if there are
@@ -121,17 +113,6 @@ public interface ProgramService
     List<Program> getPrograms( ProgramType type );
 
     /**
-     * Get {@link Program} assigned to an {@link OrganisationUnit} by a type
-     *
-     * @param type The type of program. There are three types, include Multi
-     *        events with registration, Single event with registration and
-     *        Single event without registration
-     * @param orgunit Where programs assigned
-     * @return Program list by a type specified
-     */
-    List<Program> getPrograms( ProgramType type, OrganisationUnit orgunit );
-
-    /**
      * Returns the {@link Program} with the given UID.
      *
      * @param uid the UID.
@@ -140,11 +121,11 @@ public interface ProgramService
     Program getProgram( String uid );
 
     /**
-     * Get {@link TrackedEntity} by TrackedEntity
+     * Get {@link TrackedEntityType} by TrackedEntityType
      *
-     * @param trackedEntity {@link TrackedEntity}
+     * @param trackedEntityType {@link TrackedEntityType}
      */
-    List<Program> getProgramsByTrackedEntity( TrackedEntity trackedEntity );
+    List<Program> getProgramsByTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Get all Programs with the given DataEntryForm.
@@ -153,39 +134,6 @@ public interface ProgramService
      * @return a list of Programs.
      */
     List<Program> getProgramsByDataEntryForm( DataEntryForm dataEntryForm );
-
-    /**
-     * Returns The number of Programs with the key searched
-     *
-     * @param name Keyword for searching by name
-     * @return A number
-     */
-    Integer getProgramCountByName( String name );
-
-    /**
-     * Returns {@link Program} list with paging
-     *
-     * @param name Keyword for searching by name
-     * @param min First result
-     * @param max Maximum results
-     * @return a List of all Program, or an empty collection if there are no
-     *         Program.
-     */
-    List<Program> getProgramBetweenByName( String name, int min, int max );
-
-    /**
-     * Returns The number of all Program available
-     */
-    Integer getProgramCount();
-
-    /**
-     * Returns {@link Program} list with paging
-     *
-     * @param min First result
-     * @param max Maximum results
-     * @return a List of all Program, or an empty List if there are no Program.
-     */
-    List<Program> getProgramsBetween( int min, int max );
 
     /**
      * Get {@link Program} by the current user. Returns all programs if current

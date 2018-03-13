@@ -3,7 +3,7 @@ package org.hisp.dhis.sms.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ public class ClickatellGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
 
-    private final String URL_TEMPLATE = "https://platform.clickatell.com/messages";
+    private final String URL_TEMPLATE = "https://platform.clickatell.com/rest/messages";
     
     private String authToken;
 

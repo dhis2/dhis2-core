@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.common.ValueType;
 
 import java.util.List;
 
@@ -69,6 +70,14 @@ public interface DataElementStore
      * @return all DataElements of the given domain type.
      */
     List<DataElement> getDataElementsByDomainType( DataElementDomain domainType );
+
+    /**
+     * Returns all DataElements of the given value type.
+     *
+     * @param valueType the value type.
+     * @return all DataElements of the given value type.
+     */
+    List<DataElement> getDataElementsByValueType( ValueType valueType );
 
     /**
      * Returns all DataElements which are not member of any DataElementGroups.

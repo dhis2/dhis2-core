@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -217,32 +217,6 @@ public class DefaultOptionService
         return optionGroupStore.getAll();
     }
 
-    @Override
-    public OptionGroup getOptionGroupByName( String name )
-    {
-        return optionGroupStore.getByName( name );
-    }
-
-    @Override
-    public OptionGroup getOptionGroupByCode( String code )
-    {
-        return optionGroupStore.getByCode( code );
-    }
-
-    @Override
-    public OptionGroup getOptionGroupByShortName( String shortName )
-    {
-        List<OptionGroup> OptionGroups = new ArrayList<>(
-            optionGroupStore.getAllEqShortName( shortName ) );
-
-        if ( OptionGroups.isEmpty() )
-        {
-            return null;
-        }
-
-        return OptionGroups.get( 0 );
-    }
-
     // -------------------------------------------------------------------------
     // OptionGroupSet
     // -------------------------------------------------------------------------
@@ -283,11 +257,5 @@ public class DefaultOptionService
     public List<OptionGroupSet> getAllOptionGroupSets()
     {
         return optionGroupSetStore.getAll();
-    }
-
-    @Override
-    public OptionGroupSet getOptionGroupSetByName( String name )
-    {
-        return optionGroupSetStore.getByName( name );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -43,13 +44,13 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -108,13 +109,17 @@ public class DefaultFieldFilterService implements FieldFilterService
     }
 
     @Override
-    public ComplexNode filter( Object object, List<String> fieldList )
+    public ComplexNode toComplexNode( FieldFilterParams params )
     {
-        Assert.notNull( object, "Object cannot be null" );
+        if ( params.getObjects().isEmpty() )
+        {
+            return null;
+        }
 
-        CollectionNode collectionNode = filter( object.getClass(), Lists.newArrayList( object ), fieldList );
+        Object object = params.getObjects().get( 0 );
+        CollectionNode collectionNode = toCollectionNode( object.getClass(), params );
 
-        if ( collectionNode.getChildren().size() > 0 )
+        if ( !collectionNode.getChildren().isEmpty() )
         {
             return (ComplexNode) collectionNode.getChildren().get( 0 );
         }
@@ -123,16 +128,18 @@ public class DefaultFieldFilterService implements FieldFilterService
     }
 
     @Override
-    public CollectionNode filter( Class<?> klass, List<?> objects, List<String> fieldList )
+    public CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params )
     {
-        String fields = fieldList == null ? "" : Joiner.on( "," ).join( fieldList );
+        String fields = params.getFields() == null ? "" : Joiner.on( "," ).join( params.getFields() );
 
-        Schema rootSchema = schemaService.getDynamicSchema( klass );
+        Schema rootSchema = schemaService.getDynamicSchema( wrapper );
 
         CollectionNode collectionNode = new CollectionNode( rootSchema.getCollectionName() );
         collectionNode.setNamespace( rootSchema.getNamespace() );
 
-        if ( objects == null || objects.isEmpty() )
+        List<?> objects = params.getObjects();
+
+        if ( params.getObjects().isEmpty() )
         {
             return collectionNode;
         }
@@ -153,18 +160,32 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         final FieldMap finalFieldMap = fieldMap;
-        objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
+
+        objects.forEach( object -> {
+            AbstractNode node = buildNode( finalFieldMap, wrapper, object, params.getDefaults() );
+
+            if ( node != null )
+            {
+                collectionNode.addChild( node );
+            }
+        } );
 
         return collectionNode;
     }
 
-    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object )
+    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
-        return buildNode( fieldMap, klass, object, schema.getName() );
+        return buildNode( fieldMap, klass, object, schema.getName(), defaults );
     }
 
-    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, String nodeName )
+    private boolean shouldExclude( Object object, Defaults defaults )
+    {
+        return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
+            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
+    }
+
+    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, String nodeName, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -176,11 +197,18 @@ public class DefaultFieldFilterService implements FieldFilterService
             return new SimpleNode( schema.getName(), null );
         }
 
+
+        if ( shouldExclude( object, defaults ) )
+        {
+            System.err.println( "Exclude: " + object );
+            return null;
+        }
+
         updateFields( fieldMap, schema.getKlass() );
 
         for ( String fieldKey : fieldMap.keySet() )
         {
-            AbstractNode child;
+            AbstractNode child = null;
             Property property = schema.getProperty( fieldKey );
 
             if ( property == null || !property.isReadable() )
@@ -224,7 +252,10 @@ public class DefaultFieldFilterService implements FieldFilterService
                     {
                         for ( Object collectionObject : collection )
                         {
-                            child.addChild( getProperties( property, collectionObject, fields ) );
+                            if ( !shouldExclude( collectionObject, defaults ) )
+                            {
+                                child.addChild( getProperties( property, collectionObject, fields ) );
+                            }
                         }
                     }
                     else if ( !property.isSimple() )
@@ -233,9 +264,9 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                         for ( Object collectionObject : collection )
                         {
-                            Node node = buildNode( map, property.getItemKlass(), collectionObject );
+                            Node node = buildNode( map, property.getItemKlass(), collectionObject, defaults );
 
-                            if ( !node.getChildren().isEmpty() )
+                            if ( node != null && !node.getChildren().isEmpty() )
                             {
                                 child.addChild( node );
                             }
@@ -255,7 +286,10 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
                 {
-                    child = getProperties( property, returnValue, fields );
+                    if ( !shouldExclude( returnValue, defaults ) )
+                    {
+                        child = getProperties( property, returnValue, fields );
+                    }
                 }
                 else
                 {
@@ -269,7 +303,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue );
+                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue, defaults );
                     }
                 }
             }
@@ -282,7 +316,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                     for ( Object collectionObject : (Collection<?>) returnValue )
                     {
-                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, property.getName() );
+                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, property.getName(), defaults );
 
                         if ( !node.getChildren().isEmpty() )
                         {
@@ -292,7 +326,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    child = buildNode( fieldValue, property.getKlass(), returnValue );
+                    child = buildNode( fieldValue, property.getKlass(), returnValue, defaults );
                 }
             }
 

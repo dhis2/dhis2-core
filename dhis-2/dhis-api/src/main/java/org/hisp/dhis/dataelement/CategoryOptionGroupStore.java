@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,10 @@ package org.hisp.dhis.dataelement;
 import java.util.List;
 
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 public interface CategoryOptionGroupStore
-    extends GenericNameableObjectStore<CategoryOptionGroup>
+    extends GenericIdentifiableObjectStore<CategoryOptionGroup>
 {
     List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet );
     

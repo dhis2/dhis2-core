@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,6 +146,13 @@ public class AddUserAction
     public void setInviteUsername( String inviteUsername )
     {
         this.inviteUsername = inviteUsername;
+    }
+
+    private boolean twoFA;
+
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
     }
 
     private boolean externalAuth;
@@ -298,6 +305,7 @@ public class AddUserAction
         user.setUserCredentials( userCredentials );
 
         userCredentials.setUsername( StringUtils.trimToNull( username ) );
+        userCredentials.setTwoFA( twoFA );
         userCredentials.setExternalAuth( externalAuth );
         userCredentials.setOpenId( StringUtils.trimToNull( openId ) );
         userCredentials.setLdapId( StringUtils.trimToNull( ldapId ) );

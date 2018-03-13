@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,13 @@ package org.hisp.dhis.webapi.controller.user;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
@@ -44,6 +47,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -59,14 +63,17 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.user.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -79,12 +86,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
 public class MeController
 {
     @Autowired
@@ -123,6 +132,12 @@ public class MeController
     @Autowired
     private PasswordValidationService passwordValidationService;
 
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private DataSetService dataSetService;
+
     private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
         UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
 
@@ -131,9 +146,9 @@ public class MeController
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        User currentUser = currentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUser();
 
-        if ( currentUser == null )
+        if ( user == null )
         {
             throw new NotAuthenticatedException();
         }
@@ -143,22 +158,42 @@ public class MeController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
+            new FieldFilterParams( Collections.singletonList( user ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoStore( response );
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
 
         if ( fieldsContains( "settings", fields ) )
         {
             rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( currentUser, USER_SETTING_NAMES, true ) ) );
+                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, true ) ) );
         }
 
         if ( fieldsContains( "authorities", fields ) )
         {
             rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
-                NodeUtils.createSimples( currentUser.getUserCredentials().getAllAuthorities() ) );
+                NodeUtils.createSimples( user.getUserCredentials().getAllAuthorities() ) );
+        }
+
+        if ( fieldsContains( "programs", fields ) )
+        {
+            rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
+                NodeUtils.createSimples( programService.getUserPrograms().stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() ) )
+            );
+        }
+
+        if ( fieldsContains( "dataSets", fields ) )
+        {
+            rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
+                NodeUtils.createSimples( dataSetService.getUserDataRead( user ).stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() ) )
+            );
         }
 
         nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
@@ -178,6 +213,7 @@ public class MeController
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -204,7 +240,8 @@ public class MeController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
+            new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );
@@ -221,11 +258,12 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
     @RequestMapping( value = { "/authorization/{authority}", "/authorities/{authority}" } )
-    public void haveAuthority( HttpServletResponse response, @PathVariable String authority ) throws IOException, NotAuthenticatedException
+    public void hasAuthority( HttpServletResponse response, @PathVariable String authority ) throws IOException, NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -237,6 +275,7 @@ public class MeController
         boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), hasAuthority );
     }
 
@@ -254,6 +293,7 @@ public class MeController
             currentUser, USER_SETTING_NAMES, true );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), userSettings );
     }
 
@@ -282,6 +322,7 @@ public class MeController
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        setNoStore( response );
         renderService.toJson( response.getOutputStream(), value );
     }
 
@@ -338,6 +379,14 @@ public class MeController
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
         return dashboard;
+    }
+
+    @PostMapping( value = "/dashboard/interpretations/read" )
+    @ResponseStatus( value = HttpStatus.OK )
+    @ApiVersion( include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
+    public void updateInterpretationsLastRead()
+    {
+        interpretationService.updateCurrentUserLastChecked();
     }
 
     //------------------------------------------------------------------------------------------------

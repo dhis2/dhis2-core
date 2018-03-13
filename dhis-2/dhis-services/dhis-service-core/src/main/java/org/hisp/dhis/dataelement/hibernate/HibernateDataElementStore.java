@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,13 @@ public class HibernateDataElementStore
     {
         return getCriteria( Restrictions.eq( "domainType", domainType ) ).list();
     }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<DataElement> getDataElementsByValueType( ValueType valueType )
+    {
+        return getCriteria( Restrictions.eq( "valueType", valueType ) ).list();
+    }
     
     @Override
     @SuppressWarnings( "unchecked" )
@@ -108,6 +115,6 @@ public class HibernateDataElementStore
     {
         String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
-        return getQuery( hql ).setInteger( "aggregationLevel", aggregationLevel ).list();
+        return getQuery( hql ).setParameter( "aggregationLevel", aggregationLevel ).list();
     }
 }

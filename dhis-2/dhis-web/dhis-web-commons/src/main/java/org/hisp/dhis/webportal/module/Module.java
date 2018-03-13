@@ -1,7 +1,7 @@
 package org.hisp.dhis.webportal.module;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ public class Module
         
         String defaultAction = app.getLaunchUrl();
 
-        String icon = hasIcon ? icon = app.getBaseUrl() + "/" + app.getFolderName() +
+        String icon = hasIcon ? icon = app.getBaseUrl() + "/" + app.getUrlFriendlyName() +
             "/" + app.getIcons().getIcon48() : null;
 
         String description = TextUtils.subString( app.getDescription(), 0, 80 );

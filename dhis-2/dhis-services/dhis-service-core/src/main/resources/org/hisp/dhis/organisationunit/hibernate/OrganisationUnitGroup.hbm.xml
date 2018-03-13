@@ -20,6 +20,8 @@
     <property name="shortName" column="shortname" unique="true" length="50" />
 
     <property name="symbol" />
+    
+    <property name="color" />
 
     <set name="members" table="orgunitgroupmembers">
       <cache usage="read-write" />
@@ -33,6 +35,8 @@
       <key column="orgunitgroupid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" column="orgunitgroupsetid" />
     </set>
+
+    <property name="coordinates" type="text" />
 
     <!-- Object Translation -->
     <set name="translations" table="orgunitgrouptranslations" cascade="all-delete-orphan">

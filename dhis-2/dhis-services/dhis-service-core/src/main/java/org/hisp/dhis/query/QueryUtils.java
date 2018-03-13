@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -135,7 +135,14 @@ public final class QueryUtils
         {
             if ( !value.startsWith( "[" ) || !value.endsWith( "]" ) )
             {
-                return null;
+                try
+                {
+                    return (T) Integer.valueOf( value );
+                }
+                catch ( NumberFormatException e )
+                {
+                    throw new QueryParserException( "Collection size must be integer `" + value + "`" );
+                }
             }
 
             String[] split = value.substring( 1, value.length() - 1 ).split( "," );

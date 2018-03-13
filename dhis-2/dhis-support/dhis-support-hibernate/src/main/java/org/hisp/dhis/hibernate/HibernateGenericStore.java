@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ package org.hisp.dhis.hibernate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
@@ -42,10 +40,13 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -55,8 +56,6 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -67,14 +66,19 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public class HibernateGenericStore<T>
-    implements InternalHibernateGenericStore<T>
+    implements GenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
 
@@ -95,9 +99,6 @@ public class HibernateGenericStore<T>
 
     @Autowired
     protected CurrentUserService currentUserService;
-
-    @Autowired
-    protected SchemaService schemaService;
 
     @Autowired
     protected DeletedObjectService deletedObjectService;
@@ -176,19 +177,25 @@ public class HibernateGenericStore<T>
         return getSession().createQuery( hql ).setCacheable( cacheable );
     }
 
+    protected final TypedQuery getJpaQuery( String jpaQuery )
+    {
+        return getSession().createQuery( jpaQuery ).setCacheable( cacheable );
+    }
+
     /**
      * Creates a SqlQuery.
      *
      * @param sql the sql query.
      * @return a SqlQuery instance.
      */
-    protected final SQLQuery getSqlQuery( String sql )
+    protected final NativeQuery getSqlQuery( String sql )
     {
-        SQLQuery query = getSession().createSQLQuery( sql );
-        query.setCacheable( cacheable );
+        NativeQuery query = getSession().createNativeQuery( sql );
+        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
         return query;
     }
 
+    
     /**
      * Creates a Criteria for the implementation Class type.
      * <p>
@@ -196,7 +203,6 @@ public class HibernateGenericStore<T>
      *
      * @return a Criteria instance.
      */
-    @Override
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
@@ -206,49 +212,17 @@ public class HibernateGenericStore<T>
         return getExecutableCriteria( criteria );
     }
 
-    @Override
     public final Criteria getSharingCriteria()
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
     }
 
-    @Override
-    public final Criteria getSharingCriteria( String access )
-    {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
-    }
-
-    @Override
-    public final Criteria getSharingCriteria( User user )
-    {
-        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" ) );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria()
-    {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria( String access )
-    {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria( User user )
-    {
-        return getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" );
-    }
-
-    @Override
     public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
     {
         return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
     }
 
-    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
+    protected DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -294,6 +268,53 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( userDetachedCriteria ) );
 
         criteria.add( disjunction );
+
+        return criteria;
+    }
+
+    protected DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        if ( user == null || !dataSharingEnabled( user ) )
+        {
+            return criteria;
+        }
+
+        Assert.notNull( user, "User argument can't be null." );
+
+        Disjunction disjunction = Restrictions.disjunction();
+
+        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
+
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
+
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
+
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
+
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
+
+        criteria.add( disjunction );
+
         return criteria;
     }
 
@@ -308,6 +329,21 @@ public class HibernateGenericStore<T>
     protected Criteria getClazzCriteria()
     {
         return getSession().createCriteria( getClazz() );
+    }
+
+    protected CriteriaBuilder getCriteriaBuilder()
+    {
+        return sessionFactory.getCriteriaBuilder();
+    }
+
+    protected CriteriaQuery getCriteriaQuery()
+    {
+        return getCriteriaBuilder().createQuery();
+    }
+
+    protected TypedQuery executeQuery( CriteriaQuery query )
+    {
+        return sessionFactory.getCurrentSession().createQuery( query );
     }
 
     /**
@@ -327,7 +363,6 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
-
         return criteria;
     }
 
@@ -614,17 +649,14 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public List<T> getAllByAttributes( List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
+        CriteriaQuery query = getCriteriaQuery();
 
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
+        Root root = query.from( getClazz() );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
+        query.select( root );
+        query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
 
-        String hql = "select e from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at in (:attributes) )";
-
-        return getQuery( hql ).setParameterList( "attributes", attributes ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -662,71 +694,35 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public T getByAttribute( Attribute attribute )
-    {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return null;
-        }
-
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "attributeValues", "av" );
-        criteria.add( Restrictions.eq( "av.attribute", attribute ) );
-
-        return (T) criteria.uniqueResult();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
+        Root root = query.from( getClazz() );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
+        query.select( root.get( "attributeValues" ) );
+        query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
 
-        String hql = "select av from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at = :attribute )";
-
-        return getQuery( hql ).setEntity( "attribute", attribute ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<AttributeValue> getAttributeValueByAttributes( List<Attribute> attributes )
-    {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
-        String hql = "select av from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at in (:attributes) )";
-
-        return getQuery( hql ).setParameterList( "attributes", attributes ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return null;
-        }
+        Root root = query.from( getClazz() );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
+        query.select( root.get( "attributeValues" ) );
+        query.where(
+            builder.and(
+                builder.equal( joinAttributeValue.get( "attribute" ), attribute ),
+                builder.equal( joinAttributeValue.get( "value" ), value ) ) );
 
-        String hql = "select av from " + getClazz().getSimpleName() + "  as e " +
-            "inner join e.attributeValues av inner join av.attribute at where at = :attribute and av.value = :value)";
-
-        return getQuery( hql ).setEntity( "attribute", attribute ).setString( "value", value ).list();
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 
     @Override
@@ -760,6 +756,11 @@ public class HibernateGenericStore<T>
     protected boolean sharingEnabled( UserInfo userInfo )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
+    }
+
+    protected boolean dataSharingEnabled( UserInfo userInfo )
+    {
+        return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
     }
 
     protected boolean isReadAllowed( T object )

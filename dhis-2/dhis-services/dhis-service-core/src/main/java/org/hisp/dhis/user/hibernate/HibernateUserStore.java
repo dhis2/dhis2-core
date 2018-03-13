@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,16 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " ou = :organisationUnit ";
             }
+        }
+
+        if ( params.getDisabled() != null )
+        {
+            hql += hlp.whereAnd() + " uc.disabled = :disabled ";
+        }
+
+        if ( params.isNot2FA() )
+        {
+            hql += hlp.whereAnd() + " uc.secret is null ";
         }
 
         if ( params.getQuery() != null )
@@ -190,6 +200,11 @@ public class HibernateUserStore
             Collection<Integer> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
 
             query.setParameterList( "ids", managedGroups );
+        }
+
+        if ( params.getDisabled() != null )
+        {
+            query.setBoolean( "disabled", params.getDisabled().booleanValue() );
         }
         
         if ( params.isAuthSubset() && params.getUser() != null )

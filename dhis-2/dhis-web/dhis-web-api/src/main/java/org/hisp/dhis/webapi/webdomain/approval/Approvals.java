@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.webdomain.approval;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "approvals", namespace = DxfNamespaces.DXF_2_0 )
 public class Approvals
 {
+    private List<String> wf = new ArrayList<>();
+
     private List<String> ds = new ArrayList<>();
-    
+
     private List<String> pe = new ArrayList<>();
     
     private List<Approval> approvals = new ArrayList<>();
@@ -49,7 +51,19 @@ public class Approvals
     public Approvals()
     {
     }
-    
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getWf()
+    {
+        return wf;
+    }
+
+    public void setWf( List<String> wf )
+    {
+        this.wf = wf;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<String> getDs()

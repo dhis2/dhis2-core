@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,5 +172,17 @@ public class ProgramTrackedEntityAttributeDimensionItem
     public void setAttribute( TrackedEntityAttribute attribute )
     {
         this.attribute = attribute;
+    }
+    
+    @Override
+    public String getName()
+    {
+        return program.getName() + " " + attribute.getName();
+    }
+    
+    @Override
+    public String getDisplayName()
+    {
+        return program.getDisplayName() + " " + attribute.getDisplayName();
     }
 }

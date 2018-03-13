@@ -1,6 +1,7 @@
 package org.hisp.dhis.validation;
+
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +29,14 @@ package org.hisp.dhis.validation;
  */
 
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.Period;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -49,15 +47,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class ValidationRunContext
 {
+    public static final int ORG_UNITS_PER_TASK = 500;
+
     private Queue<ValidationResult> validationResults;
 
-    private Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap;
+    private List<OrganisationUnit> orgUnits;
+
+    private List<PeriodTypeExtended> periodTypeXs;
 
     private Map<String, Double> constantMap;
-
-    private Set<DimensionalItemObject> eventItems;
-
-    private List<OrganisationUnit> orgUnits;
 
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
@@ -69,11 +67,15 @@ public class ValidationRunContext
 
     private DataElementCategoryOptionCombo attributeCombo;
 
+    private DataElementCategoryOptionCombo defaultAttributeCombo;
+
     private int maxResults = 0;
 
     private boolean sendNotifications = false;
 
     private boolean persistResults = false;
+
+    private MapMapMap<OrganisationUnit, ValidationRule, Period, List<ValidationResult>> initialValidationResults = new MapMapMap<>();
 
     public ValidationRunContext()
     {
@@ -89,29 +91,24 @@ public class ValidationRunContext
         return attributeCombo;
     }
 
+    public DataElementCategoryOptionCombo getDefaultAttributeCombo()
+    {
+        return defaultAttributeCombo;
+    }
+
     public int getMaxResults()
     {
         return maxResults;
     }
 
-    public int getCountOfSourcesToValidate()
-    {
-        return orgUnits.size();
-    }
-
-    public Map<PeriodType, PeriodTypeExtended> getPeriodTypeExtendedMap()
-    {
-        return periodTypeExtendedMap;
-    }
-
-    public Set<DimensionalItemObject> getEventItems()
-    {
-        return eventItems;
-    }
-
     public List<OrganisationUnit> getOrgUnits()
     {
         return orgUnits;
+    }
+
+    public List<PeriodTypeExtended> getPeriodTypeXs()
+    {
+        return periodTypeXs;
     }
 
     public Map<String, Double> getConstantMap()
@@ -139,6 +136,47 @@ public class ValidationRunContext
         return persistResults;
     }
 
+    public Queue<ValidationResult> getValidationResults()
+    {
+        return validationResults;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean skipValidationOfTuple( OrganisationUnit organisationUnit, ValidationRule validationRule,
+        Period period, String attributeOptionCombo, int dayInPeriod )
+    {
+        List<ValidationResult> validationResultList = initialValidationResults
+            .getValue( organisationUnit, validationRule, period );
+
+        if ( validationResultList != null )
+        {
+            for ( ValidationResult vr : validationResultList )
+            {
+                if ( vr.getAttributeOptionCombo().getUid().equals( attributeOptionCombo ) &&
+                    vr.getDayInPeriod() == dayInPeriod )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
+    }
+
+    public int getNumberOfTasks()
+    {
+        return ( orgUnits.size() + ORG_UNITS_PER_TASK - 1 ) / ORG_UNITS_PER_TASK;
+    }
+
+    public boolean isAnalysisComplete()
+    {
+        return validationResults.size() >= maxResults;
+    }
+
     // -------------------------------------------------------------------------
     // Builder
     // -------------------------------------------------------------------------
@@ -146,16 +184,6 @@ public class ValidationRunContext
     public static Builder newBuilder()
     {
         return new Builder();
-    }
-
-    public Queue<ValidationResult> getValidationResults()
-    {
-        return validationResults;
-    }
-
-    public boolean isAnalysisComplete()
-    {
-        return validationResults.size() >= maxResults;
     }
 
     public static class Builder
@@ -175,10 +203,10 @@ public class ValidationRunContext
         public ValidationRunContext build()
         {
             Validate
-                .notNull( this.context.periodTypeExtendedMap, "Missing required property 'periodTypeExtendedMap'" );
+                .notNull( this.context.periodTypeXs, "Missing required property 'periodTypeXs'" );
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
-            Validate.notNull( this.context.eventItems, "Missing required property 'eventItems'" );
-            Validate.notEmpty( this.context.orgUnits, "Missing required property 'orgUnits'" );
+            Validate.notNull( this.context.orgUnits, "Missing required property 'orgUnits'" );
+            Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
 
             return this.context;
         }
@@ -187,28 +215,22 @@ public class ValidationRunContext
         // Setter methods
         // -------------------------------------------------------------------------
 
-        public Builder withPeriodTypeExtendedMap(
-            Map<PeriodType, PeriodTypeExtended> periodTypeExtendedMap )
+        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
         {
-            this.context.periodTypeExtendedMap = periodTypeExtendedMap;
+            this.context.orgUnits = orgUnits;
+            return this;
+        }
+
+        public Builder withPeriodTypeXs(
+            List<PeriodTypeExtended> periodTypeXs )
+        {
+            this.context.periodTypeXs = periodTypeXs;
             return this;
         }
 
         public Builder withConstantMap( Map<String, Double> constantMap )
         {
             this.context.constantMap = constantMap;
-            return this;
-        }
-
-        public Builder withEventItems( Set<DimensionalItemObject> eventItems )
-        {
-            this.context.eventItems = eventItems;
-            return this;
-        }
-
-        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
-        {
-            this.context.orgUnits = orgUnits;
             return this;
         }
 
@@ -220,6 +242,17 @@ public class ValidationRunContext
         public Builder withAttributeCombo( DataElementCategoryOptionCombo attributeCombo )
         {
             this.context.attributeCombo = attributeCombo;
+            return this;
+        }
+
+        /**
+         * This is the default attributeOptionCombo which should always be present
+         *
+         * @param defaultAttributeCombo
+         */
+        public Builder withDefaultAttributeCombo( DataElementCategoryOptionCombo defaultAttributeCombo )
+        {
+            this.context.defaultAttributeCombo = defaultAttributeCombo;
             return this;
         }
 
@@ -258,6 +291,30 @@ public class ValidationRunContext
         public Builder withPersistResults( boolean persistResults )
         {
             this.context.persistResults = persistResults;
+            return this;
+        }
+
+        public Builder withInitialResults( Collection<ValidationResult> results )
+        {
+            this.context.validationResults.addAll( results );
+
+            results.forEach( validationResult -> {
+                List<ValidationResult> res = context.initialValidationResults
+                    .getValue( validationResult.getOrganisationUnit(), validationResult.getValidationRule(),
+                        validationResult.getPeriod() );
+                
+                if ( res == null )
+                {
+                    res = new ArrayList<>();
+                }
+
+                res.add( validationResult );
+
+                context.initialValidationResults
+                    .putEntry( validationResult.getOrganisationUnit(), validationResult.getValidationRule(),
+                        validationResult.getPeriod(), res );
+            } );
+
             return this;
         }
     }

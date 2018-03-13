@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.apache.commons.lang.BooleanUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,6 +64,20 @@ public final class PagerUtils
         }
 
         return objects.subList( offset, offset + limit );
+    }
+
+    public static boolean isSkipPaging( Boolean skipPaging, Boolean paging )
+    {
+        if ( skipPaging != null )
+        {
+            return BooleanUtils.toBoolean( skipPaging );
+        }
+        else if ( paging != null )
+        {
+            return !BooleanUtils.toBoolean( paging );
+        }
+     
+        return false;
     }
 
     private PagerUtils()

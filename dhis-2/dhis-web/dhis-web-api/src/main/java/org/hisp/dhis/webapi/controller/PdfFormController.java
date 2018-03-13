@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.pdf.PdfWriter;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataset.DataSetService;
@@ -41,13 +42,12 @@ import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.PdfDataEntryFormImportUtil;
@@ -140,15 +140,16 @@ public class PdfFormController
     public void sendFormPdfDataSet( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        TaskId taskId = new TaskId( TaskCategory.DATAVALUE_IMPORT, currentUserService.getCurrentUser() );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryDataValueImport",
+            JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        notifier.clear( taskId );
+        notifier.clear( jobId );
 
         InputStream in = request.getInputStream();
 
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
 
-        dataValueSetService.saveDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(), taskId );
+        dataValueSetService.saveDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(), jobId );
 
         webMessageService.send( WebMessageUtils.ok( "Import successful." ), response, request );
     }

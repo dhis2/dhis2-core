@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,10 +90,10 @@ public abstract class CalendarPeriodType
     {
         DateTimeUnit dateTime = createLocalDateUnitInstance( date );
 
-        return generateRollingPeriods( dateTime );
+        return generateRollingPeriods( dateTime, getCalendar() );
     }
 
-    public abstract List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit );
+    public abstract List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar );
 
     /**
      * Generates a list of Periods for the last 5 years. Must be overridden by

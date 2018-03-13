@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,7 @@ public class TwoYearlyPeriodType
     @Override
     public Period createPeriod( Calendar cal )
     {
+        //TODO: use local calendar instead of hard coded Gregorian
         cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 );
         cal.set( Calendar.DAY_OF_YEAR, 1 );
 
@@ -87,7 +88,7 @@ public class TwoYearlyPeriodType
     @Override
     public Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
-        return null;
+        return createPeriod( createCalendarInstance( dateTimeUnit.toJdkDate() ) );
     }
 
     @Override
@@ -99,35 +100,13 @@ public class TwoYearlyPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-
+    
     @Override
-    public Period getNextPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar )
     {
-        Calendar cal = createCalendarInstance( period.getStartDate() );
-        cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 + 2 );
-        cal.set( Calendar.DAY_OF_YEAR, 1 );
+        dateTimeUnit.setYear( dateTimeUnit.getYear() - dateTimeUnit.getYear() % 2 + ( 2 * offset ) );
 
-        Date startDate = cal.getTime();
-
-        cal.add( Calendar.YEAR, 1 );
-        cal.set( Calendar.DAY_OF_YEAR, cal.getActualMaximum( Calendar.DAY_OF_YEAR ) );
-
-        return new Period( this, startDate, cal.getTime() );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        Calendar cal = createCalendarInstance( period.getStartDate() );
-        cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 - 2 );
-        cal.set( Calendar.DAY_OF_YEAR, 1 );
-
-        Date startDate = cal.getTime();
-
-        cal.add( Calendar.YEAR, 1 );
-        cal.set( Calendar.DAY_OF_YEAR, cal.getActualMaximum( Calendar.DAY_OF_YEAR ) );
-
-        return new Period( this, startDate, cal.getTime() );
+        return dateTimeUnit;
     }
 
     /**
@@ -136,6 +115,7 @@ public class TwoYearlyPeriodType
     @Override
     public List<Period> generatePeriods( Date date )
     {
+        //TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );
         cal.add( Calendar.YEAR, cal.get( Calendar.YEAR ) % 2 == 0 ? -10 : -9 );
         cal.set( Calendar.DAY_OF_YEAR, 1 );
@@ -167,14 +147,15 @@ public class TwoYearlyPeriodType
     }
 
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit )
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
-        return generateLast5Years( getCalendar().toIso( dateTimeUnit ).toJdkDate() );
+        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
     @Override
     public List<Period> generateLast5Years( Date date )
     {
+        //TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );
         cal.add( Calendar.YEAR, cal.get( Calendar.YEAR ) % 2 == 0 ? -10 : -9 );
         cal.set( Calendar.DAY_OF_YEAR, 1 );
@@ -230,6 +211,7 @@ public class TwoYearlyPeriodType
         date = date != null ? date : new Date();
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 
+        //TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );
         cal.add( Calendar.YEAR, (rewindedPeriods * -2) );
 

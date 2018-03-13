@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,6 +117,15 @@ public class Options
     public String get( String key )
     {
         return options.get( key );
+    }
+
+    /**
+     * Returns the option value for the given parameter key.
+     */
+    public String get( String key, String defaultValue )
+    {
+        String value = options.get( key );
+        return value != null ? value : defaultValue;
     }
 
     /**

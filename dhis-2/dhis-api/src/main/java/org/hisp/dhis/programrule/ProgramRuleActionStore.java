@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,21 +30,20 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author markusbekken
  */
 public interface ProgramRuleActionStore
-    extends GenericNameableObjectStore<ProgramRuleAction>
+    extends GenericIdentifiableObjectStore<ProgramRuleAction>
 {
     String ID = ProgramRuleActionStore.class.getName();
 
     /**
      * Get programRuleAction by program
      *
-     * @param program {@link Program}
+     * @param programRule {@link ProgramRule}
      * @return ProgramRuleActionVariable list
      */
     List<ProgramRuleAction> get( ProgramRule programRule );

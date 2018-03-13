@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@ package org.hisp.dhis.dataentryform.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
 import org.hisp.dhis.program.ProgramStage;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 
 /**
@@ -50,22 +50,35 @@ public class HibernateDataEntryFormStore
     // -------------------------------------------------------------------------
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public DataEntryForm getDataEntryFormByName( String name )
     {
-        Criteria criteria = getSession().createCriteria( DataEntryForm.class );
-        criteria.add( Restrictions.eq( "name", name ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
-        return (DataEntryForm) criteria.uniqueResult();
+        Root<DataEntryForm> dataEntryForm = query.from( DataEntryForm.class );
+        query.select( dataEntryForm );
+        query.where( builder.like( dataEntryForm.get( "name" ), name ) );
+
+        return ( DataEntryForm ) executeQuery( query ).getResultList().stream().findFirst().orElse( null );
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
     {
-        Criteria criteria = getSession().createCriteria( ProgramStage.class );
-        criteria.add( Restrictions.in( "id", programStageIds ) ).add( Restrictions.isNotNull( "dataEntryForm" ) );
-        criteria.setProjection( Projections.groupProperty( "dataEntryForm" ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
-        return criteria.list();
+        Root<ProgramStage> programStage = query.from( ProgramStage.class );
+        query.select( programStage.get( "dataEntryForm" ) ).distinct( true );
+        query.where(
+            builder.and(
+                programStage.get( "id" ).in( programStageIds ),
+                builder.isNotNull( programStage.get( "dataEntryForm" ) )
+            )
+        );
+
+        return sessionFactory.getCurrentSession().createQuery( query ).list();
     }
 }

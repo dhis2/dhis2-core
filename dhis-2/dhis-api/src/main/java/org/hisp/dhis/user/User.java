@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -612,9 +612,10 @@ public class User
         return organisationUnits;
     }
 
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    public User setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
+        return this;
     }
 
     @JsonProperty
@@ -681,7 +682,7 @@ public class User
             "\"userCredentials\":\"" + userCredentials + "\", " +
             "\"groups\":\"" + groups + "\", " +
             "\"organisationUnits\":\"" + organisationUnits + "\", " +
-            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\" " +
+            "\"dataViewOrganisationUnits\":\"" + dataViewOrganisationUnits + "\", " +
             "\"teiSearchOrganisationUnits\":\"" + teiSearchOrganisationUnits + "\" " +
             "}";
     }

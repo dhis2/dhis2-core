@@ -12,6 +12,12 @@
       <generator class="native" />
     </id>
 
+    <property name="formName" type="text" />
+
+    <property name="description" type="text" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
+
     <many-to-one name="entityInstanceA" class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceaid" not-null="true"
       foreign-key="fk_relationship_trackedentityinstanceida" />
 

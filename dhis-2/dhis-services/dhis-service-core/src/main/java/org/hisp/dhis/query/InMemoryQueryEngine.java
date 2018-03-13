@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,6 +142,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             }
 
             testResults.add( testResult );
+        }
+
+        if ( query.getRootJunctionType() == Junction.Type.OR )
+        {
+            return testResults.contains( Boolean.TRUE );
         }
 
         return !testResults.contains( Boolean.FALSE );

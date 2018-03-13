@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
@@ -45,14 +47,7 @@ import org.hisp.dhis.version.VersionService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -75,6 +70,13 @@ public class DefaultOrganisationUnitService
     public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
     {
         this.organisationUnitStore = organisationUnitStore;
+    }
+
+    private DataSetService dataSetService;
+
+    public void setDataSetService( DataSetService dataSetService )
+    {
+        this.dataSetService = dataSetService;
     }
 
     private OrganisationUnitLevelStore organisationUnitLevelStore;
@@ -168,7 +170,7 @@ public class DefaultOrganisationUnitService
     @Override
     public OrganisationUnit getOrganisationUnit( int id )
     {
-        return  organisationUnitStore.get( id );
+        return organisationUnitStore.get( id );
     }
 
     @Override
@@ -395,13 +397,19 @@ public class DefaultOrganisationUnitService
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( currentUser != null && !currentUser.getUserCredentials().isSuper() )
+        if ( currentUser != null && !currentUser.isSuper() )
         {
-            Set<String> userDataSets = Sets.newHashSet( getUids( currentUser.getUserCredentials().getAllDataSets() ) );
+            List<DataSet> accessibleDataSets = dataSetService.getUserDataWrite( currentUser );
 
-            for ( Set<String> dataSets : associationMap.values() )
+            if ( accessibleDataSets.isEmpty() )
             {
-                dataSets.retainAll( userDataSets );
+                associationMap.values().iterator().forEachRemaining( Set::clear );
+            }
+            else
+            {
+                Set<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
+
+                associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
             }
         }
     }
@@ -438,8 +446,12 @@ public class DefaultOrganisationUnitService
     @Override
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
-        User user = currentUserService.getCurrentUser();
+        return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
 
+    @Override
+    public boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit )
+    {
         if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
         {
             return false;

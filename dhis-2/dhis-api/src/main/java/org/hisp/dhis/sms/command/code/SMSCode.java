@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.command.code;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,9 @@ package org.hisp.dhis.sms.command.code;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -39,8 +39,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
+
 @JacksonXmlRootElement( localName = "smscode", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSCode
+    implements Serializable
 {
     private int id;
 
@@ -54,7 +57,7 @@ public class SMSCode
 
     private String formula;
     
-    private boolean compulsory;
+    private boolean compulsory = false;
 
     public SMSCode( String code, DataElement dataElement, int optionId )
     {
@@ -74,6 +77,16 @@ public class SMSCode
         
     }
 
+    public boolean hasTrackedEntityAttribute()
+    {
+        return this.trackedEntityAttribute != null;
+    }
+
+    public boolean hasDataElement()
+    {
+        return this.dataElement != null;
+    }
+
     public int getId()
     {
         return id;
@@ -84,8 +97,8 @@ public class SMSCode
         this.id = id;
     }
 
-    @JsonProperty( value = "smsCode" )
-    @JacksonXmlProperty( localName = "smsCode" )
+    @JsonProperty
+    @JacksonXmlProperty
     public String getCode()
     {
         return code;
@@ -96,7 +109,7 @@ public class SMSCode
         this.code = code;
     }
 
-    @JsonProperty( value = "dataElement" )
+    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "dataElement" )
     public DataElement getDataElement()
@@ -109,6 +122,8 @@ public class SMSCode
         this.dataElement = dataElement;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public int getOptionId()
     {
         return optionId;
@@ -119,6 +134,9 @@ public class SMSCode
         this.optionId = optionId;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntityAttribute getTrackedEntityAttribute()
     {
         return trackedEntityAttribute;
@@ -129,6 +147,8 @@ public class SMSCode
         this.trackedEntityAttribute = trackedEntityAttribute;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public String getFormula()
     {
         return formula;
@@ -139,8 +159,8 @@ public class SMSCode
         this.formula = formula;
     }
     
-    @JsonProperty( value = "compulsory" )
-    @JacksonXmlProperty( localName = "compulsory" )
+    @JsonProperty
+    @JacksonXmlProperty
     public boolean isCompulsory()
     {
         return compulsory;
@@ -149,5 +169,17 @@ public class SMSCode
     public void setCompulsory( boolean compulsory )
     {
         this.compulsory = compulsory;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "code", code )
+            .add( "dataelement", dataElement )
+            .add( "trackedentityattribute", trackedEntityAttribute )
+            .add( "formula", formula )
+            .add( "compulsory", compulsory )
+            .toString();
     }
 }

@@ -48,12 +48,20 @@
     	</td>
     </tr>
     <tr>
-    	<td>
-    		<label for="sendNotifications">$i18n.getString( "send_notifications" )</label>
-    	</td>
-    	<td>
-    		<input type="checkbox" id="sendNotifications" name="sendNotifications">
-	    </td>
+        <td>
+            <label for="sendNotifications">$i18n.getString( "send_notifications" )</label>
+        </td>
+        <td>
+            <input type="checkbox" id="sendNotifications" name="sendNotifications">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label for="persistResults">$i18n.getString( "persist_results" )</label>
+        </td>
+        <td>
+            <input type="checkbox" id="persistResults" name="persistResults">
+        </td>
     </tr>
     <tr>
     	<td colspan="2" style="height:20px"></td>

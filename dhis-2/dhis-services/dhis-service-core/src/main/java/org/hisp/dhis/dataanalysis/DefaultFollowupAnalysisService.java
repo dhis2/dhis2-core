@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,14 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -51,18 +54,23 @@ public class DefaultFollowupAnalysisService
         this.dataAnalysisStore = dataAnalysisStore;
     }
 
+    @Autowired
+    private DataSetService dataSetService;
+
     // -------------------------------------------------------------------------
     // FollowupAnalysisService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit )
     {
         if( organisationUnit == null || limit < 1 )
         {
             return new ArrayList<>();
         }
 
-        return dataAnalysisStore.getFollowupDataValues( organisationUnit, limit );
+        DataSet dataSet = dataSetService.getDataSet( dataSetId );
+
+        return dataAnalysisStore.getFollowupDataValues( organisationUnit, dataSet, limit );
     }
 }

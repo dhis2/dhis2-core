@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,16 @@ import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.utils.InputUtils;
@@ -47,10 +50,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,8 +61,9 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
+import org.jclouds.rest.AuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -83,6 +84,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Lars Helge Overland
@@ -131,6 +134,9 @@ public class DataValueController
     @Autowired
     private CalendarService calendarService;
 
+    @Autowired
+    private AggregateAccessManager accessManager;
+
     // ---------------------------------------------------------------------
     // POST
     // ---------------------------------------------------------------------
@@ -145,6 +151,7 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
+        @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) boolean followUp, HttpServletResponse response )
@@ -154,6 +161,7 @@ public class DataValueController
         boolean strictCategoryOptionCombos = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
         boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
         boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         // ---------------------------------------------------------------------
         // Input validation
@@ -169,11 +177,15 @@ public class DataValueController
 
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
 
+        DataSet dataSet = getAndValidateOptionalDataSet( ds, dataElement );
+
         validateInvalidFuturePeriod( period, dataElement );
 
         validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, organisationUnit, period );
 
         String valueValid = ValidationUtils.dataValueIsValid( value, dataElement );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         if ( valueValid != null )
         {
@@ -220,13 +232,13 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
+        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
         // Period validation
         // ---------------------------------------------------------------------
 
-        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period, dataSet );
 
         // ---------------------------------------------------------------------
         // Assemble and save data value
@@ -248,35 +260,38 @@ public class DataValueController
 
             if ( dataElement.getValueType() == ValueType.FILE_RESOURCE )
             {
-                if ( value != null )
-                {
-                    fileResource = fileResourceService.getFileResource( value );
-
-                    if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
-                    {
-                        throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, value ) );
-                    }
-
-                    if ( fileResource.isAssigned() )
-                    {
-                        throw new WebMessageException( WebMessageUtils.conflict( "File resource already assigned or linked to another data value" ) );
-                    }
-
-                    fileResource.setAssigned( true );
-                }
-                else
-                {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Missing parameter 'value'" ) );
-                }
+                fileResource = validateAndSetAssigned( value );
             }
 
             dataValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
 
+            // ---------------------------------------------------------------------
+            // Data Sharing check
+            // ---------------------------------------------------------------------
+
+            List<String> errors = accessManager.canWrite( currentUser, dataValue );
+
+            if ( !errors.isEmpty() )
+            {
+                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
+            }
+
             dataValueService.addDataValue( dataValue );
         }
         else
         {
+            // ---------------------------------------------------------------------
+            // Data Sharing check
+            // ---------------------------------------------------------------------
+
+            List<String> errors = accessManager.canWrite( currentUser, dataValue );
+
+            if ( !errors.isEmpty() )
+            {
+                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
+            }
+
             if ( value == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
                 if ( comment == null )
@@ -286,13 +301,31 @@ public class DataValueController
                 }
                 else
                 {
-                    value = "false";
+                    value = DataValue.FALSE;
                 }
             }
 
-            if ( dataElement.isFileType() )
+            // ---------------------------------------------------------------------
+            // Deal with file resource
+            // ---------------------------------------------------------------------
+
+            if ( dataElement.getValueType().isFile() )
             {
-                fileResourceService.deleteFileResource( dataValue.getValue() );
+                fileResource = validateAndSetAssigned( value );
+            }
+
+            if ( dataElement.isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
+            {
+                try
+                {
+                    fileResourceService.deleteFileResource( dataValue.getValue() );
+                }
+                catch ( AuthorizationException exception )
+                {
+                    // If we fail to delete the fileResource now, mark it as unassigned for removal later
+                    fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
+                }
+                dataValue.setValue( StringUtils.EMPTY );
             }
 
             // -----------------------------------------------------------------
@@ -340,9 +373,13 @@ public class DataValueController
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response )
+        @RequestParam String ou,
+        @RequestParam( required = false ) String ds, HttpServletResponse response )
         throws WebMessageException
     {
+
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+
         // ---------------------------------------------------------------------
         // Input validation
         // ---------------------------------------------------------------------
@@ -357,17 +394,19 @@ public class DataValueController
 
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
 
+        DataSet dataSet = getAndValidateOptionalDataSet( ds, dataElement );
+
         // ---------------------------------------------------------------------
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
+        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
         // Period validation
         // ---------------------------------------------------------------------
 
-        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period, dataSet );
 
         // ---------------------------------------------------------------------
         // Delete data value
@@ -379,6 +418,12 @@ public class DataValueController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data value cannot be deleted because it does not exist" ) );
         }
+
+        if ( dataValue.getDataElement().isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
+        {
+            fileResourceService.deleteFileResource( dataValue.getValue() );
+        }
+
 
         dataValueService.deleteDataValue( dataValue );
     }
@@ -423,9 +468,23 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
         }
 
+        // ---------------------------------------------------------------------
+        // Data Sharing check
+        // ---------------------------------------------------------------------
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        List<String> errors = accessManager.canRead( currentUser, dataValue );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
+        }
+
         List<String> value = new ArrayList<>();
         value.add( dataValue.getValue() );
 
+        setNoStore( response );
         return value;
     }
 
@@ -472,6 +531,7 @@ public class DataValueController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
         }
+
 
         // ---------------------------------------------------------------------
         // Get file resource
@@ -530,6 +590,7 @@ public class DataValueController
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        setNoStore( response );
 
         // ---------------------------------------------------------------------
         // Request signing is not available, stream content back to client
@@ -641,6 +702,29 @@ public class DataValueController
         return organisationUnit;
     }
 
+    private DataSet getAndValidateOptionalDataSet( String ds, DataElement dataElement )
+        throws WebMessageException
+    {
+        if ( ds == null )
+        {
+            return null;
+        }
+
+        DataSet dataSet = dataSetService.getDataSet( ds );
+
+        if ( dataSet == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+        }
+
+        if ( !dataSet.getDataElements().contains( dataElement ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set " + ds + " does not contain data element: " + dataElement.getUid() ) );
+        }
+
+        return dataSet;
+    }
+
     private void validateInvalidFuturePeriod( Period period, DataElement dataElement )
         throws WebMessageException
     {
@@ -695,22 +779,53 @@ public class DataValueController
         }
     }
 
-    private void validateDataSetNotLocked( DataElement dataElement, Period period,
+    private void validateDataSetNotLocked( DataElement dataElement, Period period, DataSet dataSet,
         OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
         throws WebMessageException
     {
-        if ( dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null ) )
+        if ( dataSet == null ? dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null )
+            : dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked" ) );
         }
     }
 
-    private void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, Period period )
+    private void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, Period period, DataSet dataSet )
         throws WebMessageException
     {
-        if ( !dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) )
+        if ( !( dataSet == null ? dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() )
+            : dataSet.isDataInputPeriodAndDateAllowed( period, new Date() ) ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Period reported is not open in data set" ) );
         }
+    }
+
+    private FileResource validateAndSetAssigned( String uid )
+        throws WebMessageException
+    {
+        FileResource fileResource = null;
+
+        if ( uid != null )
+        {
+            fileResource = fileResourceService.getFileResource( uid );
+
+            if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
+            {
+                throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
+            }
+
+            if ( fileResource.isAssigned() )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "File resource already assigned or linked to another data value" ) );
+            }
+
+            fileResource.setAssigned( true );
+        }
+        else
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Missing parameter 'value'" ) );
+        }
+
+        return fileResource;
     }
 }

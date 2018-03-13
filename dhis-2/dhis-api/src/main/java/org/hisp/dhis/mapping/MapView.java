@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,6 +163,8 @@ public class MapView
      * for layers with arbitrary configuration needs.
      */
     private String config;
+    
+    private Object styleDataItem;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -631,6 +633,18 @@ public class MapView
     public void setConfig( String config )
     {
         this.config = config;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Object getStyleDataItem()
+    {
+        return styleDataItem;
+    }
+
+    public void setStyleDataItem( Object styleDataItem )
+    {
+        this.styleDataItem = styleDataItem;
     }
 
     @JsonProperty

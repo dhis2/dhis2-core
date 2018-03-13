@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -317,8 +317,69 @@ public class DataElementOperand
     }
 
     // -------------------------------------------------------------------------
-    // toString, mergeWith
+    // hashCode, equals and toString
     // -------------------------------------------------------------------------
+
+    @Override
+    public int hashCode()
+    {
+        int result = dataElement.hashCode();
+        result = 31 * result + (categoryOptionCombo != null ? categoryOptionCombo.hashCode() : 0);
+        result = 31 * result + (attributeOptionCombo != null ? attributeOptionCombo.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( getClass() != object.getClass() )
+        {
+            return false;
+        }
+
+        DataElementOperand other = (DataElementOperand) object;
+
+        if ( !dataElement.equals( other.dataElement ) )
+        {
+            return false;
+        }
+
+        if ( categoryOptionCombo == null )
+        {
+            if ( other.categoryOptionCombo != null )
+            {
+                return false;
+            }
+        }
+        else if ( !categoryOptionCombo.equals( other.categoryOptionCombo ) )
+        {
+            return false;
+        }
+
+        if ( attributeOptionCombo == null )
+        {
+            if ( other.attributeOptionCombo != null )
+            {
+                return false;
+            }
+        }
+        else if ( !attributeOptionCombo.equals( other.attributeOptionCombo ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     @Override
     public String toString()

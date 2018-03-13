@@ -1,7 +1,7 @@
 package org.hisp.dhis.render;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.render;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -91,10 +92,17 @@ public class DefaultRenderService
     }
 
     @Override
-    public void toJson( OutputStream output, Object value, Class<?> klass )
-        throws IOException
+    public String toJsonAsString( Object value )
     {
-        jsonMapper.writerWithView( klass ).writeValue( output, value );
+        try
+        {
+            return jsonMapper.writeValueAsString( value );
+        }
+        catch ( JsonProcessingException ignored )
+        {
+        }
+
+        return null;
     }
 
     @Override
@@ -107,18 +115,6 @@ public class DefaultRenderService
         }
 
         jsonMapper.writeValue( output, new JSONPObject( callback, value ) );
-    }
-
-    @Override
-    public void toJsonP( OutputStream output, Object value, Class<?> klass, String callback )
-        throws IOException
-    {
-        if ( StringUtils.isEmpty( callback ) )
-        {
-            callback = "callback";
-        }
-
-        jsonMapper.writerWithView( klass ).writeValue( output, new JSONPObject( callback, value ) );
     }
 
     @Override
@@ -140,13 +136,6 @@ public class DefaultRenderService
         throws IOException
     {
         xmlMapper.writeValue( output, value );
-    }
-
-    @Override
-    public <T> void toXml( OutputStream output, T value, Class<?> klass )
-        throws IOException
-    {
-        xmlMapper.writerWithView( klass ).writeValue( output, value );
     }
 
     @Override

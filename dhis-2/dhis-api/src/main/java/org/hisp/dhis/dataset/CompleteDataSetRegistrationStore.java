@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,18 +78,6 @@ public interface CompleteDataSetRegistrationStore
      */
     void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration );
 
-    /**
-     * Retrieves a list of CompleteDataSetRegistration for the given DataSet, 
-     * Collection of Sources and Period.
-     * 
-     * @param dataSet the DataSet.
-     * @param sources the Collection of Sources.
-     * @param period the Period.
-     * @return the number of existing CompleteDataSetRegistrations.
-     */
-    List<CompleteDataSetRegistration> getCompleteDataSetRegistrations( 
-        DataSet dataSet, Collection<OrganisationUnit> sources, Period period );
-    
     /**
      * Retrieves all CompleteDataSetRegistration.
      * 

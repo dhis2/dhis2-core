@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +49,7 @@ import java.util.Objects;
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstance
 {
-    private String trackedEntity;
+    private String trackedEntityType;
 
     private String trackedEntityInstance;
 
@@ -70,6 +73,10 @@ public class TrackedEntityInstance
 
     private Boolean deleted = false;
 
+    private FeatureType featureType = FeatureType.NONE;
+
+    private String coordinates;
+
     public TrackedEntityInstance()
     {
     }
@@ -90,14 +97,14 @@ public class TrackedEntityInstance
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntity()
+    public String getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( String trackedEntity )
+    public void setTrackedEntityType( String trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty( required = true )
@@ -133,6 +140,7 @@ public class TrackedEntityInstance
 
     public void setCreated( String created )
     {
+        this.created = created;
     }
 
     @JsonProperty( required = true )
@@ -144,6 +152,7 @@ public class TrackedEntityInstance
 
     public void setLastUpdated( String lastUpdated )
     {
+        this.lastUpdated = lastUpdated;
     }
 
     @JsonProperty( required = true )
@@ -233,13 +242,38 @@ public class TrackedEntityInstance
         this.deleted = deleted;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.GEOLOCATION )
+    public String getCoordinates()
+    {
+        return coordinates;
+    }
+
+    public void setCoordinates( String coordinates )
+    {
+        this.coordinates = coordinates;
+    }
+
     @Override
     public boolean equals( Object o )
     {
         if ( this == o ) return true;
         if ( o == null || getClass() != o.getClass() ) return false;
         TrackedEntityInstance that = (TrackedEntityInstance) o;
-        return Objects.equals( trackedEntity, that.trackedEntity ) &&
+        return Objects.equals( trackedEntityType, that.trackedEntityType ) &&
             Objects.equals( trackedEntityInstance, that.trackedEntityInstance ) &&
             Objects.equals( orgUnit, that.orgUnit ) &&
             Objects.equals( created, that.created ) &&
@@ -255,7 +289,7 @@ public class TrackedEntityInstance
     @Override
     public int hashCode()
     {
-        return Objects.hash( trackedEntity, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
+        return Objects.hash( trackedEntityType, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
             relationships, attributes, enrollments, inactive );
     }
 
@@ -263,7 +297,7 @@ public class TrackedEntityInstance
     public String toString()
     {
         return "TrackedEntityInstance{" +
-            "trackedEntity='" + trackedEntity + '\'' +
+            "trackedEntityType='" + trackedEntityType + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
             ", orgUnit='" + orgUnit + '\'' +
             ", created='" + created + '\'' +

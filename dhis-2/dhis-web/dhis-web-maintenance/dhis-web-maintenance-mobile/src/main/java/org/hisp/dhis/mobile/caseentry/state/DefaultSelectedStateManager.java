@@ -1,7 +1,7 @@
 package org.hisp.dhis.mobile.caseentry.state;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,6 @@ package org.hisp.dhis.mobile.caseentry.state;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
 import org.hisp.dhis.program.ProgramInstance;
@@ -38,8 +36,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-
-import com.opensymphony.xwork2.ActionContext;
+import org.hisp.dhis.util.SessionUtils;
 
 /**
  * @author Abyot Asalefew
@@ -110,13 +107,13 @@ public class DefaultSelectedStateManager
     @Override
     public void setSelectedPatient( TrackedEntityInstance patient )
     {
-        getSession().put( SESSION_KEY_SELECTED_PATIENT_ID, patient.getId() );
+        SessionUtils.setSessionVar( SESSION_KEY_SELECTED_PATIENT_ID, patient.getId() );
     }
 
     @Override
     public TrackedEntityInstance getSelectedPatient()
     {
-        Integer id = (Integer) getSession().get( SESSION_KEY_SELECTED_PATIENT_ID );
+        Integer id = (Integer) SessionUtils.getSessionVar( SESSION_KEY_SELECTED_PATIENT_ID );
 
         if ( id == null )
         {
@@ -129,19 +126,19 @@ public class DefaultSelectedStateManager
     @Override
     public void clearSelectedPatient()
     {
-        getSession().remove( SESSION_KEY_SELECTED_PATIENT_ID );
+        SessionUtils.removeSessionVar( SESSION_KEY_SELECTED_PATIENT_ID );
     }
 
     @Override
     public void setSelectedProgramInstance( ProgramInstance programInstance )
     {
-        getSession().put( SESSION_KEY_SELECTED_PROGRAM_INSTANCE_ID, programInstance.getId() );
+        SessionUtils.setSessionVar( SESSION_KEY_SELECTED_PROGRAM_INSTANCE_ID, programInstance.getId() );
     }
 
     @Override
     public ProgramInstance getSelectedProgramInstance()
     {
-        Integer id = (Integer) getSession().get( SESSION_KEY_SELECTED_PROGRAM_INSTANCE_ID );
+        Integer id = (Integer) SessionUtils.getSessionVar( SESSION_KEY_SELECTED_PROGRAM_INSTANCE_ID );
 
         if ( id == null )
         {
@@ -154,19 +151,19 @@ public class DefaultSelectedStateManager
     @Override
     public void clearSelectedProgramInstance()
     {
-        getSession().remove( SESSION_KEY_SELECTED_PROGRAM_INSTANCE_ID );
+        SessionUtils.removeSessionVar( SESSION_KEY_SELECTED_PROGRAM_INSTANCE_ID );
     }
 
     @Override
     public void setSelectedProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        getSession().put( SESSION_KEY_SELECTED_PROGRAM_STAGE_INSTANCE_ID, programStageInstance.getId() );
+        SessionUtils.setSessionVar( SESSION_KEY_SELECTED_PROGRAM_STAGE_INSTANCE_ID, programStageInstance.getId() );
     }
 
     @Override
     public ProgramStageInstance getSelectedProgramStageInstance()
     {
-        Integer id = (Integer) getSession().get( SESSION_KEY_SELECTED_PROGRAM_STAGE_INSTANCE_ID );
+        Integer id = (Integer) SessionUtils.getSessionVar( SESSION_KEY_SELECTED_PROGRAM_STAGE_INSTANCE_ID );
 
         if ( id == null )
         {
@@ -179,33 +176,33 @@ public class DefaultSelectedStateManager
     @Override
     public void clearSelectedProgramStageInstance()
     {
-        getSession().remove( SESSION_KEY_SELECTED_PROGRAM_STAGE_INSTANCE_ID );
+        SessionUtils.removeSessionVar( SESSION_KEY_SELECTED_PROGRAM_STAGE_INSTANCE_ID );
     }
 
     @Override
     public void clearListAll()
     {
-        getSession().remove( SESSION_KEY_LISTALL );
+        SessionUtils.removeSessionVar( SESSION_KEY_LISTALL );
     }
 
     @Override
     public void clearSearchTest()
     {
-        getSession().remove( SESSION_KEY_SPECIFIED_SEARCH_TEXT );
+        SessionUtils.removeSessionVar( SESSION_KEY_SPECIFIED_SEARCH_TEXT );
     }
 
     @Override
     public void clearSearchingAttributeId()
     {
-        getSession().remove( SESSION_KEY_SELECTED_SEARCHING_ATTRIBUTE_ID );
+        SessionUtils.removeSessionVar( SESSION_KEY_SELECTED_SEARCHING_ATTRIBUTE_ID );
     }
 
     @Override
     public boolean getListAll()
     {
-        if ( getSession().get( SESSION_KEY_LISTALL ) != null )
+        if ( SessionUtils.getSessionVar( SESSION_KEY_LISTALL ) != null )
         {
-            return (Boolean) getSession().get( SESSION_KEY_LISTALL );
+            return (Boolean) SessionUtils.getSessionVar( SESSION_KEY_LISTALL );
         }
 
         else
@@ -217,31 +214,31 @@ public class DefaultSelectedStateManager
     @Override
     public String getSearchText()
     {
-        return (String) getSession().get( SESSION_KEY_SPECIFIED_SEARCH_TEXT );
+        return (String) SessionUtils.getSessionVar( SESSION_KEY_SPECIFIED_SEARCH_TEXT );
     }
 
     @Override
     public Integer getSearchingAttributeId()
     {
-        return (Integer) getSession().get( SESSION_KEY_SELECTED_SEARCHING_ATTRIBUTE_ID );
+        return (Integer) SessionUtils.getSessionVar( SESSION_KEY_SELECTED_SEARCHING_ATTRIBUTE_ID );
     }
 
     @Override
     public void setListAll( boolean listAll )
     {
-        getSession().put( SESSION_KEY_LISTALL, listAll );
+        SessionUtils.setSessionVar( SESSION_KEY_LISTALL, listAll );
     }
 
     @Override
     public void setSearchText( String searchText )
     {
-        getSession().put( SESSION_KEY_SPECIFIED_SEARCH_TEXT, searchText );
+        SessionUtils.setSessionVar( SESSION_KEY_SPECIFIED_SEARCH_TEXT, searchText );
     }
 
     @Override
     public void setSearchingAttributeId( int searchingAttributeId )
     {
-        getSession().put( SESSION_KEY_SELECTED_SEARCHING_ATTRIBUTE_ID, searchingAttributeId );
+        SessionUtils.setSessionVar( SESSION_KEY_SELECTED_SEARCHING_ATTRIBUTE_ID, searchingAttributeId );
     }
 
     // -------------------------------------------------------------------------
@@ -251,27 +248,18 @@ public class DefaultSelectedStateManager
     @Override
     public void setSortingAttributeId( int sortAttributeId )
     {
-        getSession().put( SESSION_KEY_SELECTED_SORT_ATTRIBUTE_ID, sortAttributeId );
+        SessionUtils.setSessionVar( SESSION_KEY_SELECTED_SORT_ATTRIBUTE_ID, sortAttributeId );
     }
 
     @Override
     public Integer getSortAttributeId()
     {
-        return (Integer) getSession().get( SESSION_KEY_SELECTED_SORT_ATTRIBUTE_ID );
+        return (Integer) SessionUtils.getSessionVar( SESSION_KEY_SELECTED_SORT_ATTRIBUTE_ID );
     }
 
     @Override
     public void clearSortingAttributeId()
     {
-        getSession().remove( SESSION_KEY_SELECTED_SORT_ATTRIBUTE_ID );
-    }
-
-    // -------------------------------------------------------------------------
-    // Support methods
-    // -------------------------------------------------------------------------
-
-    private static final Map<String, Object> getSession()
-    {
-        return ActionContext.getContext().getSession();
+        SessionUtils.getSessionVar( SESSION_KEY_SELECTED_SORT_ATTRIBUTE_ID );
     }
 }

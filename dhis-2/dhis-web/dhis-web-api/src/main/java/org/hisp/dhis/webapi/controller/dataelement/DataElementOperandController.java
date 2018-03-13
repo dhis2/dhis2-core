@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -167,7 +168,8 @@ public class DataElementOperandController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.filter( DataElementOperand.class, dataElementOperands, fields ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( DataElementOperand.class,
+            new FieldFilterParams( dataElementOperands, fields ) ) );
 
         return rootNode;
     }

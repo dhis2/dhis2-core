@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -68,9 +67,9 @@ public class Interpretation
     private Map map;
 
     private EventReport eventReport;
-    
+
     private EventChart eventChart;
-    
+
     private DataSet dataSet;
 
     private Period period; // Applicable to report table and data set report
@@ -80,9 +79,9 @@ public class Interpretation
     private String text;
 
     private List<InterpretationComment> comments = new ArrayList<>();
-    
+
     private int likes;
-    
+
     private Set<User> likedBy = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -116,7 +115,7 @@ public class Interpretation
         this.organisationUnit = organisationUnit;
         this.text = text;
     }
-    
+
     public Interpretation( EventReport eventReport, OrganisationUnit organisationUnit, String text )
     {
         this.eventReport = eventReport;
@@ -132,7 +131,7 @@ public class Interpretation
         this.organisationUnit = organisationUnit;
         this.text = text;
     }
-    
+
     public Interpretation( DataSet dataSet, Period period, OrganisationUnit organisationUnit, String text )
     {
         this.dataSet = dataSet;
@@ -144,7 +143,7 @@ public class Interpretation
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-    
+
     /**
      * Overriding getUser in order to expose user in web api. Sharing is not enabled
      * for interpretations but "user" is used for representing the creator. Must
@@ -240,12 +239,12 @@ public class Interpretation
     {
         return reportTable != null;
     }
-    
+
     public boolean isEventReportInterpretation()
     {
         return eventReport != null;
     }
-    
+
     public boolean isEventChartInterpretation()
     {
         return eventChart != null;
@@ -261,48 +260,43 @@ public class Interpretation
         return period != null ? period.getPeriodType() : null;
     }
 
-    public void updateSharing()
-    {
-        setPublicAccess( AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ ).build() );
-    }
-    
     /**
-     * Attempts to add the given user to the set of users liking this 
-     * interpretation. If user not already present, increments the like count 
+     * Attempts to add the given user to the set of users liking this
+     * interpretation. If user not already present, increments the like count
      * with one.
-     * 
+     *
      * @param user the user liking this interpretation.
      * @return true if the given user had not already liked this interpretation.
      */
     public boolean like( User user )
     {
         boolean like = this.likedBy.add( user );
-        
+
         if ( like )
         {
             this.likes++;
         }
-        
+
         return like;
     }
 
     /**
-     * Attempts to remove the given user from the set of users liking this 
-     * interpretation. If user not already present, decrease the like count 
+     * Attempts to remove the given user from the set of users liking this
+     * interpretation. If user not already present, decrease the like count
      * with one.
-     * 
+     *
      * @param user the user removing the like from this interpretation.
      * @return true if the given user had previously liked this interpretation.
      */
     public boolean unlike( User user )
     {
         boolean unlike = this.likedBy.remove( user );
-        
+
         if ( unlike )
         {
             this.likes--;
         }
-        
+
         return unlike;
     }
 

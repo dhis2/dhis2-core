@@ -1,7 +1,7 @@
 package org.hisp.dhis.indicator;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -292,32 +292,6 @@ public class IndicatorStoreTest
         assertEq( 'A', indicatorA );
 
         Indicator indicatorC = indicatorStore.getByName( "IndicatorC" );
-        assertNull( indicatorC );
-    }
-
-    @Test
-    public void testGetIndicatorByShortName()
-    {
-        IndicatorType type = new IndicatorType( "IndicatorType", 100, false );
-
-        indicatorTypeStore.save( type );
-
-        Indicator indicatorA = createIndicator( 'A', type );
-        Indicator indicatorB = createIndicator( 'B', type );
-
-        indicatorStore.save( indicatorA );
-        int idA = indicatorA.getId();
-        indicatorStore.save( indicatorB );
-        int idB = indicatorB.getId();
-
-        assertNotNull( indicatorStore.get( idA ) );
-        assertNotNull( indicatorStore.get( idB ) );
-
-        indicatorA = indicatorStore.getByShortName( "IndicatorShortA" );
-        assertNotNull( indicatorA );
-        assertEq( 'A', indicatorA );
-
-        Indicator indicatorC = indicatorStore.getByShortName( "IndicatorShortC" );
         assertNull( indicatorC );
     }
 

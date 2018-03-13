@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -49,6 +52,8 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -83,7 +88,8 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElement
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject
+    implements MetadataObject, ValueTypedDimensionalItemObject
 {
     public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
         TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
@@ -150,6 +156,11 @@ public class DataElement
      * The option set for comments linked to this data element, can be null.
      */
     private OptionSet commentOptionSet;
+
+    /**
+     * The style defines how the DataElement should be represented on clients
+     */
+    private ObjectStyle style;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -471,7 +482,7 @@ public class DataElement
 
     /**
      * Returns the maximum number of expiry days from the data sets of this data
-     * element. Returns {@link DataSet.NO_EXPIRY} if any data set has no expiry.
+     * element. Returns {@link DataSet#NO_EXPIRY} if any data set has no expiry.
      */
     public int getExpiryDays()
     {
@@ -716,5 +727,17 @@ public class DataElement
     {
         return getDataSets().isEmpty() || getDataSets().stream()
             .anyMatch( dataSet -> dataSet.isDataInputPeriodAndDateAllowed( period, date ) );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
     }
 }

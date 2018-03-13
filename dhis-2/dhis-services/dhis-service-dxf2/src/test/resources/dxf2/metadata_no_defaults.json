@@ -1,0 +1,193 @@
+{
+  "system": {
+    "id": "9f45c679-74d2-4f3e-96e9-d0ca14628886",
+    "rev": "425ef39",
+    "version": "2.28-SNAPSHOT",
+    "date": "2017-07-28T09:22:37.177"
+  },
+  "trackedEntityTypes": [
+    {
+      "lastUpdated": "2017-07-27T00:00:00.000",
+      "code": "Person",
+      "created": "2017-07-27T00:00:00.000",
+      "name": "Person",
+      "id": "MCPQUTHX1Ze",
+      "description": "Person"
+    }
+  ],
+  "users": [
+    {
+      "code": "admin",
+      "created": "2017-07-27T13:11:45.401",
+      "lastUpdated": "2017-07-27T13:12:21.015",
+      "id": "M5zQapPyTZI",
+      "firstName": "admin",
+      "surname": "admin",
+      "userCredentials": {
+        "code": "admin",
+        "lastUpdated": "2017-07-28T09:22:30.171",
+        "id": "KvMx6c1eoYo",
+        "created": "2017-07-27T13:11:45.428",
+        "name": "admin admin",
+        "lastLogin": "2017-07-28T09:22:30.168",
+        "displayName": "admin admin",
+        "externalAuth": false,
+        "externalAccess": false,
+        "disabled": false,
+        "passwordLastUpdated": "2017-07-27T13:11:45.429",
+        "invitation": false,
+        "selfRegistered": false,
+        "username": "admin",
+        "userInfo": {
+          "id": "M5zQapPyTZI"
+        },
+        "lastUpdatedBy": {
+          "id": "M5zQapPyTZI"
+        },
+        "user": {
+          "id": "M5zQapPyTZI"
+        },
+        "userRoles": [
+          {
+            "id": "yrB6vc5Ip3r"
+          }
+        ]
+      },
+      "organisationUnits": [
+        {
+          "id": "slHwfdjsnQr"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "slHwfdjsnQr"
+        }
+      ]
+    }
+  ],
+  "dataSets": [
+    {
+      "lastUpdated": "2017-07-27T13:13:23.889",
+      "id": "yFSTKEwlA6V",
+      "created": "2017-07-27T13:13:23.889",
+      "name": "Value Collection",
+      "shortName": "Value Collection",
+      "validCompleteOnly": false,
+      "dataElementDecoration": false,
+      "publicAccess": "rw------",
+      "notifyCompletingUser": false,
+      "noValueRequiresComment": false,
+      "skipOffline": false,
+      "fieldCombinationRequired": false,
+      "renderHorizontally": false,
+      "renderAsTabs": false,
+      "mobile": false,
+      "version": 0,
+      "timelyDays": 15,
+      "periodType": "Monthly",
+      "openFuturePeriods": 0,
+      "expiryDays": 0,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "TVhgZzgkACY"
+          },
+          "dataSet": {
+            "id": "yFSTKEwlA6V"
+          }
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "slHwfdjsnQr"
+        }
+      ]
+    }
+  ],
+  "organisationUnits": [
+    {
+      "created": "2017-07-27T13:12:03.985",
+      "lastUpdated": "2017-07-27T13:12:04.083",
+      "name": "Country",
+      "id": "slHwfdjsnQr",
+      "shortName": "Country",
+      "path": "/slHwfdjsnQr",
+      "featureType": "NONE",
+      "openingDate": "2017-07-27T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      }
+    }
+  ],
+  "dataElements": [
+    {
+      "lastUpdated": "2017-07-27T13:12:40.026",
+      "id": "TVhgZzgkACY",
+      "created": "2017-07-27T13:12:40.026",
+      "name": "Value",
+      "shortName": "Value",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      }
+    }
+  ],
+  "userRoles": [
+    {
+      "code": "Superuser",
+      "created": "2017-07-27T13:11:45.413",
+      "lastUpdated": "2017-07-27T13:11:45.413",
+      "name": "Superuser",
+      "id": "yrB6vc5Ip3r",
+      "publicAccess": "--------",
+      "description": "Superuser",
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_LEGEND_DELETE",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_ORGANISATIONUNIT_MOVE",
+        "F_PREDICTOR_RUN",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_PROGRAM_ENROLLMENT",
+        "F_REPLICATE_USER",
+        "F_SEND_EMAIL",
+        "F_LEGEND_ADD",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_METADATA_IMPORT",
+        "F_VIEW_EVENT_ANALYTICS",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_TRACKED_ENTITY_DATAVALUE_READ",
+        "F_PROGRAM_ENROLLMENT_READ",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+      ]
+    }
+  ]
+}

@@ -33,14 +33,11 @@ function filterUsers() {
 // View details
 // -----------------------------------------------------------------------------
 function checkPasswordForUsername() {
-
 	checkPassword("username", "rawPassword");
-
 }
 
 function checkPasswordForEmail() {
 	checkPassword("email", "rawPassword");
-
 }
 
 function showUpdateUserForm( context ) {
@@ -48,7 +45,7 @@ function showUpdateUserForm( context ) {
 }
 
 function showUserProfile( context ) {
-  location.href = '../dhis-web-dashboard-integration/profile.action?id=' + context.id;
+  location.href = 'profile.action?id=' + context.id;
 }
 
 function showUserDetails( context ) {
@@ -167,7 +164,7 @@ function externalAuthChanged() {
 	else {
 		$('#rawPassword, #retypePassword').prop('disabled', false);
 	}
-}		
+}
 
 // -----------------------------------------------------------------------------
 // Remove user
@@ -329,9 +326,15 @@ function searchOuTreePopup() {
 }
 
 function initializeTree( ) {
-	var selectedOus = [];
-	for(var i=0; i<userJsonObject.teiSearchOrganisationUnits.length; i++){
-		selectedOus.push(userJsonObject.teiSearchOrganisationUnits[i].id);
-	}	
+    var selectedOus = [];
+	selection.clearSelected();
+	selection.setOfflineLevel( 1 );
+	selection.setMultipleSelectionAllowed( true );
+	selection.setUnselectAllowed( true );
+	selection.setAutoSelectRoot( false );
+
+		for(var i=0; i<userJsonObject.teiSearchOrganisationUnits.length; i++){
+			selectedOus.push(userJsonObject.teiSearchOrganisationUnits[i].id);
+		}
 	selection.setSelected( selectedOus );
 }

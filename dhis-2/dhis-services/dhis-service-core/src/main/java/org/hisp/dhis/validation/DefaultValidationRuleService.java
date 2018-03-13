@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,9 +123,9 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements )
+    public List<ValidationRule> getAllFormValidationRules()
     {
-        return validationRuleStore.getValidationRulesByDataElements( dataElements );
+        return validationRuleStore.getAllFormValidationRules();
     }
 
     @Override
@@ -159,7 +159,7 @@ public class DefaultValidationRuleService
 
         Set<String> deIds = dataElements.stream().map( DataElement::getUid ).collect( Collectors.toSet() );
 
-        for ( ValidationRule rule : getAllValidationRules() )
+        for ( ValidationRule rule : getAllFormValidationRules() )
         {
             if ( !Sets.intersection( expressionService.getDataElementIdsInExpression( rule.getLeftSide().getExpression() ), deIds ).isEmpty() ||
                 !Sets.intersection( expressionService.getDataElementIdsInExpression( rule.getRightSide().getExpression() ), deIds ).isEmpty() )

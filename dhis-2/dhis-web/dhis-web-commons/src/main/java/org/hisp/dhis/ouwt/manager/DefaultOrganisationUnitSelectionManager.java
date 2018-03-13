@@ -1,7 +1,7 @@
 package org.hisp.dhis.ouwt.manager;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,11 @@ package org.hisp.dhis.ouwt.manager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-
-import com.opensymphony.xwork2.ActionContext;
+import org.hisp.dhis.util.SessionUtils;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -72,7 +70,7 @@ public class DefaultOrganisationUnitSelectionManager
             throw new IllegalArgumentException( "Root OrganisationUnit cannot be null" );
         }
 
-        saveToSession( SESSION_KEY_ROOT_ORG_UNITS, new HashSet<>( organisationUnits ) );
+        SessionUtils.setSessionVar( SESSION_KEY_ROOT_ORG_UNITS, new HashSet<>( organisationUnits ) );
 
         clearSelectedOrganisationUnits();
     }
@@ -87,7 +85,7 @@ public class DefaultOrganisationUnitSelectionManager
 
         OrganisationUnit reloadedRootUnitsParent = reloadOrganisationUnit( rootUnitsParent );
 
-        saveToSession( SESSION_KEY_ROOT_ORG_UNITS, reloadedRootUnitsParent.getChildren() );
+        SessionUtils.setSessionVar( SESSION_KEY_ROOT_ORG_UNITS, reloadedRootUnitsParent.getChildren() );
 
         clearSelectedOrganisationUnits();
     }
@@ -125,7 +123,7 @@ public class DefaultOrganisationUnitSelectionManager
     @Override
     public void resetRootOrganisationUnits()
     {
-        removeFromSession( SESSION_KEY_ROOT_ORG_UNITS );
+        SessionUtils.removeSessionVar( SESSION_KEY_ROOT_ORG_UNITS );
     }
 
     @Override
@@ -152,7 +150,7 @@ public class DefaultOrganisationUnitSelectionManager
         {
             reloadedSelectedUnits = getUnitsInTree( rootUnits, reloadedSelectedUnits );
 
-            saveToSession( SESSION_KEY_SELECTED_ORG_UNITS, reloadedSelectedUnits );
+            SessionUtils.setSessionVar( SESSION_KEY_SELECTED_ORG_UNITS, reloadedSelectedUnits );
         }
     }
 
@@ -172,7 +170,7 @@ public class DefaultOrganisationUnitSelectionManager
     @Override
     public void clearSelectedOrganisationUnits()
     {
-        removeFromSession( SESSION_KEY_SELECTED_ORG_UNITS );
+        SessionUtils.removeSessionVar( SESSION_KEY_SELECTED_ORG_UNITS );
     }
 
     @Override
@@ -205,25 +203,10 @@ public class DefaultOrganisationUnitSelectionManager
     // Session methods
     // -------------------------------------------------------------------------
 
-    protected Map<String, Object> getSession()
-    {
-        return ActionContext.getContext().getSession();
-    }
-
-    private final void saveToSession( String key, Object object )
-    {
-        getSession().put( key, object );
-    }
-
     @SuppressWarnings( "unchecked" )
     private final Collection<OrganisationUnit> getCollectionFromSession( String key )
     {
-        return (Collection<OrganisationUnit>) getSession().get( key );
-    }
-
-    private final void removeFromSession( String key )
-    {
-        getSession().remove( key );
+        return (Collection<OrganisationUnit>) SessionUtils.getSessionVar( key );
     }
 
     // -------------------------------------------------------------------------

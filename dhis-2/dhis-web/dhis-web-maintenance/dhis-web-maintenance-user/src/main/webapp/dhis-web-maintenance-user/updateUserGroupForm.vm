@@ -4,8 +4,8 @@
       form.submit();
     }, {
       'beforeValidateHandler': function() {
-        $('#usersSelected').find('option').attr('selected', 'selected');
-        $('#userGroupsSelected').find('option').attr('selected', 'selected');
+        $('#usersSelected').find('option').prop('selected', true);
+        $('#userGroupsSelected').find('option').prop('selected', true);
         #tblDynamicAttributesJavascript()
       },
       'rules': getValidationRules('userGroup')

@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpResponseException;
 import org.jclouds.rest.AuthorizationException;
+import org.jclouds.s3.reference.S3Constants;
 import org.joda.time.Minutes;
 
 import javax.annotation.PostConstruct;
@@ -61,7 +62,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -74,7 +74,7 @@ public class JCloudsFileResourceContentStore
     implements FileResourceContentStore
 {
     private static final Log log = LogFactory.getLog( JCloudsFileResourceContentStore.class );
-    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^((?!-)[a-zA-Z0-9-]{1,63}(?<!-))+$" );
+    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
     private BlobStore blobStore;
@@ -229,7 +229,7 @@ public class JCloudsFileResourceContentStore
             return null;
         }
 
-        putBlob( blob );
+        blobStore.putBlob( config.container, blob );
 
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 
@@ -246,7 +246,7 @@ public class JCloudsFileResourceContentStore
             return null;
         }
 
-        putBlob( blob );
+        blobStore.putBlob( config.container, blob );
 
         try
         {
@@ -317,33 +317,6 @@ public class JCloudsFileResourceContentStore
         blobStore.removeBlob( config.container, key );
     }
 
-    private String putBlob( Blob blob )
-    {
-        String etag = null;
-
-        try
-        {
-            etag = blobStore.putBlob( config.container, blob );
-        }
-        catch ( RuntimeException rte )
-        {
-            Throwable cause = rte.getCause();
-
-            if ( cause != null && cause instanceof UserPrincipalNotFoundException )
-            {
-                // Intentionally ignored exception which occurs with JClouds (< 2.0.0) on localized Windows.
-                // See https://issues.apache.org/jira/browse/JCLOUDS-1015
-                log.debug( "Ignored UserPrincipalNotFoundException. Workaround for 'JCLOUDS-1015'." );
-            }
-            else
-            {
-                throw rte;
-            }
-        }
-
-        return etag;
-    }
-
     private Blob createBlob( FileResource fileResource, byte[] bytes )
     {
         return blobStore.blobBuilder( fileResource.getStorageKey() )
@@ -394,6 +367,7 @@ public class JCloudsFileResourceContentStore
         else if ( provider.equals( JCLOUDS_PROVIDER_KEY_AWS_S3 ) )
         {
             credentials = new Credentials( identity, secret );
+            overrides.setProperty( S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false" );
 
             if ( credentials.identity.isEmpty() || credentials.credential.isEmpty() )
             {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,12 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -115,6 +119,9 @@ public class DataSetServiceTest
 
     @Autowired
     private DataApprovalLevelService levelService;
+
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -504,5 +511,24 @@ public class DataSetServiceTest
         assertTrue( dataSetService.isLocked( dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
         assertFalse( dataSetService.isLocked( dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ) );
         assertTrue( dataSetService.isLocked( dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
+    }
+
+    @Test
+    public void testDataSharingDataSet()
+    {
+        User user = createUser( 'A' );
+        injectSecurityContext( user );
+
+        DataSet dataSet = createDataSet( 'A', new MonthlyPeriodType() );
+
+        UserAccess userAccess = new UserAccess( );
+        userAccess.setUser( user );
+        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE  );
+
+        dataSet.getUserAccesses().add( userAccess );
+
+        Access access = aclService.getAccess( dataSet, user );
+        assertTrue( access.getData().isRead() );
+        assertTrue( access.getData().isWrite() );
     }
 }

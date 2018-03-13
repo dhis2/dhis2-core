@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -204,7 +205,7 @@ public class DefaultUserSettingService
 
     /**
      * No transaction for this method, transaction is initiated in
-     * {@link getUserSettingOptional}.
+     * {@link #getUserSettingOptional}.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key )
@@ -214,7 +215,7 @@ public class DefaultUserSettingService
 
     /**
      * No transaction for this method, transaction is initiated in
-     * {@link getUserSettingOptional}.
+     * {@link #getUserSettingOptional}.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key, User user )
@@ -272,6 +273,14 @@ public class DefaultUserSettingService
     public void invalidateCache()
     {
         SETTING_CACHE.invalidateAll();
+    }
+
+    @Override
+    public Map<String, Serializable> getUserSettingsAsMap()
+    {
+        Set<String> names = Stream.of( UserSettingKey.values() ).map( key -> key.getName() ).collect( Collectors.toSet() );
+
+        return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), names, false );
     }
 
     // -------------------------------------------------------------------------

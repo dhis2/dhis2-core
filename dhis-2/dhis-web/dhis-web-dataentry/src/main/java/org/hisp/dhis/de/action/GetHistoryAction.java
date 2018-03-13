@@ -1,7 +1,7 @@
 package org.hisp.dhis.de.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -51,6 +52,8 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -112,6 +115,13 @@ public class GetHistoryAction
     public void setUserService( UserService userService )
     {
         this.userService = userService;
+    }
+
+    private FileResourceService fileResourceService;
+
+    public void setFileResourceService( FileResourceService fileResourceService )
+    {
+        this.fileResourceService = fileResourceService;
     }
 
     @Autowired
@@ -231,6 +241,10 @@ public class GetHistoryAction
         return commentOptionSet;
     }
 
+    private Map<String, String> fileNames;
+
+    public Map<String, String> getFileNames() { return fileNames; }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -270,6 +284,16 @@ public class GetHistoryAction
         {
             UserCredentials credentials = userService.getUserCredentialsByUsername( dataValue.getStoredBy() );
             storedBy = credentials != null ? credentials.getName() : dataValue.getStoredBy();
+        }
+
+        if ( dataElement.isFileType() )
+        {
+            fileNames = new HashMap<String, String>();
+            dataValueAudits.removeIf( audit -> fileResourceService.getFileResource( audit.getValue() ) == null );
+            dataValueAudits.stream()
+                .filter( audit -> audit != null )
+                .map( audit -> fileResourceService.getFileResource( audit.getValue() ) )
+                .forEach( fr -> fileNames.put( fr.getUid(), fr.getName() ) );
         }
 
         historyInvalid = dataElementHistory == null;

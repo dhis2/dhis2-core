@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,12 +78,6 @@ public class DefaultProgramStageService
     public ProgramStage getProgramStage( String uid )
     {
         return programStageStore.getByUid( uid );
-    }
-
-    @Override
-    public ProgramStage getProgramStageByName( String name, Program program )
-    {
-        return programStageStore.getByNameAndProgram( name, program );
     }
 
     @Override

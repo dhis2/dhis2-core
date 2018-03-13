@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -46,16 +45,13 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
@@ -354,58 +350,6 @@ public class ProgramStageInstanceServiceTest
     }
 
     @Test
-    public void testGetProgramStageInstancesByInstanceListComplete()
-    {
-        programStageInstanceA.setStatus( EventStatus.COMPLETED );
-        programStageInstanceB.setStatus( EventStatus.ACTIVE );
-        programStageInstanceC.setStatus( EventStatus.COMPLETED );
-        programStageInstanceD1.setStatus( EventStatus.ACTIVE );
-
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceC );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceD1 );
-
-        List<ProgramInstance> programInstances = new ArrayList<>();
-        programInstances.add( programInstanceA );
-        programInstances.add( programInstanceB );
-
-        List<ProgramStageInstance> stageInstances = programStageInstanceService.getProgramStageInstances(
-            programInstances, EventStatus.COMPLETED );
-        assertEquals( 2, stageInstances.size() );
-        assertTrue( stageInstances.contains( programStageInstanceA ) );
-        assertTrue( stageInstances.contains( programStageInstanceC ) );
-
-        stageInstances = programStageInstanceService.getProgramStageInstances( programInstances, EventStatus.ACTIVE );
-        assertEquals( 2, stageInstances.size() );
-        assertTrue( stageInstances.contains( programStageInstanceB ) );
-        assertTrue( stageInstances.contains( programStageInstanceD1 ) );
-    }
-
-    @Test
-    public void testGetProgramStageInstancesByStatus()
-    {
-        programStageInstanceA.setStatus( EventStatus.COMPLETED );
-        programStageInstanceB.setStatus( EventStatus.ACTIVE );
-        programStageInstanceC.setStatus( EventStatus.COMPLETED );
-        programStageInstanceD1.setStatus( EventStatus.ACTIVE );
-
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceC );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceD1 );
-
-        List<ProgramStageInstance> stageInstances = programStageInstanceService.getProgramStageInstances( entityInstanceA,
-            EventStatus.COMPLETED );
-        assertEquals( 1, stageInstances.size() );
-        assertTrue( stageInstances.contains( programStageInstanceA ) );
-
-        stageInstances = programStageInstanceService.getProgramStageInstances( entityInstanceA, EventStatus.ACTIVE );
-        assertEquals( 1, stageInstances.size() );
-        assertTrue( stageInstances.contains( programStageInstanceB ) );
-    }
-
-    @Test
     public void testCompleteProgramStageInstance()
     {
         int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
@@ -413,17 +357,5 @@ public class ProgramStageInstanceServiceTest
         programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat );
 
         assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
-    }
-
-    @Test
-    public void testCreateProgramStageInstance()
-    {
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programService.updateProgram( programA );
-
-        ProgramStageInstance programStageInstance = programStageInstanceService.createProgramStageInstance( entityInstanceA,
-            programA, enrollmentDate, organisationUnitA );
-
-        assertNotNull( programStageInstanceService.getProgramStageInstance( programStageInstance.getUid() ) );
     }
 }

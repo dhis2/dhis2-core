@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.ArrayList;
@@ -69,10 +67,6 @@ public class UserAuthorityGroup
     private Set<String> authorities = new HashSet<>();
 
     private Set<UserCredentials> members = new HashSet<>();
-
-    private Set<DataSet> dataSets = new HashSet<>();
-
-    private Set<Program> programs = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -107,18 +101,6 @@ public class UserAuthorityGroup
     public boolean hasCriticalAuthorities()
     {
         return authorities != null && CollectionUtils.containsAny( authorities, Sets.newHashSet( CRITICAL_AUTHS ) );
-    }
-
-    public void addProgam( Program program )
-    {
-        programs.add( program );
-        program.getUserRoles().add( this );
-    }
-
-    public boolean removeProgam( Program program )
-    {
-        programs.remove( program );
-        return program.getUserRoles().remove( this );
     }
 
     // -------------------------------------------------------------------------
@@ -178,33 +160,5 @@ public class UserAuthorityGroup
         }
 
         return users;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataSet> getDataSets()
-    {
-        return dataSets;
-    }
-
-    public void setDataSets( Set<DataSet> dataSets )
-    {
-        this.dataSets = dataSets;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programs", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programs", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Program> getPrograms()
-    {
-        return programs;
-    }
-
-    public void setPrograms( Set<Program> programs )
-    {
-        this.programs = programs;
     }
 }

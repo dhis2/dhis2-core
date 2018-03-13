@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.startup;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,6 +120,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE programstage DROP COLUMN stageinprogram" );
 
         executeSql( "CREATE INDEX index_programinstance ON programinstance( programinstanceid )" );
+        executeSql( "CREATE INDEX index_trackedentitydatavalue_programstageinstanceid ON trackedentitydatavalue( programstageinstanceid )" );
+        executeSql( "CREATE INDEX index_trackedentitydatavalueaudit_programstageinstanceid ON trackedentitydatavalueaudit( programstageinstanceid )" );
 
         executeSql( "ALTER TABLE program DROP COLUMN maxDaysAllowedInputData" );
 
@@ -143,6 +145,8 @@ public class TableAlteror
         executeSql( "UPDATE program SET displayfrontpagelist=false where displayfrontpagelist is null" );
         executeSql( "UPDATE program SET usefirststageduringregistration=false where usefirststageduringregistration is null" );
         executeSql( "UPDATE program SET capturecoordinates=false where capturecoordinates is null" );
+        executeSql( "UPDATE program SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
+        executeSql( "UPDATE program SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );        
 
         executeSql( "UPDATE programinstance SET followup=false where followup is null" );
 
@@ -183,6 +187,7 @@ public class TableAlteror
         executeSql( "update systemsetting set \"name\"='autoSavetTrackedEntityForm' where \"name\"='autoSavePatientRegistration'" );
 
         executeSql( "UPDATE trackedentityattribute SET uniquefield=false WHERE uniquefield is null" );
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN trackedentityid" );
 
         executeSql( "INSERT INTO trackedentityattribute "
             + "( trackedentityattributeid, uid, lastUpdated, name, description, valueType, mandatory, inherit, displayOnVisitSchedule, uniquefield, orgunitScope, programScope )"
@@ -230,7 +235,7 @@ public class TableAlteror
         executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTEVALUE_DELETE' where authority='F_PATIENTATTRIBUTEVALUE_DELETE'" );
 
         executeSql( "ALTER TABLE program_attributes RENAME COLUMN programattributeid TO programtrackedentityattributeid" );
-        createPersonTrackedEntity();
+        createPersonTrackedEntityType();
 
         executeSql( "ALTER TABLE trackedentityattributevalue DROP COLUMN trackedentityattributeoptionid" );
         executeSql( "DROP TABLE trackedentityattributeoption" );
@@ -243,17 +248,16 @@ public class TableAlteror
         executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN groupBy" );
 
         executeSql( "update trackedentityattribute set aggregationype='AVERAGE' where aggregationtype is null" );
-
-        executeSql( "update trackedentityattribute set searchscope='NOT_SEARCHABLE' where confidential=true" );
-        executeSql( "update trackedentityattribute set searchscope='SEARCH_ORG_UNITS' where searchscope is null" );
-        executeSql( "update trackedentityattribute set searchscope='SEARCH_ORG_UNITS' where searchscope='SEARCH_OUS'" );
-        executeSql( "update trackedentityattribute set searchscope='DATA_CAPTURE_ORG_UNITS' where searchscope='OWN_OUS'" );
+        
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN searchscope" );
 
         executeSql( "DROP TABLE orgunitgroupprograms" );
 
         executeSql( "ALTER TABLE programstageinstance DROP COLUMN completed" );
 
         executeSql( "update program_attributes set mandatory = false where mandatory is null" );
+        executeSql( "ALTER TABLE program_attributes DROP COLUMN searchscope" );
+        executeSql( "update program_attributes set searchable = false where searchable is null" );
 
         executeSql( "update trackedentityattribute set confidential = false where confidential is null;" );
 
@@ -308,6 +312,10 @@ public class TableAlteror
 
         executeSql( "update programstageinstance set createdatclient=created where createdatclient is null" );
         executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+        
+        executeSql( "UPDATE trackedentitytype SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
+        executeSql( "UPDATE trackedentitytype SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
+        
     }
 
     // -------------------------------------------------------------------------
@@ -347,9 +355,9 @@ public class TableAlteror
         executeSql( "ALTER TABLE programinstance DROP COLUMN completed" );
     }
 
-    private void createPersonTrackedEntity()
+    private void createPersonTrackedEntityType()
     {
-        int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentity where name='Person'",
+        int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentitytype where name='Person'",
             Integer.class );
 
         if ( exist == 0 )
@@ -359,14 +367,14 @@ public class TableAlteror
             String uid = "MCPQUTHX1Ze";
             String date = DateUtils.getSqlDateString( new Date() );
 
-            jdbcTemplate.execute( "INSERT INTO trackedentity(trackedentityid,uid, code, created, lastupdated,name, description) values("
+            jdbcTemplate.execute( "INSERT INTO trackedentitytype(trackedentitytypeid,uid, code, created, lastupdated,name, description) values("
                 + id + ",'" + uid + "','Person','" + date + "','" + date + "','Person','Person')" );
 
-            jdbcTemplate.execute( "UPDATE program SET trackedentityid="
-                + "  (SELECT trackedentityid FROM trackedentity where name='Person') where trackedentityid is null" );
+            jdbcTemplate.execute( "UPDATE program SET trackedentitytypeid="
+                + "  (SELECT trackedentitytypeid FROM trackedentitytype where name='Person') where trackedentitytypeid is null" );
 
-            jdbcTemplate.execute( "UPDATE trackedentityinstance SET trackedentityid="
-                + "  (SELECT trackedentityid FROM trackedentity where name='Person') where trackedentityid is null" );
+            jdbcTemplate.execute( "UPDATE trackedentityinstance SET trackedentitytypeid="
+                + "  (SELECT trackedentitytypeid FROM trackedentitytype where name='Person') where trackedentitytypeid is null" );
         }
     }
 

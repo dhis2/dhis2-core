@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,6 +111,12 @@ public class FlattenedDataIntegrityReport
     @JsonProperty
     private Map<String, String> invalidValidationRuleRightSideExpressions;
 
+    @JsonProperty
+    private Map<String, String> invalidProgramIndicatorExpressions;
+
+    @JsonProperty
+    private Map<String, String> invalidProgramIndicatorFilters;
+
     public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
     {
         dataElementsWithoutDataSet = transformCollection( report.getDataElementsWithoutDataSet() );
@@ -154,6 +160,10 @@ public class FlattenedDataIntegrityReport
         invalidValidationRuleLeftSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleLeftSideExpressions() );
 
         invalidValidationRuleRightSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleRightSideExpressions() );
+
+        invalidProgramIndicatorExpressions = transformMapOfStrings( report.getInvalidProgramIndicatorExpressions() );
+
+        invalidProgramIndicatorFilters = transformMapOfStrings( report.getInvalidProgramIndicatorFilters() );
     }
 
     // -------------------------------------------------------------------------

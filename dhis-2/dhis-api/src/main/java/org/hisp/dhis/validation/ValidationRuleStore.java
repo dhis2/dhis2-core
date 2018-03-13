@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,12 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Chau Thu Tran
- * @version ValidationRuleStore.java 2010-05-18 17:05:50Z
  */
 public interface ValidationRuleStore
     extends GenericIdentifiableObjectStore<ValidationRule>
@@ -44,18 +41,16 @@ public interface ValidationRuleStore
     String ID = ValidationRuleStore.class.getName();
 
     /**
-     * Returns all ValidationRules which are associated through their left or
-     * right side Expression with the given collection of DataElements.
+     * Returns all ValidationRules that should be used for form validation.
      * 
-     * @param dataElements the collection of DataElements.
-     * @return a collection of ValidationRules.
+     * @return a List of ValidationRules.
      */
-    List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
+    List<ValidationRule> getAllFormValidationRules();
 
     /**
      * Returns all ValidationRules which have associated ValidationNotificationTemplates.
      *
-     * @return a List of ValidationRule.
+     * @return a List of ValidationRules.
      */
     List<ValidationRule> getValidationRulesWithNotificationTemplates();
 }

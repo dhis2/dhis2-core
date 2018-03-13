@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,9 +96,7 @@ public class AnalyticalObjectObjectBundleHook
             dataDimensionItem.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getDataElement() ) );
             dataDimensionItem.setIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getIndicator() ) );
             dataDimensionItem.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramIndicator() ) );
-            dataDimensionItem.setProgramAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramAttribute() ) );
-            dataDimensionItem.setProgramDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramDataElement() ) );
-
+            
             if ( dataDimensionItem.getDataElementOperand() != null )
             {
                 preheatService.connectReferences( dataDimensionItem.getDataElementOperand(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
@@ -110,7 +108,23 @@ public class AnalyticalObjectObjectBundleHook
                 dataDimensionItem.getReportingRate().setDataSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getReportingRate().getDataSet() ) );
             }
-
+            
+            if ( dataDimensionItem.getProgramDataElement() != null )
+            {
+                dataDimensionItem.getProgramDataElement().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                    dataDimensionItem.getProgramDataElement().getProgram() ) );
+                dataDimensionItem.getProgramDataElement().setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                    dataDimensionItem.getProgramDataElement().getDataElement() ) );
+            }
+            
+            if ( dataDimensionItem.getProgramAttribute() != null )
+            {
+                dataDimensionItem.getProgramAttribute().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                    dataDimensionItem.getProgramAttribute().getProgram() ) );
+                dataDimensionItem.getProgramAttribute().setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                    dataDimensionItem.getProgramAttribute().getAttribute() ) );
+            }
+            
             preheatService.connectReferences( dataDimensionItem, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             session.save( dataDimensionItem );
         }

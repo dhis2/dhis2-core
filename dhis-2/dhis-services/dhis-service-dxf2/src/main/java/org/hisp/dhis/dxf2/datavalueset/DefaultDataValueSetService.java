@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,14 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -48,6 +55,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockExceptionStore;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
@@ -76,7 +84,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
@@ -88,6 +97,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -98,7 +108,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.*;
@@ -164,6 +180,12 @@ public class DefaultDataValueSetService
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private AggregateAccessManager accessManager;
 
     // Set methods for test purposes
 
@@ -508,7 +530,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -525,7 +547,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -542,7 +564,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -559,7 +581,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -596,7 +618,7 @@ public class DefaultDataValueSetService
      * @param dataValueSet
      * @return
      */
-    private ImportSummary saveDataValueSet( ImportOptions importOptions, TaskId id, DataValueSet dataValueSet )
+    private ImportSummary saveDataValueSet( ImportOptions importOptions, JobConfiguration id, DataValueSet dataValueSet )
     {
         importOptions = ObjectUtils.firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() );
 
@@ -613,6 +635,8 @@ public class DefaultDataValueSetService
         log.info( String.format( "Is ISO calendar: %b, skip lock exception check: %b", isIso8601, skipLockExceptionCheck ) );
 
         I18n i18n = i18nManager.getI18n();
+        final User currentUser = currentUserService.getCurrentUser();
+        final String currentUserName = currentUser.getUsername();
 
         // ---------------------------------------------------------------------
         // Get import options
@@ -733,6 +757,12 @@ public class DefaultDataValueSetService
             summary.setStatus( ImportStatus.ERROR );
         }
 
+        if ( dataSet != null && !aclService.canDataWrite( currentUser, dataSet ) )
+        {
+            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid()) );
+            summary.setStatus( ImportStatus.ERROR );
+        }
+
         if ( outerOrgUnit == null && trimToNull( dataValueSet.getOrgUnit() ) != null )
         {
             summary.getConflicts().add( new ImportConflict( dataValueSet.getOrgUnit(), "Org unit not found or not accessible" ) );
@@ -748,7 +778,7 @@ public class DefaultDataValueSetService
         if ( ImportStatus.ERROR.equals( summary.getStatus() ) )
         {
             summary.setDescription( "Import process was aborted" );
-            notifier.notify( id, WARN, "Import process aborted", true ).addTaskSummary( id, summary );
+            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary );
             dataValueSet.close();
             return summary;
         }
@@ -763,7 +793,6 @@ public class DefaultDataValueSetService
             summary.setDataSetComplete( Boolean.FALSE.toString() );
         }
 
-        final String currentUser = currentUserService.getCurrentUsername();
         final Set<OrganisationUnit> currentOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
 
         BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
@@ -818,6 +847,14 @@ public class DefaultDataValueSetService
                 log.info( "Org unit cache heated after cache miss threshold reached" );
             }
 
+            if ( !optionComboMap.isCacheLoaded() && optionComboMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
+            {
+                optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o.getPropertyValue(
+                    categoryOptComboIdScheme ) );
+
+                log.info( "Category Option Combo cache heated after cache miss threshold reached" );
+            }
+
             // -----------------------------------------------------------------
             // Validation
             // -----------------------------------------------------------------
@@ -846,17 +883,39 @@ public class DefaultDataValueSetService
                 continue;
             }
 
+            if ( categoryOptionCombo != null )
+            {
+                List<String> errors = accessManager.canWrite( currentUser, categoryOptionCombo );
+
+                if ( !errors.isEmpty() )
+                {
+                    summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
+                    continue;
+                }
+            }
+
             if ( attrOptionCombo == null && trimToNull( dataValue.getAttributeOptionCombo() ) != null )
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getAttributeOptionCombo(), "Attribute option combo not found or not accessible" ) );
                 continue;
             }
 
+            if ( attrOptionCombo != null )
+            {
+                List<String> errors = accessManager.canWrite( currentUser, attrOptionCombo );
+
+                if ( !errors.isEmpty() )
+                {
+                    summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
+                    continue;
+                }
+            }
+
             boolean inUserHierarchy = orgUnitInHierarchyMap.get( orgUnit.getUid(), () -> orgUnit.isDescendant( currentOrgUnits ) );
 
             if ( !inUserHierarchy )
             {
-                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Organisation unit not in hierarchy of current user: " + currentUser ) );
+                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Organisation unit not in hierarchy of current user: " + currentUserName ) );
                 continue;
             }
 
@@ -972,7 +1031,7 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            String storedBy = dataValue.getStoredBy() == null || dataValue.getStoredBy().trim().isEmpty() ? currentUser : dataValue.getStoredBy();
+            String storedBy = dataValue.getStoredBy() == null || dataValue.getStoredBy().trim().isEmpty() ? currentUserName : dataValue.getStoredBy();
 
             final DataElementCategoryOptionCombo aoc = attrOptionCombo;
 
@@ -1029,7 +1088,7 @@ public class DefaultDataValueSetService
                     {
                         DataApproval lowestApproval = DataApproval.getLowestApproval( new DataApproval( null, workflow, period, orgUnit, aoc ) );
 
-                        return lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
+                        return lowestApproval != null && lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
                             () -> approvalService.getDataApproval( lowestApproval ) != null );
                     } ) )
                     {
@@ -1072,6 +1131,18 @@ public class DefaultDataValueSetService
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
+
+            // -----------------------------------------------------------------
+            // Check if current user has permission to save this value
+            // -----------------------------------------------------------------
+
+            List<String> errors = accessManager.canWrite( currentUser, internalValue );
+
+            if ( !errors.isEmpty() )
+            {
+                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
+                continue;
+            }
 
             // -----------------------------------------------------------------
             // Save, update or delete data value
@@ -1175,6 +1246,15 @@ public class DefaultDataValueSetService
                             if ( !dryRun )
                             {
                                 added = dataValueBatchHandler.addObject( internalValue );
+
+                                if ( added && dataElement.isFileType() )
+                                {
+                                    FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+
+                                    fr.setAssigned( true );
+
+                                    fileResourceService.updateFileResource( fr );
+                                }
                             }
 
                             if ( dryRun || added )
@@ -1197,7 +1277,7 @@ public class DefaultDataValueSetService
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );
-        notifier.notify( id, notificationLevel, "Import done", true ).addTaskSummary( id, notificationLevel, summary );
+        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary );
 
         dataValueSet.close();
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,6 +83,10 @@ public class DatabaseAutomaticAccessProvider
 
         userService.encodeAndSetPassword( userCredentials, password );
         userService.addUserCredentials( userCredentials );
+
+        user.setUserCredentials( userCredentials );
+
+        userService.updateUser( user );
     }
 
     @Override

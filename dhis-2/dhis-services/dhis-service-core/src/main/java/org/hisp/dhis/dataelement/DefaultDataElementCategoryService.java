@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -128,14 +126,7 @@ public class DefaultDataElementCategoryService
     {
         this.aclService = aclService;
     }
-    
-    private DeletionManager deletionManager;
-
-    public void setDeletionManager( DeletionManager deletionManager )
-    {
-        this.deletionManager = deletionManager;
-    }
-    
+        
     // -------------------------------------------------------------------------
     // Category
     // -------------------------------------------------------------------------
@@ -196,12 +187,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategory getDefaultDataElementCategory()
     {
         return getDataElementCategoryByName( DataElementCategory.DEFAULT_NAME );
-    }
-
-    @Override
-    public DataElementCategory getDataElementCategoryByCode( String code )
-    {
-        return categoryStore.getByCode( code );
     }
 
     @Override
@@ -274,18 +259,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategoryOption getDefaultDataElementCategoryOption()
     {
         return getDataElementCategoryOptionByName( DataElementCategoryOption.DEFAULT_NAME );
-    }
-
-    @Override
-    public DataElementCategoryOption getDataElementCategoryOptionByShortName( String shortName )
-    {
-        return categoryOptionStore.getByShortName( shortName );
-    }
-
-    @Override
-    public DataElementCategoryOption getDataElementCategoryOptionByCode( String code )
-    {
-        return categoryOptionStore.getByCode( code );
     }
 
     @Override
@@ -655,11 +628,11 @@ public class DefaultDataElementCategoryService
             {
                 try
                 {
-                    deletionManager.execute( optionCombo );
+                    deleteDataElementCategoryOptionCombo( optionCombo );
                 }
-                catch ( DeleteNotAllowedException ex )
+                catch ( Exception ex )
                 {
-                    log.warn( "Not allowed to delete category option combo: " + optionCombo );
+                    log.warn( "Could not delete category option combo: " + optionCombo );
                     continue;
                 }
 
