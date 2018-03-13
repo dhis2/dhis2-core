@@ -658,4 +658,11 @@ public class DefaultUserService
 
         return userStore.getExpiringUsers( userQueryParams );
     }
+
+    public void set2FA( User user, Boolean twoFa )
+    {
+        user.getUserCredentials().setTwoFA( twoFa );
+
+        updateUser( user );
+    }
 }

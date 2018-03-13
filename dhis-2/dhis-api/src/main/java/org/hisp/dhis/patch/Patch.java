@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.patch;
+package org.hisp.dhis.patch;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,66 +28,59 @@ package org.hisp.dhis.schema.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PatchParams
+@JacksonXmlRootElement( localName = "patch", namespace = DxfNamespaces.DXF_2_0 )
+public class Patch
 {
-    private final Object source;
+    private List<Mutation> mutations = new ArrayList<>();
 
-    private final Object target;
-
-    private final JsonNode jsonNode;
-
-    /**
-     * Ignore properties that are not owned by the source class.
-     */
-    private boolean ignoreTransient;
-
-    public PatchParams( Object source, Object target )
+    public Patch()
     {
-        this.source = source;
-        this.target = target;
-        this.jsonNode = null;
     }
 
-    public PatchParams( JsonNode jsonNode )
+    public Patch( List<Mutation> mutations )
     {
-        this.source = null;
-        this.target = null;
-        this.jsonNode = jsonNode;
+        this.mutations = mutations;
     }
 
-    public Object getSource()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<Mutation> getMutations()
     {
-        return source;
+        return mutations;
     }
 
-    public Object getTarget()
+    public void setMutations( List<Mutation> mutations )
     {
-        return target;
+        this.mutations = mutations;
     }
 
-    public JsonNode getJsonNode()
+    public Patch addMutation( Mutation mutation )
     {
-        return jsonNode;
-    }
+        if ( mutation != null )
+        {
+            mutations.add( mutation );
+        }
 
-    public boolean haveJsonNode()
-    {
-        return jsonNode != null;
-    }
-
-    public boolean isIgnoreTransient()
-    {
-        return ignoreTransient;
-    }
-
-    public PatchParams setIgnoreTransient( boolean ignoreTransient )
-    {
-        this.ignoreTransient = ignoreTransient;
         return this;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "mutations", mutations )
+            .toString();
     }
 }

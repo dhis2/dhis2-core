@@ -28,11 +28,33 @@ package org.hisp.dhis.reporttable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisSpringTest;
+import static org.hisp.dhis.reporttable.ReportTable.getColumnName;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
@@ -47,19 +69,16 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
-
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.reporttable.ReportTable.getColumnName;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
 public class ReportTableTest
-    extends DhisSpringTest
+    extends DhisConvenienceTest
 {
     private List<DataElement> dataElements;
     private List<CategoryOptionCombo> categoryOptionCombos;
@@ -115,9 +134,8 @@ public class ReportTableTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Override
-    public void setUpTest()
-        throws Exception
+    @Before
+    public void before()
     {
         dataElements = new ArrayList<>();
         categoryOptionCombos = new ArrayList<>();

@@ -148,6 +148,13 @@ public class AddUserAction
         this.inviteUsername = inviteUsername;
     }
 
+    private boolean twoFA;
+
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
+    }
+
     private boolean externalAuth;
 
     public void setExternalAuth( boolean externalAuth )
@@ -298,6 +305,7 @@ public class AddUserAction
         user.setUserCredentials( userCredentials );
 
         userCredentials.setUsername( StringUtils.trimToNull( username ) );
+        userCredentials.setTwoFA( twoFA );
         userCredentials.setExternalAuth( externalAuth );
         userCredentials.setOpenId( StringUtils.trimToNull( openId ) );
         userCredentials.setLdapId( StringUtils.trimToNull( ldapId ) );

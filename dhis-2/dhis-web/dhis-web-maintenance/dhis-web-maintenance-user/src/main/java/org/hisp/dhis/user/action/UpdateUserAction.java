@@ -125,6 +125,13 @@ public class UpdateUserAction
         this.id = id;
     }
 
+    private boolean twoFA;
+
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
+    }
+
     private boolean externalAuth;
 
     public void setExternalAuth( boolean externalAuth )
@@ -258,6 +265,7 @@ public class UpdateUserAction
         user.setPhoneNumber( StringUtils.trimToNull( phoneNumber ) );
 
         UserCredentials userCredentials = user.getUserCredentials();
+        userCredentials.setTwoFA( twoFA );
         userCredentials.setExternalAuth( externalAuth );
         userCredentials.setOpenId( StringUtils.trimToNull( openId ) );
         userCredentials.setLdapId( StringUtils.trimToNull( ldapId ) );

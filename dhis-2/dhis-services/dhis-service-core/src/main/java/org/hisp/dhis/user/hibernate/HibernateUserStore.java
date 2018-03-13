@@ -99,6 +99,11 @@ public class HibernateUserStore
             hql += hlp.whereAnd() + " uc.disabled = :disabled ";
         }
 
+        if ( params.isNot2FA() )
+        {
+            hql += hlp.whereAnd() + " uc.secret is null ";
+        }
+
         if ( params.getQuery() != null )
         {
             hql += hlp.whereAnd() + " (" +
