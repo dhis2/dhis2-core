@@ -110,6 +110,7 @@ public enum SettingKey
     LAST_MONITORING_RUN( "keyLastMonitoringRun", Date.class ),
     LAST_SUCCESSFUL_DATA_SYNC( "keyLastSuccessfulDataSynch", Date.class ),
     LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", Date.class ),
+    LAST_SUCCESSFUL_TRACKER_DATA_SYNC( "keyLastSuccessfulTrackerDataSync", Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH( "keyLastSuccessfulSystemMonitoringPush", Date.class ),
