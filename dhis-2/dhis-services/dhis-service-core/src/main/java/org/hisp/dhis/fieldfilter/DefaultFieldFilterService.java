@@ -48,6 +48,7 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,15 +70,15 @@ public class DefaultFieldFilterService implements FieldFilterService
 {
     private static final Log log = LogFactory.getLog( DefaultFieldFilterService.class );
 
-    private final Pattern FIELD_PATTERN = Pattern.compile( "^(?<field>\\w+)" );
+    private final static Pattern FIELD_PATTERN = Pattern.compile( "^(?<field>\\w+)" );
 
-    private final Pattern TRANSFORMER_PATTERN = Pattern.compile( "(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
+    private final static Pattern TRANSFORMER_PATTERN = Pattern.compile( "(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
-    @Autowired
-    private FieldParser fieldParser;
+    private final FieldParser fieldParser;
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
+
+    private final AclService aclService;
 
     @Autowired( required = false )
     private Set<NodeTransformer> nodeTransformers = new HashSet<>();
@@ -85,6 +86,13 @@ public class DefaultFieldFilterService implements FieldFilterService
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
     private ImmutableMap<String, NodeTransformer> transformers = ImmutableMap.of();
+
+    public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService )
+    {
+        this.fieldParser = fieldParser;
+        this.schemaService = schemaService;
+        this.aclService = aclService;
+    }
 
     @PostConstruct
     public void init()
@@ -200,7 +208,6 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         if ( shouldExclude( object, defaults ) )
         {
-            System.err.println( "Exclude: " + object );
             return null;
         }
 
