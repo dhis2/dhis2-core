@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.importsummary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -35,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -61,6 +63,8 @@ public class ImportSummary extends AbstractWebMessageResponse
     private ImportSummaries enrollments;
 
     private ImportSummaries events;
+
+    private WebMessage webMessage;
 
     public ImportSummary()
     {
@@ -90,6 +94,14 @@ public class ImportSummary extends AbstractWebMessageResponse
         this.status = status;
         this.description = description;
         this.importCount = importCount;
+    }
+
+    public ImportSummary( ImportStatus status, String description, WebMessage webMessage )
+    {
+        this();
+        this.status = status;
+        this.description = description;
+        this.webMessage = webMessage;
     }
 
     // -------------------------------------------------------------------------
@@ -257,6 +269,17 @@ public class ImportSummary extends AbstractWebMessageResponse
     {
         importCount.incrementDeleted();
         return this;
+    }
+
+    @JsonIgnore
+    public WebMessage getWebMessage()
+    {
+        return webMessage;
+    }
+
+    public void setWebMessage( WebMessage webMessage )
+    {
+        this.webMessage = webMessage;
     }
 
     @Override

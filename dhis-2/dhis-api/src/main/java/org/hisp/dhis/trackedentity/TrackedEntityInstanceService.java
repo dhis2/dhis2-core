@@ -97,7 +97,7 @@ public interface TrackedEntityInstanceService
     int ERROR_ENROLLMENT = 2;
 
     String SEPARATOR = "_";
-    
+
     /**
      * Returns a grid with tracked entity instance values based on the given
      * TrackedEntityInstanceQueryParams.
@@ -134,7 +134,7 @@ public interface TrackedEntityInstanceService
      * @param programEnrollmentEndDate   the end date for enrollment in the given Program.
      * @param programIncidentStartDate   the start date for incident in the given Program.
      * @param programIncidentEndDate     the end date for enrollment in the given Program.
-     * @param trackedEntityType              the TrackedEntityType uid.
+     * @param trackedEntityType          the TrackedEntityType uid.
      * @param eventStatus                the event status for the given Program.
      * @param eventStartDate             the event start date for the given Program.
      * @param eventEndDate               the event end date for the given Program.
@@ -157,8 +157,8 @@ public interface TrackedEntityInstanceService
      *
      * @param params the TrackedEntityInstanceQueryParams.
      */
-    void decideAccess( TrackedEntityInstanceQueryParams params );    
-    
+    void decideAccess( TrackedEntityInstanceQueryParams params );
+
     /**
      * Validates scope of given TrackedEntityInstanceQueryParams. The params is
      * considered valid if no exception are thrown and the method returns
@@ -221,12 +221,28 @@ public interface TrackedEntityInstanceService
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
     /**
-     * Checks for the existence of a TEI by UID
+     * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
      */
     boolean trackedEntityInstanceExists( String uid );
+
+    /**
+     * Checks for the existence of a TEI by UID. Takes into account also the deleted values.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
+
+    /**
+     //     * Checks for the existence of a TEI by UID
+     //     *
+     //     * @param uid PSI UID to check for
+     //     * @return true/false depending on result
+     //     */
+//    boolean trackedEntityInstanceExists( String uid, boolean includeDeleted );
 
     /**
      * Register a new entityInstance

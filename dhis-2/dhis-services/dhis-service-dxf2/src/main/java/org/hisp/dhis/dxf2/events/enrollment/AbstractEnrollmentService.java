@@ -54,6 +54,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -83,6 +85,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -379,6 +382,12 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
+        if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Enrollment ID " + enrollment.getEnrollment() + " was already used. The ID is unique and cannot be used more than once" ).setReference( enrollment.getEnrollment() ).incrementIgnored();
+        }
+
         if ( daoTrackedEntityInstance == null )
         {
             daoTrackedEntityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
@@ -551,34 +560,52 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        if ( enrollment == null || enrollment.getEnrollment() == null )
+        if ( enrollment == null || StringUtils.isEmpty( enrollment.getEnrollment() ) )
         {
-            return new ImportSummary( ImportStatus.ERROR, "No enrollment or enrollment ID was supplied" ).incrementIgnored();
+            String descMsg = "No enrollment or enrollment ID was supplied";
+            WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
+            return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
         }
 
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
-
-        if ( programInstance == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Enrollment ID was not valid." ).incrementIgnored();
-        }
-
         List<String> errors = trackerAccessManager.canWrite( user, programInstance );
 
-        if ( !errors.isEmpty() )
+        if ( programInstance == null || !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            String descMsg;
+            WebMessage webMsg;
+
+            if ( programInstance == null )
+            {
+                descMsg = "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment.";
+                webMsg = WebMessageUtils.notFound( descMsg );
+            }
+            else
+            {
+                descMsg = errors.toString();
+                webMsg = WebMessageUtils.forbidden( errors.toString() );
+            }
+
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
+            importSummary.setDescription( descMsg );
+            importSummary.setWebMessage( webMsg );
+
+            return importSummary;
         }
 
         Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
 
         if ( !importConflicts.isEmpty() )
         {
+            WebMessage webMsg = WebMessageUtils.badRequest( importConflicts.toString() );
+
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setConflicts( importConflicts );
             importSummary.getImportCount().incrementIgnored();
+            importSummary.setWebMessage( webMsg );
 
             return importSummary;
         }
@@ -591,8 +618,6 @@ public abstract class AbstractEnrollmentService
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
 
         programInstance.setProgram( program );
-        //TODO: Do I need to set TEI at all? Can it change? If not, then no need for it.
-        programInstance.setEntityInstance( daoTrackedEntityInstance );
 
         if ( enrollment.getIncidentDate() != null )
         {
@@ -614,9 +639,13 @@ public abstract class AbstractEnrollmentService
 
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
         {
+            String descMsg = "DisplayIncidentDate is true but IncidentDate is null";
+            WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
+
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
+            importSummary.setDescription( descMsg );
             importSummary.incrementIgnored();
+            importSummary.setWebMessage( webMsg );
 
             return importSummary;
         }
@@ -643,7 +672,6 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
-        //TODO: Do I need to update daoTrackedEntityInstance at all? Nothing changed as I am aware of.
         teiService.updateTrackedEntityInstance( daoTrackedEntityInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
@@ -653,6 +681,9 @@ public abstract class AbstractEnrollmentService
 
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+
+        WebMessage webMsg = WebMessageUtils.importSummary( importSummary );
+        importSummary.setWebMessage( webMsg );
 
         return importSummary;
     }
@@ -689,23 +720,33 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary deleteEnrollment( String uid )
     {
-        User user = currentUserService.getCurrentUser();
-        
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
+        String descMsg;
+        WebMessage webMsg;
 
         if ( programInstance != null )
-        {            
-            if( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
-            {                
-                return new ImportSummary( ImportStatus.ERROR, "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();                                
+        {
+            User user = currentUserService.getCurrentUser();
+            if ( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            {
+                descMsg = "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+                webMsg = WebMessageUtils.forbidden( descMsg );
+                return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
             }
-            
+
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
+
+            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
+            webMsg = WebMessageUtils.importSummary( importSummary );
+            importSummary.setWebMessage( webMsg );
+
+            return importSummary;
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid enrollment" ).incrementIgnored();
+        descMsg = "ID " + uid + " does not point to a valid enrollment";
+        webMsg = WebMessageUtils.notFound( descMsg );
+        return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
     }
 
     @Override

@@ -40,9 +40,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -145,6 +145,12 @@ public class DefaultProgramInstanceService
     public boolean programInstanceExists( String uid )
     {
         return programInstanceStore.exists( uid );
+    }
+
+    @Override
+    public boolean programInstanceExistsIncludingDeleted( String uid )
+    {
+        return programInstanceStore.existsIncludingDeleted( uid );
     }
 
     @Override
