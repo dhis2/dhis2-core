@@ -51,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -158,34 +157,6 @@ public class IdentifiableObjectManagerTest
     }
 
     @Test
-    public void getCountLikeName()
-    {
-        identifiableObjectManager.save( createDataElement( 'A' ) );
-        identifiableObjectManager.save( createDataElement( 'B' ) );
-        identifiableObjectManager.save( createDataElement( 'C' ) );
-        identifiableObjectManager.save( createDataElement( 'D' ) );
-
-        assertEquals( 1, identifiableObjectManager.getCountLikeName( DataElement.class, "DataElementA" ) );
-        assertEquals( 1, identifiableObjectManager.getCountLikeName( DataElement.class, "DataElementB" ) );
-        assertEquals( 1, identifiableObjectManager.getCountLikeName( DataElement.class, "DataElementC" ) );
-        assertEquals( 1, identifiableObjectManager.getCountLikeName( DataElement.class, "DataElementD" ) );
-    }
-
-    @Test
-    public void getCountLikeShortName()
-    {
-        identifiableObjectManager.save( createDataElement( 'A' ) );
-        identifiableObjectManager.save( createDataElement( 'B' ) );
-        identifiableObjectManager.save( createDataElement( 'C' ) );
-        identifiableObjectManager.save( createDataElement( 'D' ) );
-
-        assertEquals( 1, identifiableObjectManager.getCountLikeShortName( DataElement.class, "DataElementShortA" ) );
-        assertEquals( 1, identifiableObjectManager.getCountLikeShortName( DataElement.class, "DataElementShortB" ) );
-        assertEquals( 1, identifiableObjectManager.getCountLikeShortName( DataElement.class, "DataElementShortC" ) );
-        assertEquals( 1, identifiableObjectManager.getCountLikeShortName( DataElement.class, "DataElementShortD" ) );
-    }
-
-    @Test
     public void getEqualToName()
     {
         DataElement dataElement = createDataElement( 'A' );
@@ -194,68 +165,6 @@ public class IdentifiableObjectManagerTest
         assertNotNull( identifiableObjectManager.getByName( DataElement.class, "DataElementA" ) );
         assertNull( identifiableObjectManager.getByName( DataElement.class, "DataElementB" ) );
         assertEquals( dataElement, identifiableObjectManager.getByName( DataElement.class, "DataElementA" ) );
-    }
-
-    @Test
-    public void getAllEqualToName()
-    {
-        OrganisationUnit organisationUnitA1 = createOrganisationUnit( 'A' );
-        organisationUnitA1.setCode( null );
-        identifiableObjectManager.save( organisationUnitA1 );
-
-        OrganisationUnit organisationUnitA2 = createOrganisationUnit( 'B' );
-        organisationUnitA2.setName( "OrganisationUnitA" );
-        organisationUnitA2.setCode( null );
-        identifiableObjectManager.save( organisationUnitA2 );
-
-        assertEquals( 2, identifiableObjectManager.getAllByName( OrganisationUnit.class, "OrganisationUnitA" ).size() );
-        assertEquals( 0, identifiableObjectManager.getAllByName( OrganisationUnit.class, "organisationunita" ).size() );
-    }
-
-    @Test
-    public void getAllEqualToNameIgnoreCase()
-    {
-        OrganisationUnit organisationUnitC1 = createOrganisationUnit( 'C' );
-        organisationUnitC1.setCode( null );
-        identifiableObjectManager.save( organisationUnitC1 );
-
-        OrganisationUnit organisationUnitC2 = createOrganisationUnit( 'D' );
-        organisationUnitC2.setName( "OrganisationUnitC" );
-        organisationUnitC2.setCode( null );
-        identifiableObjectManager.save( organisationUnitC2 );
-
-        assertEquals( 2, identifiableObjectManager.getAllByNameIgnoreCase( OrganisationUnit.class, "OrganisationUnitC" ).size() );
-        assertEquals( 2, identifiableObjectManager.getAllByNameIgnoreCase( OrganisationUnit.class, "organisationunitc" ).size() );
-    }
-
-    @Test
-    public void getLikeName()
-    {
-        identifiableObjectManager.save( createDataElement( 'A' ) );
-        identifiableObjectManager.save( createDataElement( 'B' ) );
-        identifiableObjectManager.save( createDataElement( 'C' ) );
-        identifiableObjectManager.save( createDataElement( 'D' ) );
-
-        assertEquals( 4, identifiableObjectManager.getCountLikeName( DataElement.class, "DataElement" ) );
-        assertEquals( 4, identifiableObjectManager.getCountLikeName( DataElement.class, "dataElement" ) );
-
-        assertEquals( 4, identifiableObjectManager.getLikeName( DataElement.class, "DataElement" ).size() );
-        assertEquals( 4, identifiableObjectManager.getLikeName( DataElement.class, "dataElement" ).size() );
-    }
-
-    @Test
-    public void getAllLikeShortName()
-    {
-        identifiableObjectManager.save( createDataElement( 'A' ) );
-        identifiableObjectManager.save( createDataElement( 'B' ) );
-        identifiableObjectManager.save( createDataElement( 'C' ) );
-        identifiableObjectManager.save( createDataElement( 'D' ) );
-
-        assertEquals( 4, identifiableObjectManager.getCountLikeShortName( DataElement.class, "DataElementShort" ) );
-        assertEquals( 4, identifiableObjectManager.getCountLikeShortName( DataElement.class, "dataElementSHORT" ) );
-
-        assertEquals( 4, identifiableObjectManager.getLikeShortName( DataElement.class, "DataElementShort" ).size() );
-        assertEquals( 4, identifiableObjectManager.getLikeShortName( DataElement.class, "dataElementSHORT" ).size() );
     }
 
     @Test
@@ -273,38 +182,6 @@ public class IdentifiableObjectManagerTest
         assertEquals( "DataElementB", dataElements.get( 1 ).getName() );
         assertEquals( "DataElementC", dataElements.get( 2 ).getName() );
         assertEquals( "DataElementD", dataElements.get( 3 ).getName() );
-    }
-
-    @Test
-    public void getAllOrderedLastUpdated()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        identifiableObjectManager.save( dataElementA );
-        identifiableObjectManager.save( dataElementB );
-        identifiableObjectManager.save( dataElementC );
-        identifiableObjectManager.save( dataElementD );
-
-        dataElementA.setLastUpdated( new GregorianCalendar( 2011, 0, 1 ).getTime() );
-        dataElementB.setLastUpdated( new GregorianCalendar( 2012, 0, 1 ).getTime() );
-        dataElementC.setLastUpdated( new GregorianCalendar( 2013, 0, 1 ).getTime() );
-        dataElementD.setLastUpdated( new GregorianCalendar( 2014, 0, 1 ).getTime() );
-
-        sessionFactory.getCurrentSession().update( dataElementA );
-        sessionFactory.getCurrentSession().update( dataElementB );
-        sessionFactory.getCurrentSession().update( dataElementC );
-        sessionFactory.getCurrentSession().update( dataElementD );
-
-        List<DataElement> dataElements = new ArrayList<>( identifiableObjectManager.getAllSortedByLastUpdated( DataElement.class ) );
-
-        assertEquals( 4, dataElements.size() );
-        assertEquals( "DataElementD", dataElements.get( 0 ).getName() );
-        assertEquals( "DataElementC", dataElements.get( 1 ).getName() );
-        assertEquals( "DataElementB", dataElements.get( 2 ).getName() );
-        assertEquals( "DataElementA", dataElements.get( 3 ).getName() );
     }
 
     @Test
@@ -522,60 +399,6 @@ public class IdentifiableObjectManagerTest
 
         assertEquals( 4, identifiableObjectManager.getCount( DataElement.class ) );
         assertEquals( 4, identifiableObjectManager.getAll( DataElement.class ).size() );
-    }
-
-    @Test
-    public void getAllGeCreated()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        identifiableObjectManager.save( dataElementA );
-        identifiableObjectManager.save( dataElementB );
-        identifiableObjectManager.save( dataElementC );
-        identifiableObjectManager.save( dataElementD );
-
-        dataElementA.setCreated( new GregorianCalendar( 2014, 0, 1 ).getTime() );
-        dataElementB.setCreated( new GregorianCalendar( 2013, 0, 1 ).getTime() );
-        dataElementC.setCreated( new GregorianCalendar( 2012, 0, 1 ).getTime() );
-        dataElementD.setCreated( new GregorianCalendar( 2011, 0, 1 ).getTime() );
-
-        sessionFactory.getCurrentSession().update( dataElementA );
-        sessionFactory.getCurrentSession().update( dataElementB );
-        sessionFactory.getCurrentSession().update( dataElementC );
-        sessionFactory.getCurrentSession().update( dataElementD );
-
-        assertEquals( 2, identifiableObjectManager.getCountByCreated( DataElement.class, new GregorianCalendar( 2012, 5, 1 ).getTime() ) );
-        assertEquals( 2, identifiableObjectManager.getByCreated( DataElement.class, new GregorianCalendar( 2012, 5, 1 ).getTime() ).size() );
-    }
-
-    @Test
-    public void getAllGeLastUpdated()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-
-        identifiableObjectManager.save( dataElementA );
-        identifiableObjectManager.save( dataElementB );
-        identifiableObjectManager.save( dataElementC );
-        identifiableObjectManager.save( dataElementD );
-
-        dataElementA.setLastUpdated( new GregorianCalendar( 2014, 0, 1 ).getTime() );
-        dataElementB.setLastUpdated( new GregorianCalendar( 2013, 0, 1 ).getTime() );
-        dataElementC.setLastUpdated( new GregorianCalendar( 2012, 0, 1 ).getTime() );
-        dataElementD.setLastUpdated( new GregorianCalendar( 2011, 0, 1 ).getTime() );
-
-        sessionFactory.getCurrentSession().update( dataElementA );
-        sessionFactory.getCurrentSession().update( dataElementB );
-        sessionFactory.getCurrentSession().update( dataElementC );
-        sessionFactory.getCurrentSession().update( dataElementD );
-
-        assertEquals( 2, identifiableObjectManager.getCountByLastUpdated( DataElement.class, new GregorianCalendar( 2012, 5, 1 ).getTime() ) );
-        assertEquals( 2, identifiableObjectManager.getByLastUpdated( DataElement.class, new GregorianCalendar( 2012, 5, 1 ).getTime() ).size() );
     }
 
     @Test

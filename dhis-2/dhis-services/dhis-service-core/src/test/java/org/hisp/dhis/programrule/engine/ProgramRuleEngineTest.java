@@ -197,10 +197,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String location = "feedback";
 
-    private int weightA = 80;
-
-    private int heightA = 165;
-
     private String programRuleActionCData = "#{ProgramRuleVariableC} + #{ProgramRuleVariableD}";
 
     @Autowired
@@ -311,7 +307,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-     public void testDisplayTextAction() throws Exception
+    public void testDisplayTextAction() throws Exception
     {
         setUpDisplayTextAction();
 

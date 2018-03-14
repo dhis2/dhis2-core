@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -46,10 +48,11 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -90,6 +93,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -100,12 +104,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 {
     private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
 
-    private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen
-                                                         // from dxf2
-                                                         // DefaultDataValueSetService
+    private static final int CACHE_MISS_THRESHOLD = 500;
 
-    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME,
-        IdScheme.CODE );
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -140,12 +141,21 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
     
     @Autowired
     private InputUtils inputUtils;
+
+    @Autowired
+    private AggregateAccessManager accessManager;
+
+    @Autowired
+    private DataSetNotificationEventPublisher notificationPublisher;
+
+    @Autowired
+    private MessageService messageService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -504,22 +514,21 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 summary.getConflicts().add( ic.getImportConflict() );
                 continue;
             }
-            
+
 
             // ---------------------------------------------------------------------
             // Compulsory fields validation
             // ---------------------------------------------------------------------
-            
+
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
                 mdProps.orgUnit, mdProps.attrOptCombo, false );
-            
-            
+
             if( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
                     summary.getConflicts().add( new ImportConflict( "dataElementOperand",
-                        dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
+                        dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory." ) );
                 }
 
                 if ( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )
@@ -537,6 +546,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
             CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null
                 : batchHandler.findObject( internalCdsr );
+
+            // ---------------------------------------------------------------------
+            // Data Sharing check
+            // ---------------------------------------------------------------------
+
+            List<String> errors = accessManager.canWrite( currentUserService.getCurrentUser(), internalCdsr.getDataSet() );
+            if ( !errors.isEmpty() )
+            {
+                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
+                continue;
+            }
 
             ImportStrategy strategy = config.strategy;
 
@@ -596,6 +616,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                         if ( !isDryRun )
                         {
                             added = batchHandler.addObject( internalCdsr );
+
+                            if ( added )
+                            {
+                                sendNotifications( config, internalCdsr );
+                            }
                         }
 
                         if ( isDryRun || added )
@@ -643,6 +668,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             throw new ImportConflictException( new ImportConflict( mdProps.orgUnit.getUid(),
                 "Organisation unit is not in hierarchy of user: " + currentUsername ) );
+        }
+    }
+
+    private void sendNotifications( ImportConfig config, CompleteDataSetRegistration registration )
+    {
+        if ( !config.skipNotifications )
+        {
+            if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
+            {
+                messageService.sendCompletenessMessage( registration );
+            }
+
+            notificationPublisher.publishEvent( registration );
         }
     }
 
@@ -911,7 +949,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         ImportStrategy strategy;
 
         boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits,
-            requireAttrOptionCombos;
+            requireAttrOptionCombos, skipNotifications;
 
         DataElementCategoryOptionCombo fallbackCatOptCombo;
 
@@ -928,6 +966,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 : options.getImportStrategy();
 
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
+
+            skipNotifications = options.isSkipNotifications();
 
             skipExistingCheck = options.isSkipExistingCheck();
 

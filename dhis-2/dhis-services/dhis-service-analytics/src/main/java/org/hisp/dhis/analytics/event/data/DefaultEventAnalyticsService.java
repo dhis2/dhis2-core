@@ -34,7 +34,6 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
-import org.hisp.dhis.analytics.EventDimensionalItemObject;
 import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -50,6 +49,7 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -303,7 +303,7 @@ public class DefaultEventAnalyticsService
 
         if ( objects.size() == 0 )
         {
-            EventDimensionalItemObject eventDimensionalItemObject = dataElementService.getDataElement( dimension );
+            ValueTypedDimensionalItemObject eventDimensionalItemObject = dataElementService.getDataElement( dimension );
 
             if ( eventDimensionalItemObject == null )
             {
@@ -322,7 +322,7 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Send in a list of {@link EventAnalyticsDimensionalItem} and add properties from {@link EventDimensionalItemObject} parameter.
+     * Send in a list of {@link EventAnalyticsDimensionalItem} and add properties from {@link EventAnalyticsDimensionalItem} parameter.
      *
      * @param eventDimensionalItemObject object to get properties from
      * @param objects the list with objects. We are adding objects to this list as well.
@@ -331,7 +331,7 @@ public class DefaultEventAnalyticsService
      * @throws Exception throws exception if the given dimension is invalid
      */
     @SuppressWarnings( "unchecked" )
-    private void addEventReportDimensionalItems( EventDimensionalItemObject eventDimensionalItemObject, 
+    private void addEventReportDimensionalItems( ValueTypedDimensionalItemObject eventDimensionalItemObject, 
         List<EventAnalyticsDimensionalItem> objects, Grid grid, String dimension ) throws Exception
     {
         if ( eventDimensionalItemObject == null )
@@ -451,6 +451,7 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
+                //TODO: As we make support for event reports with enrollment listings, we will have to change this.
                 if ( query.hasEnrollmentProgramIndicatorDimension() )
                 {
                     enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );

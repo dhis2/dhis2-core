@@ -117,27 +117,6 @@ public class HibernateCompleteDataSetRegistrationStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations( 
-        DataSet dataSet, Collection<OrganisationUnit> sources, Period period )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
-
-        if ( storedPeriod == null )
-        {
-            return null;
-        }
-
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( CompleteDataSetRegistration.class );
-        
-        criteria.add( Restrictions.eq( "dataSet", dataSet ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.in( "source", sources ) );
-        
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
         return sessionFactory.getCurrentSession().createCriteria( CompleteDataSetRegistration.class ).list();

@@ -190,12 +190,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public DataElementCategory getDataElementCategoryByCode( String code )
-    {
-        return categoryStore.getByCode( code );
-    }
-
-    @Override
     public List<DataElementCategory> getDisaggregationCategories()
     {
         return categoryStore.getCategoriesByDimensionType( DataDimensionType.DISAGGREGATION );
@@ -265,18 +259,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategoryOption getDefaultDataElementCategoryOption()
     {
         return getDataElementCategoryOptionByName( DataElementCategoryOption.DEFAULT_NAME );
-    }
-
-    @Override
-    public DataElementCategoryOption getDataElementCategoryOptionByShortName( String shortName )
-    {
-        return categoryOptionStore.getByShortName( shortName );
-    }
-
-    @Override
-    public DataElementCategoryOption getDataElementCategoryOptionByCode( String code )
-    {
-        return categoryOptionStore.getByCode( code );
     }
 
     @Override

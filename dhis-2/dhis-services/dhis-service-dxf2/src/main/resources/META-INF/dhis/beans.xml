@@ -8,8 +8,6 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PeriodTypeObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.InterpretableObjectObjectBundleHook" />
-
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.EmbeddedObjectObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.VersionedObjectObjectBundleHook" />
@@ -22,11 +20,11 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserRoleObjectBundleHook" />
-
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataInputPeriodObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataElementObjectBundleHook" />
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramTrackedEntityAttributeObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramStageDataElementObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
 
@@ -38,9 +36,13 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DocumentObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.JobConfigurationObjectBundleHook" >
     <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
   </bean>
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
 
   <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
+
+  <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
+
+  <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
+
+  <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
+
+  <bean class="org.hisp.dhis.node.transformers.IsEmptyNodeTransformer" />
+
+  <bean class="org.hisp.dhis.node.transformers.IsNotEmptyNodeTransformer" />
+
+  <bean class="org.hisp.dhis.node.transformers.SizeNodeTransformer" />
+
+  <bean class="org.hisp.dhis.node.serializers.CsvNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.ExcelNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.PdfNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.StAXNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean id="org.hisp.dhis.fieldfilter.FieldParser" class="org.hisp.dhis.fieldfilter.DefaultFieldParser" />
+
+  <bean id="org.hisp.dhis.fieldfilter.FieldFilterService" class="org.hisp.dhis.fieldfilter.DefaultFieldFilterService" />
+
+</beans>

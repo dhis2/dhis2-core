@@ -51,7 +51,7 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public class EventSearchParams
-{             
+{
     public static final String EVENT_ID = "event";
     public static final String EVENT_CREATED_ID = "created";
     public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
@@ -61,7 +61,7 @@ public class EventSearchParams
     public static final String EVENT_DUE_DATE_ID = "dueDate";
     public static final String EVENT_EXECUTION_DATE_ID = "eventDate";
     public static final String EVENT_ORG_UNIT_ID = "orgUnit";
-    public static final String EVENT_ORG_UNIT_NAME = "orgUnitName";    
+    public static final String EVENT_ORG_UNIT_NAME = "orgUnitName";
     public static final String EVENT_STATUS_ID = "status";
     public static final String EVENT_LONGITUDE_ID = "longitude";
     public static final String EVENT_LATITUDE_ID = "latitude";
@@ -69,9 +69,9 @@ public class EventSearchParams
     public static final String EVENT_PROGRAM_ID = "program";
     public static final String EVENT_ATTRIBUTE_OPTION_COMBO_ID = "attributeOptionCombo";
     public static final String EVENT_DELETED = "deleted";
-    
+
     public static final String PAGER_META_KEY = "pager";
-    
+
     public static final int DEFAULT_PAGE = 1;
     public static final int DEFAULT_PAGE_SIZE = 50;
 
@@ -98,11 +98,11 @@ public class EventSearchParams
     private EventStatus eventStatus;
 
     private Date lastUpdatedStartDate;
-    
+
     private Date lastUpdatedEndDate;
-    
+
     private Date dueDateStart;
-    
+
     private Date dueDateEnd;
 
     private DataElementCategoryOptionCombo categoryOptionCombo;
@@ -118,24 +118,28 @@ public class EventSearchParams
     private boolean skipPaging;
 
     private List<Order> orders;
-    
+
     private List<String> gridOrders;
 
     private boolean includeAttributes;
 
     private Set<String> events = new HashSet<>();
-    
+
     /**
      * Filters for the response.
      */
-    private List<QueryItem> filters = new ArrayList<>();    
+    private List<QueryItem> filters = new ArrayList<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter response.
-     */    
+     */
     private List<QueryItem> dataElements = new ArrayList<>();
 
     private boolean includeDeleted;
+
+    private Set<String> accessiblePrograms;
+
+    private Set<String> accessibleProgramStages;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -178,41 +182,40 @@ public class EventSearchParams
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
     }
-    
+
     /**
      * Indicates whether this search params contain any filters.
-     * 
      */
     public boolean hasFilters()
     {
         return filters != null && !filters.isEmpty();
     }
-    
+
     /**
      * Returns a list of dataElements and filters combined.
      */
     public List<QueryItem> getDataElementsAndFilters()
-    {   
+    {
         List<QueryItem> items = new ArrayList<>();
         items.addAll( filters );
-        
+
         for ( QueryItem de : dataElements )
         {
             if ( items != null && !items.contains( de ) )
             {
-                items.add( de );            
-            }            
+                items.add( de );
+            }
         }
-        
+
         return items;
     }
-    
+
     public EventSearchParams addDataElements( List<QueryItem> des )
     {
         dataElements.addAll( des );
         return this;
-    }    
-    
+    }
+
 
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -326,7 +329,7 @@ public class EventSearchParams
     public void setEventStatus( EventStatus eventStatus )
     {
         this.eventStatus = eventStatus;
-    }    
+    }
 
     public Date getLastUpdatedStartDate()
     {
@@ -437,7 +440,7 @@ public class EventSearchParams
     {
         this.orders = orders;
     }
-    
+
     public List<String> getGridOrders()
     {
         return this.gridOrders;
@@ -498,4 +501,28 @@ public class EventSearchParams
         this.dataElements = dataElements;
     }
 
+    public Set<String> getAccessiblePrograms()
+    {
+        return accessiblePrograms;
+    }
+
+    public void setAccessiblePrograms( Set<String> accessiblePrograms )
+    {
+        this.accessiblePrograms = accessiblePrograms;
+    }
+
+    public Set<String> getAccessibleProgramStages()
+    {
+        return accessibleProgramStages;
+    }
+
+    public void setAccessibleProgramStages( Set<String> accessibleProgramStages )
+    {
+        this.accessibleProgramStages = accessibleProgramStages;
+    }
+
+    public boolean hasSecurityFilter()
+    {
+        return accessiblePrograms != null && accessibleProgramStages != null;
+    }
 }
