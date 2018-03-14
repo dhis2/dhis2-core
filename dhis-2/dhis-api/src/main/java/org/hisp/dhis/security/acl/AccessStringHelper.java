@@ -28,6 +28,9 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.util.Assert;
 
 /**
@@ -219,5 +222,16 @@ public class AccessStringHelper
     {
         return AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_READ )
             || AccessStringHelper.isEnabled( access, AccessStringHelper.Permission.DATA_WRITE );
+    }
+
+    public static <T extends BaseIdentifiableObject> void copySharing( T source, T target )
+    {
+        target.setPublicAccess( source.getPublicAccess() );
+        target.setExternalAccess( source.getExternalAccess() );
+
+        source.getUserAccesses().forEach(
+            ua -> target.getUserAccesses().add( new UserAccess( ua.getUser(), ua.getAccess() ) ) );
+        source.getUserGroupAccesses().forEach(
+            uga -> target.getUserGroupAccesses().add( new UserGroupAccess( uga.getUserGroup(), uga.getAccess() ) ) );
     }
 }

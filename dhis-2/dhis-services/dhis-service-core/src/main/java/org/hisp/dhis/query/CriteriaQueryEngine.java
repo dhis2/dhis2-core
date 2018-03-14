@@ -153,6 +153,13 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
     private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
     {
+        if ( query.isEmpty() )
+        {
+            return detachedCriteria.setProjection(
+                Projections.distinct( Projections.id() )
+            );
+        }
+
         org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunctionType() );
         detachedCriteria.add( junction );
 

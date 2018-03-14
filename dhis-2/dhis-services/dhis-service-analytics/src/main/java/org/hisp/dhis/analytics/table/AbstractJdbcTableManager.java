@@ -184,7 +184,7 @@ public abstract class AbstractJdbcTableManager
     {
         table.getPartitionTables().stream().forEach( p -> dropTable( p.getTempTableName() ) );
         
-        dropTable( table.getTempTableName() );
+        dropTableCascade( table.getTempTableName() );
     }
     
     @Override
@@ -363,7 +363,7 @@ public abstract class AbstractJdbcTableManager
         {
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
-                
+
         sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
         
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );

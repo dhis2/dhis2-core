@@ -99,14 +99,6 @@ public interface DataElementCategoryService
     DataElementCategory getDataElementCategoryByName( String name );
 
     /**
-     * Retrieves the DataElementCategory with the given code.
-     *
-     * @param code the name of the DataElementCategory to retrieve.
-     * @return the DataElementCategory.
-     */
-    DataElementCategory getDataElementCategoryByCode( String code );
-
-    /**
      * Returns all DataElementCategories.
      *
      * @return a list of all DataElementCategories.
@@ -194,22 +186,6 @@ public interface DataElementCategoryService
      * @return the DataElementCategoryOption with the given name.
      */
     DataElementCategoryOption getDataElementCategoryOptionByName( String name );
-
-    /**
-     * Retrieves the DataElementCategoryOption with the given short name.
-     *
-     * @param shortName the short name.
-     * @return the DataElementCategoryOption with the given short name.
-     */
-    DataElementCategoryOption getDataElementCategoryOptionByShortName( String shortName );
-
-    /**
-     * Retrieves the DataElementCategoryOption with the given code.
-     *
-     * @param code the code.
-     * @return the DataElementCategoryOption with the given code.
-     */
-    DataElementCategoryOption getDataElementCategoryOptionByCode( String code );
 
     /**
      * Returns all DataElementCategoryOptions.

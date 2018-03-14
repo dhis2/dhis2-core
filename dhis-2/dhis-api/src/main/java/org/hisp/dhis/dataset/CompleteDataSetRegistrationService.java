@@ -33,7 +33,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -50,22 +49,6 @@ public interface CompleteDataSetRegistrationService
      * @param registration the CompleteDataSetRegistration to save.
      */
     void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration );
-
-    /**
-     * Saves a CompleteDataSetRegistration.
-     *
-     * @param registration the CompleteDataSetRegistration to save.
-     * @param skipNotification skip DataSet notification.
-     */
-    void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration, boolean skipNotification );
-
-    /**
-     * Saves multiple CompleteDataSetRegistration.
-     *
-     * @param registrations List of CompleteDataSetRegistrations to save.
-     * @param skipNotification skip DataSet notification.
-     */
-    void saveCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations, boolean skipNotification );
 
     /**
      * Updates a CompleteDataSetRegistration.
@@ -107,18 +90,6 @@ public interface CompleteDataSetRegistrationService
      * @return a list of CompleteDataSetRegistrations.
      */
     List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations();
-
-    /**
-     * Retrieves the CompleteDataSetRegistrations for the given Collections of
-     * DataSets, Sources and Periods.
-     *
-     * @param dataSets the Collection of DataSets.
-     * @param sources  the Collection of Sources.
-     * @param periods  the Collection of Periods.
-     * @return a list of CompleteDataSetRegistrations.
-     */
-    List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
-        Collection<DataSet> dataSets, Collection<OrganisationUnit> sources, Collection<Period> periods );
 
     /**
      * Deletes the CompleteDataSetRegistrations associated with the given DataSet.

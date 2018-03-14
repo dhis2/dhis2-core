@@ -52,8 +52,11 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
     {
         if ( VersionedObject.class.isInstance( object ) )
         {
-            VersionedObject versionedObject = (VersionedObject) object;
-            versionedObject.increaseVersion();
+            VersionedObject versionObj = (VersionedObject) object;
+            int persistedVersion = ( ( VersionedObject ) persistedObject ).getVersion();
+
+            versionObj.setVersion( persistedVersion > versionObj.getVersion() ? persistedVersion :
+                persistedVersion < versionObj.getVersion() ? versionObj.getVersion() : versionObj.increaseVersion() );
         }
     }
 
@@ -70,7 +73,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
         {
             versionedObject = ((Option) persistedObject).getOptionSet();
         }
-        
+
         if ( versionedObject != null )
         {
             versionedObject.increaseVersion();

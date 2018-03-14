@@ -46,6 +46,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -55,8 +56,6 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -67,21 +66,19 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public class HibernateGenericStore<T>
-    implements InternalHibernateGenericStore<T>
+    implements GenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
 
@@ -102,9 +99,6 @@ public class HibernateGenericStore<T>
 
     @Autowired
     protected CurrentUserService currentUserService;
-
-    @Autowired
-    protected SchemaService schemaService;
 
     @Autowired
     protected DeletedObjectService deletedObjectService;
@@ -201,6 +195,7 @@ public class HibernateGenericStore<T>
         return query;
     }
 
+    
     /**
      * Creates a Criteria for the implementation Class type.
      * <p>
@@ -208,7 +203,6 @@ public class HibernateGenericStore<T>
      *
      * @return a Criteria instance.
      */
-    @Override
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
@@ -218,67 +212,17 @@ public class HibernateGenericStore<T>
         return getExecutableCriteria( criteria );
     }
 
-    @Override
     public final Criteria getSharingCriteria()
     {
         return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
     }
 
-    @Override
-    public final Criteria getDataSharingCriteria()
-    {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
-    }
-
-    @Override
-    public final Criteria getSharingCriteria( String access )
-    {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
-    }
-
-    @Override
-    public final Criteria getSharingCriteria( User user )
-    {
-        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria()
-    {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria( String access )
-    {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
-    }
-
-    @Override
-    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
-    {
-        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
-    }
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria( User user )
-    {
-        return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
-    }
-
-    @Override
-    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
-    {
-        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
-    }
-
-    @Override
     public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
     {
         return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
     }
 
-    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
+    protected DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -328,11 +272,11 @@ public class HibernateGenericStore<T>
         return criteria;
     }
 
-    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    protected DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
-        if ( !dataSharingEnabled( user ) || user == null )
+        if ( user == null || !dataSharingEnabled( user ) )
         {
             return criteria;
         }
@@ -342,6 +286,7 @@ public class HibernateGenericStore<T>
         Disjunction disjunction = Restrictions.disjunction();
 
         disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
 
         DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
         userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
@@ -692,13 +637,6 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataAll()
-    {
-        return getDataSharingCriteria().list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getAll( int first, int max )
     {
         return getSharingCriteria()
@@ -709,25 +647,8 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getDataAll( int first, int max )
-    {
-        return getDataSharingCriteria()
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllByAttributes( List<Attribute> attributes )
     {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
         CriteriaQuery query = getCriteriaQuery();
 
         Root root = query.from( getClazz() );
@@ -775,13 +696,6 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery query = getCriteriaQuery();
 
@@ -797,13 +711,6 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
-        Schema schema = schemaService.getDynamicSchema( getClazz() );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return null;
-        }
-
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery query = getCriteriaQuery();
 

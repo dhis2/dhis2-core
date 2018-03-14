@@ -37,9 +37,9 @@ import java.util.List;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public class JsonListBinaryType extends JsonBinaryType
+public class JsonListBinaryType 
+    extends JsonBinaryType
 {
-    
     @Override
     protected String convertObjectToJson( Object value )
     {

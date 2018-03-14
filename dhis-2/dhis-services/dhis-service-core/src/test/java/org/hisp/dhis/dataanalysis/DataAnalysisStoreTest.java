@@ -29,12 +29,13 @@ package org.hisp.dhis.dataanalysis;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -139,7 +140,7 @@ public class DataAnalysisStoreTest
     // ----------------------------------------------------------------------
 
     @Test
-    public void getGetStdDev()
+    public void testGetDataAnalysisMeasures()
     {
         dataValueService.addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo ) );
         dataValueService.addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "2", categoryOptionCombo ) );
@@ -151,26 +152,13 @@ public class DataAnalysisStoreTest
         dataValueService.addDataValue( createDataValue( dataElementA, periodH, organisationUnitA, "23", categoryOptionCombo ) );
         dataValueService.addDataValue( createDataValue( dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo ) );
         dataValueService.addDataValue( createDataValue( dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo ) );
-        
-        assertEquals( 15.26, dataAnalysisStore.getStandardDeviation( dataElementA, categoryOptionCombo, organisationUnits, from ).get( organisationUnitA.getId() ), DELTA );
-        assertNull( dataAnalysisStore.getStandardDeviation( dataElementA, categoryOptionCombo, organisationUnits, from ).get( organisationUnitB.getId() ) );
-    }
 
-    @Test
-    public void getGetAvg()
-    {
-        dataValueService.addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "2", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodC, organisationUnitA, "1", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodD, organisationUnitA, "12", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodE, organisationUnitA, "10", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodF, organisationUnitA, "7", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodG, organisationUnitA, "52", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodH, organisationUnitA, "23", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo ) );
-        
-        assertEquals( 12.78, dataAnalysisStore.getAverage( dataElementA, categoryOptionCombo, organisationUnits, from ).get( organisationUnitA.getId() ), DELTA );
-        assertNull( dataAnalysisStore.getAverage( dataElementA, categoryOptionCombo, organisationUnits, from ).get( organisationUnitB.getId() ) );
+        List<DataAnalysisMeasures> measures = dataAnalysisStore.getDataAnalysisMeasures( dataElementA,
+            Lists.newArrayList( categoryOptionCombo ), Lists.newArrayList( organisationUnitA.getPath() ), from );
+
+        assertEquals( 1, measures.size() );
+
+        assertEquals( 12.78, measures.get( 0 ).getAverage(), DELTA );
+        assertEquals( 15.26, measures.get( 0 ).getStandardDeviation(), DELTA );
     }
 }

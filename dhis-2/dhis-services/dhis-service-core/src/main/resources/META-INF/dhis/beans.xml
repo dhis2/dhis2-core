@@ -10,8 +10,6 @@
 
   <bean id="org.hisp.dhis.calendar.CalendarService" class="org.hisp.dhis.calendar.DefaultCalendarService" />
 
-  <bean id="org.hisp.dhis.schema.MergeService" class="org.hisp.dhis.schema.DefaultMergeService" />
-
   <bean class="org.hisp.dhis.calendar.impl.Iso8601Calendar" />
 
   <bean class="org.hisp.dhis.calendar.impl.CopticCalendar" />
@@ -28,8 +26,6 @@
 
   <bean class="org.hisp.dhis.calendar.impl.PersianCalendar" />
 
-  <bean id="org.hisp.dhis.schema.SchemaService" class="org.hisp.dhis.schema.DefaultSchemaService" />
-
   <bean id="org.hisp.dhis.query.planner.QueryPlanner" class="org.hisp.dhis.query.planner.DefaultQueryPlanner" />
 
   <bean id="org.hisp.dhis.query.QueryParser" class="org.hisp.dhis.query.DefaultQueryParser" />
@@ -40,51 +36,11 @@
 
   <bean id="org.hisp.dhis.query.QueryService" class="org.hisp.dhis.query.DefaultQueryService" />
 
-  <bean id="org.hisp.dhis.schema.PropertyIntrospectorService" class="org.hisp.dhis.schema.Jackson2PropertyIntrospectorService" />
-
   <bean id="org.hisp.dhis.security.acl.AclService" class="org.hisp.dhis.security.acl.DefaultAclService" />
 
-  <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
-
-  <bean class="org.hisp.dhis.schema.patch.DefaultPatchService" />
-
-  <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.IsEmptyNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.IsNotEmptyNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.SizeNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.serializers.CsvNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.ExcelNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.PdfNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.StAXNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean id="org.hisp.dhis.fieldfilter.FieldParser" class="org.hisp.dhis.fieldfilter.DefaultFieldParser" />
-
-  <bean id="org.hisp.dhis.fieldfilter.FieldFilterService" class="org.hisp.dhis.fieldfilter.DefaultFieldFilterService" />
+  <bean class="org.hisp.dhis.patch.DefaultPatchService" />
 
   <bean id="org.hisp.dhis.render.RenderService" class="org.hisp.dhis.render.DefaultRenderService" />
-
-  <bean id="org.hisp.dhis.schema.validation.SchemaValidator" class="org.hisp.dhis.schema.validation.DefaultSchemaValidator" />
 
   <bean class="org.hisp.dhis.amqp.RabbitMQAmqpService" />
 
@@ -164,6 +120,8 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
+
+  <bean id="org.hisp.dhis.datavalue.DataAccessManager" class="org.hisp.dhis.datavalue.DefaultAggregateAccessManager"/>
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore">
     <property name="clazz" value="org.hisp.dhis.dataapproval.DataApproval" />
@@ -246,6 +204,17 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateSequentialNumberCounterStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueStore" class="org.hisp.dhis.reservedvalue.hibernate.HibernateReservedValueStore">
+    <property name="clazz" value="org.hisp.dhis.reservedvalue.ReservedValue" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <!--DataSetNotifications-->
 
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
@@ -466,8 +435,6 @@
   </bean>
 
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectStore" class="org.hisp.dhis.deletedobject.hibernate.HibernateDeletedObjectStore" />
-
-  <bean id="org.hisp.dhis.schema.audit.MetadataAuditStore" class="org.hisp.dhis.schema.audit.hibernate.HibernateMetadataAuditStore" />
 
   <bean id="org.hisp.dhis.version.VersionStore" class="org.hisp.dhis.version.hibernate.HibernateVersionStore">
     <property name="sessionFactory" ref="sessionFactory" />
@@ -712,14 +679,6 @@
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
 
-  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueStore"
-    class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeReservedValueStore">
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService"
-    class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeReservedValueService" />
-
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramStageDataElement" />
@@ -868,7 +827,6 @@
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="fileResourceService" ref="org.hisp.dhis.fileresource.FileResourceService" />
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
@@ -925,14 +883,12 @@
   <bean id="org.hisp.dhis.dataset.DataSetService" class="org.hisp.dhis.dataset.DefaultDataSetService">
     <property name="dataSetStore" ref="org.hisp.dhis.dataset.DataSetStore" />
     <property name="lockExceptionStore" ref="org.hisp.dhis.dataset.LockExceptionStore" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="dataApprovalService" ref="org.hisp.dhis.dataapproval.DataApprovalService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationService"
     class="org.hisp.dhis.dataset.DefaultCompleteDataSetRegistrationService">
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
-    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
@@ -989,6 +945,7 @@
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
     <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
@@ -1119,8 +1076,6 @@
   <bean id="mockJob" class="org.hisp.dhis.scheduling.MockJob" />
 
   <bean id="org.hisp.dhis.deletedobject.DeletedObjectService" class="org.hisp.dhis.deletedobject.DefaultDeletedObjectService" />
-
-  <bean id="org.hisp.dhis.schema.audit.MetadataAuditService" class="org.hisp.dhis.schema.audit.DefaultMetadataAuditService" />
 
   <bean id="org.hisp.dhis.version.VersionService" class="org.hisp.dhis.version.DefaultVersionService">
     <property name="versionStore" ref="org.hisp.dhis.version.VersionStore" />
@@ -1488,6 +1443,11 @@
     <property name="attributeGroupStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.textpattern.TextPatternService" class="org.hisp.dhis.textpattern.DefaultTextPatternService" />
+
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueService" class="org.hisp.dhis.reservedvalue.DefaultReservedValueService">
+  </bean>
+
   <!-- Outbound messaging services -->
 
   <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"
@@ -1519,11 +1479,7 @@
   </bean>  
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
-    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService">
-    <property name="attributeStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore" />
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="programAttributeStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" />
-  </bean>
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService" />
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueService">
@@ -1641,9 +1597,7 @@
 
   <bean id="org.hisp.dhis.i18n.I18nManager" class="org.hisp.dhis.i18n.ui.DefaultI18nManager">
     <property name="resourceBundleManager" ref="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" />
-    <property name="localeManager">
-      <ref bean="org.hisp.dhis.i18n.locale.LocaleManager" />
-    </property>
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" class="org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager">
@@ -1659,6 +1613,10 @@
   <bean id="validationResultNotificationJob"
         class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
 
+  <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob">
+    <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
+  </bean>
+
   <!-- Startup routine definitions -->
 
   <bean id="org.hisp.dhis.startup.InitTableAlteror" class="org.hisp.dhis.startup.InitTableAlteror">
@@ -1673,9 +1631,15 @@
     <property name="runlevel" value="2" />
   </bean>
 
+  <bean id="twoFAPopulator" class="org.hisp.dhis.startup.TwoFAPopulator">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="runlevel" value="2" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
   <bean id="schedulerUpgrade" class="org.hisp.dhis.startup.SchedulerUpgrade">
     <property name="jobConfigurationService" ref="jobConfigurationService" />
-    <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
     <property name="runlevel" value="5" />
     <property name="skipInTests" value="true" />
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
@@ -2040,6 +2004,16 @@
   <bean id="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler"
     class="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
+        class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" >
+    <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
+        class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" >
+    <constructor-arg ref="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" />
   </bean>
 
   <!-- AOP definitions -->

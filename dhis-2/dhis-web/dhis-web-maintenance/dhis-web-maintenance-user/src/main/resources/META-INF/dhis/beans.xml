@@ -64,16 +64,14 @@
 
   <bean id="org.hisp.dhis.user.action.DisableUserAction" class="org.hisp.dhis.user.action.DisableUserAction" scope="prototype" />
   
-	<!-- Role -->
+  <!-- Role -->
 
   <bean id="org.hisp.dhis.user.action.AddRoleAction" class="org.hisp.dhis.user.action.AddRoleAction" scope="prototype">
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
   </bean>
 
   <bean id="org.hisp.dhis.user.action.GetRoleAction" class="org.hisp.dhis.user.action.GetRoleAction" scope="prototype">
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
   </bean>
 
@@ -87,7 +85,6 @@
 
   <bean id="org.hisp.dhis.user.action.UpdateRoleAction" class="org.hisp.dhis.user.action.UpdateRoleAction" scope="prototype">
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
-    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
   </bean>
 
   <bean id="org.hisp.dhis.user.action.ValidateRoleAction" class="org.hisp.dhis.user.action.ValidateRoleAction"

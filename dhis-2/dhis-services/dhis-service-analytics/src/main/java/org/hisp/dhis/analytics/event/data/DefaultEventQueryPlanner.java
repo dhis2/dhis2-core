@@ -230,10 +230,12 @@ public class DefaultEventQueryPlanner
     }
 
     /**
-     * Groups the given query in sub queries for each dimension period. This only applies
+     * Groups the given query in sub queries for each dimension period. This applies
      * if the aggregation type is {@link AggregationType#LAST} or 
-     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be 
-     * aggregated individually.
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query includes
+     * a {@link ProgramIndicator} that does not use default analytics period boundaries: 
+     * {@link EventQueryParams#hasNonDefaultBoundaries()}.
+     * In this case, each period must be aggregated individually. 
      * 
      * @param params the data query parameters.
      * @return a list of {@link EventQueryParams}.
@@ -242,7 +244,9 @@ public class DefaultEventQueryPlanner
     {
         List<EventQueryParams> queries = new ArrayList<>();
         
-        if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        
+        if ( ( params.isLastPeriodAggregationType() || params.hasNonDefaultBoundaries() )  &&
+            !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )
             {

@@ -108,21 +108,9 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     }
 
     @Override
-    public Period getNextPeriod( Period period, Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.plusWeeks( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
-    }
-
-    @Override
-    public Period getPreviousPeriod( Period period, Calendar calendar )
-    {
-        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( period.getStartDate(), calendar );
-        dateTimeUnit = calendar.minusWeeks( dateTimeUnit, 1 );
-
-        return createPeriod( dateTimeUnit, calendar );
+        return calendar.plusWeeks( dateTimeUnit, offset );
     }
 
     /**
@@ -134,6 +122,10 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     {
         Calendar calendar = getCalendar();
         List<Period> periods = new ArrayList<>();
+        start = new DateTimeUnit( start ); // create clone so we don't modify the original start DT
+
+        start.setMonth( 1 );
+        start.setDay( 4 );
         start = adjustToStartOfWeek( start, calendar );
 
         for ( int i = 0; i < calendar.weeksInYear( start.getYear() ); i++ )
@@ -152,18 +144,16 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
      * given date is inside.
      */
     @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit end )
+    public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )
     {
-        Calendar calendar = getCalendar();
-
         List<Period> periods = Lists.newArrayList();
-        end = adjustToStartOfWeek( end, calendar );
-        end = calendar.minusDays( end, 357 );
+        DateTimeUnit iterationDateTimeUnit = adjustToStartOfWeek( end, calendar );
+        iterationDateTimeUnit = calendar.minusDays( iterationDateTimeUnit, 357 );
 
         for ( int i = 0; i < 52; i++ )
         {
-            periods.add( createPeriod( end, calendar ) );
-            end = calendar.plusWeeks( end, 1 );
+            periods.add( createPeriod( iterationDateTimeUnit, calendar ) );
+            iterationDateTimeUnit = calendar.plusWeeks( iterationDateTimeUnit, 1 );
         }
 
         return periods;
@@ -178,7 +168,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
         if ( calendar.isIso8601() )
         {
             LocalDate date = LocalDate.of( dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay() );
-            WeekFields weekFields = WeekFields.of(PeriodType.MAP_WEEK_TYPE.get( getName() ), 4 );
+            WeekFields weekFields = WeekFields.of( PeriodType.MAP_WEEK_TYPE.get( getName() ), 4 );
 
             year = date.get( weekFields.weekBasedYear() );
             week = date.get( weekFields.weekOfWeekBasedYear() );

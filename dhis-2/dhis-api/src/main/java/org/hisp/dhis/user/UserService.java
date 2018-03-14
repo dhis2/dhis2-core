@@ -378,4 +378,6 @@ public interface UserService
      * @return list of active users whose credentials are expiring with in few days.
      */
     List<User> getExpiringUsers();
+
+    void set2FA( User user, Boolean twoFA );
 }

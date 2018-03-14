@@ -656,25 +656,6 @@ public class OrganisationUnitServiceTest
         assertTrue( fetchedGroupIds.containsAll( groupIds ) );
     }
 
-    @Test
-    public void testGetOrganisationUnitGroupByName()
-    {
-        String oUG1Name = "OUG1Name";
-        String oUG2Name = "OUG2Name";
-
-        OrganisationUnitGroup organisationUnitGroup1 = new OrganisationUnitGroup( oUG1Name );
-        OrganisationUnitGroup organisationUnitGroup2 = new OrganisationUnitGroup( oUG2Name );
-
-        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
-        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup2 );
-
-        OrganisationUnitGroup group1 = organisationUnitGroupService.getOrganisationUnitGroupByName( oUG1Name ).get( 0 );
-        assertEquals( group1.getName(), oUG1Name );
-
-        OrganisationUnitGroup group2 = organisationUnitGroupService.getOrganisationUnitGroupByName( oUG2Name ).get( 0 );
-        assertEquals( group2.getName(), oUG2Name );
-    }
-
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------
@@ -789,52 +770,6 @@ public class OrganisationUnitServiceTest
 
         assertNull( organisationUnitGroupService.getOrganisationUnitGroupSet( id1 ) );
         assertNull( organisationUnitGroupService.getOrganisationUnitGroupSet( id2 ) );
-    }
-
-    @Test
-    public void testGetOrganisationUnitGroupSetsByName()
-    {
-        OrganisationUnitGroup organisationUnitGroup1 = new OrganisationUnitGroup();
-        organisationUnitGroup1.setName( "oug1" );
-        OrganisationUnitGroup organisationUnitGroup2 = new OrganisationUnitGroup();
-        organisationUnitGroup2.setName( "oug2" );
-        OrganisationUnitGroup organisationUnitGroup3 = new OrganisationUnitGroup();
-        organisationUnitGroup3.setName( "oug3" );
-        OrganisationUnitGroup organisationUnitGroup4 = new OrganisationUnitGroup();
-        organisationUnitGroup4.setName( "oug4" );
-
-        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
-        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup2 );
-        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup3 );
-        organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup4 );
-
-        String ougs1 = "ougs1";
-        String ougs2 = "ougs2";
-
-        OrganisationUnitGroupSet organisationUnitGroupSet1 = new OrganisationUnitGroupSet();
-        organisationUnitGroupSet1.setName( ougs1 );
-        organisationUnitGroupSet1.setCompulsory( true );
-        organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup1 );
-        organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup2 );
-        organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup3 );
-
-        OrganisationUnitGroupSet organisationUnitGroupSet2 = new OrganisationUnitGroupSet();
-        organisationUnitGroupSet2.setName( ougs2 );
-        organisationUnitGroupSet2.setCompulsory( false );
-        organisationUnitGroupSet2.getOrganisationUnitGroups().add( organisationUnitGroup4 );
-
-        organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSet1 );
-        organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSet2 );
-
-        OrganisationUnitGroupSet set1 = organisationUnitGroupService.getOrganisationUnitGroupSetByName( ougs1 ).get( 0 );
-        OrganisationUnitGroupSet set2 = organisationUnitGroupService.getOrganisationUnitGroupSetByName( ougs2 ).get( 0 );
-
-        assertEquals( set1.getName(), ougs1 );
-        assertEquals( set2.getName(), ougs2 );
-
-        List<OrganisationUnitGroupSet> compulsorySets = organisationUnitGroupService
-            .getCompulsoryOrganisationUnitGroupSets();
-        assertEquals( compulsorySets.size(), 1 );
     }
 
     // -------------------------------------------------------------------------

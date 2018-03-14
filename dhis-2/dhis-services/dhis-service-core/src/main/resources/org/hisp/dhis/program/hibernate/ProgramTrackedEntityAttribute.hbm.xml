@@ -28,6 +28,8 @@
     <property name="allowFutureDate" column="allowFutureDate" />
     
     <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
+
+    <property name="renderType" type="jbRenderType" column="rendertype" />
     
     <property name="searchable" column="searchable" />
 

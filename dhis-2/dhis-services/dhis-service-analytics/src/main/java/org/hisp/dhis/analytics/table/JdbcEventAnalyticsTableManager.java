@@ -99,7 +99,10 @@ public class JdbcEventAnalyticsTableManager
                 table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
             }
             
-            tables.add( table );
+            if ( table.hasPartitionTables() )
+            {
+                tables.add( table );
+            }
         }
 
         return tables;

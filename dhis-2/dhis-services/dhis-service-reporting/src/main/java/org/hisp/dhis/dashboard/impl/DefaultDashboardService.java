@@ -142,6 +142,7 @@ public class DefaultDashboardService
         result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes ) ) );
         result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes ) ) );
+        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET, getMax( DashboardItemType.APP, maxTypes ) ) );
         
         return result;
     }
