@@ -287,7 +287,7 @@ public class DefaultInterpretationService
         comment.setUid( CodeGenerator.generateUid() );
 
         Set<User> users = MentionUtils.getMentionedUsers( text, userService );
-        comment.setMentions( users );
+        comment.setMentionsFromUsers( users );
 
         if ( user != null )
         {
