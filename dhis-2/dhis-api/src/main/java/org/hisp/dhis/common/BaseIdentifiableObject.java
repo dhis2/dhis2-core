@@ -511,6 +511,28 @@ public class BaseIdentifiableObject
         return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
     }
 
+    @Override
+    public boolean setAsFavorite( User user )
+    {        
+        if ( this.favorites == null )
+        {
+            this.favorites = new HashSet<>();
+        }
+        
+        return this.favorites.add( user.getUid() );
+    }
+
+    @Override
+    public boolean removeAsFavorite( User user )
+    {        
+        if ( this.favorites == null )
+        {
+            this.favorites = new HashSet<>();
+        }
+        
+        return this.favorites.remove( user.getUid() );
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------

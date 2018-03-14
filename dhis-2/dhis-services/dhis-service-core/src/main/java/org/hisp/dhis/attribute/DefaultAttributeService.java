@@ -37,8 +37,6 @@ import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -216,101 +214,6 @@ public class DefaultAttributeService
     public AttributeValue getAttributeValue( int id )
     {
         return attributeValueStore.get( id );
-    }
-
-    @Override
-    public List<AttributeValue> getAllAttributeValues()
-    {
-        return new ArrayList<>( attributeValueStore.getAll() );
-    }
-
-    @Override
-    public List<AttributeValue> getAllAttributeValuesByAttributes( List<Attribute> attributes )
-    {
-        return attributeValueStore.getAllByAttributes( attributes );
-    }
-
-    @Override
-    public List<AttributeValue> getAllAttributeValuesByAttribute( Attribute attribute )
-    {
-        return attributeValueStore.getAllByAttribute( attribute );
-    }
-
-    @Override
-    public List<AttributeValue> getAllAttributeValuesByAttributeAndValue( Attribute attribute, String value )
-    {
-        return attributeValueStore.getAllByAttributeAndValue( attribute, value );
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean isAttributeValueUnique( T object, AttributeValue attributeValue )
-    {
-        return attributeValueStore.isAttributeValueUnique( object, attributeValue );
-    }
-
-    @Override
-    public int getAttributeValueCount()
-    {
-        return attributeValueStore.getCount();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validateAttributeValues( T object, Set<AttributeValue> attributeValues )
-    {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
-        if ( attributeValues.isEmpty() )
-        {
-            return errorReports;
-        }
-
-        Map<String, AttributeValue> attributeValueMap = attributeValues.stream()
-            .filter( av -> av.getAttribute() != null )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av ) );
-
-        Iterator<AttributeValue> iterator = object.getAttributeValues().iterator();
-        List<Attribute> mandatoryAttributes = getMandatoryAttributes( object.getClass() );
-
-        while ( iterator.hasNext() )
-        {
-            AttributeValue attributeValue = iterator.next();
-
-            if ( attributeValue.getAttribute() != null && attributeValueMap.containsKey( attributeValue.getAttribute().getUid() ) )
-            {
-                AttributeValue av = attributeValueMap.get( attributeValue.getAttribute().getUid() );
-
-                if ( attributeValue.isUnique() )
-                {
-                    if ( !manager.isAttributeValueUnique( object.getClass(), object, attributeValue.getAttribute(), av.getValue() ) )
-                    {
-                        errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4009, attributeValue.getAttribute().getUid(), av.getValue() )
-                            .setMainId( attributeValue.getAttribute().getUid() ).setErrorProperty( "value" ) );
-                    }
-                }
-
-                attributeValueMap.remove( attributeValue.getAttribute().getUid() );
-                mandatoryAttributes.remove( attributeValue.getAttribute() );
-            }
-        }
-
-        for ( String uid : attributeValueMap.keySet() )
-        {
-            AttributeValue attributeValue = attributeValueMap.get( uid );
-
-            if ( attributeValue.getAttribute() != null && !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
-            {
-                errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4010, attributeValue.getAttribute().getUid(),
-                    object.getClass().getSimpleName() ).setMainId( uid ).setErrorProperty( "id" ) );
-            }
-            else
-            {
-                mandatoryAttributes.remove( attributeValue.getAttribute() );
-            }
-        }
-
-        mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att.getUid() ).setMainId( att.getUid() ) ) );
-
-        return errorReports;
     }
 
     @Override

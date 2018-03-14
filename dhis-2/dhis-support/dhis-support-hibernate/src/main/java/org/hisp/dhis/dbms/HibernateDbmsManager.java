@@ -114,8 +114,8 @@ public class HibernateDbmsManager
         emptyTable( "interpretationusergroupaccesses" );
         emptyTable( "interpretation" );
 
-        emptyTable( "delete from reportusergroupaccesses" );
-        emptyTable( "delete from report" );
+        emptyTable( "reportusergroupaccesses" );
+        emptyTable( "report" );
 
         emptyTable( "reporttable_categorydimensions" );
         emptyTable( "reporttable_categoryoptiongroupsetdimensions" );
@@ -358,6 +358,9 @@ public class HibernateDbmsManager
         dropTable( "_periodstructure" );
         dropTable( "_dataelementcategoryoptioncombo" );
         dropTable( "_dataapprovalminlevel" );
+
+        emptyTable( "reservedvalue" );
+        emptyTable( "sequentialnumbercounter" );
 
         log.debug( "Cleared database contents" );
 

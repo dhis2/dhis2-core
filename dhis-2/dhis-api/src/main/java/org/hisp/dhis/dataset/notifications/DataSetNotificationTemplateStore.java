@@ -40,7 +40,7 @@ import java.util.List;
 public interface DataSetNotificationTemplateStore
     extends GenericIdentifiableObjectStore<DataSetNotificationTemplate>
 {
-    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, NotificationTrigger trigger );
+    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, DataSetNotificationTrigger trigger );
 
     List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
 }

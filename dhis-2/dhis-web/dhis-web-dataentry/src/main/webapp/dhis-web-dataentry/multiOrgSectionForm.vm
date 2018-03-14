@@ -85,31 +85,33 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                         #foreach( $dataElement in $dataElements )
                                             <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
                                             #foreach( $optionCombo in $optionCombos )
+                                                #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                                 #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                 #set( $greyedField = false )
                                                 #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
+                                                #set( $disable = !$canWriteOptionCombo || $greyedField || !$hasAccess )
                                                 #if( $dataElement.valueType == "BOOLEAN" )
                                                     <td>
-                                                        <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                                                        <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
                                                             <option value="">[$i18n.getString( "no_value" )]</option>
                                                             <option value="true">$i18n.getString( "yes" )</option>
                                                             <option value="false">$i18n.getString( "no" )</option>
                                                         </select>
                                                     </td>
                                                 #elseif( $dataElement.valueType == 'TRUE_ONLY' )
-                                                    <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                    <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                 #elseif( $dataElement.valueType == "TIME" )
-                                                    <td><input type="time" class="entrytime" name="entrytime" id="$dataEntryId" tabindex="$tabIndex" #if( $greyedField || !$hasAccess ) disabled="disabled"#end/> </td>
+                                                    <td><input type="time" class="entrytime" name="entrytime" id="$dataEntryId" tabindex="$tabIndex" #if( $disable ) disabled="disabled"#end/> </td>
                                                 #elseif( $dataElement.valueType == "DATETIME" )
                                                     <td>
-                                                        <input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
-                                                        <input type="time" class="entrytime" name="entrytime" id="${dataElement.uid}-${optionCombo.uid}-time" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end/>
+                                                        <input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
+                                                        <input type="time" class="entrytime" name="entrytime" id="${dataElement.uid}-${optionCombo.uid}-time" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end/>
                                                     </td>
                                                 #else
                                                     #if( $dataElement.optionSet )
-                                                        <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                        <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                     #else
-                                                        <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                        <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                     #end
                                                 #end
                                                 #set( $tabIndex = $tabIndex + 1 )
@@ -168,24 +170,26 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                             #foreach( $organisationUnit in $organisationUnits )
                                                 <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
                                                 #foreach( $optionCombo in $optionCombos )
+                                                    #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                     #set( $greyedField = false )
                                                     #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
+                                                    #set( $disable = !$canWriteOptionCombo || $greyedField || !$hasAccess )
                                                     #if( $dataElement.valueType == "BOOLEAN" )
-                                                    <td><select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                                                    <td><select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
                                                       <option value="">[$i18n.getString( "no_value" )]</option>
                                                       <option value="true">$i18n.getString( "yes" )</option>
                                                       <option value="false">$i18n.getString( "no" )</option>
                                                     </select></td>
                                                     #elseif( $dataElement.valueType == 'TRUE_ONLY' )
-                                                        <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                        <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                     #elseif( $dataElement.valueType == "TIME" )
                                                         <td><input type="time" class="entrytime" name="entrytime" id="$dataEntryId" tabindex="$tabIndex"/> </td>
                                                     #else
                                                         #if( $dataElement.optionSet )
-                                                            <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                            <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                         #else
-                                                            <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                            <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                         #end
                                                     #end
                                                     #set( $tabIndex = $tabIndex + 1 )
@@ -195,6 +199,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                     #else
                                         #set( $catIndex = 0 )
                                         #foreach( $optionCombo in $optionCombos )
+                                            #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                             #set( $velocityCount0 = $velocityCount - 1 )
                                             #set( $catPart = $velocityCount0 % $categories.size() )
                                             #if( $catPart == 0 ) #set( $catIndex = $catIndex + 1 ) #end
@@ -221,23 +226,24 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                     #set( $greyedField = false )
                                                     #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
+                                                    #set( $disable = !$canWriteOptionCombo || $greyedField || !$hasAccess )
                                                     #if( $dataElement.valueType == "BOOLEAN" )
                                                         <td>
-                                                            <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                                                            <select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end>
                                                                 <option value="">[$i18n.getString( "no_value" )]</option>
                                                                 <option value="true">$i18n.getString( "yes" )</option>
                                                                 <option value="false">$i18n.getString( "no" )</option>
                                                             </select>
                                                         </td>
                                                     #elseif( $dataElement.valueType == 'TRUE_ONLY' )
-                                                        <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                        <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                     #elseif( $dataElement.valueType == "TIME" )
                                                         <td><input type="time" class="entrytime" name="entrytime" id="$dataEntryId" tabindex="$tabIndex"/> </td>
                                                     #else
                                                         #if( $dataElement.optionSet )
-                                                            <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                            <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                         #else
-                                                            <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                                                            <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $disable ) disabled="disabled"#end></td>
                                                         #end
                                                     #end
                                                     #set( $tabIndex = $tabIndex + 1 )

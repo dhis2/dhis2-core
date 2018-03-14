@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -81,7 +82,7 @@ public class AnalyticsTestUtils
      * @param inputFile points to file in class path
      * @return list of list of strings
      */
-    public static ArrayList<String[]> readInputFile( String inputFile )
+    public static List<String[]> readInputFile( String inputFile )
         throws IOException
     {
         InputStream input = new ClassPathResource( inputFile ).getInputStream();

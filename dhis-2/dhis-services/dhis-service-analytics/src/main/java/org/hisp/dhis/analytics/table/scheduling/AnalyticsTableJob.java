@@ -69,5 +69,4 @@ public class AnalyticsTableJob
 
         analyticsTableGenerator.generateTables( params );
     }
-
 }

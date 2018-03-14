@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -120,6 +121,13 @@ public class ProgramIndicator
         put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "ps" ).
         put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "ps" ).build();
 
+    private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
+    private static final Set<AnalyticsPeriodBoundary> defaultErollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
+        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
+    
     private Program program;
 
     private String expression;
@@ -138,6 +146,8 @@ public class ProgramIndicator
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
 
     private AnalyticsType analyticsType = AnalyticsType.EVENT;
+    
+    private Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries = new HashSet<>();
 
     private ObjectStyle style;
 
@@ -264,6 +274,62 @@ public class ProgramIndicator
             addProgramIndicatorGroup( group );
         }
     }
+    
+    /**
+     * Indicates whether the program indicator has standard reporting period boundaries, and can use the 
+     * pre-aggregated data in the analytics tables directly, or whether a custom set of boundaries is used. 
+     * @return true if the program indicator uses custom boundaries that the database query will need to 
+     * handle.
+     */
+    public Boolean hasNonDefaultBoundaries()
+    {
+        return this.analyticsType == AnalyticsType.EVENT && 
+            !this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
+            this.analyticsType == AnalyticsType.ENROLLMENT && 
+            !this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
+    }
+    
+    /**
+     * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries event data.
+     */
+    public Boolean hasEventBoundary()
+    {
+        return getEndEventBoundary() != null || getStartEventBoundary() != null;
+    }
+    
+    /**
+     * Returns the boundary for the latest event date to include in the further evaluation.
+     * @return The analytics period boundary that defines the event end date. Null if none is found.
+     */
+    public AnalyticsPeriodBoundary getEndEventBoundary()
+    {
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() )
+            {
+                return boundary;                
+            }
+        }
+
+        return null;
+    }
+    
+    /**
+     * Returns the boundary for the earliest event date to include in the further evaluation.
+     * @return The analytics period boundary that defines the event start date. Null if none is found.
+     */
+    public AnalyticsPeriodBoundary getStartEventBoundary()
+    {
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() )
+            {
+                return boundary;                
+            }
+        }
+
+        return null;
+    }
 
     // -------------------------------------------------------------------------
     // DimensionalItemObject
@@ -365,6 +431,20 @@ public class ProgramIndicator
     {
         this.analyticsType = analyticsType;
     }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "analyticsPeriodBoundaries", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "analyticsPeriodBoundary", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<AnalyticsPeriodBoundary> getAnalyticsPeriodBoundaries()
+    {
+        return analyticsPeriodBoundaries;
+    }
+
+    public void setAnalyticsPeriodBoundaries( Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries )
+    {
+        this.analyticsPeriodBoundaries = analyticsPeriodBoundaries;
+    }
+
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

@@ -88,12 +88,6 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     }
 
     @Override
-    public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroupByName( String name )
-    {
-        return attributeGroupStore.getByName( name );
-    }
-
-    @Override
     public List<ProgramTrackedEntityAttributeGroup> getAllProgramTrackedEntityAttributeGroups()
     {
         return attributeGroupStore.getAll();

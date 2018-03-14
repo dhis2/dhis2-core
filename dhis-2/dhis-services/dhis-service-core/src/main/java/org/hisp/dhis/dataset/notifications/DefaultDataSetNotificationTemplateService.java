@@ -58,7 +58,7 @@ public class DefaultDataSetNotificationTemplateService
     @Override
     public List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet )
     {
-       return store.getNotificationsByTriggerType( dataSet, NotificationTrigger.COMPLETION );
+       return store.getNotificationsByTriggerType( dataSet, DataSetNotificationTrigger.DATA_SET_COMPLETION );
     }
 
     @Override

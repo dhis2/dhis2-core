@@ -277,10 +277,10 @@ public class AnalyticsServiceTest
 
         // Read data values from CSV files
         // --------------------------------------------------------------------
-        ArrayList<String[]> dataValueLines = AnalyticsTestUtils.readInputFile( "csv/dataValues.csv" );
+        List<String[]> dataValueLines = AnalyticsTestUtils.readInputFile( "csv/dataValues.csv" );
         parseDataValues( dataValueLines );
 
-        ArrayList<String[]> dataSetRegistrationLines = AnalyticsTestUtils.readInputFile( "csv/dataSetRegistrations.csv" );
+        List<String[]> dataSetRegistrationLines = AnalyticsTestUtils.readInputFile( "csv/dataSetRegistrations.csv" );
         parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
@@ -884,9 +884,9 @@ public class AnalyticsServiceTest
     /**
      * Adds data value based on input from vales
      *
-     * @param lines the arraylist of arrays of property values.
+     * @param lines the list of arrays of property values.
      */
-    private void parseDataValues( ArrayList<String[]> lines )
+    private void parseDataValues( List<String[]> lines )
     {
         for( String[] line : lines)
         {
@@ -907,9 +907,9 @@ public class AnalyticsServiceTest
     /**
      * Adds data set registrations based on input from vales
      *
-     * @param lines the arraylist of arrays of property values.
+     * @param lines the list of arrays of property values.
      */
-    private void parseDataSetRegistrations( ArrayList<String[]> lines )
+    private void parseDataSetRegistrations( List<String[]> lines )
     {
         String storedBy = "johndoe";
         Date now = new Date();

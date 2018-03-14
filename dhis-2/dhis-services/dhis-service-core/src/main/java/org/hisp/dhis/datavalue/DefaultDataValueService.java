@@ -41,7 +41,6 @@ import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -101,13 +100,6 @@ public class DefaultDataValueService
     public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
-    }
-
-    private FileResourceService fileResourceService;
-
-    public void setFileResourceService( FileResourceService fileResourceService )
-    {
-        this.fileResourceService = fileResourceService;
     }
 
     // -------------------------------------------------------------------------
@@ -207,11 +199,6 @@ public class DefaultDataValueService
         DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
         dataValueAuditService.addDataValueAudit( dataValueAudit );
-
-        if ( dataValue.getDataElement().isFileType() )
-        {
-            fileResourceService.deleteFileResource( dataValue.getValue() );
-        }
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );

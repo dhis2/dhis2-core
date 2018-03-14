@@ -29,7 +29,8 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.GenericNameableObjectStore;
+
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,7 +63,7 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AttributeStore
-    extends GenericNameableObjectStore<Attribute>
+    extends GenericIdentifiableObjectStore<Attribute>
 {
     String ID = AttributeStore.class.getName();
 
