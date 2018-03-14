@@ -43,10 +43,6 @@ import org.hisp.dhis.user.UserService;
 
 public final class MentionUtils
 {
-    private MentionUtils()
-    {
-    }
-
     public static List<Mention> convertUsersToMentions( Set<User> users )
     {
         List<Mention> mentions = new ArrayList<Mention>();
