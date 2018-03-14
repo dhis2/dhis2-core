@@ -128,8 +128,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // Intepretation create
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeReportTableInterpretation( @PathVariable( "uid" ) String reportTableUid,
         @RequestParam( value = "pe", required = false ) String isoPeriod,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
@@ -187,8 +186,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( map, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -208,8 +206,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( eventReport, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -229,8 +226,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( eventChart, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeDataSetReportInterpretation( @PathVariable( "uid" ) String dataSetUid,
         @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -312,8 +308,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void updateInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text,
-        HttpServletResponse response )
+    public void updateInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text, HttpServletResponse response )
         throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
