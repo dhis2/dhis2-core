@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author eirikmi
@@ -199,26 +198,5 @@ public class MinMaxOutlierAnalysisServiceTest
         List<DeflatedDataValue> result = minMaxOutlierAnalysisService.analyse( Lists.newArrayList( organisationUnitA ), dataElementsA, periods, null, from );
 
         assertEquals( 2, result.size() );
-    }
-
-    @Test
-    public void testGenerateMinMaxValues()
-    {
-        dataValueService.addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "6", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "7", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodC, organisationUnitA, "8", categoryOptionCombo ) );
-
-        dataValueService.addDataValue( createDataValue( dataElementB, periodA, organisationUnitA, "10", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementB, periodB, organisationUnitA, "20", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementB, periodC, organisationUnitA, "30", categoryOptionCombo ) );
-
-        minMaxOutlierAnalysisService.generateMinMaxValues( organisationUnitA, dataElementsA, 2.0 );
-
-        List<MinMaxDataElement> minMaxDataElements = minMaxDataElementService.getAllMinMaxDataElements();
-
-        assertEquals( 2, minMaxDataElements.size() );
-
-        assertTrue( minMaxDataElements.contains( new MinMaxDataElement( organisationUnitA, dataElementA, categoryOptionCombo, 5, 9, true ) ) );
-        assertTrue( minMaxDataElements.contains( new MinMaxDataElement( organisationUnitA, dataElementB, categoryOptionCombo, 4, 36, true ) ) );
     }
 }
