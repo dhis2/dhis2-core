@@ -113,13 +113,10 @@ public class MinMaxValueController
             dataElements.addAll( dataSet.getDataElements() );
         }
 
-        Collection<OrganisationUnit> orgUnits = this.organisationUnitService
-            .getOrganisationUnitWithChildren( organisationUnit.getId() );
-
         Double factor = (Double) this.systemSettingManager.
             getSystemSetting( SettingKey.FACTOR_OF_DEVIATION );
 
-        this.minMaxDataAnalysisService.generateMinMaxValues( orgUnits, dataElements, factor );
+        this.minMaxDataAnalysisService.generateMinMaxValues( organisationUnit, dataElements, factor );
 
     }
 
@@ -150,10 +147,7 @@ public class MinMaxValueController
             dataElements.addAll( dataSet.getDataElements() );
         }
 
-        Collection<OrganisationUnit> orgUnits = this.organisationUnitService
-            .getOrganisationUnitWithChildren( organisationUnit.getId() );
-
-        minMaxDataElementService.removeMinMaxDataElements( dataElements, orgUnits );
+        minMaxDataElementService.removeMinMaxDataElements( dataElements, organisationUnit );
 
     }
 }
