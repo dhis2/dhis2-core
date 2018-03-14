@@ -242,7 +242,7 @@ public class InterpretationServiceTest
     public void testMentions()
     {
         // Testing with mentions 
-        interpretationA = new Interpretation( chartA, null, "Interpration of chart A with Mentions @" + userA.getUsername());
+        interpretationA = new Interpretation( chartA, null, "Interpration of chart A with Mentions @" + userA.getUsername() );
         interpretationService.saveInterpretation( interpretationA );
 
         String uid = interpretationA.getUid();
