@@ -1,7 +1,7 @@
-package org.hisp.dhis.hibernate.dialect;
+package org.hisp.dhis.interpretation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +28,46 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.H2Dialect;
+import java.io.Serializable;
 
-import java.sql.Types;
+import java.util.Date;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Lars Helge Overland
+ * @author Adrian Quintana
  */
-public class DhisH2Dialect extends H2Dialect
+@JacksonXmlRootElement( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+public class Mention implements Serializable
 {
-    public DhisH2Dialect()
+    private String username;
+    
+    private Date created;
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUsername()
     {
-        registerColumnType( Types.JAVA_OBJECT, "text" );
-        registerColumnType( Types.JAVA_OBJECT - 1, "jsonb" );
+        return username;
     }
 
-    @Override
-    public String getDropSequenceString( String sequenceName )
+    public void setUsername( String username )
     {
-        // Adding the "if exists" clause to avoid warnings
-        return "drop sequence if exists " + sequenceName;
+        this.username = username;
     }
 
-    @Override
-    public boolean dropConstraints()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreated()
     {
-        // No need to drop constraints before dropping tables, leads to error
-        // messages
-        return false;
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
     }
 }
