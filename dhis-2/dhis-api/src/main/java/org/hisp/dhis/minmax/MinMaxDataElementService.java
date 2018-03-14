@@ -57,8 +57,6 @@ public interface MinMaxDataElementService
 
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements );
     
-    List<MinMaxDataElement> getAllMinMaxDataElements();
-
     List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     int countMinMaxDataElements( MinMaxDataElementQueryParams query );

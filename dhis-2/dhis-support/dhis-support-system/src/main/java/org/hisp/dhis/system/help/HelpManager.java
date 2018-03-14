@@ -1,4 +1,4 @@
-package org.hisp.dhis.help;
+package org.hisp.dhis.system.help;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -49,17 +49,15 @@ import static org.hisp.dhis.commons.util.StreamUtils.ENCODING_UTF8;
 /**
  * @author Lars Helge Overland
  */
-public class DefaultHelpManager
-    implements HelpManager
+public class HelpManager
 {
-    private static final Log log = LogFactory.getLog( DefaultHelpManager.class );
+    private static final Log log = LogFactory.getLog( HelpManager.class );
 
     // -------------------------------------------------------------------------
     // HelpManager implementation
     // -------------------------------------------------------------------------
 
-    @Override
-    public void getHelpContent( OutputStream out, String id, Locale locale )
+    public static void getHelpContent( OutputStream out, String id, Locale locale )
     {
         try
         {
@@ -81,8 +79,7 @@ public class DefaultHelpManager
         }
     }
 
-    @Override
-    public void getHelpItems( OutputStream out, Locale locale )
+    public static void getHelpItems( OutputStream out, Locale locale )
     {
         try
         {
@@ -104,7 +101,7 @@ public class DefaultHelpManager
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Transformer getTransformer( String stylesheetName )
+    private static Transformer getTransformer( String stylesheetName )
         throws IOException, TransformerConfigurationException
     {
         Source stylesheet = new StreamSource( new ClassPathResource( stylesheetName ).getInputStream(), ENCODING_UTF8 );
@@ -112,7 +109,7 @@ public class DefaultHelpManager
         return TransformerFactory.newInstance().newTransformer( stylesheet );
     }
 
-    private ClassPathResource resolveHelpFileResource( Locale locale )
+    private static ClassPathResource resolveHelpFileResource( Locale locale )
     {
         String helpFile = null;
         

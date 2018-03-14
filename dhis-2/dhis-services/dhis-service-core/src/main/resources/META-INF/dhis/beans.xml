@@ -1031,7 +1031,6 @@
     <property name="messageConversationStore" ref="org.hisp.dhis.message.MessageConversationStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
-    <property name="emailService" ref="org.hisp.dhis.email.EmailService" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
@@ -1291,8 +1290,6 @@
   </bean>
 
   <bean id="org.hisp.dhis.common.IdentifiableObjectManager" class="org.hisp.dhis.common.DefaultIdentifiableObjectManager" />
-
-  <bean id="org.hisp.dhis.help.HelpManager" class="org.hisp.dhis.help.DefaultHelpManager" />
 
   <bean id="org.hisp.dhis.appmanager.AppManager" class="org.hisp.dhis.appmanager.DefaultAppManager" />
 
