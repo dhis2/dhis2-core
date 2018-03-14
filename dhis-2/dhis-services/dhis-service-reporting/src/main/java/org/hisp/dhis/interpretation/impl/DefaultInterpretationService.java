@@ -144,7 +144,7 @@ public class DefaultInterpretationService
 
             users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
             
-            interpretation.setMentions( users );
+            interpretation.setMentionsFromUsers( users );
         }
 
         interpretationStore.save( interpretation );
@@ -171,7 +171,7 @@ public class DefaultInterpretationService
     {
         Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
         
-        interpretation.setMentions( users );
+        interpretation.setMentionsFromUsers( users );
 
         interpretationStore.update( interpretation );
 

@@ -484,7 +484,7 @@ public class Interpretation
     }
     
     @JsonIgnore
-    public void setMentions( Set<User> users )
+    public void setMentionsFromUsers( Set<User> users )
     {
         this.mentions = MentionUtils.convertUsersToMentions( users );
     }
