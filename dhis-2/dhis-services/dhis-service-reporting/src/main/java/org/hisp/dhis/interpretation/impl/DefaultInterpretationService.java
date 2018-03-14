@@ -149,7 +149,7 @@ public class DefaultInterpretationService
 
         interpretationStore.save( interpretation );
 
-        this.sendNotifications( interpretation, null, users );
+        sendNotifications( interpretation, null, users );
 
         return interpretation.getId();
     }
@@ -297,7 +297,7 @@ public class DefaultInterpretationService
         interpretation.addComment( comment );
         interpretationStore.update( interpretation );
 
-        this.sendNotifications( interpretation, comment, users );
+        sendNotifications( interpretation, comment, users );
 
         return comment;
     }
