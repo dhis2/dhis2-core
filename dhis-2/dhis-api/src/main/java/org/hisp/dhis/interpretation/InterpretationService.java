@@ -63,6 +63,8 @@ public interface InterpretationService
     InterpretationComment addInterpretationComment( String uid, String text );
 
     void sendNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users );
+    
+    void updateSharingForMentions( Interpretation interpretation, Set<User> users );
 
     void updateCurrentUserLastChecked();
 

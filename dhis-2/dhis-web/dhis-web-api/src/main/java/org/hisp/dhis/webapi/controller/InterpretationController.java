@@ -398,7 +398,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
                 comment.setText( content );
                 Set<User> users = MentionUtils.getMentionedUsers( content, userService );
-                comment.setMentions( users );
+                comment.setMentionsFromUsers( users );
+                interpretationService.updateSharingForMentions( interpretation, users );
                 
                 interpretationService.updateInterpretation( interpretation );
                 interpretationService.sendNotifications( interpretation, comment, users );

@@ -43,9 +43,12 @@ import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -111,6 +114,13 @@ public class DefaultInterpretationService
     {
         this.systemSettingManager = systemSettingManager;
     }
+    
+    private AclService aclService;
+
+    public void setAclService( AclService aclService )
+    {
+        this.aclService = aclService;
+    }
 
     private I18nManager i18nManager;
 
@@ -142,9 +152,9 @@ public class DefaultInterpretationService
                 interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
             }
 
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-            
-            interpretation.setMentionsFromUsers( users );
+            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );            
+            interpretation.setMentionsFromUsers( users );            
+            updateSharingForMentions( interpretation, users );
         }
 
         interpretationStore.save( interpretation );
@@ -172,9 +182,9 @@ public class DefaultInterpretationService
         Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
         
         interpretation.setMentionsFromUsers( users );
-
         interpretationStore.update( interpretation );
-
+        updateSharingForMentions( interpretation, users );
+        
         sendNotifications( interpretation, null, users );
     }
 
@@ -261,6 +271,18 @@ public class DefaultInterpretationService
     }
 
     @Override
+    public void updateSharingForMentions( Interpretation interpretation, Set<User> users )
+    {
+        for ( User user : users )
+        {
+            if ( !aclService.canRead( user, interpretation.getObject() ) )
+            {
+                interpretation.getObject().getUserAccesses().add( new UserAccess( user, AccessStringHelper.READ ) );
+            }
+        }
+    }
+    
+    @Override
     public Collection<Disjunction> getDisjunctionsFromCustomMentions( List<String> mentions, Schema schema )
     {
         Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
@@ -288,6 +310,7 @@ public class DefaultInterpretationService
 
         Set<User> users = MentionUtils.getMentionedUsers( text, userService );
         comment.setMentionsFromUsers( users );
+        updateSharingForMentions( interpretation, users );
 
         if ( user != null )
         {
