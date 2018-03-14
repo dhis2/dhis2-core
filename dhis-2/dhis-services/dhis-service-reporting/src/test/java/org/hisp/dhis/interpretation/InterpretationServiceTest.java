@@ -57,8 +57,7 @@ import static org.junit.Assert.*;
  * @author Lars Helge Overland
  */
 public class InterpretationServiceTest
-    extends
-    DhisSpringTest
+    extends DhisSpringTest
 {
     @Autowired
     private UserService _userService;
