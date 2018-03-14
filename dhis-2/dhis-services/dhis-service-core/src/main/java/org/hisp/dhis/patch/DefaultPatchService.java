@@ -37,7 +37,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.patch.Mutation.Operation;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
