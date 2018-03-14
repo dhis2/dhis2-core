@@ -9,6 +9,8 @@ var selectionTree = new SelectionTree();
 var selectionTreePath = '../dhis-web-commons/oust/';
 var selectedOrganisationUnit = new Array();
 var selectedOrganisationUnitUid = new Array();
+var dhis2 = dhis2 || {};
+var dhis2BaseUrl = dhis2.baseUrl ? dhis2.baseUrl : "..";
 
 // -----------------------------------------------------------------------------
 // Selection
@@ -342,7 +344,7 @@ function SelectionTree()
     function getToggleExpand()
     {
         var imgTag = getToggleImage();
-        imgTag.src = '../images/colapse.png';
+        imgTag.src = dhis2BaseUrl + '/images/colapse.png';
         imgTag.alt = '[+]';
         return imgTag;
     }
@@ -350,7 +352,7 @@ function SelectionTree()
     function getToggleCollapse()
     {
         var imgTag = getToggleImage();
-        imgTag.src = '../images/expand.png';
+        imgTag.src = dhis2BaseUrl + '/images/expand.png';
         imgTag.alt = '[-]';
         return imgTag;
     }
@@ -358,7 +360,7 @@ function SelectionTree()
 	function getToggleBlank()
 	{
 		var imgTag = getToggleImage();
-		imgTag.src = '../images/transparent.gif';
+		imgTag.src = dhis2BaseUrl + '/images/transparent.gif';
 		imgTag.width = '9';
         imgTag.height = '9';
 		imgTag.alt = '';

@@ -9,5 +9,4 @@
     #introListImgItem( "viewStatistics.action" "data_statistics" "datastatistics" )
     #introListImgItem( "lockException.action" "lock_exception" "datalocking" )
     #introListImgItem( "getMinMaxValidationParams.action" "min_max_value_generation" "minmaxvaluegeneration" )
-    #introListImgItem( "viewScheduledTasks.action" "scheduling" "scheduling" )
 </ul>

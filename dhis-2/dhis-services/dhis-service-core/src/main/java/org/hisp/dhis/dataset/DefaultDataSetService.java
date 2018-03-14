@@ -39,15 +39,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -75,19 +70,15 @@ public class DefaultDataSetService
         this.lockExceptionStore = lockExceptionStore;
     }
 
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
     private DataApprovalService dataApprovalService;
 
     public void setDataApprovalService( DataApprovalService dataApprovalService )
     {
         this.dataApprovalService = dataApprovalService;
     }
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // DataSet
@@ -161,22 +152,41 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getUserDataSets()
+    public List<DataSet> getUserDataRead( User user )
     {
-        return getUserDataSets( currentUserService.getCurrentUser() );
+        if ( user == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll( user );
     }
 
     @Override
-    public List<DataSet> getUserDataSets( User user )
+    public List<DataSet> getAllDataRead()
     {
-        if ( user == null || user.isSuper() )
-        {
-            return getAllDataSets();
-        }
-
-        return Lists.newArrayList( user.getUserCredentials().getAllDataSets() );
+        User user = currentUserService.getCurrentUser();
+        
+        return getUserDataRead( user );
     }
 
+    @Override
+    public List<DataSet> getAllDataWrite()
+    {
+        User user = currentUserService.getCurrentUser();
+
+        return getUserDataWrite( user );
+    }
+
+    public List<DataSet> getUserDataWrite( User user )
+    {
+        if ( user == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll( user );
+    }
     // -------------------------------------------------------------------------
     // DataSet LockExceptions
     // -------------------------------------------------------------------------
@@ -334,7 +344,6 @@ public class DefaultDataSetService
             }
         }
 
-
         return new ArrayList<>( returnList );
     }
 
@@ -388,6 +397,4 @@ public class DefaultDataSetService
         }
         return ids;
     }
-
-
 }

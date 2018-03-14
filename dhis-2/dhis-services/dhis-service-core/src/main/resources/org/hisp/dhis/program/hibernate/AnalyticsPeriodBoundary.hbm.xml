@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.AnalyticsPeriodBoundary" table="analyticsperiodboundary">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="analyticsperiodboundaryid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="boundaryTarget" length="50" />
+
+    <property name="analyticsPeriodBoundaryType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.AnalyticsPeriodBoundaryType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="offsetPeriods" />
+    
+    <many-to-one name="offsetPeriodType" class="org.hisp.dhis.period.PeriodType" 
+        column="offsetperiodtypeid" foreign-key="fk_analyticsperiodboundary_periodtype" />
+        
+    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator" not-null="false"
+        column="programindicatorid" foreign-key="fk_analyticsperiodboundary_programindicator" />
+
+  </class>
+
+</hibernate-mapping>

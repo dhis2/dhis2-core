@@ -68,7 +68,6 @@ public interface ProgramInstanceService
      */
     void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
 
-
     /**
      * Updates an {@link ProgramInstance}.
      *
@@ -118,11 +117,12 @@ public interface ProgramInstanceService
      * @param pageSize              the page size.
      * @param totalPages            indicates whether to include the total number of pages.
      * @param skipPaging            whether to skip paging.
+     * @param includeDeleted        whether to include soft deleted ones
      * @return a ProgramInstanceQueryParams.
      */
     ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program,
         ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
-        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging );
+        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
 
     /**
      * Returns a list with program instance values based on the given

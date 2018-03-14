@@ -1,2 +1,0 @@
-{ "options": [#foreach( $option in $options ){"c":"$option.code","n":"$encoder.htmlEncode($option.name)"}#if( $velocityCount < $options.size() ),#end #end]
-}

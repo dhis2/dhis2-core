@@ -73,6 +73,9 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.patch.Patch;
+import org.hisp.dhis.patch.PatchParams;
+import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
@@ -83,9 +86,6 @@ import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.patch.Patch;
-import org.hisp.dhis.schema.patch.PatchParams;
-import org.hisp.dhis.schema.patch.PatchService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
@@ -654,7 +654,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
         }
         
-        object.getFavorites().add( user.getUid() );
+        object.setAsFavorite( user );
         manager.updateNoAcl( object );
         
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
@@ -814,7 +814,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
         }
         
-        object.getFavorites().remove( user.getUid() );        
+        object.removeAsFavorite( user );
         manager.updateNoAcl( object );
         
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );        

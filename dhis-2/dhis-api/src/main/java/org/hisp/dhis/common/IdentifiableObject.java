@@ -73,6 +73,10 @@ public interface IdentifiableObject
 
     boolean isFavorite();
     
+    boolean setAsFavorite( User user );
+    
+    boolean removeAsFavorite( User user );
+    
     //-----------------------------------------------------------------------------
     // Sharing
     //-----------------------------------------------------------------------------

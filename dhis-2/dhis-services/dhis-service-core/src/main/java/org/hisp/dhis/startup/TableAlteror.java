@@ -174,6 +174,9 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit DROP COLUMN uuid" );
 
         executeSql( "DROP INDEX datamart_crosstab" );
+        
+        // prepare uid function
+        insertUidDbFunction();
 
         // remove relative period type
         executeSql( "DELETE FROM period WHERE periodtypeid=(select periodtypeid from periodtype where name in ( 'Survey', 'OnChange', 'Relative' ))" );
@@ -272,8 +275,16 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataelementcategoryoption DROP CONSTRAINT fk_dataelement_categoryid" );
         executeSql( "ALTER TABLE dataelementcategoryoption DROP CONSTRAINT dataelementcategoryoption_shortname_key" );
 
-        // minmaxdataelement query index
-        executeSql( "CREATE INDEX index_minmaxdataelement ON minmaxdataelement( sourceid, dataelementid, categoryoptioncomboid )" );
+        // minmaxdataelement - If the old, non-unique index exists, drop it, make sure there are no duplicate values (delete the older ones), then create the unique index.
+        if ( executeSql( "DROP INDEX index_minmaxdataelement" ) == 0 )
+        {
+            executeSql( "delete from minmaxdataelement where minmaxdataelementid in (" +
+                "select a.minmaxdataelementid from minmaxdataelement a " +
+                "join minmaxdataelement b on a.sourceid = b.sourceid and a.dataelementid = b.dataelementid " +
+                "and a.categoryoptioncomboid = b.categoryoptioncomboid and a.minmaxdataelementid < b.minmaxdataelementid)" );
+
+            executeSql( "CREATE UNIQUE INDEX minmaxdataelement_unique_key ON minmaxdataelement USING btree (sourceid, dataelementid, categoryoptioncomboid)" );
+        }
 
         // update periodType field to ValidationRule
         executeSql( "UPDATE validationrule SET periodtypeid = (SELECT periodtypeid FROM periodtype WHERE name='Monthly') WHERE periodtypeid is null" );
@@ -312,6 +323,12 @@ public class TableAlteror
         executeSql( "UPDATE section SET showrowtotals = false WHERE showrowtotals IS NULL" );
         executeSql( "UPDATE section SET showcolumntotals = false WHERE showcolumntotals IS NULL" );
         executeSql( "UPDATE dataelement SET aggregationtype='avg_sum_org_unit' where aggregationtype='average'" );
+
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_SUM_INT'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_SUM_INT_DISAGGREGATION'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_INT'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_INT_DISAGGREGATION'" );
+        executeSql( "UPDATE dataelement SET aggregationtype='AVERAGE' where aggregationtype='AVERAGE_BOOL'" );
 
         // revert prepare aggregate*Value tables for offline diffs
 
@@ -795,7 +812,7 @@ public class TableAlteror
 
         executeSql( "ALTER TABLE dataset DROP COLUMN symbol" );
         executeSql( "ALTER TABLE users ALTER COLUMN password DROP NOT NULL" );
-
+        executeSql( "UPDATE users SET twofa = false WHERE twofa IS NULL" );
 
         // set default dataDimension on orgUnitGroupSet and deGroupSet
         executeSql( "UPDATE dataelementgroupset SET datadimension=true WHERE datadimension IS NULL" );
@@ -1048,8 +1065,21 @@ public class TableAlteror
         executeSql( "delete from systemsetting where name='metaDataSyncCron'" );
         
         updateDimensionFilterToText();
+        
+        insertDefaultBoundariesForBoundlessProgramIndicators();
+        
+        executeSql( "UPDATE trackedentitytype SET publicaccess='rwrw----' WHERE publicaccess IS NULL;" );
+        executeSql( "UPDATE programstage SET publicaccess='rw------' WHERE publicaccess IS NULL;" );
 
+        executeSql("alter table jobconfiguration drop column configurable;");
+
+        // 2FA fixes for 2.30
+        executeSql( "ALTER TABLE users alter column secret set not null" );
+
+        executeSql( "drop table userroleprogram");
+        
         log.info( "Tables updated" );
+
     }
 
     private void upgradeEmbeddedObject( String table )
@@ -1674,6 +1704,46 @@ public class TableAlteror
             "drop table programdataelement;"; // Remove if program data element is to be reintroduced
         
         executeSql( sql );
+    }
+    
+    /**
+     * Creates an utility function in the database for generating uid values in select statements.
+     * Example usage: select uid();
+     */
+    private void insertUidDbFunction()
+    {
+        String uidFunction = 
+            "CREATE OR REPLACE FUNCTION uid() RETURNS text AS $$ SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' " + 
+            "FROM (random()*51)::int +1 for 1) || array_to_string(ARRAY(SELECT substring('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' " + 
+            " FROM (random()*61)::int + 1 FOR 1) FROM generate_series(1,10)), '') $$ LANGUAGE sql;";
+        executeSql( uidFunction );
+    }
+    
+    /**
+     * Inserts default {@link AnalyticsPeriodBoundary} objects for program indicators that has no boundaries defined.
+     * Based on the analyticsType if the program indicator, the insert is made 
+     */
+    private void insertDefaultBoundariesForBoundlessProgramIndicators()
+    {
+        String findBoundlessAndInsertDefaultBoundaries = 
+            "create temporary table temp_unbounded_programindicators (programindicatorid integer,analyticstype varchar(10)) on commit drop;" +
+            "insert into temp_unbounded_programindicators (programindicatorid,analyticstype ) select pi.programindicatorid,pi.analyticstype " + 
+            "from programindicator pi left join analyticsperiodboundary apb on apb.programindicatorid = pi.programindicatorid group by pi.programindicatorid " + 
+            "having count(apb.*) = 0;" +
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'EVENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'EVENT';" + 
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'AFTER_START_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';" + 
+            "insert into analyticsperiodboundary (analyticsperiodboundaryid, uid, created, lastupdated, boundarytarget,analyticsperiodboundarytype, programindicatorid) " +
+            "select nextval('hibernate_sequence'), uid(), now(), now(), 'ENROLLMENT_DATE', 'BEFORE_END_OF_REPORTING_PERIOD', ubpi.programindicatorid " + 
+            "from temp_unbounded_programindicators ubpi where ubpi.analyticstype = 'ENROLLMENT';";
+        executeSql( findBoundlessAndInsertDefaultBoundaries );
+        
     }
     
     private int executeSql( String sql )

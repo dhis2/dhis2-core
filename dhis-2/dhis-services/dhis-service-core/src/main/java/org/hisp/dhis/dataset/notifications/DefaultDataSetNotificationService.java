@@ -174,6 +174,7 @@ public class DefaultDataSetNotificationService
 
         if ( templates == null || templates.isEmpty() )
         {
+            log.info( "No template found" );
             return;
         }
 
@@ -369,7 +370,7 @@ public class DefaultDataSetNotificationService
             }
         }
 
-        log.info( String.format( "%d single dataset notifications created.", batch.totalMessageCount() ) );
+        log.info( String.format( "Number of SINGLE notifications created: %d", batch.totalMessageCount() ) );
 
         return batch;
     }
@@ -477,7 +478,7 @@ public class DefaultDataSetNotificationService
     {
         messages.forEach( m ->
             internalMessageService.sendMessage(
-                new MessageConversationParams.Builder(m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
+                new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
                 .build()
             )
         );

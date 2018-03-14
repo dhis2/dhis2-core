@@ -216,6 +216,7 @@ dhis2.period.PeriodGenerator = function(calendar, format) {
   this.registerGenerator( dhis2.period.WeeklyThursdayGenerator );
   this.registerGenerator( dhis2.period.WeeklySaturdayGenerator );
   this.registerGenerator( dhis2.period.WeeklySundayGenerator );
+  this.registerGenerator( dhis2.period.BiWeeklyGenerator );
   this.registerGenerator( dhis2.period.MonthlyGenerator );
   this.registerGenerator( dhis2.period.BiMonthlyGenerator );
   this.registerGenerator( dhis2.period.QuarterlyGenerator );
@@ -361,6 +362,13 @@ dhis2.period.PeriodGenerator.prototype.weeklySaturday = function(offset) {
  */
 dhis2.period.PeriodGenerator.prototype.weeklySaturday = function(offset) {
   return this.get( 'WeeklySunday' ).generatePeriods( offset );
+};
+
+/**
+ * Convenience method to get BiWeekly generator
+ */
+dhis2.period.PeriodGenerator.prototype.BiWeekly = function(offset) {
+    return this.get( 'BiWeekly' ).generatePeriods( offset );
 };
 
 /**
@@ -925,6 +933,62 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
   $todayPlusPeriods: function(n) {
     return this.calendar.today().add( n, 'w' );
   }
+} );
+
+/**
+ * Implementation of dhis2.period.BaseGenerator that generates BiWeekly periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.BaseGenerator
+ * @see dhis2.period.BaseGenerator
+ */
+dhis2.period.BiWeeklyGenerator = function(calendar, format) {
+    dhis2.period.BaseGenerator.call( this, 'BiWeekly', calendar, format );
+};
+
+dhis2.period.BiWeeklyGenerator.prototype = Object.create( dhis2.period.BaseGenerator.prototype );
+
+$.extend( dhis2.period.BiWeeklyGenerator.prototype, {
+    $generate: function(offset) {
+        var year = offset + this.calendar.today().year();
+        var periods = [];
+
+        var startDate = dhis2.period.getStartDateOfYear( year, 1 );
+        startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
+
+        // no reliable way to figure out number of weeks in a year (can differ in different calendars)
+        // goes up to 200, but break when week is back to 1
+        for ( var biWeek = 1; biWeek < 200; biWeek++ ) {
+            var period = {};
+            period['startDate'] = startDate.formatDate( this.format );
+
+            // add 2 weeks and remove 1 day
+            var endDate = this.calendar.newDate( startDate ).add( 2, 'w' ).add( -1, 'd' );
+
+            period['endDate'] = endDate.formatDate( this.format );
+            period['name'] = 'Bi-Week ' + biWeek + ' - ' + period['startDate'] + ' - ' + period['endDate'];
+            period['id'] = 'Bi-week' + period['startDate'];
+            period['iso'] = year + 'BiW' + biWeek;
+
+            period['_startDate'] = this.calendar.newDate( startDate );
+            period['_endDate'] = this.calendar.newDate( endDate );
+
+            periods.push( period );
+
+            startDate.add( 2, 'w' );
+
+            if ( ( startDate.weekOfYear() === 1 || startDate.weekOfYear() === 2 ) && biWeek > 25 ) {
+                break;
+            }
+        }
+
+        return periods;
+    },
+    $todayPlusPeriods: function(n) {
+        return this.calendar.today().add( n, 'w' );
+    }
 } );
 
 /**

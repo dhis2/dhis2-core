@@ -31,13 +31,14 @@ package org.hisp.dhis.dataanalysis;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -76,34 +77,34 @@ public class StdDevOutlierAnalysisService
 
         List<DeflatedDataValue> outlierCollection = new ArrayList<>();
 
+        List<String> parentsPaths = parents.stream().map( OrganisationUnit::getPath ).collect( Collectors.toList() );
+
         loop : for ( DataElement dataElement : dataElements )
         {
             // TODO filter periods with data element period type
 
-            if ( dataElement.getValueType().isNumeric() )
+            if ( dataElement.getValueType().isNumeric() && stdDevFactor != null )
             {
                 Set<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
 
+                List<DataAnalysisMeasures> measuresList = dataAnalysisStore.getDataAnalysisMeasures( dataElement, categoryOptionCombos, parentsPaths, from );
+
+                MapMap<Integer, Integer, Integer> lowBoundMapMap = new MapMap<>(); // catOptionComboId, orgUnitId, lowBound
+                MapMap<Integer, Integer, Integer> highBoundMapMap = new MapMap<>(); // catOptionComboId, orgUnitId, highBound
+
+                for ( DataAnalysisMeasures measures : measuresList )
+                {
+                    int lowBound = (int) Math.round( MathUtils.getLowBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
+                    int highBound = (int) Math.round( MathUtils.getHighBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
+
+                    lowBoundMapMap.putEntry( measures.getCategoryOptionComboId(), measures.getOrgUnitId(), lowBound );
+                    highBoundMapMap.putEntry( measures.getCategoryOptionComboId(), measures.getOrgUnitId(), highBound );
+                }
+
                 for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryOptionCombos )
                 {
-                    Map<Integer, Double> standardDeviations = dataAnalysisStore.getStandardDeviation( dataElement, categoryOptionCombo, parents, from );
-
-                    Map<Integer, Double> averages = dataAnalysisStore.getAverage( dataElement, categoryOptionCombo, parents, from );
-
-                    Map<Integer, Integer> lowBoundMap = new HashMap<>();
-                    Map<Integer, Integer> highBoundMap = new HashMap<>();
-
-                    for ( Integer unit : averages.keySet() )
-                    {
-                        Double stdDev = standardDeviations.get( unit );
-                        Double avg = averages.get( unit );
-
-                        if ( stdDev != null && stdDevFactor != null && avg != null )
-                        {
-                            lowBoundMap.put( unit, (int) MathUtils.getLowBound( stdDev, stdDevFactor, avg ) );
-                            highBoundMap.put( unit, (int) MathUtils.getHighBound( stdDev, stdDevFactor, avg ) );
-                        }
-                    }
+                    Map<Integer, Integer> lowBoundMap = lowBoundMapMap.get( categoryOptionCombo.getId() );
+                    Map<Integer, Integer> highBoundMap = highBoundMapMap.get( categoryOptionCombo.getId() );
 
                     outlierCollection.addAll( dataAnalysisStore.getDeflatedDataValues( dataElement, categoryOptionCombo, periods,
                         lowBoundMap, highBoundMap ) );

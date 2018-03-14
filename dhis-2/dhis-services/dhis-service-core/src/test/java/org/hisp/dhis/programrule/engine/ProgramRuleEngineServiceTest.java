@@ -44,10 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -109,26 +106,16 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         // stub for ruleActionSendMessage
         when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
 
-        doAnswer( new Answer()
+        doAnswer( invocationOnMock ->
         {
-            @Override
-            public Object answer( InvocationOnMock invocationOnMock ) throws Throwable
-            {
-                actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
-                return actions;
-            }
-
+            actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
+            return actions;
         }).when( ruleActionSendMessage ).implement( any( RuleAction.class ), any( ProgramInstance.class ) );
 
-        doAnswer( new Answer()
+        doAnswer( invocationOnMock ->
         {
-            @Override
-            public Object answer( InvocationOnMock invocationOnMock ) throws Throwable
-            {
-                actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
-                return actions;
-            }
-
+            actions.add( (RuleAction) invocationOnMock.getArguments()[0] );
+            return actions;
         }).when( ruleActionSendMessage ).implement( any( RuleAction.class ), any( ProgramStageInstance.class ) );
     }
 

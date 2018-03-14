@@ -159,6 +159,30 @@ public class RelativePeriodTest
     }
 
     @Test
+    public void testGetThisBiWeek()
+    {
+        RelativePeriods periods = new RelativePeriods().setThisBiWeek( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 1, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        assertEquals( 1, relatives.size() );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 15 ), getDate( 2001, 1, 28 ) ), relatives.get( 0 ) );
+    }
+
+    @Test
+    public void testGetLastBiWeek()
+    {
+        RelativePeriods periods = new RelativePeriods().setLastBiWeek( true );
+
+        List<Period> relatives = periods.getRelativePeriods( getDate( 2001, 1, 15 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        assertEquals( 1, relatives.size() );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 14 ) ), relatives.get( 0 ) );
+    }
+
+    @Test
     public void testGetThisBiMonth()
     {
         RelativePeriods periods = new RelativePeriods().setThisBimonth( true );
@@ -319,6 +343,25 @@ public class RelativePeriodTest
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 6, 30 ) ), relatives.get( 1 ) );
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 9, 30 ) ), relatives.get( 2 ) );
         assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 12, 31 ) ), relatives.get( 3 ) );
+    }
+
+
+
+    @Test
+    public void testGetLast4BiWeeks()
+    {
+        RelativePeriods relativePeriods = new RelativePeriods().setLast4BiWeeks( true );
+        relativePeriods.setLastBiWeek(false);
+        relativePeriods.setThisBiWeek( false );
+
+        List<Period> relatives = relativePeriods.getRelativePeriods( getDate( 2002, 1, 1 ), I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        assertEquals( 4, relatives.size() );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 5 ), getDate( 2001, 11, 18 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 19 ), getDate( 2001, 12, 2 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 3 ), getDate( 2001, 12, 16 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 17 ), getDate( 2001, 12, 30 ) ), relatives.get( 3 ) );
     }
 
     @Test

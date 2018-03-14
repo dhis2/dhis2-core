@@ -38,7 +38,6 @@ import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -191,6 +190,7 @@ public class HibernateDataApprovalStore
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
         Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<DataElementCategoryOptionCombo> attributeOptionCombos )
     {

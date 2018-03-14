@@ -80,6 +80,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
  * @author Ken Haase
@@ -228,7 +229,7 @@ public class DefaultPredictionService
                     for ( Period period : outputPeriods )
                     {
                         ListMapMap<String, String, Double> aggregateSampleMap = getAggregateSamples( aggregateDataMap,
-                            aggregates, samplePeriodsMap.get( period ), constantMap );
+                            aggregates, samplePeriodsMap.get( period ), constantMap, generator.getMissingValueStrategy() );
 
                         MapMap<String, DimensionalItemObject, Double> nonAggregateSampleMap = firstNonNull(
                             nonAggregateDataMap.get( period ), new MapMap<>() );
@@ -259,7 +260,8 @@ public class DefaultPredictionService
                             Double value = expressionService.getExpressionValue( generator, nonAggregateValueMap,
                                 constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
 
-                            if ( value != null && !value.isNaN() && !value.isInfinite() )
+                            if ( value != null && !value.isNaN() && !value.isInfinite() &&
+                                !dataValueIsZeroAndInsignificant( Double.toString( value ), outputDataElement ) )
                             {
                                 String valueString = outputDataElement.getValueType().isInteger() ?
                                     Long.toString( Math.round( value ) ) :
@@ -376,12 +378,13 @@ public class DefaultPredictionService
      * @param aggregates the aggregate expressions.
      * @param samplePeriods the periods to sample from.
      * @param constantMap any constants used in evaluating expressions.
+     * @param missingValueStrategy strategy for sampled period missing values.
      * @return lists of sample values by attributeOptionCombo and expression
      */
     private ListMapMap<String, String, Double> getAggregateSamples (
         MapMapMap<Period, String, DimensionalItemObject, Double> dataMap,
         Collection<String> aggregates, List<Period> samplePeriods,
-        Map<String, Double> constantMap )
+        Map<String, Double> constantMap, MissingValueStrategy missingValueStrategy )
     {
         ListMapMap<String, String, Double> result = new ListMapMap<>();
 
@@ -389,7 +392,7 @@ public class DefaultPredictionService
         {
             for ( String aggregate : aggregates )
             {
-                Expression expression = new Expression( aggregate, "Aggregated" );
+                Expression expression = new Expression( aggregate, "Aggregated", missingValueStrategy );
 
                 for ( Period period : samplePeriods )
                 {

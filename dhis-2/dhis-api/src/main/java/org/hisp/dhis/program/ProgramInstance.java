@@ -40,7 +40,6 @@ import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -140,9 +139,6 @@ public class ProgramInstance
      */
     public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
     {
-        Assert.notNull( entityInstance, "Tracked entity instance cannot be null" );
-        Assert.notNull( program, "Program cannot be null" );
-
         setEntityInstance( entityInstance );
         entityInstance.getProgramInstances().add( this );
 

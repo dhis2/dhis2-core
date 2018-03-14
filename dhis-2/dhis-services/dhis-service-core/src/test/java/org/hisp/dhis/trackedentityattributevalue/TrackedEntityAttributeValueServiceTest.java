@@ -28,15 +28,13 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -46,13 +44,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Chau Thu Tran
  */
 public class TrackedEntityAttributeValueServiceTest
     extends DhisSpringTest
 {
-
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
 
@@ -64,6 +63,9 @@ public class TrackedEntityAttributeValueServiceTest
 
     @Autowired
     private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     private TrackedEntityAttribute attributeA;
 
@@ -219,31 +221,45 @@ public class TrackedEntityAttributeValueServiceTest
         assertEquals( 3, attributeValues.size() );
         assertTrue( equals( attributeValues, attributeValueA, attributeValueB, attributeValueC ) );
     }
-    
+
     @Test
-    public void testSearchTrackedEntityAttributeValue()
+    public void testFileAttributeValues()
     {
+        FileResource fileResourceA;
+        FileResource fileResourceB;
+        byte[] content;
+
+        attributeA.setValueType( ValueType.IMAGE );
+        attributeB.setValueType( ValueType.FILE_RESOURCE );
+
+        attributeService.updateTrackedEntityAttribute( attributeA );
+        attributeService.updateTrackedEntityAttribute( attributeB );
+
+        content = "filecontentA".getBytes();
+        fileResourceA = createFileResource( 'A', content );
+        fileResourceA.setContentType( "image/jpg" );
+        fileResourceService.saveFileResource( fileResourceA, content );
+
+        content = "filecontentB".getBytes();
+        fileResourceB = createFileResource( 'B', content );
+        fileResourceService.saveFileResource( fileResourceB, content );
+
+        attributeValueA = createTrackedEntityAttributeValue( 'A', entityInstanceA, attributeA );
+        attributeValueB = createTrackedEntityAttributeValue( 'B', entityInstanceB, attributeB );
+        attributeValueA.setValue( fileResourceA.getUid() );
+        attributeValueB.setValue( fileResourceB.getUid() );
+
+
         attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
         attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueC );
 
-        List<TrackedEntityAttributeValue> attributeValues = attributeValueService.searchTrackedEntityAttributeValue(
-            attributeA, "A" );
-        assertTrue( equals( attributeValues, attributeValueA ) );
-    }
+        assertTrue( fileResourceA.isAssigned() );
+        assertTrue( fileResourceB.isAssigned() );
 
-    @Test
-    public void testCopyTrackedEntityAttributeValues()
-    {
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueC );
+        attributeValueService.deleteTrackedEntityAttributeValue( attributeValueA );
+        attributeValueService.deleteTrackedEntityAttributeValue( attributeValueB );
 
-        attributeValueService.copyTrackedEntityAttributeValues( entityInstanceA, entityInstanceB );
-
-        TrackedEntityAttributeValue attributeValue = attributeValueService.getTrackedEntityAttributeValue( entityInstanceB, attributeB );
-        assertEquals( "B", attributeValue.getValue() );
-
-        attributeValue = attributeValueService.getTrackedEntityAttributeValue( entityInstanceB, attributeA );
-        assertNull( attributeValue );
+        assertFalse( fileResourceA.isAssigned() );
+        assertFalse( fileResourceB.isAssigned() );
     }
 }
