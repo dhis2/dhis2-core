@@ -144,15 +144,6 @@ public class MessageConversationController
         {
             messageConversations = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
         }
-        else if ( options.hasPaging() )
-        {
-            int count = messageService.getMessageConversationCount();
-
-            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
-            metadata.setPager( pager );
-
-            messageConversations = new ArrayList<>( messageService.getMessageConversations( pager.getOffset(), pager.getPageSize() ) );
-        }
         else
         {
             messageConversations = new ArrayList<>( messageService.getMessageConversations() );
