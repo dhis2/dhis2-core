@@ -986,6 +986,8 @@ public class TableAlteror
         executeSql( "alter table orgunitlevel drop constraint orgunitlevel_name_key" );
 
         executeSql( "update interpretation set likes = 0 where likes is null" );
+        executeSql( "create index in_interpretationcomment_mentions_username on interpretationcomment using GIN((mentions->'username') jsonb_path_ops)" );
+        executeSql( "create index in_interpretation_mentions_username on interpretation using GIN((mentions->'username') jsonb_path_ops)" );
 
         executeSql( "update chart set regressiontype = 'NONE' where regression is false or regression is null" );
         executeSql( "update chart set regressiontype = 'LINEAR' where regression is true" );

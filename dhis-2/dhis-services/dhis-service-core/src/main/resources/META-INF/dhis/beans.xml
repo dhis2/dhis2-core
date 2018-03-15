@@ -38,43 +38,7 @@
 
   <bean id="org.hisp.dhis.security.acl.AclService" class="org.hisp.dhis.security.acl.DefaultAclService" />
 
-  <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
-
   <bean class="org.hisp.dhis.patch.DefaultPatchService" />
-
-  <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.IsEmptyNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.IsNotEmptyNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.transformers.SizeNodeTransformer" />
-
-  <bean class="org.hisp.dhis.node.serializers.CsvNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.ExcelNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.PdfNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean class="org.hisp.dhis.node.serializers.StAXNodeSerializer" scope="prototype">
-    <aop:scoped-proxy proxy-target-class="false" />
-  </bean>
-
-  <bean id="org.hisp.dhis.fieldfilter.FieldParser" class="org.hisp.dhis.fieldfilter.DefaultFieldParser" />
-
-  <bean id="org.hisp.dhis.fieldfilter.FieldFilterService" class="org.hisp.dhis.fieldfilter.DefaultFieldFilterService" />
 
   <bean id="org.hisp.dhis.render.RenderService" class="org.hisp.dhis.render.DefaultRenderService" />
 
@@ -1067,7 +1031,6 @@
     <property name="messageConversationStore" ref="org.hisp.dhis.message.MessageConversationStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
-    <property name="emailService" ref="org.hisp.dhis.email.EmailService" />
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
@@ -1327,8 +1290,6 @@
   </bean>
 
   <bean id="org.hisp.dhis.common.IdentifiableObjectManager" class="org.hisp.dhis.common.DefaultIdentifiableObjectManager" />
-
-  <bean id="org.hisp.dhis.help.HelpManager" class="org.hisp.dhis.help.DefaultHelpManager" />
 
   <bean id="org.hisp.dhis.appmanager.AppManager" class="org.hisp.dhis.appmanager.DefaultAppManager" />
 
