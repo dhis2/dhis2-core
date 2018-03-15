@@ -36,7 +36,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -265,7 +265,7 @@ public class CompleteDataSetRegistrationController
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
 
         if ( attributeOptionCombo == null )
         {
@@ -343,7 +343,7 @@ public class CompleteDataSetRegistrationController
     }
 
     private void unRegisterCompleteDataSet( Set<DataSet> dataSets, Period period,
-        Set<OrganisationUnit> orgUnits, DataElementCategoryOptionCombo attributeOptionCombo )
+        Set<OrganisationUnit> orgUnits, CategoryOptionCombo attributeOptionCombo )
     {
         List<CompleteDataSetRegistration> registrations = new ArrayList<>();
 

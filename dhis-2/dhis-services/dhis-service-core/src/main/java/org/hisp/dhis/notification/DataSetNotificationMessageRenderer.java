@@ -30,7 +30,7 @@ package org.hisp.dhis.notification;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
 import org.hisp.dhis.system.util.DateUtils;
@@ -63,7 +63,7 @@ public class DataSetNotificationMessageRenderer
     private static final ImmutableSet<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet.of( ExpressionType.VARIABLE );
 
     @Autowired
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService dataElementCategoryService;
 
     public DataSetNotificationMessageRenderer()
     {
@@ -108,6 +108,6 @@ public class DataSetNotificationMessageRenderer
             return registration.getAttributeOptionCombo().getName();
         }
 
-        return dataElementCategoryService.getDefaultDataElementCategoryOptionCombo().getName();
+        return dataElementCategoryService.getDefaultCategoryOptionCombo().getName();
     }
 }

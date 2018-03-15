@@ -35,7 +35,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataanalysis.DataAnalysisMeasures;
 import org.hisp.dhis.dataanalysis.DataAnalysisStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -91,7 +91,7 @@ public class JdbcDataAnalysisStore
 
     @Override
     public List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
-        Collection<DataElementCategoryOptionCombo> categoryOptionCombos,
+        Collection<CategoryOptionCombo> categoryOptionCombos,
         Collection<String> parentPaths, Date from )
     {
         List<DataAnalysisMeasures> measures = new ArrayList<>();
@@ -143,7 +143,7 @@ public class JdbcDataAnalysisStore
     }
     
     @Override
-    public List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<DataElementCategoryOptionCombo> categoryOptionCombos,
+    public List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<CategoryOptionCombo> categoryOptionCombos,
         Collection<Period> periods, Collection<OrganisationUnit> parents, int limit )
     {
         if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
@@ -188,7 +188,7 @@ public class JdbcDataAnalysisStore
     }
     
     @Override
-    public List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
+    public List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
         Collection<Period> periods, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap )
     {
         if ( lowerBoundMap == null || lowerBoundMap.isEmpty() || periods.isEmpty() )
@@ -212,7 +212,7 @@ public class JdbcDataAnalysisStore
         return dataValues;
     }
     
-    private List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
+    private List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
         Collection<Period> periods, List<Integer> organisationUnits, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap )
     {
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );

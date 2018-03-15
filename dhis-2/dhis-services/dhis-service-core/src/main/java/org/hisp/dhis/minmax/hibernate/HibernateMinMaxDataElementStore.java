@@ -34,7 +34,7 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
@@ -75,7 +75,7 @@ public class HibernateMinMaxDataElementStore
 
     @Override
     public MinMaxDataElement get( OrganisationUnit source, DataElement dataElement,
-        DataElementCategoryOptionCombo optionCombo )
+        CategoryOptionCombo optionCombo )
     {
         return (MinMaxDataElement) getCriteria( 
             Restrictions.eq( "source", source ),
@@ -149,7 +149,7 @@ public class HibernateMinMaxDataElementStore
     }
     
     @Override
-    public void delete( DataElementCategoryOptionCombo optionCombo )
+    public void delete( CategoryOptionCombo optionCombo )
     {
         String hql = "delete from MinMaxDataElement m where m.optionCombo = :optionCombo";
         

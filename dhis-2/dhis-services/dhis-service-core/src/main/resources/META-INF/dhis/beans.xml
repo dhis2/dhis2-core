@@ -129,7 +129,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
     <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
@@ -266,26 +266,26 @@
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.CategoryStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategory" />
+    <property name="clazz" value="org.hisp.dhis.dataelement.Category" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.CategoryOptionStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategoryOption" />
+    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOption" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.CategoryComboStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryComboStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategoryCombo" />
+    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryCombo" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.CategoryOptionComboStore"
     class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionComboStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" />
+    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOptionCombo" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -826,7 +826,7 @@
     <property name="dataValueStore" ref="org.hisp.dhis.datavalue.DataValueStore" />
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
@@ -854,7 +854,7 @@
   <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalLevelService">
     <property name="dataApprovalLevelStore" ref="org.hisp.dhis.dataapproval.DataApprovalLevelStore" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
   </bean>
@@ -889,7 +889,7 @@
   <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationService"
     class="org.hisp.dhis.dataset.DefaultCompleteDataSetRegistrationService">
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.SectionService" class="org.hisp.dhis.dataset.DefaultSectionService">
@@ -908,7 +908,7 @@
     <property name="expressionStore" ref="org.hisp.dhis.expression.ExpressionStore" />
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
     <property name="dimensionService" ref="org.hisp.dhis.dimension.DimensionService" />
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
@@ -931,7 +931,7 @@
     <property name="validationResultService" ref="org.hisp.dhis.validation.ValidationResultService" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
+  <bean id="org.hisp.dhis.dataelement.CategoryService" class="org.hisp.dhis.dataelement.DefaultCategoryService">
     <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
     <property name="categoryOptionStore" ref="org.hisp.dhis.dataelement.CategoryOptionStore" />
     <property name="categoryComboStore" ref="org.hisp.dhis.dataelement.CategoryComboStore" />
@@ -1653,7 +1653,7 @@
   <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
     class="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
     <property name="name" value="DataElementDefaultDimensionPopulator" />
     <property name="runlevel" value="3" />
   </bean>
@@ -1798,18 +1798,18 @@
 
   <bean id="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" class="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.DataElementCategoryOptionDeletionHandler"
-    class="org.hisp.dhis.dataelement.DataElementCategoryOptionDeletionHandler" />
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryOptionDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.DataElementCategoryOptionComboDeletionHandler"
-    class="org.hisp.dhis.dataelement.DataElementCategoryOptionComboDeletionHandler">
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionComboDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryOptionComboDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.DataElementCategoryComboDeletionHandler"
-    class="org.hisp.dhis.dataelement.DataElementCategoryComboDeletionHandler">
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  <bean id="org.hisp.dhis.dataelement.CategoryComboDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryComboDeletionHandler">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.CategoryDimensionDeletionHandler"
@@ -1886,8 +1886,8 @@
 
   <bean id="org.hisp.dhis.user.UserSettingDeletionHandler" class="org.hisp.dhis.user.UserSettingDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.DataElementCategoryDeletionHandler"
-    class="org.hisp.dhis.dataelement.DataElementCategoryDeletionHandler" />
+  <bean id="org.hisp.dhis.dataelement.CategoryDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryDeletionHandler" />
 
   <bean id="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler"
     class="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler" />
@@ -2020,7 +2020,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.common.IdentifiableObjectManager.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataapproval.DataApprovalLevelService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataelement.DataElementService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.dataelement.DataElementCategoryService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataelement.CategoryService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataset.DataSetService.deleteDataSet(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataset.SectionService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.indicator.IndicatorService.delete*(..) )" method="intercept" />

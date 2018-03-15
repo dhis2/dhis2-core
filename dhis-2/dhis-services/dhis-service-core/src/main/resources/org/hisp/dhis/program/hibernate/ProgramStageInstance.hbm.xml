@@ -28,7 +28,7 @@
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
 
-    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.CategoryOptionCombo"
       column="attributeoptioncomboid" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
 
     <property name="deleted" column="deleted" />

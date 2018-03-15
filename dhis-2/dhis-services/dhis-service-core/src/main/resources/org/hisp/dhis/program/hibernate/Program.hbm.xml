@@ -127,7 +127,7 @@
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
       column="relatedprogramid" foreign-key="fk_program_relatedprogram" />
 
-    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.CategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid" />
 
     <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"

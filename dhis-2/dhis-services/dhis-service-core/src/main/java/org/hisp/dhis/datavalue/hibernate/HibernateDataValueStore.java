@@ -47,8 +47,8 @@ import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
@@ -154,7 +154,7 @@ public class HibernateDataValueStore
 
     @Override
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
         Session session = sessionFactory.getCurrentSession();
 
@@ -322,7 +322,7 @@ public class HibernateDataValueStore
     @Override
     @SuppressWarnings( "unchecked" )
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
-        Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo )
+        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
     {
         Period storedPeriod = periodStore.reloadPeriod( period );
 
@@ -506,8 +506,8 @@ public class HibernateDataValueStore
     @Override
     public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
         Set<DataElementOperand> dataElementOperands, Date date,
-        List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
+        List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints )
     {
         SetMap<DataElement, DataElementOperand> deosByDataElement = getDeosByDataElement( dataElementOperands );
 

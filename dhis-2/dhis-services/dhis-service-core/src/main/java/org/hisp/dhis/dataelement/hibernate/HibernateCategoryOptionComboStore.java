@@ -35,9 +35,9 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.CategoryOptionComboStore;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,18 +45,18 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 public class HibernateCategoryOptionComboStore
-    extends HibernateIdentifiableObjectStore<DataElementCategoryOptionCombo>
+    extends HibernateIdentifiableObjectStore<CategoryOptionCombo>
     implements CategoryOptionComboStore
 {
     @Autowired
     private DbmsManager dbmsManager;
 
     @Override
-    public DataElementCategoryOptionCombo getCategoryOptionCombo( DataElementCategoryCombo categoryCombo, Set<DataElementCategoryOption> categoryOptions )
+    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
     {
-        String hql = "from DataElementCategoryOptionCombo co where co.categoryCombo = :categoryCombo";
+        String hql = "from CategoryOptionCombo co where co.categoryCombo = :categoryCombo";
         
-        for ( DataElementCategoryOption option : categoryOptions )
+        for ( CategoryOption option : categoryOptions )
         {
             hql += " and :option" + option.getId() + " in elements (co.categoryOptions)";
         }
@@ -65,24 +65,24 @@ public class HibernateCategoryOptionComboStore
         
         query.setEntity( "categoryCombo", categoryCombo );
         
-        for ( DataElementCategoryOption option : categoryOptions )
+        for ( CategoryOption option : categoryOptions )
         {
             query.setEntity( "option" + option.getId(), option );
         }
         
-        return (DataElementCategoryOptionCombo) query.uniqueResult();
+        return (CategoryOptionCombo) query.uniqueResult();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void updateNames()
     {
-        List<DataElementCategoryOptionCombo> categoryOptionCombos = getQuery( "from DataElementCategoryOptionCombo co where co.name is null" ).list();
+        List<CategoryOptionCombo> categoryOptionCombos = getQuery( "from CategoryOptionCombo co where co.name is null" ).list();
         int counter = 0;
         
         Session session = getSession();
         
-        for ( DataElementCategoryOptionCombo coc : categoryOptionCombos )
+        for ( CategoryOptionCombo coc : categoryOptionCombos )
         {
             session.update( coc );
             

@@ -34,8 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
@@ -112,7 +112,7 @@ public class UpdateUserAction
     private UserGroupService userGroupService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -325,7 +325,7 @@ public class UpdateUserAction
                 continue;
             }
 
-            DataElementCategory cat = categoryService.getDataElementCategory( id );
+            Category cat = categoryService.getCategory( id );
 
             if ( cat != null )
             {

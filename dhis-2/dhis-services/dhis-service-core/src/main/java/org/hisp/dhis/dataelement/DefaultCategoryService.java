@@ -55,10 +55,10 @@ import java.util.Set;
  * @author Abyot Asalefew
  */
 @Transactional
-public class DefaultDataElementCategoryService
-    implements DataElementCategoryService
+public class DefaultCategoryService
+    implements CategoryService
 {
-    private static final Log log = LogFactory.getLog( DefaultDataElementCategoryService.class );
+    private static final Log log = LogFactory.getLog( DefaultCategoryService.class );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -132,7 +132,7 @@ public class DefaultDataElementCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElementCategory( DataElementCategory dataElementCategory )
+    public int addCategory( Category dataElementCategory )
     {
         categoryStore.save( dataElementCategory );
 
@@ -140,39 +140,39 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public void updateDataElementCategory( DataElementCategory dataElementCategory )
+    public void updateCategory( Category dataElementCategory )
     {
         categoryStore.update( dataElementCategory );
     }
 
     @Override
-    public void deleteDataElementCategory( DataElementCategory dataElementCategory )
+    public void deleteCategory( Category dataElementCategory )
     {
         categoryStore.delete( dataElementCategory );
     }
 
     @Override
-    public List<DataElementCategory> getAllDataElementCategories()
+    public List<Category> getAllDataElementCategories()
     {
         return categoryStore.getAll();
     }
 
     @Override
-    public DataElementCategory getDataElementCategory( int id )
+    public Category getCategory( int id )
     {
         return categoryStore.get( id );
     }
 
     @Override
-    public DataElementCategory getDataElementCategory( String uid )
+    public Category getCategory( String uid )
     {
         return categoryStore.getByUid( uid );
     }
 
     @Override
-    public DataElementCategory getDataElementCategoryByName( String name )
+    public Category getCategoryByName( String name )
     {
-        List<DataElementCategory> dataElementCategories = new ArrayList<>(
+        List<Category> dataElementCategories = new ArrayList<>(
             categoryStore.getAllEqName( name ) );
 
         if ( dataElementCategories.isEmpty() )
@@ -184,31 +184,31 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public DataElementCategory getDefaultDataElementCategory()
+    public Category getDefaultCategory()
     {
-        return getDataElementCategoryByName( DataElementCategory.DEFAULT_NAME );
+        return getCategoryByName( Category.DEFAULT_NAME );
     }
 
     @Override
-    public List<DataElementCategory> getDisaggregationCategories()
+    public List<Category> getDisaggregationCategories()
     {
         return categoryStore.getCategoriesByDimensionType( DataDimensionType.DISAGGREGATION );
     }
 
     @Override
-    public List<DataElementCategory> getDisaggregationDataDimensionCategoriesNoAcl()
+    public List<Category> getDisaggregationDataDimensionCategoriesNoAcl()
     {
         return categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true );
     }
 
     @Override
-    public List<DataElementCategory> getAttributeCategories()
+    public List<Category> getAttributeCategories()
     {
         return categoryStore.getCategoriesByDimensionType( DataDimensionType.ATTRIBUTE );
     }
 
     @Override
-    public List<DataElementCategory> getAttributeDataDimensionCategoriesNoAcl()
+    public List<Category> getAttributeDataDimensionCategoriesNoAcl()
     {
         return categoryStore.getCategoriesNoAcl( DataDimensionType.ATTRIBUTE, true );
     }
@@ -218,7 +218,7 @@ public class DefaultDataElementCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElementCategoryOption( DataElementCategoryOption dataElementCategoryOption )
+    public int addCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptionStore.save( dataElementCategoryOption );
 
@@ -226,67 +226,67 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public void updateDataElementCategoryOption( DataElementCategoryOption dataElementCategoryOption )
+    public void updateCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptionStore.update( dataElementCategoryOption );
     }
 
     @Override
-    public void deleteDataElementCategoryOption( DataElementCategoryOption dataElementCategoryOption )
+    public void deleteCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptionStore.delete( dataElementCategoryOption );
     }
 
     @Override
-    public DataElementCategoryOption getDataElementCategoryOption( int id )
+    public CategoryOption getCategoryOption( int id )
     {
         return categoryOptionStore.get( id );
     }
 
     @Override
-    public DataElementCategoryOption getDataElementCategoryOption( String uid )
+    public CategoryOption getCategoryOption( String uid )
     {
         return categoryOptionStore.getByUid( uid );
     }
 
     @Override
-    public DataElementCategoryOption getDataElementCategoryOptionByName( String name )
+    public CategoryOption getCategoryOptionByName( String name )
     {
         return categoryOptionStore.getByName( name );
     }
 
     @Override
-    public DataElementCategoryOption getDefaultDataElementCategoryOption()
+    public CategoryOption getDefaultCategoryOption()
     {
-        return getDataElementCategoryOptionByName( DataElementCategoryOption.DEFAULT_NAME );
+        return getCategoryOptionByName( CategoryOption.DEFAULT_NAME );
     }
 
     @Override
-    public List<DataElementCategoryOption> getAllDataElementCategoryOptions()
+    public List<CategoryOption> getAllCategoryOptions()
     {
         return categoryOptionStore.getAll();
     }
 
     @Override
-    public List<DataElementCategoryOption> getDataElementCategoryOptions( DataElementCategory category )
+    public List<CategoryOption> getCategoryOptions( Category category )
     {
         return categoryOptionStore.getCategoryOptions( category );
     }
 
     @Override
-    public Set<DataElementCategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
+    public Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
     {
-        Set<DataElementCategoryOption> options = null;
+        Set<CategoryOption> options = null;
 
-        Set<DataElementCategory> catConstraints = userCredentials.getCatDimensionConstraints();
+        Set<Category> catConstraints = userCredentials.getCatDimensionConstraints();
 
         if ( catConstraints != null && !catConstraints.isEmpty() )
         {
             options = new HashSet<>();
 
-            for ( DataElementCategory category : catConstraints )
+            for ( Category category : catConstraints )
             {
-                options.addAll( getDataElementCategoryOptions( category ) );
+                options.addAll( getCategoryOptions( category ) );
             }
         }
 
@@ -298,7 +298,7 @@ public class DefaultDataElementCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
+    public int addCategoryCombo( CategoryCombo dataElementCategoryCombo )
     {
         categoryComboStore.save( dataElementCategoryCombo );
 
@@ -306,61 +306,61 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public void updateDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
+    public void updateCategoryCombo( CategoryCombo dataElementCategoryCombo )
     {
         categoryComboStore.update( dataElementCategoryCombo );
     }
 
     @Override
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
+    public void deleteCategoryCombo( CategoryCombo dataElementCategoryCombo )
     {
         categoryComboStore.delete( dataElementCategoryCombo );
     }
 
     @Override
-    public List<DataElementCategoryCombo> getAllDataElementCategoryCombos()
+    public List<CategoryCombo> getAllCategoryCombos()
     {
         return categoryComboStore.getAll();
     }
 
     @Override
-    public DataElementCategoryCombo getDataElementCategoryCombo( int id )
+    public CategoryCombo getCategoryCombo( int id )
     {
         return categoryComboStore.get( id );
     }
 
     @Override
-    public DataElementCategoryCombo getDataElementCategoryCombo( String uid )
+    public CategoryCombo getCategoryCombo( String uid )
     {
         return categoryComboStore.getByUid( uid );
     }
 
     @Override
-    public DataElementCategoryCombo getDataElementCategoryComboByName( String name )
+    public CategoryCombo getCategoryComboByName( String name )
     {
         return categoryComboStore.getByName( name );
     }
 
     @Override
-    public DataElementCategoryCombo getDefaultDataElementCategoryCombo()
+    public CategoryCombo getDefaultCategoryCombo()
     {
-        return getDataElementCategoryComboByName( DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+        return getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
     }
 
     @Override
-    public List<DataElementCategoryCombo> getDisaggregationCategoryCombos()
+    public List<CategoryCombo> getDisaggregationCategoryCombos()
     {
         return categoryComboStore.getCategoryCombosByDimensionType( DataDimensionType.DISAGGREGATION );
     }
 
     @Override
-    public List<DataElementCategoryCombo> getAttributeCategoryCombos()
+    public List<CategoryCombo> getAttributeCategoryCombos()
     {
         return categoryComboStore.getCategoryCombosByDimensionType( DataDimensionType.ATTRIBUTE );
     }
 
     @Override
-    public String validateCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public String validateCategoryCombo( CategoryCombo categoryCombo )
     {
         if ( categoryCombo == null )
         {
@@ -377,9 +377,9 @@ public class DefaultDataElementCategoryService
             return "category_combo_cannot_have_duplicate_categories";
         }
 
-        Set<DataElementCategoryOption> categoryOptions = new HashSet<DataElementCategoryOption>();
+        Set<CategoryOption> categoryOptions = new HashSet<CategoryOption>();
 
-        for ( DataElementCategory category : categoryCombo.getCategories() )
+        for ( Category category : categoryCombo.getCategories() )
         {
             if ( category == null || category.getCategoryOptions().isEmpty() )
             {
@@ -400,7 +400,7 @@ public class DefaultDataElementCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo )
+    public int addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         categoryOptionComboStore.save( dataElementCategoryOptionCombo );
 
@@ -408,40 +408,40 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public void updateDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo )
+    public void updateCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         categoryOptionComboStore.update( dataElementCategoryOptionCombo );
     }
 
     @Override
-    public void deleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo dataElementCategoryOptionCombo )
+    public void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         categoryOptionComboStore.delete( dataElementCategoryOptionCombo );
     }
 
     @Override
-    public DataElementCategoryOptionCombo getDataElementCategoryOptionCombo( int id )
+    public CategoryOptionCombo getCategoryOptionCombo( int id )
     {
         return categoryOptionComboStore.get( id );
     }
 
     @Override
-    public DataElementCategoryOptionCombo getDataElementCategoryOptionCombo( String uid )
+    public CategoryOptionCombo getCategoryOptionCombo( String uid )
     {
         return categoryOptionComboStore.getByUid( uid );
     }
 
     @Override
-    public DataElementCategoryOptionCombo getDataElementCategoryOptionComboByCode( String code )
+    public CategoryOptionCombo getCategoryOptionComboByCode( String code )
     {
         return categoryOptionComboStore.getByCode( code );
     }
 
     @Override
-    public DataElementCategoryOptionCombo getDataElementCategoryOptionCombo(
-        Collection<DataElementCategoryOption> categoryOptions )
+    public CategoryOptionCombo getCategoryOptionCombo(
+        Collection<CategoryOption> categoryOptions )
     {
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : getAllDataElementCategoryOptionCombos() )
+        for ( CategoryOptionCombo categoryOptionCombo : getAllCategoryOptionCombos() )
         {
             if ( CollectionUtils.isEqualCollection( categoryOptions, categoryOptionCombo.getCategoryOptions() ) )
             {
@@ -453,14 +453,14 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public DataElementCategoryOptionCombo getDataElementCategoryOptionCombo( DataElementCategoryCombo categoryCombo,
-        Set<DataElementCategoryOption> categoryOptions )
+    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
+        Set<CategoryOption> categoryOptions )
     {
         return categoryOptionComboStore.getCategoryOptionCombo( categoryCombo, categoryOptions );
     }
 
     @Override
-    public List<DataElementCategoryOptionCombo> getAllDataElementCategoryOptionCombos()
+    public List<CategoryOptionCombo> getAllCategoryOptionCombos()
     {
         return categoryOptionComboStore.getAll();
     }
@@ -469,88 +469,88 @@ public class DefaultDataElementCategoryService
     public void generateDefaultDimension()
     {
         // ---------------------------------------------------------------------
-        // DataElementCategoryOption
+        // CategoryOption
         // ---------------------------------------------------------------------
 
-        DataElementCategoryOption categoryOption = new DataElementCategoryOption( DataElementCategoryOption.DEFAULT_NAME );
+        CategoryOption categoryOption = new CategoryOption( CategoryOption.DEFAULT_NAME );
         categoryOption.setUid( "xYerKDKCefk" );
         categoryOption.setCode( "default" );
 
-        addDataElementCategoryOption( categoryOption );
+        addCategoryOption( categoryOption );
 
         // ---------------------------------------------------------------------
-        // DataElementCategory
+        // Category
         // ---------------------------------------------------------------------
 
-        DataElementCategory category = new DataElementCategory( DataElementCategory.DEFAULT_NAME, DataDimensionType.DISAGGREGATION );
+        Category category = new Category( Category.DEFAULT_NAME, DataDimensionType.DISAGGREGATION );
         category.setUid( "GLevLNI9wkl" );
         category.setCode( "default" );
         category.setDataDimension( false );
 
         category.addCategoryOption( categoryOption );
-        addDataElementCategory( category );
+        addCategory( category );
 
         // ---------------------------------------------------------------------
-        // DataElementCategoryCombo
+        // CategoryCombo
         // ---------------------------------------------------------------------
 
-        DataElementCategoryCombo categoryCombo = new DataElementCategoryCombo( DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME, DataDimensionType.DISAGGREGATION );
+        CategoryCombo categoryCombo = new CategoryCombo( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME, DataDimensionType.DISAGGREGATION );
         categoryCombo.setUid( "bjDvmb4bfuf" );
         categoryCombo.setCode( "default" );
         categoryCombo.setDataDimensionType( DataDimensionType.DISAGGREGATION );
 
-        categoryCombo.addDataElementCategory( category );
-        addDataElementCategoryCombo( categoryCombo );
+        categoryCombo.addCategory( category );
+        addCategoryCombo( categoryCombo );
 
         // ---------------------------------------------------------------------
-        // DataElementCategoryOptionCombo
+        // CategoryOptionCombo
         // ---------------------------------------------------------------------
 
-        DataElementCategoryOptionCombo categoryOptionCombo = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
         categoryOptionCombo.setUid( "HllvX50cXC0" );
         categoryOptionCombo.setCode( "default" );
 
         categoryOptionCombo.setCategoryCombo( categoryCombo );
-        categoryOptionCombo.addDataElementCategoryOption( categoryOption );
+        categoryOptionCombo.addCategoryOption( categoryOption );
 
-        addDataElementCategoryOptionCombo( categoryOptionCombo );
+        addCategoryOptionCombo( categoryOptionCombo );
 
-        Set<DataElementCategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
         categoryOptionCombos.add( categoryOptionCombo );
         categoryCombo.setOptionCombos( categoryOptionCombos );
 
-        updateDataElementCategoryCombo( categoryCombo );
+        updateCategoryCombo( categoryCombo );
 
         categoryOption.setCategoryOptionCombos( categoryOptionCombos );
-        updateDataElementCategoryOption( categoryOption );
+        updateCategoryOption( categoryOption );
     }
 
     @Override
-    public DataElementCategoryOptionCombo getDefaultDataElementCategoryOptionCombo()
+    public CategoryOptionCombo getDefaultCategoryOptionCombo()
     {
-        DataElementCategoryCombo categoryCombo = getDataElementCategoryComboByName( DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+        CategoryCombo categoryCombo = getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
 
         return categoryCombo != null && categoryCombo.hasOptionCombos() ? categoryCombo.getOptionCombos().iterator().next() : null;
     }
 
     @Override
-    public void generateOptionCombos( DataElementCategoryCombo categoryCombo )
+    public void generateOptionCombos( CategoryCombo categoryCombo )
     {
         categoryCombo.generateOptionCombos();
 
-        for ( DataElementCategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
+        for ( CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
         {
             categoryCombo.getOptionCombos().add( optionCombo );
-            addDataElementCategoryOptionCombo( optionCombo );
+            addCategoryOptionCombo( optionCombo );
         }
 
-        updateDataElementCategoryCombo( categoryCombo );
+        updateCategoryCombo( categoryCombo );
     }
 
     @Override
-    public void updateOptionCombos( DataElementCategory category )
+    public void updateOptionCombos( Category category )
     {
-        for ( DataElementCategoryCombo categoryCombo : getAllDataElementCategoryCombos() )
+        for ( CategoryCombo categoryCombo : getAllCategoryCombos() )
         {
             if ( categoryCombo.getCategories().contains( category ) )
             {
@@ -560,7 +560,7 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public void updateOptionCombos( DataElementCategoryCombo categoryCombo )
+    public void updateOptionCombos( CategoryCombo categoryCombo )
     {
         if ( categoryCombo == null || !categoryCombo.isValid() )
         {
@@ -568,17 +568,17 @@ public class DefaultDataElementCategoryService
             return;
         }
 
-        List<DataElementCategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-        Set<DataElementCategoryOptionCombo> persistedOptionCombos = categoryCombo.getOptionCombos();
+        List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
+        Set<CategoryOptionCombo> persistedOptionCombos = categoryCombo.getOptionCombos();
 
         boolean modified = false;
 
-        for ( DataElementCategoryOptionCombo optionCombo : generatedOptionCombos )
+        for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
         {
             if ( !persistedOptionCombos.contains( optionCombo ) )
             {
                 categoryCombo.getOptionCombos().add( optionCombo );
-                addDataElementCategoryOptionCombo( optionCombo );
+                addCategoryOptionCombo( optionCombo );
 
                 log.info( "Added missing category option combo: " + optionCombo + " for category combo: "
                     + categoryCombo.getName() );
@@ -588,12 +588,12 @@ public class DefaultDataElementCategoryService
 
         if ( modified )
         {
-            updateDataElementCategoryCombo( categoryCombo );
+            updateCategoryCombo( categoryCombo );
         }
     }
 
     @Override
-    public void addAndPruneOptionCombos( DataElementCategoryCombo categoryCombo )
+    public void addAndPruneOptionCombos( CategoryCombo categoryCombo )
     {
         if ( categoryCombo == null || !categoryCombo.isValid() )
         {
@@ -601,34 +601,34 @@ public class DefaultDataElementCategoryService
             return;
         }
 
-        List<DataElementCategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-        Set<DataElementCategoryOptionCombo> persistedOptionCombos = Sets.newHashSet( categoryCombo.getOptionCombos() );
+        List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
+        Set<CategoryOptionCombo> persistedOptionCombos = Sets.newHashSet( categoryCombo.getOptionCombos() );
 
         boolean modified = false;
 
-        for ( DataElementCategoryOptionCombo optionCombo : generatedOptionCombos )
+        for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
         {
             if ( !persistedOptionCombos.contains( optionCombo ) )
             {
                 categoryCombo.getOptionCombos().add( optionCombo );
-                addDataElementCategoryOptionCombo( optionCombo );
+                addCategoryOptionCombo( optionCombo );
 
                 log.info( "Added missing category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
                 modified = true;
             }
         }
 
-        Iterator<DataElementCategoryOptionCombo> iterator = persistedOptionCombos.iterator();
+        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
 
         while ( iterator.hasNext() )
         {
-            DataElementCategoryOptionCombo optionCombo = iterator.next();
+            CategoryOptionCombo optionCombo = iterator.next();
 
             if ( !generatedOptionCombos.contains( optionCombo ) )
             {
                 try
                 {
-                    deleteDataElementCategoryOptionCombo( optionCombo );
+                    deleteCategoryOptionCombo( optionCombo );
                 }
                 catch ( Exception ex )
                 {
@@ -638,7 +638,7 @@ public class DefaultDataElementCategoryService
 
                 iterator.remove();
                 categoryCombo.getOptionCombos().remove( optionCombo );
-                deleteDataElementCategoryOptionCombo( optionCombo );
+                deleteCategoryOptionCombo( optionCombo );
 
                 log.info( "Deleted obsolete category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
                 modified = true;
@@ -647,31 +647,31 @@ public class DefaultDataElementCategoryService
 
         if ( modified )
         {
-            updateDataElementCategoryCombo( categoryCombo );
+            updateCategoryCombo( categoryCombo );
         }
     }
 
     @Override
     public void addAndPruneAllOptionCombos()
     {
-        List<DataElementCategoryCombo> categoryCombos = getAllDataElementCategoryCombos();
+        List<CategoryCombo> categoryCombos = getAllCategoryCombos();
 
-        for ( DataElementCategoryCombo categoryCombo : categoryCombos )
+        for ( CategoryCombo categoryCombo : categoryCombos )
         {
             addAndPruneOptionCombos( categoryCombo );
         }
     }
 
     @Override
-    public DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id )
+    public CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
-        DataElementCategoryOptionCombo coc = idObjectManager.getObject( DataElementCategoryOptionCombo.class, property, id );
+        CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, property, id );
         
         if ( coc != null )
         {            
             User user = currentUserService.getCurrentUser();
             
-            for ( DataElementCategoryOption categoryOption : coc.getCategoryOptions() )
+            for ( CategoryOption categoryOption : coc.getCategoryOptions() )
             {                
                 if ( !aclService.canRead( user, categoryOption ) )
                 {
@@ -706,7 +706,7 @@ public class DefaultDataElementCategoryService
 
         for ( DataElement dataElement : dataElements )
         {
-            Set<DataElementCategoryCombo> categoryCombos = dataElement.getCategoryCombos();
+            Set<CategoryCombo> categoryCombos = dataElement.getCategoryCombos();
             
             boolean anyIsDefault = categoryCombos.stream().anyMatch( cc -> cc.isDefault() );
             
@@ -715,7 +715,7 @@ public class DefaultDataElementCategoryService
                 operands.add( new DataElementOperand( dataElement ) );
             }
             
-            for ( DataElementCategoryCombo categoryCombo : categoryCombos )
+            for ( CategoryCombo categoryCombo : categoryCombos )
             {
                 operands.addAll( getOperands( dataElement, categoryCombo ) );
             }
@@ -731,7 +731,7 @@ public class DefaultDataElementCategoryService
                 
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
-            DataElementCategoryCombo categoryCombo = element.getResolvedCategoryCombo();
+            CategoryCombo categoryCombo = element.getResolvedCategoryCombo();
             
             if ( includeTotals && !categoryCombo.isDefault() )
             {
@@ -744,11 +744,11 @@ public class DefaultDataElementCategoryService
         return operands;
     }
 
-    private List<DataElementOperand> getOperands( DataElement dataElement, DataElementCategoryCombo categoryCombo )
+    private List<DataElementOperand> getOperands( DataElement dataElement, CategoryCombo categoryCombo )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
         
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
+        for ( CategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
             operands.add( new DataElementOperand( dataElement, categoryOptionCombo ) );
         }

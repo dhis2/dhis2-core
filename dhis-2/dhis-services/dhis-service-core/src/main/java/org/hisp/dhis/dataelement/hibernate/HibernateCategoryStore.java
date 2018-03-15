@@ -28,31 +28,31 @@ package org.hisp.dhis.dataelement.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.Category;
 import org.hisp.dhis.dataelement.CategoryStore;
-import org.hisp.dhis.dataelement.DataElementCategory;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public class HibernateCategoryStore
-    extends HibernateIdentifiableObjectStore<DataElementCategory>
+    extends HibernateIdentifiableObjectStore<Category>
     implements CategoryStore
 {
     @Override
     @SuppressWarnings("unchecked")
-    public List<DataElementCategory> getCategoriesByDimensionType( DataDimensionType dataDimensionType )
+    public List<Category> getCategoriesByDimensionType( DataDimensionType dataDimensionType )
     {
         return getSharingDetachedCriteria( Restrictions.eq( "dataDimensionType", dataDimensionType ) ).list();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<DataElementCategory> getCategories( DataDimensionType dataDimensionType, boolean dataDimension )
+    public List<Category> getCategories( DataDimensionType dataDimensionType, boolean dataDimension )
     {
         return getSharingDetachedCriteria(
             Restrictions.eq( "dataDimensionType", dataDimensionType ),
@@ -61,7 +61,7 @@ public class HibernateCategoryStore
     
     @Override
     @SuppressWarnings("unchecked")
-    public List<DataElementCategory> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
+    public List<Category> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
     {
         return getCriteria( 
             Restrictions.eq( "dataDimensionType", dataDimensionType ),

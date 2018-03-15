@@ -29,7 +29,7 @@ package org.hisp.dhis.dataanalysis;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -58,7 +58,7 @@ public interface DataAnalysisStore
      * @return a mapping between OrganisationUnit identifier and its standard deviation.
      */
     List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
-        Collection<DataElementCategoryOptionCombo> categoryOptionCombos,
+        Collection<CategoryOptionCombo> categoryOptionCombos,
         Collection<String> parentPaths, Date from );
 
     /**
@@ -71,20 +71,20 @@ public interface DataAnalysisStore
      * @param limit the max limit of violations to return.
      * @return a list of data value violations.
      */
-    List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<DataElementCategoryOptionCombo> categoryOptionCombos,
+    List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<CategoryOptionCombo> categoryOptionCombos,
         Collection<Period> periods, Collection<OrganisationUnit> parents, int limit );
     
     /**
      * Returns a collection of DeflatedDataValues for the given input.
      * 
      * @param dataElement the DataElement.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo.
+     * @param categoryOptionCombo the CategoryOptionCombo.
      * @param periods the collection of Periods.
      * @param lowerBoundMap the lower bound for the registered MinMaxDataElement.
      * @param upperBoundMap the upper bound for the registered MinMaxDataElement.
      * @return a list of DeflatedDataValues.
      */
-    List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
+    List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
         Collection<Period> periods, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap );
 
     /**

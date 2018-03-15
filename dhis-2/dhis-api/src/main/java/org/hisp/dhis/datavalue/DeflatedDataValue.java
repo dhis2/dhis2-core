@@ -33,7 +33,7 @@ import org.hisp.dhis.period.PeriodType;
 
 import java.util.Date;
 
-import static org.hisp.dhis.dataelement.DataElementCategoryOptionCombo.DEFAULT_TOSTRING;
+import static org.hisp.dhis.dataelement.CategoryOptionCombo.DEFAULT_TOSTRING;
 
 /**
  * The purpose of this class is to avoid the overhead of creating objects

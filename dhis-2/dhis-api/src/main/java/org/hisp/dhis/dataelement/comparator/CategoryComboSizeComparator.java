@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataelement;
+package org.hisp.dhis.dataelement.comparator;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,40 +28,20 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
- * @author Dang Duy Hieu
+ * @author Abyot Asalefew Gizaw
+ * @version $Id$
  */
-public class DataElementCategoryDeletionHandler
-    extends DeletionHandler
+import org.hisp.dhis.dataelement.CategoryCombo;
+
+import java.util.Comparator;
+
+public class CategoryComboSizeComparator
+    implements Comparator<CategoryCombo>
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-    
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    public int compare( CategoryCombo o1, CategoryCombo o2 )
     {
-        return DataElementCategory.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
-    {
-        Set<DataElementCategory> categories = categoryOption.getCategories();
-
-        for ( DataElementCategory category : categories )
-        {
-            category.removeCategoryOption( categoryOption );
-            idObjectManager.updateNoAcl( category );
-        }
+        return o1.getOptionCombos().size() - o2.getOptionCombos().size();
     }
 }

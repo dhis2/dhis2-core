@@ -29,7 +29,7 @@ package org.hisp.dhis.minmax;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,7 +86,7 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
-    public MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo )
+    public MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo )
     {
         return minMaxDataElementStore.get( source, dataElement, optionCombo );
     }
@@ -128,7 +128,7 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
-    public void removeMinMaxDataElements( DataElementCategoryOptionCombo optionCombo )
+    public void removeMinMaxDataElements( CategoryOptionCombo optionCombo )
     {
         minMaxDataElementStore.delete( optionCombo );
     }

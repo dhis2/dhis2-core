@@ -35,7 +35,7 @@ import java.util.List;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -90,7 +90,7 @@ public class HibernateCompleteDataSetRegistrationStore
 
     @Override
     public CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
-        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo )
     {
         Period storedPeriod = periodStore.reloadPeriod( period );
 

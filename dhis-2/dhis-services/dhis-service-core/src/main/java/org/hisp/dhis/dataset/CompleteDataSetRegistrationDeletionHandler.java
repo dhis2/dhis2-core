@@ -28,7 +28,7 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -90,7 +90,7 @@ public class CompleteDataSetRegistrationDeletionHandler
     }
 
     @Override
-    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo optionCombo )
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid=" + optionCombo.getId();
         

@@ -45,7 +45,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.Category;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -186,9 +186,9 @@ public class JdbcEventAnalyticsTableManager
 
         if ( program.hasCategoryCombo() )
         {
-            List<DataElementCategory> categories = program.getCategoryCombo().getCategories();
+            List<Category> categories = program.getCategoryCombo().getCategories();
             
-            for ( DataElementCategory category : categories )
+            for ( Category category : categories )
             {
                 if ( category.isDataDimension() )
                 {

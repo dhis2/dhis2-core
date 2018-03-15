@@ -39,7 +39,7 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -584,7 +584,7 @@ public class AnalyticsUtils
                 {
                     DataElement dataElement = (DataElement) item;
                     
-                    for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+                    for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                     {
                         map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
                     }
@@ -636,7 +636,7 @@ public class AnalyticsUtils
             {
                 DataElement dataElement = (DataElement) de;
                 
-                for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+                for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                 {
                     metaData.put( coc.getUid(), coc.getName() );
                 }
