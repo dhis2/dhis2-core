@@ -28,22 +28,14 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.common.collect.Lists;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.commons.filter.FilterUtils;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.batchhandler.MinMaxDataElementBatchHandler;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -52,7 +44,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.DataElementValueTypesFilter;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
+
+import java.util.*;
 
 /**
  * @author Lars Helge Overland
@@ -101,7 +97,7 @@ public class MinMaxOutlierAnalysisService
 
         FilterUtils.filter( elements, DE_NUMERIC_FILTER );
 
-        Set<DataElementCategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
         for ( DataElement dataElement : elements )
         {
@@ -134,7 +130,7 @@ public class MinMaxOutlierAnalysisService
         {
             if ( dataElement.getValueType().isNumeric() )
             {
-                Set<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
+                Set<CategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
 
                 List<DataAnalysisMeasures> measuresList = dataAnalysisStore.getDataAnalysisMeasures( dataElement, categoryOptionCombos, parentPaths, from );
 
@@ -157,7 +153,7 @@ public class MinMaxOutlierAnalysisService
                     OrganisationUnit orgUnit = new OrganisationUnit();
                     orgUnit.setId( measures.getOrgUnitId() );
 
-                    DataElementCategoryOptionCombo categoryOptionCombo = new DataElementCategoryOptionCombo();
+                    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
                     categoryOptionCombo.setId( measures.getCategoryOptionComboId() );
 
                     batchHandler.addObject( new MinMaxDataElement( orgUnit, dataElement, categoryOptionCombo, min, max, true ) );

@@ -50,8 +50,8 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
@@ -81,7 +81,7 @@ public class ReportTableTest
     extends DhisConvenienceTest
 {
     private List<DataElement> dataElements;
-    private List<DataElementCategoryOptionCombo> categoryOptionCombos;
+    private List<CategoryOptionCombo> categoryOptionCombos;
     private List<Indicator> indicators;
     private List<ReportingRate> reportingRates;
     private List<Period> periods;
@@ -99,10 +99,10 @@ public class ReportTableTest
     private DataElementGroup deGroupA;
     private DataElementGroup deGroupB;
     
-    private DataElementCategoryOptionCombo categoryOptionComboA;
-    private DataElementCategoryOptionCombo categoryOptionComboB;
+    private CategoryOptionCombo categoryOptionComboA;
+    private CategoryOptionCombo categoryOptionComboB;
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
     
     private IndicatorType indicatorType;
     
@@ -177,7 +177,7 @@ public class ReportTableTest
         categoryOptionCombos.add( categoryOptionComboA );
         categoryOptionCombos.add( categoryOptionComboB );
 
-        categoryCombo = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        categoryCombo = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
         categoryCombo.setId( 'A' );
         categoryCombo.setOptionCombos( new HashSet<>( categoryOptionCombos ) );
         

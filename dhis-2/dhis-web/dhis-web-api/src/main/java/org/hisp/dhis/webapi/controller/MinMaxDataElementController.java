@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -204,7 +204,7 @@ public class MinMaxDataElementController
         {
             m.setDataElement( Objects.requireNonNull( manager.get( DataElement.class, m.getDataElement().getUid() ) ) );
             m.setSource( Objects.requireNonNull( manager.get( OrganisationUnit.class, m.getSource().getUid() ) ) );
-            m.setOptionCombo( Objects.requireNonNull( manager.get( DataElementCategoryOptionCombo.class, m.getOptionCombo().getUid() ) ) );
+            m.setOptionCombo( Objects.requireNonNull( manager.get( CategoryOptionCombo.class, m.getOptionCombo().getUid() ) ) );
             return m;
         }
         catch ( NullPointerException e )

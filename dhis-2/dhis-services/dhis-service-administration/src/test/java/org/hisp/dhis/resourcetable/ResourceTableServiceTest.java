@@ -127,6 +127,6 @@ public class ResourceTableServiceTest
         resourceTableService.generateDataElementTable();
         resourceTableService.generatePeriodTable();
         resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();
+        resourceTableService.generateCategoryOptionComboTable();
     }
 }

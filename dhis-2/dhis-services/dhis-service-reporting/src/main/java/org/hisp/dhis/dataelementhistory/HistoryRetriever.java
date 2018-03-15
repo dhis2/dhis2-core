@@ -29,7 +29,7 @@ package org.hisp.dhis.dataelementhistory;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -41,7 +41,7 @@ public interface HistoryRetriever
 {
     String ID = HistoryRetriever.class.getName();
 
-    DataElementHistory getHistory( DataElement dataElement, DataElementCategoryOptionCombo optionCombo, 
-    		DataElementCategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod, int historyLength );
+    DataElementHistory getHistory( DataElement dataElement, CategoryOptionCombo optionCombo, 
+    		CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod, int historyLength );
     
 }

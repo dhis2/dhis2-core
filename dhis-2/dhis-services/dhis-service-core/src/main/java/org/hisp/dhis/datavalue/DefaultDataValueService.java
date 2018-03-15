@@ -37,9 +37,9 @@ import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -95,9 +95,9 @@ public class DefaultDataValueService
         this.currentUserService = currentUserService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -141,12 +141,12 @@ public class DefaultDataValueService
 
         if ( dataValue.getCategoryOptionCombo() == null )
         {
-            dataValue.setCategoryOptionCombo( categoryService.getDefaultDataElementCategoryOptionCombo() );
+            dataValue.setCategoryOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
         }
 
         if ( dataValue.getAttributeOptionCombo() == null )
         {
-            dataValue.setAttributeOptionCombo( categoryService.getDefaultDataElementCategoryOptionCombo() );
+            dataValue.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
         }
 
         dataValue.setCreated( new Date() );
@@ -220,16 +220,16 @@ public class DefaultDataValueService
     }
 
     @Override
-    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, DataElementCategoryOptionCombo categoryOptionCombo )
+    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, CategoryOptionCombo categoryOptionCombo )
     {
-        DataElementCategoryOptionCombo defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         return dataValueStore.getDataValue( dataElement, period, source, categoryOptionCombo, defaultOptionCombo );
     }
 
     @Override
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
         return dataValueStore.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
     }
@@ -307,7 +307,7 @@ public class DefaultDataValueService
     
     @Override
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
-        Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo )
+        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
     {
         return dataValueStore.getDataValues( source, period, dataElements, attributeOptionCombo );
     }
@@ -345,8 +345,8 @@ public class DefaultDataValueService
     @Override
     public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
         Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
-        Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
+        Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints )
     {
         return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperands, date, orgUnits,
             periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints );

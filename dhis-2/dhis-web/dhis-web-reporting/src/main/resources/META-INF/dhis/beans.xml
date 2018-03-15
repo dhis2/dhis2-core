@@ -64,7 +64,7 @@
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
     <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
   </bean>
 
@@ -75,7 +75,7 @@
 	<property name="registrationService" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
   </bean>
   
   <!-- Data Approval -->

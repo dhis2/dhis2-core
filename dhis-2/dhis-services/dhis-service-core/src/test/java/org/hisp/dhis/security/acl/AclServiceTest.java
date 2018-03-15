@@ -34,7 +34,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -449,7 +449,7 @@ public class AclServiceTest
         User user1 = createUser( "user1", "F_CATEGORY_OPTION_PRIVATE_ADD" );
         User user2 = createUser( "user2", "F_CATEGORY_OPTION_PRIVATE_ADD" );
 
-        DataElementCategoryOption categoryOption = createCategoryOption( 'A' );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
         categoryOption.setUser( user1 );
         manager.save( categoryOption );
 

@@ -28,17 +28,11 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -46,7 +40,9 @@ import org.hisp.dhis.period.Period;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Kristian Nordal
@@ -55,7 +51,7 @@ public class DataValueServiceTest
     extends DhisSpringTest
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -75,7 +71,7 @@ public class DataValueServiceTest
     private DataElement dataElementC;
     private DataElement dataElementD;
 
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
     
     private Period periodA;
     private Period periodB;
@@ -122,7 +118,7 @@ public class DataValueServiceTest
         organisationUnitService.addOrganisationUnit( sourceC );
         organisationUnitService.addOrganisationUnit( sourceD );
 
-        optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        optionCombo = categoryService.getDefaultCategoryOptionCombo();
     }
     
     // -------------------------------------------------------------------------

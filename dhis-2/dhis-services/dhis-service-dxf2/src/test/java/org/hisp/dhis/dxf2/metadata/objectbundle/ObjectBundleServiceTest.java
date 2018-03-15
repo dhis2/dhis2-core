@@ -36,9 +36,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -184,7 +184,7 @@ public class ObjectBundleServiceTest
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( DataElementCategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
                     {
                         assertEquals( "p0KPaWEg3cf", preheatErrorReport.getObjectReference().getUid() );
                     }
@@ -207,7 +207,7 @@ public class ObjectBundleServiceTest
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate1.json" ).getInputStream(), RenderFormat.JSON );
 
-        DataElementCategoryCombo categoryCombo = manager.getByName( DataElementCategoryCombo.class, "default" );
+        CategoryCombo categoryCombo = manager.getByName( CategoryCombo.class, "default" );
         categoryCombo.setUid( "p0KPaWEg3cf" );
         manager.update( categoryCombo );
 
@@ -242,7 +242,7 @@ public class ObjectBundleServiceTest
                     PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
                     assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-                    if ( DataElementCategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
+                    if ( CategoryCombo.class.isInstance( preheatErrorReport.getValue() ) )
                     {
                         assertFalse( true );
                     }
@@ -528,7 +528,7 @@ public class ObjectBundleServiceTest
         for ( DataElement dataElement : dataElements )
         {
             assertNotNull( dataElement.getDataElementCategoryCombo() );
-            assertEquals( defaults.get( DataElementCategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
+            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
         }
 
         assertFalse( dataSet.getSources().isEmpty() );
@@ -839,14 +839,14 @@ public class ObjectBundleServiceTest
         assertEquals( 1, section.getCategoryCombos().size() );
         assertEquals( 1, section.getGreyedFields().size() );
 
-        DataElementCategoryCombo categoryCombo = manager.get( DataElementCategoryCombo.class, "faV8QvLgIwB" );
+        CategoryCombo categoryCombo = manager.get( CategoryCombo.class, "faV8QvLgIwB" );
         assertNotNull( categoryCombo );
 
-        DataElementCategory category = manager.get( DataElementCategory.class, "XJGLlMAMCcn" );
+        Category category = manager.get( Category.class, "XJGLlMAMCcn" );
         assertNotNull( category );
 
-        DataElementCategoryOption categoryOption1 = manager.get( DataElementCategoryOption.class, "JYiFOMKa25J" );
-        DataElementCategoryOption categoryOption2 = manager.get( DataElementCategoryOption.class, "tdaMRD34m8o" );
+        CategoryOption categoryOption1 = manager.get( CategoryOption.class, "JYiFOMKa25J" );
+        CategoryOption categoryOption2 = manager.get( CategoryOption.class, "tdaMRD34m8o" );
 
         assertNotNull( categoryOption1 );
         assertNotNull( categoryOption2 );

@@ -28,17 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
 public interface CategoryOptionComboStore
-    extends GenericIdentifiableObjectStore<DataElementCategoryOptionCombo>
+    extends GenericIdentifiableObjectStore<CategoryOptionCombo>
 {
-    DataElementCategoryOptionCombo getCategoryOptionCombo( DataElementCategoryCombo categoryCombo, Set<DataElementCategoryOption> categoryOptions );
+    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
     
     void updateNames();
 }

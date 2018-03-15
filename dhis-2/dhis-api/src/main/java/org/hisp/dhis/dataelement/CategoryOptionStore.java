@@ -28,15 +28,15 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public interface CategoryOptionStore
-    extends GenericIdentifiableObjectStore<DataElementCategoryOption>
+    extends GenericIdentifiableObjectStore<CategoryOption>
 {
-    List<DataElementCategoryOption> getCategoryOptions( DataElementCategory category );
+    List<CategoryOption> getCategoryOptions( Category category );
 }

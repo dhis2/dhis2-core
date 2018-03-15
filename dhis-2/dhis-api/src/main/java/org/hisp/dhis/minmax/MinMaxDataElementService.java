@@ -28,8 +28,8 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Collection;
@@ -51,7 +51,7 @@ public interface MinMaxDataElementService
 
     MinMaxDataElement getMinMaxDataElement( int id );
 
-    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo );
+    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
     
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement );
 
@@ -65,7 +65,7 @@ public interface MinMaxDataElementService
     
     void removeMinMaxDataElements( DataElement dataElement );
     
-    void removeMinMaxDataElements( DataElementCategoryOptionCombo optionCombo );
+    void removeMinMaxDataElements( CategoryOptionCombo optionCombo );
     
     void removeMinMaxDataElements( Collection<DataElement> dataElements, OrganisationUnit parent );
 }

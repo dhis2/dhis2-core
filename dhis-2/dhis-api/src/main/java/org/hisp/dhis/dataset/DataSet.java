@@ -42,10 +42,10 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
@@ -123,7 +123,7 @@ public class DataSet
     /**
      * The CategoryCombo used for data attributes.
      */
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * Property indicating if the dataset could be collected using mobile data
@@ -329,7 +329,7 @@ public class DataSet
      * @param dataElement   the data element.
      * @param categoryCombo the category combination.
      */
-    public boolean addDataSetElement( DataElement dataElement, DataElementCategoryCombo categoryCombo )
+    public boolean addDataSetElement( DataElement dataElement, CategoryCombo categoryCombo )
     {
         DataSetElement element = new DataSetElement( this, dataElement, categoryCombo );
         dataElement.getDataSetElements().add( element );
@@ -450,9 +450,9 @@ public class DataSet
         return dataElements;
     }
 
-    public Set<DataElementCategoryOptionCombo> getDataElementOptionCombos()
+    public Set<CategoryOptionCombo> getDataElementOptionCombos()
     {
-        Set<DataElementCategoryOptionCombo> optionCombos = new HashSet<>();
+        Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
         for ( DataSetElement element : dataSetElements )
         {
@@ -478,9 +478,9 @@ public class DataSet
 
         if ( categoryCombo != null )
         {
-            for ( DataElementCategory category : categoryCombo.getCategories() )
+            for ( Category category : categoryCombo.getCategories() )
             {
-                for ( DataElementCategoryOption categoryOption : category.getCategoryOptions() )
+                for ( CategoryOption categoryOption : category.getCategoryOptions() )
                 {
                     groupSets.addAll( categoryOption.getGroupSets() );
                 }
@@ -496,7 +496,7 @@ public class DataSet
      */
     public boolean hasCategoryCombo()
     {
-        return categoryCombo != null && !DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
+        return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
 
     /**
@@ -656,12 +656,12 @@ public class DataSet
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
         return categoryCombo;
     }
 
-    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
     }

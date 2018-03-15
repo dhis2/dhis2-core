@@ -79,9 +79,9 @@ public class CategoryOptionGroupSet
     // TODO link group set to category to avoid conflicting grouping of category
     // option combos
 
-    public CategoryOptionGroup getGroup( DataElementCategoryOptionCombo optionCombo )
+    public CategoryOptionGroup getGroup( CategoryOptionCombo optionCombo )
     {
-        Set<DataElementCategoryOption> categoryOptions = optionCombo.getCategoryOptions();
+        Set<CategoryOption> categoryOptions = optionCombo.getCategoryOptions();
 
         for ( CategoryOptionGroup group : members )
         {

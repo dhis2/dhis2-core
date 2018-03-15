@@ -28,26 +28,21 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Set;
 
 /**
- * @author Lars Helge Overland
- * @version $Id$
+ * @author Dang Duy Hieu
  */
-public class DataElementCategoryComboDeletionHandler
+public class CategoryDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private DataElementCategoryService categoryService;
-
-    public void setCategoryService( DataElementCategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
-
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+    
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
@@ -55,20 +50,18 @@ public class DataElementCategoryComboDeletionHandler
     @Override
     public String getClassName()
     {
-        return DataElementCategoryCombo.class.getSimpleName();
+        return Category.class.getSimpleName();
     }
-    
+
     @Override
-    public String allowDeleteDataElementCategory( DataElementCategory category )
+    public void deleteCategoryOption( CategoryOption categoryOption )
     {
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryService.getAllDataElementCategoryOptionCombos() )
+        Set<Category> categories = categoryOption.getCategories();
+
+        for ( Category category : categories )
         {
-            if ( categoryOptionCombo.getCategoryCombo().getCategories().contains( category ) )
-            {
-                return categoryOptionCombo.getCategoryCombo().getName();
-            }
+            category.removeCategoryOption( categoryOption );
+            idObjectManager.updateNoAcl( category );
         }
-        
-        return null;
     }
 }

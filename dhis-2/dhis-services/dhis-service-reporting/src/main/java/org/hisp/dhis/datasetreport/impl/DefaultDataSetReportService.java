@@ -47,9 +47,9 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.GridValue;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -152,7 +152,7 @@ public class DefaultDataSetReportService
 
         for ( Section section : sections )
         {
-            for( DataElementCategoryCombo categoryCombo : section.getCategoryCombos() )
+            for( CategoryCombo categoryCombo : section.getCategoryCombos() )
             {
 
                 Grid grid = new ListGrid().setTitle( section.getName() + SPACE + categoryCombo.getName() ).
@@ -164,9 +164,9 @@ public class DefaultDataSetReportService
     
                 grid.addHeader( new GridHeader( i18n.getString( "dataelement" ), false, true ) );
     
-                List<DataElementCategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
+                List<CategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
     
-                for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
+                for ( CategoryOptionCombo optionCombo : optionCombos )
                 {
                     grid.addHeader( new GridHeader( optionCombo.isDefault() ? DEFAULT_HEADER : optionCombo.getName(),
                         false, false ) );
@@ -174,7 +174,7 @@ public class DefaultDataSetReportService
     
                 if ( categoryCombo.doSubTotals() && !selectedUnitOnly ) // Sub-total
                 {
-                    for ( DataElementCategoryOption categoryOption : categoryCombo.getCategoryOptions() )
+                    for ( CategoryOption categoryOption : categoryCombo.getCategoryOptions() )
                     {
                         grid.addHeader( new GridHeader( categoryOption.getName(), false, false ) );
                     }
@@ -198,7 +198,7 @@ public class DefaultDataSetReportService
                     grid.addRow();
                     grid.addValue( new GridValue( dataElement.getFormNameFallback() ) ); // Data element name
     
-                    for ( DataElementCategoryOptionCombo optionCombo : optionCombos ) // Values
+                    for ( CategoryOptionCombo optionCombo : optionCombos ) // Values
                     {
                         Map<Object, Object> attributes = new HashMap<>();
                         attributes.put( ATTR_DE, dataElement.getUid() );
@@ -222,7 +222,7 @@ public class DefaultDataSetReportService
     
                     if ( categoryCombo.doSubTotals() && !selectedUnitOnly ) // Sub-total
                     {
-                        for ( DataElementCategoryOption categoryOption : categoryCombo.getCategoryOptions() )
+                        for ( CategoryOption categoryOption : categoryCombo.getCategoryOptions() )
                         {
                             Object value = subTotalMap.get( dataElement.getUid() + SEPARATOR + categoryOption.getUid() );
     
@@ -250,7 +250,7 @@ public class DefaultDataSetReportService
     public List<Grid> getDefaultDataSetReport( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> dimensions,
         boolean selectedUnitOnly, I18nFormat format, I18n i18n )
     {
-        ListMap<DataElementCategoryCombo, DataElement> map = new ListMap<>();
+        ListMap<CategoryCombo, DataElement> map = new ListMap<>();
         
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
@@ -260,7 +260,7 @@ public class DefaultDataSetReportService
         DataSet tmpDataSet = new DataSet( dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType() );
         tmpDataSet.setDataSetElements( dataSet.getDataSetElements() );
         
-        for ( DataElementCategoryCombo categoryCombo : map.keySet() )
+        for ( CategoryCombo categoryCombo : map.keySet() )
         {
             List<DataElement> dataElements = map.get( categoryCombo );
             

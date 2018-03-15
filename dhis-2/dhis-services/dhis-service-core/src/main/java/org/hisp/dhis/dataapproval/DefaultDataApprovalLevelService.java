@@ -35,9 +35,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -82,9 +82,9 @@ public class DefaultDataApprovalLevelService
         this.organisationUnitService = organisationUnitService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -171,15 +171,15 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo )
     {
         Set<CategoryOptionGroupSet> cogSets = null;
 
-        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultDataElementCategoryOptionCombo()  )
+        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultCategoryOptionCombo()  )
         {
             cogSets = new HashSet<>();
 
-            for ( DataElementCategoryOption option : attributeOptionCombo.getCategoryOptions() )
+            for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
             {
                 if ( option.getGroupSets() != null )
                 {

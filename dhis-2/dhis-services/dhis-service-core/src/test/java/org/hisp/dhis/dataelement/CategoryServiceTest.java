@@ -28,45 +28,41 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataElementCategoryServiceTest
+public class CategoryServiceTest
     extends DhisSpringTest
 {
     private DataElement deA;
     private DataElement deB;
     
-    private DataElementCategoryOption categoryOptionA;
-    private DataElementCategoryOption categoryOptionB;
-    private DataElementCategoryOption categoryOptionC;
+    private CategoryOption categoryOptionA;
+    private CategoryOption categoryOptionB;
+    private CategoryOption categoryOptionC;
 
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
-    private DataElementCategory categoryC;
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
 
-    private DataElementCategoryCombo ccA;
+    private CategoryCombo ccA;
     
-    private List<DataElementCategoryOption> categoryOptions;
+    private List<CategoryOption> categoryOptions;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -82,9 +78,9 @@ public class DataElementCategoryServiceTest
         categoryOptionB = createCategoryOption( 'B' );
         categoryOptionC = createCategoryOption( 'C' );
 
-        categoryService.addDataElementCategoryOption( categoryOptionA );
-        categoryService.addDataElementCategoryOption( categoryOptionB );
-        categoryService.addDataElementCategoryOption( categoryOptionC );
+        categoryService.addCategoryOption( categoryOptionA );
+        categoryService.addCategoryOption( categoryOptionB );
+        categoryService.addCategoryOption( categoryOptionC );
 
         categoryOptions = new ArrayList<>();
 
@@ -100,63 +96,63 @@ public class DataElementCategoryServiceTest
     @Test
     public void testAddGet()
     {
-        categoryA = createDataElementCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
-        categoryB = createDataElementCategory( 'B', categoryOptionA, categoryOptionB, categoryOptionC );
-        categoryC = createDataElementCategory( 'C', categoryOptionA, categoryOptionB, categoryOptionC );
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
+        categoryB = createCategory( 'B', categoryOptionA, categoryOptionB, categoryOptionC );
+        categoryC = createCategory( 'C', categoryOptionA, categoryOptionB, categoryOptionC );
 
-        int idA = categoryService.addDataElementCategory( categoryA );
-        int idB = categoryService.addDataElementCategory( categoryB );
-        int idC = categoryService.addDataElementCategory( categoryC );
+        int idA = categoryService.addCategory( categoryA );
+        int idB = categoryService.addCategory( categoryB );
+        int idC = categoryService.addCategory( categoryC );
 
-        assertEquals( categoryA, categoryService.getDataElementCategory( idA ) );
-        assertEquals( categoryB, categoryService.getDataElementCategory( idB ) );
-        assertEquals( categoryC, categoryService.getDataElementCategory( idC ) );
+        assertEquals( categoryA, categoryService.getCategory( idA ) );
+        assertEquals( categoryB, categoryService.getCategory( idB ) );
+        assertEquals( categoryC, categoryService.getCategory( idC ) );
 
-        assertEquals( categoryOptions, categoryService.getDataElementCategory( idA ).getCategoryOptions() );
-        assertEquals( categoryOptions, categoryService.getDataElementCategory( idB ).getCategoryOptions() );
-        assertEquals( categoryOptions, categoryService.getDataElementCategory( idC ).getCategoryOptions() );
+        assertEquals( categoryOptions, categoryService.getCategory( idA ).getCategoryOptions() );
+        assertEquals( categoryOptions, categoryService.getCategory( idB ).getCategoryOptions() );
+        assertEquals( categoryOptions, categoryService.getCategory( idC ).getCategoryOptions() );
     }
 
     @Test
     public void testDelete()
     {
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION, categoryOptions );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, categoryOptions );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
 
-        int idA = categoryService.addDataElementCategory( categoryA );
-        int idB = categoryService.addDataElementCategory( categoryB );
-        int idC = categoryService.addDataElementCategory( categoryC );
+        int idA = categoryService.addCategory( categoryA );
+        int idB = categoryService.addCategory( categoryB );
+        int idC = categoryService.addCategory( categoryC );
 
-        assertNotNull( categoryService.getDataElementCategory( idA ) );
-        assertNotNull( categoryService.getDataElementCategory( idB ) );
-        assertNotNull( categoryService.getDataElementCategory( idC ) );
+        assertNotNull( categoryService.getCategory( idA ) );
+        assertNotNull( categoryService.getCategory( idB ) );
+        assertNotNull( categoryService.getCategory( idC ) );
 
-        categoryService.deleteDataElementCategory( categoryA );
+        categoryService.deleteCategory( categoryA );
 
-        assertNull( categoryService.getDataElementCategory( idA ) );
-        assertNotNull( categoryService.getDataElementCategory( idB ) );
-        assertNotNull( categoryService.getDataElementCategory( idC ) );
+        assertNull( categoryService.getCategory( idA ) );
+        assertNotNull( categoryService.getCategory( idB ) );
+        assertNotNull( categoryService.getCategory( idC ) );
 
-        categoryService.deleteDataElementCategory( categoryB );
+        categoryService.deleteCategory( categoryB );
 
-        assertNull( categoryService.getDataElementCategory( idA ) );
-        assertNull( categoryService.getDataElementCategory( idB ) );
-        assertNotNull( categoryService.getDataElementCategory( idC ) );
+        assertNull( categoryService.getCategory( idA ) );
+        assertNull( categoryService.getCategory( idB ) );
+        assertNotNull( categoryService.getCategory( idC ) );
     }
 
     @Test
     public void testGetAll()
     {
-        categoryA = createDataElementCategory( 'A' );
-        categoryB = createDataElementCategory( 'B' );
-        categoryC = createDataElementCategory( 'C' );
+        categoryA = createCategory( 'A' );
+        categoryB = createCategory( 'B' );
+        categoryC = createCategory( 'C' );
 
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategory( categoryB );
-        categoryService.addDataElementCategory( categoryC );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+        categoryService.addCategory( categoryC );
 
-        List<DataElementCategory> categories = categoryService.getAllDataElementCategories();
+        List<Category> categories = categoryService.getAllDataElementCategories();
 
         assertEquals( 4, categories.size() ); // Including default
         assertTrue( categories.contains( categoryA ) );
@@ -239,19 +235,19 @@ public class DataElementCategoryServiceTest
     @Test
     public void testGetOperands()
     {
-        categoryA = createDataElementCategory( 'A', categoryOptionA, categoryOptionB );
-        categoryB = createDataElementCategory( 'B', categoryOptionC );
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
 
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategory( categoryB );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
         
         ccA = createCategoryCombo( 'A', categoryA, categoryB );
         
-        categoryService.addDataElementCategoryCombo( ccA );
+        categoryService.addCategoryCombo( ccA );
         
         categoryService.generateOptionCombos( ccA );
         
-        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
+        List<CategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
 
         deA = createDataElement( 'A', ccA );
         deB = createDataElement( 'B', ccA );
@@ -271,19 +267,19 @@ public class DataElementCategoryServiceTest
     @Test
     public void testGetOperandsWithTotals()
     {
-        categoryA = createDataElementCategory( 'A', categoryOptionA, categoryOptionB );
-        categoryB = createDataElementCategory( 'B', categoryOptionC );
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
 
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategory( categoryB );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
         
         ccA = createCategoryCombo( 'A', categoryA, categoryB );
         
-        categoryService.addDataElementCategoryCombo( ccA );
+        categoryService.addCategoryCombo( ccA );
         
         categoryService.generateOptionCombos( ccA );
 
-        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
+        List<CategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
 
         deA = createDataElement( 'A', ccA );
         deB = createDataElement( 'B', ccA );

@@ -28,32 +28,32 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author Lars Helge Overland
  */
-public class DataElementCategoryComboTest
+public class CategoryComboTest
 {
-    private DataElementCategoryOption categoryOptionA;
-    private DataElementCategoryOption categoryOptionB;
-    private DataElementCategoryOption categoryOptionC;
-    private DataElementCategoryOption categoryOptionD;
-    private DataElementCategoryOption categoryOptionE;
-    private DataElementCategoryOption categoryOptionF;
+    private CategoryOption categoryOptionA;
+    private CategoryOption categoryOptionB;
+    private CategoryOption categoryOptionC;
+    private CategoryOption categoryOptionD;
+    private CategoryOption categoryOptionE;
+    private CategoryOption categoryOptionF;
     
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
-    private DataElementCategory categoryC;
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
     
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
     
     // -------------------------------------------------------------------------
     // Fixture
@@ -62,16 +62,16 @@ public class DataElementCategoryComboTest
     @Before
     public void before()
     {
-        categoryOptionA = new DataElementCategoryOption( "OptionA" );
-        categoryOptionB = new DataElementCategoryOption( "OptionB" );
-        categoryOptionC = new DataElementCategoryOption( "OptionC" );
-        categoryOptionD = new DataElementCategoryOption( "OptionD" );
-        categoryOptionE = new DataElementCategoryOption( "OptionE" );
-        categoryOptionF = new DataElementCategoryOption( "OptionF" );
+        categoryOptionA = new CategoryOption( "OptionA" );
+        categoryOptionB = new CategoryOption( "OptionB" );
+        categoryOptionC = new CategoryOption( "OptionC" );
+        categoryOptionD = new CategoryOption( "OptionD" );
+        categoryOptionE = new CategoryOption( "OptionE" );
+        categoryOptionF = new CategoryOption( "OptionF" );
         
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
         
         categoryA.getCategoryOptions().add( categoryOptionA );
         categoryA.getCategoryOptions().add( categoryOptionB );
@@ -87,7 +87,7 @@ public class DataElementCategoryComboTest
         categoryOptionE.getCategories().add( categoryC );
         categoryOptionF.getCategories().add( categoryC );
         
-        categoryCombo = new DataElementCategoryCombo( "CategoryCombo", DataDimensionType.DISAGGREGATION );
+        categoryCombo = new CategoryCombo( "CategoryCombo", DataDimensionType.DISAGGREGATION );
         
         categoryCombo.getCategories().add( categoryA );
         categoryCombo.getCategories().add( categoryB );
@@ -97,7 +97,7 @@ public class DataElementCategoryComboTest
     @Test
     public void testGenerateOptionCombosList()
     {
-        List<DataElementCategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
+        List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
         
         assertNotNull( list );
         assertEquals( 8, list.size() );
@@ -115,20 +115,20 @@ public class DataElementCategoryComboTest
     @Test
     public void test()
     {
-        List<DataElementCategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
+        List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
         
         categoryCombo.generateOptionCombos();
         
         assertEquals( list, categoryCombo.getSortedOptionCombos() );
     }
     
-    private static DataElementCategoryOptionCombo createCategoryOptionCombo( DataElementCategoryCombo categoryCombo, DataElementCategoryOption... categoryOptions )
+    private static CategoryOptionCombo createCategoryOptionCombo( CategoryCombo categoryCombo, CategoryOption... categoryOptions )
     {
-        DataElementCategoryOptionCombo categoryOptionCombo = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
         
         categoryOptionCombo.setCategoryCombo( categoryCombo );
         
-        for ( DataElementCategoryOption categoryOption : categoryOptions )
+        for ( CategoryOption categoryOption : categoryOptions )
         {
             categoryOptionCombo.getCategoryOptions().add( categoryOption );
         }

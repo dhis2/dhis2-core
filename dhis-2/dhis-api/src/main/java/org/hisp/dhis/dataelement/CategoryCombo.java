@@ -48,7 +48,7 @@ import java.util.Set;
  * @author Abyot Aselefew
  */
 @JacksonXmlRootElement( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElementCategoryCombo
+public class CategoryCombo
     extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
@@ -56,13 +56,13 @@ public class DataElementCategoryCombo
     /**
      * A set with categories.
      */
-    private List<DataElementCategory> categories = new ArrayList<>();
+    private List<Category> categories = new ArrayList<>();
 
     /**
      * A set of category option combinations. Use getSortedOptionCombos() to get a
      * sorted list of category option combinations.
      */
-    private Set<DataElementCategoryOptionCombo> optionCombos = new HashSet<>();
+    private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
     /**
      * Type of data dimension. Category combinations of type DISAGGREGATION can
@@ -80,17 +80,17 @@ public class DataElementCategoryCombo
     // Constructors
     // -------------------------------------------------------------------------
 
-    public DataElementCategoryCombo()
+    public CategoryCombo()
     {
     }
 
-    public DataElementCategoryCombo( String name, DataDimensionType dataDimensionType )
+    public CategoryCombo( String name, DataDimensionType dataDimensionType )
     {
         this.name = name;
         this.dataDimensionType = dataDimensionType;
     }
 
-    public DataElementCategoryCombo( String name, DataDimensionType dataDimensionType, List<DataElementCategory> categories )
+    public CategoryCombo( String name, DataDimensionType dataDimensionType, List<Category> categories )
     {
         this( name, dataDimensionType );
         this.categories = categories;
@@ -118,7 +118,7 @@ public class DataElementCategoryCombo
             return false;
         }
 
-        for ( DataElementCategory category : categories )
+        for ( Category category : categories )
         {
             if ( category == null || category.getCategoryOptions() == null || category.getCategoryOptions().isEmpty() )
             {
@@ -129,11 +129,11 @@ public class DataElementCategoryCombo
         return true;
     }
 
-    public List<DataElementCategoryOption> getCategoryOptions()
+    public List<CategoryOption> getCategoryOptions()
     {
-        final List<DataElementCategoryOption> categoryOptions = new ArrayList<>();
+        final List<CategoryOption> categoryOptions = new ArrayList<>();
 
-        for ( DataElementCategory category : categories )
+        for ( Category category : categories )
         {
             categoryOptions.addAll( category.getCategoryOptions() );
         }
@@ -151,31 +151,31 @@ public class DataElementCategoryCombo
         return categories != null && categories.size() > 1;
     }
 
-    public DataElementCategoryOption[][] getCategoryOptionsAsArray()
+    public CategoryOption[][] getCategoryOptionsAsArray()
     {
-        DataElementCategoryOption[][] arrays = new DataElementCategoryOption[categories.size()][];
+        CategoryOption[][] arrays = new CategoryOption[categories.size()][];
 
         int i = 0;
 
-        for ( DataElementCategory category : categories )
+        for ( Category category : categories )
         {
             arrays[i++] = new ArrayList<>(
-                category.getCategoryOptions() ).toArray( new DataElementCategoryOption[0] );
+                category.getCategoryOptions() ).toArray( new CategoryOption[0] );
         }
 
         return arrays;
     }
 
-    public List<DataElementCategoryOptionCombo> generateOptionCombosList()
+    public List<CategoryOptionCombo> generateOptionCombosList()
     {
-        List<DataElementCategoryOptionCombo> list = new ArrayList<>();
+        List<CategoryOptionCombo> list = new ArrayList<>();
 
-        CombinationGenerator<DataElementCategoryOption> generator =
+        CombinationGenerator<CategoryOption> generator =
             new CombinationGenerator<>( getCategoryOptionsAsArray() );
 
         while ( generator.hasNext() )
         {
-            DataElementCategoryOptionCombo optionCombo = new DataElementCategoryOptionCombo();
+            CategoryOptionCombo optionCombo = new CategoryOptionCombo();
             optionCombo.setCategoryOptions( new HashSet<>( generator.getNext() ) );
             optionCombo.setCategoryCombo( this );
             list.add( optionCombo );
@@ -184,22 +184,22 @@ public class DataElementCategoryCombo
         return list;
     }
 
-    public List<DataElementCategoryOptionCombo> getSortedOptionCombos()
+    public List<CategoryOptionCombo> getSortedOptionCombos()
     {
-        List<DataElementCategoryOptionCombo> list = new ArrayList<>();
+        List<CategoryOptionCombo> list = new ArrayList<>();
 
-        CombinationGenerator<DataElementCategoryOption> generator =
+        CombinationGenerator<CategoryOption> generator =
             new CombinationGenerator<>( getCategoryOptionsAsArray() );
 
         while ( generator.hasNext() )
         {
-            List<DataElementCategoryOption> categoryOptions = generator.getNext();
+            List<CategoryOption> categoryOptions = generator.getNext();
 
-            Set<DataElementCategoryOption> categoryOptionSet = new HashSet<>( categoryOptions );
+            Set<CategoryOption> categoryOptionSet = new HashSet<>( categoryOptions );
 
-            for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
+            for ( CategoryOptionCombo optionCombo : optionCombos )
             {
-                Set<DataElementCategoryOption> persistedCategoryOptions = new HashSet<>( optionCombo.getCategoryOptions() );
+                Set<CategoryOption> persistedCategoryOptions = new HashSet<>( optionCombo.getCategoryOptions() );
 
                 if ( categoryOptionSet.equals( persistedCategoryOptions ) )
                 {
@@ -216,9 +216,9 @@ public class DataElementCategoryCombo
     {
         this.optionCombos = new HashSet<>( generateOptionCombosList() );
 
-        for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
+        for ( CategoryOptionCombo optionCombo : optionCombos )
         {
-            for ( DataElementCategoryOption categoryOption : optionCombo.getCategoryOptions() )
+            for ( CategoryOption categoryOption : optionCombo.getCategoryOptions() )
             {
                 categoryOption.addCategoryOptionCombo( optionCombo );
             }
@@ -234,13 +234,13 @@ public class DataElementCategoryCombo
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addDataElementCategory( DataElementCategory category )
+    public void addCategory( Category category )
     {
         categories.add( category );
         category.getCategoryCombos().add( this );
     }
 
-    public void removeDataElementCategory( DataElementCategory category )
+    public void removeCategory( Category category )
     {
         categories.remove( category );
         category.getCategoryCombos().remove( this );
@@ -248,7 +248,7 @@ public class DataElementCategoryCombo
 
     public void removeAllCategories()
     {
-        for ( DataElementCategory category : categories )
+        for ( Category category : categories )
         {
             category.getCategoryCombos().remove( this );
         }
@@ -264,12 +264,12 @@ public class DataElementCategoryCombo
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categories", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategory> getCategories()
+    public List<Category> getCategories()
     {
         return categories;
     }
 
-    public void setCategories( List<DataElementCategory> categories )
+    public void setCategories( List<Category> categories )
     {
         this.categories = categories;
     }
@@ -278,12 +278,12 @@ public class DataElementCategoryCombo
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElementCategoryOptionCombo> getOptionCombos()
+    public Set<CategoryOptionCombo> getOptionCombos()
     {
         return optionCombos;
     }
 
-    public void setOptionCombos( Set<DataElementCategoryOptionCombo> optionCombos )
+    public void setOptionCombos( Set<CategoryOptionCombo> optionCombos )
     {
         this.optionCombos = optionCombos;
     }

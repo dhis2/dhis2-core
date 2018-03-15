@@ -41,10 +41,10 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -218,38 +218,38 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteDataElementCategory( DataElementCategory category )
+    public void deleteCategory( Category category )
     {
     }
 
-    public String allowDeleteDataElementCategory( DataElementCategory category )
-    {
-        return null;
-    }
-
-    public void deleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
-    {
-    }
-
-    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
+    public String allowDeleteCategory( Category category )
     {
         return null;
     }
 
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void deleteCategoryOption( CategoryOption categoryOption )
     {
     }
 
-    public String allowDeleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public String allowDeleteCategoryOption( CategoryOption categoryOption )
     {
         return null;
     }
 
-    public void deleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
     }
 
-    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        return null;
+    }
+
+    public void deleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    {
+    }
+
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
     {
         return null;
     }

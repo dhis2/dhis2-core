@@ -37,8 +37,8 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
@@ -95,7 +95,7 @@ public class DefaultValidationService
     private DataValueService dataValueService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private ConstantService constantService;
@@ -152,7 +152,7 @@ public class DefaultValidationService
 
     @Override
     public List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
         List<DataElementOperand> violations = new ArrayList<>();
 
@@ -160,7 +160,7 @@ public class DefaultValidationService
         {
             for ( DataElement de : dataSet.getDataElements() )
             {
-                for ( DataElementCategoryOptionCombo co : de.getCategoryOptionCombos() )
+                for ( CategoryOptionCombo co : de.getCategoryOptionCombos() )
                 {
                     DataValue dv = dataValueService
                         .getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
@@ -255,7 +255,7 @@ public class DefaultValidationService
             .withSendNotifications( parameters.isSendNotifications() )
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
-            .withDefaultAttributeCombo( categoryService.getDefaultDataElementCategoryOptionCombo() )
+            .withDefaultAttributeCombo( categoryService.getDefaultCategoryOptionCombo() )
             .withMaxResults( parameters.getMaxResults() );
 
         if ( currentUser != null )
@@ -405,7 +405,7 @@ public class DefaultValidationService
         SetMap<Class<? extends IdentifiableObject>, String> idsToGet = new SetMap<>();
 
         getIdentifiableObjectIds( idsToGet, expressionIdMap, DataElementOperand.class, DataElement.class,
-            DataElementCategoryOptionCombo.class );
+            CategoryOptionCombo.class );
         getIdentifiableObjectIds( idsToGet, expressionIdMap, ProgramDataElementDimensionItem.class, Program.class,
             DataElement.class );
         getIdentifiableObjectIds( idsToGet, expressionIdMap, ProgramTrackedEntityAttributeDimensionItem.class,
@@ -434,8 +434,8 @@ public class DefaultValidationService
                 {
                     DataElementOperand deo = new DataElementOperand(
                         (DataElement) idMap.getValue( DataElement.class, getIdPart( id, 0 ) ),
-                        (DataElementCategoryOptionCombo) idMap
-                            .getValue( DataElementCategoryOptionCombo.class, getIdPart( id, 1 ) ) );
+                        (CategoryOptionCombo) idMap
+                            .getValue( CategoryOptionCombo.class, getIdPart( id, 1 ) ) );
 
                     if ( deo.getDataElement() != null &&
                         (deo.getCategoryOptionCombo() != null || getIdPart( id, 1 ) == null) )

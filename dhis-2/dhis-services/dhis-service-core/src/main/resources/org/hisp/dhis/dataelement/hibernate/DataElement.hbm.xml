@@ -42,7 +42,7 @@
       </type>
     </property>
 
-    <many-to-one name="dataElementCategoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+    <many-to-one name="dataElementCategoryCombo" class="org.hisp.dhis.dataelement.CategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_dataelement_categorycomboid" />
 
     <property name="url" />

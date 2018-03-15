@@ -37,7 +37,7 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
@@ -112,7 +112,7 @@ public class HibernateDataValueAuditStore
     @Override
     @SuppressWarnings( "unchecked" )
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         Criteria criteria = getDataValueAuditCriteria( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
         criteria.addOrder( Order.desc( "created" ) );
@@ -123,7 +123,7 @@ public class HibernateDataValueAuditStore
     @Override
     @SuppressWarnings( "unchecked" )
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
     {
         Criteria criteria = getDataValueAuditCriteria( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
         criteria.addOrder( Order.desc( "created" ) );
@@ -135,14 +135,14 @@ public class HibernateDataValueAuditStore
 
     @Override
     public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         return ((Number) getDataValueAuditCriteria( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType )
             .setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
     }
 
     private Criteria getDataValueAuditCriteria( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits, 
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         Session session = sessionFactory.getCurrentSession();
         List<Period> storedPeriods = new ArrayList<>();

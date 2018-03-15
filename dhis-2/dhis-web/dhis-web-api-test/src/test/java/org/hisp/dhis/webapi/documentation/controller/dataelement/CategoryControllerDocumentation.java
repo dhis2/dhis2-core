@@ -31,8 +31,8 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
 
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
@@ -56,8 +56,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
-public class DataElementCategoryControllerDocumentation
-    extends AbstractWebApiTest<DataElementCategory>
+public class CategoryControllerDocumentation
+    extends AbstractWebApiTest<Category>
 {
     private static final String ENDPOINT = "categories";
 
@@ -65,10 +65,10 @@ public class DataElementCategoryControllerDocumentation
     @Override
     public void testGetAll() throws Exception
     {
-        manager.save( createDataElementCategory( 'A' ) );
-        manager.save( createDataElementCategory( 'B' ) );
-        manager.save( createDataElementCategory( 'C' ) );
-        manager.save( createDataElementCategory( 'D' ) );
+        manager.save( createCategory( 'A' ) );
+        manager.save( createCategory( 'B' ) );
+        manager.save( createCategory( 'C' ) );
+        manager.save( createCategory( 'D' ) );
 
         MockHttpSession session = getSession( "ALL" );
 
@@ -91,18 +91,18 @@ public class DataElementCategoryControllerDocumentation
     public void testGetByIdOk() throws Exception
     {
 
-        DataElementCategory cat = createDataElementCategory( 'A' );
+        Category cat = createCategory( 'A' );
         manager.save( cat );
         MockHttpSession session = getSession( "ALL" );
 
-        Schema schema = schemaService.getSchema( DataElementCategory.class );
+        Schema schema = schemaService.getSchema( Category.class );
         Set<FieldDescriptor> fieldDescriptors = TestUtils.getFieldDescriptors( schema );
 
         mvc.perform( get( "/" + CategorySchemaDescriptor.PLURAL + "/{id}", cat.getUid() ).session( session ).accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
-            .andExpect( jsonPath( "$.name" ).value( "DataElementCategoryA" ) )
-            .andExpect( jsonPath( "$.shortName" ).value( "DataElementCategoryA" ) )
+            .andExpect( jsonPath( "$.name" ).value( "CategoryA" ) )
+            .andExpect( jsonPath( "$.shortName" ).value( "CategoryA" ) )
             .andDo( documentPrettyPrint( ENDPOINT + "/id",
                 responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) )
             ) );
@@ -114,10 +114,10 @@ public class DataElementCategoryControllerDocumentation
     {
         MockHttpSession session = getSession( "ALL" );
 
-        DataElementCategory category = createDataElementCategory( 'A' );
+        Category category = createCategory( 'A' );
         manager.save( category );
 
-        Schema schema = schemaService.getSchema( DataElementCategory.class );
+        Schema schema = schemaService.getSchema( Category.class );
 
         List<Property> properties = schema.getProperties();
 
@@ -161,13 +161,13 @@ public class DataElementCategoryControllerDocumentation
     {
         MockHttpSession session = getSession( "F_CATEGORY_PUBLIC_ADD" );
 
-        DataElementCategoryOption categoryOptionA = createCategoryOption( 'A' );
-        DataElementCategoryOption categoryOptionB = createCategoryOption( 'B' );
-        DataElementCategoryOption categoryOptionC = createCategoryOption( 'C' );
+        CategoryOption categoryOptionA = createCategoryOption( 'A' );
+        CategoryOption categoryOptionB = createCategoryOption( 'B' );
+        CategoryOption categoryOptionC = createCategoryOption( 'C' );
 
-        DataElementCategory cat = createDataElementCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
+        Category cat = createCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
 
-        Schema schema = schemaService.getSchema( DataElementCategory.class );
+        Schema schema = schemaService.getSchema( Category.class );
 
         Set<FieldDescriptor> fieldDescriptors = TestUtils.getFieldDescriptors( schema );
 
@@ -180,7 +180,7 @@ public class DataElementCategoryControllerDocumentation
                 requestFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) )
             );
 
-        cat = manager.getByName( DataElementCategory.class, "DataElementCategoryA" );
+        cat = manager.getByName( Category.class, "CategoryA" );
 
         assertNotNull( cat );
     }
@@ -190,7 +190,7 @@ public class DataElementCategoryControllerDocumentation
     @Override
     public void testDeleteByIdOk() throws Exception
     {
-        DataElementCategory cat = createDataElementCategory( 'A' );
+        Category cat = createCategory( 'A' );
         manager.save( cat );
         MockHttpSession session = getSession( "ALL" );
 

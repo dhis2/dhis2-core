@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" table="categoryoptioncombo">
+  <class name="org.hisp.dhis.dataelement.CategoryOptionCombo" table="categoryoptioncombo">
 
     <cache usage="read-write" />
 
@@ -20,7 +20,7 @@
     <set name="categoryOptions" table="categoryoptioncombos_categoryoptions">
       <cache usage="read-write" />
       <key column="categoryoptioncomboid" foreign-key="fk_categoryoptioncombos_categoryoptions_categoryoptioncomboid" />
-      <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOption" column="categoryoptionid"
+      <many-to-many class="org.hisp.dhis.dataelement.CategoryOption" column="categoryoptionid"
         foreign-key="fk_categoryoptioncombo_categoryoptionid" />
     </set>
 

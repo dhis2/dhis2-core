@@ -55,7 +55,7 @@ public class CategoryDimensionDeletionHandler
     }
     
     @Override
-    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
+    public String allowDeleteCategoryOption( CategoryOption categoryOption )
     {
         String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
         
@@ -63,7 +63,7 @@ public class CategoryDimensionDeletionHandler
     }
     
     @Override
-    public String allowDeleteDataElementCategory( DataElementCategory category )
+    public String allowDeleteCategory( Category category )
     {
         String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
         

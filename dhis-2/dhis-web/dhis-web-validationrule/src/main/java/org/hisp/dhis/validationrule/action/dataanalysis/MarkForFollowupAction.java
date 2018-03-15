@@ -31,8 +31,8 @@ package org.hisp.dhis.validationrule.action.dataanalysis;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -83,9 +83,9 @@ public class MarkForFollowupAction
         this.organisationUnitService = organisationUnitService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -150,8 +150,8 @@ public class MarkForFollowupAction
         DataElement dataElement = dataElementService.getDataElement( dataElementId );        
         Period period = periodService.getPeriod( periodId );
         OrganisationUnit source = organisationUnitService.getOrganisationUnit( sourceId );
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryOptionComboId );
-        DataElementCategoryOptionCombo attributeOptionCombo = categoryService.getDataElementCategoryOptionCombo( attributeOptionComboId );        
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptionComboId );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( attributeOptionComboId );        
         
         DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo ); 
         

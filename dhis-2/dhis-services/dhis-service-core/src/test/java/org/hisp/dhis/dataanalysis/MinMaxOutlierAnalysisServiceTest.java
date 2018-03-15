@@ -31,9 +31,9 @@ package org.hisp.dhis.dataanalysis;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -72,7 +72,7 @@ public class MinMaxOutlierAnalysisServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -92,9 +92,9 @@ public class MinMaxOutlierAnalysisServiceTest
     private Set<DataElement> dataElementsB = new HashSet<>();
     private Set<DataElement> dataElementsC = new HashSet<>();
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
-    private DataElementCategoryOptionCombo categoryOptionCombo;
+    private CategoryOptionCombo categoryOptionCombo;
 
     private Period periodA;
     private Period periodB;
@@ -121,9 +121,9 @@ public class MinMaxOutlierAnalysisServiceTest
     public void setUpTest()
         throws Exception
     {
-        categoryCombo = categoryService.getDefaultDataElementCategoryCombo();
+        categoryCombo = categoryService.getDefaultCategoryCombo();
 
-        categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         dataElementA = createDataElement( 'A', categoryCombo );
         dataElementB = createDataElement( 'B', categoryCombo );
