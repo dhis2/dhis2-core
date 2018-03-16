@@ -26,6 +26,7 @@
     <!-- Level 3 -->
     <module>dhis-service-core</module>
     <!-- Level 4 -->
+    <module>dhis-service-validation</module>
     <module>dhis-service-dxf2</module>
     <module>dhis-service-mobile</module>
     <module>dhis-service-administration</module>
