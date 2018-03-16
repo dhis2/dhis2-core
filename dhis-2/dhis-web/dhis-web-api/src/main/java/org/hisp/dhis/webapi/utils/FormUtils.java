@@ -30,12 +30,7 @@ package org.hisp.dhis.webapi.utils;
 
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
@@ -46,22 +41,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.webapi.webdomain.form.Category;
+import org.hisp.dhis.webapi.webdomain.form.*;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
-import org.hisp.dhis.webapi.webdomain.form.Field;
-import org.hisp.dhis.webapi.webdomain.form.Form;
-import org.hisp.dhis.webapi.webdomain.form.Group;
-import org.hisp.dhis.webapi.webdomain.form.Option;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -123,8 +108,8 @@ public class FormUtils
             List<Field> fields = inputFromDataElements( new ArrayList<>( dataSet.getDataElements() ) );
 
             Group group = new Group();
-            group.setLabel( DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-            group.setDescription( DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+            group.setLabel( org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+            group.setDescription( org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
             group.setDataElementCount( dataSet.getDataElements().size() );
             group.setFields( fields );
 
@@ -140,19 +125,19 @@ public class FormUtils
         return form;
     }
 
-    private static CategoryCombo getCategoryCombo( DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
+    private static CategoryCombo getCategoryCombo(DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
     {
         if ( dataset.hasCategoryCombo() )
         {
-            DataElementCategoryCombo categoryCombo = dataset.getCategoryCombo();
+            org.hisp.dhis.dataelement.CategoryCombo categoryCombo = dataset.getCategoryCombo();
             CategoryCombo catCombo = new CategoryCombo();
             catCombo.setId( categoryCombo.getUid() );
 
-            List<DataElementCategory> cats = categoryCombo.getCategories();
+            List<org.hisp.dhis.dataelement.Category> cats = categoryCombo.getCategories();
 
             if ( cats != null && cats.size() > 0 )
             {
-                for ( DataElementCategory cat : cats )
+                for ( org.hisp.dhis.dataelement.Category cat : cats )
                 {
                     if ( cat.getAccess() != null && !cat.getAccess().isRead() )
                     {
@@ -163,11 +148,11 @@ public class FormUtils
                     c.setId( cat.getUid() );
                     c.setLabel( cat.getName() );
 
-                    List<DataElementCategoryOption> options = cat.getCategoryOptions();
+                    List<CategoryOption> options = cat.getCategoryOptions();
 
                     if ( options != null && options.size() > 0 )
                     {
-                        for ( DataElementCategoryOption option : options )
+                        for ( CategoryOption option : options )
                         {
                             if ( option.getAccess() != null && !option.getAccess().isRead() )
                             {
@@ -300,7 +285,7 @@ public class FormUtils
 
         for ( DataElement dataElement : dataElements )
         {
-            for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
+            for ( CategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
             {
                 if ( !isDisabled( dataElement, categoryOptionCombo, greyedFields ) )
                 {
@@ -333,7 +318,7 @@ public class FormUtils
     }
 
     private static boolean isDisabled( DataElement dataElement,
-        DataElementCategoryOptionCombo dataElementCategoryOptionCombo, List<DataElementOperand> greyedFields )
+        CategoryOptionCombo dataElementCategoryOptionCombo, List<DataElementOperand> greyedFields )
     {
         for ( DataElementOperand operand : greyedFields )
         {
@@ -359,7 +344,7 @@ public class FormUtils
         for ( DataValue dataValue : dataValues )
         {
             DataElement dataElement = dataValue.getDataElement();
-            DataElementCategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
+            CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
 
             Field field = operandFieldMap.get( dataElement.getUid() + SEP + categoryOptionCombo.getUid() );
 

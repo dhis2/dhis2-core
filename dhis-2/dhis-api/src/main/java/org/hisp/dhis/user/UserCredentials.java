@@ -40,7 +40,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.Category;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Access;
@@ -124,7 +124,7 @@ public class UserCredentials
     /**
      * Category dimensions to constrain data analytics aggregation.
      */
-    private Set<DataElementCategory> catDimensionConstraints = new HashSet<>();
+    private Set<Category> catDimensionConstraints = new HashSet<>();
 
     /**
      * Retaining password history so user cannot pick one of the previous 24 passwords
@@ -414,7 +414,7 @@ public class UserCredentials
             constraints.add( cogs );
         }
 
-        for ( DataElementCategory cat : catDimensionConstraints )
+        for ( Category cat : catDimensionConstraints )
         {
             cat.setDimensionType( DimensionType.CATEGORY );
             constraints.add( cat );
@@ -605,12 +605,12 @@ public class UserCredentials
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "catDimensionConstraints", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "catDimensionConstraint", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElementCategory> getCatDimensionConstraints()
+    public Set<Category> getCatDimensionConstraints()
     {
         return catDimensionConstraints;
     }
 
-    public void setCatDimensionConstraints( Set<DataElementCategory> catDimensionConstraints )
+    public void setCatDimensionConstraints( Set<Category> catDimensionConstraints )
     {
         this.catDimensionConstraints = catDimensionConstraints;
     }

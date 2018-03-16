@@ -134,10 +134,10 @@ public interface DataElementService
     /**
      * Returns all DataElements with the given category combo.
      *
-     * @param categoryCombo the DataElementCategoryCombo.
+     * @param categoryCombo the CategoryCombo.
      * @return all DataElements with the given category combo.
      */
-    List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
+    List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo );
 
     /**
      * Returns all DataElements which are not member of any DataElementGroups.

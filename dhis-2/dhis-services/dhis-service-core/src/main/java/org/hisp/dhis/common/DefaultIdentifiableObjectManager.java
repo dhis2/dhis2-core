@@ -40,12 +40,12 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -990,10 +990,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( DataElementCategory.class, DEFAULT_OBJECT_CACHE.get( DataElementCategory.class, key -> getByName( DataElementCategory.class, "default" ) ) )
-            .put( DataElementCategoryCombo.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryCombo.class, key -> getByName( DataElementCategoryCombo.class, "default" ) ) )
-            .put( DataElementCategoryOption.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryOption.class, key -> getByName( DataElementCategoryOption.class, "default" ) ) )
-            .put( DataElementCategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( DataElementCategoryOptionCombo.class, key -> getByName( DataElementCategoryOptionCombo.class, "default" ) ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> getByName( Category.class, "default" ) ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> getByName( CategoryCombo.class, "default" ) ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> getByName( CategoryOption.class, "default" ) ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getByName( CategoryOptionCombo.class, "default" ) ) )
             .build();
     }
 

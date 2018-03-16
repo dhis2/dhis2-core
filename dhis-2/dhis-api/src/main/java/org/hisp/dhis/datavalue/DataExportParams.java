@@ -34,7 +34,7 @@ import com.google.common.collect.Sets;
 
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,7 +68,7 @@ public class DataExportParams
 
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
-    private Set<DataElementCategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+    private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
     
     private boolean includeDeleted;
 
@@ -304,12 +304,12 @@ public class DataExportParams
         return this;
     }
 
-    public Set<DataElementCategoryOptionCombo> getAttributeOptionCombos()
+    public Set<CategoryOptionCombo> getAttributeOptionCombos()
     {
         return attributeOptionCombos;
     }
 
-    public DataExportParams setAttributeOptionCombos( Set<DataElementCategoryOptionCombo> attributeOptionCombos )
+    public DataExportParams setAttributeOptionCombos( Set<CategoryOptionCombo> attributeOptionCombos )
     {
         this.attributeOptionCombos = attributeOptionCombos;
         return this;

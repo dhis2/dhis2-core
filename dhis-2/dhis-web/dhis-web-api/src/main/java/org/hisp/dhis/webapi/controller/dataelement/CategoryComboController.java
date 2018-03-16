@@ -28,8 +28,8 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -51,16 +51,16 @@ import java.io.IOException;
 @Controller
 @RequestMapping( value = CategoryComboSchemaDescriptor.API_ENDPOINT )
 public class CategoryComboController
-    extends AbstractCrudController<DataElementCategoryCombo>
+    extends AbstractCrudController<CategoryCombo>
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
     public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response )
         throws WebMessageException, IOException
     {
-        DataElementCategoryCombo categoryCombo = categoryService.getDataElementCategoryCombo( pvUid );
+        CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
 
         if ( categoryCombo == null )
         {
@@ -71,13 +71,13 @@ public class CategoryComboController
     }
 
     @Override
-    public void postCreateEntity( DataElementCategoryCombo categoryCombo )
+    public void postCreateEntity( CategoryCombo categoryCombo )
     {
         categoryService.updateOptionCombos( categoryCombo );
     }
 
     @Override
-    public void postUpdateEntity( DataElementCategoryCombo categoryCombo )
+    public void postUpdateEntity( CategoryCombo categoryCombo )
     {
         categoryService.updateOptionCombos( categoryCombo );
     }

@@ -31,9 +31,9 @@ package org.hisp.dhis.dataanalysis;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author eirikmi
@@ -73,7 +72,7 @@ public class MinMaxOutlierAnalysisServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -93,9 +92,9 @@ public class MinMaxOutlierAnalysisServiceTest
     private Set<DataElement> dataElementsB = new HashSet<>();
     private Set<DataElement> dataElementsC = new HashSet<>();
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
-    private DataElementCategoryOptionCombo categoryOptionCombo;
+    private CategoryOptionCombo categoryOptionCombo;
 
     private Period periodA;
     private Period periodB;
@@ -122,9 +121,9 @@ public class MinMaxOutlierAnalysisServiceTest
     public void setUpTest()
         throws Exception
     {
-        categoryCombo = categoryService.getDefaultDataElementCategoryCombo();
+        categoryCombo = categoryService.getDefaultCategoryCombo();
 
-        categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         dataElementA = createDataElement( 'A', categoryCombo );
         dataElementB = createDataElement( 'B', categoryCombo );
@@ -199,26 +198,5 @@ public class MinMaxOutlierAnalysisServiceTest
         List<DeflatedDataValue> result = minMaxOutlierAnalysisService.analyse( Lists.newArrayList( organisationUnitA ), dataElementsA, periods, null, from );
 
         assertEquals( 2, result.size() );
-    }
-
-    @Test
-    public void testGenerateMinMaxValues()
-    {
-        dataValueService.addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "6", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "7", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodC, organisationUnitA, "8", categoryOptionCombo ) );
-
-        dataValueService.addDataValue( createDataValue( dataElementB, periodA, organisationUnitA, "10", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementB, periodB, organisationUnitA, "20", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementB, periodC, organisationUnitA, "30", categoryOptionCombo ) );
-
-        minMaxOutlierAnalysisService.generateMinMaxValues( organisationUnitA, dataElementsA, 2.0 );
-
-        List<MinMaxDataElement> minMaxDataElements = minMaxDataElementService.getAllMinMaxDataElements();
-
-        assertEquals( 2, minMaxDataElements.size() );
-
-        assertTrue( minMaxDataElements.contains( new MinMaxDataElement( organisationUnitA, dataElementA, categoryOptionCombo, 5, 9, true ) ) );
-        assertTrue( minMaxDataElements.contains( new MinMaxDataElement( organisationUnitA, dataElementB, categoryOptionCombo, 4, 36, true ) ) );
     }
 }

@@ -50,10 +50,10 @@ public interface DataElementStore
     /**
      * Returns all DataElements with the given category combo.
      *
-     * @param categoryCombo the DataElementCategoryCombo.
+     * @param categoryCombo the CategoryCombo.
      * @return all DataElements with the given category combo.
      */
-    List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
+    List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo );
 
     /**
      * Returns all DataElement which zeroIsSignificant property is true or false

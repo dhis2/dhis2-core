@@ -49,9 +49,9 @@ public class CategoryDimension
 {
     private int id;
 
-    private DataElementCategory dimension;
+    private Category dimension;
 
-    private List<DataElementCategoryOption> items = new ArrayList<>();
+    private List<CategoryOption> items = new ArrayList<>();
 
     public int getId()
     {
@@ -66,12 +66,12 @@ public class CategoryDimension
     @JsonProperty( "category" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategory getDimension()
+    public Category getDimension()
     {
         return dimension;
     }
 
-    public void setDimension( DataElementCategory dimension )
+    public void setDimension( Category dimension )
     {
         this.dimension = dimension;
     }
@@ -79,12 +79,12 @@ public class CategoryDimension
     @JsonProperty( "categoryOptions" )
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOption> getItems()
+    public List<CategoryOption> getItems()
     {
         return items;
     }
 
-    public void setItems( List<DataElementCategoryOption> items )
+    public void setItems( List<CategoryOption> items )
     {
         this.items = items;
     }

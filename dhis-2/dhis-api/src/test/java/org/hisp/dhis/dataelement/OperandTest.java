@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
-import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.junit.Assert.*;
 
 /**
@@ -48,17 +48,17 @@ public class OperandTest
         DataElement dataElementA = new DataElement( "DataElement A" );
         DataElement dataElementB = new DataElement( "DataElement B" );
 
-        DataElementCategoryCombo categoryComboA = new DataElementCategoryCombo( "CategoryCombo A", DISAGGREGATION );
-        DataElementCategoryCombo categoryComboB = new DataElementCategoryCombo( "CategoryCombo B", DISAGGREGATION );
-        DataElementCategoryCombo defaultCatCombo = new DataElementCategoryCombo( DEFAULT_CATEGORY_COMBO_NAME, DISAGGREGATION );
+        CategoryCombo categoryComboA = new CategoryCombo( "CategoryCombo A", DISAGGREGATION );
+        CategoryCombo categoryComboB = new CategoryCombo( "CategoryCombo B", DISAGGREGATION );
+        CategoryCombo defaultCatCombo = new CategoryCombo( DEFAULT_CATEGORY_COMBO_NAME, DISAGGREGATION );
 
-        DataElementCategoryOptionCombo categoryOptionComboA = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboA = new CategoryOptionCombo();
         categoryOptionComboA.setCategoryCombo( categoryComboA );
 
-        DataElementCategoryOptionCombo categoryOptionComboB = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboB = new CategoryOptionCombo();
         categoryOptionComboB.setCategoryCombo( categoryComboB );
 
-        DataElementCategoryOptionCombo defaultCatOptionCombo = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo defaultCatOptionCombo = new CategoryOptionCombo();
         defaultCatOptionCombo.setCategoryCombo( defaultCatCombo );
 
         DataElementOperand dataElementOperandA = new DataElementOperand( dataElementA, categoryOptionComboA );
@@ -93,17 +93,17 @@ public class OperandTest
         DataElement dataElementA = new DataElement( "DataElement A" );
         DataElement dataElementB = new DataElement( "DataElement B" );
 
-        DataElementCategoryCombo categoryComboA = new DataElementCategoryCombo( "CategoryCombo A", DISAGGREGATION );
-        DataElementCategoryCombo categoryComboB = new DataElementCategoryCombo( "CategoryCombo B", DISAGGREGATION );
-        DataElementCategoryCombo defaultCatCombo = new DataElementCategoryCombo( DEFAULT_CATEGORY_COMBO_NAME, DISAGGREGATION );
+        CategoryCombo categoryComboA = new CategoryCombo( "CategoryCombo A", DISAGGREGATION );
+        CategoryCombo categoryComboB = new CategoryCombo( "CategoryCombo B", DISAGGREGATION );
+        CategoryCombo defaultCatCombo = new CategoryCombo( DEFAULT_CATEGORY_COMBO_NAME, DISAGGREGATION );
 
-        DataElementCategoryOptionCombo categoryOptionComboA = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboA = new CategoryOptionCombo();
         categoryOptionComboA.setCategoryCombo( categoryComboA );
 
-        DataElementCategoryOptionCombo categoryOptionComboB = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionComboB = new CategoryOptionCombo();
         categoryOptionComboB.setCategoryCombo( categoryComboB );
 
-        DataElementCategoryOptionCombo defaultCatOptionCombo = new DataElementCategoryOptionCombo();
+        CategoryOptionCombo defaultCatOptionCombo = new CategoryOptionCombo();
         defaultCatOptionCombo.setCategoryCombo( defaultCatCombo );
 
         DataElementOperand dataElementOperandA = new DataElementOperand( dataElementA, categoryOptionComboA );

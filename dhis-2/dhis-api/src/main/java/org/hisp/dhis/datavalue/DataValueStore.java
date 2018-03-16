@@ -32,8 +32,8 @@ import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -99,7 +99,7 @@ public interface DataValueStore
      *         if no match.
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, 
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo );
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
     
     /**
      * Returns a soft deleted DataValue.
@@ -131,18 +131,18 @@ public interface DataValueStore
     
     /**
      * Returns all DataValues for a given Source, Period, collection of
-     * DataElements and DataElementCategoryOptionCombo.
+     * DataElements and CategoryOptionCombo.
      * 
      * @param source the Source of the DataValues.
      * @param period the Period of the DataValues.
      * @param dataElements the DataElements of the DataValues.
-     * @param attributeOptionCombo the DataElementCategoryCombo.
+     * @param attributeOptionCombo the CategoryCombo.
      * @return a list of all DataValues which match the given Source,
      *         Period, and any of the DataElements, or an empty collection if no
      *         values match.
      */
     List<DataValue> getDataValues( OrganisationUnit source, Period period, 
-        Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo );
+        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo );
     
     /**
      * Returns values for a collection of DataElementOperands, where each operand
@@ -197,7 +197,7 @@ public interface DataValueStore
      */
     MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
         Set<DataElementOperand> dataElementOperands, Date date,
-        List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints );
+        List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints );
 
 }

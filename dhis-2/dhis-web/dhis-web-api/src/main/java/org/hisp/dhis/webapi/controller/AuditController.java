@@ -42,7 +42,7 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
@@ -232,8 +232,8 @@ public class AuditController
 
         List<Period> periods = getPeriods( pe );
         List<OrganisationUnit> organisationUnits = getOrganisationUnit( ou );
-        DataElementCategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( co );
-        DataElementCategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( cc );
+        CategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( co );
+        CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( cc );
 
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -612,24 +612,24 @@ public class AuditController
         return manager.getByUid( OrganisationUnit.class, ou );
     }
 
-    private List<DataElementCategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) throws WebMessageException
+    private List<CategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) throws WebMessageException
     {
         if ( coc == null )
         {
             return new ArrayList<>();
         }
 
-        return manager.getByUid( DataElementCategoryOptionCombo.class, coc );
+        return manager.getByUid( CategoryOptionCombo.class, coc );
     }
 
-    private DataElementCategoryOptionCombo getCategoryOptionCombo( @RequestParam String co ) throws WebMessageException
+    private CategoryOptionCombo getCategoryOptionCombo( @RequestParam String co ) throws WebMessageException
     {
         if ( co == null )
         {
             return null;
         }
 
-        DataElementCategoryOptionCombo categoryOptionCombo = manager.search( DataElementCategoryOptionCombo.class, co );
+        CategoryOptionCombo categoryOptionCombo = manager.search( CategoryOptionCombo.class, co );
 
         if ( categoryOptionCombo == null )
         {
@@ -639,14 +639,14 @@ public class AuditController
         return categoryOptionCombo;
     }
 
-    private DataElementCategoryOptionCombo getAttributeOptionCombo( @RequestParam String cc ) throws WebMessageException
+    private CategoryOptionCombo getAttributeOptionCombo( @RequestParam String cc ) throws WebMessageException
     {
         if ( cc == null )
         {
             return null;
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = manager.search( DataElementCategoryOptionCombo.class, cc );
+        CategoryOptionCombo attributeOptionCombo = manager.search( CategoryOptionCombo.class, cc );
 
         if ( attributeOptionCombo == null )
         {

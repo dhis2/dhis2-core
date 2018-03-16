@@ -33,9 +33,9 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -90,9 +90,9 @@ public class DataQueryParamsTest
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
 
-    private DataElementCategoryOption coA;
-    private DataElementCategoryOption coB;
-    private DataElementCategory caA;
+    private CategoryOption coA;
+    private CategoryOption coB;
+    private Category caA;
     
     @Before
     public void setUpTest()
@@ -102,9 +102,9 @@ public class DataQueryParamsTest
         inA = createIndicator( 'A', it );
         inB = createIndicator( 'A', it );
         
-        deA = createDataElement( 'A', new DataElementCategoryCombo() );
-        deB = createDataElement( 'B', new DataElementCategoryCombo() );
-        deC = createDataElement( 'C', new DataElementCategoryCombo() );
+        deA = createDataElement( 'A', new CategoryCombo() );
+        deB = createDataElement( 'B', new CategoryCombo() );
+        deC = createDataElement( 'C', new CategoryCombo() );
         
         dsA = createDataSet( 'A' );
         dsB = createDataSet( 'B' );
@@ -129,7 +129,7 @@ public class DataQueryParamsTest
         
         coA = createCategoryOption( 'A' );
         coB = createCategoryOption( 'B' );
-        caA = createDataElementCategory( 'A', coA, coB );
+        caA = createCategory( 'A', coA, coB );
     }
 
     @Test

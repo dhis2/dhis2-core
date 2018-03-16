@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -69,7 +69,7 @@ public class DataElementGroupController
     extends AbstractCrudController<DataElementGroup>
 {
     @Autowired
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService dataElementCategoryService;
 
     @Autowired
     private DataElementService dataElementService;

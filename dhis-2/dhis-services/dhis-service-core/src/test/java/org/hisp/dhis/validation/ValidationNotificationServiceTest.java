@@ -32,7 +32,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
@@ -149,7 +149,7 @@ public class ValidationNotificationServiceTest
 
     private OrganisationUnit orgUnitA;
 
-    private DataElementCategoryOptionCombo catOptCombo = createCategoryOptionCombo( 'A', 'r', 'i', 'b', 'a' );
+    private CategoryOptionCombo catOptCombo = createCategoryOptionCombo( 'A', 'r', 'i', 'b', 'a' );
 
     private ValidationRule valRuleA;
 

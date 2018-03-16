@@ -28,15 +28,10 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
-
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.dataelement.*;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -55,9 +50,9 @@ public class GetCategoryOptionCombosAction
         this.dataElementService = dataElementService;
     }
     
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -91,9 +86,9 @@ public class GetCategoryOptionCombosAction
     // Output
     // -------------------------------------------------------------------------
 
-    private Set<DataElementCategoryOptionCombo> categoryOptionCombos;
+    private Set<CategoryOptionCombo> categoryOptionCombos;
 
-    public Set<DataElementCategoryOptionCombo> getCategoryOptionCombos()
+    public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
         return categoryOptionCombos;
     }
@@ -116,7 +111,7 @@ public class GetCategoryOptionCombosAction
         }
         else if ( categoryComboId != null )
         {
-            DataElementCategoryCombo categoryCombo = categoryService.getDataElementCategoryCombo( categoryComboId );
+            CategoryCombo categoryCombo = categoryService.getCategoryCombo( categoryComboId );
             
             if ( categoryCombo != null )
             {
@@ -125,7 +120,7 @@ public class GetCategoryOptionCombosAction
         }
         else if ( categoryComboUid != null )
         {
-            DataElementCategoryCombo categoryCombo = categoryService.getDataElementCategoryCombo( categoryComboUid );
+            CategoryCombo categoryCombo = categoryService.getCategoryCombo( categoryComboUid );
             
             if ( categoryCombo != null )
             {

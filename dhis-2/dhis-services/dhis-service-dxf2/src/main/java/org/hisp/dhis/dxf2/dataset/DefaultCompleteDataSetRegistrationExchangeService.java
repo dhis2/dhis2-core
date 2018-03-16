@@ -45,9 +45,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -134,7 +134,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private SystemSettingManager systemSettingManager;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private PeriodService periodService;
@@ -698,11 +698,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             }
             else
             {
-                mdProps.attrOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+                mdProps.attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
             }
         }
 
-        final DataElementCategoryOptionCombo aoc = mdProps.attrOptCombo;
+        final CategoryOptionCombo aoc = mdProps.attrOptCombo;
         DateRange range = aoc.getDateRange();
 
         if ( (range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0)
@@ -744,8 +744,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         throws ImportConflictException
     {
         // TODO MdCache?
-        DataElementCategoryCombo aocCC = mdProps.attrOptCombo.getCategoryCombo();
-        DataElementCategoryCombo dsCc = mdProps.dataSet.getCategoryCombo();
+        CategoryCombo aocCC = mdProps.attrOptCombo.getCategoryCombo();
+        CategoryCombo dsCc = mdProps.dataSet.getCategoryCombo();
 
         if ( !aocCC.equals( dsCc ) )
         {
@@ -802,7 +802,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
         {
-            caches.attrOptionCombos.load( idObjManager.getAll( DataElementCategoryOptionCombo.class ),
+            caches.attrOptionCombos.load( idObjManager.getAll( CategoryOptionCombo.class ),
                 aoc -> aoc.getPropertyValue( config.aocScheme ) );
 
             log.info( "Attribute option combo cache heated after cache miss threshold reached" );
@@ -823,7 +823,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         
         if( aoc == null )
         {
-            DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
+            CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
         
@@ -850,10 +850,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         final OrganisationUnit orgUnit;
 
-        DataElementCategoryOptionCombo attrOptCombo;
+        CategoryOptionCombo attrOptCombo;
 
         MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit,
-            DataElementCategoryOptionCombo attrOptCombo )
+            CategoryOptionCombo attrOptCombo )
         {
             this.dataSet = dataSet;
             this.period = period;
@@ -905,7 +905,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
 
-        final IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallable;
+        final IdentifiableObjectCallable<CategoryOptionCombo> optionComboCallable;
 
         final IdentifiableObjectCallable<Period> periodCallable;
 
@@ -927,7 +927,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         CachingMap<String, Period> periods = new CachingMap<>();
 
-        CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
+        CachingMap<String, CategoryOptionCombo> attrOptionCombos = new CachingMap<>();
 
         CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
 
@@ -937,7 +937,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             dataSets.load( manager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
             orgUnits.load( manager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.ouScheme ) );
-            attrOptionCombos.load( manager.getAll( DataElementCategoryOptionCombo.class ),
+            attrOptionCombos.load( manager.getAll( CategoryOptionCombo.class ),
                 oc -> oc.getPropertyValue( config.aocScheme ) );
         }
     }
@@ -951,7 +951,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits,
             requireAttrOptionCombos, skipNotifications;
 
-        DataElementCategoryOptionCombo fallbackCatOptCombo;
+        CategoryOptionCombo fallbackCatOptCombo;
 
         ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
         {
@@ -983,7 +983,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             requireAttrOptionCombos = options.isRequireAttributeOptionCombo() || (Boolean) systemSettingManager
                 .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
 
-            fallbackCatOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+            fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
         }
     }
 

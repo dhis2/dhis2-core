@@ -28,30 +28,21 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -60,7 +51,7 @@ public class DataValueDimensionTest
     extends DhisSpringTest
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -74,17 +65,17 @@ public class DataValueDimensionTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
     
-    private DataElementCategoryOption male;
-    private DataElementCategoryOption female;
-    private DataElementCategoryOption under15;    
-    private DataElementCategoryOption over15;
+    private CategoryOption male;
+    private CategoryOption female;
+    private CategoryOption under15;    
+    private CategoryOption over15;
     
-    private DataElementCategory gender;
-    private DataElementCategory ageGroup;
+    private Category gender;
+    private Category ageGroup;
     
-    private DataElementCategoryCombo genderAndAgeGroup;
+    private CategoryCombo genderAndAgeGroup;
     
-    private DataElementCategoryOptionCombo defaultOptionCombo;
+    private CategoryOptionCombo defaultOptionCombo;
     
     private DataElement dataElementA;
     
@@ -95,32 +86,32 @@ public class DataValueDimensionTest
     @Override
     public void setUpTest()
     {
-        male = new DataElementCategoryOption( "Male" );
-        female = new DataElementCategoryOption( "Female" );
-        under15 = new DataElementCategoryOption( "<15" );
-        over15 = new DataElementCategoryOption( ">15" );
+        male = new CategoryOption( "Male" );
+        female = new CategoryOption( "Female" );
+        under15 = new CategoryOption( "<15" );
+        over15 = new CategoryOption( ">15" );
         
-        categoryService.addDataElementCategoryOption( male );
-        categoryService.addDataElementCategoryOption( female );
-        categoryService.addDataElementCategoryOption( under15 );
-        categoryService.addDataElementCategoryOption( over15 );
+        categoryService.addCategoryOption( male );
+        categoryService.addCategoryOption( female );
+        categoryService.addCategoryOption( under15 );
+        categoryService.addCategoryOption( over15 );
         
-        gender = new DataElementCategory( "Gender", DataDimensionType.DISAGGREGATION );
+        gender = new Category( "Gender", DataDimensionType.DISAGGREGATION );
         gender.getCategoryOptions().add( male );
         gender.getCategoryOptions().add( female );
         
-        ageGroup = new DataElementCategory( "Agegroup", DataDimensionType.DISAGGREGATION );
+        ageGroup = new Category( "Agegroup", DataDimensionType.DISAGGREGATION );
         ageGroup.getCategoryOptions().add( under15 );
         ageGroup.getCategoryOptions().add( over15 );
         
-        categoryService.addDataElementCategory( gender );
-        categoryService.addDataElementCategory( ageGroup );        
+        categoryService.addCategory( gender );
+        categoryService.addCategory( ageGroup );        
         
-        genderAndAgeGroup = new DataElementCategoryCombo( "Gender and Agegroup", DataDimensionType.DISAGGREGATION );
+        genderAndAgeGroup = new CategoryCombo( "Gender and Agegroup", DataDimensionType.DISAGGREGATION );
         genderAndAgeGroup.getCategories().add( gender );
         genderAndAgeGroup.getCategories().add( ageGroup );
                 
-        categoryService.addDataElementCategoryCombo( genderAndAgeGroup );
+        categoryService.addCategoryCombo( genderAndAgeGroup );
         
         categoryService.generateOptionCombos( genderAndAgeGroup );
 
@@ -136,9 +127,9 @@ public class DataValueDimensionTest
         
         organisationUnitService.addOrganisationUnit( sourceA );
         
-        defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : genderAndAgeGroup.getOptionCombos() )
+        for ( CategoryOptionCombo categoryOptionCombo : genderAndAgeGroup.getOptionCombos() )
         {
             dataValueService.addDataValue( createDataValue( dataElementA, periodA, sourceA, "10", categoryOptionCombo, defaultOptionCombo ) );
         }
@@ -147,11 +138,11 @@ public class DataValueDimensionTest
     @Test
     public void testGetDimensions()
     {
-        List<DataElementCategoryOption> categoryOptions = new ArrayList<>();
+        List<CategoryOption> categoryOptions = new ArrayList<>();
         categoryOptions.add( male );
         categoryOptions.add( under15 );
         
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryOptions );
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
         
         DataValue dataValue = dataValueService.getDataValue( dataElementA, periodA, sourceA, categoryOptionCombo );
         
@@ -161,11 +152,11 @@ public class DataValueDimensionTest
     @Test
     public void testGetByCategoryOptionCombos()
     {
-        List<DataElementCategoryOption> categoryOptions = new ArrayList<>();
+        List<CategoryOption> categoryOptions = new ArrayList<>();
         categoryOptions.add( male );
         categoryOptions.add( under15 );
         
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryOptions );
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
         
         assertNotNull( categoryOptionCombo );
         assertEquals( genderAndAgeGroup, categoryOptionCombo.getCategoryCombo() );
@@ -175,7 +166,7 @@ public class DataValueDimensionTest
         categoryOptions.add( female );
         categoryOptions.add( over15 );
         
-        categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryOptions );
+        categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
         
         assertNotNull( categoryOptionCombo );
         assertEquals( genderAndAgeGroup, categoryOptionCombo.getCategoryCombo() );
@@ -185,7 +176,7 @@ public class DataValueDimensionTest
         categoryOptions.add( male );
         categoryOptions.add( female );
         
-        categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryOptions );
+        categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptions );
         
         assertNull( categoryOptionCombo );
     }

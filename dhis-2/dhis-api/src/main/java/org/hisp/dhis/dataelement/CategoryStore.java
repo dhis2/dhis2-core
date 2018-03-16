@@ -28,20 +28,20 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public interface CategoryStore
-    extends GenericDimensionalObjectStore<DataElementCategory>
+    extends GenericDimensionalObjectStore<Category>
 {
-    List<DataElementCategory> getCategoriesByDimensionType( DataDimensionType dataDimensionType );
+    List<Category> getCategoriesByDimensionType( DataDimensionType dataDimensionType );
     
-    List<DataElementCategory> getCategories( DataDimensionType dataDimensionType, boolean dataDimension );
+    List<Category> getCategories( DataDimensionType dataDimensionType, boolean dataDimension );
     
-    List<DataElementCategory> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
+    List<Category> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }
