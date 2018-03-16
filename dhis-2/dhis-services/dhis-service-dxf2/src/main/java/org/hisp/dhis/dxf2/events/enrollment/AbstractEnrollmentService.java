@@ -584,8 +584,8 @@ public abstract class AbstractEnrollmentService
 
         if ( programInstance == null || !errors.isEmpty() )
         {
-            String descMsg;
-            WebMessage webMsg;
+            String descMsg = "";
+            WebMessage webMsg = null;
 
             if ( programInstance == null )
             {
@@ -745,8 +745,8 @@ public abstract class AbstractEnrollmentService
     public ImportSummary deleteEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        String descMsg;
-        WebMessage webMsg;
+        String descMsg = "";
+        WebMessage webMsg = null;
 
         if ( programInstance != null )
         {
