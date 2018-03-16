@@ -6,6 +6,11 @@
 
   <!-- PushAnalysis -->
 
+  <bean id="org.hisp.dhis.pushanalysis.PushAnalysisStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.pushanalysis.PushAnalysis" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
   <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
   </bean>
