@@ -30,7 +30,7 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.ApplicationContext;

@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataelement.CategoryOption" table="dataelementcategoryoption">
+  <class name="org.hisp.dhis.category.CategoryOption" table="dataelementcategoryoption">
 
     <cache usage="read-write" />
 
@@ -35,20 +35,20 @@
     <set name="categoryOptionCombos" table="categoryoptioncombos_categoryoptions" inverse="true">
       <cache usage="read-write" />
       <key column="categoryoptionid" foreign-key="fk_categoryoptioncombos_categoryoptions_categoryoptionid" />
-      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionCombo" column="categoryoptioncomboid"
+      <many-to-many class="org.hisp.dhis.category.CategoryOptionCombo" column="categoryoptioncomboid"
         foreign-key="fk_categoryoption_categoryoptioncomboid" />
     </set>
 
     <set name="categories" table="categories_categoryoptions" inverse="true">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
-      <many-to-many class="org.hisp.dhis.dataelement.Category" column="categoryid" />
+      <many-to-many class="org.hisp.dhis.category.Category" column="categoryid" />
     </set>
 
     <set name="groups" table="categoryoptiongroupmembers" inverse="true">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
-      <many-to-many class="org.hisp.dhis.dataelement.CategoryOptionGroup" column="categoryoptiongroupid" />
+      <many-to-many class="org.hisp.dhis.category.CategoryOptionGroup" column="categoryoptiongroupid" />
     </set>
 
     <!-- Object Translation -->

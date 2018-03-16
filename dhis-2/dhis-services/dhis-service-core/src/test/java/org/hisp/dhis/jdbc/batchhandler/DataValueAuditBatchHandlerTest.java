@@ -30,8 +30,8 @@ package org.hisp.dhis.jdbc.batchhandler;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;

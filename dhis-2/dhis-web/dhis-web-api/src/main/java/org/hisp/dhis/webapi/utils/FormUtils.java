@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.*;
@@ -108,8 +110,8 @@ public class FormUtils
             List<Field> fields = inputFromDataElements( new ArrayList<>( dataSet.getDataElements() ) );
 
             Group group = new Group();
-            group.setLabel( org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-            group.setDescription( org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+            group.setLabel( org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+            group.setDescription( org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
             group.setDataElementCount( dataSet.getDataElements().size() );
             group.setFields( fields );
 
@@ -129,15 +131,15 @@ public class FormUtils
     {
         if ( dataset.hasCategoryCombo() )
         {
-            org.hisp.dhis.dataelement.CategoryCombo categoryCombo = dataset.getCategoryCombo();
+            org.hisp.dhis.category.CategoryCombo categoryCombo = dataset.getCategoryCombo();
             CategoryCombo catCombo = new CategoryCombo();
             catCombo.setId( categoryCombo.getUid() );
 
-            List<org.hisp.dhis.dataelement.Category> cats = categoryCombo.getCategories();
+            List<org.hisp.dhis.category.Category> cats = categoryCombo.getCategories();
 
             if ( cats != null && cats.size() > 0 )
             {
-                for ( org.hisp.dhis.dataelement.Category cat : cats )
+                for ( org.hisp.dhis.category.Category cat : cats )
                 {
                     if ( cat.getAccess() != null && !cat.getAccess().isRead() )
                     {

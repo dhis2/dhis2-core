@@ -33,7 +33,7 @@ import org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramStageDataElement;
 import org.hisp.dhis.api.mobile.model.Model;
 import org.hisp.dhis.api.mobile.model.ModelList;
 import org.hisp.dhis.api.mobile.model.OptionSet;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 
 import java.util.ArrayList;
 import java.util.List;

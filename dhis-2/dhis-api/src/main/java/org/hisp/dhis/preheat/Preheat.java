@@ -30,10 +30,10 @@ package org.hisp.dhis.preheat;
 
 import javassist.util.proxy.ProxyFactory;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.Category;
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOption;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;

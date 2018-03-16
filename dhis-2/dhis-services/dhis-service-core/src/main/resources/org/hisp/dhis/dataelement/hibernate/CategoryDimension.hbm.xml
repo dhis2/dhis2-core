@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataelement.CategoryDimension" table="categorydimension">
+  <class name="org.hisp.dhis.category.CategoryDimension" table="categorydimension">
 
     <cache usage="read-write" />
 
@@ -12,14 +12,14 @@
       <generator class="native" />
     </id>
     
-    <many-to-one name="dimension" class="org.hisp.dhis.dataelement.Category" column="categoryid"
+    <many-to-one name="dimension" class="org.hisp.dhis.category.Category" column="categoryid"
       foreign-key="fk_categorydimension_category" />
     
     <list name="items" table="categorydimension_items">
       <cache usage="read-write" />
       <key column="categorydimensionid" foreign-key="fk_categorydimension_items_categorydimensionid" />
       <list-index column="sort_order" />
-      <many-to-many class="org.hisp.dhis.dataelement.CategoryOption" column="categoryoptionid"
+      <many-to-many class="org.hisp.dhis.category.CategoryOption" column="categoryoptionid"
         foreign-key="fk_categorydimension_items_categoryoptionid" />
     </list>
   </class>

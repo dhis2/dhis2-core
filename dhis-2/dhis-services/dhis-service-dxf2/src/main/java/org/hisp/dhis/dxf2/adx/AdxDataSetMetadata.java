@@ -29,9 +29,9 @@ package org.hisp.dhis.dxf2.adx;
  */
 
 import org.apache.xerces.util.XMLChar;
-import org.hisp.dhis.dataelement.Category;
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 

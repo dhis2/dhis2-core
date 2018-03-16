@@ -34,7 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.batchhandler.MinMaxDataElementBatchHandler;

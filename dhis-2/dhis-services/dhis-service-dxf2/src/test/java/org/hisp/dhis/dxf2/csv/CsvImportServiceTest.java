@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.csv;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
