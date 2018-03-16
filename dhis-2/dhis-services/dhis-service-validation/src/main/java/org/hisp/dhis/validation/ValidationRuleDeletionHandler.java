@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
 
@@ -43,12 +44,8 @@ public class ValidationRuleDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private ValidationRuleService validationRuleService;
-
-    public void setValidationRuleService( ValidationRuleService validationRuleService )
-    {
-        this.validationRuleService = validationRuleService;
-    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
