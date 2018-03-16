@@ -37,12 +37,9 @@ import java.util.List;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public interface MinMaxDataElementService
 {
-    String ID = MinMaxDataElementService.class.getName();
-
     int addMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
     void deleteMinMaxDataElement( MinMaxDataElement minMaxDataElement );
