@@ -233,32 +233,6 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.validation.ValidationRuleStore" class="org.hisp.dhis.validation.hibernate.HibernateValidationRuleStore">
-    <property name="clazz" value="org.hisp.dhis.validation.ValidationRule" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validation.ValidationResultStore" class="org.hisp.dhis.validation.hibernate.HibernateValidationResultStore">
-    <property name="clazz" value="org.hisp.dhis.validation.ValidationResult" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore"
-    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.validation.notification.ValidationNotificationTemplate" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validation.ValidationRuleGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.validation.ValidationRuleGroup" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.predictor.PredictorStore" class="org.hisp.dhis.predictor.hibernate.HibernatePredictorStore">
     <property name="clazz" value="org.hisp.dhis.predictor.Predictor" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -899,22 +873,7 @@
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
   </bean>
 
-  <bean id="org.hisp.dhis.validation.ValidationRuleService" class="org.hisp.dhis.validation.DefaultValidationRuleService">
-    <property name="validationRuleStore" ref="org.hisp.dhis.validation.ValidationRuleStore" />
-    <property name="validationRuleGroupStore" ref="org.hisp.dhis.validation.ValidationRuleGroupStore" />
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validation.ValidationResultService" class="org.hisp.dhis.validation.DefaultValidationResultService" />
-
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
-
-  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
-    class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
-    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
-    <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
-    <property name="validationResultService" ref="org.hisp.dhis.validation.ValidationResultService" />
-  </bean>
 
   <bean id="org.hisp.dhis.dataelement.CategoryService" class="org.hisp.dhis.dataelement.DefaultCategoryService">
     <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
@@ -1546,9 +1505,6 @@
   <bean id="programNotificationsJob"
         class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
-  <bean id="validationResultNotificationJob"
-        class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
-
   <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob">
     <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
   </bean>
@@ -1771,15 +1727,6 @@
   <bean id="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" class="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler">
     <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
   </bean>
-
-  <bean id="org.hisp.dhis.validation.ValidationRuleDeletionHandler" class="org.hisp.dhis.validation.ValidationRuleDeletionHandler">
-    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.validation.ValidationResultDeletionHandler" class="org.hisp.dhis.validation.ValidationResultDeletionHandler" />
-
-  <bean id="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler"
-    class="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler" />
 
   <bean id="org.hisp.dhis.datavalue.DataValueDeletionHandler" class="org.hisp.dhis.datavalue.DataValueDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
