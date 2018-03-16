@@ -87,7 +87,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.*;
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -1625,25 +1624,6 @@ public abstract class DhisConvenienceTest
         attributeGroup.setUniqunessType( UniqunessType.NONE );
 
         return attributeGroup;
-    }
-
-    /**
-     * @param uniqueCharacter A unique character to identify the object.
-     * @return ValidationCriteria
-     */
-    public static ValidationCriteria createValidationCriteria( char uniqueCharacter, String property, int operator,
-        String value )
-    {
-        ValidationCriteria validationCriteria = new ValidationCriteria();
-        validationCriteria.setAutoFields();
-
-        validationCriteria.setName( "ValidationCriteria" + uniqueCharacter );
-        validationCriteria.setDescription( "Description" + uniqueCharacter );
-        validationCriteria.setProperty( property );
-        validationCriteria.setOperator( operator );
-        validationCriteria.setValue( value );
-
-        return validationCriteria;
     }
 
     /**
