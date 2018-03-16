@@ -1742,13 +1742,6 @@
     <property name="skipInTests" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataentryform.DataEntryFormUpgrader" class="org.hisp.dhis.dataentryform.DataEntryFormUpgrader">
-    <property name="name" value="FavoriteDataItemUpgrader" />
-    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
-    <property name="runlevel" value="10" />
-    <property name="skipInTests" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.startup.ExpressionUpgrader" class="org.hisp.dhis.startup.ExpressionUpgrader">
     <property name="name" value="ExpressionUpgrader" />
     <property name="runlevel" value="11" />
