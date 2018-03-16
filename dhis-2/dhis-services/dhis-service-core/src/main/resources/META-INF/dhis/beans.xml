@@ -1085,15 +1085,6 @@
     <property name="optionStore" ref="org.hisp.dhis.option.OptionStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.mapping.MappingService" class="org.hisp.dhis.mapping.DefaultMappingService">
-    <property name="mapStore" ref="org.hisp.dhis.mapping.MapStore" />
-    <property name="mapViewStore" ref="org.hisp.dhis.mapping.MapViewStore" />
-    <property name="externalMapLayerStore" ref="org.hisp.dhis.mapping.ExternalMapLayerStore" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-  </bean>
-
   <bean id="org.hisp.dhis.legend.LegendService" class="org.hisp.dhis.legend.DefaultLegendSetService">
     <property name="legendSetStore" ref="org.hisp.dhis.legend.LegendSetStore" />
   </bean>
@@ -1898,14 +1889,6 @@
   </bean>
 
   <bean id="org.hisp.dhis.legend.LegendSetDeletionHandler" class="org.hisp.dhis.legend.LegendSetDeletionHandler" />
-
-  <bean id="org.hisp.dhis.mapping.MapViewDeletionHandler" class="org.hisp.dhis.mapping.MapViewDeletionHandler">
-    <property name="mappingService" ref="org.hisp.dhis.mapping.MappingService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.mapping.MapDeletionHandler" class="org.hisp.dhis.mapping.MapDeletionHandler">
-    <property name="mappingService" ref="org.hisp.dhis.mapping.MappingService" />
-  </bean>
 
   <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupDeletionHandler"
     class="org.hisp.dhis.dataelement.CategoryOptionGroupDeletionHandler" />
