@@ -1,4 +1,4 @@
-package org.hisp.dhis.exception;
+package org.hisp.dhis.dxf2.metadata.sync.exception;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
