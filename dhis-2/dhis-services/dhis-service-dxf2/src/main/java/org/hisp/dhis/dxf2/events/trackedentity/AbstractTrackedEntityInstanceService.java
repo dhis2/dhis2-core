@@ -544,8 +544,8 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
-        String descMsg;
-        WebMessage webMsg;
+        String descMsg = "";
+        WebMessage webMsg = null;
 
         if ( entityInstance != null )
         {
