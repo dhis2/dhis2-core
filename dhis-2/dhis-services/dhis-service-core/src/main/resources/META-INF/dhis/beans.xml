@@ -783,11 +783,6 @@
     <property name="locationManager" ref="locationManager" />
   </bean>
 
-  <bean id="org.hisp.dhis.pushanalysis.PushAnalysisStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.pushanalysis.PushAnalysis" />
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-  
   <bean id="org.hisp.dhis.analytics.AnalyticsTableHookStore" class="org.hisp.dhis.analytics.hibernate.HibernateAnalyticsTableHookStore">
     <property name="clazz" value="org.hisp.dhis.analytics.AnalyticsTableHook" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1639,7 +1634,6 @@
     <property name="jobConfigurationService" ref="jobConfigurationService" />
     <property name="runlevel" value="5" />
     <property name="skipInTests" value="true" />
-    <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
   </bean>
 
   <bean id="schedulerStart" class="org.hisp.dhis.startup.SchedulerStart">
