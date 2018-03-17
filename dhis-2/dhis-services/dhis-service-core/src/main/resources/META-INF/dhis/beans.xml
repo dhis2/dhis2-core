@@ -214,17 +214,10 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <!--DataSetNotifications-->
-
   <bean id="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" class="org.hisp.dhis.dataset.notifications.HibernateDataSetNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.minmax.MinMaxDataElementStore" class="org.hisp.dhis.minmax.hibernate.HibernateMinMaxDataElementStore">
-    <property name="clazz" value="org.hisp.dhis.minmax.MinMaxDataElement" />
-    <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
   <bean id="org.hisp.dhis.expression.ExpressionStore" class="org.hisp.dhis.hibernate.HibernateGenericStore">
@@ -822,10 +815,6 @@
     <property name="dataElementStore" ref="org.hisp.dhis.dataelement.DataElementStore" />
     <property name="dataElementGroupStore" ref="org.hisp.dhis.dataelement.DataElementGroupStore" />
     <property name="dataElementGroupSetStore" ref="org.hisp.dhis.dataelement.DataElementGroupSetStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.minmax.MinMaxDataElementService" class="org.hisp.dhis.minmax.DefaultMinMaxDataElementService">
-    <property name="minMaxDataElementStore" ref="org.hisp.dhis.minmax.MinMaxDataElementStore" />
   </bean>
 
   <bean id="org.hisp.dhis.indicator.IndicatorService" class="org.hisp.dhis.indicator.DefaultIndicatorService">
@@ -1724,10 +1713,6 @@
 
   <bean id="org.hisp.dhis.indicator.IndicatorGroupSetDeletionHandler" class="org.hisp.dhis.indicator.IndicatorGroupSetDeletionHandler" />
 
-  <bean id="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" class="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler">
-    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
-  </bean>
-
   <bean id="org.hisp.dhis.datavalue.DataValueDeletionHandler" class="org.hisp.dhis.datavalue.DataValueDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
@@ -1894,8 +1879,6 @@
       <aop:before pointcut="execution( * org.hisp.dhis.dataset.SectionService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.indicator.IndicatorService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.expression.ExpressionService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.minmax.MinMaxDataElementService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationRuleService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.period.PeriodService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitGroupService.delete*(..) )" method="intercept" />
@@ -1925,7 +1908,6 @@
       <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
     </aop:aspect>
-
   </aop:config>
 
   <!-- Security import -->

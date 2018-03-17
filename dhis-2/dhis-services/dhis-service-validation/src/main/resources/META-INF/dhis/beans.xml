@@ -57,8 +57,7 @@
     <property name="validationResultService" ref="org.hisp.dhis.validation.ValidationResultService" />
   </bean>
 
-  <bean id="validationResultNotificationJob"
-        class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
+  <bean id="validationResultNotificationJob" class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
 
   <!-- Data analysis -->
 
@@ -99,5 +98,29 @@
       </map>
     </property>
   </bean>
+  
+  <!-- Min max data element -->
 
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementStore" class="org.hisp.dhis.minmax.hibernate.HibernateMinMaxDataElementStore">
+    <property name="clazz" value="org.hisp.dhis.minmax.MinMaxDataElement" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementService" class="org.hisp.dhis.minmax.DefaultMinMaxDataElementService">
+    <property name="minMaxDataElementStore" ref="org.hisp.dhis.minmax.MinMaxDataElementStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" class="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler">
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+  </bean>
+
+  <!-- AOP definitions -->
+
+  <aop:config>
+    <aop:aspect ref="deletionInterceptor">
+      <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationRuleService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.minmax.MinMaxDataElementService.delete*(..) )" method="intercept" />
+    </aop:aspect>
+  </aop:config>
+  
 </beans>
