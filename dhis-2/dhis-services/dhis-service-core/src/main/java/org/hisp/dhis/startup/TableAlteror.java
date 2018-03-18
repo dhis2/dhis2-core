@@ -707,6 +707,7 @@ public class TableAlteror
         executeSql( "UPDATE userroleauthorities SET authority='F_VALIDATIONRULE_PUBLIC_ADD' WHERE authority='F_VALIDATIONRULE_ADD'" );
 
         executeSql( "UPDATE userroleauthorities SET authority='F_ATTRIBUTE_PUBLIC_ADD' WHERE authority='F_ATTRIBUTE_ADD'" );
+        executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-dashboard' WHERE authority='M_dhis-web-dashboard-integration'" );
 
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
