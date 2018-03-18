@@ -46,12 +46,6 @@
         class="org.hisp.dhis.organisationunit.OrganisationUnit" foreign-key="fk_program_organisationunits_organisationunitid" />
     </set>
 
-    <set name="validationCriteria" table="program_criteria">
-      <key column="programid" foreign-key="fk_program_criteria_programid" />
-      <many-to-many column="validationcriteriaid"
-        class="org.hisp.dhis.validation.ValidationCriteria" foreign-key="fk_program_criteria_validationcriteriaid" />
-    </set>
-
     <property name="programType" column="type" type="org.hisp.dhis.program.ProgramTypeUserType" not-null="true" />
 
     <property name="displayIncidentDate" />

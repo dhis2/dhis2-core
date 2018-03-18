@@ -9,9 +9,9 @@
     <version>2.30-SNAPSHOT</version>
   </parent>
   
-  <artifactId>dhis-service-administration</artifactId>
+  <artifactId>dhis-service-validation</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS Administration Service</name>
+  <name>DHIS Validation Service</name>
   
   <dependencies>
     
@@ -24,21 +24,6 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-validation</artifactId>
-    </dependency>
-    
-    <!-- Other -->
-    
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
     </dependency>
     
   </dependencies>

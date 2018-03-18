@@ -37,7 +37,6 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
@@ -90,20 +89,6 @@ public class ProgramDeletionHandler
                 idObjectManager.updateNoAcl( program );
             }
         }        
-    }
-
-    @Override
-    public void deleteValidationCriteria( ValidationCriteria validationCriteria )
-    {
-        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-
-        for ( Program program : programs )
-        {
-            if ( program.getValidationCriteria().remove( validationCriteria ) )
-            {
-                idObjectManager.updateNoAcl( program );
-            }
-        }
     }
 
     @Override

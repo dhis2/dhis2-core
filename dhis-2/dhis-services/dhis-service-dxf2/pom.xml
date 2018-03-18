@@ -26,9 +26,9 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-core</artifactId>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-jdbc</artifactId>
+      <artifactId>dhis-service-validation</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dxf2.metadata.sync.exception;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,27 +28,24 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.validation.ValidationCriteria;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author  aamerm.
  */
-public class ValidationCriteriaSchemaDescriptor implements SchemaDescriptor
+public class RemoteServerUnavailableException
+    extends RuntimeException
 {
-    public static final String SINGULAR = "validationCriteria";
-
-    public static final String PLURAL = "validationCriterias";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    public RemoteServerUnavailableException( String message )
     {
-        Schema schema = new Schema( ValidationCriteria.class, SINGULAR, PLURAL );
-        schema.setOrder( 1460 );
+        super( message );
+    }
 
-        return schema;
+    public RemoteServerUnavailableException( Throwable cause )
+    {
+        super( cause );
+    }
+
+    public RemoteServerUnavailableException( String message, Throwable cause )
+    {
+        super( message, cause );
     }
 }

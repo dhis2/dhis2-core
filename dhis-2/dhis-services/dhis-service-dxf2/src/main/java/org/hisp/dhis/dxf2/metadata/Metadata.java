@@ -99,7 +99,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -229,8 +228,6 @@ public class Metadata
     private List<ProgramStageSection> programStageSections = new ArrayList<>();
 
     private List<RelationshipType> relationshipTypes = new ArrayList<>();
-
-    private List<ValidationCriteria> validationCriterias = new ArrayList<>();
 
     private List<ProgramRule> programRules = new ArrayList<>();
 
@@ -957,19 +954,6 @@ public class Metadata
     public void setRelationshipTypes( List<RelationshipType> relationshipTypes )
     {
         this.relationshipTypes = relationshipTypes;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "validationCriterias", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "validationCriteria", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ValidationCriteria> getValidationCriterias()
-    {
-        return validationCriterias;
-    }
-
-    public void setValidationCriterias( List<ValidationCriteria> validationCriterias )
-    {
-        this.validationCriterias = validationCriterias;
     }
 
     @JsonProperty

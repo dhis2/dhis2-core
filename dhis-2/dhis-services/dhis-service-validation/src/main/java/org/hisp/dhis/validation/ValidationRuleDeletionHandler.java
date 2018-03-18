@@ -28,71 +28,63 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-
-import java.util.List;
+import java.util.Iterator;
 
 /**
- * @author Chau Thu Tran
- * @version $Id$
+ * @author Lars Helge Overland
  */
-@Transactional
-public class DefaultValidationCriteriaService
-    implements ValidationCriteriaService
+public class ValidationRuleDeletionHandler
+    extends DeletionHandler
 {
     // -------------------------------------------------------------------------
-    // Dependency
+    // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<ValidationCriteria> validationCriteriaStore;
-
-    public void setValidationCriteriaStore( GenericIdentifiableObjectStore<ValidationCriteria> validationCriteriaStore )
-    {
-        this.validationCriteriaStore = validationCriteriaStore;
-    }
+    @Autowired
+    private ValidationRuleService validationRuleService;
 
     // -------------------------------------------------------------------------
-    // ValidationCriteria implementation
+    // DeletionHandler implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveValidationCriteria( ValidationCriteria validationCriteria )
+    public String getClassName()
     {
-        validationCriteriaStore.save( validationCriteria );
-
-        return validationCriteria.getId();
+        return ValidationRule.class.getSimpleName();
     }
 
     @Override
-    public void updateValidationCriteria( ValidationCriteria validationCriteria )
+    public void deleteExpression( Expression expression )
     {
-        validationCriteriaStore.update( validationCriteria );
-    }
+        Iterator<ValidationRule> iterator = validationRuleService.getAllValidationRules().iterator();
+        
+        while ( iterator.hasNext() )
+        {
+            ValidationRule rule = iterator.next();
+            
+            Expression leftSide = rule.getLeftSide();
+            Expression rightSide = rule.getRightSide();
 
+            if ( (leftSide != null && leftSide.equals( expression )) ||
+                 (rightSide != null && rightSide.equals( expression )) )
+            {
+                iterator.remove();
+                validationRuleService.deleteValidationRule( rule );
+            }
+        }
+    }
+    
     @Override
-    public void deleteValidationCriteria( ValidationCriteria validationCriteria )
+    public void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
-        validationCriteriaStore.delete( validationCriteria );
+        for ( ValidationRule rule : validationRuleGroup.getMembers() )
+        {
+            rule.getGroups().remove( validationRuleGroup );
+            validationRuleService.updateValidationRule( rule );
+        }
     }
-
-    @Override
-    public ValidationCriteria getValidationCriteria( int id )
-    {
-        return validationCriteriaStore.get( id );
-    }
-
-    @Override
-    public List<ValidationCriteria> getAllValidationCriterias()
-    {
-        return validationCriteriaStore.getAll();
-    }
-
-    @Override
-    public ValidationCriteria getValidationCriteria( String name )
-    {
-        return validationCriteriaStore.getByName( name );
-    }
-
 }

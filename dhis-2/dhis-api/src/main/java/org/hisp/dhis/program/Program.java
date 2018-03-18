@@ -52,7 +52,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.validation.ValidationCriteria;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -81,8 +80,6 @@ public class Program
     private Set<ProgramStage> programStages = new HashSet<>();
 
     private Set<ProgramSection> programSections = new HashSet<>();
-
-    private Set<ValidationCriteria> validationCriteria = new HashSet<>();
 
     private ProgramType programType;
 
@@ -467,20 +464,6 @@ public class Program
     public void setProgramType( ProgramType programType )
     {
         this.programType = programType;
-    }
-
-    @JsonProperty( "validationCriterias" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "validationCriterias", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "validationCriteria", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ValidationCriteria> getValidationCriteria()
-    {
-        return validationCriteria;
-    }
-
-    public void setValidationCriteria( Set<ValidationCriteria> validationCriteria )
-    {
-        this.validationCriteria = validationCriteria;
     }
 
     @JsonProperty

@@ -114,7 +114,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -731,15 +730,6 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
-    {
-        return null;
-    }
-
-    public void deleteValidationCriteria( ValidationCriteria validationCriteria )
-    {
-    }
-
-    public String allowDeleteValidationCriteria( ValidationCriteria validationCriteria )
     {
         return null;
     }
