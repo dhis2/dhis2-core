@@ -47,7 +47,10 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
@@ -86,6 +89,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         this.currentUserService = currentUserService;
     }
+
+    @Autowired
+    protected DeletedObjectService deletedObjectService;
+
+    @Autowired
+    protected AclService aclService;
 
     private boolean transientIdentifiableProperties = false;
 
@@ -234,7 +243,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
         
-        genericSave( object );
+        getSession().save( object );
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+        }
     }
 
     @Override
@@ -270,7 +284,15 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );
 
-        genericUpdate( object );
+        if ( object != null )
+        {
+            getSession().update( object );
+        }
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+        }
     }
 
     @Override
@@ -292,7 +314,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_DELETE );
 
-        genericDelete( object );
+        if ( object != null )
+        {
+            getSession().delete( object );
+        }
     }
 
     @Override
