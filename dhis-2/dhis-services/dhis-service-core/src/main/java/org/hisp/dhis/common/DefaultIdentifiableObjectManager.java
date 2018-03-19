@@ -114,29 +114,17 @@ public class DefaultIdentifiableObjectManager
     @Override
     public void save( IdentifiableObject object )
     {
-        save( object, currentUserService.getCurrentUser(), true );
-    }
-
-    @Override
-    public void save( IdentifiableObject object, User user )
-    {
-        save( object, user, true );
+        save( object, true );
     }
 
     @Override
     public void save( IdentifiableObject object, boolean clearSharing )
     {
-        save( object, currentUserService.getCurrentUser(), clearSharing );
-    }
-
-    @Override
-    public void save( IdentifiableObject object, User user, boolean clearSharing )
-    {
         GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
         if ( store != null )
         {
-            store.save( object, user, clearSharing );
+            store.save( object, clearSharing );
         }
     }
 

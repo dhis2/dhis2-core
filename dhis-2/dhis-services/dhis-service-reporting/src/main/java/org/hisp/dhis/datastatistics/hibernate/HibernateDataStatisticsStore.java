@@ -1,5 +1,6 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,10 +33,10 @@ import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -49,7 +50,7 @@ import java.util.List;
  * @author Julie Hill Roa
  */
 public class HibernateDataStatisticsStore
-    extends HibernateGenericStore<DataStatistics>
+    extends HibernateIdentifiableObjectStore<DataStatistics>
     implements DataStatisticsStore
 {
     private static final Log log = LogFactory.getLog( HibernateDataStatisticsStore.class );
