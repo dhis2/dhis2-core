@@ -29,6 +29,8 @@ package org.hisp.dhis.fieldfilter;
  *
  */
 
+import org.hisp.dhis.user.User;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +39,8 @@ import java.util.List;
  */
 public final class FieldFilterParams
 {
+    private User user;
+
     /**
      * List of object(s) to filter through. If more than one, a wrapper
      * is required.
@@ -61,6 +65,17 @@ public final class FieldFilterParams
         this.objects = objects;
         this.fields = fields;
         this.defaults = defaults;
+    }
+
+    public User getUser()
+    {
+        return user;
+    }
+
+    public FieldFilterParams setUser( User user )
+    {
+        this.user = user;
+        return this;
     }
 
     public List<?> getObjects()
