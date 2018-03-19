@@ -48,11 +48,7 @@ public interface IdentifiableObjectManager
 
     void save( IdentifiableObject object );
 
-    void save( IdentifiableObject object, User user );
-
     void save( IdentifiableObject object, boolean clearSharing );
-
-    void save( IdentifiableObject object, User user, boolean clearSharing );
 
     void update( IdentifiableObject object );
 

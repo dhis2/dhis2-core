@@ -134,27 +134,27 @@ public class HibernateDataApprovalStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void addDataApproval( DataApproval dataApproval, User user )
+    public void addDataApproval( DataApproval dataApproval )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        save( dataApproval, user );
+        save( dataApproval );
     }
 
     @Override
-    public void updateDataApproval( DataApproval dataApproval, User user )
+    public void updateDataApproval( DataApproval dataApproval )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        update( dataApproval, user );
+        update( dataApproval );
     }
 
     @Override
-    public void deleteDataApproval( DataApproval dataApproval, User user )
+    public void deleteDataApproval( DataApproval dataApproval )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        delete( dataApproval, user );
+        delete( dataApproval );
     }    
 
     @Override

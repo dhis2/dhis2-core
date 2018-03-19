@@ -43,6 +43,37 @@ public interface GenericIdentifiableObjectStore<T>
     extends GenericStore<T>
 {
     /**
+     * Saves the given object instance.
+     *
+     * @param object       the object instance.
+     * @param clearSharing Should we clear all sharing related properties?
+     */
+    void save( T object, boolean clearSharing );
+
+    /**
+     * Updates the given object instance.
+     *
+     * @param object the object instance.
+     * @param user   User
+     */
+    void update( T object, User user );
+
+    /**
+     * Update object. Bypasses the ACL system.
+     *
+     * @param object Object update
+     */
+    void updateNoAcl( T object );
+
+    /**
+     * Removes the given object instance.
+     *
+     * @param object the object instance to delete.
+     * @param user   User
+     */
+    void delete( T object, User user );
+
+    /**
      * Retrieves the object with the given uid.
      *
      * @param uid the uid.
@@ -57,13 +88,6 @@ public interface GenericIdentifiableObjectStore<T>
      * @return the object with the given uid.
      */
     T getByUidNoAcl( String uid );
-
-    /**
-     * Update object. Bypasses the ACL system.
-     *
-     * @param object Object update
-     */
-    void updateNoAcl( T object );
 
     /**
      * Retrieves the object with the given name.

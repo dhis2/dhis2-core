@@ -56,25 +56,22 @@ public interface DataApprovalStore
      * Adds a DataApproval in order to approve data.
      *
      * @param dataApproval the DataApproval to add.
-     * @param user the user doing the adding.
      */
-    void addDataApproval( DataApproval dataApproval, User user );
+    void addDataApproval( DataApproval dataApproval );
 
     /**
      * Updates a DataApproval.
      *
      * @param dataApproval the DataApproval to update.
-     * @param user the user doing the updating.
      */
-    void updateDataApproval( DataApproval dataApproval, User user );
+    void updateDataApproval( DataApproval dataApproval );
 
     /**
      * Deletes a DataApproval in order to un-approve data.
      *
      * @param dataApproval the DataApproval to delete.
-     * @param user the user doing the deleting.
      */
-    void deleteDataApproval( DataApproval dataApproval, User user );
+    void deleteDataApproval( DataApproval dataApproval );
 
     /**
      * Deletes DataApprovals for the given organisation unit.
