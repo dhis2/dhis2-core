@@ -29,6 +29,8 @@ package org.hisp.dhis.configuration;
 
 import java.io.Serializable;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.LocalCache;
 import org.hisp.dhis.cache.NoOpCache;
@@ -51,6 +53,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CacheProvider
 {
+    private static final Log log = LogFactory.getLog( CacheProvider.class );
 
     private DhisConfigurationProvider configurationProvider;
 
@@ -86,14 +89,17 @@ public class CacheProvider
     {
         if ( maximumSize == 0 )
         {
+            log.info( "NoOp Cache instance created for region=" + region );
             return new NoOpCache( defaultValue );
         }
         else if ( configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ) )
         {
+            log.info( "Redis Cache instance created for region=" + region );
             return new RedisCache( redisTemplate, region, refreshExpiryOnAccess, expiryInSeconds, defaultValue );
         }
         else
         {
+            log.info( "Local Cache instance created for region=" + region );
             return new LocalCache( refreshExpiryOnAccess, expiryInSeconds, maximumSize, defaultValue );
         }
     }
