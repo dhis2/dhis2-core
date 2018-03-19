@@ -608,20 +608,6 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getBetween( Class<T> clazz, int first, int max )
-    {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
-
-        if ( store == null )
-        {
-            return new ArrayList<>();
-        }
-
-        return (List<T>) store.getAll( first, max );
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> clazz, int first, int max )
     {
         GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );

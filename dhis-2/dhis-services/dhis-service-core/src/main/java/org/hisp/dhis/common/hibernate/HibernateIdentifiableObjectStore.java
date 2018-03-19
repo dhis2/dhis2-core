@@ -311,15 +311,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public int getCountEqName( String name )
-    {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.eq( "name", name ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
-    }
-
-    @Override
     public int getCountLikeName( String name )
     {
         return ((Number) getSharingCriteria()
