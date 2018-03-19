@@ -67,7 +67,7 @@ public final class UserContext
     {
         User user = getUser();
         
-        return user != null ? user.getUsername() : null;
+        return user != null ? user.getUsername() : "system-process";
     }
 
     public static boolean haveUser()
