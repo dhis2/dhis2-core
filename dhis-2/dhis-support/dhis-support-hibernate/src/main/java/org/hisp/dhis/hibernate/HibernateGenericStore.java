@@ -47,7 +47,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -82,9 +81,6 @@ public class HibernateGenericStore<T>
     {
         this.jdbcTemplate = jdbcTemplate;
     }
-
-    @Autowired
-    protected CurrentUserService currentUserService;
 
     @Autowired
     protected DeletedObjectService deletedObjectService;
