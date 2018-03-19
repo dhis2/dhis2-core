@@ -28,16 +28,16 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public interface CategoryComboStore
-    extends GenericIdentifiableObjectStore<DataElementCategoryCombo>
+    extends IdentifiableObjectStore<CategoryCombo>
 {
-    List<DataElementCategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType );
+    List<CategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType );
 }

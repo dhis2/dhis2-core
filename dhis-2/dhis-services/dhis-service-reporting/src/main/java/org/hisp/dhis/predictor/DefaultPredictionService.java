@@ -46,8 +46,8 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -105,7 +105,7 @@ public class DefaultPredictionService
     private DataValueService dataValueService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -176,13 +176,13 @@ public class DefaultPredictionService
         Set<DimensionalItemObject> aggregateDimensionItems = getDimensionItems( aggregates, skipTest );
         Set<DimensionalItemObject> nonAggregateDimensionItems = getDimensionItems( nonAggregates, null );
         User currentUser = currentUserService.getCurrentUser();
-        Set<String> defaultOptionComboAsSet = Sets.newHashSet( categoryService.getDefaultDataElementCategoryOptionCombo().getUid() );
+        Set<String> defaultOptionComboAsSet = Sets.newHashSet( categoryService.getDefaultCategoryOptionCombo().getUid() );
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> emptyMap4 = new Map4<>();
         MapMapMap<Period, String, DimensionalItemObject, Double> emptyMapMapMap = new MapMapMap<>();
         boolean usingAttributeOptions = hasAttributeOptions( aggregateDimensionItems ) || hasAttributeOptions( nonAggregateDimensionItems );
 
-        DataElementCategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
-            categoryService.getDefaultDataElementCategoryOptionCombo() : predictor.getOutputCombo();
+        CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ?
+            categoryService.getDefaultCategoryOptionCombo() : predictor.getOutputCombo();
 
         int predictionCount = 0;
 
@@ -268,7 +268,7 @@ public class DefaultPredictionService
                                     Double.toString( MathUtils.roundFraction( value, 4 ) );
 
                                 writeDataValue( outputDataElement, period, orgUnit, outputOptionCombo,
-                                    categoryService.getDataElementCategoryOptionCombo( aoc ),
+                                    categoryService.getCategoryOptionCombo( aoc ),
                                     valueString, currentUsername );
 
                                 predictionCount++;
@@ -716,8 +716,8 @@ public class DefaultPredictionService
      * @param storedBy the user that will store this data value.
      */
     private void writeDataValue( DataElement dataElement, Period period,
-        OrganisationUnit orgUnit, DataElementCategoryOptionCombo categoryOptionCombo,
-        DataElementCategoryOptionCombo attributeOptionCombo, String value, String storedBy )
+        OrganisationUnit orgUnit, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, String value, String storedBy )
     {
         DataValue existingValue = dataValueService.getDataValue( dataElement, period,
             orgUnit, categoryOptionCombo, attributeOptionCombo );

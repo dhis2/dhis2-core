@@ -184,7 +184,7 @@ public class DefaultAnalyticsTableGenerator
         resourceTableService.generateDataElementTable();
         resourceTableService.generatePeriodTable();
         resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();
+        resourceTableService.generateCategoryOptionComboTable();
         resourceTableService.createAllSqlViews();
 
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );

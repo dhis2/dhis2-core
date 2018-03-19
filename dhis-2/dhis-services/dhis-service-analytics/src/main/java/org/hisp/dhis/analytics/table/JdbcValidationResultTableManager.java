@@ -37,7 +37,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.Category;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
@@ -166,7 +166,7 @@ public class JdbcValidationResultTableManager
         List<OrganisationUnitLevel> levels =
                 organisationUnitService.getFilledOrganisationUnitLevels();
 
-        List<DataElementCategory> attributeCategories =
+        List<Category> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
@@ -181,7 +181,7 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
-        for ( DataElementCategory category : attributeCategories )
+        for ( Category category : attributeCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)",
                 "acs." + quote( category.getUid() ), category.getCreated() ) );

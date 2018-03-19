@@ -23,7 +23,7 @@
     <many-to-one name="output" column="generatoroutput" class="org.hisp.dhis.dataelement.DataElement"
       foreign-key="fk_predictor_outputdataelementid" not-null="true" />
 
-    <many-to-one name="outputCombo" column="generatoroutputcombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+    <many-to-one name="outputCombo" column="generatoroutputcombo" class="org.hisp.dhis.dataelement.CategoryOptionCombo"
       foreign-key="fk_predictor_outputcomboid" />
 
     <many-to-one name="sampleSkipTest" column="skiptestexpressionid" class="org.hisp.dhis.expression.Expression"

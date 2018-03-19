@@ -42,7 +42,7 @@ public class CategoryOptionGroupDeletionHandler
     // -------------------------------------------------------------------------
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -55,7 +55,7 @@ public class CategoryOptionGroupDeletionHandler
     }
     
     @Override
-    public void deleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
+    public void deleteCategoryOption( CategoryOption categoryOption )
     {
         for ( CategoryOptionGroup group : categoryOption.getGroups() )
         {

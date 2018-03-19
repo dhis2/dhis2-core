@@ -343,6 +343,16 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-node</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-validation</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-dxf2</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -706,7 +716,7 @@
       <dependency>
         <groupId>com.cronutils</groupId>
         <artifactId>cron-utils</artifactId>
-        <version>7.0.1</version>
+        <version>6.0.2</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>

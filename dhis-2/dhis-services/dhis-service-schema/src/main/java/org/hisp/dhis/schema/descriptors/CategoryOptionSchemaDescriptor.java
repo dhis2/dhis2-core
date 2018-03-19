@@ -29,7 +29,7 @@ package org.hisp.dhis.schema.descriptors;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
@@ -49,7 +49,7 @@ public class CategoryOptionSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( DataElementCategoryOption.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( CategoryOption.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1140 );
         schema.setDataShareable( true );

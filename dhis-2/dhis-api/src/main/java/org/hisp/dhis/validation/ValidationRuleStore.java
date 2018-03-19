@@ -30,13 +30,13 @@ package org.hisp.dhis.validation;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
  */
 public interface ValidationRuleStore
-    extends GenericIdentifiableObjectStore<ValidationRule>
+    extends IdentifiableObjectStore<ValidationRule>
 {
     String ID = ValidationRuleStore.class.getName();
 

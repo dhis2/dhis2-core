@@ -14,6 +14,8 @@
     <property name="lastUpdated" type="timestamp" not-null="true"/>
 	
     <property name="text" column="commenttext" type="text" />
+    
+    <property name="mentions" type="jlbMentions" />
 
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
 		foreign-key="fk_interpretationcomment_userid" not-null="true" />

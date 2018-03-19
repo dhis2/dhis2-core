@@ -35,7 +35,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -55,12 +54,9 @@ public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
-    private final CurrentUserService currentUserService;
-
-    public DefaultAclService( SchemaService schemaService, CurrentUserService currentUserService )
+    public DefaultAclService( SchemaService schemaService )
     {
         this.schemaService = schemaService;
-        this.currentUserService = currentUserService;
     }
 
     @Override
@@ -400,12 +396,6 @@ public class DefaultAclService implements AclService
         }
 
         return null;
-    }
-
-    @Override
-    public <T extends IdentifiableObject> Access getAccess( T object )
-    {
-        return getAccess( object, currentUserService.getCurrentUser() );
     }
 
     @Override

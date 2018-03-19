@@ -55,10 +55,10 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -197,7 +197,7 @@ public abstract class AbstractEventService
     protected IdentifiableObjectManager manager;
 
     @Autowired
-    protected DataElementCategoryService categoryService;
+    protected CategoryService categoryService;
 
     @Autowired
     protected FileResourceService fileResourceService;
@@ -230,11 +230,11 @@ public abstract class AbstractEventService
 
     private CachingMap<String, DataElement> dataElementCache = new CachingMap<>();
 
-    private CachingMap<String, DataElementCategoryOption> categoryOptionCache = new CachingMap<>();
+    private CachingMap<String, CategoryOption> categoryOptionCache = new CachingMap<>();
 
-    private CachingMap<String, DataElementCategoryOptionCombo> categoryOptionComboCache = new CachingMap<>();
+    private CachingMap<String, CategoryOptionCombo> categoryOptionComboCache = new CachingMap<>();
 
-    private CachingMap<String, DataElementCategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
+    private CachingMap<String, CategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
 
@@ -724,7 +724,7 @@ public abstract class AbstractEventService
         event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo().getUid() );
         event.setAttributeCategoryOptions(
             String.join( ";", programStageInstance.getAttributeOptionCombo().getCategoryOptions().stream()
-                .map( DataElementCategoryOption::getUid ).collect( Collectors.toList() ) ) );
+                .map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
         {
@@ -808,7 +808,7 @@ public abstract class AbstractEventService
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
-        DataElementCategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
+        CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
         Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
@@ -1107,7 +1107,7 @@ public abstract class AbstractEventService
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
-            DataElementCategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo(
+            CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo(
                 program.getCategoryCombo(), event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
 
             if ( attributeOptionCombo == null )
@@ -1362,7 +1362,7 @@ public abstract class AbstractEventService
         String storedBy = getStoredBy( event, importSummary, user );
         String completedBy = getCompletedBy( event, importSummary, user );
 
-        DataElementCategoryOptionCombo aoc = null;
+        CategoryOptionCombo aoc = null;
 
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null) || event.getAttributeOptionCombo() != null )
         {
@@ -1381,7 +1381,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            aoc = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
+            aoc = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
         }
 
         if ( !dryRun )
@@ -1506,7 +1506,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, String storeBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo aoc,
+        String completedBy, String storeBy, String programStageInstanceIdentifier, CategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1531,7 +1531,7 @@ public abstract class AbstractEventService
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, ProgramStageInstance programStageInstance, DataElementCategoryOptionCombo aoc,
+        String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
         programStageInstance.setProgramInstance( programInstance );
@@ -1664,20 +1664,20 @@ public abstract class AbstractEventService
         return dataElementCache.get( id, () -> manager.getObject( DataElement.class, idScheme, id ) );
     }
 
-    private DataElementCategoryOption getCategoryOption( IdScheme idScheme, String id )
+    private CategoryOption getCategoryOption( IdScheme idScheme, String id )
     {
-        return categoryOptionCache.get( id, () -> manager.getObject( DataElementCategoryOption.class, idScheme, id ) );
+        return categoryOptionCache.get( id, () -> manager.getObject( CategoryOption.class, idScheme, id ) );
     }
 
-    private DataElementCategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
+    private CategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
     {
-        return categoryOptionComboCache.get( id, () -> manager.getObject( DataElementCategoryOptionCombo.class, idScheme, id ) );
+        return categoryOptionComboCache.get( id, () -> manager.getObject( CategoryOptionCombo.class, idScheme, id ) );
     }
 
-    private DataElementCategoryOptionCombo getAttributeOptionCombo( String key, DataElementCategoryCombo categoryCombo,
-        Set<DataElementCategoryOption> categoryOptions )
+    private CategoryOptionCombo getAttributeOptionCombo( String key, CategoryCombo categoryCombo,
+        Set<CategoryOption> categoryOptions )
     {
-        return attributeOptionComboCache.get( key, () -> categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions ) );
+        return attributeOptionComboCache.get( key, () -> categoryService.getCategoryOptionCombo( categoryCombo, categoryOptions ) );
     }
 
     private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
@@ -1890,7 +1890,7 @@ public abstract class AbstractEventService
         trackedEntityInstances.forEach( tei -> manager.update( tei, user ) );
     }
 
-    private DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, String cp,
+    private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String cp,
         String attributeOptionCombo, IdScheme idScheme )
     {
         Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
@@ -1898,7 +1898,7 @@ public abstract class AbstractEventService
         return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
     }
 
-    private DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, Set<String> opts,
+    private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
         String attributeOptionCombo, IdScheme idScheme )
     {
         if ( categoryCombo == null )
@@ -1910,15 +1910,15 @@ public abstract class AbstractEventService
         // Attribute category options validation
         // ---------------------------------------------------------------------
 
-        DataElementCategoryOptionCombo attrOptCombo = null;
+        CategoryOptionCombo attrOptCombo = null;
 
         if ( opts != null )
         {
-            Set<DataElementCategoryOption> categoryOptions = new HashSet<>();
+            Set<CategoryOption> categoryOptions = new HashSet<>();
 
             for ( String uid : opts )
             {
-                DataElementCategoryOption categoryOption = getCategoryOption( idScheme, uid );
+                CategoryOption categoryOption = getCategoryOption( idScheme, uid );
 
                 if ( categoryOption == null )
                 {
@@ -1950,7 +1950,7 @@ public abstract class AbstractEventService
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
+            attrOptCombo = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
         }
 
         if ( attrOptCombo == null )

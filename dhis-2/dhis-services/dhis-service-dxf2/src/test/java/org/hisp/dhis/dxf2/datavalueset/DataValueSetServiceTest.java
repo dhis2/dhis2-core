@@ -39,11 +39,11 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -99,7 +99,7 @@ public class DataValueSetServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -127,14 +127,14 @@ public class DataValueSetServiceTest
 
     private Attribute attribute;
 
-    private DataElementCategoryOptionCombo ocDef;
-    private DataElementCategoryOption categoryOptionA;
-    private DataElementCategoryOption categoryOptionB;
-    private DataElementCategory categoryA;
-    private DataElementCategoryCombo categoryComboDef;
-    private DataElementCategoryCombo categoryComboA;
-    private DataElementCategoryOptionCombo ocA;
-    private DataElementCategoryOptionCombo ocB;
+    private CategoryOptionCombo ocDef;
+    private CategoryOption categoryOptionA;
+    private CategoryOption categoryOptionB;
+    private Category categoryA;
+    private CategoryCombo categoryComboDef;
+    private CategoryCombo categoryComboA;
+    private CategoryOptionCombo ocA;
+    private CategoryOptionCombo ocB;
 
     private OptionSet osA;
     private DataElement deA;
@@ -181,13 +181,13 @@ public class DataValueSetServiceTest
 
         categoryOptionA = createCategoryOption( 'A' );
         categoryOptionB = createCategoryOption( 'B' );
-        categoryA = createDataElementCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
         categoryComboA = createCategoryCombo( 'A', categoryA );
-        categoryComboDef = categoryService.getDefaultDataElementCategoryCombo();
+        categoryComboDef = categoryService.getDefaultCategoryCombo();
         
-        ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
+        ocDef = categoryService.getDefaultCategoryOptionCombo();
         ocDef.setCode( "OC_DEF_CODE" );
-        categoryService.updateDataElementCategoryOptionCombo( ocDef );
+        categoryService.updateCategoryOptionCombo( ocDef );
 
         osA = new OptionSet( "OptionSetA", ValueType.INTEGER );
         osA.getOptions().add( new Option( "Blue", "1" ) );
@@ -239,13 +239,13 @@ public class DataValueSetServiceTest
         ouB.setCode( "OU_B" );
         ouC.setCode( "OU_C" );
 
-        categoryService.addDataElementCategoryOption( categoryOptionA );
-        categoryService.addDataElementCategoryOption( categoryOptionB );
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryService.addCategoryOption( categoryOptionA );
+        categoryService.addCategoryOption( categoryOptionB );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategoryCombo( categoryComboA );
 
-        categoryService.addDataElementCategoryOptionCombo( ocA );
-        categoryService.addDataElementCategoryOptionCombo( ocB );
+        categoryService.addCategoryOptionCombo( ocA );
+        categoryService.addCategoryOptionCombo( ocB );
 
         attributeService.addAttributeValue( deA, createAttributeValue( attribute, "DE1" ) );
 
@@ -867,7 +867,7 @@ public class DataValueSetServiceTest
         categoryOptionA.setStartDate( peB.getStartDate() );
         categoryOptionA.setEndDate( peB.getEndDate() );
 
-        categoryService.updateDataElementCategoryOption( categoryOptionA );
+        categoryService.updateCategoryOption( categoryOptionA );
 
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
 
@@ -893,7 +893,7 @@ public class DataValueSetServiceTest
     {
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
 
-        categoryService.updateDataElementCategoryOption( categoryOptionA );
+        categoryService.updateCategoryOption( categoryOptionA );
 
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
 

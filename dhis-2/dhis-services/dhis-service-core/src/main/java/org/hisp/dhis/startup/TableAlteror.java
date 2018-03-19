@@ -138,6 +138,7 @@ public class TableAlteror
         executeSql( "DROP TABLE trackedentityaggregatereport_filters" );
         executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
         executeSql( "DROP TABLE trackedentityaggregatereport" );
+        executeSql( "DROP TABLE validationcriteria" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
@@ -707,6 +708,7 @@ public class TableAlteror
         executeSql( "UPDATE userroleauthorities SET authority='F_VALIDATIONRULE_PUBLIC_ADD' WHERE authority='F_VALIDATIONRULE_ADD'" );
 
         executeSql( "UPDATE userroleauthorities SET authority='F_ATTRIBUTE_PUBLIC_ADD' WHERE authority='F_ATTRIBUTE_ADD'" );
+        executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-dashboard' WHERE authority='M_dhis-web-dashboard-integration'" );
 
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
@@ -986,6 +988,8 @@ public class TableAlteror
         executeSql( "alter table orgunitlevel drop constraint orgunitlevel_name_key" );
 
         executeSql( "update interpretation set likes = 0 where likes is null" );
+        executeSql( "create index in_interpretationcomment_mentions_username on interpretationcomment using GIN((mentions->'username') jsonb_path_ops)" );
+        executeSql( "create index in_interpretation_mentions_username on interpretation using GIN((mentions->'username') jsonb_path_ops)" );
 
         executeSql( "update chart set regressiontype = 'NONE' where regression is false or regression is null" );
         executeSql( "update chart set regressiontype = 'LINEAR' where regression is true" );
@@ -1778,11 +1782,11 @@ public class TableAlteror
         List<Map<String, String>> listTables = new ArrayList<>();
 
         addTranslationTable( listTables, "DataElement", "dataelementtranslations", "dataelement", "dataelementid" );
-        addTranslationTable( listTables, "DataElementCategory", "dataelementcategorytranslations", "dataelementcategory", "categoryid" );
+        addTranslationTable( listTables, "Category", "dataelementcategorytranslations", "dataelementcategory", "categoryid" );
         addTranslationTable( listTables, "Attribute", "attributetranslations", "attribute", "attributeid" );
         addTranslationTable( listTables, "Indicator", "indicatortranslations", "indicator", "indicatorid" );
         addTranslationTable( listTables, "OrganisationUnit", "organisationUnittranslations", "organisationunit", "organisationunitid" );
-        addTranslationTable( listTables, "DataElementCategoryCombo", "categorycombotranslations", "categorycombo", "categorycomboid" );
+        addTranslationTable( listTables, "CategoryCombo", "categorycombotranslations", "categorycombo", "categorycomboid" );
         addTranslationTable( listTables, "OrganisationUnit", "organisationUnittranslations", "organisationunit", "organisationunitid" );
         addTranslationTable( listTables, "DataElementGroup", "dataelementgrouptranslations", "dataelementgroup", "dataelementgroupid" );
         addTranslationTable( listTables, "DataSet", "datasettranslations", "dataset", "datasetid" );
@@ -1798,8 +1802,8 @@ public class TableAlteror
         addTranslationTable( listTables, "DataApprovalWorkflow", "dataapprovalworkflowtranslations", "dataapprovalworkflow", "workflowid" );
         addTranslationTable( listTables, "CategoryOptionGroup", "categoryoptiongrouptranslations", "categoryoptiongroup", "categoryoptiongroupid" );
         addTranslationTable( listTables, "CategoryOptionGroupSet", "categoryoptiongroupsettranslations", "categoryoptiongroupset", "categoryoptiongroupsetid" );
-        addTranslationTable( listTables, "DataElementCategoryOption", "categoryoptiontranslations", "dataelementcategoryoption", "categoryoptionid" );
-        addTranslationTable( listTables, "DataElementCategoryOptionCombo", "categoryoptioncombotranslations", "categoryoptioncombo", "categoryoptioncomboid" );
+        addTranslationTable( listTables, "CategoryOption", "categoryoptiontranslations", "dataelementcategoryoption", "categoryoptionid" );
+        addTranslationTable( listTables, "CategoryOptionCombo", "categoryoptioncombotranslations", "categoryoptioncombo", "categoryoptioncomboid" );
         addTranslationTable( listTables, "DataElementGroupSet", "dataelementgroupsettranslations", "dataelementgroupset", "dataelementgroupsetid" );
         addTranslationTable( listTables, "DataElementOperand", "dataelementoperandtranslations", "dataelementoperand", "dataelementoperandid" );
         addTranslationTable( listTables, "DataEntryForm", "dataentryformtranslations", "dataentryform", "dataentryformid" );

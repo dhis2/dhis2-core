@@ -49,7 +49,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -88,7 +88,7 @@ public abstract class AbstractJdbcTableManager
     protected OrganisationUnitService organisationUnitService;
     
     @Autowired
-    protected DataElementCategoryService categoryService;
+    protected CategoryService categoryService;
     
     @Autowired
     protected SystemSettingManager systemSettingManager;

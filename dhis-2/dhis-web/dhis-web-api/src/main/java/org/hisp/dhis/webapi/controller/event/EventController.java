@@ -42,7 +42,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -241,7 +241,7 @@ public class EventController
 
         boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
 
         if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
         {
@@ -308,7 +308,7 @@ public class EventController
 
         boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
 
         if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
         {
@@ -393,7 +393,7 @@ public class EventController
 
         boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
 
         if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
         {
@@ -449,7 +449,7 @@ public class EventController
         @RequestParam Map<String, String> parameters, Model model )
         throws WebMessageException
     {
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 

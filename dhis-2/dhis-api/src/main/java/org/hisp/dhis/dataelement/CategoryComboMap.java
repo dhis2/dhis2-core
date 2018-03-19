@@ -28,12 +28,12 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableProperty;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.common.IdentifiableProperty;
 
 /**
  * CategoryComboMap is used to lookup categoryoptioncombos by identifiers of the
@@ -47,13 +47,13 @@ public class CategoryComboMap
 {
     private final IdentifiableProperty idScheme;
 
-    private final List<DataElementCategory> categories;
+    private final List<Category> categories;
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
-    private Map<String, DataElementCategoryOptionCombo> ccMap;
+    private Map<String, CategoryOptionCombo> ccMap;
 
-    public List<DataElementCategory> getCategories()
+    public List<Category> getCategories()
     {
         return categories;
     }
@@ -63,7 +63,7 @@ public class CategoryComboMap
         return idScheme;
     }
 
-    public DataElementCategoryCombo getCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
         return categoryCombo;
     }
@@ -77,7 +77,7 @@ public class CategoryComboMap
         }
     }
 
-    public CategoryComboMap( DataElementCategoryCombo cc, IdentifiableProperty idScheme )
+    public CategoryComboMap( CategoryCombo cc, IdentifiableProperty idScheme )
         throws CategoryComboMapException
     {
         this.categoryCombo = cc;
@@ -86,15 +86,15 @@ public class CategoryComboMap
 
         categories = categoryCombo.getCategories();
 
-        Collection<DataElementCategoryOptionCombo> optionCombos = categoryCombo.getOptionCombos();
+        Collection<CategoryOptionCombo> optionCombos = categoryCombo.getOptionCombos();
 
-        for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
+        for ( CategoryOptionCombo optionCombo : optionCombos )
         {
             String compositeIdentifier = "";
 
-            for ( DataElementCategory category : categories )
+            for ( Category category : categories )
             {
-                DataElementCategoryOption catopt = category.getCategoryOption( optionCombo );
+                CategoryOption catopt = category.getCategoryOption( optionCombo );
                 
                 if ( catopt == null )
                 {
@@ -139,7 +139,7 @@ public class CategoryComboMap
      * @param compositeIdentifier the composite identifier.
      * @return a category option combo.
      */
-    public DataElementCategoryOptionCombo getCategoryOptionCombo( String compositeIdentifier )
+    public CategoryOptionCombo getCategoryOptionCombo( String compositeIdentifier )
     {
         return ccMap.get( compositeIdentifier );
     }

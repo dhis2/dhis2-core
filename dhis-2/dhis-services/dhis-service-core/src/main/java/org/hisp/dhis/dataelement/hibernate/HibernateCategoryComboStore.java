@@ -28,24 +28,24 @@ package org.hisp.dhis.dataelement.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.CategoryCombo;
 import org.hisp.dhis.dataelement.CategoryComboStore;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public class HibernateCategoryComboStore
-    extends HibernateIdentifiableObjectStore<DataElementCategoryCombo>
+    extends HibernateIdentifiableObjectStore<CategoryCombo>
     implements CategoryComboStore
 {
     @Override
     @SuppressWarnings("unchecked")
-    public List<DataElementCategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType )
+    public List<CategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType )
     {
         return getSharingDetachedCriteria( Restrictions.or( Restrictions.eq( "dataDimensionType", dataDimensionType ), Restrictions.eq( "name", "default" ) ) ).list();
     }

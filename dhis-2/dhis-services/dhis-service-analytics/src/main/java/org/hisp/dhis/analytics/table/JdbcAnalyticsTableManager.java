@@ -39,7 +39,7 @@ import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.Category;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -294,10 +294,10 @@ public class JdbcAnalyticsTableManager
         List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
             categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
 
-        List<DataElementCategory> disaggregationCategories =
+        List<Category> disaggregationCategories =
             categoryService.getDisaggregationDataDimensionCategoriesNoAcl();
 
-        List<DataElementCategory> attributeCategories =
+        List<Category> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
         List<OrganisationUnitLevel> levels =
@@ -323,12 +323,12 @@ public class JdbcAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
-        for ( DataElementCategory category : disaggregationCategories )
+        for ( Category category : disaggregationCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "dcs." + quote( category.getUid() ), category.getCreated() ) );
         }
 
-        for ( DataElementCategory category : attributeCategories )
+        for ( Category category : attributeCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
         }
