@@ -69,7 +69,7 @@ public class GetModulesAction
     {
         String contextPath = ContextUtils.getContextPath( ServletActionContext.getRequest() );
         
-        List<Module> apps = manager.getAccessibleMenuModulesAndApps( contextPath );
+        modules = manager.getAccessibleMenuModulesAndApps( contextPath );
 
         User user = currentUserService.getCurrentUser();
         
@@ -77,7 +77,7 @@ public class GetModulesAction
         {
             final List<String> userApps = new ArrayList<>( user.getApps() );
             
-            Collections.sort( apps, new Comparator<Module>()
+            Collections.sort( modules, new Comparator<Module>()
             {
                 @Override
                 public int compare( Module m1, Module m2 )
@@ -92,8 +92,6 @@ public class GetModulesAction
                 }
             } );
         }
-        
-        modules = apps;
         
         return SUCCESS;
     }
