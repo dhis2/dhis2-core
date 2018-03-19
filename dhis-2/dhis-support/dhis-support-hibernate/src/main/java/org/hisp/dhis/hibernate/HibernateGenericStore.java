@@ -575,42 +575,11 @@ public class HibernateGenericStore<T>
         return object;
     }
 
-
-    @Override
-    public final T getNoAcl( int id )
-    {
-        return (T) getSession().get( getClazz(), id );
-    }
-
-    @Override
-    public final T load( int id )
-    {
-        T object = (T) getSession().load( getClazz(), id );
-
-        if ( !isReadAllowed( object ) )
-        {
-            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
-            throw new ReadAccessDeniedException( object.toString() );
-        }
-
-        return object;
-    }
-
     @Override
     @SuppressWarnings( "unchecked" )
     public final List<T> getAll()
     {
         return getSharingCriteria().list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getAll( int first, int max )
-    {
-        return getSharingCriteria()
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
     }
 
     @Override

@@ -30,8 +30,6 @@ package org.hisp.dhis.relationship;
 
 import java.util.List;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
 /**
  * @author Abyot Asalefew
  * @version $Id$
@@ -98,42 +96,4 @@ public interface RelationshipTypeService
      *         there are no RelationshipTypes.
      */
     List<RelationshipType> getAllRelationshipTypes();
-
-    /**
-     * Returns The number of RelationshipTypes with the key searched
-     * 
-     * @param name Keyword for searching by name
-     * 
-     * @return A number
-     * 
-     */
-    Integer getRelationshipTypeCountByName( String name );
-
-    /**
-     * Returns {@link TrackedEntityAttribute} list with paging
-     * 
-     * @param name Keyword for searching by name
-     * @param min
-     * @param max
-     * @return a collection of all TrackedEntityAttribute, or an empty
-     *         collection if there are no TrackedEntityAttributes.
-     */
-    List<RelationshipType> getRelationshipTypesBetweenByName( String name,
-        int min, int max );
-
-    /**
-     * Returns The number of all TrackedEntityAttribute available
-     * 
-     */
-    Integer getRelationshipTypeCount();
-
-    /**
-     * Returns {@link TrackedEntityAttribute} list with paging
-     * 
-     * @param min
-     * @param max
-     * @return a List of all TrackedEntityAttribute, or an empty
-     *         List if there are no TrackedEntityAttributes.
-     */
-    List<RelationshipType> getRelationshipTypesBetween( int min, int max );
 }

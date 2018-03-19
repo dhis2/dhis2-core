@@ -108,8 +108,6 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name );
 
-    <T extends IdentifiableObject> List<T> getBetween( Class<T> clazz, int first, int max );
-
     <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> clazz, int first, int max );
 
     <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, Set<String> words, int first, int max );
