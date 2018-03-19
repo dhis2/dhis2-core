@@ -49,10 +49,8 @@ public abstract class AbstractSpringSecurityCurrentUserService
             return null;
         }
 
-        /*
-         * If getPrincipal returns a string, it means that the user has been
-         * authenticated anonymous (String == anonymousUser).
-         */
+        // Principal being a string implies anonymous authentication
+        
         if ( authentication.getPrincipal() instanceof String )
         {
             String principal = (String) authentication.getPrincipal();
