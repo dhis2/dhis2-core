@@ -49,6 +49,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -471,6 +472,12 @@ public class HibernateGenericStore<T>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
+        
+        genericSave( object );
+    }
+    
+    protected final void genericSave( T object )
+    {        
         getSession().save( object );
 
         if ( MetadataObject.class.isInstance( object ) )
@@ -517,6 +524,11 @@ public class HibernateGenericStore<T>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );
 
+        genericUpdate( object );
+    }
+    
+    protected final void genericUpdate( T object )
+    {
         if ( object != null )
         {
             getSession().update( object );
@@ -547,6 +559,11 @@ public class HibernateGenericStore<T>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_DELETE );
 
+        genericDelete( object );
+    }
+    
+    protected final void genericDelete( T object )
+    {
         if ( object != null )
         {
             getSession().delete( object );
@@ -573,13 +590,6 @@ public class HibernateGenericStore<T>
     protected T postProcessObject( T object )
     {
         return object;
-    }
-
-
-    @Override
-    public final T getNoAcl( int id )
-    {
-        return (T) getSession().get( getClazz(), id );
     }
 
     @Override

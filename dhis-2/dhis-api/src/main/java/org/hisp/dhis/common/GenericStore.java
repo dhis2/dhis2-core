@@ -116,14 +116,6 @@ public interface GenericStore<T>
     T get( int id );
 
     /**
-     * Retrieves the object with the given identifier. Bypasses the ACL solution.
-     *
-     * @param id the object identifier.
-     * @return the object identified by the given identifier.
-     */
-    T getNoAcl( int id );
-
-    /**
      * Retrieves the object with the given identifier, assuming it exists.
      *
      * @param id the object identifier.
