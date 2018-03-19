@@ -1,5 +1,4 @@
-package org.hisp.dhis.session;
-
+package org.hisp.dhis.configuration;
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,41 +27,44 @@ package org.hisp.dhis.session;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.servlet.Filter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
- * Condition that matches to true if redis.enabled property is set to true in
- * dhis.conf
+ * Configuration registered if {@link RedisDisabledCondition} matches to true.
+ * This serves as a fallback to spring-session if redis is disabled. Since
+ * web.xml has a "springSessionRepositoryFilter" mapped to all urls, the
+ * container will expect a filter bean with that name. Therefore we define a
+ * dummy {@link Filter} named springSessionRepositoryFilter. Here we define a
+ * {@link CharacterEncodingFilter} without setting any encoding so that requests
+ * will simply pass through the filter
  * 
  * @author Ameen Mohamed
  *
  */
-public class RedisEnabledCondition implements Condition
+@Configuration
+@DependsOn("dhisConfigurationProvider")
+@Conditional( RedisDisabledCondition.class )
+public class DefaultSessionConfiguration
 {
-    private static final Log log = LogFactory.getLog( RedisEnabledCondition.class );
+
     
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
+    /**
+     * Defines a {@link CharacterEncodingFilter} named
+     * springSessionRepositoryFilter
+     * 
+     * @return a {@link CharacterEncodingFilter} without specifying encoding.
+     */
+    @Bean
+    public Filter springSessionRepositoryFilter()
     {
-
-        DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
-            .getBean( "dhisConfigurationProvider" );
-        boolean redisEnabled = (dhisConfigurationProvider != null
-            && dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ));
-
-        if ( redisEnabled )
-        {
-            log.info( "Redis is enabled. Using spring session backed by redis." );
-        }
-
-        return redisEnabled;
+        return new CharacterEncodingFilter();
     }
 
 }

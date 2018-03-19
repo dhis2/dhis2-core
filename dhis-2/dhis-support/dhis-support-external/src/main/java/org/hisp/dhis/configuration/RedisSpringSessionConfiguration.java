@@ -1,4 +1,6 @@
-package org.hisp.dhis.session;
+package org.hisp.dhis.configuration;
+
+import org.hisp.dhis.condition.RedisEnabledCondition;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,22 +31,23 @@ package org.hisp.dhis.session;
  */
 
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
- * Component that gets registered only if {@link RedisEnabledCondition} matches
- * to true. The session.xml resource will be imported only if redis.enabled is
- * set to true in dhis.conf. Session.xml contains the bean definitions for using
- * spring session backed by redis. The bean definitions are for
- * {@link org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration}
- * and for the corresponding redis configurations via
- * {@link org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory}
+ * Configuration registered if {@link RedisEnabledCondition} matches to true.
+ * Redis backed Spring Session will be configured due to the
+ * {@link EnableRedisHttpSession} annotation.
  * 
  * @author Ameen Mohamed
  *
  */
+@Configuration
+@DependsOn( "dhisConfigurationProvider" )
 @Conditional( RedisEnabledCondition.class )
-@ImportResource( "classpath:META-INF/dhis/session.xml" )
-public class RedisSessionConfiguration
+@EnableRedisHttpSession
+public class RedisSpringSessionConfiguration
 {
+
 }

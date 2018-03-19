@@ -1,4 +1,4 @@
-package org.hisp.dhis.session;
+package org.hisp.dhis.condition;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,37 +28,38 @@ package org.hisp.dhis.session;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.Filter;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.web.filter.CharacterEncodingFilter;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.ConfigurationCondition;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Component that gets registered only if {@link RedisDisabledCondition} matches
- * to true. This serves as a fallback to spring-session if redis is disabled.
- * Since web.xml has a "springSessionRepositoryFilter" mapped to all url, the
- * container will expect a filter bean with that name. However when redis
- * (spring-session) is disabled , we need to define a dummy {@link Filter} named
- * springSessionRepositoryFilter. Here we define a
- * {@link CharacterEncodingFilter} without setting any encoding so that requests
- * will simply pass through the filter
+ * Condition that matches to true if redis.enabled property is absent in
+ * dhis.conf or if it is explicitly set to anything other than true
  * 
  * @author Ameen Mohamed
  *
  */
-@Conditional( RedisDisabledCondition.class )
-public class FallbackSessionConfiguration
+public class RedisDisabledCondition
+    implements
+    ConfigurationCondition
 {
-    
-    /**
-     * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
-     * 
-     * @return a {@link CharacterEncodingFilter} without specifying encoding.
-     */
-    @Bean
-    public Filter springSessionRepositoryFilter() 
+
+    @Override
+    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        return new CharacterEncodingFilter();
+        DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
+            .getBean( "dhisConfigurationProvider" );
+
+        return !dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+
     }
+
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
+    {
+        return ConfigurationPhase.REGISTER_BEAN;
+    }
+
 }

@@ -91,6 +91,22 @@
       <groupId>org.springframework.security.oauth</groupId>
       <artifactId>spring-security-oauth2</artifactId>
     </dependency>
+    
+     <!--Spring Session and Redis -->
+
+	<dependency>
+	  <groupId>org.springframework.session</groupId>
+	  <artifactId>spring-session-data-redis</artifactId>
+	</dependency>
+	<dependency>
+	  <groupId>biz.paluch.redis</groupId>
+	  <artifactId>lettuce</artifactId>
+	</dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+    
 
     <!-- Jackson -->
 

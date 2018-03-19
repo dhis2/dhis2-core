@@ -1,7 +1,4 @@
-package org.hisp.dhis.session;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+package org.hisp.dhis.condition;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,37 +30,35 @@ import org.apache.commons.logging.LogFactory;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Condition that matches to true if redis.enabled property is absent in
- * dhis.conf or if it is explicitly set to false
+ * Condition that matches to true if redis.enabled property is set to true in
+ * dhis.conf
  * 
  * @author Ameen Mohamed
  *
  */
-public class RedisDisabledCondition implements Condition
+public class RedisEnabledCondition
+    implements
+    ConfigurationCondition
 {
-    
-    private static final Log log = LogFactory.getLog( RedisEnabledCondition.class );
-    
-    
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
+
         DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
             .getBean( "dhisConfigurationProvider" );
+        return dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
 
-        boolean redisDisabled = (dhisConfigurationProvider == null
-            || !dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ));
+    }
 
-        if ( redisDisabled )
-        {
-            log.info( "Redis is disabled. Falling back to default session handling." );
-        }
-        return redisDisabled;
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
+    {
+        return ConfigurationPhase.REGISTER_BEAN;
     }
 
 }

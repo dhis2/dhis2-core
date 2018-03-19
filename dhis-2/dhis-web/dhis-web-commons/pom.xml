@@ -77,19 +77,6 @@
 
     <!-- Other -->
 
-	<dependency>
-		<groupId>org.springframework.session</groupId>
-		<artifactId>spring-session-data-redis</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-web</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>biz.paluch.redis</groupId>
-		<artifactId>lettuce</artifactId>
-	</dependency>
-
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-config</artifactId>
