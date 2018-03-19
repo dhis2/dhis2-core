@@ -39,7 +39,7 @@ import java.util.Set;
 /**
  * @author Lars Helge Overland
  */
-public interface GenericIdentifiableObjectStore<T>
+public interface IdentifiableObjectStore<T>
     extends GenericStore<T>
 {
     /**

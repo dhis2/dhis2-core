@@ -31,10 +31,10 @@ package org.hisp.dhis.dataelement;
 import java.util.List;
 
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface CategoryOptionGroupStore
-    extends GenericIdentifiableObjectStore<CategoryOptionGroup>
+    extends IdentifiableObjectStore<CategoryOptionGroup>
 {
     List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet );
     

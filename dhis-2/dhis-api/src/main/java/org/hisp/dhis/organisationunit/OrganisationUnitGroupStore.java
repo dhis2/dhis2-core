@@ -30,13 +30,13 @@ package org.hisp.dhis.organisationunit;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
 public interface OrganisationUnitGroupStore
-    extends GenericIdentifiableObjectStore<OrganisationUnitGroup>
+    extends IdentifiableObjectStore<OrganisationUnitGroup>
 {
     List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
 }
