@@ -157,10 +157,6 @@ public interface GenericStore<T>
 
     List<T> getAllNoAcl();
 
-    List<T> getAllNoAcl( int first, int max );
-
-    int getCountNoAcl();
-
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
     List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value );

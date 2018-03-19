@@ -138,6 +138,7 @@ public class TableAlteror
         executeSql( "DROP TABLE trackedentityaggregatereport_filters" );
         executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
         executeSql( "DROP TABLE trackedentityaggregatereport" );
+        executeSql( "DROP TABLE validationcriteria" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
@@ -707,6 +708,7 @@ public class TableAlteror
         executeSql( "UPDATE userroleauthorities SET authority='F_VALIDATIONRULE_PUBLIC_ADD' WHERE authority='F_VALIDATIONRULE_ADD'" );
 
         executeSql( "UPDATE userroleauthorities SET authority='F_ATTRIBUTE_PUBLIC_ADD' WHERE authority='F_ATTRIBUTE_ADD'" );
+        executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-dashboard' WHERE authority='M_dhis-web-dashboard-integration'" );
 
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );

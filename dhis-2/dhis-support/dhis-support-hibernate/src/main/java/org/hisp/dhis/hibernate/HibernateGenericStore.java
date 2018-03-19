@@ -367,26 +367,6 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a sharing Criteria for the implementation Class type restricted by the
-     * given Criterions.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return a Criteria instance.
-     */
-    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
-    {
-        Criteria criteria = getSharingCriteria();
-
-        for ( Criterion expression : expressions )
-        {
-            criteria.add( expression );
-        }
-
-        criteria.setCacheable( cacheable );
-        return criteria;
-    }
-
-    /**
      * Retrieves an object based on the given Criterions.
      *
      * @param expressions the Criterions for the Criteria.
@@ -396,18 +376,6 @@ public class HibernateGenericStore<T>
     protected final T getObject( Criterion... expressions )
     {
         return (T) getCriteria( expressions ).uniqueResult();
-    }
-
-    /**
-     * Retrieves an object based on the given Criterions using a sharing Criteria.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return an object of the implementation Class type.
-     */
-    @SuppressWarnings( "unchecked" )
-    protected final T getSharingObject( Criterion... expressions )
-    {
-        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
     }
 
     /**
@@ -672,24 +640,6 @@ public class HibernateGenericStore<T>
     public final List<T> getAllNoAcl()
     {
         return getCriteria().list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public final List<T> getAllNoAcl( int first, int max )
-    {
-        return getCriteria()
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
-    }
-
-    @Override
-    public int getCountNoAcl()
-    {
-        return ((Number) getCriteria()
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
     }
 
     @Override

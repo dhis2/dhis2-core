@@ -56,8 +56,6 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.validation.Importance;
-import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -259,22 +257,6 @@ public class PatchServiceTest
 
         patchService.apply( patch, dataElement );
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
-    }
-
-    @Test
-    public void testSetImportanceOnValidationRule()
-    {
-        ValidationRule validationRule = new ValidationRule();
-        validationRule.setAutoFields();
-
-        assertEquals( Importance.MEDIUM, validationRule.getImportance() );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "importance", Importance.HIGH ) );
-
-        patchService.apply( patch, validationRule );
-
-        assertEquals( Importance.HIGH, validationRule.getImportance() );
     }
 
     @Test
