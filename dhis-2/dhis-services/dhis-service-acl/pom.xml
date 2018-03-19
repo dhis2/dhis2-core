@@ -9,19 +9,29 @@
     <version>2.30-SNAPSHOT</version>
   </parent>
   
-  <artifactId>dhis-service-node</artifactId>
+  <artifactId>dhis-service-acl</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS Node service</name>
+  <name>DHIS ACL service</name>
   
   <dependencies>
-        
+    
+    <!-- DHIS -->
+    
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-api</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-acl</artifactId>
+      <artifactId>dhis-service-setting</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-hibernate</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -30,15 +40,6 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.poi</groupId>
-      <artifactId>poi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.poi</groupId>
-      <artifactId>poi-ooxml</artifactId>
     </dependency>
     
   </dependencies>
