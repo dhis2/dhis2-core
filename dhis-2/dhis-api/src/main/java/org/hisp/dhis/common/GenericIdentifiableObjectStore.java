@@ -252,6 +252,13 @@ public interface GenericIdentifiableObjectStore<T>
     List<T> getAllGeLastUpdated( Date lastUpdated );
 
     /**
+     * Returns all objects without considering sharing.
+     * 
+     * @return a list of all objects.
+     */
+    List<T> getAllNoAcl();
+
+    /**
      * Returns the date of the last updated object.
      *
      * @return a Date / time stamp.

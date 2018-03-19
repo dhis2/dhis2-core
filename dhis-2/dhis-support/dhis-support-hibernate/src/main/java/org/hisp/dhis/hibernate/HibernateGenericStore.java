@@ -371,13 +371,6 @@ public class HibernateGenericStore<T>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public final List<T> getAllNoAcl()
-    {
-        return getCriteria().list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();

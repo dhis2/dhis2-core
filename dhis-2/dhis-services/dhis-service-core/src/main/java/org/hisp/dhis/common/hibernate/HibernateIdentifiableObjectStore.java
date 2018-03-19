@@ -610,6 +610,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
+    public List<T> getAllNoAcl()
+    {
+        return super.getAll();
+    }
+
+    @Override
     public List<T> getByUidNoAcl( Collection<String> uids )
     {
         List<T> list = new ArrayList<>();

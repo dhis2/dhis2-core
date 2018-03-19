@@ -74,6 +74,13 @@ public interface GenericStore<T>
     T get( int id );
 
     /**
+     * Gets the count of objects.
+     *
+     * @return the count of objects.
+     */
+    int getCount();
+
+    /**
      * Retrieves a List of all objects.
      *
      * @return a List of all objects.
@@ -81,15 +88,6 @@ public interface GenericStore<T>
     List<T> getAll();
 
     List<T> getAllByAttributes( List<Attribute> attributes );
-
-    /**
-     * Gets the count of objects.
-     *
-     * @return the count of objects.
-     */
-    int getCount();
-
-    List<T> getAllNoAcl();
 
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
