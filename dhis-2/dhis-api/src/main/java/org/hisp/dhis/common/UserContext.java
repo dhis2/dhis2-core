@@ -75,7 +75,8 @@ public final class UserContext
         return getUser() != null;
     }
 
-    // TODO need synchronized ?
+    // TODO Needs synchronized?
+    
     public static void setUserSetting( UserSettingKey key, Serializable value )
     {
         UserContext.setUserSetting( key.getName(), value );
