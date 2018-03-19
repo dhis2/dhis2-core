@@ -36,7 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.fileresource.ExternalFileResource;
@@ -125,9 +125,9 @@ public class DefaultPushAnalysisService
     @Qualifier( "emailMessageSender" )
     private MessageSender messageSender;
 
-    private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
+    private IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
-    public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
+    public void setPushAnalysisStore( IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         this.pushAnalysisStore = pushAnalysisStore;
     }

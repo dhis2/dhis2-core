@@ -29,7 +29,7 @@ package org.hisp.dhis.validation;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,9 +60,9 @@ public class DefaultValidationRuleService
         this.validationRuleStore = validationRuleStore;
     }
 
-    private GenericIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore;
+    private IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore;
 
-    public void setValidationRuleGroupStore( GenericIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore )
+    public void setValidationRuleGroupStore( IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore )
     {
         this.validationRuleGroupStore = validationRuleGroupStore;
     }

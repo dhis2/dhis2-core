@@ -28,7 +28,7 @@ package org.hisp.dhis.color;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -38,9 +38,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultColorService
     implements ColorService
 {
-    private GenericIdentifiableObjectStore<ColorSet> colorSetStore;
+    private IdentifiableObjectStore<ColorSet> colorSetStore;
 
-    public void setColorSetStore( GenericIdentifiableObjectStore<ColorSet> colorSetStore )
+    public void setColorSetStore( IdentifiableObjectStore<ColorSet> colorSetStore )
     {
         this.colorSetStore = colorSetStore;
     }

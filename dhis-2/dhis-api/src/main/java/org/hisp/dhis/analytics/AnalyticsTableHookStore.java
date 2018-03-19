@@ -30,14 +30,14 @@ package org.hisp.dhis.analytics;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableHookStore
-    extends GenericIdentifiableObjectStore<AnalyticsTableHook>
+    extends IdentifiableObjectStore<AnalyticsTableHook>
 {
     /**
      * Returns a list of {@link AnalyticsTableHook} with the given phase.
