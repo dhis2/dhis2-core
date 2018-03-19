@@ -36,8 +36,6 @@
 
   <bean id="org.hisp.dhis.query.QueryService" class="org.hisp.dhis.query.DefaultQueryService" />
 
-  <bean id="org.hisp.dhis.security.acl.AclService" class="org.hisp.dhis.security.acl.DefaultAclService" />
-
   <bean class="org.hisp.dhis.patch.DefaultPatchService" />
 
   <bean id="org.hisp.dhis.render.RenderService" class="org.hisp.dhis.render.DefaultRenderService" />
