@@ -1,5 +1,7 @@
 package org.hisp.dhis.webportal.menu.action;
 
+import java.util.ArrayList;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -67,15 +69,15 @@ public class GetModulesAction
     {
         String contextPath = ContextUtils.getContextPath( ServletActionContext.getRequest() );
         
-        modules = manager.getAccessibleMenuModulesAndApps( contextPath );
+        List<Module> apps = manager.getAccessibleMenuModulesAndApps( contextPath );
 
         User user = currentUserService.getCurrentUser();
         
         if ( user != null && user.getApps() != null && !user.getApps().isEmpty() )
         {
-            final List<String> userApps = user.getApps();
+            final List<String> userApps = new ArrayList<>( user.getApps() );
             
-            Collections.sort( modules, new Comparator<Module>()
+            Collections.sort( apps, new Comparator<Module>()
             {
                 @Override
                 public int compare( Module m1, Module m2 )
@@ -90,6 +92,8 @@ public class GetModulesAction
                 }
             } );
         }
+        
+        modules = apps;
         
         return SUCCESS;
     }
