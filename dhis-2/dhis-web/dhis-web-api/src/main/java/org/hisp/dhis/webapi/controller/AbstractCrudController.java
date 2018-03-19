@@ -488,7 +488,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) );
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
+                .setUser( user ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
@@ -1058,14 +1059,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return schemaService.getDynamicSchema( klass );
     }
 
-    protected void addAccessProperties( List<T> objects, User user )
-    {
-        for ( T object : objects )
-        {
-            ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( object, user ) );
-        }
-    }
-
     private boolean fieldsContains( String match, List<String> fields )
     {
         for ( String field : fields )
@@ -1098,11 +1091,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( generateLinks )
         {
             linkService.generateLinks( entityList, deep );
-        }
-
-        if ( generateAccess && aclService.isSupported( getEntityClass() ) )
-        {
-            addAccessProperties( entityList, user );
         }
     }
 
