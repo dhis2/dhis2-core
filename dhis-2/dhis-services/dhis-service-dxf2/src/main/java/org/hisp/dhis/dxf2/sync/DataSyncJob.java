@@ -30,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -41,7 +42,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RequestCallback;
@@ -56,10 +56,12 @@ public class DataSyncJob extends AbstractJob
 
     //TODO: Use SystemSettings? (But a new one with periodic refresh)
     private static final int TRACKER_SYNC_PAGE_SIZE = 20;
-    private static final int SYNC_RETRIES = 3;
-    private static final int DELAY_BETWEEN_SYNC_RETRIES = 500; //in ms
+    private static final int MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS = 3;
+    private static final int MAX_SYNC_ATTEMPTS = 3;
+    private static final int DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS = 500; //in ms
 
-    private static final String IMPORT_STRATEGY_DELETE_SUFFIX = "?importStrategy=DELETE";
+    //    private static final String IMPORT_STRATEGY_DELETE_SUFFIX = "?importStrategy=DELETE";
+    private static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?importStrategy=SYNC";
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -67,11 +69,17 @@ public class DataSyncJob extends AbstractJob
     @Autowired
     private RestTemplate restTemplate;
 
-    @Autowired
-    private TrackedEntityInstanceService teiDBService;
+//    @Autowired
+//    private TrackedEntityInstanceService teiDBService;
 
     @Autowired
-    private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService teiService;
+    private TrackedEntityInstanceService teiService;
+
+//    @Autowired
+//    private EnrollmentService enrollmentService;
+//
+//    @Autowired
+//    private EventService eventService;
 
     @Autowired
     private RenderService renderService;
@@ -87,14 +95,14 @@ public class DataSyncJob extends AbstractJob
         //TODO: Check logic in DataSynchronizationJob.execute()
 
 
-        try
-        {
-            syncEventProgramData();
-        }
-        catch ( Exception e )
-        {
-            //TODO: Handle exception
-        }
+//        try
+//        {
+//            syncEventProgramData();
+//        }
+//        catch ( Exception e )
+//        {
+//            //TODO: Handle exception
+//        }
 
         try
         {
@@ -103,6 +111,7 @@ public class DataSyncJob extends AbstractJob
         catch ( Exception e )
         {
             //TODO: Handle exception
+            log.error( "Tracker sync failed.", e );
         }
     }
 
@@ -114,51 +123,37 @@ public class DataSyncJob extends AbstractJob
 
     private void syncTrackerProgramData()
     {
-        boolean syncOK = true;
         final Date startTime = new Date();
+
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
-        //Sync creates and updates
         Date lastSuccessfulSync = SyncUtil.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setLastUpdatedStartDate( lastSuccessfulSync );
+        queryParams.setIncludeDeleted( true );
 
-        syncOK = syncTrackerCreatesAndUpdates( queryParams, username, password );
-
-        //Sync deletes
-//        if(!syncDelete) {
-//            syncOK = false;
-//        }
-
-        if ( syncOK )
-        {
-            SyncUtil.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC, startTime );
-        }
-    }
-
-    private boolean syncTrackerCreatesAndUpdates( TrackedEntityInstanceQueryParams queryParams, String username, String password )
-    {
-        boolean syncResult = true;
-
-        int objectsToSync = teiDBService.getTrackedEntityInstanceCount( queryParams, true );
+        int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true );
         int pages = (int) Math.ceil( objectsToSync / TRACKER_SYNC_PAGE_SIZE );
-        log.info( objectsToSync + " TEIs to sync where found." );
 
         if ( objectsToSync == 0 )
         {
-            log.info( "Nothing to sync. " );
-            return true;
+            log.info( "Nothing to sync." );
+            return;
         }
 
-        String trackerSyncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.TEIS_ENDPOINT.getPath();
-        log.info( "Remote server URL for Tracker creates and updates POST sync: " + trackerSyncUrl );
+        log.info( objectsToSync + " TEIs to sync were found." );
+
+        String trackerSyncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.TEIS_ENDPOINT.getPath() + IMPORT_STRATEGY_SYNC_SUFFIX;
+        log.info( "Remote server URL for Tracker POST sync: " + trackerSyncUrl );
 
         //TODO: Add functionality (to the query/queryParams) to order by timestamp? (Then I can always start by the oldest one and move to the newest ones.)
 
         queryParams.setPageSize( TRACKER_SYNC_PAGE_SIZE );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
+        boolean syncResult = true;
+
         for ( int i = 1; i <= pages; i++ )
         {
             queryParams.setPage( i );
@@ -177,16 +172,22 @@ public class DataSyncJob extends AbstractJob
             }
         }
 
-        return syncResult;
+        if ( syncResult )
+        {
+            SyncUtil.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC, startTime );
+            long syncDuration = System.currentTimeMillis() - startTime.getTime();
+            log.info( "SUCCESS! Tracker sync was successfully done! It took " + syncDuration + " ms." );
+        }
     }
 
     private boolean sendTrackerSyncRequest( List<TrackedEntityInstance> dtoTeis, String username, String password, String trackerSyncUrl, SyncEndpoint endpoint )
     {
-        if ( !testServerAvailability( trackerSyncUrl ) )
+        if ( !testServerAvailability().isAvailable() )
         {
             return false;
         }
 
+        //TODO: Assembling of requestCallback can be moved to separate method if I will need different behaviors
         final RequestCallback requestCallback = request ->
         {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
@@ -194,42 +195,8 @@ public class DataSyncJob extends AbstractJob
             renderService.toJson( request.getBody(), dtoTeis );
         };
 
-        return SyncUtil.runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, trackerSyncUrl, endpoint );
+        return SyncUtil.runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, trackerSyncUrl, endpoint, MAX_SYNC_ATTEMPTS );
     }
-
-    //TODO: Maybe move into Util class?
-    //TODO: DO I need it at all? validate() method below does basically the same, just without retries
-    private boolean testServerAvailability( String syncUrl )
-    {
-        int retriesCounter = 0;
-
-        //TODO: This is not sync yet, So maybe just try it 3 times and if fail, ok, skip. In sync I should again try 3 times I guess?
-        while ( !SyncUtil.isRemoteServerAvailable( systemSettingManager, restTemplate ).isAvailable() )
-        {
-            if ( retriesCounter >= SYNC_RETRIES )
-            {
-                log.error( "Sync against '" + syncUrl + "' failed." );
-                return false;
-            }
-
-            try
-            {
-                retriesCounter++;
-                log.info( "Remote server is not available. Retry #" + retriesCounter + " in " + DELAY_BETWEEN_SYNC_RETRIES + " ms." );
-                Thread.sleep( DELAY_BETWEEN_SYNC_RETRIES );
-            }
-            catch ( InterruptedException e )
-            {
-                log.error( "Sleep between sync retries failed.", e );
-            }
-        }
-
-        return true;
-    }
-
-//    private void fetchTrackerDataForCreateAndUpdateSync( TrackedEntityInstanceQueryParams queryParams )
-//    {
-//    }
 
     //Tracker sync functionality:
     //TODO: DB method to get all deleted TEI since
@@ -243,7 +210,7 @@ public class DataSyncJob extends AbstractJob
     @Override
     public ErrorReport validate()
     {
-        AvailabilityStatus isRemoteServerAvailable = SyncUtil.isRemoteServerAvailable( systemSettingManager, restTemplate );
+        AvailabilityStatus isRemoteServerAvailable = testServerAvailability();
 
         if ( !isRemoteServerAvailable.isAvailable() )
         {
@@ -251,5 +218,20 @@ public class DataSyncJob extends AbstractJob
         }
 
         return super.validate();
+    }
+
+    private AvailabilityStatus testServerAvailability()
+    {
+        return SyncUtil.testServerAvailability(
+            systemSettingManager,
+            restTemplate,
+            MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS,
+            DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+    }
+
+    public static void main( String[] args )
+    {
+        DataSyncJob syncJob = new DataSyncJob();
+        syncJob.syncTrackerProgramData();
     }
 }

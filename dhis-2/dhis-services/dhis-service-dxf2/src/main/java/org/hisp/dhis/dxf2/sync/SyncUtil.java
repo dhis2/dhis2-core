@@ -66,37 +66,65 @@ public class SyncUtil
     {
     }
 
-    public static boolean runSyncRequestAndAnalyzeResponse( RestTemplate restTemplate, RequestCallback requestCallback, String syncUrl, SyncEndpoint endpoint )
+    /**
+     * Run a synchronization request against the syncUrl and analyzes the response for errors.
+     * If the network problems occur during the sync, the sync is retried the maxSyncAttempts times until give up.
+     *
+     * @param restTemplate
+     * @param requestCallback
+     * @param syncUrl         Url against which the sync request is run
+     * @param endpoint        Endpoint against which the sync request is run
+     * @param maxSyncAttempts Specifies how many times the sync should be retried if it fails due to network problems
+     * @return True if sync was successful, false otherwise
+     */
+    public static boolean runSyncRequestAndAnalyzeResponse( RestTemplate restTemplate, RequestCallback requestCallback, String syncUrl, SyncEndpoint endpoint, int maxSyncAttempts )
     {
+        boolean retrySyncDueToNetworkError = false;
+        int syncAttemptsDone = 0;
+
         ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
         ImportSummaries summaries = null;
-        try
+
+        while ( !retrySyncDueToNetworkError )
         {
-            summaries = restTemplate.execute( syncUrl, HttpMethod.POST, requestCallback, responseExtractor );
-        }
-        catch ( HttpClientErrorException ex )
-        {
-            String responseBody = ex.getResponseBodyAsString();
+            retrySyncDueToNetworkError = false;
+            syncAttemptsDone++;
             try
             {
-                summaries = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummaries.class );
+                summaries = restTemplate.execute( syncUrl, HttpMethod.POST, requestCallback, responseExtractor );
             }
-            catch ( WebMessageParseException e )
+            catch ( HttpClientErrorException ex )
             {
-                log.error( "Parsing WebMessageResponse failed.", e );
-                return false;
+                String responseBody = ex.getResponseBodyAsString();
+                try
+                {
+                    summaries = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummaries.class );
+                }
+                catch ( WebMessageParseException e )
+                {
+                    log.error( "Parsing WebMessageResponse failed.", e );
+                    return false;
+                }
             }
-        }
-        catch ( HttpServerErrorException ex )
-        {
-            String responseBody = ex.getResponseBodyAsString();
-            log.error( "Internal error happened during event data push: " + responseBody, ex );
-            throw ex;
-        }
-        catch ( ResourceAccessException ex )
-        {
-            log.error( "Exception during event data push: " + ex.getMessage(), ex );
-            throw ex;
+            catch ( HttpServerErrorException ex )
+            {
+                String responseBody = ex.getResponseBodyAsString();
+                log.error( "Internal error happened during event data push: " + responseBody, ex );
+
+                if ( syncAttemptsDone <= maxSyncAttempts )
+                {
+                    retrySyncDueToNetworkError = true;
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+            catch ( ResourceAccessException ex )
+            {
+                log.error( "Exception during event data push: " + ex.getMessage(), ex );
+                throw ex;
+            }
         }
 
         log.info( "Sync summary: " + summaries );
@@ -117,12 +145,6 @@ public class SyncUtil
     {
         if ( summaries != null )
         {
-            //TODO: I guess this is not needed. But should be checked during testing to be sure.
-//            if ( originalTopSummaries == null )
-//            {
-//                originalTopSummaries = summaries;
-//            }
-
             for ( ImportSummary summary : summaries.getImportSummaries() )
             {
                 if ( !checkSummaryStatus( summary, originalTopSummaries, endpoint ) )
@@ -153,79 +175,6 @@ public class SyncUtil
         return true;
     }
 
-//    /**
-//     * Analyzes TEI ImportSummaries. Returns true if everything is OK, false otherwise
-//     *
-//     * @param summaries
-//     * @return true if everything is OK, false otherwise
-//     */
-//    private static boolean analyzeResultsInTEIImportSummaries( ImportSummaries summaries )
-//    {
-//        if ( summaries != null )
-//        {
-//            for ( ImportSummary summary : summaries.getImportSummaries() )
-//            {
-//                if ( !checkSummaryStatus( summary, summaries ) )
-//                {
-//                    return false;
-//                }
-//
-//                //I am going to check for eventual errors in enrollments if they were part of sync payload
-//                if ( !analyzeResultsInEnrollmentImportSummaries( summary.getEnrollments(), summaries ) )
-//                {
-//                    return false;
-//                }
-//            }
-//        }
-//
-//        return true;
-//    }
-//
-//    /**
-//     * Analyzes Enrollment ImportSummaries. Returns true if everything is OK, false otherwise
-//     *
-//     * @param summaries
-//     * @param originalTopSummaries
-//     * @return true if everything is OK, false otherwise
-//     */
-//    private static boolean analyzeResultsInEnrollmentImportSummaries( ImportSummaries summaries, ImportSummaries originalTopSummaries )
-//    {
-//        for ( ImportSummary summary : summaries.getImportSummaries() )
-//        {
-//            if ( !checkSummaryStatus( summary, originalTopSummaries ) )
-//            {
-//                return false;
-//            }
-//
-//            //I am going to check for eventual errors in events if they were part of sync payload
-//            if ( !analyzeResultsInEventImportSummaries( summary.getEvents(), originalTopSummaries ) )
-//            {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-//
-//    /**
-//     * Analyzes Event ImportSummaries. Returns true if everything is OK, false otherwise
-//     *
-//     * @param summaries
-//     * @param originalTopSummaries
-//     * @return true if everything is OK, false otherwise
-//     */
-//    private static boolean analyzeResultsInEventImportSummaries( ImportSummaries summaries, ImportSummaries originalTopSummaries )
-//    {
-//        for ( ImportSummary summary : summaries.getImportSummaries() )
-//        {
-//            if ( !checkSummaryStatus( summary, originalTopSummaries ) )
-//            {
-//                return false;
-//            }
-//        }
-//
-//        return true;
-//    }
-
     /**
      * Checks the ImportSummary. Returns true if everything is OK, false otherwise
      *
@@ -243,6 +192,34 @@ public class SyncUtil
         }
 
         return true;
+    }
+
+    public static AvailabilityStatus testServerAvailability( SystemSettingManager systemSettingManager, RestTemplate restTemplate, int maxAttempts, long delayBetweenAttempts )
+    {
+        AvailabilityStatus serverStatus = SyncUtil.isRemoteServerAvailable( systemSettingManager, restTemplate );
+
+        for ( int i = 1; i < maxAttempts; i++ )
+        {
+            if ( serverStatus.isAvailable() )
+            {
+                return serverStatus;
+            }
+
+            try
+            {
+                log.info( "Remote server is not available. Retry #" + i + " in " + delayBetweenAttempts + " ms." );
+                Thread.sleep( delayBetweenAttempts );
+            }
+            catch ( InterruptedException e )
+            {
+                log.error( "Sleep between sync retries failed.", e );
+            }
+
+            serverStatus = isRemoteServerAvailable( systemSettingManager, restTemplate );
+        }
+
+        log.error( "Remote server is not available. Details: " + serverStatus );
+        return serverStatus;
     }
 
     public static AvailabilityStatus isRemoteServerAvailable( SystemSettingManager systemSettingManager, RestTemplate restTemplate )
