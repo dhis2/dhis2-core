@@ -70,8 +70,7 @@ public class DefaultReservedValueService
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
-    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
-        Date expires )
+    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
         throws ReserveValueException, TextPatternGenerationException
     {
         long startTime = System.currentTimeMillis();
