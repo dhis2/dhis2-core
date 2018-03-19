@@ -49,6 +49,8 @@ public interface TrackedEntityInstanceStore
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
 
+    int getDeletedTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
+
     /**
      * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into account.
      *

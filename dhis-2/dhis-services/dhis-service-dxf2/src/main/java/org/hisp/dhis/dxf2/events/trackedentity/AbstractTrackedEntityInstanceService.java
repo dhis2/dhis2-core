@@ -176,6 +176,13 @@ public abstract class AbstractTrackedEntityInstanceService
         return teiService.getTrackedEntityInstanceCount( params, sync );
     }
 
+    //TODO: Not sure that this will be used at all at the end as mutual agreement about the implementation changed. If not, then this and all related methods should be removed.
+    @Override
+    public int getDeletedTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    {
+        return teiService.getDeletedTrackedEntityInstanceCount( params, sync );
+    }
+
     @Override
     public TrackedEntityInstance getTrackedEntityInstance( String uid )
     {
@@ -544,8 +551,8 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
-        String descMsg;
-        WebMessage webMsg;
+        String descMsg = "";
+        WebMessage webMsg = null;
 
         if ( entityInstance != null )
         {

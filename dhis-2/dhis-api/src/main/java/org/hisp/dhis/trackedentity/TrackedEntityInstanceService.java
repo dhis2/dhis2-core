@@ -118,6 +118,8 @@ public interface TrackedEntityInstanceService
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
 
+    int getDeletedTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
+
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.
      *
@@ -235,14 +237,6 @@ public interface TrackedEntityInstanceService
      * @return true/false depending on result
      */
     boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
-
-    /**
-     //     * Checks for the existence of a TEI by UID
-     //     *
-     //     * @param uid PSI UID to check for
-     //     * @return true/false depending on result
-     //     */
-//    boolean trackedEntityInstanceExists( String uid, boolean includeDeleted );
 
     /**
      * Register a new entityInstance

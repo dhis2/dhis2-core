@@ -90,7 +90,20 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public int countTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
-        String hql = buildTrackedEntityInstanceCountHql( params );
+        String hql = buildTrackedEntityInstanceHql( params ).replaceFirst( "select distinct tei from", "select count(distinct tei) from" );
+        Query query = getQuery( hql );
+
+        return ((Number) query.iterate().next()).intValue();
+    }
+
+    @Override
+    public int getDeletedTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
+    {
+        SqlHelper hlp = new SqlHelper( true );
+        String hql = buildTrackedEntityInstanceHqlBase( params, hlp );
+        hql += hlp.whereAnd() + " tei.deleted is true ";
+
+        hql.replaceFirst( "select distinct tei from", "select count(distinct tei) from" );
         Query query = getQuery( hql );
 
         return ((Number) query.iterate().next()).intValue();
@@ -112,15 +125,18 @@ public class HibernateTrackedEntityInstanceStore
         return query.list();
     }
 
-    private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
-    {
-        return buildTrackedEntityInstanceHql( params ).replaceFirst( "select distinct tei from", "select count(distinct tei) from" );
-    }
-
     private String buildTrackedEntityInstanceHql( TrackedEntityInstanceQueryParams params )
     {
-        String hql = "select distinct tei from TrackedEntityInstance tei left join tei.trackedEntityAttributeValues";
         SqlHelper hlp = new SqlHelper( true );
+        String hql = buildTrackedEntityInstanceHqlBase( params, hlp );
+        hql += hlp.whereAnd() + " tei.deleted is false ";
+
+        return hql;
+    }
+
+    private String buildTrackedEntityInstanceHqlBase( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
+    {
+        String hql = "select distinct tei from TrackedEntityInstance tei left join tei.trackedEntityAttributeValues";
 
         if ( params.hasTrackedEntityType() )
         {
@@ -237,8 +253,6 @@ public class HibernateTrackedEntityInstanceStore
 
             hql += ")";
         }
-
-        hql += hlp.whereAnd() + " tei.deleted is false ";
 
         return hql;
     }

@@ -142,6 +142,12 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    public int getDeletedProgramInstanceCount( ProgramInstanceQueryParams params )
+    {
+        return programInstanceStore.countDeletedProgramInstances( params );
+    }
+
+    @Override
     public boolean programInstanceExists( String uid )
     {
         return programInstanceStore.exists( uid );

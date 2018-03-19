@@ -92,6 +92,8 @@ public interface ProgramInstanceService
      */
     ProgramInstance getProgramInstance( String uid );
 
+    int getDeletedProgramInstanceCount( ProgramInstanceQueryParams params );
+
     /**
      * Checks for the existence of a PI by UID. Deleted values are not taken into account.
      *

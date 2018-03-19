@@ -531,12 +531,12 @@ public abstract class AbstractEventService
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
-        
-        if( params.getProgramStage() == null )
+
+        if ( params.getProgramStage() == null )
         {
             throw new IllegalQueryException( "Program stage can not be null." );
-        }        
-        
+        }
+
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
@@ -982,7 +982,7 @@ public abstract class AbstractEventService
 
         if ( programStageInstance == null || !errors.isEmpty() )
         {
-            WebMessage webMsg;
+            WebMessage webMsg = null;
 
             if ( programStageInstance == null )
             {

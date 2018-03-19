@@ -53,6 +53,14 @@ public interface ProgramInstanceStore
     int countProgramInstances( ProgramInstanceQueryParams params );
 
     /**
+     * Count all deleted program instances by PI query params.
+     *
+     * @param params ProgramInstanceQueryParams to use
+     * @return Count of matching already deleted PIs
+     */
+    int countDeletedProgramInstances( ProgramInstanceQueryParams params );
+
+    /**
      * Get all program instances by PI query params.
      *
      * @param params ProgramInstanceQueryParams to use

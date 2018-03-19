@@ -62,6 +62,8 @@ public interface EnrollmentService
 
     Enrollments getEnrollments( ProgramInstanceQueryParams params );
 
+    int getDeletedEnrollmentCount( ProgramInstanceQueryParams params );
+
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------

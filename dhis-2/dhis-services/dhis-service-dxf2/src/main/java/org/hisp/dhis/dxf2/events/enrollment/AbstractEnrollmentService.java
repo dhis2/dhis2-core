@@ -330,6 +330,13 @@ public abstract class AbstractEnrollmentService
         return enrollment;
     }
 
+    //TODO: Not sure that this will be used at all at the end as mutual agreement about the implementation changed. If not, then this and all related methods should be removed.
+    @Override
+    public int getDeletedEnrollmentCount( ProgramInstanceQueryParams params )
+    {
+        return programInstanceService.getDeletedProgramInstanceCount( params );
+    }
+
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
@@ -584,8 +591,8 @@ public abstract class AbstractEnrollmentService
 
         if ( programInstance == null || !errors.isEmpty() )
         {
-            String descMsg;
-            WebMessage webMsg;
+            String descMsg = "";
+            WebMessage webMsg = null;
 
             if ( programInstance == null )
             {
@@ -745,8 +752,8 @@ public abstract class AbstractEnrollmentService
     public ImportSummary deleteEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        String descMsg;
-        WebMessage webMsg;
+        String descMsg = "";
+        WebMessage webMsg = null;
 
         if ( programInstance != null )
         {
