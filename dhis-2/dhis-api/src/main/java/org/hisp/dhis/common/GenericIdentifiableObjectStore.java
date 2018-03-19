@@ -155,14 +155,6 @@ public interface GenericIdentifiableObjectStore<T>
     List<T> getAllOrderedLastUpdated( int first, int max );
 
     /**
-     * Gets the count of objects which name is equal the given name.
-     *
-     * @param name the name which result object names must be like.
-     * @return the count of objects.
-     */
-    int getCountEqName( String name );
-
-    /**
      * Gets the count of objects which name is like the given name.
      *
      * @param name the name which result object names must be like.
