@@ -1,5 +1,8 @@
 package org.hisp.dhis.security.spring;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,8 +33,11 @@ package org.hisp.dhis.security.spring;
 
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.google.api.client.util.Sets;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -68,6 +74,21 @@ public abstract class AbstractSpringSecurityCurrentUserService
         return userDetails.getUsername();
     }
 
+    @Override
+    public Set<String> getCurrentUserAuthorities()
+    {
+        UserDetails userDetails = getCurrentUserDetails();
+        
+        if ( userDetails == null )
+        {
+            return Sets.newHashSet();
+        }
+        
+        return userDetails.getAuthorities().stream()
+            .map( GrantedAuthority::getAuthority )
+            .collect( Collectors.toSet() );        
+    }
+    
     /**
      * Returns the current UserDetails, or null of there is no
      * current user or if principal is not of type UserDetails.
