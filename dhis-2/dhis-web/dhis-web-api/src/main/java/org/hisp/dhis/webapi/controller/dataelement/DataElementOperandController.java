@@ -35,7 +35,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -81,11 +81,11 @@ public class DataElementOperandController
     private final LinkService linkService;
     private final ContextService contextService;
     private final SchemaService schemaService;
-    private final DataElementCategoryService dataElementCategoryService;
+    private final CategoryService dataElementCategoryService;
 
     public DataElementOperandController( IdentifiableObjectManager manager, QueryService queryService,
         FieldFilterService fieldFilterService, LinkService linkService, ContextService contextService, SchemaService schemaService,
-        DataElementCategoryService dataElementCategoryService )
+        CategoryService dataElementCategoryService )
     {
         this.manager = manager;
         this.queryService = queryService;

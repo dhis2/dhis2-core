@@ -28,13 +28,13 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +69,7 @@ public interface CompleteDataSetRegistrationStore
      * @return the CompleteDataSetRegistration.
      */
     CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period, 
-        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo );
+        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Deletes a CompleteDataSetRegistration.

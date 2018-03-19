@@ -28,23 +28,18 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.resourcetable.ResourceTableType;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.DateUtils;
 
-import com.google.common.collect.Lists;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -52,9 +47,9 @@ import com.google.common.collect.Lists;
 public class DataSetOrganisationUnitCategoryResourceTable
     extends ResourceTable<DataSet>
 {
-    private DataElementCategoryOptionCombo defaultOptionCombo;
+    private CategoryOptionCombo defaultOptionCombo;
     
-    public DataSetOrganisationUnitCategoryResourceTable( List<DataSet> objects, DataElementCategoryOptionCombo defaultOptionCombo )
+    public DataSetOrganisationUnitCategoryResourceTable( List<DataSet> objects, CategoryOptionCombo defaultOptionCombo )
     {
         this.objects = objects;
         this.defaultOptionCombo = defaultOptionCombo;
@@ -95,7 +90,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
         
         for ( DataSet dataSet : objects )
         {
-            DataElementCategoryCombo categoryCombo = dataSet.getCategoryCombo();
+            CategoryCombo categoryCombo = dataSet.getCategoryCombo();
             
             for ( OrganisationUnit orgUnit : dataSet.getSources() )
             {
@@ -103,11 +98,11 @@ public class DataSetOrganisationUnitCategoryResourceTable
                 {
                     if ( orgUnit.hasCategoryOptions() )
                     {
-                        Set<DataElementCategoryOption> orgUnitOptions = orgUnit.getCategoryOptions();
+                        Set<CategoryOption> orgUnitOptions = orgUnit.getCategoryOptions();
                         
-                        for ( DataElementCategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
+                        for ( CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
                         {
-                            Set<DataElementCategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
+                            Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
                             
                             if ( orgUnitOptions.containsAll( optionComboOptions ) )
                             {

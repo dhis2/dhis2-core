@@ -30,8 +30,8 @@ package org.hisp.dhis.dxf2.events;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -347,7 +347,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, DataElementCategoryOptionCombo categoryOptionCombo )
+    public List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo )
     {
         List<String> errors = new ArrayList<>();
 
@@ -356,7 +356,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
+        for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
             if ( !aclService.canDataRead( user, categoryOption ) && !manager.isDefault( categoryOption ) )
             {
@@ -368,7 +368,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, DataElementCategoryOptionCombo categoryOptionCombo )
+    public List<String> canWrite( User user, CategoryOptionCombo categoryOptionCombo )
     {
         List<String> errors = new ArrayList<>();
 
@@ -377,7 +377,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        for ( DataElementCategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
+        for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
         {
             if ( !aclService.canDataWrite( user, categoryOption ) && !manager.isDefault( categoryOption ) )
             {

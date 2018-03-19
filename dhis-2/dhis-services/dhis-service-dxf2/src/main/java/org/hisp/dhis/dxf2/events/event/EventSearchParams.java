@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.events.event;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -105,7 +105,7 @@ public class EventSearchParams
 
     private Date dueDateEnd;
 
-    private DataElementCategoryOptionCombo categoryOptionCombo;
+    private CategoryOptionCombo categoryOptionCombo;
 
     private IdSchemes idSchemes;
 
@@ -451,12 +451,12 @@ public class EventSearchParams
         this.gridOrders = gridOrders;
     }
 
-    public DataElementCategoryOptionCombo getCategoryOptionCombo()
+    public CategoryOptionCombo getCategoryOptionCombo()
     {
         return categoryOptionCombo;
     }
 
-    public void setCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    public void setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
     {
         this.categoryOptionCombo = categoryOptionCombo;
     }

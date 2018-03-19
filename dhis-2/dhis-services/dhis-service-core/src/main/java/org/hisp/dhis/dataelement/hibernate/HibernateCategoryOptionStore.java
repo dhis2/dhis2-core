@@ -28,24 +28,24 @@ package org.hisp.dhis.dataelement.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.dataelement.CategoryOptionStore;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
 public class HibernateCategoryOptionStore
-    extends HibernateIdentifiableObjectStore<DataElementCategoryOption>
+    extends HibernateIdentifiableObjectStore<CategoryOption>
     implements CategoryOptionStore
 {
     @Override
     @SuppressWarnings("unchecked")
-    public List<DataElementCategoryOption> getCategoryOptions( DataElementCategory category )
+    public List<CategoryOption> getCategoryOptions( Category category )
     {
         return getSharingCriteria().
             createAlias( "categories", "category" ).

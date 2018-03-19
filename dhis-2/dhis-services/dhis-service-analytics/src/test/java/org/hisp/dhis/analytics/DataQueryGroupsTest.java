@@ -33,7 +33,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.CategoryCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,13 +75,13 @@ public class DataQueryGroupsTest
     @Before
     public void before()
     {
-        deA = createDataElement( 'A', new DataElementCategoryCombo() ); // INTEGER, SUM
-        deB = createDataElement( 'B', new DataElementCategoryCombo() );
-        deC = createDataElement( 'C', new DataElementCategoryCombo() );
-        deD = createDataElement( 'D', new DataElementCategoryCombo() );
-        deE = createDataElement( 'E', new DataElementCategoryCombo() );
-        deF = createDataElement( 'F', new DataElementCategoryCombo() );
-        deG = createDataElement( 'G', new DataElementCategoryCombo() );
+        deA = createDataElement( 'A', new CategoryCombo() ); // INTEGER, SUM
+        deB = createDataElement( 'B', new CategoryCombo() );
+        deC = createDataElement( 'C', new CategoryCombo() );
+        deD = createDataElement( 'D', new CategoryCombo() );
+        deE = createDataElement( 'E', new CategoryCombo() );
+        deF = createDataElement( 'F', new CategoryCombo() );
+        deG = createDataElement( 'G', new CategoryCombo() );
         
         deF.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
         deG.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );

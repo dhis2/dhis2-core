@@ -35,15 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -59,12 +51,7 @@ import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -118,7 +105,7 @@ public class DataElement
      * that this category combination could be overridden by data set elements
      * which this data element is part of, see {@link DataSetElement}.
      */
-    private DataElementCategoryCombo dataElementCategoryCombo;
+    private CategoryCombo dataElementCategoryCombo;
 
     /**
      * URL for lookup of additional information on the web.
@@ -216,9 +203,9 @@ public class DataElement
      * The returned set is immutable, will never be null and will contain at
      * least one item.
      */
-    public Set<DataElementCategoryCombo> getCategoryCombos()
+    public Set<CategoryCombo> getCategoryCombos()
     {
-        return ImmutableSet.<DataElementCategoryCombo>builder()
+        return ImmutableSet.<CategoryCombo>builder()
             .addAll( dataSetElements.stream()
                 .filter( DataSetElement::hasCategoryCombo )
                 .map( dse -> dse.getCategoryCombo() )
@@ -231,7 +218,7 @@ public class DataElement
      * given data set for this data element. If not present, returns the
      * category combination for this data element.
      */
-    public DataElementCategoryCombo getCategoryCombo( DataSet dataSet )
+    public CategoryCombo getDataElementCategoryCombo(DataSet dataSet )
     {
         for ( DataSetElement element : dataSetElements )
         {
@@ -249,9 +236,9 @@ public class DataElement
      * combinations of this data element. The returned set is immutable, will
      * never be null and will contain at least one item.
      */
-    public Set<DataElementCategoryOptionCombo> getCategoryOptionCombos()
+    public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
-        return ObjectUtils.getAll( getCategoryCombos(), DataElementCategoryCombo::getOptionCombos );
+        return ObjectUtils.getAll( getCategoryCombos(), CategoryCombo::getOptionCombos );
     }
 
     /**
@@ -259,9 +246,9 @@ public class DataElement
      * combinations of this data element. The returned list is immutable, will
      * never be null and will contain at least one item.
      */
-    public List<DataElementCategoryOptionCombo> getSortedCategoryOptionCombos()
+    public List<CategoryOptionCombo> getSortedCategoryOptionCombos()
     {
-        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList();
+        List<CategoryOptionCombo> optionCombos = Lists.newArrayList();
         getCategoryCombos().forEach( cc -> optionCombos.addAll( cc.getSortedOptionCombos() ) );
         return optionCombos;
     }
@@ -321,9 +308,9 @@ public class DataElement
      * Returns the attribute category options combinations associated with the
      * data sets of this data element.
      */
-    public Set<DataElementCategoryOptionCombo> getDataSetCategoryOptionCombos()
+    public Set<CategoryOptionCombo> getDataSetCategoryOptionCombos()
     {
-        Set<DataElementCategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
         for ( DataSet dataSet : getDataSets() )
         {
@@ -616,12 +603,12 @@ public class DataElement
     @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getDataElementCategoryCombo()
+    public CategoryCombo getDataElementCategoryCombo()
     {
         return dataElementCategoryCombo;
     }
 
-    public void setDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
+    public void setDataElementCategoryCombo( CategoryCombo dataElementCategoryCombo )
     {
         this.dataElementCategoryCombo = dataElementCategoryCombo;
     }

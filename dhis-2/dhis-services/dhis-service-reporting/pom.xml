@@ -23,11 +23,15 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-analytics</artifactId>
+      <artifactId>dhis-service-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-core</artifactId>
+      <artifactId>dhis-service-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-analytics</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

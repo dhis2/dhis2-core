@@ -28,17 +28,9 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -46,6 +38,11 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +63,7 @@ public class CompleteDataSetRegistrationServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
   
     private CompleteDataSetRegistration registrationA;
     private CompleteDataSetRegistration registrationB;
@@ -86,7 +83,7 @@ public class CompleteDataSetRegistrationServiceTest
 
     private Date onTimeA;
 
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -124,7 +121,7 @@ public class CompleteDataSetRegistrationServiceTest
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
 
-        optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         onTimeA = getDate( 2000, 1, 10 );
     }

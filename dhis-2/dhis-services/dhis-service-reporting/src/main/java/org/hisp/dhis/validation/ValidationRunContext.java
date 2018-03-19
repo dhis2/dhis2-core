@@ -31,8 +31,8 @@ package org.hisp.dhis.validation;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -59,15 +59,15 @@ public class ValidationRunContext
 
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
-    private Set<DataElementCategoryOption> coDimensionConstraints;
+    private Set<CategoryOption> coDimensionConstraints;
 
     // -------------------------------------------------------------------------
     // Properties to configure analysis
     // -------------------------------------------------------------------------
 
-    private DataElementCategoryOptionCombo attributeCombo;
+    private CategoryOptionCombo attributeCombo;
 
-    private DataElementCategoryOptionCombo defaultAttributeCombo;
+    private CategoryOptionCombo defaultAttributeCombo;
 
     private int maxResults = 0;
 
@@ -86,12 +86,12 @@ public class ValidationRunContext
     // Getter methods
     // -------------------------------------------------------------------------
 
-    public DataElementCategoryOptionCombo getAttributeCombo()
+    public CategoryOptionCombo getAttributeCombo()
     {
         return attributeCombo;
     }
 
-    public DataElementCategoryOptionCombo getDefaultAttributeCombo()
+    public CategoryOptionCombo getDefaultAttributeCombo()
     {
         return defaultAttributeCombo;
     }
@@ -121,7 +121,7 @@ public class ValidationRunContext
         return cogDimensionConstraints;
     }
 
-    public Set<DataElementCategoryOption> getCoDimensionConstraints()
+    public Set<CategoryOption> getCoDimensionConstraints()
     {
         return coDimensionConstraints;
     }
@@ -239,7 +239,7 @@ public class ValidationRunContext
          *
          * @param attributeCombo
          */
-        public Builder withAttributeCombo( DataElementCategoryOptionCombo attributeCombo )
+        public Builder withAttributeCombo( CategoryOptionCombo attributeCombo )
         {
             this.context.attributeCombo = attributeCombo;
             return this;
@@ -250,7 +250,7 @@ public class ValidationRunContext
          *
          * @param defaultAttributeCombo
          */
-        public Builder withDefaultAttributeCombo( DataElementCategoryOptionCombo defaultAttributeCombo )
+        public Builder withDefaultAttributeCombo( CategoryOptionCombo defaultAttributeCombo )
         {
             this.context.defaultAttributeCombo = defaultAttributeCombo;
             return this;
@@ -282,7 +282,7 @@ public class ValidationRunContext
         }
 
         public Builder withCoDimensionConstraints(
-            Set<DataElementCategoryOption> coDimensionConstraints )
+            Set<CategoryOption> coDimensionConstraints )
         {
             this.context.coDimensionConstraints = coDimensionConstraints;
             return this;

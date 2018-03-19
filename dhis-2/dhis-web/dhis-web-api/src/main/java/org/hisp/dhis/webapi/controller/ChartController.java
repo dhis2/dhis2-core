@@ -33,8 +33,8 @@ import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -81,7 +81,7 @@ public class ChartController
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private IndicatorService indicatorService;
@@ -191,14 +191,14 @@ public class ChartController
             throw new WebMessageException( WebMessageUtils.conflict( "Data element does not exist: " + de ) );
         }
 
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( co );
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( co );
 
         if ( categoryOptionCombo == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Category option combo does not exist: " + co ) );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = categoryService.getDataElementCategoryOptionCombo( cp );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( cp );
 
         if ( attributeOptionCombo == null )
         {

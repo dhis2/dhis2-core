@@ -28,15 +28,14 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
@@ -45,15 +44,15 @@ public class GetCategoryOptionsAction
     implements Action
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
 
-    private List<DataElementCategoryOption> categoryOptions;
+    private List<CategoryOption> categoryOptions;
 
-    public List<DataElementCategoryOption> getCategoryOptions()
+    public List<CategoryOption> getCategoryOptions()
     {
         return categoryOptions;
     }
@@ -65,7 +64,7 @@ public class GetCategoryOptionsAction
     @Override
     public String execute()
     {
-        categoryOptions = new ArrayList<>( categoryService.getAllDataElementCategoryOptions() );
+        categoryOptions = new ArrayList<>( categoryService.getAllCategoryOptions() );
         
         Collections.sort( categoryOptions );
         

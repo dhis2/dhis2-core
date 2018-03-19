@@ -32,9 +32,10 @@ import org.hisp.dhis.DhisTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
-
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test needs to extend DhisTest in order to test the bidirectional group set
@@ -46,19 +47,19 @@ public class CategoryOptionGroupStoreTest
     extends DhisTest
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private CategoryOptionGroupStore categoryOptionGroupStore;
     
-    private DataElementCategoryOption coA;
-    private DataElementCategoryOption coB;
-    private DataElementCategoryOption coC;
-    private DataElementCategoryOption coD;
-    private DataElementCategoryOption coE;
-    private DataElementCategoryOption coF;
-    private DataElementCategoryOption coG;
-    private DataElementCategoryOption coH;
+    private CategoryOption coA;
+    private CategoryOption coB;
+    private CategoryOption coC;
+    private CategoryOption coD;
+    private CategoryOption coE;
+    private CategoryOption coF;
+    private CategoryOption coG;
+    private CategoryOption coH;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -76,14 +77,14 @@ public class CategoryOptionGroupStoreTest
         coG = createCategoryOption( 'G' );
         coH = createCategoryOption( 'H' );
         
-        categoryService.addDataElementCategoryOption( coA );
-        categoryService.addDataElementCategoryOption( coB );
-        categoryService.addDataElementCategoryOption( coC );
-        categoryService.addDataElementCategoryOption( coD );
-        categoryService.addDataElementCategoryOption( coE );
-        categoryService.addDataElementCategoryOption( coF );
-        categoryService.addDataElementCategoryOption( coG );
-        categoryService.addDataElementCategoryOption( coH );
+        categoryService.addCategoryOption( coA );
+        categoryService.addCategoryOption( coB );
+        categoryService.addCategoryOption( coC );
+        categoryService.addCategoryOption( coD );
+        categoryService.addCategoryOption( coE );
+        categoryService.addCategoryOption( coF );
+        categoryService.addCategoryOption( coG );
+        categoryService.addCategoryOption( coH );
     }
 
     @Override

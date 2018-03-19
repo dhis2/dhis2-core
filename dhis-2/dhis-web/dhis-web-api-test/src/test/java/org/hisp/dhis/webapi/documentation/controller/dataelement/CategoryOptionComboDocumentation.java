@@ -29,13 +29,13 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
 public class CategoryOptionComboDocumentation
-    extends AbstractWebApiTest<DataElementCategoryOptionCombo>
+    extends AbstractWebApiTest<CategoryOptionCombo>
 {
 }

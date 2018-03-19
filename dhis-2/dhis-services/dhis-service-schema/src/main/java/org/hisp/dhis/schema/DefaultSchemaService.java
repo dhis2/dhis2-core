@@ -142,7 +142,6 @@ public class DefaultSchemaService
         add( new UserGroupSchemaDescriptor() ).
         add( new UserRoleSchemaDescriptor() ).
         add( new UserSchemaDescriptor() ).
-        add( new ValidationCriteriaSchemaDescriptor() ).
         add( new ValidationRuleGroupSchemaDescriptor() ).
         add( new ValidationRuleSchemaDescriptor() ).
         add( new ValidationNotificationTemplateSchemaDescriptor() ).

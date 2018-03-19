@@ -28,24 +28,21 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.dataelement.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -62,7 +59,7 @@ public class DimensionOptionTest
     @Before
     public void before()
     {
-        deA = createDataElement( 'A', new DataElementCategoryCombo() );
+        deA = createDataElement( 'A', new CategoryCombo() );
         peA = createPeriod( "2000Q1" );
         ouA = createOrganisationUnit( 'A' );
         

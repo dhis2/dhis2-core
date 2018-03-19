@@ -159,7 +159,7 @@ public abstract class BaseAnalyticalObject
 
     protected transient List<OrganisationUnit> transientOrganisationUnits = new ArrayList<>();
 
-    protected transient List<DataElementCategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
+    protected transient List<CategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
 
     protected transient Date relativePeriodDate;
 

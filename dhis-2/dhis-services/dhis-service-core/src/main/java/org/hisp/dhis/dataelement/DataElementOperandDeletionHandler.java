@@ -57,7 +57,7 @@ public class DataElementOperandDeletionHandler
     //TODO masking real problem, we should control operands better and check associated objects regarding deletion
     
     @Override
-    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo optionCombo )
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "select count(*) from dataelementoperand where categoryoptioncomboid=" + optionCombo.getId();
 

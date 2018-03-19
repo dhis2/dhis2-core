@@ -31,7 +31,7 @@ package org.hisp.dhis.dataset;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -259,7 +259,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now )
+    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now )
     {
         return isLocked( dataSet, period, organisationUnit, now ) ||
             dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
@@ -267,7 +267,7 @@ public class DefaultDataSetService
 
     @Override
     public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        DataElementCategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
+        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
     {
         if ( !useOrgUnitChildren )
         {
@@ -292,7 +292,7 @@ public class DefaultDataSetService
 
     @Override
     public boolean isLocked( DataElement dataElement, Period period, OrganisationUnit organisationUnit,
-        DataElementCategoryOptionCombo attributeOptionCombo, Date now )
+        CategoryOptionCombo attributeOptionCombo, Date now )
     {
         now = now != null ? now : new Date();
 

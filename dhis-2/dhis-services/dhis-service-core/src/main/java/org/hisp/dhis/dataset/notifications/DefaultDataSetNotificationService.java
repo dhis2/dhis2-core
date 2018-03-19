@@ -35,7 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -129,7 +129,7 @@ public class DefaultDataSetNotificationService
     private PeriodService periodService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -269,7 +269,7 @@ public class DefaultDataSetNotificationService
         registration.setDataSet( dataSet );
         registration.setPeriod( periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
         registration.setPeriodName( getPeriodString( registration.getPeriod() ) );
-        registration.setAttributeOptionCombo( categoryService.getDefaultDataElementCategoryOptionCombo() );
+        registration.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
         registration.setSource( ou );
 
         return registration;

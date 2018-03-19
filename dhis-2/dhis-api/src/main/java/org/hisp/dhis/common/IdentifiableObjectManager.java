@@ -162,21 +162,19 @@ public interface IdentifiableObjectManager
 
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
+    void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations );
+
+    <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
+
+    boolean isDefault( IdentifiableObject object );
+    
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------
 
     <T extends IdentifiableObject> T getNoAcl( Class<T> clazz, String uid );
 
-    <T extends IdentifiableObject> T getNoAcl( Class<T> clazz, int id );
-
     <T extends IdentifiableObject> void updateNoAcl( T object );
 
     <T extends IdentifiableObject> List<T> getAllNoAcl( Class<T> clazz );
-
-    void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations );
-
-    <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
-
-    boolean isDefault( IdentifiableObject object );
 }

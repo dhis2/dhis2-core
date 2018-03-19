@@ -29,8 +29,8 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -67,34 +67,34 @@ public interface DataValueAuditStore
     
     /**
      * Returns all DataValueAudits which match the DataElement, Period, OrganisationUnit
-     * and DataElementCategoryOptionCombo of the given DataValue.
+     * and CategoryOptionCombo of the given DataValue.
      *
      * @param dataValue the DataValue to get DataValueAudits for.
      * @return a list of DataValueAudits which match the DataElement Period,
-     * OrganisationUnit and DataElementCategoryOptionCombo of the given DataValue,
+     * OrganisationUnit and CategoryOptionCombo of the given DataValue,
      * or an empty list if no DataValueAudits match.
      */
     List<DataValueAudit> getDataValueAudits( DataValue dataValue );
 
     /**
      * Returns all DataValueAudits which match the given DataElement, Period,
-     * OrganisationUnit and DataElementCategoryOptionCombo.
+     * OrganisationUnit and CategoryOptionCombo.
      *
      * @param dataElements         the DataElement of the DataValueAudits.
      * @param periods              the Period of the DataValueAudits.
      * @param organisationUnits    the OrganisationUnit of the DataValueAudits.
-     * @param categoryOptionCombo  the DataElementCategoryOptionCombo of the DataValueAudits.
+     * @param categoryOptionCombo  the CategoryOptionCombo of the DataValueAudits.
      * @param attributeOptionCombo the attribute option combo.
      * @return a list of DataValueAudits which match the given DataElement, Period,
-     * OrganisationUnit and DataElementCategoryOptionCombo, or an empty list
+     * OrganisationUnit and CategoryOptionCombo, or an empty list
      * if no DataValueAudits match.
      */
-    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType );
+    List<DataValueAudit> getDataValueAudits(List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+                                            CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
 
     List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max );
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max );
 
     int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType );
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
 }

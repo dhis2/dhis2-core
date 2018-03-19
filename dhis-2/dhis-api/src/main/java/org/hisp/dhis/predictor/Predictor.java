@@ -40,8 +40,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
@@ -66,7 +66,7 @@ public class Predictor
     /**
      * The category option combo into which the predictor writes
      */
-    private DataElementCategoryOptionCombo outputCombo;
+    private CategoryOptionCombo outputCombo;
 
     /**
      * The generator used to compute the value of the predictor.
@@ -152,12 +152,12 @@ public class Predictor
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryOptionCombo getOutputCombo()
+    public CategoryOptionCombo getOutputCombo()
     {
         return outputCombo;
     }
 
-    public void setOutputCombo( DataElementCategoryOptionCombo combo )
+    public void setOutputCombo( CategoryOptionCombo combo )
     {
         this.outputCombo = combo;
     }

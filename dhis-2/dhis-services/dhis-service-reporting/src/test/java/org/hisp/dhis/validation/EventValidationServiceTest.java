@@ -38,7 +38,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
@@ -128,7 +128,7 @@ public class EventValidationServiceTest
     @Autowired
     private ValidationRuleService validationRuleService;
 
-    private DataElementCategoryOptionCombo defaultCombo;
+    private CategoryOptionCombo defaultCombo;
 
     private OrganisationUnit orgUnitA;
 
@@ -160,7 +160,7 @@ public class EventValidationServiceTest
 
         final String EX_INDICATOR = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "} + 4"; // Program Indicator expression
 
-        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
         orgUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( orgUnitA );

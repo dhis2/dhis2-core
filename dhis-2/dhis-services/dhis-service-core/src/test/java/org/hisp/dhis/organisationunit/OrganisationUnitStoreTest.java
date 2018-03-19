@@ -31,7 +31,7 @@ package org.hisp.dhis.organisationunit;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.CategoryOption;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.junit.Test;
@@ -73,8 +73,8 @@ public class OrganisationUnitStoreTest
     private OrganisationUnitGroup ougA;
     private OrganisationUnitGroup ougB;
     
-    private DataElementCategoryOption coA;
-    private DataElementCategoryOption coB;
+    private CategoryOption coA;
+    private CategoryOption coB;
     
     private DataSet dsA;
     private DataSet dsB;

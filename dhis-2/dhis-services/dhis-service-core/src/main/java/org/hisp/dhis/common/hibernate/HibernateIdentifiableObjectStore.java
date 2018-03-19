@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
@@ -509,5 +510,41 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .setFirstResult( first )
             .setMaxResults( max )
             .list();
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
+    // Supportive methods
+    //----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a sharing Criteria for the implementation Class type restricted by the
+     * given Criterions.
+     *
+     * @param expressions the Criterions for the Criteria.
+     * @return a Criteria instance.
+     */
+    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
+    {
+        Criteria criteria = getSharingCriteria();
+
+        for ( Criterion expression : expressions )
+        {
+            criteria.add( expression );
+        }
+
+        criteria.setCacheable( cacheable );
+        return criteria;
+    }
+
+    /**
+     * Retrieves an object based on the given Criterions using a sharing Criteria.
+     *
+     * @param expressions the Criterions for the Criteria.
+     * @return an object of the implementation Class type.
+     */
+    @SuppressWarnings( "unchecked" )
+    protected final T getSharingObject( Criterion... expressions )
+    {
+        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
     }
 }

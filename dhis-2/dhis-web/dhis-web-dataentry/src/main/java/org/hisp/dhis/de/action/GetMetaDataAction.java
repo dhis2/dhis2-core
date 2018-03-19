@@ -33,10 +33,10 @@ import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -93,9 +93,9 @@ public class GetMetaDataAction
         this.expressionService = expressionService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -159,30 +159,30 @@ public class GetMetaDataAction
         return emptyOrganisationUnits;
     }
 
-    private List<DataElementCategoryCombo> categoryCombos;
+    private List<CategoryCombo> categoryCombos;
 
-    public List<DataElementCategoryCombo> getCategoryCombos()
+    public List<CategoryCombo> getCategoryCombos()
     {
         return categoryCombos;
     }
 
-    private List<DataElementCategory> categories;
+    private List<Category> categories;
 
-    public List<DataElementCategory> getCategories()
+    public List<Category> getCategories()
     {
         return categories;
     }
 
-    private DataElementCategoryCombo defaultCategoryCombo;
+    private CategoryCombo defaultCategoryCombo;
 
-    public DataElementCategoryCombo getDefaultCategoryCombo()
+    public CategoryCombo getDefaultCategoryCombo()
     {
         return defaultCategoryCombo;
     }
 
-    private Map<String, List<DataElementCategoryOption>> categoryOptionMap = new HashMap<>();
+    private Map<String, List<CategoryOption>> categoryOptionMap = new HashMap<>();
 
-    public Map<String, List<DataElementCategoryOption>> getCategoryOptionMap()
+    public Map<String, List<CategoryOption>> getCategoryOptionMap()
     {
         return categoryOptionMap;
     }
@@ -201,9 +201,9 @@ public class GetMetaDataAction
             identifiableObjectManager.getLastUpdated( OptionSet.class ),
             identifiableObjectManager.getLastUpdated( Indicator.class ),
             identifiableObjectManager.getLastUpdated( DataSet.class ),
-            identifiableObjectManager.getLastUpdated( DataElementCategoryCombo.class ),
-            identifiableObjectManager.getLastUpdated( DataElementCategory.class ),
-            identifiableObjectManager.getLastUpdated( DataElementCategoryOption.class ) ) );
+            identifiableObjectManager.getLastUpdated( CategoryCombo.class ),
+            identifiableObjectManager.getLastUpdated( Category.class ),
+            identifiableObjectManager.getLastUpdated( CategoryOption.class ) ) );
         String tag = lastUpdated != null && user != null ? ( DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid() ): null;
         
         if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
@@ -236,8 +236,8 @@ public class GetMetaDataAction
 
         dataSets = dataSetService.getUserDataWrite( user );
         
-        Set<DataElementCategoryCombo> categoryComboSet = new HashSet<>();
-        Set<DataElementCategory> categorySet = new HashSet<>();
+        Set<CategoryCombo> categoryComboSet = new HashSet<>();
+        Set<Category> categorySet = new HashSet<>();
 
         for ( DataSet dataSet : dataSets )
         {
@@ -247,7 +247,7 @@ public class GetMetaDataAction
             }
         }
 
-        for ( DataElementCategoryCombo categoryCombo : categoryComboSet )
+        for ( CategoryCombo categoryCombo : categoryComboSet )
         {
             if ( categoryCombo.getCategories() != null )
             {
@@ -258,9 +258,9 @@ public class GetMetaDataAction
         categoryCombos = new ArrayList<>( categoryComboSet );
         categories = new ArrayList<>( categorySet );
 
-        for ( DataElementCategory category : categories )
+        for ( Category category : categories )
         {
-            List<DataElementCategoryOption> categoryOptions = new ArrayList<>( categoryService.getDataElementCategoryOptions( category ) );
+            List<CategoryOption> categoryOptions = new ArrayList<>( categoryService.getCategoryOptions( category ) );
             Collections.sort( categoryOptions );
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }
@@ -269,7 +269,7 @@ public class GetMetaDataAction
         Collections.sort( categoryCombos );
         Collections.sort( categories );
 
-        defaultCategoryCombo = categoryService.getDefaultDataElementCategoryCombo();
+        defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
 
         return SUCCESS;
     }

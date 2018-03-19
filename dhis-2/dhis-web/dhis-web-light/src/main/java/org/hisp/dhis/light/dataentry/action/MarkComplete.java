@@ -28,11 +28,10 @@ package org.hisp.dhis.light.dataentry.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -43,7 +42,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.CurrentUserService;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -90,9 +89,9 @@ public class MarkComplete
         this.periodService = periodService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -154,7 +153,7 @@ public class MarkComplete
 
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
-        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo(); //TODO
+        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo(); //TODO
         
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dataSet, period,
             organisationUnit, optionCombo );

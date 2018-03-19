@@ -34,7 +34,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -283,7 +283,7 @@ public interface ExpressionService
      * @param expression the expression string.
      * @return a Set of CategoryOptionCombos included in the expression string.
      */
-    Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression );
+    Set<CategoryOptionCombo> getOptionCombosInExpression( String expression );
 
     /**
      * Returns all OrganisationUnitGroups in the given expression string.
