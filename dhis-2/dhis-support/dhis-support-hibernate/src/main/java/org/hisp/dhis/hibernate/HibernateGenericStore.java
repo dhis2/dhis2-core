@@ -272,52 +272,6 @@ public class HibernateGenericStore<T>
         return criteria;
     }
 
-    protected DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
-    {
-        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
-
-        if ( user == null || !dataSharingEnabled( user ) )
-        {
-            return criteria;
-        }
-
-        Assert.notNull( user, "User argument can't be null." );
-
-        Disjunction disjunction = Restrictions.disjunction();
-
-        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
-        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
-
-        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
-        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
-        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
-        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
-
-        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
-        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
-        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
-
-        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
-
-        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
-
-        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
-        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
-        userDetachedCriteria.createCriteria( "ua.user", "u" );
-
-        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
-        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
-        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
-
-        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
-
-        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
-
-        criteria.add( disjunction );
-
-        return criteria;
-    }
-
     /**
      * Override to add additional restrictions to criteria before
      * it is invoked.
@@ -557,8 +511,8 @@ public class HibernateGenericStore<T>
     public final T get( int id )
     {
         T object = (T) getSession().get( getClazz(), id );
-
-        if ( !isReadAllowed( object ) )
+        
+        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( object.toString() );
@@ -680,11 +634,6 @@ public class HibernateGenericStore<T>
     protected boolean dataSharingEnabled( UserInfo userInfo )
     {
         return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
-    }
-
-    protected boolean isReadAllowed( T object )
-    {
-        return isReadAllowed( object, currentUserService.getCurrentUser() );
     }
 
     protected boolean isReadAllowed( T object, User user )
