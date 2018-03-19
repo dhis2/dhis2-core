@@ -55,13 +55,4 @@ public interface TextPatternService
     Map<String, List<String>> getRequiredValues( TextPattern pattern );
 
     boolean validate( TextPattern pattern, String text );
-
-    class TextPatternGenerationException
-        extends Exception
-    {
-        TextPatternGenerationException( String message )
-        {
-            super( "Could not generate value: "+ message );
-        }
-    }
 }
