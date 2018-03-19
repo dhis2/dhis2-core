@@ -114,7 +114,7 @@ public class DefaultSystemSettingManager
     @PostConstruct
     public void init()
     {
-        settingCache = cacheProvider.createCacheInstance( "systemSetting", true, 3600,  SystemUtils.isTestRun() ? 0 : 400 );
+        settingCache = cacheProvider.createCacheInstance( "systemSetting", true, 3600,  SystemUtils.isTestRun() ? 0 : 400 , null );
         
     }
 

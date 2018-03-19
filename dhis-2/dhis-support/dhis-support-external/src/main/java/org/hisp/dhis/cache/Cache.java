@@ -37,6 +37,10 @@ public interface Cache
      * Returns the value associated with the {@code key} in this cache instance,
      * or {@code Optional.empty()} if there is no cached value for the
      * {@code key}.
+     * <p>
+     * Note: This method will NOT return the defaultValue in case of absence of
+     * associated cache value.
+     * </p>
      *
      * @param key the key whose associated value is to be returned from the
      *        cache instance
@@ -50,6 +54,26 @@ public interface Cache
 
     /**
      * Returns the value associated with the {@code key} in this cache instance,
+     * or {@code defaultValue} if there is no cached value for the {@code key}.
+     * 
+     * <p>
+     * Note: This method will return the defaultValue in case of absence of
+     * associated cache value. But will not store the default value into the
+     * cache.
+     * </p>
+     *
+     * @param key the key whose associated value is to be returned from the
+     *        cache instance
+     * 
+     * @return the value wrapped in Optional, to which the specified key is
+     *         mapped in the cache instance or {@code Optional of defaultValue}
+     *         if this cache contains no mapping for the key
+     * @throws NullPointerException if the specified key is null
+     */
+    Optional<Serializable> get( String key );
+
+    /**
+     * Returns the value associated with the {@code key} in this cache instance,
      * obtaining that value from the {@code mappingFunction} if necessary. This
      * method provides a simple substitute for the conventional "if cached,
      * return; otherwise create, cache and return" pattern.
@@ -58,7 +82,14 @@ public interface Cache
      * compute its value using the given mapping function and enters it into
      * this cache unless {@code null}. The computation should be short and
      * simple, and must not attempt to update any other mappings of this cache.
+     * </p>
+     * 
      * <p>
+     * Note: This method will return the defaultValue in case of absence of
+     * associated cache value. But will not store the default value into the
+     * cache.
+     * </p>
+     * 
      *
      * @param key the key with which the specified value is to be associated
      * @param mappingFunction the function to compute a value

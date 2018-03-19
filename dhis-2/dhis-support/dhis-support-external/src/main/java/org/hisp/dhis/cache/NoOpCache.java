@@ -45,16 +45,29 @@ public class NoOpCache
     Cache
 {
 
+    private Serializable defaultValue;
+
+    public NoOpCache( Serializable defaultValue )
+    {
+        this.defaultValue = defaultValue;
+    }
+
     @Override
     public Optional<Serializable> getIfPresent( String key )
     {
         return Optional.empty();
     }
+    
+    @Override
+    public Optional<Serializable> get( String key )
+    {
+        return Optional.ofNullable( defaultValue );
+    }
 
     @Override
     public Optional<Serializable> get( String key, Function<String, Serializable> mappingFunction )
     {
-        return Optional.ofNullable( mappingFunction.apply( key ) );
+        return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
     }
 
     @Override

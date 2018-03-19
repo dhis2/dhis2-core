@@ -53,6 +53,8 @@ public class RedisCache
 
     private String cacheRegion;
 
+    private Serializable defaultValue;
+
     /**
      * Constructor for instantiating RedisCache.
      * 
@@ -61,15 +63,21 @@ public class RedisCache
      * @param refreshExpiryOnAccess Indicates whether the expiry (timeToLive)
      *        has to reset on every access
      * @param expiryInSeconds The time to live value in seconds
+     * @param defaultValue Default value to be returned if no associated value
+     *        for a key is found in the cache. The defaultValue will not be
+     *        stored in the cache, but should be used as an indicator that the
+     *        key did not have an associated value. By default the defaultValue
+     *        is null
      * 
      */
     public RedisCache( RedisTemplate<String, Serializable> redisTemplate, String region, boolean refreshExpiryOnAccess,
-        long expiryInSeconds )
+        long expiryInSeconds, Serializable defaultValue )
     {
         this.redisTemplate = redisTemplate;
         this.refreshExpriryOnAccess = refreshExpiryOnAccess;
         this.expiryInSeconds = expiryInSeconds;
         this.cacheRegion = region;
+        this.defaultValue = defaultValue;
     }
 
     @Override
@@ -81,6 +89,18 @@ public class RedisCache
             redisTemplate.expire( redisKey, expiryInSeconds, TimeUnit.SECONDS );
         }
         return Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() );
+    }
+
+    @Override
+    public Optional<Serializable> get( String key )
+    {
+        String redisKey = generateActualKey( key );
+        if ( refreshExpriryOnAccess )
+        {
+            redisTemplate.expire( redisKey, expiryInSeconds, TimeUnit.SECONDS );
+        }
+        return Optional
+            .ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
     }
 
     @Override
@@ -104,7 +124,7 @@ public class RedisCache
             }
         }
 
-        return Optional.ofNullable( value );
+        return Optional.ofNullable( Optional.ofNullable( value ).orElse( defaultValue ) );
     }
 
     @Override

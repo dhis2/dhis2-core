@@ -47,6 +47,8 @@ public class LocalCache
 
     private com.github.benmanes.caffeine.cache.Cache<String, Serializable> caffeineCache;
 
+    private Serializable defaultValue;
+
     /**
      * Constructor to instantiate LocalCache object.
      * 
@@ -56,8 +58,14 @@ public class LocalCache
      * @param expiryInSeconds The time to live value in seconds
      * @param maximumSize The maximum size this cache instance should hold. If
      *        set to 0, then caching is disabled.
+     * @param defaultValue Default value to be returned if no associated value
+     *        for a key is found in the cache. The defaultValue will not be
+     *        stored in the cache, but should be used as an indicator that the
+     *        key did not have an associated value. By default the defaultValue
+     *        is null
      */
-    public LocalCache( boolean refreshExpiryOnAccess, long expiryInSeconds, long maximumSize )
+    public LocalCache( boolean refreshExpiryOnAccess, long expiryInSeconds, long maximumSize,
+        Serializable defaultValue )
     {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
         if ( refreshExpiryOnAccess )
@@ -69,7 +77,13 @@ public class LocalCache
             builder.expireAfterWrite( expiryInSeconds, TimeUnit.SECONDS );
 
         }
-        this.caffeineCache = builder.maximumSize( maximumSize ).build();
+
+        if ( maximumSize > 0 )
+        {
+            builder.maximumSize( maximumSize );
+        }
+        this.caffeineCache = builder.build();
+        this.defaultValue = defaultValue;
     }
 
     @Override
@@ -77,11 +91,19 @@ public class LocalCache
     {
         return Optional.ofNullable( caffeineCache.getIfPresent( key ) );
     }
+    
+
+    @Override
+    public Optional<Serializable> get( String key )
+    {
+        return Optional.ofNullable( Optional.ofNullable( caffeineCache.getIfPresent( key ) ).orElse( defaultValue ) );
+    }
 
     @Override
     public Optional<Serializable> get( String key, Function<String, Serializable> mappingFunction )
     {
-        return Optional.ofNullable( caffeineCache.get( key, mappingFunction ) );
+        return Optional
+            .ofNullable( Optional.ofNullable( caffeineCache.get( key, mappingFunction ) ).orElse( defaultValue ) );
     }
 
     @Override
@@ -101,7 +123,7 @@ public class LocalCache
     @Override
     public void invalidateAll()
     {
-        caffeineCache.invalidateAll();        
+        caffeineCache.invalidateAll();
     }
 
 }

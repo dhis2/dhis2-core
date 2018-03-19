@@ -75,25 +75,26 @@ public class CacheProvider
      *        has to reset on every access
      * @param expiryInSeconds The time to live value in seconds
      * @param maximumSize The maximum size this cache instance should hold. If
-     *        set to 0, then caching is disabled.
+     *        set to 0, then caching is disabled. If set to -1, then the cache
+     *        instance will use as much as feasible.
      * @return A cache instance based on the system configuration and input
      *         parameters. Returns one of {@link RedisCache}, {@link LocalCache}
      *         or {@link NoOpCache}
      */
     public Cache createCacheInstance( String region, boolean refreshExpiryOnAccess, long expiryInSeconds,
-        long maximumSize )
+        long maximumSize, Serializable defaultValue )
     {
         if ( maximumSize == 0 )
         {
-            return new NoOpCache();
+            return new NoOpCache( defaultValue );
         }
         else if ( configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ) )
         {
-            return new RedisCache( redisTemplate, region, refreshExpiryOnAccess, expiryInSeconds );
+            return new RedisCache( redisTemplate, region, refreshExpiryOnAccess, expiryInSeconds, defaultValue );
         }
         else
         {
-            return new LocalCache( refreshExpiryOnAccess, expiryInSeconds, maximumSize );
+            return new LocalCache( refreshExpiryOnAccess, expiryInSeconds, maximumSize, defaultValue );
         }
     }
 
