@@ -116,27 +116,11 @@ public interface GenericStore<T>
     T get( int id );
 
     /**
-     * Retrieves the object with the given identifier, assuming it exists.
-     *
-     * @param id the object identifier.
-     * @return the object identified by the given identifier or a generated
-     * proxy.
-     */
-    T load( int id );
-
-    /**
      * Retrieves a List of all objects.
      *
      * @return a List of all objects.
      */
     List<T> getAll();
-
-    /**
-     * Retrieves a paged List of all objects.
-     *
-     * @return a List of all objects.
-     */
-    List<T> getAll( int first, int max );
 
     List<T> getAllByAttributes( List<Attribute> attributes );
 
