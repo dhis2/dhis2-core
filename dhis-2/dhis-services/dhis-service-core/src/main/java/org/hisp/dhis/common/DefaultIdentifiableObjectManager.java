@@ -89,7 +89,7 @@ public class DefaultIdentifiableObjectManager
         .build();
 
     @Autowired
-    private Set<GenericIdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
+    private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
     @Autowired
     private Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores;
@@ -103,7 +103,7 @@ public class DefaultIdentifiableObjectManager
     @Autowired
     protected SchemaService schemaService;
 
-    private Map<Class<? extends IdentifiableObject>, GenericIdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
+    private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
 
@@ -120,7 +120,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public void save( IdentifiableObject object, boolean clearSharing )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
         if ( store != null )
         {
@@ -137,7 +137,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public void update( IdentifiableObject object, User user )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
         if ( store != null )
         {
@@ -197,7 +197,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public void delete( IdentifiableObject object, User user )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
         if ( store != null )
         {
@@ -209,7 +209,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( String uid )
     {
-        for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
             T object = (T) store.getByUid( uid );
 
@@ -226,7 +226,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( Class<T> clazz, int id )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -240,7 +240,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( Class<T> clazz, String uid )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -295,7 +295,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -309,7 +309,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getByCode( Class<T> clazz, String code )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -323,7 +323,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getByName( Class<T> clazz, String name )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -337,7 +337,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -397,7 +397,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAll( Class<T> clazz )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -411,7 +411,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> clazz )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -425,7 +425,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> clazz )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -439,7 +439,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAllSorted( Class<T> clazz )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -460,7 +460,7 @@ public class DefaultIdentifiableObjectManager
             return new ArrayList<>();
         }
 
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
 
         if ( store == null )
         {
@@ -474,7 +474,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -488,7 +488,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -502,7 +502,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getByCode( Class<T> clazz, Collection<String> codes )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -516,7 +516,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids )
     {
-        GenericIdentifiableObjectStore<T> store = (GenericIdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -544,7 +544,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> int getCount( Class<T> clazz )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store != null )
         {
@@ -557,7 +557,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> int getCountByCreated( Class<T> clazz, Date created )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store != null )
         {
@@ -570,7 +570,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> int getCountByLastUpdated( Class<T> clazz, Date lastUpdated )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store != null )
         {
@@ -584,7 +584,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -598,7 +598,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> clazz, int first, int max )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -612,7 +612,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, Set<String> words, int first, int max )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -625,7 +625,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> Date getLastUpdated( Class<T> clazz )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -645,7 +645,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> clazz, IdScheme idScheme )
     {
-        GenericIdentifiableObjectStore<T> store = (GenericIdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
         Map<String, T> map = new HashMap<>();
 
@@ -669,7 +669,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> clazz, IdScheme idScheme )
     {
-        GenericIdentifiableObjectStore<T> store = (GenericIdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
         Map<String, T> map = new HashMap<>();
 
@@ -687,7 +687,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property, Collection<String> identifiers )
     {
-        GenericIdentifiableObjectStore<T> store = (GenericIdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -719,7 +719,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Integer> identifiers )
     {
-        GenericIdentifiableObjectStore<T> store = (GenericIdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -739,7 +739,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getObject( Class<T> clazz, IdScheme idScheme, String value )
     {
-        GenericIdentifiableObjectStore<T> store = (GenericIdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -782,7 +782,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public IdentifiableObject getObject( String uid, String simpleClassName )
     {
-        for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
         {
             if ( simpleClassName.equals( objectStore.getClazz().getSimpleName() ) )
             {
@@ -796,7 +796,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public IdentifiableObject getObject( int id, String simpleClassName )
     {
-        for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
         {
             if ( simpleClassName.equals( objectStore.getClazz().getSimpleName() ) )
             {
@@ -829,7 +829,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getNoAcl( Class<T> clazz, String uid )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -842,7 +842,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> void updateNoAcl( T object )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
         if ( store != null )
         {
@@ -854,7 +854,7 @@ public class DefaultIdentifiableObjectManager
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getAllNoAcl( Class<T> clazz )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
         if ( store == null )
         {
@@ -902,7 +902,7 @@ public class DefaultIdentifiableObjectManager
             return new ArrayList<>();
         }
 
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
 
         if ( store == null )
         {
@@ -922,7 +922,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
 
         if ( store == null )
         {
@@ -935,14 +935,14 @@ public class DefaultIdentifiableObjectManager
     @Override
     public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
         return store != null && store.isAttributeValueUnique( object, attributeValue );
     }
 
     @Override
     public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value )
     {
-        GenericIdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
         return store != null && store.isAttributeValueUnique( object, attribute, value );
     }
 
@@ -983,11 +983,11 @@ public class DefaultIdentifiableObjectManager
     //--------------------------------------------------------------------------
 
     @SuppressWarnings( "unchecked" )
-    private <T extends IdentifiableObject> GenericIdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore( Class<T> clazz )
+    private <T extends IdentifiableObject> IdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore( Class<T> clazz )
     {
         initMaps();
 
-        GenericIdentifiableObjectStore<? extends IdentifiableObject> store = identifiableObjectStoreMap.get( clazz );
+        IdentifiableObjectStore<? extends IdentifiableObject> store = identifiableObjectStoreMap.get( clazz );
 
         if ( store == null )
         {
@@ -999,7 +999,7 @@ public class DefaultIdentifiableObjectManager
             }
         }
 
-        return (GenericIdentifiableObjectStore<IdentifiableObject>) store;
+        return (IdentifiableObjectStore<IdentifiableObject>) store;
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1031,7 +1031,7 @@ public class DefaultIdentifiableObjectManager
 
         identifiableObjectStoreMap = new HashMap<>();
 
-        for ( GenericIdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
             identifiableObjectStoreMap.put( store.getClazz(), store );
         }
