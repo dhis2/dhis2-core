@@ -43,11 +43,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.deletedobject.DeletedObjectQuery;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -81,12 +76,6 @@ public class HibernateGenericStore<T>
     {
         this.jdbcTemplate = jdbcTemplate;
     }
-
-    @Autowired
-    protected DeletedObjectService deletedObjectService;
-
-    @Autowired
-    protected AclService aclService;
 
     protected Class<T> clazz;
 
@@ -271,52 +260,21 @@ public class HibernateGenericStore<T>
     {
         AuditLogUtil.infoWrapper( log, object, AuditLogUtil.ACTION_CREATE );
         
-        genericSave( object );
+        getSession().save( object );
     }
     
-    protected final void genericSave( T object )
-    {        
-        getSession().save( object );
-
-        if ( MetadataObject.class.isInstance( object ) )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
-        }
-    }
-
     @Override
     public void update( T object )
     {
-        genericUpdate( object );
+        getSession().update( object );
     }
     
-    protected final void genericUpdate( T object )
-    {
-        if ( object != null )
-        {
-            getSession().update( object );
-        }
-
-        if ( MetadataObject.class.isInstance( object ) )
-        {
-            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
-        }
-    }
-
     @Override
     public void delete( T object )
     {
-        genericDelete( object );
+        getSession().delete( object );
     }
     
-    protected final void genericDelete( T object )
-    {
-        if ( object != null )
-        {
-            getSession().delete( object );
-        }
-    }
-
     @Override
     public T get( int id )
     {
