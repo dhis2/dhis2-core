@@ -36,9 +36,12 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -49,6 +52,7 @@ import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInfo;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -194,7 +198,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
 
-        if ( !isReadAllowed( object ) )
+        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( object.toString() );
@@ -506,6 +510,60 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     //----------------------------------------------------------------------------------------------------------------
     // Supportive methods
     //----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a detached criteria with sharing restrictions relative to the
+     * given user and access string.
+     * 
+     * @param user the user.
+     * @param access the access string.
+     * @return a DetachedCriteria.
+     */
+    protected DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        if ( user == null || !dataSharingEnabled( user ) )
+        {
+            return criteria;
+        }
+
+        Assert.notNull( user, "User argument can't be null." );
+
+        Disjunction disjunction = Restrictions.disjunction();
+
+        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
+
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
+
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
+
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
+
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
+
+        criteria.add( disjunction );
+
+        return criteria;
+    }
 
     /**
      * Creates a sharing Criteria for the implementation Class type restricted by the
