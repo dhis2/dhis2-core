@@ -1,4 +1,4 @@
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.textpattern;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,22 +28,14 @@ package org.hisp.dhis.reservedvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Stian Sandvold
  */
-public interface ReservedValueService
+public class TextPatternGenerationException
+    extends Exception
 {
-    List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
-        throws ReserveValueException, TextPatternGenerationException;
-
-    boolean useReservedValue( TextPattern textPattern, String value );
-
-    boolean isReserved( TextPattern textPattern, String value );
+    public TextPatternGenerationException( String message )
+    {
+        super( "Could not generate value: " + message );
+    }
 }
