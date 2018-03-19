@@ -1,5 +1,7 @@
 package org.hisp.dhis.webportal.menu.action;
 
+import java.util.ArrayList;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -73,7 +75,7 @@ public class GetModulesAction
         
         if ( user != null && user.getApps() != null && !user.getApps().isEmpty() )
         {
-            final List<String> userApps = user.getApps();
+            final List<String> userApps = new ArrayList<>( user.getApps() );
             
             Collections.sort( modules, new Comparator<Module>()
             {
