@@ -241,14 +241,6 @@ public interface AclService
     Class<? extends IdentifiableObject> classForType( String type );
 
     /**
-     * Return the access object for a object.
-     *
-     * @param object Object to check for access
-     * @return Populated access instance
-     */
-    <T extends IdentifiableObject> Access getAccess( T object );
-
-    /**
      * Return the access object for a object for a specific user.
      *
      * @param object Object to check for access
