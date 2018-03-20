@@ -41,6 +41,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
@@ -77,6 +78,13 @@ public class Schema implements Ordered, Klass
      * @see org.hisp.dhis.common.NameableObject
      */
     private final boolean nameableObject;
+
+    /**
+     * Is this class a sub-class of SubscribableObject
+     *
+     * @see org.hisp.dhis.common.SubscribableObject
+     */
+    private final boolean subscribableObject;
 
     /**
      * Does this class implement {@link EmbeddedObject} ?
@@ -204,6 +212,7 @@ public class Schema implements Ordered, Klass
         this.embeddedObject = EmbeddedObject.class.isAssignableFrom( klass );
         this.identifiableObject = IdentifiableObject.class.isAssignableFrom( klass );
         this.nameableObject = NameableObject.class.isAssignableFrom( klass );
+        this.subscribableObject = SubscribableObject.class.isAssignableFrom( klass );
         this.singular = singular;
         this.plural = plural;
         this.metadata = MetadataObject.class.isAssignableFrom( klass );
@@ -229,6 +238,13 @@ public class Schema implements Ordered, Klass
     public boolean isNameableObject()
     {
         return nameableObject;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSubscribableObject()
+    {
+        return subscribableObject;
     }
 
     @JsonProperty
@@ -397,6 +413,13 @@ public class Schema implements Ordered, Klass
     public boolean isFavoritable()
     {
         return isIdentifiableObject() && havePersistedProperty( "favorites" );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSubscribable()
+    {
+        return isSubscribableObject() && havePersistedProperty( "subscribers" );
     }
 
     @JsonProperty

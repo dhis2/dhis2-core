@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -661,6 +662,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
+    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.OK )
+    public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isSubscribable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+        }
+
+        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        SubscribableObject object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
+        }
+
+        object.subscribe( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
     //--------------------------------------------------------------------------
     // PUT
     //--------------------------------------------------------------------------
@@ -807,7 +839,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         T object = entity.get( 0 );
-        User user = currentUserService.getCurrentUser();  
+        User user = currentUserService.getCurrentUser();
 
         if ( user == null )
         {
@@ -817,10 +849,41 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         object.removeAsFavorite( user );
         manager.updateNoAcl( object );
         
-        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );        
+        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
-    
+
+    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.OK )
+    public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isSubscribable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+        }
+
+        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        SubscribableObject object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
+        }
+
+        object.unsubscribe( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
     //--------------------------------------------------------------------------
     // Identifiable object collections add, delete
     //--------------------------------------------------------------------------

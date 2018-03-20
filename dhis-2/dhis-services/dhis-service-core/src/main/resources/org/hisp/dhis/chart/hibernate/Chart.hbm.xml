@@ -229,6 +229,8 @@
     
     <property name="favorites" type="jbSet" />
 
+    <property name="subscribers" type="jbSet" />
+
   </class>
 
 </hibernate-mapping>
