@@ -31,10 +31,12 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -189,13 +191,13 @@ public class TrackedEntityAttributeController
 
             return result;
         }
-        catch ( ReservedValueService.ReserveValueException e )
+        catch ( ReserveValueException ex )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( e.getMessage() ) );
+            throw new WebMessageException( WebMessageUtils.conflict( ex.getMessage() ) );
         }
-        catch ( TextPatternService.TextPatternGenerationException e )
+        catch ( TextPatternGenerationException ex )
         {
-            throw new WebMessageException( WebMessageUtils.error( e.getMessage() ) );
+            throw new WebMessageException( WebMessageUtils.error( ex.getMessage() ) );
         }
     }
 

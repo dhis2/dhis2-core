@@ -96,28 +96,4 @@ public class DefaultRelationshipTypeService
     {
         return relationshipTypeStore.getRelationshipType( aIsToB, bIsToA );
     }
-
-    @Override
-    public Integer getRelationshipTypeCountByName( String name )
-    {
-        return relationshipTypeStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<RelationshipType> getRelationshipTypesBetweenByName( String name, int min, int max )
-    {
-        return relationshipTypeStore.getAllLikeName( name, min, max );
-    }
-
-    @Override
-    public Integer getRelationshipTypeCount()
-    {
-        return relationshipTypeStore.getCount();
-    }
-
-    @Override
-    public List<RelationshipType> getRelationshipTypesBetween( int min, int max )
-    {
-        return relationshipTypeStore.getAllOrderedName( min, max );
-    }
 }

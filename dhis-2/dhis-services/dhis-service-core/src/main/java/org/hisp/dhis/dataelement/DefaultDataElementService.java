@@ -29,7 +29,7 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,9 +56,9 @@ public class DefaultDataElementService
         this.dataElementStore = dataElementStore;
     }
 
-    private GenericIdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
+    private IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
 
-    public void setDataElementGroupStore( GenericIdentifiableObjectStore<DataElementGroup> dataElementGroupStore )
+    public void setDataElementGroupStore( IdentifiableObjectStore<DataElementGroup> dataElementGroupStore )
     {
         this.dataElementGroupStore = dataElementGroupStore;
     }

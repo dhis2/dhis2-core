@@ -50,7 +50,9 @@ import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -73,6 +75,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -106,8 +109,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         // If custom filter (mentions:in:[username]) in filters -> Add as
         // disjunction including interpretation mentions and comments mentions
-        for ( Disjunction disjunction : (Collection<Disjunction>) interpretationService
-            .getDisjunctionsFromCustomMentions( mentionsFromCustomFilters, query.getSchema() ) )
+        for ( Disjunction disjunction : (Collection<Disjunction>) getDisjunctionsFromCustomMentions( mentionsFromCustomFilters, query.getSchema() ) )
         {
             query.add( disjunction );
         }
@@ -494,5 +496,24 @@ public class InterpretationController extends AbstractCrudController<Interpretat
                 WebMessageUtils.conflict( "Could not remove like, user had not previously liked interpretation" ),
                 response, request );
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Collection<Disjunction> getDisjunctionsFromCustomMentions( List<String> mentions, Schema schema )
+    {
+        Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
+        for ( String m : mentions )
+        {
+            Disjunction disjunction = new Disjunction( schema );
+            String[] split = m.substring( 1, m.length() - 1 ).split( "," );
+            List<String> items = Lists.newArrayList( split );
+            disjunction.add( Restrictions.in( "mentions.username", items ) );
+            disjunction.add( Restrictions.in( "comments.mentions.username", items ) );
+            disjunctions.add( disjunction );
+        }
+        return disjunctions;
     }
 }
