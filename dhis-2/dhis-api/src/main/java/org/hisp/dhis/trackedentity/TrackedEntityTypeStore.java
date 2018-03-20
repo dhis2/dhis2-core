@@ -28,9 +28,9 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface TrackedEntityTypeStore
-    extends GenericIdentifiableObjectStore<TrackedEntityType>
+    extends IdentifiableObjectStore<TrackedEntityType>
 {
 }

@@ -30,7 +30,7 @@ package org.hisp.dhis.category;
  *
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ import java.util.List;
  * @author Lars Helge Overland
  */
 public interface CategoryOptionStore
-    extends GenericIdentifiableObjectStore<CategoryOption>
+    extends IdentifiableObjectStore<CategoryOption>
 {
     List<CategoryOption> getCategoryOptions( Category category );
 }

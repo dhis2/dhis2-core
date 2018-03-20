@@ -36,7 +36,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -72,9 +71,6 @@ public class DataApprovalStoreTest
     private UserService userService;
 
     @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
     private OrganisationUnitService organisationUnitService;
     
     // -------------------------------------------------------------------------
@@ -98,8 +94,6 @@ public class DataApprovalStoreTest
 
     private User userA;
     private User userB;
-
-    private User currentUser;
 
     private CategoryOptionCombo categoryOptionCombo;
 
@@ -152,8 +146,6 @@ public class DataApprovalStoreTest
         userService.addUser( userA );
         userService.addUser( userB );
 
-        currentUser = currentUserService.getCurrentUser();
-
         categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
@@ -171,10 +163,10 @@ public class DataApprovalStoreTest
         DataApproval dataApprovalD = new DataApproval( level1, workflowB12, periodA, sourceA, categoryOptionCombo, false, date, userA );
         DataApproval dataApprovalE = null;
 
-        dataApprovalStore.addDataApproval( dataApprovalA, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalB, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalC, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalD, currentUser );
+        dataApprovalStore.addDataApproval( dataApprovalA );
+        dataApprovalStore.addDataApproval( dataApprovalB );
+        dataApprovalStore.addDataApproval( dataApprovalC );
+        dataApprovalStore.addDataApproval( dataApprovalD );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNotNull( dataApprovalA );
@@ -226,8 +218,8 @@ public class DataApprovalStoreTest
         DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA );
         DataApproval dataApprovalB = new DataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo, false, date, userB );
 
-        dataApprovalStore.addDataApproval( dataApprovalA, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalB, currentUser );
+        dataApprovalStore.addDataApproval( dataApprovalA );
+        dataApprovalStore.addDataApproval( dataApprovalB );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNotNull( dataApprovalA );
@@ -235,7 +227,7 @@ public class DataApprovalStoreTest
         dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo );
         assertNotNull( dataApprovalB );
 
-        dataApprovalStore.deleteDataApproval( dataApprovalA, currentUser );
+        dataApprovalStore.deleteDataApproval( dataApprovalA );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNull( dataApprovalA );
@@ -243,7 +235,7 @@ public class DataApprovalStoreTest
         dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo );
         assertNotNull( dataApprovalB );
 
-        dataApprovalStore.deleteDataApproval( dataApprovalB, currentUser );
+        dataApprovalStore.deleteDataApproval( dataApprovalB );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNull( dataApprovalA );

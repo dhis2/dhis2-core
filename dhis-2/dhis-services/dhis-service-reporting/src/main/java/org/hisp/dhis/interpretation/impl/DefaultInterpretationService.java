@@ -28,7 +28,6 @@ package org.hisp.dhis.interpretation.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -39,10 +38,7 @@ import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.query.Disjunction;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -282,22 +278,6 @@ public class DefaultInterpretationService
         }
     }
     
-    @Override
-    public Collection<Disjunction> getDisjunctionsFromCustomMentions( List<String> mentions, Schema schema )
-    {
-        Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
-        for ( String m : mentions )
-        {
-            Disjunction disjunction = new Disjunction( schema );
-            String[] split = m.substring( 1, m.length() - 1 ).split( "," );
-            List<String> items = Lists.newArrayList( split );
-            disjunction.add( Restrictions.in( "mentions.username", items ) );
-            disjunction.add( Restrictions.in( "comments.mentions.username", items ) );
-            disjunctions.add( disjunction );
-        }
-        return disjunctions;
-    }
-
     @Override
     public InterpretationComment addInterpretationComment( String uid, String text )
     {

@@ -28,14 +28,14 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Abyot Asalefew Gizaw
  * @version $Id$
  */
 public interface RelationshipTypeStore
-    extends GenericIdentifiableObjectStore<RelationshipType>
+    extends IdentifiableObjectStore<RelationshipType>
 {
     String ID = RelationshipTypeStore.class.getName();
 
