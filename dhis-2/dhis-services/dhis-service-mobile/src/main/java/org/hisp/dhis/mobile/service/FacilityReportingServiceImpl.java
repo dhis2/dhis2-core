@@ -42,7 +42,8 @@ import org.hisp.dhis.api.mobile.model.DataSetValueList;
 import org.hisp.dhis.api.mobile.model.DataValue;
 import org.hisp.dhis.api.mobile.model.Model;
 import org.hisp.dhis.api.mobile.model.Section;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -87,7 +88,7 @@ public class FacilityReportingServiceImpl
 
     private PeriodService periodService;
 
-    private org.hisp.dhis.dataelement.CategoryService categoryService;
+    private CategoryService categoryService;
 
     private org.hisp.dhis.datavalue.DataValueService dataValueService;
 
@@ -560,7 +561,7 @@ public class FacilityReportingServiceImpl
     }
 
     @Required
-    public void setCategoryService( org.hisp.dhis.dataelement.CategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
