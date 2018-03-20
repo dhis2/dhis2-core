@@ -1128,11 +1128,6 @@ public abstract class AbstractEventService
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
-        if ( !importOptions.isSkipNotifications() )
-        {
-            programRuleEngineService.evaluate( programStageInstance );
-        }
-
         updateTrackedEntityInstance( programStageInstance, user );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
@@ -1164,6 +1159,11 @@ public abstract class AbstractEventService
                 dataValue.setValue( value.getValue() );
                 dataValue.setProvidedElsewhere( value.getProvidedElsewhere() );
                 dataValueService.updateTrackedEntityDataValue( dataValue );
+
+                if ( !importOptions.isSkipNotifications() )
+                {
+                    programRuleEngineService.evaluate( programStageInstance );
+                }
 
                 dataValues.remove( dataValue );
             }
