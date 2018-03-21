@@ -65,7 +65,7 @@ public class DefaultUserSettingService
 {
     
     /**
-     * Cache for system settings. Does not accept nulls. Disabled during test phase.
+     * Cache for user settings. Does not accept nulls. Disabled during test phase.
      */
     private Cache<Serializable> userSettingCache;
  
