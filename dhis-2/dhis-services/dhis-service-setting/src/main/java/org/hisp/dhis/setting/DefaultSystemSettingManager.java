@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -78,7 +79,7 @@ public class DefaultSystemSettingManager
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache settingCache;
+    private Cache<Serializable> settingCache;
     
   
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
@@ -114,8 +115,9 @@ public class DefaultSystemSettingManager
     @PostConstruct
     public void init()
     {
-        settingCache = cacheProvider.createCacheInstance( "systemSetting", true, 3600,  SystemUtils.isTestRun() ? 0 : 400 , null );
-        
+        settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build();
+ 
     }
 
 

@@ -28,7 +28,6 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -40,45 +39,63 @@ import java.util.function.Function;
  * @author Ameen Mohamed
  *
  */
-public class NoOpCache
-    implements
-    Cache
+public class NoOpCache<V> implements Cache<V>
 {
 
-    private Serializable defaultValue;
+    private V defaultValue;
 
-    public NoOpCache( Serializable defaultValue )
+    public NoOpCache( CacheBuilder<V> cacheBuilder )
     {
-        this.defaultValue = defaultValue;
+        this.defaultValue = cacheBuilder.getDefaultValue();
     }
 
     @Override
-    public Optional<Serializable> getIfPresent( String key )
+    public Optional<V> getIfPresent( String key )
     {
+        if ( null == key )
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         return Optional.empty();
     }
-    
+
     @Override
-    public Optional<Serializable> get( String key )
+    public Optional<V> get( String key )
     {
+        if ( null == key )
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         return Optional.ofNullable( defaultValue );
     }
 
     @Override
-    public Optional<Serializable> get( String key, Function<String, Serializable> mappingFunction )
+    public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
+        if ( null == key || null == mappingFunction )
+        {
+            throw new IllegalArgumentException( "Key and mappingFunction cannot be null" );
+        }
         return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
     }
 
     @Override
-    public void put( String key, Serializable value )
+    public void put( String key, V value )
     {
+        if ( null == key || null == value )
+        {
+            throw new IllegalArgumentException( "Key and Value cannot be null" );
+        }
         // No operation
     }
 
     @Override
     public void invalidate( String key )
     {
+        if ( null == key )
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         // No operation
     }
 

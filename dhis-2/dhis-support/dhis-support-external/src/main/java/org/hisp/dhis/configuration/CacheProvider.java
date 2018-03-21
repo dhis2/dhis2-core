@@ -29,23 +29,14 @@ package org.hisp.dhis.configuration;
 
 import java.io.Serializable;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.LocalCache;
-import org.hisp.dhis.cache.NoOpCache;
-import org.hisp.dhis.cache.RedisCache;
-import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * A CacheFactory object that provides cache instances based on the input
- * parameters. Provides cache instances based on the configurations like Redis
- * backed cache (Shared Cache), Caffeine backed cache (local cache) or NoOp
- * cache (for system testing)
+ * Provides cache builder to build instances.
  * 
  * @author Ameen Mohamed
  *
@@ -53,55 +44,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class CacheProvider
 {
-    private static final Log log = LogFactory.getLog( CacheProvider.class );
-
     private DhisConfigurationProvider configurationProvider;
 
     private RedisTemplate<String, Serializable> redisTemplate;
 
     /**
-     * Creates and returns a cacheInstance based on the system configuration and
-     * the input parameters. If {@code maximumSize} is 0 then a NoOpCache
-     * instance will be returned which does not cache anything. This can be used
-     * during system testings where cache has to be disabled. If
-     * {@code maximumSize} is greater than 0 than based on {@code redis.enabled}
-     * property in dhis.conf, either Redis backed implementation will be
-     * returned or a Local Caffeine backed cache implementation will be
-     * returned. For Local cache, every instance created using this method will
-     * be logically separate and will not share any state. However, when using
-     * Redis Cache, every instance created using this method will use the same
-     * redis store.
+     * Creates a new {@link CacheBuilder} that can be used to build a cache that
+     * stores the valueType specified.
      * 
      * 
-     * @param region The cache region name
-     * @param refreshExpiryOnAccess Indicates whether the expiry (timeToLive)
-     *        has to reset on every access
-     * @param expiryInSeconds The time to live value in seconds
-     * @param maximumSize The maximum size this cache instance should hold. If
-     *        set to 0, then caching is disabled. If set to -1, then the cache
-     *        instance will use as much as feasible.
-     * @return A cache instance based on the system configuration and input
-     *         parameters. Returns one of {@link RedisCache}, {@link LocalCache}
-     *         or {@link NoOpCache}
+     * @param valueType The class type of values to be stored in cache.
+     * @return A cache builder instance for the specified value type. Returns a
+     *         {@link CacheBuilder}
      */
-    public Cache createCacheInstance( String region, boolean refreshExpiryOnAccess, long expiryInSeconds,
-        long maximumSize, Serializable defaultValue )
+    public <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType )
     {
-        if ( maximumSize == 0 )
-        {
-            log.info( "NoOp Cache instance created for region=" + region );
-            return new NoOpCache( defaultValue );
-        }
-        else if ( configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ) )
-        {
-            log.info( "Redis Cache instance created for region=" + region );
-            return new RedisCache( redisTemplate, region, refreshExpiryOnAccess, expiryInSeconds, defaultValue );
-        }
-        else
-        {
-            log.info( "Local Cache instance created for region=" + region );
-            return new LocalCache( refreshExpiryOnAccess, expiryInSeconds, maximumSize, defaultValue );
-        }
+        return new CacheBuilder<V>( redisTemplate, configurationProvider );
     }
 
     @Autowired

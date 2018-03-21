@@ -27,11 +27,10 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface Cache
+public interface Cache<V>
 {
     /**
      * Returns the value associated with the {@code key} in this cache instance,
@@ -48,9 +47,9 @@ public interface Cache
      * @return the value wrapped in Optional, to which the specified key is
      *         mapped in the cache instance or {@code Optional.empty()} if this
      *         cache contains no mapping for the key
-     * @throws NullPointerException if the specified key is null
+     * @throws IllegalArgumentException if the specified key is null
      */
-    Optional<Serializable> getIfPresent( String key );
+    Optional<V> getIfPresent( String key );
 
     /**
      * Returns the value associated with the {@code key} in this cache instance,
@@ -68,9 +67,9 @@ public interface Cache
      * @return the value wrapped in Optional, to which the specified key is
      *         mapped in the cache instance or {@code Optional of defaultValue}
      *         if this cache contains no mapping for the key
-     * @throws NullPointerException if the specified key is null
+     * @throws IllegalArgumentException if the specified key is null
      */
-    Optional<Serializable> get( String key );
+    Optional<V> get( String key );
 
     /**
      * Returns the value associated with the {@code key} in this cache instance,
@@ -96,15 +95,14 @@ public interface Cache
      * @return an optional containing current (existing or computed) value
      *         associated with the specified key, or Optional.empty() if the
      *         computed value is null
-     * @throws NullPointerException if the specified key or mappingFunction is
-     *         null
+     * @throws IllegalArgumentException if the specified key is null
      * @throws IllegalStateException if the computation detectably attempts a
      *         recursive update to this cache that would otherwise never
      *         complete
      * @throws RuntimeException or Error if the mappingFunction does so, in
      *         which case the mapping is left unestablished
      */
-    Optional<Serializable> get( String key, Function<String, Serializable> mappingFunction );
+    Optional<V> get( String key, Function<String, V> mappingFunction );
 
     /**
      * Associates the {@code value} with the {@code key} in this cache. If the
@@ -116,9 +114,9 @@ public interface Cache
      *
      * @param key the key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @throws NullPointerException if the specified key or value is null
+     * @throws IllegalArgumentException if the specified key or value is null
      */
-    void put( String key, Serializable value );
+    void put( String key, V value );
 
     /**
      * Discards any cached value for the {@code key}. The behavior of this
@@ -126,7 +124,7 @@ public interface Cache
      * not present.
      *
      * @param key the key whose mapping is to be removed from the cache
-     * @throws NullPointerException if the specified key is null
+     * @throws IllegalArgumentException if the specified key is null
      */
     void invalidate( String key );
 

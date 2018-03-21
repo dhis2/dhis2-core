@@ -27,10 +27,10 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
@@ -40,14 +40,12 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * @author Ameen Mohamed
  *
  */
-public class LocalCache
-    implements
-    Cache
+public class LocalCache<V> implements Cache<V>
 {
 
-    private com.github.benmanes.caffeine.cache.Cache<String, Serializable> caffeineCache;
+    private com.github.benmanes.caffeine.cache.Cache<String, V> caffeineCache;
 
-    private Serializable defaultValue;
+    private V defaultValue;
 
     /**
      * Constructor to instantiate LocalCache object.
@@ -64,60 +62,75 @@ public class LocalCache
      *        key did not have an associated value. By default the defaultValue
      *        is null
      */
-    public LocalCache( boolean refreshExpiryOnAccess, long expiryInSeconds, long maximumSize,
-        Serializable defaultValue )
+    public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
-        if ( refreshExpiryOnAccess )
+        if ( cacheBuilder.isRefreshExpiryOnAccess() )
         {
-            builder.expireAfterAccess( expiryInSeconds, TimeUnit.SECONDS );
+            builder.expireAfterAccess( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
         }
         else
         {
-            builder.expireAfterWrite( expiryInSeconds, TimeUnit.SECONDS );
+            builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
 
         }
 
-        if ( maximumSize > 0 )
+        if ( cacheBuilder.getMaximumSize() > 0 )
         {
-            builder.maximumSize( maximumSize );
+            builder.maximumSize( cacheBuilder.getMaximumSize() );
         }
         this.caffeineCache = builder.build();
-        this.defaultValue = defaultValue;
     }
 
     @Override
-    public Optional<Serializable> getIfPresent( String key )
+    public Optional<V> getIfPresent( String key )
     {
+        if ( null == key)
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         return Optional.ofNullable( caffeineCache.getIfPresent( key ) );
     }
-    
 
     @Override
-    public Optional<Serializable> get( String key )
+    public Optional<V> get( String key )
     {
+        if ( null == key)
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         return Optional.ofNullable( Optional.ofNullable( caffeineCache.getIfPresent( key ) ).orElse( defaultValue ) );
     }
 
     @Override
-    public Optional<Serializable> get( String key, Function<String, Serializable> mappingFunction )
+    public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
+        if ( null == key || null == mappingFunction)
+        {
+            throw new IllegalArgumentException( "Key and MappingFunction cannot be null" );
+        }
         return Optional
             .ofNullable( Optional.ofNullable( caffeineCache.get( key, mappingFunction ) ).orElse( defaultValue ) );
     }
 
     @Override
-    public void put( String key, Serializable value )
+    public void put( String key, V value )
     {
+        if ( null == key || null == value )
+        {
+            throw new IllegalArgumentException( "Key and Value cannot be null" );
+        }
         caffeineCache.put( key, value );
-
     }
 
     @Override
     public void invalidate( String key )
     {
+        if ( null == key)
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         caffeineCache.invalidate( key );
-
     }
 
     @Override

@@ -27,10 +27,10 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -40,12 +40,10 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author Ameen Mohamed
  *
  */
-public class RedisCache
-    implements
-    Cache
+public class RedisCache<V> implements Cache<V>
 {
 
-    private RedisTemplate<String, Serializable> redisTemplate;
+    private RedisTemplate<String, V> redisTemplate;
 
     private boolean refreshExpriryOnAccess;
 
@@ -53,7 +51,7 @@ public class RedisCache
 
     private String cacheRegion;
 
-    private Serializable defaultValue;
+    private V defaultValue;
 
     /**
      * Constructor for instantiating RedisCache.
@@ -70,19 +68,23 @@ public class RedisCache
      *        is null
      * 
      */
-    public RedisCache( RedisTemplate<String, Serializable> redisTemplate, String region, boolean refreshExpiryOnAccess,
-        long expiryInSeconds, Serializable defaultValue )
+    @SuppressWarnings( "unchecked" )
+    public RedisCache( CacheBuilder<V> cacheBuilder )
     {
-        this.redisTemplate = redisTemplate;
-        this.refreshExpriryOnAccess = refreshExpiryOnAccess;
-        this.expiryInSeconds = expiryInSeconds;
-        this.cacheRegion = region;
-        this.defaultValue = defaultValue;
+        this.redisTemplate = (RedisTemplate<String, V>) cacheBuilder.getRedisTemplate();
+        this.refreshExpriryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
+        this.expiryInSeconds = cacheBuilder.getExpiryInSeconds();
+        this.cacheRegion = cacheBuilder.getRegion();
+        this.defaultValue = cacheBuilder.getDefaultValue();
     }
 
     @Override
-    public Optional<Serializable> getIfPresent( String key )
+    public Optional<V> getIfPresent( String key )
     {
+        if ( null == key)
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         String redisKey = generateActualKey( key );
         if ( refreshExpriryOnAccess )
         {
@@ -92,8 +94,12 @@ public class RedisCache
     }
 
     @Override
-    public Optional<Serializable> get( String key )
+    public Optional<V> get( String key )
     {
+        if ( null == key)
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         String redisKey = generateActualKey( key );
         if ( refreshExpriryOnAccess )
         {
@@ -104,15 +110,18 @@ public class RedisCache
     }
 
     @Override
-    public Optional<Serializable> get( String key, Function<String, Serializable> mappingFunction )
+    public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
-
+        if ( null == key || null == mappingFunction)
+        {
+            throw new IllegalArgumentException( "Key and MappingFunction cannot be null" );
+        }
         String redisKey = generateActualKey( key );
         if ( refreshExpriryOnAccess )
         {
             redisTemplate.expire( redisKey, expiryInSeconds, TimeUnit.SECONDS );
         }
-        Serializable value = redisTemplate.boundValueOps( redisKey ).get();
+        V value = redisTemplate.boundValueOps( redisKey ).get();
 
         if ( null == value )
         {
@@ -128,11 +137,11 @@ public class RedisCache
     }
 
     @Override
-    public void put( String key, Serializable value )
+    public void put( String key, V value )
     {
-        if ( null == value )
+        if ( null == key || null == value )
         {
-            throw new NullPointerException();
+            throw new IllegalArgumentException( "Key and Value cannot be null" );
         }
         redisTemplate.boundValueOps( generateActualKey( key ) ).set( value );
     }
@@ -140,6 +149,10 @@ public class RedisCache
     @Override
     public void invalidate( String key )
     {
+        if ( null == key)
+        {
+            throw new IllegalArgumentException( "Key cannot be null" );
+        }
         redisTemplate.delete( generateActualKey( key ) );
 
     }

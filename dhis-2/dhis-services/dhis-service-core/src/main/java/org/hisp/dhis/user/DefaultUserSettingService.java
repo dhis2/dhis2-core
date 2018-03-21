@@ -67,7 +67,7 @@ public class DefaultUserSettingService
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache userSettingCache;
+    private Cache<Serializable> userSettingCache;
  
     private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
@@ -123,8 +123,9 @@ public class DefaultUserSettingService
     @PostConstruct
     public void init()
     {
-        userSettingCache = cacheProvider.createCacheInstance( "userSetting", true, 3600,  SystemUtils.isTestRun() ? 0 : 10000 , null );
-        
+        userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+    
     }
 
     // -------------------------------------------------------------------------
