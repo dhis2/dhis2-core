@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;

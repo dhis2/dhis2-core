@@ -29,9 +29,9 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOption;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTable;

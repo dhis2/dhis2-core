@@ -30,6 +30,9 @@ package org.hisp.dhis.dataelement;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 import java.util.Collection;

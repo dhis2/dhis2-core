@@ -29,8 +29,8 @@ package org.hisp.dhis.system.callable;
  */
 
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 
 import java.util.concurrent.ExecutionException;
 
