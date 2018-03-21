@@ -35,6 +35,7 @@ import org.hisp.dhis.analysis.FollowupAnalysisParams;
 import org.hisp.dhis.analysis.FollowupParams;
 import org.hisp.dhis.analysis.MinMaxOutlierAnalysisParams;
 import org.hisp.dhis.analysis.StdDevOutlierAnalysisParams;
+import org.hisp.dhis.analysis.UpdateFollowUpForDataValuesRequest;
 import org.hisp.dhis.analysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -103,7 +104,7 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 @Controller
 @RequestMapping( value = AnalysisController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@PreAuthorize( "hasRole('F_RUN_VALIDATION')" )
+@PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
 public class AnalysisController
 {
     public static final String RESOURCE_PATH = "/analysis";
@@ -191,7 +192,6 @@ public class AnalysisController
     List<DeflatedDataValue> performStdDevOutlierAnalysis( @RequestBody StdDevOutlierAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( stdDevOutlierAnalysisParams.getOrganisationUnitId() );
@@ -229,7 +229,6 @@ public class AnalysisController
     List<DeflatedDataValue> performMinMaxOutlierAnalysis( @RequestBody MinMaxOutlierAnalysisParams minMaxOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
-
         I18nFormat format = i18nManager.getI18nFormat();
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( minMaxOutlierAnalysisParams.getOrganisationUnitId() );
@@ -261,13 +260,41 @@ public class AnalysisController
     }
 
     @RequestMapping( value = "/followup", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    void followup( @RequestBody List<FollowupParams> followups )
+    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody FollowupAnalysisParams followupAnalysisParams, HttpSession session )
         throws WebMessageException
     {
-        // FIXME move it to the Transactional service
-        for ( FollowupParams followup : followups )
+        I18nFormat format = i18nManager.getI18nFormat();
+
+        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( followupAnalysisParams.getOrganisationUnitId() );
+        if ( organisationUnit == null )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+        }
+
+        Date startDate = null;
+        Date endDate = null;
+        if ( followupAnalysisParams.getStartDate() != null && followupAnalysisParams.getEndDate() != null )
+        {
+            startDate = new DateTime( format.parseDate( followupAnalysisParams.getStartDate() ) ).toDate();
+            endDate = new DateTime( format.parseDate( followupAnalysisParams.getEndDate() ) ).toDate();
+        }
+
+        List<DeflatedDataValue> dataValues = new ArrayList( followupAnalysisService.getFollowupDataValuesBetweenInterval( organisationUnit, followupAnalysisParams.getDataSetId(), DataAnalysisService.MAX_OUTLIERS + 1, startDate, endDate ) ); // +1 to detect overflow
+
+        session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
+
+        return deflatedValuesListToResponse( dataValues );
+    }
+
+    @RequestMapping( value = "/followup/mark", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public @ResponseBody
+    void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest updateFollowUpForDataValuesRequest )
+    {
+        List<DataValue> dataValues = new ArrayList<>();
+        for ( FollowupParams followup : updateFollowUpForDataValuesRequest.getFollowups() )
         {
             DataElement dataElement = dataElementService.getDataElement( followup.getDataElementId() );
             Period period = periodService.getPeriod( followup.getPeriodId() );
@@ -277,16 +304,18 @@ public class AnalysisController
 
             DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
 
-            if ( dataValue == null )
+            if ( dataValue != null )
             {
-                throw new WebMessageException( WebMessageUtils.notFound( "Data value not found" ) );
+                dataValue.setFollowup( followup.isFollowup() );
+                dataValues.add( dataValue );
             }
 
-            dataValue.setFollowup( followup.isFollowup() );
+            log.info( followup.isFollowup() ? "Data value will be marked for follow-up" : "Data value will be unmarked for follow-up" );
+        }
 
-            dataValueService.updateDataValue( dataValue );
-
-            log.info( followup.isFollowup() ? "Data value marked for follow-up" : "Data value unmarked for follow-up" );
+        if ( dataValues.size() > 0 )
+        {
+            dataValueService.updateDataValues( dataValues );
         }
     }
 
@@ -364,7 +393,6 @@ public class AnalysisController
 
     private Grid generateAnalysisReportGridFromResults( List<DeflatedDataValue> results )
     {
-
         Grid grid = new ListGrid();
         if ( results != null )
         {
@@ -399,7 +427,6 @@ public class AnalysisController
 
     private Grid generateValidationRulesReportGridFromResults( List<ValidationResult> results )
     {
-
         Grid grid = new ListGrid();
         if ( results != null )
         {
@@ -441,7 +468,6 @@ public class AnalysisController
 
     private List<DeflatedDataValue> deflatedValuesListToResponse( List<DeflatedDataValue> deflatedDataValues )
     {
-
         I18nFormat format = i18nManager.getI18nFormat();
         if ( deflatedDataValues == null )
         {
@@ -464,7 +490,6 @@ public class AnalysisController
 
     private List<ValidationResult> validationResultsListToResponse( List<ValidationResult> validationResults )
     {
-
         I18nFormat format = i18nManager.getI18nFormat();
         if ( validationResults == null )
         {
