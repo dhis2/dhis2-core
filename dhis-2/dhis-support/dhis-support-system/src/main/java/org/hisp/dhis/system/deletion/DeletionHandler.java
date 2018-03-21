@@ -69,6 +69,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -958,6 +959,16 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteSMSCommand( SMSCommand smsCommand )
+    {
+        return null;
+    }
+
+    public void deleteMessageConversation( MessageConversation messageConversation )
+    {
+
+    }
+
+    public String allowDeleteMessageConversation( MessageConversation messageConversation )
     {
         return null;
     }
