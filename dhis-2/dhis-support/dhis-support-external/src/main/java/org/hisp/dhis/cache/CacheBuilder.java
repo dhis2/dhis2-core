@@ -52,20 +52,26 @@ public class CacheBuilder<V>
 
     private RedisTemplate<String, ?> redisTemplate;
 
-    private long maximumSize = -1;
+    private long maximumSize;
 
-    private String region = "default";
+    private String region;
 
-    private boolean refreshExpiryOnAccess = false;
+    private boolean refreshExpiryOnAccess;
 
-    private long expiryInSeconds = Long.MAX_VALUE;
+    private long expiryInSeconds;
 
-    private V defaultValue = null;
+    private V defaultValue;
 
     public CacheBuilder( RedisTemplate<String, ?> redisTemplate, DhisConfigurationProvider configurationProvider )
     {
         this.configurationProvider = configurationProvider;
         this.redisTemplate = redisTemplate;
+        //Applying sensinble defaults
+        this.maximumSize = -1;
+        this.region = "default";
+        this.refreshExpiryOnAccess = false;
+        this.expiryInSeconds = Long.MAX_VALUE;
+        this.defaultValue = null;
     }
 
     /**

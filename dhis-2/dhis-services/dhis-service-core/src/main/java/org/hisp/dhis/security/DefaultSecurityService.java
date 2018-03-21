@@ -172,7 +172,7 @@ public class DefaultSecurityService
             return;
         }
         
-        Integer attempts = (Integer)userFailedLoginAttemptCache.get( username ).get();
+        Integer attempts = userFailedLoginAttemptCache.get( username ).get();
         
         attempts++;
         
@@ -198,7 +198,7 @@ public class DefaultSecurityService
             return false;
         }
         
-        return (Integer) userFailedLoginAttemptCache.get( username ).get() > LOGIN_MAX_FAILED_ATTEMPTS;
+        return userFailedLoginAttemptCache.get( username ).get() > LOGIN_MAX_FAILED_ATTEMPTS;
     }
     
     private boolean isBlockFailedLogins()

@@ -143,7 +143,7 @@ public class RedisCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "Key and Value cannot be null" );
         }
-        redisTemplate.boundValueOps( generateActualKey( key ) ).set( value );
+        redisTemplate.boundValueOps( generateActualKey( key ) ).set( value , expiryInSeconds , TimeUnit.SECONDS);
     }
 
     @Override

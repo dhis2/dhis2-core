@@ -80,6 +80,9 @@ public class LocalCache<V> implements Cache<V>
             builder.maximumSize( cacheBuilder.getMaximumSize() );
         }
         this.caffeineCache = builder.build();
+        
+        this.defaultValue = cacheBuilder.getDefaultValue();
+        
     }
 
     @Override
