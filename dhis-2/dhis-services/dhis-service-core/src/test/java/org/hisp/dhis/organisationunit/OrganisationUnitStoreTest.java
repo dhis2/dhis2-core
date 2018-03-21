@@ -31,7 +31,7 @@ package org.hisp.dhis.organisationunit;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.junit.Test;

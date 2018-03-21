@@ -30,8 +30,8 @@ package org.hisp.dhis.resourcetable.table;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.Category;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
