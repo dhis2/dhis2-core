@@ -70,8 +70,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
@@ -531,12 +529,12 @@ public abstract class AbstractEventService
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
-        
-        if( params.getProgramStage() == null )
+
+        if ( params.getProgramStage() == null )
         {
             throw new IllegalQueryException( "Program stage can not be null." );
-        }        
-        
+        }
+
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
@@ -967,9 +965,7 @@ public abstract class AbstractEventService
 
         if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
         {
-            String descMsg = "No event or event ID was supplied";
-            WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
-            return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
         }
 
         ImportSummary importSummary = new ImportSummary( event.getEvent() );
@@ -980,28 +976,18 @@ public abstract class AbstractEventService
         // write access to the new orgUnit as well
         List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
 
-        if ( programStageInstance == null || !errors.isEmpty() )
+        if ( programStageInstance == null )
         {
-            WebMessage webMsg;
-
-            if ( programStageInstance == null )
-            {
-                String descMsg = "ID " + event.getEvent() + " doesn't point to valid event";
-                webMsg = WebMessageUtils.notFound( descMsg );
-                importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID.", event.getEvent() ) );
-                importSummary.setDescription( descMsg );
-            }
-            else
-            {
-                webMsg = WebMessageUtils.forbidden( errors.toString() );
-                importSummary.setDescription( errors.toString() );
-            }
-
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setWebMessage( webMsg );
-            importSummary.incrementIgnored();
+            importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
+            importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID.", event.getEvent() ) );
 
-            return importSummary;
+            return importSummary.incrementIgnored();
+        }
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
         }
 
         //TODO: If change of orgUnit shouldn't be supported, the code below can be removed
@@ -1040,8 +1026,6 @@ public abstract class AbstractEventService
 
             if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
             {
-                WebMessage webMsg = WebMessageUtils.forbidden( "User is not authorized to uncomplete events." );
-                importSummary.setWebMessage( webMsg );
                 importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.setDescription( "User is not authorized to uncomplete events." );
 
@@ -1111,13 +1095,9 @@ public abstract class AbstractEventService
 
             if ( attributeOptionCombo == null )
             {
+                importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.getConflicts().add( new ImportConflict( "Invalid attribute option combo identifier:",
                     event.getAttributeCategoryOptions() ) );
-
-                WebMessage webMsg = WebMessageUtils.badRequest( importSummary.getConflicts().toString() );
-
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary.setWebMessage( webMsg );
 
                 return importSummary.incrementIgnored();
             }
@@ -1187,9 +1167,7 @@ public abstract class AbstractEventService
             dataValues.forEach( dataValueService::deleteTrackedEntityDataValue );
         }
 
-        WebMessage webMsg = WebMessageUtils.importSummary( importSummary );
         importSummary.incrementUpdated();
-        importSummary.setWebMessage( webMsg );
 
         return importSummary;
     }
@@ -1269,21 +1247,10 @@ public abstract class AbstractEventService
             }
 
             String descMsg = "Deletion of event " + uid + " was successful";
-            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg )
-                .incrementDeleted();
-
-            WebMessage webMsg = WebMessageUtils.importSummary( importSummary );
-            importSummary.setWebMessage( webMsg );
-
-            return importSummary;
+            return new ImportSummary( ImportStatus.SUCCESS, descMsg ).incrementDeleted();
         }
 
-        String descMsg = "ID " + uid + " does not point to a valid event.";
-        WebMessage webMsg = WebMessageUtils.notFound( descMsg );
-        ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR, descMsg, webMsg )
-            .incrementIgnored();
-
-        return importSummary;
+        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." ).incrementIgnored();
     }
 
     @Override
@@ -1389,11 +1356,9 @@ public abstract class AbstractEventService
                 if ( dataElement == null )
                 {
                     String descMsg = "Data element " + dataValue.getDataElement() + " doesn't exist in the system. Please, provide correct data element";
-                    WebMessage webMsg = WebMessageUtils.badRequest( descMsg );
 
                     importSummary.setStatus( ImportStatus.ERROR );
                     importSummary.setDescription( descMsg );
-                    importSummary.setWebMessage( webMsg );
 
                     return importSummary;
                 }
@@ -1421,9 +1386,6 @@ public abstract class AbstractEventService
             importSummary.incrementIgnored();
             importSummary.setStatus( ImportStatus.ERROR );
 
-            WebMessage webMsg = WebMessageUtils.badRequest( importSummary.getConflicts().toString() );
-            importSummary.setWebMessage( webMsg );
-
             return false;
         }
 
@@ -1434,9 +1396,6 @@ public abstract class AbstractEventService
             errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
             importSummary.incrementIgnored();
             importSummary.setStatus( ImportStatus.ERROR );
-
-            WebMessage webMsg = WebMessageUtils.forbidden( importSummary.getConflicts().toString() );
-            importSummary.setWebMessage( webMsg );
 
             return false;
         }
