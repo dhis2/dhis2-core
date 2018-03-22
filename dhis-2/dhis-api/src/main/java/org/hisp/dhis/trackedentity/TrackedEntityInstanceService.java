@@ -237,14 +237,6 @@ public interface TrackedEntityInstanceService
     boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
 
     /**
-     //     * Checks for the existence of a TEI by UID
-     //     *
-     //     * @param uid PSI UID to check for
-     //     * @return true/false depending on result
-     //     */
-//    boolean trackedEntityInstanceExists( String uid, boolean includeDeleted );
-
-    /**
      * Register a new entityInstance
      *
      * @param entityInstance     TrackedEntityInstance
