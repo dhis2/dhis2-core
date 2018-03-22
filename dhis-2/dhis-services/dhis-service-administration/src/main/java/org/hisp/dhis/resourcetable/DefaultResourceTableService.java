@@ -32,6 +32,10 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -146,7 +150,7 @@ public class DefaultResourceTableService
     public void generateCategoryOptionComboNames()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable( 
-            idObjectManager.getAllNoAcl( CategoryCombo.class ), 
+            idObjectManager.getAllNoAcl( CategoryCombo.class ),
             statementBuilder.getColumnQuote() ) );
     }
 

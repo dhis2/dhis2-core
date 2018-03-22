@@ -29,7 +29,7 @@ package org.hisp.dhis.dataapproval;
  */
 
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Date;

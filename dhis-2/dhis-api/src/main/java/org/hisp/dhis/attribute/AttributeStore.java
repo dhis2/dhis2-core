@@ -30,6 +30,9 @@ package org.hisp.dhis.attribute;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;

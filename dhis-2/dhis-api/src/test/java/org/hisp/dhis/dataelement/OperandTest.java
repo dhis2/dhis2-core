@@ -28,13 +28,15 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
-import static org.hisp.dhis.dataelement.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.junit.Assert.*;
 
 /**

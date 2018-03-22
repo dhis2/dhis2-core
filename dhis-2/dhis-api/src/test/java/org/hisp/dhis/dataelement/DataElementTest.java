@@ -29,6 +29,7 @@ package org.hisp.dhis.dataelement;
  */
 
 import com.google.common.collect.Sets;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.MonthlyPeriodType;

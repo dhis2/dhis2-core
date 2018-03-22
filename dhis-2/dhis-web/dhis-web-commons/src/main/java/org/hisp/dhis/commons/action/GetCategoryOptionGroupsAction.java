@@ -29,8 +29,8 @@ package org.hisp.dhis.commons.action;
  */
 
 import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

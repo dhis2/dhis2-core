@@ -4,10 +4,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOption;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;

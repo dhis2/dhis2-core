@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.data;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;

@@ -30,8 +30,8 @@ package org.hisp.dhis.util;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.dataelement.Category;
-import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
