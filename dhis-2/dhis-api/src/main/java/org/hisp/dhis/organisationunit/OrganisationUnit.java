@@ -40,7 +40,7 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
-import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;

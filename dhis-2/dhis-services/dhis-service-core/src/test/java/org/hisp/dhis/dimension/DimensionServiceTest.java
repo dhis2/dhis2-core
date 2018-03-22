@@ -30,6 +30,8 @@ package org.hisp.dhis.dimension;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;

@@ -30,10 +30,10 @@ package org.hisp.dhis.datavalue;
 
 import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.CategoryOption;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

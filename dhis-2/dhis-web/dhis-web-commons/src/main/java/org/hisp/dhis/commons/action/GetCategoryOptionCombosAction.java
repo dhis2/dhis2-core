@@ -29,6 +29,9 @@ package org.hisp.dhis.commons.action;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.*;
 
 import java.util.Set;
