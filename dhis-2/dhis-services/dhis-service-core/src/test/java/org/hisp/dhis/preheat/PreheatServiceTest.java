@@ -38,7 +38,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -111,7 +111,7 @@ public class PreheatServiceTest
 
         assertFalse( references.containsKey( OptionSet.class ) );
         assertFalse( references.containsKey( LegendSet.class ) );
-        assertTrue( references.containsKey( DataElementCategoryCombo.class ) );
+        assertTrue( references.containsKey( CategoryCombo.class ) );
         assertFalse( references.containsKey( User.class ) );
     }
 

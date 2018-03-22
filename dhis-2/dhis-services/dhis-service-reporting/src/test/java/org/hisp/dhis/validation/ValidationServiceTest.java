@@ -30,6 +30,11 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -72,7 +77,7 @@ public class ValidationServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -98,9 +103,9 @@ public class ValidationServiceTest
     private DataElement dataElementD;
     private DataElement dataElementE;
 
-    private Set<DataElementCategoryOptionCombo> optionCombos;
+    private Set<CategoryOptionCombo> optionCombos;
 
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
 
     private Expression expressionA;
     private Expression expressionB;
@@ -158,7 +163,7 @@ public class ValidationServiceTest
     private PeriodType periodTypeMonthly;
     private PeriodType periodTypeYearly;
 
-    private DataElementCategoryOptionCombo defaultCombo;
+    private CategoryOptionCombo defaultCombo;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -187,7 +192,7 @@ public class ValidationServiceTest
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementE );
 
-        optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         String suffix = SEPARATOR + optionCombo.getUid();
 
@@ -313,7 +318,7 @@ public class ValidationServiceTest
         validationRuleX = createValidationRule( "X", equal_to, expressionA, expressionC, periodTypeMonthly ); // deA + deB = deB * 2
         group = createValidationRuleGroup( 'A' );
 
-        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        defaultCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
     @Override
@@ -327,7 +332,7 @@ public class ValidationServiceTest
     // -------------------------------------------------------------------------
 
     private ValidationResult createValidationResult( ValidationRule validationRule, Period period, OrganisationUnit orgUnit,
-        DataElementCategoryOptionCombo catCombo, double ls, double rs, int dayInPeriod )
+        CategoryOptionCombo catCombo, double ls, double rs, int dayInPeriod )
     {
         ValidationResult vr = new ValidationResult( validationRule, period, orgUnit, catCombo, ls, rs, dayInPeriod );
 
@@ -461,7 +466,7 @@ public class ValidationServiceTest
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, String value,
-        DataElementCategoryOptionCombo oc1, DataElementCategoryOptionCombo oc2 )
+        CategoryOptionCombo oc1, CategoryOptionCombo oc2 )
     {
         dataValueService.addDataValue( createDataValue( e, p, s, value, oc1, oc2 ) );
     }
@@ -955,25 +960,25 @@ public class ValidationServiceTest
     @Test
     public void testValidateWithCategoryOptions()
     {
-        DataElementCategoryOption optionA = new DataElementCategoryOption( "CategoryOptionA" );
-        DataElementCategoryOption optionB = new DataElementCategoryOption( "CategoryOptionB" );
+        CategoryOption optionA = new CategoryOption( "CategoryOptionA" );
+        CategoryOption optionB = new CategoryOption( "CategoryOptionB" );
 
-        categoryService.addDataElementCategoryOption( optionA );
-        categoryService.addDataElementCategoryOption( optionB );
+        categoryService.addCategoryOption( optionA );
+        categoryService.addCategoryOption( optionB );
 
-        DataElementCategory categoryA = createDataElementCategory( 'A', optionA, optionB );
+        Category categoryA = createCategory( 'A', optionA, optionB );
 
-        categoryService.addDataElementCategory( categoryA );
+        categoryService.addCategory( categoryA );
 
-        DataElementCategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
+        CategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
 
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryService.addCategoryCombo( categoryComboA );
 
-        DataElementCategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        DataElementCategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
+        CategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
+        CategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
 
-        categoryService.addDataElementCategoryOptionCombo( optionComboA );
-        categoryService.addDataElementCategoryOptionCombo( optionComboB );
+        categoryService.addCategoryOptionCombo( optionComboA );
+        categoryService.addCategoryOptionCombo( optionComboB );
 
         useDataValue( dataElementD, periodA, sourceA, "3", optionComboA, optionCombo );
         useDataValue( dataElementD, periodA, sourceA, "4", optionComboB, optionCombo );
@@ -1001,33 +1006,33 @@ public class ValidationServiceTest
     @Test
     public void testValidateWithAttributeOptions()
     {
-        DataElementCategoryOption optionA = new DataElementCategoryOption( "CategoryOptionA" );
-        DataElementCategoryOption optionB = new DataElementCategoryOption( "CategoryOptionB" );
-        DataElementCategoryOption optionC = new DataElementCategoryOption( "CategoryOptionC" );
+        CategoryOption optionA = new CategoryOption( "CategoryOptionA" );
+        CategoryOption optionB = new CategoryOption( "CategoryOptionB" );
+        CategoryOption optionC = new CategoryOption( "CategoryOptionC" );
 
-        categoryService.addDataElementCategoryOption( optionA );
-        categoryService.addDataElementCategoryOption( optionB );
-        categoryService.addDataElementCategoryOption( optionC );
+        categoryService.addCategoryOption( optionA );
+        categoryService.addCategoryOption( optionB );
+        categoryService.addCategoryOption( optionC );
 
-        DataElementCategory categoryA = createDataElementCategory( 'A', optionA, optionB );
-        DataElementCategory categoryB = createDataElementCategory( 'B', optionC );
+        Category categoryA = createCategory( 'A', optionA, optionB );
+        Category categoryB = createCategory( 'B', optionC );
         categoryA.setDataDimension( true );
         categoryB.setDataDimension( true );
 
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategory( categoryB );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
 
-        DataElementCategoryCombo categoryComboAB = createCategoryCombo( 'A', categoryA, categoryB );
+        CategoryCombo categoryComboAB = createCategoryCombo( 'A', categoryA, categoryB );
 
-        categoryService.addDataElementCategoryCombo( categoryComboAB );
+        categoryService.addCategoryCombo( categoryComboAB );
 
-        DataElementCategoryOptionCombo optionComboAC = createCategoryOptionCombo( 'A', categoryComboAB, optionA,
+        CategoryOptionCombo optionComboAC = createCategoryOptionCombo( 'A', categoryComboAB, optionA,
             optionC );
-        DataElementCategoryOptionCombo optionComboBC = createCategoryOptionCombo( 'A', categoryComboAB, optionB,
+        CategoryOptionCombo optionComboBC = createCategoryOptionCombo( 'A', categoryComboAB, optionB,
             optionC );
 
-        categoryService.addDataElementCategoryOptionCombo( optionComboAC );
-        categoryService.addDataElementCategoryOptionCombo( optionComboBC );
+        categoryService.addCategoryOptionCombo( optionComboAC );
+        categoryService.addCategoryOptionCombo( optionComboBC );
 
         useDataValue( dataElementA, periodA, sourceA, "4", optionCombo, optionComboAC );
         useDataValue( dataElementB, periodA, sourceA, "3", optionCombo, optionComboAC );

@@ -36,7 +36,6 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -93,13 +92,6 @@ public class DefaultMessageService
     public void setConfigurationService( ConfigurationService configurationService )
     {
         this.configurationService = configurationService;
-    }
-
-    private EmailService emailService;
-
-    public void setEmailService( EmailService emailService )
-    {
-        this.emailService = emailService;
     }
 
     private UserSettingService userSettingService;
@@ -419,6 +411,7 @@ public class DefaultMessageService
     public boolean hasAccessToManageFeedbackMessages( User user )
     {
         user = (user == null ? currentUserService.getCurrentUser() : user);
+        
         return configurationService.isUserInFeedbackRecipientUserGroup( user ) || user.isAuthorized( "ALL" );
     }
 

@@ -39,6 +39,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.*;
@@ -159,7 +162,7 @@ public abstract class BaseAnalyticalObject
 
     protected transient List<OrganisationUnit> transientOrganisationUnits = new ArrayList<>();
 
-    protected transient List<DataElementCategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
+    protected transient List<CategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
 
     protected transient Date relativePeriodDate;
 

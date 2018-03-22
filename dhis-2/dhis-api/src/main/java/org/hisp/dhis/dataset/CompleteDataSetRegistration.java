@@ -28,20 +28,19 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Date;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -61,7 +60,7 @@ public class CompleteDataSetRegistration
 
     private OrganisationUnit source;
 
-    private DataElementCategoryOptionCombo attributeOptionCombo;
+    private CategoryOptionCombo attributeOptionCombo;
 
     private Date date; // TODO rename to created
 
@@ -78,7 +77,7 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo attributeOptionCombo, Date date, String storedBy )
+        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy )
     {
         this.dataSet = dataSet;
         this.period = period;
@@ -224,12 +223,12 @@ public class CompleteDataSetRegistration
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryOptionCombo getAttributeOptionCombo()
+    public CategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }

@@ -30,10 +30,10 @@ package org.hisp.dhis.preheat;
 
 import javassist.util.proxy.ProxyFactory;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -484,8 +484,8 @@ public class Preheat
     {
         klass = getRealClass( klass );
 
-        return DataElementCategory.class.isAssignableFrom( klass ) || DataElementCategoryOption.class.isAssignableFrom( klass )
-            || DataElementCategoryCombo.class.isAssignableFrom( klass ) || DataElementCategoryOptionCombo.class.isAssignableFrom( klass );
+        return Category.class.isAssignableFrom( klass ) || CategoryOption.class.isAssignableFrom( klass )
+            || CategoryCombo.class.isAssignableFrom( klass ) || CategoryOptionCombo.class.isAssignableFrom( klass );
     }
 
     public boolean isDefault( IdentifiableObject object )

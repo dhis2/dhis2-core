@@ -28,7 +28,7 @@ package org.hisp.dhis.indicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -51,23 +51,23 @@ public class DefaultIndicatorService
         this.indicatorStore = indicatorStore;
     }
 
-    private GenericIdentifiableObjectStore<IndicatorType> indicatorTypeStore;
+    private IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
 
-    public void setIndicatorTypeStore( GenericIdentifiableObjectStore<IndicatorType> indicatorTypeStore )
+    public void setIndicatorTypeStore( IdentifiableObjectStore<IndicatorType> indicatorTypeStore )
     {
         this.indicatorTypeStore = indicatorTypeStore;
     }
 
-    private GenericIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
+    private IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
-    public void setIndicatorGroupStore( GenericIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
+    public void setIndicatorGroupStore( IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
     {
         this.indicatorGroupStore = indicatorGroupStore;
     }
 
-    private GenericIdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore;
+    private IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore;
 
-    public void setIndicatorGroupSetStore( GenericIdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore )
+    public void setIndicatorGroupSetStore( IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore )
     {
         this.indicatorGroupSetStore = indicatorGroupSetStore;
     }

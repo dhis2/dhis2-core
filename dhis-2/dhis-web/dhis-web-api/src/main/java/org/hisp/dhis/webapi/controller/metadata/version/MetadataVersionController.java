@@ -29,12 +29,17 @@ package org.hisp.dhis.webapi.controller.metadata.version;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -42,7 +47,6 @@ import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -150,7 +154,7 @@ public class MetadataVersionController
 
                 if ( initialVersion == null )
                 {
-                    return versionService.getMetadataVersionsAsNode( allVersionsInBetween );
+                    return getMetadataVersionsAsNode( allVersionsInBetween );
                 }
 
                 startDate = initialVersion.getCreated();
@@ -185,7 +189,7 @@ public class MetadataVersionController
 
                 if ( !allVersionsInBetween.isEmpty() )
                 {
-                    return versionService.getMetadataVersionsAsNode( allVersionsInBetween );
+                    return getMetadataVersionsAsNode( allVersionsInBetween );
                 }
             }
 
@@ -199,7 +203,7 @@ public class MetadataVersionController
 
     //Gets the list of all versions
     @RequestMapping( value = "/metadata/versions", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getAllVersion() throws MetadataVersionException,BadRequestException
+    public @ResponseBody RootNode getAllVersion() throws MetadataVersionException, BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
@@ -211,7 +215,7 @@ public class MetadataVersionController
             }
 
             List<MetadataVersion> allVersions = versionService.getAllVersions();
-            return versionService.getMetadataVersionsAsNode( allVersions );
+            return getMetadataVersionsAsNode( allVersions );
 
         }
         catch ( MetadataVersionServiceException ex )
@@ -321,5 +325,27 @@ public class MetadataVersionController
     {
         Boolean setting = (Boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
         return setting.booleanValue();
+    }
+
+    private RootNode getMetadataVersionsAsNode( List<MetadataVersion> versions )
+    {
+        RootNode rootNode = NodeUtils.createRootNode( "metadataversions" );
+        CollectionNode collectionNode = new CollectionNode( "metadataversions", true );
+        rootNode.addChild( collectionNode );
+
+        for ( MetadataVersion version : versions )
+        {
+            ComplexNode complexNode = new ComplexNode( "" );
+            complexNode.addChild( new SimpleNode( "name", version.getName() ) );
+            complexNode.addChild( new SimpleNode( "type", version.getType() ) );
+            complexNode.addChild( new SimpleNode( "created", version.getCreated() ) );
+            complexNode.addChild( new SimpleNode( "id", version.getUid() ) );
+            complexNode.addChild( new SimpleNode( "importdate", version.getImportDate() ) );
+            complexNode.addChild( new SimpleNode( "hashCode", version.getHashCode() ) );
+
+            collectionNode.addChild( complexNode );
+        }
+
+        return rootNode;
     }
 }

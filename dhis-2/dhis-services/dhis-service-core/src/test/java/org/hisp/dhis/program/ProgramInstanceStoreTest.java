@@ -30,7 +30,7 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -77,7 +77,7 @@ public class ProgramInstanceStoreTest
     private ProgramStageService programStageService;
 
     @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
-    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
+    private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private Date incidentDate;
 

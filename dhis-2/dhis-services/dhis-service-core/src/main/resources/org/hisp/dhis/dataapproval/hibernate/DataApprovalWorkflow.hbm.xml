@@ -19,7 +19,7 @@
 
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid" not-null="true" foreign-key="fk_dataapprovalworkflow_periodtypeid" />
 
-    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo" column="categorycomboid" foreign-key="fk_dataapprovalworkflow_categorycomboid" />
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo" column="categorycomboid" foreign-key="fk_dataapprovalworkflow_categorycomboid" />
 
     <set name="levels" table="dataapprovalworkflowlevels">
       <cache usage="read-write" />

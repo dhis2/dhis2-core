@@ -28,15 +28,15 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * @author Kristian Nordal
@@ -65,9 +65,9 @@ public class DataValue
 
     private OrganisationUnit source;
 
-    private DataElementCategoryOptionCombo categoryOptionCombo;
+    private CategoryOptionCombo categoryOptionCombo;
 
-    private DataElementCategoryOptionCombo attributeOptionCombo;
+    private CategoryOptionCombo attributeOptionCombo;
 
     private String value;
 
@@ -110,8 +110,8 @@ public class DataValue
      * @param categoryOptionCombo  the category option combo.
      * @param attributeOptionCombo the attribute option combo.
      */
-    public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+    public DataValue(DataElement dataElement, Period period, OrganisationUnit source,
+                     CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
         this.dataElement = dataElement;
         this.period = period;
@@ -131,7 +131,7 @@ public class DataValue
      * @param value                the value.
      */
     public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, String value )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
     {
         this.dataElement = dataElement;
         this.period = period;
@@ -154,8 +154,8 @@ public class DataValue
      * @param lastUpdated          the time of the last update to this data value.
      * @param comment              the comment.
      */
-    public DataValue( DataElement dataElement, Period period, OrganisationUnit source, DataElementCategoryOptionCombo categoryOptionCombo,
-        DataElementCategoryOptionCombo attributeOptionCombo, String value, String storedBy, Date lastUpdated, String comment )
+    public DataValue( DataElement dataElement, Period period, OrganisationUnit source, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, String value, String storedBy, Date lastUpdated, String comment )
     {
         this.dataElement = dataElement;
         this.period = period;
@@ -176,7 +176,7 @@ public class DataValue
     /**
      * Alias for getCategoryOptionCombo(). TODO remove.
      */
-    public DataElementCategoryOptionCombo getOptionCombo()
+    public CategoryOptionCombo getOptionCombo()
     {
         return getCategoryOptionCombo();
     }
@@ -323,12 +323,12 @@ public class DataValue
         this.source = source;
     }
 
-    public DataElementCategoryOptionCombo getCategoryOptionCombo()
+    public CategoryOptionCombo getCategoryOptionCombo()
     {
         return categoryOptionCombo;
     }
 
-    public void setCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    public void setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
     {
         this.categoryOptionCombo = categoryOptionCombo;
     }
@@ -338,12 +338,12 @@ public class DataValue
         return value;
     }
 
-    public DataElementCategoryOptionCombo getAttributeOptionCombo()
+    public CategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }
