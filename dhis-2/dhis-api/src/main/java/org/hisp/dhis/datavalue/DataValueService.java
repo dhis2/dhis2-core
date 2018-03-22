@@ -81,6 +81,15 @@ public interface DataValueService
     void updateDataValue( DataValue dataValue );
 
     /**
+     * Updates multiple DataValues. If both the value and the comment properties of the
+     * specified DataValue object are null, then the object should be deleted
+     * from the underlying storage.
+     *
+     * @param dataValues list of DataValues to update.
+     */
+    void updateDataValues( List<DataValue> dataValues );
+
+    /**
      * Deletes a DataValue.
      * 
      * @param dataValue the DataValue to delete.

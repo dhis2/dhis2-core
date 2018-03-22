@@ -2,15 +2,15 @@ package org.hisp.dhis.analysis;
 
 public class FollowupParams
 {
-    private String dataElementId;
+    private int dataElementId;
 
-    private String periodId;
+    private int periodId;
 
-    private String organisationUnitId;
+    private int organisationUnitId;
 
-    private String categoryOptionComboId;
+    private int categoryOptionComboId;
 
-    private String attributeOptionComboId;
+    private int attributeOptionComboId;
 
     private boolean followup;
 
@@ -18,7 +18,7 @@ public class FollowupParams
     {
     }
 
-    public FollowupParams( String dataElementId, String periodId, String organisationUnitId, String categoryOptionComboId, String attributeOptionComboId, boolean followup )
+    public FollowupParams( int dataElementId, int periodId, int organisationUnitId, int categoryOptionComboId, int attributeOptionComboId, boolean followup )
     {
         this.dataElementId = dataElementId;
         this.periodId = periodId;
@@ -28,52 +28,52 @@ public class FollowupParams
         this.followup = followup;
     }
 
-    public String getDataElementId()
+    public int getDataElementId()
     {
         return dataElementId;
     }
 
-    public void setDataElementId( String dataElementId )
+    public void setDataElementId( int dataElementId )
     {
         this.dataElementId = dataElementId;
     }
 
-    public String getPeriodId()
+    public int getPeriodId()
     {
         return periodId;
     }
 
-    public void setPeriodId( String periodId )
+    public void setPeriodId( int periodId )
     {
         this.periodId = periodId;
     }
 
-    public String getOrganisationUnitId()
+    public int getOrganisationUnitId()
     {
         return organisationUnitId;
     }
 
-    public void setOrganisationUnitId( String organisationUnitId )
+    public void setOrganisationUnitId( int organisationUnitId )
     {
         this.organisationUnitId = organisationUnitId;
     }
 
-    public String getCategoryOptionComboId()
+    public int getCategoryOptionComboId()
     {
         return categoryOptionComboId;
     }
 
-    public void setCategoryOptionComboId( String categoryOptionComboId )
+    public void setCategoryOptionComboId( int categoryOptionComboId )
     {
         this.categoryOptionComboId = categoryOptionComboId;
     }
 
-    public String getAttributeOptionComboId()
+    public int getAttributeOptionComboId()
     {
         return attributeOptionComboId;
     }
 
-    public void setAttributeOptionComboId( String attributeOptionComboId )
+    public void setAttributeOptionComboId( int attributeOptionComboId )
     {
         this.attributeOptionComboId = attributeOptionComboId;
     }

@@ -141,6 +141,7 @@ public class DeflatedDataValue
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @JsonProperty
     public int getDataElementId()
     {
         return dataElementId;
@@ -151,6 +152,7 @@ public class DeflatedDataValue
         this.dataElementId = dataElementId;
     }
 
+    @JsonProperty
     public int getPeriodId()
     {
         return periodId;
@@ -161,6 +163,7 @@ public class DeflatedDataValue
         this.periodId = periodId;
     }
 
+    @JsonProperty
     public int getSourceId()
     {
         return sourceId;
