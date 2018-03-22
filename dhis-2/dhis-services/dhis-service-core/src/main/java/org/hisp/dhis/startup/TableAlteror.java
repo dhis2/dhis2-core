@@ -710,7 +710,7 @@ public class TableAlteror
         executeSql( "UPDATE userroleauthorities SET authority='F_ATTRIBUTE_PUBLIC_ADD' WHERE authority='F_ATTRIBUTE_ADD'" );
         executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-dashboard' WHERE authority='M_dhis-web-dashboard-integration'" );
 
-        executeSql( "UPDATE userroleauthorities set authority = 'M_dhis-web-data-administration' where authority = 'M_dhis-web-maintenance-dataadmin'" );
+        executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-data-administration' WHERE authority='M_dhis-web-maintenance-dataadmin'" );
 
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
