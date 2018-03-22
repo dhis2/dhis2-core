@@ -33,7 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.io.Serializable;
@@ -56,7 +56,7 @@ public class MinMaxDataElement
 
     private DataElement dataElement;
     
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
 
     private int min;
 
@@ -72,7 +72,7 @@ public class MinMaxDataElement
     {
     }
 
-    public MinMaxDataElement( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo, int min, int max,
+    public MinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo, int min, int max,
         boolean generated )
     {
         this.source = source;
@@ -171,12 +171,12 @@ public class MinMaxDataElement
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryOptionCombo getOptionCombo()
+    public CategoryOptionCombo getOptionCombo()
     {
         return optionCombo;
     }
 
-    public void setOptionCombo( DataElementCategoryOptionCombo optionCombo )
+    public void setOptionCombo( CategoryOptionCombo optionCombo )
     {
         this.optionCombo = optionCombo;
     }

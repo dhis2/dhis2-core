@@ -28,7 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -42,7 +42,7 @@ import java.util.List;
  * @version $Id$
  */
 public interface ProgramStageInstanceStore
-    extends GenericIdentifiableObjectStore<ProgramStageInstance>
+    extends IdentifiableObjectStore<ProgramStageInstance>
 {
     String ID = ProgramStageInstanceStore.class.getName();
 

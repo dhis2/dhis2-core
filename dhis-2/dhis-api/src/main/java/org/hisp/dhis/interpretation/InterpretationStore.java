@@ -29,7 +29,7 @@ package org.hisp.dhis.interpretation;
  */
 
 import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
 
@@ -37,7 +37,7 @@ import org.hisp.dhis.reporttable.ReportTable;
  * @author Lars Helge Overland
  */
 public interface InterpretationStore
-    extends GenericIdentifiableObjectStore<Interpretation>
+    extends IdentifiableObjectStore<Interpretation>
 {
     int countMapInterpretations( Map map );
 

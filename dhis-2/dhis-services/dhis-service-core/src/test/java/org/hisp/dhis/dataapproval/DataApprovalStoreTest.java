@@ -28,26 +28,23 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.Date;
-
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.*;
 
 /**
  * @author Jim Grace
@@ -68,13 +65,10 @@ public class DataApprovalStoreTest
     private PeriodService periodService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -101,9 +95,7 @@ public class DataApprovalStoreTest
     private User userA;
     private User userB;
 
-    private User currentUser;
-
-    private DataElementCategoryOptionCombo categoryOptionCombo;
+    private CategoryOptionCombo categoryOptionCombo;
 
     // -------------------------------------------------------------------------
     // Set up/tear down
@@ -154,9 +146,7 @@ public class DataApprovalStoreTest
         userService.addUser( userA );
         userService.addUser( userB );
 
-        currentUser = currentUserService.getCurrentUser();
-
-        categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
     // -------------------------------------------------------------------------
@@ -173,10 +163,10 @@ public class DataApprovalStoreTest
         DataApproval dataApprovalD = new DataApproval( level1, workflowB12, periodA, sourceA, categoryOptionCombo, false, date, userA );
         DataApproval dataApprovalE = null;
 
-        dataApprovalStore.addDataApproval( dataApprovalA, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalB, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalC, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalD, currentUser );
+        dataApprovalStore.addDataApproval( dataApprovalA );
+        dataApprovalStore.addDataApproval( dataApprovalB );
+        dataApprovalStore.addDataApproval( dataApprovalC );
+        dataApprovalStore.addDataApproval( dataApprovalD );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNotNull( dataApprovalA );
@@ -228,8 +218,8 @@ public class DataApprovalStoreTest
         DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA );
         DataApproval dataApprovalB = new DataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo, false, date, userB );
 
-        dataApprovalStore.addDataApproval( dataApprovalA, currentUser );
-        dataApprovalStore.addDataApproval( dataApprovalB, currentUser );
+        dataApprovalStore.addDataApproval( dataApprovalA );
+        dataApprovalStore.addDataApproval( dataApprovalB );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNotNull( dataApprovalA );
@@ -237,7 +227,7 @@ public class DataApprovalStoreTest
         dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo );
         assertNotNull( dataApprovalB );
 
-        dataApprovalStore.deleteDataApproval( dataApprovalA, currentUser );
+        dataApprovalStore.deleteDataApproval( dataApprovalA );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNull( dataApprovalA );
@@ -245,7 +235,7 @@ public class DataApprovalStoreTest
         dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo );
         assertNotNull( dataApprovalB );
 
-        dataApprovalStore.deleteDataApproval( dataApprovalB, currentUser );
+        dataApprovalStore.deleteDataApproval( dataApprovalB );
 
         dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
         assertNull( dataApprovalA );

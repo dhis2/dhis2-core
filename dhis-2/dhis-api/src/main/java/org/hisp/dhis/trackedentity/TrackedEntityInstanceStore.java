@@ -28,7 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ import java.util.Map;
  * @author Abyot Asalefew Gizaw
  */
 public interface TrackedEntityInstanceStore
-    extends GenericIdentifiableObjectStore<TrackedEntityInstance>
+    extends IdentifiableObjectStore<TrackedEntityInstance>
 {
     String ID = TrackedEntityInstanceStore.class.getName();
 

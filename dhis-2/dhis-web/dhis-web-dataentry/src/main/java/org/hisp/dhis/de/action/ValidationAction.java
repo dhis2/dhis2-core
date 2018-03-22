@@ -31,8 +31,8 @@ package org.hisp.dhis.de.action;
 import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -90,9 +90,9 @@ public class ValidationAction
         this.organisationUnitService = organisationUnitService;
     }
 
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService dataElementCategoryService;
 
-    public void setDataElementCategoryService( DataElementCategoryService dataElementCategoryService )
+    public void setCategoryService( CategoryService dataElementCategoryService )
     {
         this.dataElementCategoryService = dataElementCategoryService;
     }
@@ -197,11 +197,11 @@ public class ValidationAction
 
         Period selectedPeriod = PeriodType.getPeriodFromIsoString( pe );
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
 
         if ( attributeOptionCombo == null )
         {
-            attributeOptionCombo = dataElementCategoryService.getDefaultDataElementCategoryOptionCombo();
+            attributeOptionCombo = dataElementCategoryService.getDefaultCategoryOptionCombo();
         }
 
         if ( selectedPeriod == null || orgUnit == null || (multiOu && !orgUnit.hasChild()) )

@@ -31,8 +31,8 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
@@ -72,16 +72,16 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
             errors.add( "User has no read access for DataElement: " + dataElement.getUid() );
         }
 
-        Set<DataElementCategoryOption> options = new HashSet<>();
+        Set<CategoryOption> options = new HashSet<>();
 
-        DataElementCategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
 
         if ( categoryOptionCombo != null )
         {
             options.addAll( categoryOptionCombo.getCategoryOptions() );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
+        CategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
 
         if ( attributeOptionCombo != null )
         {
@@ -115,16 +115,16 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
             errors.add( "User has no read access for DataElement: " + dataElement.getUid() );
         }
 
-        Set<DataElementCategoryOption> options = new HashSet<>();
+        Set<CategoryOption> options = new HashSet<>();
 
-        DataElementCategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
 
         if ( categoryOptionCombo != null )
         {
             options.addAll( categoryOptionCombo.getCategoryOptions() );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
+        CategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
 
         if ( attributeOptionCombo != null )
         {
@@ -179,7 +179,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, DataElementCategoryOptionCombo optionCombo )
+    public List<String> canWrite( User user, CategoryOptionCombo optionCombo )
     {
         List<String> errors = new ArrayList<>();
 
@@ -188,7 +188,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
             return errors;
         }
 
-        Set<DataElementCategoryOption> options = optionCombo.getCategoryOptions();
+        Set<CategoryOption> options = optionCombo.getCategoryOptions();
 
         options.forEach( attrOption -> {
             if ( !attrOption.isDefault() && !aclService.canDataWrite( user, attrOption ) )
@@ -201,7 +201,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, DataElementCategoryOptionCombo optionCombo )
+    public List<String> canRead( User user, CategoryOptionCombo optionCombo )
     {
         List<String> errors = new ArrayList<>();
 
@@ -210,7 +210,7 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
             return errors;
         }
 
-        Set<DataElementCategoryOption> options = optionCombo.getCategoryOptions();
+        Set<CategoryOption> options = optionCombo.getCategoryOptions();
 
         options.forEach( attrOption -> {
             if ( !aclService.canDataRead( user, attrOption ) )
@@ -239,16 +239,16 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager
             errors.add( "User has no read access for DataElement: " + dataElement.getUid() );
         }
 
-        Set<DataElementCategoryOption> options = new HashSet<>();
+        Set<CategoryOption> options = new HashSet<>();
 
-        DataElementCategoryOptionCombo categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
 
         if ( categoryOptionCombo != null )
         {
             options.addAll( categoryOptionCombo.getCategoryOptions() );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
+        CategoryOptionCombo attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
 
         if ( attributeOptionCombo != null )
         {

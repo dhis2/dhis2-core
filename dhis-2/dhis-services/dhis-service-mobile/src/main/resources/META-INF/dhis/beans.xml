@@ -10,7 +10,7 @@
 		<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
 		<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
 		<property name="categoryService"
-			ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+			ref="org.hisp.dhis.dataelement.CategoryService" />
 		<property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
 		<property name="registrationService"
 			ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />

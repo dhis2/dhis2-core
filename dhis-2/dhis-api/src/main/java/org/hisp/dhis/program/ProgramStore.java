@@ -30,7 +30,7 @@ package org.hisp.dhis.program;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -40,7 +40,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * @version $Id: ProgramStore.java Dec 14, 2011 9:22:17 AM $
  */
 public interface ProgramStore
-    extends GenericIdentifiableObjectStore<Program>
+    extends IdentifiableObjectStore<Program>
 {
     String ID = ProgramStore.class.getName();
 

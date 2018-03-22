@@ -29,7 +29,7 @@ package org.hisp.dhis.fileresource;
  */
 
 import com.google.common.io.ByteSource;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -59,9 +59,9 @@ public class DefaultFileResourceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<FileResource> fileResourceStore;
+    private IdentifiableObjectStore<FileResource> fileResourceStore;
 
-    public void setFileResourceStore( GenericIdentifiableObjectStore<FileResource> fileResourceStore )
+    public void setFileResourceStore( IdentifiableObjectStore<FileResource> fileResourceStore )
     {
         this.fileResourceStore = fileResourceStore;
     }

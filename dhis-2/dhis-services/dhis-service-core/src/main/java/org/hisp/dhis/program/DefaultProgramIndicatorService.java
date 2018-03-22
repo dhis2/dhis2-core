@@ -31,7 +31,7 @@ package org.hisp.dhis.program;
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.MonthsBetweenSqlFunction;
@@ -146,10 +146,10 @@ public class DefaultProgramIndicatorService
         this.statementBuilder = statementBuilder;
     }
 
-    private GenericIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
+    private IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
 
     public void setProgramIndicatorGroupStore(
-        GenericIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore )
+        IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore )
     {
         this.programIndicatorGroupStore = programIndicatorGroupStore;
     }

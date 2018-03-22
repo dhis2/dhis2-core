@@ -257,29 +257,6 @@ DefaultMetadataVersionService
     }
 
     @Override
-    public RootNode getMetadataVersionsAsNode( List<MetadataVersion> versions )
-    {
-        RootNode rootNode = NodeUtils.createRootNode( "metadataversions" );
-        CollectionNode collectionNode = new CollectionNode( "metadataversions", true );
-        rootNode.addChild( collectionNode );
-
-        for ( MetadataVersion version : versions )
-        {
-            ComplexNode complexNode = new ComplexNode( "" );
-            complexNode.addChild( new SimpleNode( "name", version.getName() ) );
-            complexNode.addChild( new SimpleNode( "type", version.getType() ) );
-            complexNode.addChild( new SimpleNode( "created", version.getCreated() ) );
-            complexNode.addChild( new SimpleNode( "id", version.getUid() ) );
-            complexNode.addChild( new SimpleNode( "importdate", version.getImportDate() ) );
-            complexNode.addChild( new SimpleNode( "hashCode", version.getHashCode() ) );
-
-            collectionNode.addChild( complexNode );
-        }
-
-        return rootNode;
-    }
-
-    @Override
     public void createMetadataVersionInDataStore( String versionName, String versionSnapshot )
     {
         if ( StringUtils.isEmpty( versionSnapshot ) )
