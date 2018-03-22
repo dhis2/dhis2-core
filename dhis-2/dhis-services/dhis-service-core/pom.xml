@@ -36,7 +36,15 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-setting</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-node</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-acl</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

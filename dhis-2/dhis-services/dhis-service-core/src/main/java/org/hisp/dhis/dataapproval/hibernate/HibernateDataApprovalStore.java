@@ -57,9 +57,9 @@ import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -134,27 +134,27 @@ public class HibernateDataApprovalStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void addDataApproval( DataApproval dataApproval, User user )
+    public void addDataApproval( DataApproval dataApproval )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        save( dataApproval, user );
+        save( dataApproval );
     }
 
     @Override
-    public void updateDataApproval( DataApproval dataApproval, User user )
+    public void updateDataApproval( DataApproval dataApproval )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        update( dataApproval, user );
+        update( dataApproval );
     }
 
     @Override
-    public void deleteDataApproval( DataApproval dataApproval, User user )
+    public void deleteDataApproval( DataApproval dataApproval )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        delete( dataApproval, user );
+        delete( dataApproval );
     }    
 
     @Override

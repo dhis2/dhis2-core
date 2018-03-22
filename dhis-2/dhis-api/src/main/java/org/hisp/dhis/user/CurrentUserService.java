@@ -46,31 +46,37 @@ public interface CurrentUserService
 
     /**
      * @return the username of the currently logged in user. If no user is
-     *         logged in or the auto access admin is active, null is returned.
+     *          logged in or the auto access admin is active, null is returned.
      */
     String getCurrentUsername();
+    
+    /**
+     * @return the set of authorities granted to the currently logged in user.
+     *          If no current user exists, an empty set is returned.
+     */
+    Set<String> getCurrentUserAuthorities();
 
     /**
      * @return the currently logged in user. If no user is logged in or the auto
-     *         access admin is active, null is returned.
+     *          access admin is active, null is returned.
      */
     User getCurrentUser();
     
     /**
      * @return the user info for the currently logged in user. If no user is 
-     *         logged in or the auto access admin is active, null is returned.
+     *          logged in or the auto access admin is active, null is returned.
      */
     UserInfo getCurrentUserInfo();
     
     /**
      * @return the data capture organisation units of the current user, empty set
-     *         if no current user.
+     *          if no current user.
      */
     Set<OrganisationUnit> getCurrentUserOrganisationUnits();
     
     /**
      * @return true if the current logged in user has the ALL privileges set, false
-     *         otherwise.
+     *          otherwise.
      */
     boolean currentUserIsSuper();
 

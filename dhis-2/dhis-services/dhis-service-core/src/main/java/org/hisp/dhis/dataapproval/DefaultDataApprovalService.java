@@ -39,8 +39,8 @@ import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -261,7 +261,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, APPROVE );
 
-            dataApprovalStore.addDataApproval( da, currentUser );
+            dataApprovalStore.addDataApproval( da );
         }
         
         log.info( "Approvals saved: " + checkedList.size() );
@@ -311,7 +311,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, UNAPPROVE );
 
-            dataApprovalStore.deleteDataApproval( da, currentUser );
+            dataApprovalStore.deleteDataApproval( da );
         }
         
         log.info( "Approvals deleted: " + dataApprovalList.size() );
@@ -364,7 +364,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, ACCEPT );
 
-            dataApprovalStore.updateDataApproval( da, currentUser );
+            dataApprovalStore.updateDataApproval( da );
         }
         
         log.info( "Accepts saved: " + dataApprovalList.size() );
@@ -416,7 +416,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, UNACCEPT );
 
-            dataApprovalStore.updateDataApproval( da, currentUser );
+            dataApprovalStore.updateDataApproval( da );
         }
         
         log.info( "Accepts deleted: " + dataApprovalList.size() );
@@ -541,7 +541,7 @@ public class DefaultDataApprovalService
         audit.setCreated( new Date() );
         audit.setCreator( currentUser );
 
-        dataApprovalAuditStore.save( audit, currentUser );
+        dataApprovalAuditStore.save( audit );
     }
 
     /**

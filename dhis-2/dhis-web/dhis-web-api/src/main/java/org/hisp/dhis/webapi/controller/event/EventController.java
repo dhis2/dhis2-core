@@ -42,7 +42,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;

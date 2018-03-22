@@ -30,8 +30,8 @@ package org.hisp.dhis.sms.listener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;

@@ -31,7 +31,7 @@ package org.hisp.dhis.scheduling;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,9 +49,9 @@ import static org.hisp.dhis.scheduling.JobType.values;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
-    private GenericIdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+    private IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
-    public void setJobConfigurationStore( GenericIdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
+    public void setJobConfigurationStore( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
     {
         this.jobConfigurationStore = jobConfigurationStore;
     }

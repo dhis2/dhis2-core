@@ -35,16 +35,18 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,6 +64,17 @@ public class HibernateValidationResultStore
     implements ValidationResultStore
 {
     private static final Log log = LogFactory.getLog( HibernateValidationResultStore.class );
+
+    @Autowired
+    protected CurrentUserService currentUserService;
+
+    /**
+     * Allows injection (e.g. by a unit test)
+     */
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )

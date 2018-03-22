@@ -29,12 +29,12 @@ package org.hisp.dhis.program;
  */
 
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Henning Håkonsen
  */
 public interface ProgramSectionStore
-    extends GenericIdentifiableObjectStore<ProgramSection>
+    extends IdentifiableObjectStore<ProgramSection>
 {
 }
