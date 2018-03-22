@@ -1827,6 +1827,12 @@
     <property name="runlevel" value="13" />
     <property name="skipInTests" value="true" />
   </bean>
+  
+  <bean id="org.hisp.dhis.startup.SettingUpgrader" class="org.hisp.dhis.startup.SettingUpgrader">
+    <property name="name" value="SettingUpgrader" />
+    <property name="runlevel" value="14" />
+    <property name="skipInTests" value="true" />
+  </bean>
 
   <!-- DeletionHandlers -->
 

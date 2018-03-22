@@ -108,7 +108,7 @@ public class SystemSettingController
         systemSettingManager.saveSystemSetting( key, valueObject );
 
         webMessageService
-            .send( WebMessageUtils.ok( "System setting " + key + " set to value '" + valueObject + "'." ), response,
+            .send( WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response,
                 request );
     }
 
@@ -162,7 +162,7 @@ public class SystemSettingController
         systemSettingManager.saveSystemSetting( key, valueObject );
 
         webMessageService
-            .send( WebMessageUtils.ok( "System setting " + key + " set to value '" + valueObject + "'." ), response,
+            .send( WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response,
                 request );
     }
 
