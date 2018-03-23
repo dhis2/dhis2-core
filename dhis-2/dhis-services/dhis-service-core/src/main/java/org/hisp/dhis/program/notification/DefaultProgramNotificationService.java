@@ -340,7 +340,7 @@ public class DefaultProgramNotificationService
 
                 recipients.stream().forEach( r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
 
-                return recipients;
+                return parents;
             }
 
             recipients.addAll( template.getRecipientUserGroup().getMembers() );
