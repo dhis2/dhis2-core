@@ -990,15 +990,12 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
         }
 
-        //TODO: If change of orgUnit shouldn't be supported, the code below can be removed
-        //---------FROM HERE---------
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
 
         if ( organisationUnit == null )
         {
             organisationUnit = programStageInstance.getOrganisationUnit();
         }
-        //---------UNTIL HERE---------
 
         Date executionDate = new Date();
 
