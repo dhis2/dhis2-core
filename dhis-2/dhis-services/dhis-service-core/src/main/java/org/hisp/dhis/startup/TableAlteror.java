@@ -139,6 +139,7 @@ public class TableAlteror
         executeSql( "DROP TABLE trackedentityaggregatereport_dimension" );
         executeSql( "DROP TABLE trackedentityaggregatereport" );
         executeSql( "DROP TABLE validationcriteria" );
+        executeSql( "DROP TABLE analyticstablehook" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column userid" );
         executeSql( "ALTER TABLE categoryoptioncombo drop column publicaccess" );
         executeSql( "ALTER TABLE categoryoptioncombo alter column name type text" );
