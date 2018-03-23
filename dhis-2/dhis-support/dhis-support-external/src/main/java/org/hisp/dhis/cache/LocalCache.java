@@ -65,24 +65,27 @@ public class LocalCache<V> implements Cache<V>
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
-        if ( cacheBuilder.isRefreshExpiryOnAccess() )
+        if ( cacheBuilder.isExpiryEnabled() )
         {
-            builder.expireAfterAccess( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
-        }
-        else
-        {
-            builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
 
-        }
+            if ( cacheBuilder.isRefreshExpiryOnAccess() )
+            {
+                builder.expireAfterAccess( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
+            }
+            else
+            {
+                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
 
+            }
+        }
         if ( cacheBuilder.getMaximumSize() > 0 )
         {
             builder.maximumSize( cacheBuilder.getMaximumSize() );
         }
         this.caffeineCache = builder.build();
-        
+
         this.defaultValue = cacheBuilder.getDefaultValue();
-        
+
     }
 
     @Override

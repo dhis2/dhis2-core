@@ -27,8 +27,6 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +44,7 @@ public class CacheProvider
 {
     private DhisConfigurationProvider configurationProvider;
 
-    private RedisTemplate<String, Serializable> redisTemplate;
+    private RedisTemplate<String, ?> redisTemplate;
 
     /**
      * Creates a new {@link CacheBuilder} that can be used to build a cache that
@@ -69,7 +67,7 @@ public class CacheProvider
     }
 
     @Autowired( required = false )
-    public void setRedisTemplate( RedisTemplate<String, Serializable> redisTemplate )
+    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
     {
         this.redisTemplate = redisTemplate;
     }

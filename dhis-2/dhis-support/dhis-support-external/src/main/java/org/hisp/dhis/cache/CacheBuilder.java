@@ -61,6 +61,8 @@ public class CacheBuilder<V>
     private long expiryInSeconds;
 
     private V defaultValue;
+    
+    private boolean expiryEnabled;
 
     public CacheBuilder( RedisTemplate<String, ?> redisTemplate, DhisConfigurationProvider configurationProvider )
     {
@@ -70,8 +72,9 @@ public class CacheBuilder<V>
         this.maximumSize = -1;
         this.region = "default";
         this.refreshExpiryOnAccess = false;
-        this.expiryInSeconds = Long.MAX_VALUE;
+        this.expiryInSeconds = 0;
         this.defaultValue = null;
+        this.expiryEnabled = false;
     }
 
     /**
@@ -128,6 +131,7 @@ public class CacheBuilder<V>
         }
         this.expiryInSeconds = timeUnit.toSeconds( duration );
         this.refreshExpiryOnAccess = true;
+        this.expiryEnabled = true;
         return this;
     }
 
@@ -148,6 +152,7 @@ public class CacheBuilder<V>
         }
         this.expiryInSeconds = timeUnit.toSeconds( duration );
         this.refreshExpiryOnAccess = false;
+        this.expiryEnabled = true;
         return this;
     }
 
@@ -213,6 +218,11 @@ public class CacheBuilder<V>
     public boolean isRefreshExpiryOnAccess()
     {
         return refreshExpiryOnAccess;
+    }
+    
+    public boolean isExpiryEnabled()
+    {
+        return expiryEnabled;
     }
 
     public long getExpiryInSeconds()
