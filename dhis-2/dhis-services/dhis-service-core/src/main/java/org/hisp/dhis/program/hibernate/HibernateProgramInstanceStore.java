@@ -205,6 +205,14 @@ public class HibernateProgramInstanceStore
         return result != null && result > 0;
     }
 
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=?", Integer.class, uid );
+        return result != null && result > 0;
+    }
+
+
     @SuppressWarnings( "unchecked" )
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
