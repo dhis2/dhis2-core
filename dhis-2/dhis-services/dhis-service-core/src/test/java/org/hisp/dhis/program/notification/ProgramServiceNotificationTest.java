@@ -1,4 +1,4 @@
-package org.hisp.dhis.notification;
+package org.hisp.dhis.program.notification;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,22 +28,14 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DeliveryChannel;
-
-import java.util.Set;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @Author Zubair Asghar.
  */
-public interface NotificationTemplate
+@RunWith( MockitoJUnitRunner.class )
+public class ProgramServiceNotificationTest extends DhisConvenienceTest
 {
-    String getSubjectTemplate();
-
-    String getMessageTemplate();
-
-    Set<DeliveryChannel> getDeliveryChannels();
-
-    Boolean getNotifyUsersInHierarchyOnly();
-
-    Boolean getNotifyParentOrganisationUnitOnly();
 }

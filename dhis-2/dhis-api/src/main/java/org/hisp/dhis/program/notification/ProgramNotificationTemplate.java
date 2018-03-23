@@ -33,6 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -63,6 +64,10 @@ public class ProgramNotificationTemplate
     private ProgramNotificationRecipient notificationRecipient;
 
     private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
+
+    private Boolean notifyUsersInHierarchyOnly;
+
+    private Boolean notifyParentOrganisationUnitOnly;
 
     // -------------------------------------------------------------------------
     // Conditionally relevant properties
@@ -212,6 +217,30 @@ public class ProgramNotificationTemplate
     public void setRecipientDataElement( DataElement dataElement )
     {
         this.recipientDataElement = dataElement;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getNotifyUsersInHierarchyOnly()
+    {
+        return notifyUsersInHierarchyOnly;
+    }
+
+    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
+    {
+        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getNotifyParentOrganisationUnitOnly()
+    {
+        return notifyParentOrganisationUnitOnly;
+    }
+
+    public void setNotifyParentOrganisationUnitOnly( Boolean notifyParentOrganisationUnitOnly )
+    {
+        this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
     }
 
     @Override

@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -310,25 +311,43 @@ public class DefaultProgramNotificationService
             throw new IllegalArgumentException( "Either of the arguments [programInstance, programStageInstance] must be non-null" );
         }
 
-        Set<User> recipients = Sets.newHashSet();
+        Set<User> recipients = template.getRecipientUserGroup().getMembers();
+
+        OrganisationUnit eventOrgUnit = programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
+
+        Set<OrganisationUnit> orgUnitInHierarchy = Sets.newHashSet();
 
         ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
         if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
+            final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
+
+            final boolean parentOrgUnitOnly = BooleanUtils.toBoolean( template.getNotifyParentOrganisationUnitOnly() );
+
+            if ( limitToHierarchy )
+            {
+                orgUnitInHierarchy.add( eventOrgUnit );
+                orgUnitInHierarchy.addAll( eventOrgUnit.getAncestors() );
+
+                recipients = recipients.stream().filter( r -> orgUnitInHierarchy.contains( r.getOrganisationUnit() ) ).collect( Collectors.toSet() );
+
+                return recipients;
+            }
+            else if ( parentOrgUnitOnly )
+            {
+                Set<User> parents = Sets.newHashSet();
+
+                recipients.stream().forEach( r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
+
+                return recipients;
+            }
+
             recipients.addAll( template.getRecipientUserGroup().getMembers() );
         }
         else if ( recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT )
         {
-
-            OrganisationUnit organisationUnit =
-                    programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
-
-            recipients.addAll( organisationUnit.getUsers() );
-        }
-        else if ( recipientType == ProgramNotificationRecipient.PARENT_ORGANISATION_UNIT_OF_USERS_IN_GROUP )
-        {
-            template.getRecipientUserGroup().getMembers().forEach( user -> recipients.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
+            recipients.addAll( eventOrgUnit.getUsers() );
         }
 
         return recipients;
