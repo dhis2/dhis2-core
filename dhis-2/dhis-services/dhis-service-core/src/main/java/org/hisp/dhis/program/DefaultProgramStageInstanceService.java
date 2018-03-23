@@ -154,6 +154,12 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    public boolean programStageInstanceExistsIncludingDeleted( String uid )
+    {
+        return programStageInstanceStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
     public long getProgramStageInstanceCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();

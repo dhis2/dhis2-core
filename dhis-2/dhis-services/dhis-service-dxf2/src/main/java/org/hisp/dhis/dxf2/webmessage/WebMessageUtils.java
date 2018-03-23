@@ -203,7 +203,7 @@ public final class WebMessageUtils
     public static WebMessage importSummaries( ImportSummaries importSummaries )
     {
         WebMessage webMessage = new WebMessage();
-        
+
         if ( importSummaries.isStatus( ImportStatus.ERROR ) )
         {
             webMessage.setMessage( "An error occurred, please check import summary." );
@@ -212,7 +212,7 @@ public final class WebMessageUtils
         }
         else if ( importSummaries.isStatus( ImportStatus.WARNING ) )
         {
-            webMessage.setMessage( "One more conflicts encountered, please check import summary." );
+            webMessage.setMessage( "One or more conflicts encountered, please check import summary." );
             webMessage.setStatus( Status.WARNING );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }

@@ -83,6 +83,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -379,6 +380,12 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
+        if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Enrollment ID " + enrollment.getEnrollment() + " was already used. The ID is unique and cannot be used more than once" ).setReference( enrollment.getEnrollment() ).incrementIgnored();
+        }
+
         if ( daoTrackedEntityInstance == null )
         {
             daoTrackedEntityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
@@ -457,6 +464,16 @@ public abstract class AbstractEnrollmentService
         Enrollment enrollment, ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
+
+        if ( !program.isRegistration() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Provided program " + program.getUid() +
+                " is a program without registration. An enrollment cannot be created into program without registration." );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -551,34 +568,30 @@ public abstract class AbstractEnrollmentService
             importOptions = new ImportOptions();
         }
 
-        if ( enrollment == null || enrollment.getEnrollment() == null )
+        if ( enrollment == null || StringUtils.isEmpty( enrollment.getEnrollment() ) )
         {
             return new ImportSummary( ImportStatus.ERROR, "No enrollment or enrollment ID was supplied" ).incrementIgnored();
         }
 
-        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
+        List<String> errors = trackerAccessManager.canWrite( user, programInstance );
 
         if ( programInstance == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, "Enrollment ID was not valid." ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment." ).incrementIgnored();
         }
-
-        List<String> errors = trackerAccessManager.canWrite( user, programInstance );
 
         if ( !errors.isEmpty() )
         {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
         }
 
         Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
 
         if ( !importConflicts.isEmpty() )
         {
-            importSummary.setStatus( ImportStatus.ERROR );
+            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR ).incrementIgnored();
             importSummary.setConflicts( importConflicts );
-            importSummary.getImportCount().incrementIgnored();
 
             return importSummary;
         }
@@ -590,9 +603,15 @@ public abstract class AbstractEnrollmentService
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
 
+        if ( !program.isRegistration() )
+        {
+            String descMsg = "Provided program " + program.getUid() +
+                " is a program without registration. An enrollment cannot be created into program without registration.";
+
+            return new ImportSummary( ImportStatus.ERROR, descMsg ).incrementIgnored();
+        }
+
         programInstance.setProgram( program );
-        //TODO: Do I need to set TEI at all? Can it change? If not, then no need for it.
-        programInstance.setEntityInstance( daoTrackedEntityInstance );
 
         if ( enrollment.getIncidentDate() != null )
         {
@@ -614,11 +633,7 @@ public abstract class AbstractEnrollmentService
 
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
         {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
-            importSummary.incrementIgnored();
-
-            return importSummary;
+            return new ImportSummary( ImportStatus.ERROR, "DisplayIncidentDate is true but IncidentDate is null" ).incrementIgnored();
         }
 
         updateCoordinates( program, enrollment, programInstance );
@@ -643,13 +658,12 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
-        //TODO: Do I need to update daoTrackedEntityInstance at all? Nothing changed as I am aware of.
         teiService.updateTrackedEntityInstance( daoTrackedEntityInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
-        importSummary.getImportCount().incrementUpdated();
 
         importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
@@ -689,19 +703,20 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary deleteEnrollment( String uid )
     {
-        User user = currentUserService.getCurrentUser();
-        
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
 
         if ( programInstance != null )
-        {            
-            if( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
-            {                
-                return new ImportSummary( ImportStatus.ERROR, "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) ).incrementIgnored();                                
+        {
+            User user = currentUserService.getCurrentUser();
+            if ( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            {
+                String descMsg = "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+                return new ImportSummary( ImportStatus.ERROR, descMsg ).incrementIgnored();
             }
-            
+
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+
             return new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
         }
 

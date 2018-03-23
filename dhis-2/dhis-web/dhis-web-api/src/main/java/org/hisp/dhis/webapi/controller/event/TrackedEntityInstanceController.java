@@ -34,7 +34,13 @@ import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -73,7 +79,6 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -82,7 +87,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -255,13 +259,13 @@ public class TrackedEntityInstanceController
 
     @RequestMapping( value = "/{teiId}/{attributeId}/image", method = RequestMethod.GET )
     public void getAttributeImage(
-            @PathVariable( "teiId" ) String teiId,
-            @PathVariable( "attributeId" ) String attributeId,
-            @RequestParam( required = false ) Integer width,
-            @RequestParam( required = false ) Integer height,
-            HttpServletResponse response,
-            HttpServletRequest request )
-            throws WebMessageException, NotFoundException
+        @PathVariable( "teiId" ) String teiId,
+        @PathVariable( "attributeId" ) String attributeId,
+        @RequestParam( required = false ) Integer width,
+        @RequestParam( required = false ) Integer height,
+        HttpServletResponse response,
+        HttpServletRequest request )
+        throws WebMessageException, NotFoundException
     {
         User user = currentUserService.getCurrentUser();
 
@@ -269,9 +273,9 @@ public class TrackedEntityInstanceController
 
         List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntityInstance );
 
-        List <TrackedEntityAttributeValue> attribute = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
-                .filter( val -> val.getAttribute().getUid().equals( attributeId ) )
-                .collect( Collectors.toList() );
+        List<TrackedEntityAttributeValue> attribute = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
+            .filter( val -> val.getAttribute().getUid().equals( attributeId ) )
+            .collect( Collectors.toList() );
 
         if ( !trackerAccessErrors.isEmpty() )
         {
@@ -314,7 +318,7 @@ public class TrackedEntityInstanceController
             // -----------------------------------------------------------------
 
             throw new WebMessageException( WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
-                    "The content requested is in transit to the file store and will be available at a later time." ) );
+                "The content requested is in transit to the file store and will be available at a later time." ) );
         }
 
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );
@@ -352,8 +356,8 @@ public class TrackedEntityInstanceController
         catch ( IOException e )
         {
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                    "There was an exception when trying to fetch the file from the storage backend. " +
-                            "Depending on the provider the root cause could be network or file system related." ) );
+                "There was an exception when trying to fetch the file from the storage backend. " +
+                    "Depending on the provider the root cause could be network or file system related." ) );
         }
         finally
         {
@@ -714,15 +718,10 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteTrackedEntityInstance( @PathVariable String id ) throws WebMessageException
+    public void deleteTrackedEntityInstance( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
     {
-        if ( !instanceService.trackedEntityInstanceExists( id ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Tracked entity instance not found: " + id ) );
-        }
-
-        trackedEntityInstanceService.deleteTrackedEntityInstance( id );
+        ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     // -------------------------------------------------------------------------
