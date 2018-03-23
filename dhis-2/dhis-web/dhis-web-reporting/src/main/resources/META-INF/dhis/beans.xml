@@ -57,6 +57,12 @@
     scope="prototype">
   </bean>
 
+  <bean id="org.hisp.dhis.reporting.reportviewer.action.GetReportParamsAction" class="org.hisp.dhis.reporting.reportviewer.action.GetReportParamsAction"
+        scope="prototype">
+    <property name="reportService" ref="org.hisp.dhis.report.ReportService" />
+    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
+  </bean>
+
   <!-- DataSet Report -->
 
   <bean id="org.hisp.dhis.reporting.dataset.action.GetDataSetReportOptionsAction" class="org.hisp.dhis.reporting.dataset.action.GetDataSetReportOptionsAction"
