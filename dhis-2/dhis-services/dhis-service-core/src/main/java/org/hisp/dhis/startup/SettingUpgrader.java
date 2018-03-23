@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.startup;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,36 +28,26 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class CategoryOptionSchemaDescriptor implements SchemaDescriptor
+public class SettingUpgrader
+    extends AbstractStartupRoutine
 {
-    public static final String SINGULAR = "categoryOption";
-
-    public static final String PLURAL = "categoryOptions";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @Autowired
+    private SystemSettingManager manager;
 
     @Override
-    public Schema getSchema()
+    public void execute()
+        throws Exception
     {
-        Schema schema = new Schema( CategoryOption.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1140 );
-        schema.setDataShareable( true );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_CATEGORY_OPTION_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_CATEGORY_OPTION_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_CATEGORY_OPTION_DELETE" ) ) );
-
-        return schema;
+        String startModule = (String) manager.getSystemSetting( SettingKey.START_MODULE );
+        
+        if ( "dhis-web-dashboard-integration".equals( startModule ) )
+        {
+            manager.saveSystemSetting( SettingKey.START_MODULE, SettingKey.START_MODULE.getDefaultValue() );
+        }
     }
 }
