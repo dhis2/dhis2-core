@@ -83,7 +83,7 @@ public interface ProgramStageInstanceStore
     long getProgramStageInstanceCountLastUpdatedAfter( Date time );
 
     /**
-     * Checks for the existence of a PSI by UID
+     * Checks for the existence of a PSI by UID. The deleted PSIs are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -91,9 +91,17 @@ public interface ProgramStageInstanceStore
     boolean exists( String uid );
 
     /**
+     * Checks for the existence of a PSI by UID. It takes into account also the deleted PSIs.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean existsIncludingDeleted( String uid );
+
+    /**
      * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
      *
-     * @param template the template.
+     * @param template         the template.
      * @param notificationDate the Date for which the notification is scheduled.
      * @return a list of ProgramStageInstance.
      */
