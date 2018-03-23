@@ -1761,6 +1761,18 @@ public abstract class DhisConvenienceTest
         return option;
     }
 
+    public static void configureHierarchy( OrganisationUnit root, OrganisationUnit lvlOneLeft,
+        OrganisationUnit lvlOneRight, OrganisationUnit lvlTwoLeftLeft, OrganisationUnit lvlTwoLeftRight )
+    {
+        root.getChildren().addAll( Sets.newHashSet( lvlOneLeft, lvlOneRight ) );
+        lvlOneLeft.setParent( root );
+        lvlOneRight.setParent( root );
+
+        lvlOneLeft.getChildren().addAll( Sets.newHashSet( lvlTwoLeftLeft, lvlTwoLeftRight ) );
+        lvlTwoLeftLeft.setParent( lvlOneLeft );
+        lvlTwoLeftRight.setParent( lvlOneLeft );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

@@ -211,6 +211,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance, NotificationTrigger trigger )
     {
+        if ( programStageInstance == null )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
 
         if ( templates.isEmpty() )
@@ -227,6 +232,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
     {
+        if ( programInstance == null  )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
 
         for ( ProgramNotificationTemplate template : templates )
