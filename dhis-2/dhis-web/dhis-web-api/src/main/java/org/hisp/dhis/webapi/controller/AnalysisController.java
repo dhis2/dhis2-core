@@ -241,9 +241,12 @@ public class AnalysisController
 
         Set<DataElement> dataElements = new HashSet<>();
 
-        for ( String uid : minMaxOutlierAnalysisParams.getDataSetIds() )
+        if ( minMaxOutlierAnalysisParams.getDataSetIds() != null )
         {
-            dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
+            for ( String uid : minMaxOutlierAnalysisParams.getDataSetIds() )
+            {
+                dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
+            }
         }
 
         Date from = new DateTime( format.parseDate( minMaxOutlierAnalysisParams.getFromDate() ) ).minusYears( 2 ).toDate();
@@ -340,7 +343,7 @@ public class AnalysisController
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
 
-        GridUtils.toPdf( grid, response.getOutputStream() );
+        GridUtils.toXls( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "/report.csv", method = RequestMethod.GET )
@@ -352,7 +355,7 @@ public class AnalysisController
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
 
-        GridUtils.toPdf( grid, response.getOutputStream() );
+        GridUtils.toCsv( grid, response.getWriter() );
     }
 
     @RequestMapping( value = "validationRules/report.pdf", method = RequestMethod.GET )
