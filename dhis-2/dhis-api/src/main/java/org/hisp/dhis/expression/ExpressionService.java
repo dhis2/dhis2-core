@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
  * Expressions are mathematical formulas and can contain references to various
@@ -86,6 +88,7 @@ public interface ExpressionService
     String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String DAYS_EXPRESSION = "\\[days\\]";
     String WILDCARD_EXPRESSION = "(?<key>#)\\{(?<id>(\\w|\\.)+)(\\.\\*){1,2}\\}";
+    String ISNULL_EXPRESSION = "ISNULL\\s*\\(";
 
     /**
      * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
@@ -122,6 +125,25 @@ public interface ExpressionService
      */
     Pattern DAYS_PATTERN = Pattern.compile( DAYS_EXPRESSION );
 
+    /**
+     * Wild card pattern. Contains the named groups {@code id}.
+     */
+    Pattern WILDCARD_PATTERN = Pattern.compile( WILDCARD_EXPRESSION );
+
+    /**
+     * IsNull function pattern.
+     */
+    Pattern ISNULL_PATTERN = Pattern.compile( ISNULL_EXPRESSION, CASE_INSENSITIVE );
+
+    /**
+     * Define TRUE and FALSE values for the parser.
+     */
+    String TRUE_VALUE = "1";
+    String FALSE_VALUE = "0";
+
+    /**
+     * Variable types with their associated classes.
+     */
     static final Map<String, Class<? extends DimensionalItemObject>> VARIABLE_TYPES = ImmutableMap.of(
         "#", DataElementOperand.class,
         "D", ProgramDataElementDimensionItem.class,
@@ -130,11 +152,6 @@ public interface ExpressionService
         "R", ReportingRate.class
     );
 
-    /**
-     * Wild card pattern. Contains the named groups {@code id}.
-     */
-    Pattern WILDCARD_PATTERN = Pattern.compile( WILDCARD_EXPRESSION );
-    
     String GROUP_KEY = "key";
     String GROUP_ID = "id";
     String GROUP_ID1 = "id1";
@@ -162,7 +179,7 @@ public interface ExpressionService
     /**
      * Deletes an Expression from the database.
      *
-     * @param id Identifier of the Expression to delete.
+     * @param expression the expression.
      */
     void deleteExpression( Expression expression );
 
@@ -233,16 +250,16 @@ public interface ExpressionService
      * values supplied in the value map, constant map and days.
      *
      * @param expression the expression which holds the formula for the
-     *        calculation.
+     *         calculation.
      * @param valueMap the mapping between data element operands and values to
-     *        use in the calculation.
+     *         use in the calculation.
      * @param constantMap the mapping between the constant uid and value to use
-     *        in the calculation.
+     *         in the calculation.
      * @param orgUnitCountMap the mapping between organisation unit group uid
-     *        and count of organisation units to use in the calculation.
+     *         and count of organisation units to use in the calculation.
      * @param days the number of days to use in the calculation.
-     * @param a map of subexpression strings to List(s) of aggregated samples
-     *        for the expression
+     * @param aggregateMap a map of subexpression strings to List(s) of aggregated samples
+     *         for the expression
      * @return the calculated value as a double.
      */
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
@@ -266,7 +283,7 @@ public interface ExpressionService
      * @param expression the expression string.
      * @return a Set of CategoryOptionCombos included in the expression string.
      */
-    Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression );
+    Set<CategoryOptionCombo> getOptionCombosInExpression( String expression );
 
     /**
      * Returns all OrganisationUnitGroups in the given expression string.
@@ -291,15 +308,17 @@ public interface ExpressionService
     Set<DataElementOperand> getOperandsInExpression( String expression );
 
     /**
-     * Returns all aggregates included in an expression string. An aggregate has
+     * Parse an expression into a set of aggregate expression strings and a set
+     * of non-aggregate expression strings. An aggregate expression string has
      * the AGGREGATE_FUNCTION(expr) where expr is a well-formed sub-expression.
-     * This returns the empty set if the given expression is null or there are
-     * no aggregates.
+     * The method adds to two sets which must be allocated by the caller.
      *
      * @param expression The expression string.
-     * @return A Set of Expression strings.
+     * @param aggregates A set of aggregate expressin strings to fill.
+     * @param nonAggregates A set of non-aggregate expression strings to fill.
      */
-    Set<String> getAggregatesInExpression( String expression );
+    void getAggregatesAndNonAggregatesInExpression( String expression,
+        Set<String> aggregates, Set<String> nonAggregates );
 
     /**
      * Returns identifiers of all data elements which are present in the expression.

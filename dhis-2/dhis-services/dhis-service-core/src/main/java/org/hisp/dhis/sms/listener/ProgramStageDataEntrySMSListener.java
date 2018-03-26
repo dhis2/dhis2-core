@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ package org.hisp.dhis.sms.listener;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
@@ -48,13 +46,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Created by zubair@dhis2.org on 11.08.17.
  */
-
 @Transactional
 public class ProgramStageDataEntrySMSListener
     extends BaseSMSListener
 {
-    private static final Log log = LogFactory.getLog( ProgramStageDataEntrySMSListener.class );
-
     private static final String DEFAULT_PATTERN = "(\\w+)\\s*((\\w+\\s*)=(\\s*\\w+\\s*),\\s*)*((\\w+\\s*)=(\\s*\\w+))";
 
     private static final String SUCCESS = "Program Stage registered successfully";

@@ -2,7 +2,7 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
 
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,13 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
 public class CategoryOptionComboDocumentation
-    extends AbstractWebApiTest<DataElementCategoryOptionCombo>
+    extends AbstractWebApiTest<CategoryOptionCombo>
 {
 }

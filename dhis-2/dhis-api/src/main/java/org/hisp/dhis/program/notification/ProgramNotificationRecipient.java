@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,8 @@ public enum ProgramNotificationRecipient
     USERS_AT_ORGANISATION_UNIT( false ),
     USER_GROUP( false ),
     PROGRAM_ATTRIBUTE( true ),
-    DATA_ELEMENT( true );
+    DATA_ELEMENT( true ),
+    PARENT_ORGANISATION_UNIT_OF_USERS_IN_GROUP( false );
 
     private boolean external;
 

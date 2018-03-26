@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,53 +36,39 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
 
 /**
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject
+    implements MetadataObject, CoordinateObject
 {
     private static final String PATH_SEP = "/";
 
     public static final String KEY_USER_ORGUNIT = "USER_ORGUNIT";
-    public static final String KEY_USER_ORGUNIT_CHILDREN = "USER_ORGUNIT_CHILDREN";
-    public static final String KEY_USER_ORGUNIT_GRANDCHILDREN = "USER_ORGUNIT_GRANDCHILDREN";
-    public static final String KEY_LEVEL = "LEVEL-";
-    public static final String KEY_ORGUNIT_GROUP = "OU_GROUP-";
 
-    private static final Pattern JSON_POINT_PATTERN = Pattern.compile( "(\\[.*?\\])" );
-    private static final Pattern JSON_COORDINATE_PATTERN = Pattern.compile( "(\\[{3}.*?\\]{3})" );
-    private static final Pattern COORDINATE_PATTERN = Pattern.compile( "([\\-0-9.]+,[\\-0-9.]+)" );
+    public static final String KEY_USER_ORGUNIT_CHILDREN = "USER_ORGUNIT_CHILDREN";
+
+    public static final String KEY_USER_ORGUNIT_GRANDCHILDREN = "USER_ORGUNIT_GRANDCHILDREN";
+
+    public static final String KEY_LEVEL = "LEVEL-";
+
+    public static final String KEY_ORGUNIT_GROUP = "OU_GROUP-";
 
     private static final String NAME_SEPARATOR = " / ";
 
@@ -97,10 +83,6 @@ public class OrganisationUnit
     private Date closedDate;
 
     private String comment;
-
-    private FeatureType featureType = FeatureType.NONE;
-
-    private String coordinates;
 
     private String url;
 
@@ -120,7 +102,11 @@ public class OrganisationUnit
 
     private Set<User> users = new HashSet<>();
 
-    private Set<DataElementCategoryOption> categoryOptions = new HashSet<>();
+    private Set<CategoryOption> categoryOptions = new HashSet<>();
+
+    private FeatureType featureType = FeatureType.NONE;
+
+    private String coordinates;
 
     // -------------------------------------------------------------------------
     // Transient fields
@@ -269,13 +255,13 @@ public class OrganisationUnit
         user.getOrganisationUnits().remove( this );
     }
 
-    public void addCategoryOption( DataElementCategoryOption categoryOption )
+    public void addCategoryOption( CategoryOption categoryOption )
     {
         categoryOptions.add( categoryOption );
         categoryOption.getOrganisationUnits().add( this );
     }
 
-    public void removeCategoryOption( DataElementCategoryOption categoryOption )
+    public void removeCategoryOption( CategoryOption categoryOption )
     {
         categoryOptions.remove( categoryOption );
         categoryOption.getOrganisationUnits().remove( this );
@@ -360,17 +346,9 @@ public class OrganisationUnit
         return children == null || children.isEmpty();
     }
 
-    public boolean hasChildrenWithCoordinates()
+    public boolean hasDescendantsWithCoordinates()
     {
-        for ( OrganisationUnit child : children )
-        {
-            if ( child.hasCoordinates() )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return CoordinateUtils.hasDescendantsWithCoordinates( children );
     }
 
     public boolean isDescendant( OrganisationUnit ancestor )
@@ -423,97 +401,11 @@ public class OrganisationUnit
         {
             if ( parent.getParent() != null )
             {
-                return parent.getParent().hasChildrenWithCoordinates();
+                return parent.getParent().hasDescendantsWithCoordinates();
             }
         }
 
         return false;
-    }
-
-    public boolean hasCoordinates()
-    {
-        return coordinates != null && coordinates.trim().length() > 0;
-    }
-
-    public boolean hasFeatureType()
-    {
-        return featureType != null;
-    }
-
-    public List<CoordinatesTuple> getCoordinatesAsList()
-    {
-        List<CoordinatesTuple> list = new ArrayList<>();
-
-        if ( coordinates != null && !coordinates.trim().isEmpty() )
-        {
-            Matcher jsonMatcher = isPoint() ?
-                JSON_POINT_PATTERN.matcher( coordinates ) : JSON_COORDINATE_PATTERN.matcher( coordinates );
-
-            while ( jsonMatcher.find() )
-            {
-                CoordinatesTuple tuple = new CoordinatesTuple();
-
-                Matcher matcher = COORDINATE_PATTERN.matcher( jsonMatcher.group() );
-
-                while ( matcher.find() )
-                {
-                    tuple.addCoordinates( matcher.group() );
-                }
-
-                list.add( tuple );
-            }
-        }
-
-        return list;
-    }
-
-    public void setMultiPolygonCoordinatesFromList( List<CoordinatesTuple> list )
-    {
-        StringBuilder builder = new StringBuilder();
-
-        if ( CoordinatesTuple.hasCoordinates( list ) )
-        {
-            builder.append( "[" );
-
-            for ( CoordinatesTuple tuple : list )
-            {
-                if ( tuple.hasCoordinates() )
-                {
-                    builder.append( "[[" );
-
-                    for ( String coordinates : tuple.getCoordinatesTuple() )
-                    {
-                        builder.append( "[" ).append( coordinates ).append( "]," );
-                    }
-
-                    builder.deleteCharAt( builder.lastIndexOf( "," ) );
-                    builder.append( "]]," );
-                }
-            }
-
-            builder.deleteCharAt( builder.lastIndexOf( "," ) );
-            builder.append( "]" );
-        }
-
-        this.coordinates = StringUtils.trimToNull( builder.toString() );
-    }
-
-    public void setPointCoordinatesFromList( List<CoordinatesTuple> list )
-    {
-        StringBuilder builder = new StringBuilder();
-
-        if ( list != null && list.size() > 0 )
-        {
-            for ( CoordinatesTuple tuple : list )
-            {
-                for ( String coordinates : tuple.getCoordinatesTuple() )
-                {
-                    builder.append( "[" ).append( coordinates ).append( "]" );
-                }
-            }
-        }
-
-        this.coordinates = StringUtils.trimToNull( builder.toString() );
     }
 
     public FeatureType getChildrenFeatureType()
@@ -527,11 +419,6 @@ public class OrganisationUnit
         }
 
         return FeatureType.NONE;
-    }
-
-    public String getValidCoordinates()
-    {
-        return coordinates != null && !coordinates.isEmpty() ? coordinates : "[]";
     }
 
     public OrganisationUnitGroup getGroupInGroupSet( OrganisationUnitGroupSet groupSet )
@@ -599,7 +486,8 @@ public class OrganisationUnit
         {
             if ( !visitedUnits.add( unit ) )
             {
-                throw new IllegalStateException( "Organisation unit '" + this.toString() + "' has circular parent relationships: '" + unit + "'" );
+                throw new IllegalStateException(
+                    "Organisation unit '" + this.toString() + "' has circular parent relationships: '" + unit + "'" );
             }
 
             units.add( unit );
@@ -703,30 +591,6 @@ public class OrganisationUnit
         return uids;
     }
 
-    public Set<DataElement> getDataElementsInDataSets()
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            dataElements.addAll( dataSet.getDataElements() );
-        }
-
-        return dataElements;
-    }
-
-    public Map<PeriodType, Set<DataElement>> getDataElementsInDataSetsByPeriodType()
-    {
-        SetMap<PeriodType, DataElement> map = new SetMap<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            map.putValues( dataSet.getPeriodType(), dataSet.getDataElements() );
-        }
-
-        return map;
-    }
-
     public void updateParent( OrganisationUnit newParent )
     {
         if ( this.parent != null && this.parent.getChildren() != null )
@@ -760,16 +624,6 @@ public class OrganisationUnit
     public int getLevel()
     {
         return StringUtils.countMatches( path, PATH_SEP );
-    }
-
-    public boolean isPolygon()
-    {
-        return featureType != null && featureType.isPolygon();
-    }
-
-    public boolean isPoint()
-    {
-        return featureType != null && featureType == FeatureType.POINT;
     }
 
     /**
@@ -815,7 +669,8 @@ public class OrganisationUnit
      * Returns a mapping between the uid and the uid parent graph of the given
      * organisation units.
      */
-    public static Map<String, String> getParentGraphMap( List<OrganisationUnit> organisationUnits, Collection<OrganisationUnit> roots )
+    public static Map<String, String> getParentGraphMap( List<OrganisationUnit> organisationUnits,
+        Collection<OrganisationUnit> roots )
     {
         Map<String, String> map = new HashMap<>();
 
@@ -939,7 +794,7 @@ public class OrganisationUnit
 
     /**
      * Used by persistence layer. Purpose is to have a column for use in database
-     * queries. For application use see {@link getLevel()} which has better performance.
+     * queries. For application use see {@link #getLevel()} which has better performance.
      */
     public Integer getHierarchyLevel()
     {
@@ -1018,31 +873,6 @@ public class OrganisationUnit
     public void setComment( String comment )
     {
         this.comment = comment;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FeatureType getFeatureType()
-    {
-        return featureType;
-    }
-
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.GEOLOCATION )
-    public String getCoordinates()
-    {
-        return coordinates;
-    }
-
-    public void setCoordinates( String coordinates )
-    {
-        this.coordinates = coordinates;
     }
 
     @JsonProperty
@@ -1176,14 +1006,51 @@ public class OrganisationUnit
         this.users = users;
     }
 
-    public Set<DataElementCategoryOption> getCategoryOptions()
+    public Set<CategoryOption> getCategoryOptions()
     {
         return categoryOptions;
     }
 
-    public void setCategoryOptions( Set<DataElementCategoryOption> categoryOptions )
+    public void setCategoryOptions( Set<CategoryOption> categoryOptions )
     {
         this.categoryOptions = categoryOptions;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
+    }
+
+    @Override
+    public boolean hasFeatureType()
+    {
+        return getFeatureType() != null;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.GEOLOCATION )
+    public String getCoordinates()
+    {
+        return coordinates;
+    }
+
+    public void setCoordinates( String coordinates )
+    {
+        this.coordinates = coordinates;
+    }
+
+    @Override
+    public boolean hasCoordinates()
+    {
+        return getCoordinates() != null;
     }
 
     // -------------------------------------------------------------------------

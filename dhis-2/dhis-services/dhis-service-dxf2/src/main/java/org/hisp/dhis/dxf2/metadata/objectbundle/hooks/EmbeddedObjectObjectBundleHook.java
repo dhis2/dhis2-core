@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,12 +26,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -97,25 +97,40 @@ public class EmbeddedObjectObjectBundleHook
                 Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
                 objects.forEach( o ->
                 {
-                    if ( property.isIdentifiableObject() )
-                    {
-                        ((BaseIdentifiableObject) o).setAutoFields();
-                    }
-
-                    preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                    handleProperty( o, bundle, property );
                 } );
             }
             else
             {
                 Object o = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
-                if ( property.isIdentifiableObject() )
-                {
-                    ((BaseIdentifiableObject) o).setAutoFields();
-                }
-
-                preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                handleProperty( o, bundle, property );
             }
         }
+    }
+    
+    private void handleProperty( Object o, ObjectBundle bundle, Property property ) 
+    {
+        if ( property.isIdentifiableObject() )
+        {
+            ((BaseIdentifiableObject) o).setAutoFields();
+        }
+        
+        Schema embeddedSchema = schemaService.getDynamicSchema( o.getClass() );
+        for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
+        {
+            if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
+            {
+                PeriodType periodType = ReflectionUtils.invokeMethod( o, embeddedProperty.getGetterMethod() );
+    
+                if ( periodType != null )
+                {
+                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
+                    ReflectionUtils.invokeMethod( o, embeddedProperty.getSetterMethod(), periodType );
+                }
+            }
+        }
+
+        preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
     }
 }

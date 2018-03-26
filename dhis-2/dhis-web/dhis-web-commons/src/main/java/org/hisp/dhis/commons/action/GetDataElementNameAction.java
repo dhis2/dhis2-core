@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.commons.action;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 
 import com.opensymphony.xwork2.Action;
@@ -52,9 +52,9 @@ public class GetDataElementNameAction
         this.dataElementService = dataElementService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -99,8 +99,8 @@ public class GetDataElementNameAction
         {
             DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
-            DataElementCategoryOptionCombo categoryOptionCombo = categoryService
-                .getDataElementCategoryOptionCombo( categoryOptionComboId );
+            CategoryOptionCombo categoryOptionCombo = categoryService
+                .getCategoryOptionCombo( categoryOptionComboId );
 
             name = dataElement.getName() + " " + categoryOptionCombo.getName();
         }

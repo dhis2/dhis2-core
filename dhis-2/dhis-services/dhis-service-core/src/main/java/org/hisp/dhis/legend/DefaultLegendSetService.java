@@ -1,7 +1,7 @@
 package org.hisp.dhis.legend;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.legend;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,9 +44,9 @@ public class DefaultLegendSetService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<LegendSet> legendSetStore;
+    private IdentifiableObjectStore<LegendSet> legendSetStore;
 
-    public void setLegendSetStore( GenericIdentifiableObjectStore<LegendSet> legendSetStore )
+    public void setLegendSetStore( IdentifiableObjectStore<LegendSet> legendSetStore )
     {
         this.legendSetStore = legendSetStore;
     }

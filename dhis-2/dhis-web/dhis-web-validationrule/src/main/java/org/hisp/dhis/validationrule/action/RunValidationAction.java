@@ -1,7 +1,7 @@
 package org.hisp.dhis.validationrule.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,13 @@ package org.hisp.dhis.validationrule.action;
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.util.SessionUtils;
-import org.hisp.dhis.validation.ValidationResult;
-import org.hisp.dhis.validation.ValidationRuleGroup;
-import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.validation.ValidationService;
+import org.hisp.dhis.validation.*;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 
 import java.util.ArrayList;
@@ -71,7 +68,7 @@ public class RunValidationAction
     }
 
     private ValidationService validationService;
-    
+
     public void setValidationService( ValidationService validationService )
     {
         this.validationService = validationService;
@@ -91,9 +88,9 @@ public class RunValidationAction
         this.organisationUnitService = organisationUnitService;
     }
 
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService dataElementCategoryService;
 
-    public void setDataElementCategoryService( DataElementCategoryService dataElementCategoryService )
+    public void setCategoryService( CategoryService dataElementCategoryService )
     {
         this.dataElementCategoryService = dataElementCategoryService;
     }
@@ -198,16 +195,21 @@ public class RunValidationAction
     {
         organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitWithChildren( organisationUnit.getId() );
-
         ValidationRuleGroup group = validationRuleGroupId == -1 ? null : validationRuleService.getValidationRuleGroup( validationRuleGroupId );
 
-        DataElementCategoryOptionCombo attributeOptionCombo = attributeOptionComboId == null || attributeOptionComboId == -1 ? null : dataElementCategoryService.getDataElementCategoryOptionCombo( attributeOptionComboId );
+        CategoryOptionCombo attributeOptionCombo = attributeOptionComboId == null || attributeOptionComboId == -1 ? null : dataElementCategoryService.getCategoryOptionCombo( attributeOptionComboId );
 
         log.info( "Validating data for " + ( group == null ? "all rules" : "group: " + group.getName() ) );
 
-        validationResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis( format.parseDate( startDate ), format.parseDate( endDate ),
-                organisationUnits, persistResults, attributeOptionCombo, group, sendNotifications, format ) );
+        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit, format.parseDate( startDate ), format.parseDate( endDate ) )
+            .withIncludeOrgUnitDescendants( true )
+            .withAttributeOptionCombo( attributeOptionCombo )
+            .withPersistResults( persistResults )
+            .withSendNotifications( sendNotifications )
+            .withMaxResults( ValidationService.MAX_INTERACTIVE_ALERTS )
+            .build();
+
+        validationResults = new ArrayList<>( validationService.validationAnalysis( params ));
 
         maxExceeded = validationResults.size() > ValidationService.MAX_INTERACTIVE_ALERTS;
 

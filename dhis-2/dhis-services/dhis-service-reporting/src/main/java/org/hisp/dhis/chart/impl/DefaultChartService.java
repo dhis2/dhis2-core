@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart.impl;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -305,8 +305,8 @@ public class DefaultChartService
     }
 
     @Override
-    public JFreeChart getJFreeChartHistory( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-        DataElementCategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
+    public JFreeChart getJFreeChartHistory( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
         int historyLength, I18nFormat format )
     {
         lastPeriod = periodService.reloadPeriod( lastPeriod );

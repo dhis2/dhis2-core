@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller.validation;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -39,13 +39,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
-import org.hisp.dhis.validation.notification.ValidationResultNotificationTask;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,16 +75,10 @@ public class ValidationController
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
-    private ValidationResultNotificationTask validationResultNotificationTask;
-
-    @Autowired
-    private Scheduler scheduler;
-
-    @Autowired
-    private CurrentUserService currentUserService;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private WebMessageService webMessageService;
@@ -116,16 +109,21 @@ public class ValidationController
             throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = categoryService.getDataElementCategoryOptionCombo( aoc );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
 
         if ( attributeOptionCombo == null )
         {
-            attributeOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+            attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         }
 
         ValidationSummary summary = new ValidationSummary();
 
-        summary.setValidationRuleViolations( new ArrayList<>( validationService.startInteractiveValidationAnalysis( dataSet, period, orgUnit, attributeOptionCombo ) ) );
+
+        ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, orgUnit, period )
+            .withAttributeOptionCombo( attributeOptionCombo )
+            .build();
+
+        summary.setValidationRuleViolations( new ArrayList<>( validationService.validationAnalysis( params ) ) );
         summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
@@ -136,8 +134,10 @@ public class ValidationController
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
-        validationResultNotificationTask.setTaskId( new TaskId( TaskCategory.SENDING_VALIDATION_RESULT, currentUserService.getCurrentUser() ) );
-        scheduler.executeTask( validationResultNotificationTask );
+        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null,
+            false, true );
+
+        schedulingManager.executeJob( validationResultNotification );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
     }

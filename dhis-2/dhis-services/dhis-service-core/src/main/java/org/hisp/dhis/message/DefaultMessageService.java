@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,6 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.email.Email;
-import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -64,8 +62,11 @@ public class DefaultMessageService
     private static final Log log = LogFactory.getLog( DefaultMessageService.class );
 
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
+
     private static final String COMPLETE_TEMPLATE = "completeness_message";
+
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
+
     private static final String MESSAGE_PATH = "/dhis-web-messaging/readMessage.action";
 
     // -------------------------------------------------------------------------
@@ -91,13 +92,6 @@ public class DefaultMessageService
     public void setConfigurationService( ConfigurationService configurationService )
     {
         this.configurationService = configurationService;
-    }
-
-    private EmailService emailService;
-
-    public void setEmailService( EmailService emailService )
-    {
-        this.emailService = emailService;
     }
 
     private UserSettingService userSettingService;
@@ -136,84 +130,67 @@ public class DefaultMessageService
     // -------------------------------------------------------------------------
 
     @Override
-    public int sendPrivateMessage( String subject, String text, String metaData, Set<User> users )
+    public MessageConversationParams.Builder createPrivateMessage( Collection<User> receivers, String subject,
+        String text, String metaData )
     {
-        User sender = currentUserService.getCurrentUser();
-        users.add( sender );
+        User currentUser = currentUserService.getCurrentUser();
 
-        return sendMessage( subject, text, metaData, users, sender, MessageType.PRIVATE, false );
+        return new MessageConversationParams.Builder( receivers, currentUser, subject, text, MessageType.PRIVATE )
+            .withMetaData( metaData );
     }
 
     @Override
-    public int sendTicketMessage( String subject, String text, String metaData )
+    public MessageConversationParams.Builder createTicketMessage( String subject, String text, String metaData )
     {
-        UserGroup userGroup = configurationService.getConfiguration().getFeedbackRecipients();
-        User sender = currentUserService.getCurrentUser();
-        Set<User> users = Sets.newHashSet();
+        User currentUser = currentUserService.getCurrentUser();
+        Set<User> receivers = getFeedbackRecipients();
 
-        if ( userGroup != null && userGroup.getMembers().size() > 0 )
-        {
-            users.addAll( userGroup.getMembers() );
-        }
-
-        users.add( sender );
-
-        return sendMessage( subject, text, metaData, users, sender, MessageType.TICKET, false );
+        return new MessageConversationParams.Builder( receivers, currentUser, subject, text, MessageType.TICKET )
+            .withMetaData( metaData )
+            .withStatus( MessageConversationStatus.OPEN );
     }
 
     @Override
-    public int sendSystemMessage( String subject, String text )
+    public MessageConversationParams.Builder createSystemMessage( String subject, String text )
     {
-        UserGroup userGroup = configurationService.getConfiguration().getFeedbackRecipients();
-        Set<User> users = Sets.newHashSet();
-
-        if ( userGroup != null && userGroup.getMembers().size() > 0 )
-        {
-            users.addAll( userGroup.getMembers() );
-        }
-
-        emailService.sendSystemEmail( new Email( subject, text ) );
-
-        return sendMessage( subject, text, null, users, null, MessageType.SYSTEM, false );
+        return new MessageConversationParams.Builder( getFeedbackRecipients(), null, subject, text,
+            MessageType.SYSTEM );
     }
 
     @Override
-    public int sendValidationResultMessage( String subject, String text, Set<User> users )
+    public MessageConversationParams.Builder createValidationResultMessage( Collection<User> receivers, String subject,
+        String text )
     {
-        return sendMessage( subject, text, null, users, null, MessageType.VALIDATION_RESULT, false );
+        return new MessageConversationParams.Builder( receivers, null, subject, text, MessageType.VALIDATION_RESULT );
     }
 
     @Override
-    public int sendMessage( String subject, String text, String metaData, Set<User> users, User sender,
-        MessageType messageType, boolean forceNotifications )
+    public int sendMessage( MessageConversationParams params )
     {
-        MessageConversation conversation = new MessageConversation( subject, sender, messageType );
 
-        if ( messageType.equals( MessageType.TICKET ) )
+        // Create MessageConversation based on params
+        MessageConversation conversation = params.createMessageConversation();
+
+        // Initial message of the conversation
+        conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
+
+        // Add UserMessages
+        params.getRecipients().stream().filter( r -> !r.equals( params.getSender() ) )
+            .forEach( ( recipient ) -> conversation.addUserMessage( new UserMessage( recipient, false ) ) );
+
+        if ( params.getSender() != null )
         {
-            conversation.setStatus( MessageConversationStatus.OPEN );
+            conversation.addUserMessage( new UserMessage( params.getSender(), true ) );
         }
 
-        // This message will be the initial message in the conversation and must always be created
-        conversation.addMessage( new Message( text, metaData, sender ) );
-
-        // It is possible to have an empty Set, for example when working with SystemMessages and Tickets.
-        for ( User user : users )
-        {
-            boolean read = user != null && user.equals( sender );
-
-            conversation.addUserMessage( new UserMessage( user, read ) );
-        }
-
-        int id = saveMessageConversation( conversation );
-
-        users.remove( sender );
-
+        // Get footer for other messageSenders
         String footer = getMessageFooter( conversation );
 
-        invokeMessageSenders( subject, text, footer, sender, users, forceNotifications );
+        // Send messages to users using the messageSenders
+        invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
+            params.getRecipients(), params.isForceNotification() );
 
-        return id;
+        return saveMessageConversation( conversation );
     }
 
     @Override
@@ -230,7 +207,7 @@ public class DefaultMessageService
             .append( "Message: " + t.getMessage() + LN + LN )
             .append( "Cause: " + DebugUtils.getStackTrace( t.getCause() ) ).toString();
 
-        return sendSystemMessage( subject, text );
+        return sendMessage( createSystemMessage( subject, text ).build() );
     }
 
     @Override
@@ -434,12 +411,25 @@ public class DefaultMessageService
     public boolean hasAccessToManageFeedbackMessages( User user )
     {
         user = (user == null ? currentUserService.getCurrentUser() : user);
+        
         return configurationService.isUserInFeedbackRecipientUserGroup( user ) || user.isAuthorized( "ALL" );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private Set<User> getFeedbackRecipients()
+    {
+        UserGroup feedbackRecipients = configurationService.getConfiguration().getFeedbackRecipients();
+
+        if ( feedbackRecipients != null )
+        {
+            return feedbackRecipients.getMembers();
+        }
+
+        return Sets.newHashSet();
+    }
 
     private void invokeMessageSenders( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.adx;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,46 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dxf2.importsummary.ImportCount;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
-import org.hisp.staxwax.factory.XMLFactory;
-import org.hisp.staxwax.reader.XMLReader;
-import org.hisp.staxwax.writer.XMLWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.util.XMLChar;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dataelement.CategoryComboMap;
-import org.hisp.dhis.dataelement.CategoryComboMap.CategoryComboMapException;
+import org.hisp.dhis.category.CategoryComboMap;
+import org.hisp.dhis.category.CategoryComboMap.CategoryComboMapException;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.reader.XMLReader;
+import org.hisp.staxwax.writer.XMLWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,14 +84,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.period.PeriodService;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -183,9 +182,9 @@ public class DefaultAdxDataService
         {
             AdxDataSetMetadata metadata = new AdxDataSetMetadata( dataSet );
 
-            DataElementCategoryCombo categoryCombo = dataSet.getCategoryCombo();
+            CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
-            for ( DataElementCategoryOptionCombo aoc : categoryCombo.getOptionCombos() )
+            for ( CategoryOptionCombo aoc : categoryCombo.getOptionCombos() )
             {
                 Map<String, String> attributeDimensions = metadata.getExplodedCategoryAttributes(aoc.getId());
 
@@ -209,7 +208,7 @@ public class DefaultAdxDataService
 
                             adxWriter.writeAttribute( AdxDataService.DATAELEMENT, dv.getDataElement().getCode() );
 
-                            DataElementCategoryOptionCombo coc = dv.getCategoryOptionCombo();
+                            CategoryOptionCombo coc = dv.getCategoryOptionCombo();
 
                             Map<String, String> categoryDimensions = metadata.getExplodedCategoryAttributes(coc.getId());
 
@@ -244,7 +243,7 @@ public class DefaultAdxDataService
 
     @Override
     @Transactional
-    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, TaskId id )
+    public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
@@ -258,7 +257,7 @@ public class DefaultAdxDataService
         }
     }
 
-    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, TaskId id )
+    private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         notifier.clear( id ).notify( id, "ADX parsing process started" );
 
@@ -295,14 +294,14 @@ public class DefaultAdxDataService
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         // For Async runs, give the DXF import a different notification task ID so it doesn't conflict with notifications from this level.
-        TaskId dxfTaskId = ( id == null ) ? null : new TaskId( TaskCategory.DATAVALUE_IMPORT_INTERNAL, id.getUser() );
+        JobConfiguration dxfJobId = ( id == null ) ? null : new JobConfiguration( "dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUser().getUid(), true );
 
         int groupCount = 0;
 
         try ( PipedOutputStream pipeOut = new PipedOutputStream() )
         {
             Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter(
-                dataValueSetService, adxImportOptions, dxfTaskId, pipeOut, sessionFactory ) );
+                dataValueSetService, adxImportOptions, dxfJobId, pipeOut, sessionFactory ) );
             XMLOutputFactory factory = XMLOutputFactory.newInstance();
             XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
 
@@ -353,7 +352,7 @@ public class DefaultAdxDataService
 
         executor.shutdown();
 
-        notifier.update( id, INFO, "ADX data import done", true ).addTaskSummary( id, importSummary );
+        notifier.update( id, INFO, "ADX data import done", true ).addJobSummary( id, importSummary );
 
         ImportCount c = importSummary.getImportCount();
         log.info( "ADX data import done, imported: " + c.getImported() + ", updated: " + c.getUpdated() + ", deleted: " + c.getDeleted() + ", ignored: " + c.getIgnored() );
@@ -409,7 +408,7 @@ public class DefaultAdxDataService
             }
 
             groupAttributes.put( AdxDataService.DATASET, dataSet.getUid() );
-            DataElementCategoryCombo attributeCombo = dataSet.getCategoryCombo();
+            CategoryCombo attributeCombo = dataSet.getCategoryCombo();
             convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo, 
                     categoryOptionIdScheme, categoryOptionComboIdScheme );
         }
@@ -471,7 +470,7 @@ public class DefaultAdxDataService
 
             //TODO expand to allow for category combos part of DataSetElements.
 
-            DataElementCategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
+            CategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
 
             convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, 
                     categoryOptionIdScheme, categoryOptionComboIdScheme );
@@ -514,14 +513,14 @@ public class DefaultAdxDataService
         dxfWriter.writeEndElement(); // dataValue
     }
 
-    private Map<String, DataElementCategory> getCodeCategoryMap( DataElementCategoryCombo categoryCombo )
+    private Map<String, Category> getCodeCategoryMap( CategoryCombo categoryCombo )
         throws AdxException
     {
-        Map<String, DataElementCategory> categoryMap = new HashMap<>();
+        Map<String, Category> categoryMap = new HashMap<>();
 
-        List<DataElementCategory> categories = categoryCombo.getCategories();
+        List<Category> categories = categoryCombo.getCategories();
 
-        for ( DataElementCategory category : categories )
+        for ( Category category : categories )
         {
             String categoryCode = category.getCode();
 
@@ -537,8 +536,8 @@ public class DefaultAdxDataService
         return categoryMap;
     }
 
-    private DataElementCategoryOptionCombo getCatOptComboFromAttributes( Map<String, String> attributes,
-        DataElementCategoryCombo catcombo, IdentifiableProperty scheme )
+    private CategoryOptionCombo getCatOptComboFromAttributes( Map<String, String> attributes,
+        CategoryCombo catcombo, IdentifiableProperty scheme )
         throws AdxException
     {
         CategoryComboMap catcomboMap;
@@ -555,7 +554,7 @@ public class DefaultAdxDataService
 
         String compositeIdentifier = StringUtils.EMPTY;
 
-        for ( DataElementCategory category : catcomboMap.getCategories() )
+        for ( Category category : catcomboMap.getCategories() )
         {
             String categoryCode = category.getCode();
 
@@ -574,7 +573,7 @@ public class DefaultAdxDataService
             compositeIdentifier += "\"" + catAttribute + "\"";
         }
 
-        DataElementCategoryOptionCombo catOptionCombo = catcomboMap.getCategoryOptionCombo( compositeIdentifier );
+        CategoryOptionCombo catOptionCombo = catcomboMap.getCategoryOptionCombo( compositeIdentifier );
 
         if ( catOptionCombo == null )
         {
@@ -585,7 +584,7 @@ public class DefaultAdxDataService
     }
 
     private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName, 
-            DataElementCategoryCombo catCombo, 
+            CategoryCombo catCombo, 
             IdScheme catOptIdScheme, IdScheme catOptComboIdScheme )
         throws AdxException
     {
@@ -596,7 +595,7 @@ public class DefaultAdxDataService
             return;
         }
 
-        Map<String, DataElementCategory> categoryMap = getCodeCategoryMap( catCombo );
+        Map<String, Category> categoryMap = getCodeCategoryMap( catCombo );
 
         Map<String, String> attributeOptions = new HashMap<>();
 
@@ -614,7 +613,7 @@ public class DefaultAdxDataService
             }
         }
 
-        DataElementCategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo, catOptIdScheme.getIdentifiableProperty() );
+        CategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo, catOptIdScheme.getIdentifiableProperty() );
 
         attributes.put( optionComboName, catOptCombo.getPropertyValue( catOptComboIdScheme ) );
 

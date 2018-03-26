@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
@@ -44,13 +46,13 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -83,6 +85,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -91,14 +94,14 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -140,13 +143,13 @@ public class Metadata
 
     private List<OptionSet> optionSets = new ArrayList<>();
 
-    private List<DataElementCategory> categories = new ArrayList<>();
+    private List<Category> categories = new ArrayList<>();
 
-    private List<DataElementCategoryOption> categoryOptions = new ArrayList<>();
+    private List<CategoryOption> categoryOptions = new ArrayList<>();
 
-    private List<DataElementCategoryCombo> categoryCombos = new ArrayList<>();
+    private List<CategoryCombo> categoryCombos = new ArrayList<>();
 
-    private List<DataElementCategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
+    private List<CategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
 
     private List<CategoryOptionGroup> categoryOptionGroups = new ArrayList<>();
 
@@ -226,15 +229,13 @@ public class Metadata
 
     private List<RelationshipType> relationshipTypes = new ArrayList<>();
 
-    private List<ValidationCriteria> validationCriterias = new ArrayList<>();
-
     private List<ProgramRule> programRules = new ArrayList<>();
 
     private List<ProgramRuleAction> programRuleActions = new ArrayList<>();
 
     private List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
 
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
@@ -243,6 +244,12 @@ public class Metadata
     private List<ColorSet> colorSets = new ArrayList<>();
 
     private List<Predictor> predictors = new ArrayList<>();
+
+    private List<ProgramNotificationTemplate> programNotificationTemplates = new ArrayList<>();
+
+    private List<AnalyticsTableHook> analyticsTableHooks = new ArrayList<>();
+
+    private List<ValidationNotificationTemplate> validationNotificationTemplates = new ArrayList<>();
 
     public Metadata()
     {
@@ -458,12 +465,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categories", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategory> getCategories()
+    public List<Category> getCategories()
     {
         return categories;
     }
 
-    public void setCategories( List<DataElementCategory> categories )
+    public void setCategories( List<Category> categories )
     {
         this.categories = categories;
     }
@@ -471,12 +478,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOption> getCategoryOptions()
+    public List<CategoryOption> getCategoryOptions()
     {
         return categoryOptions;
     }
 
-    public void setCategoryOptions( List<DataElementCategoryOption> categoryOptions )
+    public void setCategoryOptions( List<CategoryOption> categoryOptions )
     {
         this.categoryOptions = categoryOptions;
     }
@@ -484,12 +491,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryCombo> getCategoryCombos()
+    public List<CategoryCombo> getCategoryCombos()
     {
         return categoryCombos;
     }
 
-    public void setCategoryCombos( List<DataElementCategoryCombo> categoryCombos )
+    public void setCategoryCombos( List<CategoryCombo> categoryCombos )
     {
         this.categoryCombos = categoryCombos;
     }
@@ -497,12 +504,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementCategoryOptionCombo> getCategoryOptionCombos()
+    public List<CategoryOptionCombo> getCategoryOptionCombos()
     {
         return categoryOptionCombos;
     }
 
-    public void setCategoryOptionCombos( List<DataElementCategoryOptionCombo> categoryOptionCombos )
+    public void setCategoryOptionCombos( List<CategoryOptionCombo> categoryOptionCombos )
     {
         this.categoryOptionCombos = categoryOptionCombos;
     }
@@ -950,19 +957,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "validationCriterias", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "validationCriteria", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ValidationCriteria> getValidationCriterias()
-    {
-        return validationCriterias;
-    }
-
-    public void setValidationCriterias( List<ValidationCriteria> validationCriterias )
-    {
-        this.validationCriterias = validationCriterias;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramRule> getProgramRules()
@@ -1041,16 +1035,16 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntities", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntity> getTrackedEntities()
+    @JacksonXmlElementWrapper( localName = "trackedEntityTypes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackedEntityType> getTrackedEntityTypes()
     {
-        return trackedEntities;
+        return trackedEntityTypes;
     }
 
-    public void setTrackedEntities( List<TrackedEntity> trackedEntities )
+    public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
-        this.trackedEntities = trackedEntities;
+        this.trackedEntityTypes = trackedEntityTypes;
     }
 
     @JsonProperty
@@ -1118,6 +1112,45 @@ public class Metadata
         this.predictors = predictors;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ProgramNotificationTemplate> getProgramNotificationTemplates()
+    {
+        return programNotificationTemplates;
+    }
+
+    public void setProgramNotificationTemplates( List<ProgramNotificationTemplate> programNotificationTemplates )
+    {
+        this.programNotificationTemplates = programNotificationTemplates;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "analyticsTableHooks", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0 )
+    public List<AnalyticsTableHook> getAnalyticsTableHooks()
+    {
+        return analyticsTableHooks;
+    }
+
+    public void setAnalyticsTableHooks( List<AnalyticsTableHook> analyticsTableHooks )
+    {
+        this.analyticsTableHooks = analyticsTableHooks;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "validationNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "validationNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ValidationNotificationTemplate> getValidationNotificationTemplates()
+    {
+        return this.validationNotificationTemplates;
+    }
+
+    public void setValidationNotificationTemplates( List<ValidationNotificationTemplate> validationNotificationTemplates )
+    {
+        this.validationNotificationTemplates = validationNotificationTemplates;
+    }
+
     @Override
     public String toString()
     {
@@ -1169,10 +1202,14 @@ public class Metadata
             ", programs=" + programs +
             ", programStages=" + programStages +
             ", relationshipTypes=" + relationshipTypes +
-            ", trackedEntities=" + trackedEntities +
+            ", trackedEntityTypes=" + trackedEntityTypes +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
             ", colors=" + colors +
             ", colorSets=" + colorSets +
+            ", programNotificationTemplates=" + programNotificationTemplates +
+            ", predictors=" + predictors +
+            ", analyticsTableHooks=" + analyticsTableHooks +
+            ", validationNotificationTemplates=" + validationNotificationTemplates +
             '}';
     }
 }

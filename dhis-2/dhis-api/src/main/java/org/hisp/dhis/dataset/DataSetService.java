@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,12 @@ package org.hisp.dhis.dataset;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.Date;
@@ -135,10 +136,32 @@ public interface DataSetService
     List<DataSet> getDataSetsForMobile( OrganisationUnit source );
 
     /**
-     * Returns the data sets associated with the current user. If the current
+     * Returns the data sets which current user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
      */
-    List<DataSet> getCurrentUserDataSets();
+    List<DataSet> getAllDataRead();
+
+    /**
+     * Returns the data sets which given user have READ access. If the current
+     * user has the ALL authority then all data sets are returned.
+     * @param User  user to query for data set list
+     * @return List of dataset which given user has data read access
+     */
+    List<DataSet> getUserDataRead( User user );
+
+    /**
+     * Returns the data sets which current user have WRITE access. If the current
+     * user has the ALL authority then all data sets are returned.
+     */
+    List<DataSet> getAllDataWrite();
+
+    /**
+     * Returns the data sets which current user have WRITE access. If the current
+     * user has the ALL authority then all data sets are returned.
+     * @param User  user to query for data set list
+     * @return List of dataset which given User has data write access
+     */
+    List<DataSet> getUserDataWrite( User user );
 
     // -------------------------------------------------------------------------
     // DataSet LockExceptions
@@ -246,7 +269,7 @@ public interface DataSetService
      * @param now                  the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now );
+    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -260,7 +283,7 @@ public interface DataSetService
      * @param useOrgUnitChildren   whether to check children of the given org unit or the org unit only.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
+    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -273,7 +296,7 @@ public interface DataSetService
      * @param now                  the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( DataElement dataElement, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now );
+    boolean isLocked( DataElement dataElement, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
      * Return a list of LockException with given filter list

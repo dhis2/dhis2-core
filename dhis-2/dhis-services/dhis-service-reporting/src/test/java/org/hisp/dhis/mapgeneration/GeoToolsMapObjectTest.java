@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapgeneration;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.awt.Color;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -40,12 +40,11 @@ import org.junit.Test;
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  */
 public class GeoToolsMapObjectTest
-    extends DhisSpringTest
 {
     private InternalMapObject geoToolsMapObject;
 
-    @Override
-    public void setUpTest()
+    @Before
+    public void before()
     {
         geoToolsMapObject = new InternalMapObject();
     }

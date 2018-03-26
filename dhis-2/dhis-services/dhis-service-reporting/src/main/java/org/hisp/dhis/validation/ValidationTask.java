@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,13 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.List;
 
 public interface ValidationTask
     extends Runnable
 {
-    void init( OrganisationUnit orgUnit, ValidationRunContext context );
+    void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService );
 }

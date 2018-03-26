@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.dataanalysis;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,31 +46,21 @@ import java.util.Map;
 public interface DataAnalysisStore
 {
     String ID = DataAnalysisStore.class.getName();
-    
+
     /**
-     * Calculates the standard deviation of the DataValues registered for the given
-     * data element, category option combo and organisation unit.
-     * 
+     * Calculates the average and standard deviation measures of the DataValues
+     * registered for a given data element, set of category option combos,
+     * and organisation unit parents.
+     *
      * @param dataElement the DataElement.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo.
-     * @param parent the parent OrganisationUnits.
+     * @param parentPaths the parent OrganisationUnits' paths.
      * @param from the from date for which to include data values.
      * @return a mapping between OrganisationUnit identifier and its standard deviation.
      */
-    Map<Integer, Double> getStandardDeviation( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, Collection<OrganisationUnit> parents, Date from );
-    
-    /**
-     * Calculates the average of the DataValues registered for the given
-     * data element, category option combo and organisation unit.
-     * 
-     * @param dataElement the DataElement.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo.
-     * @param parent the parent OrganisationUnits.
-     * @param from the from date for which to include data values.
-     * @return a mapping between OrganisationUnit unit identifier and its average data value.
-     */
-    Map<Integer, Double> getAverage( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, Collection<OrganisationUnit> parents, Date from );
-    
+    List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
+        Collection<CategoryOptionCombo> categoryOptionCombos,
+        Collection<String> parentPaths, Date from );
+
     /**
      * Generates a collection of data value violations of min-max predefined values.
      * 
@@ -81,21 +71,20 @@ public interface DataAnalysisStore
      * @param limit the max limit of violations to return.
      * @return a list of data value violations.
      */
-    List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<DataElementCategoryOptionCombo> categoryOptionCombos,
+    List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<CategoryOptionCombo> categoryOptionCombos,
         Collection<Period> periods, Collection<OrganisationUnit> parents, int limit );
     
     /**
      * Returns a collection of DeflatedDataValues for the given input.
      * 
      * @param dataElement the DataElement.
-     * @param categoryOptionCombo the DataElementCategoryOptionCombo.
+     * @param categoryOptionCombo the CategoryOptionCombo.
      * @param periods the collection of Periods.
-     * @param organisationUnit the OrganisationUnit.
-     * @param lowerBound the lower bound for the registered MinMaxDataElement.
-     * @param upperBound the upper bound for the registered MinMaxDataElement.
+     * @param lowerBoundMap the lower bound for the registered MinMaxDataElement.
+     * @param upperBoundMap the upper bound for the registered MinMaxDataElement.
      * @return a list of DeflatedDataValues.
      */
-    List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
+    List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
         Collection<Period> periods, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap );
 
     /**

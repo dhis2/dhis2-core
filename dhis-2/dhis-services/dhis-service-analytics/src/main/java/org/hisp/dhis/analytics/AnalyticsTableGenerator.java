@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 
 /**
  * Interface responsible for generating analytics tables. Will look for and
@@ -45,25 +43,19 @@ public interface AnalyticsTableGenerator
     /**
      * Generates analytics tables.
      *
-     * @param lastYears the number of years relative to now to include,
-     *        can be null.
-     * @param taskId the task identifier, can be null.
-     * @param skipTableTypes indicates the types of analytics tables for
-     *        which to skip generation.
-     * @param skipResourceTables indicates whether to skip generation of
-     *        resource tables.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    void generateTables( @Nullable Integer lastYears, @Nullable TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
+    void generateTables( AnalyticsTableUpdateParams params );
 
     /**
      * Drops all existing analytics tables.
      */
     void dropTables();
-    
+
     /**
      * Generates all resource tables.
      *
-     * @param taskId the task identifier, can be null.
+     * @param jobId the job identifier, can be null.
      */
-    void generateResourceTables( @Nullable TaskId taskId );
+    void generateResourceTables( @Nullable JobConfiguration jobId );
 }

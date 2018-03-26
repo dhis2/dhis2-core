@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ public class RegexUtils
      * Return the matches in the given input based on the given pattern and group number.
      * 
      * @param pattern the pattern.
-     * @param input the input.
+     * @param input the input. If the input is null, an empty set is returned.
      * @param group the group, can be null.
      * @return a set of matches.
      */
@@ -52,11 +52,14 @@ public class RegexUtils
         
         Set<String> set = new HashSet<>();
         
-        Matcher matcher = pattern.matcher( input );
-        
-        while ( matcher.find() )
+        if ( input != null )
         {
-            set.add( matcher.group( group ) );
+            Matcher matcher = pattern.matcher( input );
+            
+            while ( matcher.find() )
+            {
+                set.add( matcher.group( group ) );
+            }
         }
         
         return set;

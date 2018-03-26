@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -190,6 +190,11 @@ public class FileResource
     public void setDomain( FileResourceDomain domain )
     {
         this.domain = domain;
+    }
+
+    public String getFormat()
+    {
+        return this.contentType.split("[/;]" )[1];
     }
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.*;
@@ -62,6 +65,7 @@ import org.hisp.dhis.user.User;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
@@ -158,7 +162,7 @@ public abstract class BaseAnalyticalObject
 
     protected transient List<OrganisationUnit> transientOrganisationUnits = new ArrayList<>();
 
-    protected transient List<DataElementCategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
+    protected transient List<CategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
 
     protected transient Date relativePeriodDate;
 
@@ -380,7 +384,7 @@ public abstract class BaseAnalyticalObject
 
             if ( hasRelativePeriods() )
             {
-                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames ) );
+                items.addAll( relatives.getRelativePeriods( date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER ) );
             }
 
             type = DimensionType.PERIOD;

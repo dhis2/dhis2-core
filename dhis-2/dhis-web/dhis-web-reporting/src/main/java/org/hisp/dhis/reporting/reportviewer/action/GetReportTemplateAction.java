@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporting.reportviewer.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ package org.hisp.dhis.reporting.reportviewer.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -73,7 +75,7 @@ public class GetReportTemplateAction
             
             ContextUtils.configureResponse( response, contentType, false, template, true );
             
-            String content = IOUtils.toString( new ClassPathResource( template ).getInputStream() );
+            String content = IOUtils.toString( new ClassPathResource( template ).getInputStream(), StandardCharsets.UTF_8 );
             
             IOUtils.write( content, response.getWriter() );
         }

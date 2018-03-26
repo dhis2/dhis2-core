@@ -1,7 +1,7 @@
 package org.hisp.dhis.help.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.help.HelpManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.system.help.HelpManager;
 import org.hisp.dhis.util.ContextUtils;
 import org.hisp.dhis.util.StreamActionSupport;
 
@@ -43,14 +43,7 @@ import org.hisp.dhis.util.StreamActionSupport;
 public class GetHelpItemsAction
     extends StreamActionSupport
 {
-    private HelpManager helpManager;
-
     private LocaleManager localeManager;
-
-    public void setHelpManager( HelpManager helpManager )
-    {
-        this.helpManager = helpManager;
-    }
 
     public void setLocaleManager( LocaleManager localeManager )
     {
@@ -61,7 +54,7 @@ public class GetHelpItemsAction
     protected String execute( HttpServletResponse response, OutputStream out )
         throws Exception
     {
-        helpManager.getHelpItems( out, localeManager.getCurrentLocale() );
+        HelpManager.getHelpItems( out, localeManager.getCurrentLocale() );
 
         return SUCCESS;
     }

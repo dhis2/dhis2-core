@@ -25,12 +25,14 @@
         var optionComboId = split.optionComboId;
         var orgUnitid = split.organisationUnitId;
         var periodId = $( '#selectedPeriodId' ).val();
+        var dataSetId = $( '#selectedDataSetId' ).val();
         var cc = dhis2.de.getCurrentCategoryCombo();
         var cp = dhis2.de.getCurrentCategoryOptionsQueryValue
 
         var formData = {
             'de': dataElementId,
             'co': optionComboId,
+            'ds': dataSetId,
             'ou': orgUnitid,
             'pe': periodId
         };
@@ -46,9 +48,8 @@
             postData.value = '';
 
             $.ajax( {
-                url: '../api/dataValues',
-                type: 'POST',
-                data: postData,
+                url: '../api/dataValues?de=' + formData.de + '&ou=' + formData.ou + '&pe=' + formData.pe,
+                type: 'DELETE',
                 success: function() {
                     $fileinfoName.text( '' );
                     $fileinfoSize.text( '' );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.option;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
@@ -38,7 +38,7 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
  * @version $OptionStore.java Jun 15, 2012 9:45:00 AM$
  */
 public interface OptionStore 
-    extends GenericIdentifiableObjectStore<Option>
+    extends IdentifiableObjectStore<Option>
 {
     List<Option> getOptions( int optionSetId, String key, Integer max  );
 }

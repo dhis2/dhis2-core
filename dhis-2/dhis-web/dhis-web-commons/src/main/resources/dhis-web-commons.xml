@@ -40,6 +40,7 @@
       <interceptor name="systemSettingInterceptor" class="org.hisp.dhis.interceptor.SystemSettingInterceptor" />
       <interceptor name="userSettingInterceptor" class="org.hisp.dhis.interceptor.UserSettingInterceptor" />
       <interceptor name="contextInterceptor" class="org.hisp.dhis.interceptor.ContextInterceptor" />
+      <interceptor name="noCacheInterceptor" class="org.hisp.dhis.interceptor.NoCacheInterceptor" />
       <interceptor name="cacheInterceptor" class="org.hisp.dhis.interceptor.CacheInterceptor" />
 
       <interceptor name="portalParamsInterceptor" class="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor" />
@@ -61,6 +62,7 @@
         <interceptor-ref name="loginInterceptor" />
         <interceptor-ref name="userSettingInterceptor" />
         <interceptor-ref name="contextInterceptor" />
+        <interceptor-ref name="noCacheInterceptor" />
         <interceptor-ref name="portalParamsInterceptor" />
         <interceptor-ref name="portalMenuInterceptor" />
         <interceptor-ref name="portalModuleInterceptor" />
@@ -154,6 +156,11 @@
     <action name="invite" class="org.hisp.dhis.useraccount.action.IsInviteTokenValidAction">
         <result name="success" type="velocity">/dhis-web-commons/useraccount/account.vm</result>
         <result name="error" type="redirect">login.action</result>
+    </action>
+
+    <action name="getSystemAuthorities" class="org.hisp.dhis.user.action.GetSystemAuthoritiesAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonSystemAuthorities.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
     </action>
 
   </package>
@@ -399,20 +406,6 @@
     <action name="getDataElements" class="org.hisp.dhis.commons.action.GetDataElementsAction">
       <result name="success" type="velocity-xml">
         /dhis-web-commons/ajax/xmlDataElements.vm
-      </result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="getDataSet" class="org.hisp.dhis.commons.action.GetDataSetAction">
-      <result name="success" type="velocity-xml">
-        /dhis-web-commons/ajax/xmlDataSet.vm
-      </result>
-      <param name="onExceptionReturn">plainTextError</param>
-    </action>
-
-    <action name="getDataSets" class="org.hisp.dhis.commons.action.GetDataSetsAction">
-      <result name="success" type="velocity-xml">
-        /dhis-web-commons/ajax/xmlDataSets.vm
       </result>
       <param name="onExceptionReturn">plainTextError</param>
     </action>
@@ -665,16 +658,16 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-  	<action name="getPrograms" class="org.hisp.dhis.commons.action.GetProgramsAction">
+    <action name="getDataSetsMinified" class="org.hisp.dhis.commons.action.GetDataSetsAction">
       <result name="success" type="velocity-json">
-        /dhis-web-commons/ajax/jsonPrograms.vm
+        /dhis-web-commons/ajax/jsonminDataSets.vm
       </result>
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-    <action name="getDataSetsMinified" class="org.hisp.dhis.commons.action.GetDataSetsAction">
+    <action name="getDataSets" class="org.hisp.dhis.commons.action.GetDataSetsAction">
       <result name="success" type="velocity-json">
-        /dhis-web-commons/ajax/jsonminDataSets.vm
+        /dhis-web-commons/ajax/jsonDataSets.vm
       </result>
       <param name="onExceptionReturn">plainTextError</param>
     </action>

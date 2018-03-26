@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,29 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
+
 import java.util.List;
 import java.util.Optional;
-
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.resourcetable.ResourceTable;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
 public class CategoryOptionComboResourceTable
-    extends ResourceTable<DataElementCategoryOptionCombo>
+    extends ResourceTable<CategoryOptionCombo>
 {
-    public CategoryOptionComboResourceTable( List<DataElementCategoryOptionCombo> objects, String columnQuote )
+    public CategoryOptionComboResourceTable( List<CategoryOptionCombo> objects, String columnQuote )
     {
         super( objects, columnQuote );
     }
     
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_dataelementcategoryoptioncombo";
+        return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
     }
 
     @Override

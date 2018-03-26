@@ -1,7 +1,7 @@
 package org.hisp.dhis.dimension;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,19 +42,18 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
-import org.hisp.dhis.dataelement.CategoryDimension;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -76,7 +75,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -112,7 +110,7 @@ public class DefaultDimensionService
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private PeriodService periodService;
@@ -176,7 +174,7 @@ public class DefaultDimensionService
     @Override
     public DimensionType getDimensionType( String uid )
     {
-        DataElementCategory cat = idObjectManager.get( DataElementCategory.class, uid );
+        Category cat = idObjectManager.get( Category.class, uid );
 
         if ( cat != null )
         {
@@ -237,7 +235,7 @@ public class DefaultDimensionService
     @Override
     public List<DimensionalObject> getAllDimensions()
     {
-        Collection<DataElementCategory> dcs = idObjectManager.getDataDimensions( DataElementCategory.class );
+        Collection<Category> dcs = idObjectManager.getDataDimensions( Category.class );
         Collection<CategoryOptionGroupSet> cogs = idObjectManager.getDataDimensions( CategoryOptionGroupSet.class );
         Collection<DataElementGroupSet> degs = idObjectManager.getDataDimensions( DataElementGroupSet.class );
         Collection<OrganisationUnitGroupSet> ougs = idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class );
@@ -258,7 +256,7 @@ public class DefaultDimensionService
     public List<DimensionalObject> getDimensionConstraints()
     {
         Collection<CategoryOptionGroupSet> cogs = idObjectManager.getDataDimensions( CategoryOptionGroupSet.class );
-        Collection<DataElementCategory> cs = categoryService.getAttributeCategories();
+        Collection<Category> cs = categoryService.getAttributeCategories();
 
         final List<DimensionalObject> dimensions = new ArrayList<>();
 
@@ -319,11 +317,8 @@ public class DefaultDimensionService
     @Override
     public DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead )
     {
-        DimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
-
-        BaseDimensionalObject copy = new BaseDimensionalObject();
-        mergeService.merge( new MergeParams<>( dimension, copy )
-            .setMergeMode( MergeMode.MERGE ) );
+        BaseDimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
+        BaseDimensionalObject copy = mergeService.clone( dimension );
 
         if ( filterCanRead )
         {
@@ -402,8 +397,8 @@ public class DefaultDimensionService
     private DataElementOperand getDataElementOperand( IdScheme idScheme, String dataElementId, String categoryOptionComboId, String attributeOptionComboId )
     {
         DataElement dataElement = idObjectManager.getObject( DataElement.class, idScheme, dataElementId );
-        DataElementCategoryOptionCombo categoryOptionCombo = idObjectManager.getObject( DataElementCategoryOptionCombo.class, idScheme, categoryOptionComboId );
-        DataElementCategoryOptionCombo attributeOptionCombo = idObjectManager.getObject( DataElementCategoryOptionCombo.class, idScheme, attributeOptionComboId );
+        CategoryOptionCombo categoryOptionCombo = idObjectManager.getObject( CategoryOptionCombo.class, idScheme, categoryOptionComboId );
+        CategoryOptionCombo attributeOptionCombo = idObjectManager.getObject( CategoryOptionCombo.class, idScheme, attributeOptionComboId );
 
         if ( dataElement == null || (categoryOptionCombo == null && !SYMBOL_WILDCARD.equals( categoryOptionComboId )) )
         {
@@ -609,8 +604,8 @@ public class DefaultDimensionService
                 else if ( CATEGORY.equals( type ) )
                 {
                     CategoryDimension categoryDimension = new CategoryDimension();
-                    categoryDimension.setDimension( idObjectManager.get( DataElementCategory.class, dimensionId ) );
-                    categoryDimension.getItems().addAll( idObjectManager.getByUidOrdered( DataElementCategoryOption.class, uids ) );
+                    categoryDimension.setDimension( idObjectManager.get( Category.class, dimensionId ) );
+                    categoryDimension.getItems().addAll( idObjectManager.getByUidOrdered( CategoryOption.class, uids ) );
 
                     object.getCategoryDimensions().add( categoryDimension );
                 }

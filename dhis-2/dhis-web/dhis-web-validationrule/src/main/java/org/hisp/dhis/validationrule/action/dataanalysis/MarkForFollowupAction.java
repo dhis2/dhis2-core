@@ -1,7 +1,7 @@
 package org.hisp.dhis.validationrule.action.dataanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@ package org.hisp.dhis.validationrule.action.dataanalysis;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -83,9 +83,9 @@ public class MarkForFollowupAction
         this.organisationUnitService = organisationUnitService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -121,6 +121,13 @@ public class MarkForFollowupAction
     {
         this.categoryOptionComboId = categoryOptionComboId;
     }
+    
+    private Integer attributeOptionComboId;
+
+    public void setAttributeOptionComboId( Integer attributeOptionComboId )
+    {
+        this.attributeOptionComboId = attributeOptionComboId;
+    }
 
     // -------------------------------------------------------------------------
     // Output
@@ -143,10 +150,11 @@ public class MarkForFollowupAction
         DataElement dataElement = dataElementService.getDataElement( dataElementId );        
         Period period = periodService.getPeriod( periodId );
         OrganisationUnit source = organisationUnitService.getOrganisationUnit( sourceId );
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( categoryOptionComboId );
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptionComboId );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( attributeOptionComboId );        
         
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo ); 
-
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo ); 
+        
         if ( dataValue != null )
         {
             boolean isMarked = dataValue.isFollowup();

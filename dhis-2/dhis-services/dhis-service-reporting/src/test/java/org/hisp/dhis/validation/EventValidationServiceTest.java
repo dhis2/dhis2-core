@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,30 +32,26 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -69,17 +65,11 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 
@@ -100,7 +90,7 @@ public class EventValidationServiceTest
     private TrackedEntityAttributeService entityAttributeService;
 
     @Autowired
-    TrackedEntityAttributeValueService entityAttributeValueService;
+    private TrackedEntityAttributeValueService entityAttributeValueService;
 
     @Autowired
     private ProgramService programService;
@@ -127,7 +117,7 @@ public class EventValidationServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
+    private AnalyticsService analyticsService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -138,7 +128,7 @@ public class EventValidationServiceTest
     @Autowired
     private ValidationRuleService validationRuleService;
 
-    private DataElementCategoryOptionCombo defaultCombo;
+    private CategoryOptionCombo defaultCombo;
 
     private OrganisationUnit orgUnitA;
 
@@ -170,7 +160,7 @@ public class EventValidationServiceTest
 
         final String EX_INDICATOR = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "} + 4"; // Program Indicator expression
 
-        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
         orgUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( orgUnitA );
@@ -281,14 +271,20 @@ public class EventValidationServiceTest
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueA );
         trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
 
-        // Generate analytics tables:
-        analyticsTableGenerator.generateTables( 2, null, null, false );
+        Map<Date, Grid> dateGridMap = new HashMap<>();
+        dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8 ) );
+        dateGridMap.put( periodApr.getStartDate(), newGrid( 5, 1, 9 ) );
+
+        MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
+        mockAnalyticsSerivce.setDateGridMap( dateGridMap );
+
+        setDependency( validationService, "analyticsService", mockAnalyticsSerivce, AnalyticsService.class );
     }
 
     @Override
     public void tearDownTest()
     {
-        analyticsTableGenerator.dropTables();
+        setDependency( validationService, "analyticsService", analyticsService, AnalyticsService.class );
     }
 
     @Override
@@ -300,6 +296,43 @@ public class EventValidationServiceTest
     // -------------------------------------------------------------------------
     // Local convenience methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Make a data grid for MockAnalyticsService to return.
+     *
+     * @param dataElementVal Program data element value
+     * @param teAttributeVal Tracked entity attribute value
+     * @param piVal Program Indicator value
+     * @return the Grid, as would be returned by analytics
+     */
+    private Grid newGrid( double dataElementVal, double teAttributeVal, double piVal )
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID ) );
+
+        grid.addRow();
+        grid.addValue( "ProgramABCD.DataElement" );
+        grid.addValue( orgUnitA.getUid() );
+        grid.addValue( "HllvX50cXC0" );
+        grid.addValue( new Double( dataElementVal ) );
+
+        grid.addRow();
+        grid.addValue( "ProgramABCD.TEAttribute" );
+        grid.addValue( orgUnitA.getUid() );
+        grid.addValue( "HllvX50cXC0" );
+        grid.addValue( new Double( teAttributeVal ) );
+
+        grid.addRow();
+        grid.addValue( "ProgramIndA" );
+        grid.addValue( orgUnitA.getUid() );
+        grid.addValue( "HllvX50cXC0" );
+        grid.addValue( new Double( piVal ) );
+
+        return grid;
+    }
 
     /**
      * Returns a naturally ordered list of ValidationResults.
@@ -408,10 +441,10 @@ public class EventValidationServiceTest
 
         Date startDate = getDate( testYear, 3, 1 );
         Date endDate = getDate( testYear, 4, 30 );
-        List<OrganisationUnit> orgUnits = Arrays.asList( orgUnitA );
 
-        Collection<ValidationResult> results = validationService.startInteractiveValidationAnalysis( startDate, endDate,
-            orgUnits,false, null, null, false, null );
+        ValidationAnalysisParams params = validationService.newParamsBuilder( null, orgUnitA, startDate, endDate ).build();
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( params );
 
         assertResultsEquals( reference, results );
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.message;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
@@ -64,9 +63,6 @@ public class MessageConversationStoreTest
     @Autowired
     private SessionFactory sessionFactory;
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
     private User userB;
 
     private User userC;
@@ -98,7 +94,7 @@ public class MessageConversationStoreTest
 
         conversationIds = new HashSet<>();
 
-        conversationA = messageService.sendPrivateMessage( "Subject1", "Text", "Meta", usersA );
+        conversationA = messageService.sendMessage( messageService.createPrivateMessage( usersA,"Subject1", "Text", "Meta" ).build() );
         MessageConversation mc = messageService.getMessageConversation( conversationA );
         mc.markRead( userC );
         messageService.updateMessageConversation( mc );
@@ -108,13 +104,13 @@ public class MessageConversationStoreTest
         messageService.sendReply( mc, "Message 2", "Meta", false );
         messageService.sendReply( mc, "Message 3", "Meta", false );
 
-        int conversationB = messageService.sendPrivateMessage( "Subject2", "Text", "Meta", usersA );
+        int conversationB = messageService.sendMessage( messageService.createPrivateMessage( usersA, "Subject2", "Text", "Meta" ).build() );
         mc = messageService.getMessageConversation( conversationB );
         mc.setFollowUp( true );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
 
-        int conversationC = messageService.sendPrivateMessage( "Subject3", "Text", "Meta", usersB );
+        int conversationC = messageService.sendMessage( messageService.createPrivateMessage( usersB, "Subject3", "Text", "Meta" ).build() );
         mc = messageService.getMessageConversation( conversationC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Saptarshi
@@ -79,6 +81,8 @@ public class App
     private String launchUrl;
 
     private String baseUrl;
+
+    private Set<String> authorities = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Logic
@@ -273,6 +277,17 @@ public class App
     public void setAppStorageSource( AppStorageSource appStorageSource )
     {
         this.appStorageSource = appStorageSource;
+    }
+
+    @JsonProperty
+    public Set<String> getAuthorities()
+    {
+        return authorities;
+    }
+
+    public void setAuthorities( Set<String> authorities )
+    {
+        this.authorities = authorities;
     }
 
     // -------------------------------------------------------------------------

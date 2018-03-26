@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,17 +82,6 @@ public interface ProgramStageService
      * @return the ProgramStage with the given UID, or null if no match.
      */
     ProgramStage getProgramStage( String uid );
-
-    /**
-     * Retrieve a program stage by name and a program
-     *
-     * @param name    Name of program stage
-     * @param program Specify a {@link Program} for retrieving a program stage.
-     *                The system allows the name of program stages are duplicated on
-     *                different programs
-     * @return ProgramStage
-     */
-    ProgramStage getProgramStageByName( String name, Program program );
 
     /**
      * Retrieve all ProgramStages associated with the given DataEntryForm.

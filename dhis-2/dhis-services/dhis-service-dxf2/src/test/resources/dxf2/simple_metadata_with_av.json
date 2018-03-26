@@ -205,7 +205,7 @@
       "name": "OrgUnitA"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "lastUpdated": "2016-02-17T06:25:08.000+0000",
       "attributeValues": [ ],

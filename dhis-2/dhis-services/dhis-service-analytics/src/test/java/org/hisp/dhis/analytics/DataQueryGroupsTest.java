@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,13 +75,13 @@ public class DataQueryGroupsTest
     @Before
     public void before()
     {
-        deA = createDataElement( 'A', new DataElementCategoryCombo() ); // INTEGER, SUM
-        deB = createDataElement( 'B', new DataElementCategoryCombo() );
-        deC = createDataElement( 'C', new DataElementCategoryCombo() );
-        deD = createDataElement( 'D', new DataElementCategoryCombo() );
-        deE = createDataElement( 'E', new DataElementCategoryCombo() );
-        deF = createDataElement( 'F', new DataElementCategoryCombo() );
-        deG = createDataElement( 'G', new DataElementCategoryCombo() );
+        deA = createDataElement( 'A', new CategoryCombo() ); // INTEGER, SUM
+        deB = createDataElement( 'B', new CategoryCombo() );
+        deC = createDataElement( 'C', new CategoryCombo() );
+        deD = createDataElement( 'D', new CategoryCombo() );
+        deE = createDataElement( 'E', new CategoryCombo() );
+        deF = createDataElement( 'F', new CategoryCombo() );
+        deG = createDataElement( 'G', new CategoryCombo() );
         
         deF.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
         deG.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
@@ -100,26 +100,26 @@ public class DataQueryGroupsTest
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AggregationType.SUM ).build();
+            .withAggregationType( AnalyticsAggregationType.SUM ).build();
 
         DataQueryParams paramsB = DataQueryParams.newBuilder()
             .withDataElements( getList( deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AggregationType.SUM ).build();
+            .withAggregationType( AnalyticsAggregationType.SUM ).build();
 
         DataQueryParams paramsC = DataQueryParams.newBuilder()
             .withDataElements( getList( deE ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AggregationType.SUM ).build();
+            .withAggregationType( AnalyticsAggregationType.SUM ).build();
 
         DataQueryParams paramsD = DataQueryParams.newBuilder()
             .withDataElements( getList( deF, deG ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AggregationType.AVERAGE_SUM_INT ).build();
-
+            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+        
         List<DataQueryParams> queries = new ArrayList<>();
         queries.add( paramsA );
         queries.add( paramsB );

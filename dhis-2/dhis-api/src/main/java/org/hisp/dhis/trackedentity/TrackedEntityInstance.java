@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 import java.util.Date;
@@ -49,6 +53,7 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstance
     extends BaseIdentifiableObject
+    implements CoordinateObject
 {
     public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
 
@@ -64,11 +69,15 @@ public class TrackedEntityInstance
 
     private TrackedEntityInstance representative;
 
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     private Boolean inactive = false;
 
     private Boolean deleted = false;
+
+    private FeatureType featureType = FeatureType.NONE;
+
+    private String coordinates;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -188,16 +197,16 @@ public class TrackedEntityInstance
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
+    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty
@@ -222,5 +231,48 @@ public class TrackedEntityInstance
     public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    @Override
+    public boolean hasFeatureType()
+    {
+        return getFeatureType() != null;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.GEOLOCATION )
+    public String getCoordinates()
+    {
+        return coordinates;
+    }
+
+    @Override
+    public boolean hasCoordinates()
+    {
+        return getCoordinates() != null;
+    }
+
+    @Override
+    public boolean hasDescendantsWithCoordinates()
+    {
+        return false;
+    }
+
+    public void setCoordinates( String coordinates )
+    {
+        this.coordinates = coordinates;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,9 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.patch.Patch;
+import org.hisp.dhis.patch.PatchParams;
+import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
@@ -83,9 +86,6 @@ import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.patch.Patch;
-import org.hisp.dhis.schema.patch.PatchParams;
-import org.hisp.dhis.schema.patch.PatchService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
@@ -100,6 +100,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
@@ -239,6 +240,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+
         return rootNode;
     }
 
@@ -262,6 +265,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             fields.add( ":all" );
         }
+
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
@@ -297,6 +302,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
+
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + fieldFilter ), user );
     }
@@ -371,6 +378,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -414,11 +422,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
+
         List<T> entities = getEntity( pvUid, options );
 
         if ( entities.isEmpty() )
@@ -486,7 +496,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) );
+            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
+                .setUser( user ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
@@ -620,6 +631,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return null;
     }
 
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.OK )
+    public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
+
+        List<T> entity = getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
+        }
+
+        object.setAsFavorite( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
     //--------------------------------------------------------------------------
     // PUT
     //--------------------------------------------------------------------------
@@ -749,6 +791,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
     }
 
+    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.OK )
+    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isFavoritable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+        }
+
+        List<T> entity = getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
+        }
+
+        object.removeAsFavorite( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
     //--------------------------------------------------------------------------
     // Identifiable object collections add, delete
     //--------------------------------------------------------------------------
@@ -787,6 +860,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             throw new WebMessageException( WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
         }
+
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return rootNode;
     }
@@ -1056,14 +1131,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return schemaService.getDynamicSchema( klass );
     }
 
-    protected void addAccessProperties( List<T> objects, User user )
-    {
-        for ( T object : objects )
-        {
-            ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( object, user ) );
-        }
-    }
-
     private boolean fieldsContains( String match, List<String> fields )
     {
         for ( String field : fields )
@@ -1096,11 +1163,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( generateLinks )
         {
             linkService.generateLinks( entityList, deep );
-        }
-
-        if ( generateAccess && aclService.isSupported( getEntityClass() ) )
-        {
-            addAccessProperties( entityList, user );
         }
     }
 

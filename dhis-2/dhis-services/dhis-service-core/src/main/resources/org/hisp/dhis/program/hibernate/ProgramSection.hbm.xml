@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.program.ProgramSection" table="programsection">
+
+        <cache usage="read-write" />
+
+        <id name="id" column="programsectionid">
+            <generator class="native" />
+        </id>
+        &identifiableProperties;
+
+        <property name="name" column="name" not-null="true" length="230" />
+
+        <property name="description" type="text" />
+
+        <property name="formName" type="text" />
+
+        <property name="style" type="jbObjectStyle" column="style" />
+
+        <property name="renderType" type="jbRenderType" column="rendertype" />
+
+        <many-to-one name="program" class="org.hisp.dhis.program.Program"
+                     column="programid" foreign-key="fk_program_programid" />
+
+        <list name="attributes" table="programsection_attributes">
+            <key column="programsectionid" foreign-key="fk_programsections_attributes_programsectionid" />
+            <list-index column="sort_order" base="1" />
+            <many-to-many class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" column="trackedentityattributeid"
+                          foreign-key="fk_programsection_attributes_trackedentityattributeid" />
+        </list>
+
+        <property name="sortOrder" column="sortorder" not-null="true" />
+
+        <!-- Object Translation -->
+        <set name="translations" table="programsectiontranslations" cascade="all-delete-orphan">
+            <cache usage="read-write" />
+            <key column="programsectionid" foreign-key="fk_objecttranslation_programsectionid" />
+            <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
+        </set>
+
+    </class>
+
+</hibernate-mapping>

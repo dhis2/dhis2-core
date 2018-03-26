@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@ package org.hisp.dhis.sms.listener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -59,24 +59,14 @@ import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
 import javax.annotation.Resource;
+import java.util.*;
 
 @Transactional
 public class DataValueSMSListener
     extends BaseSMSListener
 {
-    private static final String DEFAULTPATTERN = "([a-zA-Z]+)\\s*(\\d+)";
-
-    private static final String SEPARATOR = "=";
+    private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -89,7 +79,7 @@ public class DataValueSMSListener
     private DataValueService dataValueService;
 
     @Autowired
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService dataElementCategoryService;
 
     @Autowired
     private SMSCommandService smsCommandService;
@@ -146,11 +136,13 @@ public class DataValueSMSListener
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
         Period period = getPeriod( smsCommand, date );
+        DataSet dataSet = smsCommand.getDataset();
 
-        if ( dataSetService.isLocked( smsCommand.getDataset(), period, orgUnit, null, null ) )
+        if ( dataSetService.isLocked( dataSet, period, orgUnit, dataElementCategoryService.getDefaultCategoryOptionCombo(), null ) )
         {
-            throw new SMSParserException(
-                "Dataset is locked for the period " + period.getStartDate() + " - " + period.getEndDate() );
+            sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(), ERROR );
+
+            throw new SMSParserException( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ) );
         }
 
         boolean valueStored = false;
@@ -244,8 +236,8 @@ public class DataValueSMSListener
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-            .getDataElementCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getCategoryOptionCombo( code.getOptionId() );
 
         Period period = getPeriod( command, date );
 
@@ -334,7 +326,7 @@ public class DataValueSMSListener
                 }
 
                 DataValue targetDataValue = dataValueService.getDataValue( targetDataElement, period, orgunit,
-                    dataElementCategoryService.getDefaultDataElementCategoryOptionCombo() );
+                    dataElementCategoryService.getDefaultCategoryOptionCombo() );
 
                 int targetValue = 0;
                 boolean newTargetDataValue = false;
@@ -343,7 +335,7 @@ public class DataValueSMSListener
                 {
                     targetDataValue = new DataValue();
                     targetDataValue.setCategoryOptionCombo(
-                        dataElementCategoryService.getDefaultDataElementCategoryOptionCombo() );
+                        dataElementCategoryService.getDefaultCategoryOptionCombo() );
                     targetDataValue.setSource( orgunit );
                     targetDataValue.setDataElement( targetDataElement );
                     targetDataValue.setPeriod( period );
@@ -398,8 +390,8 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-                .getDataElementCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId() );
 
             period = getPeriod( command, date );
 
@@ -459,8 +451,8 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-                .getDataElementCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId() );
 
             period = getPeriod( command, date );
 
@@ -526,8 +518,8 @@ public class DataValueSMSListener
     {
         CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
 
-        DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-            .getDefaultDataElementCategoryOptionCombo(); // TODO
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getDefaultCategoryOptionCombo(); // TODO
 
         if ( registrationService.getCompleteDataSetRegistration( dataSet, period, organisationUnit,
             optionCombo ) == null )
@@ -538,14 +530,14 @@ public class DataValueSMSListener
             registration.setDate( new Date() );
             registration.setStoredBy( storedBy );
             registration.setPeriodName( registration.getPeriod().toString() );
-            registrationService.saveCompleteDataSetRegistration( registration, false );
+            registrationService.saveCompleteDataSetRegistration( registration );
         }
     }
 
     private void deregisterCompleteDataSet( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
     {
-        DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-            .getDefaultDataElementCategoryOptionCombo(); // TODO
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getDefaultCategoryOptionCombo(); // TODO
 
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dataSet, period,
             organisationUnit, optionCombo );

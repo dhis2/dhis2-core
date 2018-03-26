@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.user.User;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jim Grace
@@ -107,7 +107,7 @@ public interface DataApprovalLevelService
      * @param attributeOptionCombo attribute option combination.
      * @return a data approval level, or null if not found.
      */
-    DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+    DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Gets a list of all data approval levels, ordered by level in ascending order,
@@ -128,16 +128,18 @@ public interface DataApprovalLevelService
 
     /**
      * Gets all approval levels to which the user has access.
+     * @param user the user to test for.
      * @return all approval levels to which the user has access.
      */
-    List<DataApprovalLevel> getUserDataApprovalLevels();
+    List<DataApprovalLevel> getUserDataApprovalLevels( User user );
 
     /**
      * Gets approval levels within a workflow to which the user has access.
+     * @param user the user to test for.
      * @param workflow the workflow to look within.
      * @return all user-accessible approval levels within that workflow.
      */
-    List<DataApprovalLevel> getUserDataApprovalLevels( DataApprovalWorkflow workflow );
+    List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow );
 
     /**
      * Gets data approval levels by org unit level.

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -152,22 +152,6 @@ public class DataSetStoreTest
         assertEquals( dataSetStore.getByName( "DataSetA" ).getId(), idA );
         assertEquals( dataSetStore.getByName( "DataSetB" ).getId(), idB );
         assertNull( dataSetStore.getByName( "DataSetC" ) );
-    }
-
-    @Test
-    public void testGetDataSetByShortName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        dataSetStore.save( dataSetA );
-        int idA = dataSetA.getId();
-        dataSetStore.save( dataSetB );
-        int idB = dataSetB.getId();
-
-        assertEquals( dataSetStore.getByShortName( "DataSetShortA" ).getId(), idA );
-        assertEquals( dataSetStore.getByShortName( "DataSetShortB" ).getId(), idB );
-        assertNull( dataSetStore.getByShortName( "DataSetShortC" ) );
     }
 
     @Test

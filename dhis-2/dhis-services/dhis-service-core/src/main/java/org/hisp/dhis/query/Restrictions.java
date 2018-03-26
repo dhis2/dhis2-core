@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import org.hisp.dhis.query.operators.BetweenOperator;
+import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.GreaterEqualOperator;
 import org.hisp.dhis.query.operators.GreaterThanOperator;
@@ -41,7 +42,9 @@ import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.query.operators.NotInOperator;
 import org.hisp.dhis.query.operators.NotLikeOperator;
 import org.hisp.dhis.query.operators.NotNullOperator;
+import org.hisp.dhis.query.operators.NotTokenOperator;
 import org.hisp.dhis.query.operators.NullOperator;
+import org.hisp.dhis.query.operators.TokenOperator;
 
 import java.util.Collection;
 
@@ -105,6 +108,16 @@ public final class Restrictions
         return new Restriction( path, new NotLikeOperator( value, false, matchMode ) );
     }
 
+    public static Restriction token( String path, Object value, MatchMode matchMode )
+    {
+        return new Restriction( path, new TokenOperator( value, false, matchMode ) );
+    }
+
+    public static Restriction notToken( String path, Object value, MatchMode matchMode )
+    {
+        return new Restriction( path, new NotTokenOperator( value, false, matchMode ) );
+    }
+
     public static Restriction in( String path, Collection<?> values )
     {
         return new Restriction( path, new InOperator( values ) );
@@ -123,6 +136,11 @@ public final class Restrictions
     public static Restriction isNotNull( String path )
     {
         return new Restriction( path, new NotNullOperator() );
+    }
+
+    public static Restriction isEmpty( String path )
+    {
+        return new Restriction( path, new EmptyOperator() );
     }
 
     private Restrictions()

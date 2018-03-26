@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,6 +131,38 @@ public class ExpressionFunctions
         LocalDate en = LocalDate.parse( end, DATE_FORMAT );
         
         return ChronoUnit.DAYS.between( st, en );
+    }
+    
+    /**
+     * Function which will return the number of months between the two given dates.
+     * 
+     * @param start the start date. 
+     * @param end the end date.
+     * @return number of months between dates.
+     * @throws ParseException if start or end could not be parsed.
+     */
+    public static Long monthsBetween( String start, String end )
+    {
+        LocalDate st = LocalDate.parse( start, DATE_FORMAT );
+        LocalDate en = LocalDate.parse( end, DATE_FORMAT );
+        
+        return ChronoUnit.MONTHS.between( st, en );
+    }
+    
+    /**
+     * Function which will return the number of days between the two given dates.
+     * 
+     * @param start the start date. 
+     * @param end the end date.
+     * @return number of years between dates.
+     * @throws ParseException if start or end could not be parsed.
+     */
+    public static Long yearsBetween( String start, String end )
+    {
+        LocalDate st = LocalDate.parse( start, DATE_FORMAT );
+        LocalDate en = LocalDate.parse( end, DATE_FORMAT );
+        
+        return ChronoUnit.YEARS.between( st, en );
     }
     
     /**

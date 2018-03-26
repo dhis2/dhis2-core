@@ -1,7 +1,7 @@
 package org.hisp.dhis.light.utils;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -54,6 +54,7 @@ import org.hisp.dhis.system.filter.PastAndCurrentPeriodFilter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationService;
@@ -172,8 +173,10 @@ public class FormUtilsImpl
     @Override
     public List<String> getValidationRuleViolations( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
-        List<ValidationResult> validationRuleResults = new ArrayList<>( validationService.startInteractiveValidationAnalysis(
-            dataSet, period, organisationUnit, null ) );
+
+        ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, organisationUnit, period ).build();
+
+        List<ValidationResult> validationRuleResults = new ArrayList<>( validationService.validationAnalysis( params ) );
 
         List<String> validationRuleViolations = new ArrayList<>( validationRuleResults.size() );
 
@@ -205,7 +208,7 @@ public class FormUtilsImpl
         for ( DataValue dataValue : values )
         {
             DataElement dataElement = dataValue.getDataElement();
-            DataElementCategoryOptionCombo optionCombo = dataValue.getCategoryOptionCombo();
+            CategoryOptionCombo optionCombo = dataValue.getCategoryOptionCombo();
 
             String key = String.format( "DE%dOC%d", dataElement.getId(), optionCombo.getId() );
             String value = dataValue.getValue();
@@ -250,7 +253,7 @@ public class FormUtilsImpl
 
         if ( !userCredentials.isSuper() )
         {
-            dataSets.retainAll( userCredentials.getAllDataSets() );
+            dataSets.retainAll( dataSetService.getAllDataWrite() );
         }
 
         return dataSets;

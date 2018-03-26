@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.minmax;
 
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Collection;
@@ -45,7 +45,7 @@ public interface MinMaxDataElementStore
 {
     String ID = MinMaxDataElementStore.class.getName();
 
-    MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo );
+    MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
     
     List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement );  
 
@@ -59,7 +59,7 @@ public interface MinMaxDataElementStore
     
     void delete( DataElement dataElement );
     
-    void delete( DataElementCategoryOptionCombo optionCombo );
+    void delete( CategoryOptionCombo optionCombo );
     
-    void delete( Collection<DataElement> dataElements, Collection<OrganisationUnit> organisationUnits );
+    void delete( Collection<DataElement> dataElements, OrganisationUnit parent );
 }

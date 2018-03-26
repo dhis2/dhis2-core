@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
@@ -74,7 +74,7 @@ public class DataApprovalWorkflow
     /**
      * The category combination for approving data with this workflow.
      */
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * The data approval levels used in this workflow.
@@ -107,7 +107,7 @@ public class DataApprovalWorkflow
     }
 
     public DataApprovalWorkflow( String name, PeriodType periodType,
-        DataElementCategoryCombo categoryCombo, Set<DataApprovalLevel> levels )
+        CategoryCombo categoryCombo, Set<DataApprovalLevel> levels )
     {
         this.name = name;
         this.periodType = periodType;
@@ -158,12 +158,12 @@ public class DataApprovalWorkflow
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
         return categoryCombo;
     }
 
-    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
     }

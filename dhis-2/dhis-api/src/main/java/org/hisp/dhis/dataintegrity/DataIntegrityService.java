@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,8 @@ package org.hisp.dhis.dataintegrity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
-
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -41,6 +39,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.validation.ValidationRule;
+
+import java.util.*;
 
 /**
  * @author Fredrik Fjeld
@@ -88,7 +88,7 @@ public interface DataIntegrityService
     /**
      * Returns all invalid category combinations.
      */
-    List<DataElementCategoryCombo> getInvalidCategoryCombos();
+    List<CategoryCombo> getInvalidCategoryCombos();
 
     // -------------------------------------------------------------------------
     // DataSet
@@ -160,7 +160,6 @@ public interface DataIntegrityService
 
     /**
      * Lists all Periods which are duplicates, based on the period type and start date.
-     * @return
      */
     List<Period> getDuplicatePeriods();
     

@@ -1,7 +1,7 @@
 package org.hisp.dhis.importexport.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,13 @@ package org.hisp.dhis.importexport.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
@@ -53,11 +52,11 @@ public class GetImportSummaryAction
     // Input
     // -------------------------------------------------------------------------
     
-    private TaskCategory category;
+    private JobType jobType;
     
-    public void setCategory( TaskCategory category )
+    public void setJobType( JobType jobType )
     {
-        this.category = category;
+        this.jobType = jobType;
     }
 
     // -------------------------------------------------------------------------
@@ -78,9 +77,9 @@ public class GetImportSummaryAction
     @Override
     public String execute()
     {
-        TaskId taskId = new TaskId( category, currentUserService.getCurrentUser() );        
+        JobConfiguration jobId = new JobConfiguration( null, jobType, currentUserService.getCurrentUser().getUid(), true );
         
-        summary = (ImportSummary) notifier.getTaskSummary( taskId );
+        summary = (ImportSummary) notifier.getJobSummary( jobId.getJobType() );
         
         return SUCCESS;
     }

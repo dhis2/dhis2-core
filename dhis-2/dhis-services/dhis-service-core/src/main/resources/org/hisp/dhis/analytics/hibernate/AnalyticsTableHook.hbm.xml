@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.analytics.AnalyticsTableHook" table="tablehook">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="analyticstablehookid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+    
+    <property name="name" unique="true" not-null="true" />
+    
+    <property name="phase" column="analyticstablephase" length="50" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AnalyticsTablePhase</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="resourceTableType" column="resourcetabletype" length="50" not-null="false">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.resourcetable.ResourceTableType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="analyticsTableType" column="analyticstabletype" length="50" not-null="false">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AnalyticsTableType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="sql" column="sql" not-null="true" type="text" />
+    
+  </class>
+</hibernate-mapping>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
 import org.hisp.dhis.program.ProgramStage;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.List;
 
@@ -51,7 +53,8 @@ public class HibernateDataEntryFormStore
     @SuppressWarnings( "unchecked" )
     public DataEntryForm getDataEntryFormByName( String name )
     {
-        query = getCriteriaQuery();
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
         Root<DataEntryForm> dataEntryForm = query.from( DataEntryForm.class );
         query.select( dataEntryForm );
@@ -64,7 +67,8 @@ public class HibernateDataEntryFormStore
     @SuppressWarnings( "unchecked" )
     public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
     {
-        query = getCriteriaQuery();
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery query = getCriteriaQuery();
 
         Root<ProgramStage> programStage = query.from( ProgramStage.class );
         query.select( programStage.get( "dataEntryForm" ) ).distinct( true );

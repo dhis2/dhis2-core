@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporttable;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.reporttable;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -62,7 +62,7 @@ public class ReportTableStoreTest
     extends DhisSpringTest
 {
     @Resource( name = "org.hisp.dhis.reporttable.ReportTableStore" )
-    private GenericIdentifiableObjectStore<ReportTable> reportTableStore;
+    private IdentifiableObjectStore<ReportTable> reportTableStore;
 
     @Autowired
     private DataElementService dataElementService;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -59,8 +58,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -74,9 +71,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -133,7 +134,7 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         return rootNode;
     }
@@ -177,62 +178,136 @@ public class SystemController
             collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         return rootNode;
     }
 
-    @RequestMapping( value = "/tasks/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskJson( @PathVariable( "category" ) String category,
-        @RequestParam( required = false ) String lastId, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTasksJson( HttpServletResponse response )
+        throws IOException
+    {
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
+    }
+
+    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30 } )
+    public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
+        throws IOException
     {
         List<Notification> notifications = new ArrayList<>();
 
-        if ( category != null )
+        if ( jobType != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
-
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
-
-            notifications = notifier.getNotifications( taskId, lastId );
+            notifications = notifier.getLastNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ), lastId );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/taskSummaries/{category}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTaskSummaryJson( @PathVariable( "category" ) String category, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
     {
-        if ( category != null )
+        Map<String, LinkedList<Notification>> notifications = new HashMap<>();
+
+        if ( jobType != null )
         {
-            TaskCategory taskCategory = TaskCategory.valueOf( category.toUpperCase() );
-
-            TaskId taskId = new TaskId( taskCategory, currentUserService.getCurrentUser() );
-
-            Object summary = notifier.getTaskSummary( taskId );
-
-            if ( summary != null && summary.getClass().isAssignableFrom( ImportSummary.class ) ) //TODO improve this
-            {
-                ImportSummary importSummary = (ImportSummary) summary;
-                renderService.toJson( response.getOutputStream(), importSummary );
-                return;
-            }
-            else
-            {
-                renderService.toJson( response.getOutputStream(), summary );
-                return;
-            }
+            notifications = notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
-        renderService.toJson( response.getOutputStream(), new ImportSummary() );
+        renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
+    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
+        HttpServletResponse response )
+        throws IOException
+    {
+        List<Notification> notifications = new ArrayList<>();
+
+        if ( jobType != null )
+        {
+            notifications = notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+        }
+
+        setNoStore( response );
+
+        renderService.toJson( response.getOutputStream(), notifications );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
+
+            handleSummary( response, summary );
+            return;
+        }
+
+        setNoStore( response );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30 } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummary( JobType.valueOf( jobType.toUpperCase() ) );
+
+            handleSummary( response, summary );
+            return;
+        }
+
+        setNoStore( response );
+    }
+
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
+    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
+        HttpServletResponse response )
+        throws IOException
+    {
+        if ( jobType != null )
+        {
+            Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+
+            handleSummary( response, summary );
+        }
+
+        setNoStore( response );
+    }
+
+    private void handleSummary( HttpServletResponse response, Object summary )
+        throws IOException
+    {
+        if ( summary != null && ImportSummary.class.isInstance( summary ) ) //TODO improve this
+        {
+            ImportSummary importSummary = (ImportSummary) summary;
+            renderService.toJson( response.getOutputStream(), importSummary );
+        }
+        else
+        {
+            renderService.toJson( response.getOutputStream(), summary );
+        }
+    }
+
+    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
+    public @ResponseBody
+    SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 
@@ -244,7 +319,7 @@ public class SystemController
             info.clearSensitiveInfo();
         }
 
-        response.setHeader( HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue() );
+        setNoStore( response );
 
         return info;
     }
@@ -264,14 +339,14 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+    @ApiVersion( exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET )
-    @ApiVersion( exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
+    @ApiVersion( exclude = { DhisApiVersion.DEFAULT } )
     public @ResponseBody String ping()
     {
         return "pong";

@@ -1,7 +1,26 @@
 package org.hisp.dhis.dataset;
 
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.Map4;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +47,6 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationService;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author Lars Helge Overland
  * @version $Id$
@@ -58,26 +66,27 @@ public class DefaultCompleteDataSetRegistrationService
         this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
     }
 
-    private MessageService messageService;
+    private CategoryService categoryService;
 
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
-
-    private DataElementCategoryService categoryService;
-
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
 
-    private DataSetNotificationService dataSetNotificationService;
+    @Autowired
+    private DataValueService dataValueService;
 
-    public void setDataSetNotificationService( DataSetNotificationService dataSetNotificationService )
-    {
-        this.dataSetNotificationService = dataSetNotificationService;
-    }
+    @Autowired
+    private DataSetNotificationEventPublisher notificationEventPublisher;
+
+    @Autowired
+    private AggregateAccessManager accessManager;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private PeriodService periodService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService
@@ -88,35 +97,12 @@ public class DefaultCompleteDataSetRegistrationService
     {
         if ( registration.getAttributeOptionCombo() == null )
         {
-            registration.setAttributeOptionCombo( categoryService.getDefaultDataElementCategoryOptionCombo() );
+            registration.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
         }
 
         completeDataSetRegistrationStore.saveCompleteDataSetRegistration( registration );
-    }
-
-    @Override
-    public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration, boolean skipNotification )
-    {
-        saveCompleteDataSetRegistration( registration );
-
-        if ( !skipNotification )
-        {
-            if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
-            {
-                messageService.sendCompletenessMessage( registration );
-            }
-
-            dataSetNotificationService.sendCompleteDataSetNotifications( registration );
-        }
-    }
-
-    @Override
-    public void saveCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations, boolean skipNotification )
-    {
-        for ( CompleteDataSetRegistration registration : registrations )
-        {
-            saveCompleteDataSetRegistration( registration, skipNotification );
-        }
+        
+        notificationEventPublisher.publishEvent( registration );
     }
 
     @Override
@@ -142,23 +128,16 @@ public class DefaultCompleteDataSetRegistrationService
 
     @Override
     public CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
-        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo )
     {
-        return completeDataSetRegistrationStore
-            .getCompleteDataSetRegistration( dataSet, period, source, attributeOptionCombo );
+        return completeDataSetRegistrationStore.getCompleteDataSetRegistration( dataSet, period, source,
+            attributeOptionCombo );
     }
 
     @Override
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
         return completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations();
-    }
-
-    @Override
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
-        Collection<DataSet> dataSets, Collection<OrganisationUnit> sources, Collection<Period> periods )
-    {
-        return completeDataSetRegistrationStore.getCompleteDataSetRegistrations( dataSets, sources, periods );
     }
 
     @Override
@@ -171,5 +150,77 @@ public class DefaultCompleteDataSetRegistrationService
     public void deleteCompleteDataSetRegistrations( OrganisationUnit unit )
     {
         completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations( unit );
+    }
+
+    @Override
+    public List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit )
+    {
+        List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
+
+        if ( !dataSet.getCompulsoryDataElementOperands().isEmpty() )
+        {
+            Period reloadedPeriod = periodService.reloadPeriod( period );
+
+            List<Period> periods = new ArrayList<>();
+            periods.add( reloadedPeriod );
+
+            List<OrganisationUnit> organisationUnits = new ArrayList<>();
+
+            if ( multiOrgUnit )
+            {
+                organisationUnits.addAll( organisationUnit.getChildren() );
+            }
+            else
+            {
+                organisationUnits.add( organisationUnit );
+            }
+
+            Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> dataValues = new Map4<>();
+
+            dataValues = dataValueService.getDataElementOperandValues( dataSet.getCompulsoryDataElementOperands(),
+                periods, organisationUnits );
+
+            if ( dataValues.isEmpty() )
+            {
+                missingDataElementOperands.addAll( dataSet.getCompulsoryDataElementOperands() );
+            }
+            else
+            {
+                User currentUser = currentUserService.getCurrentUser();
+
+                for ( DataElementOperand dataElementOperand : dataSet.getCompulsoryDataElementOperands() )
+                {
+                    List<String> errors = accessManager.canWrite( currentUser, dataElementOperand );
+
+                    if ( !errors.isEmpty() )
+                    {
+                        continue;
+                    }
+
+                    if ( multiOrgUnit )
+                    {
+                        for ( OrganisationUnit child : organisationUnit.getChildren() )
+                        {
+                            if ( dataValues.getValue( child, period, attributeOptionCombo.getUid(),
+                                dataElementOperand ) == null )
+                            {
+                                missingDataElementOperands.add( dataElementOperand );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if ( dataValues.getValue( organisationUnit, period, attributeOptionCombo.getUid(), dataElementOperand ) == null )
+                        {
+                            missingDataElementOperands.add( dataElementOperand );
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return missingDataElementOperands;
     }
 }

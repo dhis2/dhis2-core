@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import org.hisp.dhis.period.PeriodType;
 
 import java.util.Date;
 
-import static org.hisp.dhis.dataelement.DataElementCategoryOptionCombo.DEFAULT_TOSTRING;
+import static org.hisp.dhis.category.CategoryOptionCombo.DEFAULT_TOSTRING;
 
 /**
  * The purpose of this class is to avoid the overhead of creating objects

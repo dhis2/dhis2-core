@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,27 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -63,32 +69,29 @@ public class DefaultTrackedEntityAttributeService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private TrackedEntityAttributeStore attributeStore;
 
-    public void setAttributeStore( TrackedEntityAttributeStore attributeStore )
-    {
-        this.attributeStore = attributeStore;
-    }
-
+    @Autowired
     private ProgramService programService;
 
-    public void setProgramService( ProgramService programService )
-    {
-        this.programService = programService;
-    }
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
 
-    private ProgramTrackedEntityAttributeStore programAttributeStore;
-
-    public void setProgramAttributeStore( ProgramTrackedEntityAttributeStore programAttributeStore )
-    {
-        this.programAttributeStore = programAttributeStore;
-    }
+    @Autowired
+    private FileResourceService fileResourceService;
 
     @Autowired
     private UserService userService;
 
     @Autowired
     private ApplicationContext applicationContext;
+    
+    @Autowired
+    private CurrentUserService currentUserService;
+    
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -132,18 +135,6 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public TrackedEntityAttribute getTrackedEntityAttributeByShortName( String shortName )
-    {
-        return attributeStore.getByShortName( shortName );
-    }
-
-    @Override
-    public TrackedEntityAttribute getTrackedEntityAttributeByCode( String code )
-    {
-        return attributeStore.getByShortName( code );
-    }
-
-    @Override
     public TrackedEntityAttribute getTrackedEntityAttribute( String uid )
     {
         return attributeStore.getByUid( uid );
@@ -157,24 +148,9 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesWithoutProgram()
+    public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram()
     {
-        List<TrackedEntityAttribute> result = new ArrayList<>( attributeStore.getAll() );
-
-        List<Program> programs = programService.getAllPrograms();
-
-        for ( Program program : programs )
-        {
-            result.removeAll( program.getProgramAttributes() );
-        }
-
-        return result;
-    }
-
-    @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList()
-    {
-        return attributeStore.getDisplayInList();
+        return attributeStore.getDisplayInListNoProgram();
     }
 
     @Override
@@ -191,6 +167,7 @@ public class DefaultTrackedEntityAttributeService
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
+        params.setInternalSearch( true );
 
         if ( trackedEntityAttribute.getOrgunitScope() && trackedEntityAttribute.getProgramScope() )
         {
@@ -284,6 +261,10 @@ public class DefaultTrackedEntityAttributeService
         {
             return "Value '" + errorValue + "' is not a valid datetime for attribute " + trackedEntityAttribute.getUid();
         }
+        else if ( ValueType.IMAGE == valueType )
+        {
+            return validateImage( value );
+        }
         else if ( trackedEntityAttribute.hasOptionSet() && !trackedEntityAttribute.isValidOptionValue( value ) )
         {
             return "Value '" + errorValue + "' is not a valid option for attribute " +
@@ -292,47 +273,46 @@ public class DefaultTrackedEntityAttributeService
 
         return null;
     }
+    
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
+    {
+        Set<TrackedEntityAttribute> attributes = new HashSet<>();
+        
+        User user = currentUserService.getCurrentUser();        
+        
+        attributes = programService.getAllPrograms().stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
+            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );                
+        
+        attributes.addAll( trackedEntityTypeService.getAllTrackedEntityType().stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
+            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );        
+        
+        return attributes;
+    }
 
     // -------------------------------------------------------------------------
     // ProgramTrackedEntityAttribute
     // -------------------------------------------------------------------------
 
     @Override
-    public ProgramTrackedEntityAttribute getOrAddProgramTrackedEntityAttribute( String programUid, String attributeUid )
+    public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()
     {
-        Program program = programService.getProgram( programUid );
-
-        TrackedEntityAttribute attribute = getTrackedEntityAttribute( attributeUid );
-
-        if ( program == null || attribute == null )
-        {
-            return null;
-        }
-
-        ProgramTrackedEntityAttribute programAttribute = programAttributeStore.get( program, attribute );
-
-        if ( programAttribute == null )
-        {
-            programAttribute = new ProgramTrackedEntityAttribute( program, attribute );
-
-            programAttributeStore.save( programAttribute );
-        }
-
-        return programAttribute;
+        return getAllTrackedEntityAttributes().stream().filter( ta -> ta.isSystemWideUnique() )
+            .collect( Collectors.toList() );
     }
 
-    @Override
-    public ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( String programUid, String attributeUid )
+    private String validateImage( String uid )
     {
-        Program program = programService.getProgram( programUid );
+        FileResource fileResource = fileResourceService.getFileResource( uid );
 
-        TrackedEntityAttribute attribute = getTrackedEntityAttribute( attributeUid );
-
-        if ( program == null || attribute == null )
+        if ( fileResource == null )
         {
-            return null;
+            return "Value '" + uid + "' is not the uid of a file";
+        }
+        else if ( !ValueType.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
+        {
+            return "File resource with uid '" + uid + "' is not a valid image";
         }
 
-        return new ProgramTrackedEntityAttribute( program, attribute );
+        return null;
     }
 }

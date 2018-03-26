@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,11 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,17 +45,17 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
  * @author Lars Helge Overland
  */
 public class CategoryOptionComboNameResourceTable
-    extends ResourceTable<DataElementCategoryCombo>
+    extends ResourceTable<CategoryCombo>
 {
-    public CategoryOptionComboNameResourceTable( List<DataElementCategoryCombo> objects, String columnQuote )
+    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects, String columnQuote )
     {
         super( objects, columnQuote );
     }
     
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_categoryoptioncomboname";
+        return ResourceTableType.CATEGORY_OPTION_COMBO_NAME;
     }
     
     @Override
@@ -76,7 +78,7 @@ public class CategoryOptionComboNameResourceTable
     {
         List<Object[]> batchArgs = new ArrayList<>();
 
-        for ( DataElementCategoryCombo combo : objects )
+        for ( CategoryCombo combo : objects )
         {
             if ( !combo.isValid() )
             {
@@ -84,7 +86,7 @@ public class CategoryOptionComboNameResourceTable
                 continue;
             }
             
-            for ( DataElementCategoryOptionCombo coc : combo.getOptionCombos() )
+            for ( CategoryOptionCombo coc : combo.getOptionCombos() )
             {
                 List<Object> values = new ArrayList<>();
                 

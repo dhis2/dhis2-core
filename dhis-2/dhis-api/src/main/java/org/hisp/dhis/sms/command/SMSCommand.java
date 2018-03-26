@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.command;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,8 @@ public class SMSCommand extends BaseIdentifiableObject
     public static final String NO_USER_MESSAGE = "No user associated with this phone number. Please contact your supervisor.";
     public static final String ALERT_FEEDBACK = "Your alert message sent";
     public static final String PARAMETER_MISSING = "Mandatory parameter is missing";
+    public static final String SUCCESS_MESSAGE = "Command has been processed successfully";
+    public static final String NO_OU_FOR_PROGRAM = "Program is not assigned to user organisation unit.";
 
     private ParserType parserType = ParserType.ALERT_PARSER;
 
@@ -177,7 +179,7 @@ public class SMSCommand extends BaseIdentifiableObject
     @JacksonXmlProperty
     public String getReceivedMessage()
     {
-        return receivedMessage;
+        return receivedMessage != null ? receivedMessage : SUCCESS_MESSAGE;
     }
 
     public void setReceivedMessage( String receivedMessage )
@@ -238,7 +240,7 @@ public class SMSCommand extends BaseIdentifiableObject
     @JacksonXmlProperty
     public String getWrongFormatMessage()
     {
-        return wrongFormatMessage;
+        return wrongFormatMessage != null ? wrongFormatMessage : WRONG_FORMAT_MESSAGE;
     }
 
     public void setWrongFormatMessage( String wrongFormatMessage )
@@ -250,7 +252,7 @@ public class SMSCommand extends BaseIdentifiableObject
     @JacksonXmlProperty
     public String getNoUserMessage()
     {
-        return noUserMessage;
+        return noUserMessage != null ? noUserMessage : NO_USER_MESSAGE;
     }
 
     public void setNoUserMessage( String noUserMessage )
@@ -262,7 +264,7 @@ public class SMSCommand extends BaseIdentifiableObject
     @JacksonXmlProperty
     public String getSuccessMessage()
     {
-        return successMessage;
+        return successMessage != null ? successMessage : SUCCESS_MESSAGE;
     }
 
     public void setSuccessMessage( String successMessage )
@@ -274,7 +276,7 @@ public class SMSCommand extends BaseIdentifiableObject
     @JacksonXmlProperty
     public String getMoreThanOneOrgUnitMessage()
     {
-        return moreThanOneOrgUnitMessage;
+        return moreThanOneOrgUnitMessage != null ? moreThanOneOrgUnitMessage : MORE_THAN_ONE_ORGUNIT_MESSAGE;
     }
 
     public void setMoreThanOneOrgUnitMessage( String moreThanOneOrgUnitMessage )

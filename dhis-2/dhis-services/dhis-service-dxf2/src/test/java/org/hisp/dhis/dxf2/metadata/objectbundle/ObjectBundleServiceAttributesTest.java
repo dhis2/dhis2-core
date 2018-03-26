@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
  
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -134,7 +134,7 @@ public class ObjectBundleServiceAttributesTest
         for ( DataElement dataElement : dataElements )
         {
             assertNotNull( dataElement.getDataElementCategoryCombo() );
-            assertEquals( defaults.get( DataElementCategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
+            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
         }
 
         assertFalse( dataSet.getSources().isEmpty() );

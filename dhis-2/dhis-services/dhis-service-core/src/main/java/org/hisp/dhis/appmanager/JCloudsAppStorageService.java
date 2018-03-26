@@ -1,6 +1,6 @@
 package org.hisp.dhis.appmanager;
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@ import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpResponseException;
 import org.jclouds.rest.AuthorizationException;
+import org.jclouds.s3.reference.S3Constants;
 import org.joda.time.Minutes;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -71,7 +72,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import static org.jclouds.blobstore.options.ListContainerOptions.Builder.inDirectory;
+import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 /**
  * @author Stian Sandvold
@@ -79,10 +80,9 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.inDirec
 public class JCloudsAppStorageService
     implements AppStorageService
 {
-
     private static final Log log = LogFactory.getLog( JCloudsAppStorageService.class );
 
-    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^((?!-)[a-zA-Z0-9-]{1,63}(?<!-))+$" );
+    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
 
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
@@ -201,13 +201,12 @@ public class JCloudsAppStorageService
 
         log.info( " Starting JCloud discovery..." );
 
-        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( APPS_DIR ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
         {
-
             log.info( "Found potential app: " + resource.getName() );
 
             // Found potential app
-            Blob manifest = blobStore.getBlob( config.container, resource.getName() + "/manifest.webapp" );
+            Blob manifest = blobStore.getBlob( config.container, resource.getName() + "manifest.webapp" );
 
             if ( manifest == null )
             {
@@ -301,7 +300,7 @@ public class JCloudsAppStorageService
 
             String namespace = app.getActivities().getDhis().getNamespace();
 
-            if ( namespace != null && !namespace.isEmpty() && !app.equals( reservedNamespaces.get( namespace ) ) )
+            if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
             {
                 log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
                     app.getName(), namespace ) );
@@ -394,11 +393,10 @@ public class JCloudsAppStorageService
     @Override
     public boolean deleteApp( App app )
     {
-
         log.info( "Deleting app " + app.getName() );
 
         // Delete all files related to app
-        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( app.getFolderName() ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, prefix( app.getFolderName() ).recursive() ) )
         {
             log.info( "Deleting app file: " + resource.getName() );
 
@@ -420,11 +418,12 @@ public class JCloudsAppStorageService
             return null;
         }
 
-        String key = app.getFolderName() + ("/" + pageName).replaceAll( "//", "/" );
+        String key = ( app.getFolderName() + ("/" + pageName) ).replaceAll( "//", "/" );
         URI uri = getSignedGetContentUri( key );
 
         if ( uri == null )
         {
+
             String filepath = configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) + "/" + key;
             filepath = filepath.replaceAll( "//", "/" );
             File res = locationManager.getFileForReading( filepath );
@@ -465,6 +464,7 @@ public class JCloudsAppStorageService
         else if ( provider.equals( JCLOUDS_PROVIDER_KEY_AWS_S3 ) )
         {
             credentials = new Credentials( identity, secret );
+            overrides.setProperty( S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false" );
 
             if ( credentials.identity.isEmpty() || credentials.credential.isEmpty() )
             {

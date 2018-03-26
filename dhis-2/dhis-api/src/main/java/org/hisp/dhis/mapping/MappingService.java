@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,6 @@ import java.util.List;
 public interface MappingService
     extends AnalyticalObjectService<MapView>
 {
-    String ID = MappingService.class.getName();
-
     String GEOJSON_DIR = "geojson";
 
     String MAP_LEGEND_SYMBOLIZER_COLOR = "color";

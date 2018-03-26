@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,10 @@ public interface MinMaxDataAnalysisService
     /**
      * Generate min-max values.
      * 
-     * @param parents the parent organisation units.
+     * @param parent the parent organisation unit.
      * @param dataElements the data elements.
      * @param stdDevFactor the std dev factor.
      */
-    void generateMinMaxValues( Collection<OrganisationUnit> parents,
+    void generateMinMaxValues( OrganisationUnit parent,
         Collection<DataElement> dataElements, Double stdDevFactor );
 }

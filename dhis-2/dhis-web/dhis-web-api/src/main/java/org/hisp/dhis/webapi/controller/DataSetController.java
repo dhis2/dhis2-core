@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@ import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -146,7 +146,7 @@ public class DataSetController
         Metadata metadata = new Metadata();
         metadata.setDataElements( (List<DataElement>) metadataMap.get( DataElement.class ) );
         metadata.setDataSets( (List<DataSet>) metadataMap.get( DataSet.class ) );
-        metadata.setCategoryOptionCombos( (List<DataElementCategoryOptionCombo>) metadataMap.get( DataElementCategoryOptionCombo.class ) );
+        metadata.setCategoryOptionCombos( (List<CategoryOptionCombo>) metadataMap.get( CategoryOptionCombo.class ) );
 
         InputStream input = new ByteArrayInputStream( DefaultRenderService.getXmlMapper().writeValueAsString( metadata ).getBytes( "UTF-8" ) );
 
@@ -205,7 +205,7 @@ public class DataSetController
             throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
         }
 
-        List<DataElementCategoryCombo> categoryCombos = dataSet.getDataSetElements().stream().
+        List<CategoryCombo> categoryCombos = dataSet.getDataSetElements().stream().
             map( DataSetElement::getResolvedCategoryCombo ).distinct().collect( Collectors.toList() );
 
         Collections.sort( categoryCombos );
@@ -213,7 +213,7 @@ public class DataSetController
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( DataElementCategoryCombo.class,
+        rootNode.addChild( fieldFilterService.toCollectionNode( CategoryCombo.class,
             new FieldFilterParams( categoryCombos, fields ) ) );
 
         return rootNode;
@@ -325,7 +325,7 @@ public class DataSetController
 
             if ( options != null && !options.isEmpty() )
             {
-                DataElementCategoryOptionCombo attrOptionCombo = inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(), options, IdScheme.UID );
+                CategoryOptionCombo attrOptionCombo = inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(), options, IdScheme.UID );
                 dataValues = dataValueService.getDataValues( ou, pe, dataSets.get( 0 ).getDataElements(), attrOptionCombo );
             }
             else
@@ -374,7 +374,7 @@ public class DataSetController
     }
 
     @RequestMapping( value = "/{uid}/form", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V23 )
+    @ApiVersion( value = DhisApiVersion.ALL )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request ) throws WebMessageException
     {
@@ -451,7 +451,7 @@ public class DataSetController
         MetadataExportParams params = new MetadataExportParams();
         params.addQuery( Query.from( schemaService.getSchema( DataElement.class ) ) );
         params.addQuery( Query.from( schemaService.getSchema( DataSet.class ) ) );
-        params.addQuery( Query.from( schemaService.getSchema( DataElementCategoryOptionCombo.class ) ) );
+        params.addQuery( Query.from( schemaService.getSchema( CategoryOptionCombo.class ) ) );
 
         return params;
     }

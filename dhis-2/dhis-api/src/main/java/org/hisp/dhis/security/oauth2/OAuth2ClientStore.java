@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.oauth2;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.security.oauth2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface OAuth2ClientStore
-    extends GenericIdentifiableObjectStore<OAuth2Client>
+    extends IdentifiableObjectStore<OAuth2Client>
 {
     String ID = OAuth2ClientStore.class.getName();
 

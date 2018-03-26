@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Viet Nguyen
  */
 public interface ProgramStageDataElementStore
-    extends GenericIdentifiableObjectStore<ProgramStageDataElement>
+    extends IdentifiableObjectStore<ProgramStageDataElement>
 {
     String ID = ProgramStageInstanceStore.class.getName();
 

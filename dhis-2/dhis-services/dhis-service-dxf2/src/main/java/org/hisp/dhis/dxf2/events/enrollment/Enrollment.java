@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class Enrollment
 
     private String lastUpdatedAtClient;
 
-    private String trackedEntity;
+    private String trackedEntityType;
 
     private String trackedEntityInstance;
 
@@ -88,7 +88,9 @@ public class Enrollment
 
     private Coordinate coordinate;
 
-    private Boolean deleted;
+    private Boolean deleted = false;
+    
+    private String storedBy;
 
     public Enrollment()
     {
@@ -115,6 +117,7 @@ public class Enrollment
 
     public void setCreated( String created )
     {
+        this.created = created;
     }
 
     @JsonProperty( required = true )
@@ -126,6 +129,7 @@ public class Enrollment
 
     public void setLastUpdated( String lastUpdated )
     {
+        this.lastUpdated = lastUpdated;
     }
 
     @JsonProperty( required = true )
@@ -154,14 +158,14 @@ public class Enrollment
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntity()
+    public String getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( String trackedEntity )
+    public void setTrackedEntityType( String trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty( required = true )
@@ -275,7 +279,7 @@ public class Enrollment
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "notes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<Note> getNotes()
     {
@@ -337,7 +341,7 @@ public class Enrollment
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDeleted()
+    public Boolean isDeleted()
     {
         return deleted;
     }
@@ -345,5 +349,17 @@ public class Enrollment
     public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
     }
 }

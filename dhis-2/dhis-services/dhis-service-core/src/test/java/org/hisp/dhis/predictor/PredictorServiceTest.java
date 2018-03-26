@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,17 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,13 +68,10 @@ public class PredictorServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private ExpressionService expressionService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     private OrganisationUnitLevel orgUnitLevel1;
     
@@ -85,22 +81,21 @@ public class PredictorServiceTest
     private DataElement dataElementD;
     private DataElement dataElementX;
 
-    private DataElementCategoryOptionCombo defaultCombo;
+    private CategoryOptionCombo defaultCombo;
 
-    private DataElementCategoryOptionCombo altCombo;
+    private CategoryOptionCombo altCombo;
 
-    DataElementCategoryOption altCategoryOption;
-    DataElementCategory altDataElementCategory;
-    DataElementCategoryCombo altDataElementCategoryCombo;
+    CategoryOption altCategoryOption;
+    Category altCategory;
+    CategoryCombo altCategoryCombo;
 
     private Set<DataElement> dataElements;
 
-    private Set<DataElementCategoryOptionCombo> optionCombos;
+    private Set<CategoryOptionCombo> optionCombos;
 
     private Expression expressionA;
     private Expression expressionB;
     private Expression expressionC;
-    private Expression expressionD;
 
     private PeriodType periodTypeMonthly;
 
@@ -137,25 +132,25 @@ public class PredictorServiceTest
 
         periodTypeMonthly = PeriodType.getPeriodTypeByName( "Monthly" );
 
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        altCategoryOption = new DataElementCategoryOption( "AltCategoryOption" );
-        categoryService.addDataElementCategoryOption( altCategoryOption );
-        altDataElementCategory = createDataElementCategory( 'A', altCategoryOption );
-        categoryService.addDataElementCategory( altDataElementCategory );
+        altCategoryOption = new CategoryOption( "AltCategoryOption" );
+        categoryService.addCategoryOption( altCategoryOption );
+        altCategory = createCategory( 'A', altCategoryOption );
+        categoryService.addCategory( altCategory );
 
-        altDataElementCategoryCombo = createCategoryCombo( 'Y', altDataElementCategory );
-        categoryService.addDataElementCategoryCombo( altDataElementCategoryCombo );
+        altCategoryCombo = createCategoryCombo( 'Y', altCategory );
+        categoryService.addCategoryCombo( altCategoryCombo );
 
-        altCombo = createCategoryOptionCombo( 'Z', altDataElementCategoryCombo, altCategoryOption );
+        altCombo = createCategoryOptionCombo( 'Z', altCategoryCombo, altCategoryOption );
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
         optionCombos.add( altCombo );
 
-        categoryService.addDataElementCategoryOptionCombo( altCombo );
+        categoryService.addCategoryOptionCombo( altCombo );
 
         expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );

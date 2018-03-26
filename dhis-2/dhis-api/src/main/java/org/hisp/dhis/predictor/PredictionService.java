@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,14 @@ package org.hisp.dhis.predictor;
  */
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Jim Grace
  */
 public interface PredictionService
 {
+    int predictPredictors( List<String> predictors, Date startDate, Date endDate );
+
     int predict( Predictor predictor, Date startDate, Date endDate );
 }

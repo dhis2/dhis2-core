@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,8 @@ package org.hisp.dhis.trackedentity.hibernate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -45,24 +43,24 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceService.ERROR_DUPLICATE_IDENTIFIER;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceService.SEPARATOR;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -124,9 +122,9 @@ public class HibernateTrackedEntityInstanceStore
         String hql = "select distinct tei from TrackedEntityInstance tei left join tei.trackedEntityAttributeValues";
         SqlHelper hlp = new SqlHelper( true );
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "tei.trackedEntity.uid='" + params.getTrackedEntity().getUid() + "'";
+            hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
         }
 
         if ( params.hasLastUpdatedStartDate() )
@@ -261,7 +259,7 @@ public class HibernateTrackedEntityInstanceStore
                 "ou.uid as " + ORG_UNIT_ID + ", " +
                 "ou.name as " + ORG_UNIT_NAME + ", " +
                 "te.uid as " + TRACKED_ENTITY_ID + ", " +
-                ( params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "" ) +
+                (params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "") +
                 "tei.inactive as " + INACTIVE_ID + ", ";
 
         for ( QueryItem item : params.getAttributes() )
@@ -300,7 +298,7 @@ public class HibernateTrackedEntityInstanceStore
         // Query
         // ---------------------------------------------------------------------
 
-        log.info( "Query: "+ sql );
+        log.info( "Query: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -376,7 +374,7 @@ public class HibernateTrackedEntityInstanceStore
         final String anyChar = "\\.*?";
 
         String sql = "from trackedentityinstance tei "
-            + "inner join trackedentity te on tei.trackedentityid = te.trackedentityid "
+            + "inner join trackedentitytype te on tei.trackedentitytypeid = te.trackedentitytypeid "
             + "inner join organisationunit ou on tei.organisationunitid = ou.organisationunitid ";
 
         for ( QueryItem item : params.getAttributesAndFilters() )
@@ -403,9 +401,9 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        if ( params.hasTrackedEntity() )
+        if ( params.hasTrackedEntityType() )
         {
-            sql += hlp.whereAnd() + " tei.trackedentityid = " + params.getTrackedEntity().getId() + " ";
+            sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }
 
         params.handleOrganisationUnits();
@@ -618,58 +616,16 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public String validate( TrackedEntityInstance instance, TrackedEntityAttributeValue attributeValue, Program program )
-    {
-        TrackedEntityAttribute attribute = attributeValue.getAttribute();
-
-        try
-        {
-            if ( attribute.isUnique() )
-            {
-                Criteria criteria = getCriteria();
-                criteria.add( Restrictions.ne( "id", instance.getId() ) );
-                criteria.createAlias( "trackedEntityAttributeValues", "attributeValue" );
-                criteria.createAlias( "attributeValue.attribute", "attribute" );
-                criteria.add( Restrictions.eq( "attributeValue.value", attributeValue.getValue() ) );
-                criteria.add( Restrictions.eq( "attributeValue.attribute", attribute ) );
-
-                if ( attribute.getId() != 0 )
-                {
-                    criteria.add( Restrictions.ne( "id", attribute.getId() ) );
-                }
-
-                if ( attribute.getOrgunitScope() )
-                {
-                    criteria.add( Restrictions.eq( "organisationUnit", instance.getOrganisationUnit() ) );
-                }
-
-                if ( program != null && attribute.getProgramScope() )
-                {
-                    criteria.createAlias( "programInstances", "programInstance" );
-                    criteria.add( Restrictions.eq( "programInstance.program", program ) );
-                }
-
-                Number rs = (Number) criteria.setProjection(
-                    Projections.projectionList().add( Projections.property( "attribute.id" ) ) ).uniqueResult();
-
-                if ( rs != null && rs.intValue() > 0 )
-                {
-                    return ERROR_DUPLICATE_IDENTIFIER + SEPARATOR + rs.intValue();
-                }
-            }
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    @Override
     public boolean exists( String uid )
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=? and deleted is false", Integer.class, uid );
+        return result != null && result > 0;
+    }
+
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
     }
 
@@ -683,6 +639,6 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
     {
-        return ( trackedEntityInstance == null || trackedEntityInstance.isDeleted() ) ? null : trackedEntityInstance;
+        return (trackedEntityInstance == null || trackedEntityInstance.isDeleted()) ? null : trackedEntityInstance;
     }
 }

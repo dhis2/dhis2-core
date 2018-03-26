@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.adx;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author bobj
@@ -85,7 +85,7 @@ public interface AdxDataService
      * 
      * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
      */
-    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, TaskId id );
+    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id );
 
     /**
      * Get data. Writes adx export data to output stream.

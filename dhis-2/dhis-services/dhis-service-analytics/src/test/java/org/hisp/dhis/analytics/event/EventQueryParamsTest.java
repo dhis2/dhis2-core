@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,29 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -52,6 +58,29 @@ import org.junit.Test;
 public class EventQueryParamsTest
     extends DhisConvenienceTest
 {
+    private Option opA;
+    private Option opB;
+    private Option opC;
+    private Option opD;
+    private OptionSet osA;
+    private OptionSet osB;
+    private DataElement deA;
+    private DataElement deB;
+    
+    @Before
+    public void before()
+    {
+        opA = createOption( 'A' );
+        opB = createOption( 'B' );
+        opC = createOption( 'C' );
+        opD = createOption( 'D' );
+        osA = createOptionSet( 'A', opA, opB );
+        osB = createOptionSet( 'B', opC, opD );
+        
+        deA = createDataElement( 'A' );
+        deB = createDataElement( 'B' );
+    }
+    
     @Test
     public void testReplacePeriodsWithStartEndDates()
     {
@@ -74,12 +103,46 @@ public class EventQueryParamsTest
     }
     
     @Test
+    public void testGetItemLegends()
+    {
+        Legend leA = createLegend( 'A', 0d, 1d );
+        Legend leB = createLegend( 'B', 1d, 2d );        
+        LegendSet lsA = createLegendSet( 'A', leA, leB );
+        
+        QueryItem qiA = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
+        
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( qiA )
+            .build();
+        
+        Set<Legend> expected = Sets.newHashSet( leA, leB );
+        
+        assertEquals( expected, params.getItemLegends() );
+    }
+    
+    @Test
+    public void testGetItemOptions()
+    {
+        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
+        QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
+
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( qiA )
+            .addItem( qiB )
+            .build();
+        
+        Set<Option> expected = Sets.newHashSet( opA, opB, opC, opD );
+        
+        assertEquals( expected, params.getItemOptions() );
+    }
+    
+    @Test
     public void testGetDuplicateQueryItems()
     {        
-        QueryItem iA = new QueryItem( createDataElement( 'A', new DataElementCategoryCombo() ) );
-        QueryItem iB = new QueryItem( createDataElement( 'B', new DataElementCategoryCombo() ) );
-        QueryItem iC = new QueryItem( createDataElement( 'B', new DataElementCategoryCombo() ) );
-        QueryItem iD = new QueryItem( createDataElement( 'D', new DataElementCategoryCombo() ) );
+        QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
+        QueryItem iB = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
+        QueryItem iC = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
+        QueryItem iD = new QueryItem( createDataElement( 'D', new CategoryCombo() ) );
 
         EventQueryParams params = new EventQueryParams.Builder()
             .addItem( iA )

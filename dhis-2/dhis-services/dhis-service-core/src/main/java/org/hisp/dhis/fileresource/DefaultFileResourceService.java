@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,11 @@ package org.hisp.dhis.fileresource;
  */
 
 import com.google.common.io.ByteSource;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
-import org.joda.time.Seconds;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -53,8 +50,6 @@ import java.util.stream.Collectors;
 public class DefaultFileResourceService
     implements FileResourceService
 {
-    private static final Log log = LogFactory.getLog(DefaultFileResourceService.class);
-
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
     private static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
@@ -64,9 +59,9 @@ public class DefaultFileResourceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<FileResource> fileResourceStore;
+    private IdentifiableObjectStore<FileResource> fileResourceStore;
 
-    public void setFileResourceStore( GenericIdentifiableObjectStore<FileResource> fileResourceStore )
+    public void setFileResourceStore( IdentifiableObjectStore<FileResource> fileResourceStore )
     {
         this.fileResourceStore = fileResourceStore;
     }
@@ -78,11 +73,11 @@ public class DefaultFileResourceService
         this.fileResourceContentStore = fileResourceContentStore;
     }
 
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
-    public void setScheduler( Scheduler scheduler )
+    public void setSchedulingManager( SchedulingManager schedulingManager )
     {
-        this.scheduler = scheduler;
+        this.schedulingManager = schedulingManager;
     }
 
     private FileResourceUploadCallback uploadCallback;
@@ -100,8 +95,7 @@ public class DefaultFileResourceService
     @Transactional
     public FileResource getFileResource( String uid )
     {
-        // TODO ensureStorageStatus(..) is a temp fix. Should be removed.
-        return ensureStorageStatus( fileResourceStore.getByUid( uid ) );
+        return fileResourceStore.getByUid( uid );
     }
 
     @Override
@@ -120,14 +114,12 @@ public class DefaultFileResourceService
     }
 
     @Override
-    @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
     }
 
     @Override
-    @Transactional
     public String saveFileResource( FileResource fileResource, byte[] bytes )
     {
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, bytes ) );
@@ -194,53 +186,14 @@ public class DefaultFileResourceService
     {
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
+        updateFileResource( fileResource );
 
-        final ListenableFuture<String> saveContentTask = scheduler.executeTask( saveCallable );
+        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( saveCallable );
 
         final String uid = fileResource.getUid();
 
         saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
 
         return uid;
-    }
-
-    /**
-     * TODO Temporary fix. Remove at some point.
-     *
-     * Ensures correctness of the storageStatus of this FileResource.
-     *
-     * If the status has been 'PENDING' for more than 1 second we check to see if the content may actually have been stored.
-     * If this is the case the status is corrected to STORED.
-     *
-     * This method is a TEMPORARY fix for the for now unsolved issue with a race occurring between the Hibernate object cache
-     * and the upload callback attempting to modify the FileResource object upon completion.
-     *
-     * Resolving that issue (likely by breaking the StorageStatus into a separate table) should make this method redundant.
-     */
-    private FileResource ensureStorageStatus( FileResource fileResource )
-    {
-        if ( fileResource != null && fileResource.getStorageStatus() == FileResourceStorageStatus.PENDING )
-        {
-            Duration pendingDuration = new Duration( new DateTime( fileResource.getLastUpdated() ), DateTime.now() );
-
-            if ( pendingDuration.isLongerThan( Seconds.seconds( 1 ).toStandardDuration() ) )
-            {
-                // Upload has been finished for 5+ seconds and is still PENDING.
-                // Check if content has actually been stored and correct to STORED if this is the case.
-
-                boolean contentIsStored = fileResourceContentStore.fileResourceContentExists( fileResource.getStorageKey() );
-
-                if ( contentIsStored )
-                {
-                    // We fix
-                    fileResource.setStorageStatus( FileResourceStorageStatus.STORED );
-                    fileResourceStore.update( fileResource );
-                    log.warn( "Corrected issue: FileResource '" + fileResource.getUid() +
-                        "' had storageStatus PENDING but content was actually stored." );
-                }
-            }
-        }
-
-        return fileResource;
     }
 }

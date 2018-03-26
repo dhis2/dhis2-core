@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.jep;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,18 +46,27 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  */
 public class CustomFunctions
 {
-    public static final Map<String, PostfixMathCommandI> AGGREGATE_FUNCTIONS = 
+    public static final Map<String, PostfixMathCommandI> AGGREGATE_FUNCTIONS =
         ImmutableMap.<String, PostfixMathCommandI>builder().
-        put( "AVG", new ArithmeticMean() ).put( "STDDEV", new StandardDeviation() ).
-        put( "MEDIAN", new MedianValue() ).put( "MAX", new MaxValue() ).
-        put( "MIN", new MinValue() ).put( "COUNT", new Count() ).
-        put( "SUM", new VectorSum() ).build();
-    
+            put( "AVG", new ArithmeticMean() ).put( "STDDEV", new StandardDeviation() ).
+            put( "MEDIAN", new MedianValue() ).put( "MAX", new MaxValue() ).
+            put( "MIN", new MinValue() ).put( "COUNT", new Count() ).
+            put( "SUM", new VectorSum() ).build();
+
     public static final Pattern AGGREGATE_PATTERN_PREFIX = Pattern.compile( "(AVG|STDDEV|MEDIAN|MAX|MIN|COUNT|SUM)\\s*\\(", CASE_INSENSITIVE );
+
+    public static final Map<String, PostfixMathCommandI> SCALAR_FUNCTIONS =
+        ImmutableMap.<String, PostfixMathCommandI>builder().
+            put( "IF", new If() ).build();
+
+    public static final Pattern SCALAR_PATTERN_PREFIX = Pattern.compile( "(IF)\\s*\\(", CASE_INSENSITIVE );
+
+    public static final Map<String, PostfixMathCommandI> ALL_FUNCTIONS =
+        ImmutableMap.<String, PostfixMathCommandI>builder().putAll( AGGREGATE_FUNCTIONS ).putAll( SCALAR_FUNCTIONS ).build();
 
     public static void addFunctions( JEP parser )
     {        
-        for ( Entry<String, PostfixMathCommandI> e : AGGREGATE_FUNCTIONS.entrySet() )
+        for ( Entry<String, PostfixMathCommandI> e : ALL_FUNCTIONS.entrySet() )
         {
             String fname = e.getKey();
             PostfixMathCommandI cmd = e.getValue();

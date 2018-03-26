@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ package org.hisp.dhis.dataset;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -39,15 +39,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -75,19 +70,15 @@ public class DefaultDataSetService
         this.lockExceptionStore = lockExceptionStore;
     }
 
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
     private DataApprovalService dataApprovalService;
 
     public void setDataApprovalService( DataApprovalService dataApprovalService )
     {
         this.dataApprovalService = dataApprovalService;
     }
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // DataSet
@@ -161,25 +152,41 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getCurrentUserDataSets()
+    public List<DataSet> getUserDataRead( User user )
     {
-        User user = currentUserService.getCurrentUser();
-
         if ( user == null )
         {
             return Lists.newArrayList();
         }
 
-        if ( user.isSuper() )
-        {
-            return getAllDataSets();
-        }
-        else
-        {
-            return Lists.newArrayList( user.getUserCredentials().getAllDataSets() );
-        }
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll( user );
     }
 
+    @Override
+    public List<DataSet> getAllDataRead()
+    {
+        User user = currentUserService.getCurrentUser();
+        
+        return getUserDataRead( user );
+    }
+
+    @Override
+    public List<DataSet> getAllDataWrite()
+    {
+        User user = currentUserService.getCurrentUser();
+
+        return getUserDataWrite( user );
+    }
+
+    public List<DataSet> getUserDataWrite( User user )
+    {
+        if ( user == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll( user );
+    }
     // -------------------------------------------------------------------------
     // DataSet LockExceptions
     // -------------------------------------------------------------------------
@@ -252,7 +259,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now )
+    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now )
     {
         return isLocked( dataSet, period, organisationUnit, now ) ||
             dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
@@ -260,7 +267,7 @@ public class DefaultDataSetService
 
     @Override
     public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        DataElementCategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
+        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
     {
         if ( !useOrgUnitChildren )
         {
@@ -285,7 +292,7 @@ public class DefaultDataSetService
 
     @Override
     public boolean isLocked( DataElement dataElement, Period period, OrganisationUnit organisationUnit,
-        DataElementCategoryOptionCombo attributeOptionCombo, Date now )
+        CategoryOptionCombo attributeOptionCombo, Date now )
     {
         now = now != null ? now : new Date();
 
@@ -336,7 +343,6 @@ public class DefaultDataSetService
                 returnList.retainAll( getLockExceptionByPeriod( split[1], split[2], returnList ) );
             }
         }
-
 
         return new ArrayList<>( returnList );
     }
@@ -391,6 +397,4 @@ public class DefaultDataSetService
         }
         return ids;
     }
-
-
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,16 @@ public class ListMap<T, V>
         list = list == null ? new ArrayList<>() : list;
         list.add( value );
         super.put( key, list );
+        return null;
+    }
+
+    public List<V> putValues( T key, Collection<V> values )
+    {
+        for ( V value : values )
+        {
+            putValue( key, value );
+        }
+
         return null;
     }
 
@@ -155,5 +165,42 @@ public class ListMap<T, V>
         }
         
         return map;
+    }
+
+    /**
+     * Returns a union of two same-type ListMaps. Either or both of the input
+     * ListMaps may be null. The returned ListMap never is.
+     *
+     * @param a one ListMap.
+     * @param b the other ListMap.
+     * @return union of the two ListMaps.
+     */
+    public static <T, V> ListMap<T, V> union( ListMap<T, V> a, ListMap<T, V> b )
+    {
+        if ( a == null || a.isEmpty() )
+        {
+            if ( b == null || b.isEmpty() )
+            {
+                return new ListMap<T, V>();
+            }
+
+            return b;
+        }
+        else if ( b == null || b.isEmpty() )
+        {
+            return a;
+        }
+
+        ListMap<T, V> c = new ListMap<T, V>( a );
+
+        for ( Map.Entry<T, List<V>> entry : b.entrySet() )
+        {
+            for ( V value : entry.getValue() )
+            {
+                c.putValue( entry.getKey(), value );
+            }
+        }
+
+        return c;
     }
 }

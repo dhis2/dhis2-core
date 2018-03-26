@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,11 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import com.google.common.collect.Lists;
+
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,9 +50,9 @@ public class OrganisationUnitGroupSetResourceTable
     }
 
     @Override
-    public String getTableName()
+    public ResourceTableType getTableType()
     {
-        return "_organisationunitgroupsetstructure";
+        return ResourceTableType.ORG_UNIT_GROUP_SET_STRUCTURE;
     }
     
     @Override
@@ -58,8 +60,10 @@ public class OrganisationUnitGroupSetResourceTable
     {
         String statement = "create table " + getTempTableName() + " (" +
             "organisationunitid integer not null, " +
-            "organisationunitname varchar(230), ";
-                
+            "organisationunitname varchar(230), " +
+            "startdate date, " +
+            "enddate date, ";
+        
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
             statement += columnQuote + groupSet.getName() + columnQuote + " varchar(230), ";
@@ -76,7 +80,7 @@ public class OrganisationUnitGroupSetResourceTable
     {
         String sql = 
             "insert into " + getTempTableName() + " " +
-            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, ";            
+            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, null as enddate, ";
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {

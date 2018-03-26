@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,10 +58,6 @@ public interface SqlViewService
 
     int getSqlViewCount();
 
-    List<SqlView> getSqlViewsBetween( int first, int max );
-
-    List<SqlView> getSqlViewsBetweenByName( String name, int first, int max );
-
     SqlView getSqlView( int viewId );
 
     SqlView getSqlViewByUid( String uid );
@@ -71,8 +67,6 @@ public interface SqlViewService
     List<SqlView> getAllSqlViews();
     
     List<SqlView> getAllSqlViewsNoAcl();
-
-    int getSqlViewCountByName( String name );
     
     // -------------------------------------------------------------------------
     // SQL view

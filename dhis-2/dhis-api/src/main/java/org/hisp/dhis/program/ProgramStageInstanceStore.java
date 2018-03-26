@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -42,7 +42,7 @@ import java.util.List;
  * @version $Id$
  */
 public interface ProgramStageInstanceStore
-    extends GenericIdentifiableObjectStore<ProgramStageInstance>
+    extends IdentifiableObjectStore<ProgramStageInstance>
 {
     String ID = ProgramStageInstanceStore.class.getName();
 
@@ -75,19 +75,6 @@ public interface ProgramStageInstanceStore
     List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
-     * Get the number of events by completed status
-     *
-     * @param programStage Program
-     * @param orgunitIds   The ids of orgunits where the events happened
-     * @param startDate    Optional date the instance should be on or after.
-     * @param endDate      Optional date the instance should be on or before.
-     * @param completed    Optional flag to only get completed (<code>true</code> )
-     *                     or uncompleted (<code>false</code>) instances.
-     * @return A number
-     */
-    int count( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate, Boolean completed );
-
-    /**
      * Get the number of ProgramStageInstances updates since the given Date.
      *
      * @param time the time.
@@ -96,7 +83,7 @@ public interface ProgramStageInstanceStore
     long getProgramStageInstanceCountLastUpdatedAfter( Date time );
 
     /**
-     * Checks for the existence of a PSI by UID
+     * Checks for the existence of a PSI by UID. The deleted PSIs are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -104,9 +91,17 @@ public interface ProgramStageInstanceStore
     boolean exists( String uid );
 
     /**
+     * Checks for the existence of a PSI by UID. It takes into account also the deleted PSIs.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean existsIncludingDeleted( String uid );
+
+    /**
      * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
      *
-     * @param template the template.
+     * @param template         the template.
      * @param notificationDate the Date for which the notification is scheduled.
      * @return a list of ProgramStageInstance.
      */

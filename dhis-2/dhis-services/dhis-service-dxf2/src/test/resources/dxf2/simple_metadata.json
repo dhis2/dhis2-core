@@ -168,7 +168,7 @@
       "publicAccess": "--------"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "id": "NdUUIOhQPcu",
       "attributeValues": [ ],

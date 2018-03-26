@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.version;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -254,29 +254,6 @@ DefaultMetadataVersionService
     {
         KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, versionName );
         return (keyJsonValue != null) ? keyJsonValue.getValue() : null;
-    }
-
-    @Override
-    public RootNode getMetadataVersionsAsNode( List<MetadataVersion> versions )
-    {
-        RootNode rootNode = NodeUtils.createRootNode( "metadataversions" );
-        CollectionNode collectionNode = new CollectionNode( "metadataversions", true );
-        rootNode.addChild( collectionNode );
-
-        for ( MetadataVersion version : versions )
-        {
-            ComplexNode complexNode = new ComplexNode( "" );
-            complexNode.addChild( new SimpleNode( "name", version.getName() ) );
-            complexNode.addChild( new SimpleNode( "type", version.getType() ) );
-            complexNode.addChild( new SimpleNode( "created", version.getCreated() ) );
-            complexNode.addChild( new SimpleNode( "id", version.getUid() ) );
-            complexNode.addChild( new SimpleNode( "importdate", version.getImportDate() ) );
-            complexNode.addChild( new SimpleNode( "hashCode", version.getHashCode() ) );
-
-            collectionNode.addChild( complexNode );
-        }
-
-        return rootNode;
     }
 
     @Override

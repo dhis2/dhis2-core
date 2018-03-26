@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,12 +87,6 @@ public interface OptionService
 
     List<OptionGroup> getAllOptionGroups();
 
-    OptionGroup getOptionGroupByName( String name );
-
-    OptionGroup getOptionGroupByCode( String code );
-
-    OptionGroup getOptionGroupByShortName( String shortName );
-
     // -------------------------------------------------------------------------
     // OptionGroupSet
     // -------------------------------------------------------------------------
@@ -108,6 +102,4 @@ public interface OptionService
     void deleteOptionGroupSet( OptionGroupSet group );
 
     List<OptionGroupSet> getAllOptionGroupSets();
-
-    OptionGroupSet getOptionGroupSetByName( String name );
 }

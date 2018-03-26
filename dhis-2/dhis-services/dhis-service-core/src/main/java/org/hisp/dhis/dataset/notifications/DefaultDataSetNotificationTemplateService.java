@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class DefaultDataSetNotificationTemplateService
     @Override
     public List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet )
     {
-       return store.getNotificationsByTriggerType( dataSet, NotificationTrigger.COMPLETION );
+       return store.getNotificationsByTriggerType( dataSet, DataSetNotificationTrigger.DATA_SET_COMPLETION );
     }
 
     @Override

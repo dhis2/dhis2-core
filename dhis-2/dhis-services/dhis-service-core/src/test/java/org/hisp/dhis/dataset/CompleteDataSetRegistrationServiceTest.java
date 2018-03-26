@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,9 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -47,6 +38,11 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -67,16 +63,12 @@ public class CompleteDataSetRegistrationServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
   
     private CompleteDataSetRegistration registrationA;
     private CompleteDataSetRegistration registrationB;
     private CompleteDataSetRegistration registrationC;
     private CompleteDataSetRegistration registrationD;
-    private CompleteDataSetRegistration registrationE;
-    private CompleteDataSetRegistration registrationF;
-    private CompleteDataSetRegistration registrationG;
-    private CompleteDataSetRegistration registrationH;
 
     private DataSet dataSetA;
     private DataSet dataSetB;
@@ -91,7 +83,7 @@ public class CompleteDataSetRegistrationServiceTest
 
     private Date onTimeA;
 
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -129,7 +121,7 @@ public class CompleteDataSetRegistrationServiceTest
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
 
-        optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         onTimeA = getDate( 2000, 1, 10 );
     }
@@ -186,49 +178,6 @@ public class CompleteDataSetRegistrationServiceTest
         assertEquals( 2, registrations.size() );
         assertTrue( registrations.contains( registrationA ) );
         assertTrue( registrations.contains( registrationB ) );
-    }
-
-    @Test
-    public void testGetDataSetsSourcesPeriods()
-    {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "" );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, new Date(), "" );
-        registrationC = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, new Date(), "" );
-        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" );
-        registrationE = new CompleteDataSetRegistration( dataSetA, periodA, sourceB, optionCombo, new Date(), "" );
-        registrationF = new CompleteDataSetRegistration( dataSetB, periodA, sourceB, optionCombo, new Date(), "" );
-        registrationG = new CompleteDataSetRegistration( dataSetA, periodB, sourceB, optionCombo, new Date(), "" );
-        registrationH = new CompleteDataSetRegistration( dataSetB, periodB, sourceB, optionCombo, new Date(), "" );
-
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationC );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationD );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationE );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationF );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationG );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationH );
-
-        List<DataSet> dataSets = new ArrayList<>();
-
-        dataSets.add( dataSetB );
-
-        List<OrganisationUnit> sources = new ArrayList<>();
-
-        sources.add( sourceA );
-        sources.add( sourceB );
-
-        List<Period> periods = new ArrayList<>();
-
-        periods.add( periodA );
-
-        List<CompleteDataSetRegistration> registrations = completeDataSetRegistrationService
-            .getCompleteDataSetRegistrations( dataSets, sources, periods );
-
-        assertNotNull( registrations );
-        assertEquals( 2, registrations.size() );
-        assertTrue( registrations.contains( registrationB ) );
-        assertTrue( registrations.contains( registrationF ) );
     }
 
     @Test

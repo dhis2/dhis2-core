@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,9 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
@@ -66,9 +66,9 @@ public class IdentifiableObjectUtils
     public static final DateTimeFormatter MEDIUM_DATE_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd" );
 
     public static final Map<String, String> CLASS_ALIAS = ImmutableMap.<String, String>builder().
-        put( "CategoryOption", DataElementCategoryOption.class.getSimpleName() ).
-        put( "Category", DataElementCategory.class.getSimpleName() ).
-        put( "CategoryCombo", DataElementCategoryCombo.class.getSimpleName() ).build();
+        put( "CategoryOption", CategoryOption.class.getSimpleName() ).
+        put( "Category", Category.class.getSimpleName() ).
+        put( "CategoryCombo", CategoryCombo.class.getSimpleName() ).build();
 
     /**
      * Joins the names of the IdentifiableObjects in the given list and separates
@@ -188,7 +188,7 @@ public class IdentifiableObjectUtils
      * <p>
      * As an example, providing
      * {@code Quarter 1, 2017} and {@code Yearly} as arguments will return the yearly 
-     * period {@link 2017}.
+     * period {@code 2017}.
      * 
      * @param period the period.
      * @param periodType the period type of the period to return.
@@ -204,7 +204,7 @@ public class IdentifiableObjectUtils
                 
         if ( WeeklyAbstractPeriodType.class.isAssignableFrom( period.getPeriodType().getClass() ) )
         {
-            date = new DateTime( date.getTime() ).plusDays( 4 ).toDate();
+            date = new DateTime( date.getTime() ).plusDays( 3 ).toDate();
         }
         
         return periodType.createPeriod( date, calendar );

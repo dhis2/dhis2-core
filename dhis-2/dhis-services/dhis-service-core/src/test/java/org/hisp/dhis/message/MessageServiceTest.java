@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,7 +171,7 @@ public class MessageServiceTest
     @Test
     public void testSendMessage()
     {
-        int id = messageService.sendPrivateMessage( "Subject", "Text", "Meta", users );
+        int id = messageService.sendMessage( messageService.createPrivateMessage( users, "Subject", "Text", "Meta").build() );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         
@@ -185,7 +185,7 @@ public class MessageServiceTest
     @Test
     public void testSendFeedback()
     {
-        int id = messageService.sendTicketMessage( "Subject", "Text", "Meta" );
+        int id = messageService.sendMessage( messageService.createTicketMessage( "Subject", "Text", "Meta").build() );
         
         MessageConversation conversation = messageService.getMessageConversation( id );
         

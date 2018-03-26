@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -50,9 +53,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,7 +74,7 @@ public class DataValueSetServiceExportTest
     extends DhisSpringTest
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -92,14 +97,17 @@ public class DataValueSetServiceExportTest
     @Autowired
     private DbmsManager dbmsManager;
 
+    @Autowired
+    private UserService _userService;
+
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
 
-    private DataElementCategoryCombo ccA;
+    private CategoryCombo ccA;
 
-    private DataElementCategoryOptionCombo cocA;
-    private DataElementCategoryOptionCombo cocB;
+    private CategoryOptionCombo cocA;
+    private CategoryOptionCombo cocB;
 
     private Attribute atA;
     
@@ -122,6 +130,7 @@ public class DataValueSetServiceExportTest
     @Override
     public void setUpTest()
     {
+        userService = _userService;
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
@@ -132,7 +141,7 @@ public class DataValueSetServiceExportTest
 
         ccA = createCategoryCombo( 'A' );
 
-        categoryService.addDataElementCategoryCombo( ccA );
+        categoryService.addCategoryCombo( ccA );
 
         cocA = createCategoryOptionCombo( 'A' );
         cocB = createCategoryOptionCombo( 'B' );
@@ -140,8 +149,8 @@ public class DataValueSetServiceExportTest
         cocA.setCategoryCombo( ccA );
         cocB.setCategoryCombo( ccA );
 
-        categoryService.addDataElementCategoryOptionCombo( cocA );
-        categoryService.addDataElementCategoryOptionCombo( cocB );
+        categoryService.addCategoryOptionCombo( cocA );
+        categoryService.addCategoryOptionCombo( cocB );
         
         atA = createAttribute( 'A' );
         atA.setDataElementAttribute( true );
@@ -204,9 +213,15 @@ public class DataValueSetServiceExportTest
 
         user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+        userService.addUser( user );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         setDependency( dataValueSetService, "currentUserService", currentUserService );
         setDependency( organisationUnitService, "currentUserService", currentUserService );
+
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
+        dataSetService.updateDataSet( dsA );
+        dataSetService.updateDataSet( dsB );
     }
 
     // -------------------------------------------------------------------------

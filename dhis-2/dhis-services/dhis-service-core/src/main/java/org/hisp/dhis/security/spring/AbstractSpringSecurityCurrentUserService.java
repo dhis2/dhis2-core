@@ -1,7 +1,10 @@
 package org.hisp.dhis.security.spring;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +33,11 @@ package org.hisp.dhis.security.spring;
 
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.google.api.client.util.Sets;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -49,10 +55,8 @@ public abstract class AbstractSpringSecurityCurrentUserService
             return null;
         }
 
-        /*
-         * If getPrincipal returns a string, it means that the user has been
-         * authenticated anonymous (String == anonymousUser).
-         */
+        // Principal being a string implies anonymous authentication
+        
         if ( authentication.getPrincipal() instanceof String )
         {
             String principal = (String) authentication.getPrincipal();
@@ -70,6 +74,21 @@ public abstract class AbstractSpringSecurityCurrentUserService
         return userDetails.getUsername();
     }
 
+    @Override
+    public Set<String> getCurrentUserAuthorities()
+    {
+        UserDetails userDetails = getCurrentUserDetails();
+        
+        if ( userDetails == null )
+        {
+            return Sets.newHashSet();
+        }
+        
+        return userDetails.getAuthorities().stream()
+            .map( GrantedAuthority::getAuthority )
+            .collect( Collectors.toSet() );        
+    }
+    
     /**
      * Returns the current UserDetails, or null of there is no
      * current user or if principal is not of type UserDetails.

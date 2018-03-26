@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,15 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -53,19 +56,27 @@ public class Validator
      * 
      * @return a collection of any validations that were found
      */
-    public static Collection<ValidationResult> validate( ValidationRunContext context, 
-        ApplicationContext applicationContext )
+    public static Collection<ValidationResult> validate( ValidationRunContext context,
+        ApplicationContext applicationContext, AnalyticsService analyticsService )
     {
-        DataElementCategoryService categoryService = (DataElementCategoryService)
-            applicationContext.getBean( DataElementCategoryService.class );
+        CategoryService categoryService = (CategoryService)
+            applicationContext.getBean( CategoryService.class );
                 
         int threadPoolSize = getThreadPoolSize( context );
+
+        if ( threadPoolSize == 0 )
+        {
+            return context.getValidationResults();
+        }
+
         ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
 
-        for ( OrganisationUnit orgUnit : context.getOrgUnits() )
+        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(), ValidationRunContext.ORG_UNITS_PER_TASK );
+
+        for ( List<OrganisationUnit> orgUnits : orgUnitLists )
         {
             ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
-            task.init( orgUnit, context );
+            task.init( orgUnits, context, analyticsService );
 
             executor.execute( task );
         }
@@ -101,12 +112,14 @@ public class Validator
             threadPoolSize--;
         }
 
-        if ( threadPoolSize > context.getCountOfSourcesToValidate() )
+        int numberOfTasks = context.getNumberOfTasks();
+
+        if ( threadPoolSize > numberOfTasks )
         {
-            threadPoolSize = context.getCountOfSourcesToValidate();
+            threadPoolSize = numberOfTasks;
         }
 
-	return threadPoolSize;
+        return threadPoolSize;
     }
 
     /**
@@ -116,12 +129,12 @@ public class Validator
      * @param dataElementCategoryService
      */
     private static void reloadAttributeOptionCombos( Collection<ValidationResult> results,
-        DataElementCategoryService dataElementCategoryService )
+        CategoryService dataElementCategoryService )
     {
         for ( ValidationResult result : results )
         {
             result.setAttributeOptionCombo( dataElementCategoryService
-                .getDataElementCategoryOptionCombo( result.getAttributeOptionCombo().getId() ) );
+                .getCategoryOptionCombo( result.getAttributeOptionCombo().getId() ) );
         }
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.i18n;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,13 +59,7 @@ public interface I18nLocaleService
     void deleteI18nLocale( I18nLocale locale );
     
     int getI18nLocaleCount();
-    
-    int getI18nLocaleCountByName( String name );
-    
-    List<I18nLocale> getI18nLocalesBetween( int first, int max );
-    
-    List<I18nLocale> getI18nLocalesBetweenLikeName( String name, int first, int max );
-    
+        
     List<Locale> getAllLocales();
 
 }

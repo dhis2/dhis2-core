@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,12 +44,21 @@ public interface AppManager
     String ID = AppManager.class.getName();
 
     /**
-     * Returns a list of all the installed apps at @see getAppFolderPath
+     * Returns a list of all installed apps.
      *
      * @param contextPath the context path of this instance.
      * @return list of installed apps
      */
     List<App> getApps( String contextPath );
+
+    /**
+     * Returns a list of installed apps.
+     *
+     * @param appType the app type filter.
+     * @param max the max number of apps to return.
+     * @return a list of apps.
+     */
+    List<App> getApps( AppType appType, int max );
 
     App getApp( String appName );
 

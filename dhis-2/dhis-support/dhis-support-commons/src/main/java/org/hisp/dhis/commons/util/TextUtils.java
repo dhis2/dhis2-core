@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,30 +169,6 @@ public class TextUtils
         }
         
         return string.substring( beginIndex, endIndex );
-    }
-    
-    /**
-     * Removes the last given number of characters from the given string. Returns
-     * null if the string is null. Returns an empty string if characters is less
-     * than zero or greater than the length of the string.
-     * 
-     * @param string the string.
-     * @param characters number of characters to remove.
-     * @return the substring.
-     */
-    public static String removeLast( String string, int characters )
-    {
-        if ( string == null )
-        {
-            return null;
-        }
-        
-        if ( characters < 0 || characters > string.length() )
-        {
-            return EMPTY;
-        }
-        
-        return string.substring( 0, string.length() - characters );
     }
     
     /**
@@ -380,18 +356,18 @@ public class TextUtils
 
     /**
      * Transforms a collection of strings into a comma delimited string, where
-     * each component get single-quoted.
+     * each component is single-quoted.
      * 
      * @param elements the collection of Integers
      * @return a comma delimited String.
      */
-    public static String getQuotedCommaDelimitedString( Collection<String> elements )
+    public static String getQuotedCommaDelimitedString( Collection<? extends Object> elements )
     {
         if ( elements != null && elements.size() > 0 )
         {
             final StringBuffer buffer = new StringBuffer();        
         
-            for ( String element : elements )
+            for ( Object element : elements )
             {
                 buffer.append( "'" ).append( element.toString() ).append( "', " );
             }
@@ -511,6 +487,33 @@ public class TextUtils
     {
         matcher.appendTail( sb );
         return sb.toString();
+    }
+    
+    /**
+     * Returns a pretty name variant of the given class.
+     * 
+     * @param clazz the class.
+     * @return a pretty class name.
+     */
+    public static String getPrettyClassName( Class<?> clazz )
+    {
+        StringBuilder name = new StringBuilder();
+        
+        String className = clazz.getSimpleName();
+        
+        for ( int i = 0; i < className.length(); i++ )
+        {
+            char c = className.charAt( i );
+            
+            if ( i > 0 && Character.isUpperCase( c ) )
+            {
+                name.append( StringUtils.SPACE );
+            }
+            
+            name.append( c );
+        }
+        
+        return name.toString();
     }
     
     /**

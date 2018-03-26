@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +69,7 @@ public interface CompleteDataSetRegistrationStore
      * @return the CompleteDataSetRegistration.
      */
     CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period, 
-        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo );
+        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Deletes a CompleteDataSetRegistration.
@@ -78,18 +78,6 @@ public interface CompleteDataSetRegistrationStore
      */
     void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration );
 
-    /**
-     * Retrieves a list of CompleteDataSetRegistration for the given DataSet, 
-     * Collection of Sources and Period.
-     * 
-     * @param dataSet the DataSet.
-     * @param sources the Collection of Sources.
-     * @param period the Period.
-     * @return the number of existing CompleteDataSetRegistrations.
-     */
-    List<CompleteDataSetRegistration> getCompleteDataSetRegistrations( 
-        DataSet dataSet, Collection<OrganisationUnit> sources, Period period );
-    
     /**
      * Retrieves all CompleteDataSetRegistration.
      * 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,12 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -100,7 +99,7 @@ public interface DataValueStore
      *         if no match.
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, 
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo );
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
     
     /**
      * Returns a soft deleted DataValue.
@@ -132,38 +131,43 @@ public interface DataValueStore
     
     /**
      * Returns all DataValues for a given Source, Period, collection of
-     * DataElements and DataElementCategoryOptionCombo.
+     * DataElements and CategoryOptionCombo.
      * 
      * @param source the Source of the DataValues.
      * @param period the Period of the DataValues.
      * @param dataElements the DataElements of the DataValues.
-     * @param attributeOptionCombo the DataElementCategoryCombo.
+     * @param attributeOptionCombo the CategoryCombo.
      * @return a list of all DataValues which match the given Source,
      *         Period, and any of the DataElements, or an empty collection if no
      *         values match.
      */
     List<DataValue> getDataValues( OrganisationUnit source, Period period, 
-        Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo );
+        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo );
     
     /**
      * Returns values for a collection of DataElementOperands, where each operand
      * may include a specific CategoryOptionCombo, or may speicify a null COC if
      * all CategoryOptionCombos are to be summed.
      *
-     * Returns values within the periods specified, for the organisation unit
-     * specified or any of the organisation unit's descendants.
+     * Returns values within the periods specified, for the organisation units
+     * specified or any of the organisation units' descendants.
      *
-     * Returns the values mapped by period, then attribute option combo UID,
-     * then DimensionalItemObject (containing the DataElementOperand.)
+     * NOTE that the collection of orgUnits should have non-overlapping
+     * descendants, in order to permit efficient database queries for this
+     * method. This can be assured by making each call to this method with
+     * only orgUnits at the same hierarchy level as each other.
+     *
+     * Returns the values mapped by organisation unit, period, attribute option
+     * combo UID, and DimensionalItemObject (containing the DataElementOperand.)
      *
      * @param dataElementOperands the DataElementOperands.
      * @param periods the Periods of the DataValues.
-     * @param orgUnit the root of the OrganisationUnit tree to include.
+     * @param orgUnits the OrganisationUnit trees to include.
      * @return the map of values
      */
-    MapMapMap<Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
+    Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
         Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        OrganisationUnit orgUnit );
+        Collection<OrganisationUnit> orgUnits );
 
     /**
      * Gets the number of DataValues which have been updated between the given 
@@ -184,18 +188,16 @@ public interface DataValueStore
      * more than one period for the same organisationUnit, date, and attribute
      * combo, the value is returned from the period with the shortest duration.
      *
-     * @param dataElementOperandsToGet DataElementOperands to fetch
+     * @param dataElementOperands DataElementOperands to fetch
      * @param date date which must be present in the period
-     * @param source OrganisationUnit for which to fetch the values
+     * @param orgUnits OrganisationUnits for which to fetch the values
      * @param periodTypes allowable period types in which to find the data
      * @param attributeCombo the attribute combo to check (if restricted)
-     * @param lastUpdatedMap map in which to return the lastUpdated date for each value
-     * @return map of values by attribute option combo UID, then DataElementOperand
+     * @return map of values by org unit ID, attribute option combo UID, and DataElementOperand
      */
-    MapMap<String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        SetMap<String, DataElementOperand> dataElementOperandsToGet, Date date,
-        OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<String, DataElementOperand, Date> lastUpdatedMap );
+    MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
+        Set<DataElementOperand> dataElementOperands, Date date,
+        List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints );
 
 }

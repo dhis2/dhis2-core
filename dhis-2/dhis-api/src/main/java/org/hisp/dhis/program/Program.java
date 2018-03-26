@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -53,10 +49,9 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.validation.ValidationCriteria;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,6 +67,8 @@ public class Program
     extends BaseNameableObject
     implements VersionedObject, MetadataObject
 {
+    private String formName;
+
     private int version;
 
     private String enrollmentDateLabel;
@@ -82,7 +79,7 @@ public class Program
 
     private Set<ProgramStage> programStages = new HashSet<>();
 
-    private Set<ValidationCriteria> validationCriteria = new HashSet<>();
+    private Set<ProgramSection> programSections = new HashSet<>();
 
     private ProgramType programType;
 
@@ -116,14 +113,16 @@ public class Program
 
     private Program relatedProgram;
 
-    private TrackedEntity trackedEntity;
+    private TrackedEntityType trackedEntityType;
 
     private DataEntryForm dataEntryForm;
+
+    private ObjectStyle style;
 
     /**
      * The CategoryCombo used for data attributes.
      */
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * Property indicating whether offline storage is enabled for this program
@@ -168,7 +167,18 @@ public class Program
     /**
      * How many days after an event is completed will this program block modification of the event
      */
-    private int completeEventsExpiryDays;
+    private int completeEventsExpiryDays;    
+    
+    /**
+     * Property indicating minimum number of attributes required to fill
+     * before search is triggered
+     */
+    private int minAttributesRequiredToSearch = 1;
+    
+    /**
+     * Property indicating maximum number of TEI to return after search
+     */
+    private int maxTeiCountToReturn = 0;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -210,6 +220,22 @@ public class Program
 
         organisationUnits.clear();
         organisationUnits.addAll( updates );
+    }
+    
+    /**
+     * Returns IDs of searchable TrackedEntityAttributes.
+     */
+    public List<String> getSearchableAttributeIds()
+    {        
+        return programAttributes.stream().filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() ).map( ProgramTrackedEntityAttribute::getAttribute ).map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+    }
+    
+    /**
+     * Returns display in list TrackedEntityAttributes
+     */
+    public List<TrackedEntityAttribute> getDisplayInListAttributes()
+    {
+        return programAttributes.stream().filter( pa -> pa.isDisplayInList() ).map( ProgramTrackedEntityAttribute::getAttribute ).collect( Collectors.toList() );        
     }
 
     /**
@@ -440,20 +466,6 @@ public class Program
         this.programType = programType;
     }
 
-    @JsonProperty( "validationCriterias" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "validationCriterias", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "validationCriteria", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ValidationCriteria> getValidationCriteria()
-    {
-        return validationCriteria;
-    }
-
-    public void setValidationCriteria( Set<ValidationCriteria> validationCriteria )
-    {
-        this.validationCriteria = validationCriteria;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getDisplayIncidentDate()
@@ -663,16 +675,16 @@ public class Program
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntity", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getTrackedEntity()
+    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityType getTrackedEntityType()
     {
-        return trackedEntity;
+        return trackedEntityType;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        this.trackedEntity = trackedEntity;
+        this.trackedEntityType = trackedEntityType;
     }
 
     @JsonProperty
@@ -690,12 +702,12 @@ public class Program
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
         return categoryCombo;
     }
 
-    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
     }
@@ -718,7 +730,7 @@ public class Program
      */
     public boolean hasCategoryCombo()
     {
-        return categoryCombo != null && !DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
+        return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
 
     @JsonProperty
@@ -805,5 +817,67 @@ public class Program
     public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
     {
         this.completeEventsExpiryDays = completeEventsExpiryDays;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMinAttributesRequiredToSearch()
+    {
+        return minAttributesRequiredToSearch;
+    }
+
+    public void setMinAttributesRequiredToSearch( int minAttributesRequiredToSearch )
+    {
+        this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMaxTeiCountToReturn()
+    {
+        return maxTeiCountToReturn;
+    }
+
+    public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
+    {
+        this.maxTeiCountToReturn = maxTeiCountToReturn;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+
+    @JsonProperty( "programSections" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programSections", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programSection", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramSection> getProgramSections()
+    {
+        return programSections;
+    }
+
+    public void setProgramSections( Set<ProgramSection> programSections )
+    {
+        this.programSections = programSections;
     }
 }

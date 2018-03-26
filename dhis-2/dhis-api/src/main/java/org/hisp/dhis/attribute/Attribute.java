@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -58,7 +58,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -100,7 +100,7 @@ public class Attribute
 
     private boolean programStageAttribute;
 
-    private boolean trackedEntityAttribute;
+    private boolean trackedEntityTypeAttribute;
 
     private boolean trackedEntityAttributeAttribute;
 
@@ -150,7 +150,7 @@ public class Attribute
     {
         return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute, indicatorAttribute, indicatorGroupAttribute,
             dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute, organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
-            programAttribute, programStageAttribute, trackedEntityAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
+            programAttribute, programStageAttribute, trackedEntityTypeAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
             mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute );
     }
 
@@ -185,7 +185,7 @@ public class Attribute
             && Objects.equals( this.userGroupAttribute, other.userGroupAttribute )
             && Objects.equals( this.programAttribute, other.programAttribute )
             && Objects.equals( this.programStageAttribute, other.programStageAttribute )
-            && Objects.equals( this.trackedEntityAttribute, other.trackedEntityAttribute )
+            && Objects.equals( this.trackedEntityTypeAttribute, other.trackedEntityTypeAttribute )
             && Objects.equals( this.trackedEntityAttributeAttribute, other.trackedEntityAttributeAttribute )
             && Objects.equals( this.categoryOptionAttribute, other.categoryOptionAttribute )
             && Objects.equals( this.categoryOptionGroupAttribute, other.categoryOptionGroupAttribute )
@@ -384,14 +384,14 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isTrackedEntityAttribute()
+    public boolean isTrackedEntityTypeAttribute()
     {
-        return trackedEntityAttribute;
+        return trackedEntityTypeAttribute;
     }
 
-    public void setTrackedEntityAttribute( boolean trackedEntityAttribute )
+    public void setTrackedEntityTypeAttribute( boolean trackedEntityTypeAttribute )
     {
-        this.trackedEntityAttribute = trackedEntityAttribute;
+        this.trackedEntityTypeAttribute = trackedEntityTypeAttribute;
     }
 
     @JsonProperty
@@ -568,7 +568,7 @@ public class Attribute
 
         if ( dataElementAttribute ) klasses.add( DataElement.class );
         if ( dataElementGroupAttribute ) klasses.add( DataElementGroup.class );
-        if ( categoryOptionAttribute ) klasses.add( DataElementCategoryOption.class );
+        if ( categoryOptionAttribute ) klasses.add( CategoryOption.class );
         if ( categoryOptionGroupAttribute ) klasses.add( CategoryOptionGroup.class );
         if ( indicatorAttribute ) klasses.add( Indicator.class );
         if ( indicatorGroupAttribute ) klasses.add( IndicatorGroup.class );
@@ -580,7 +580,7 @@ public class Attribute
         if ( userGroupAttribute ) klasses.add( UserGroup.class );
         if ( programAttribute ) klasses.add( Program.class );
         if ( programStageAttribute ) klasses.add( ProgramStage.class );
-        if ( trackedEntityAttribute ) klasses.add( TrackedEntity.class );
+        if ( trackedEntityTypeAttribute ) klasses.add( TrackedEntityType.class );
         if ( trackedEntityAttributeAttribute ) klasses.add( TrackedEntityAttribute.class );
         if ( documentAttribute ) klasses.add( Document.class );
         if ( optionAttribute ) klasses.add( Option.class );
@@ -590,7 +590,7 @@ public class Attribute
         if ( programIndicatorAttribute ) klasses.add( ProgramIndicator.class );
         if ( sqlViewAttribute ) klasses.add( SqlView.class );
         if ( sectionAttribute ) klasses.add( Section.class );
-        if ( categoryOptionComboAttribute ) klasses.add( DataElementCategoryOptionCombo.class );
+        if ( categoryOptionComboAttribute ) klasses.add( CategoryOptionCombo.class );
 
         return klasses;
     }
@@ -613,7 +613,7 @@ public class Attribute
             .add( "userGroupAttribute", userGroupAttribute )
             .add( "programAttribute", programAttribute )
             .add( "programStageAttribute", programStageAttribute )
-            .add( "trackedEntityAttribute", trackedEntityAttribute )
+            .add( "trackedEntityTypeAttribute", trackedEntityTypeAttribute )
             .add( "trackedEntityAttributeAttribute", trackedEntityAttributeAttribute )
             .add( "categoryOptionAttribute", categoryOptionAttribute )
             .add( "categoryOptionGroupAttribute", categoryOptionGroupAttribute )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,7 @@ public class Query extends Criteria
 
     public static Query from( Query query )
     {
-        Query clone = Query.from( query.getSchema(), query.getRootJunction().getType() );
+        Query clone = Query.from( query.getSchema(), query.getRootJunctionType() );
         clone.setUser( query.getUser() );
         clone.setLocale( query.getLocale() );
         clone.addOrders( query.getOrders() );
@@ -191,17 +191,9 @@ public class Query extends Criteria
         return this;
     }
 
-    public Junction getRootJunction()
+    public Junction.Type getRootJunctionType()
     {
-        switch ( rootJunctionType )
-        {
-            case AND:
-                return addConjunction();
-            case OR:
-                return addDisjunction();
-        }
-
-        throw new QueryException( "Unhandled junction type: " + rootJunctionType );
+        return rootJunctionType;
     }
 
     public boolean isPlannedQuery()

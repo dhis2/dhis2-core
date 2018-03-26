@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.authority;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ public class CompositeSystemAuthoritiesProvider
     @Override
     public Collection<String> getSystemAuthorities()
     {
-        HashSet<String> authorities = new HashSet<>();
+        Set<String> authorities = new HashSet<>();
 
         for ( SystemAuthoritiesProvider source : sources )
         {

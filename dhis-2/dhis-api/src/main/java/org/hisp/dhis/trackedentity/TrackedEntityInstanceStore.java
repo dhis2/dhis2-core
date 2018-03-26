@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +37,7 @@ import java.util.Map;
  * @author Abyot Asalefew Gizaw
  */
 public interface TrackedEntityInstanceStore
-    extends GenericIdentifiableObjectStore<TrackedEntityInstance>
+    extends IdentifiableObjectStore<TrackedEntityInstance>
 {
     String ID = TrackedEntityInstanceStore.class.getName();
 
@@ -52,20 +50,18 @@ public interface TrackedEntityInstanceStore
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Returns null if valid, a descriptive, non-null string if invalid.
+     * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into account.
      *
-     * @param instance
-     * @param attributeValue
-     * @param program
-     * @return
-     */
-    String validate( TrackedEntityInstance instance, TrackedEntityAttributeValue attributeValue, Program program );
-
-    /**
-     * Checks for the existence of a TEI by UID
-     *
-     * @param uid PSI UID to check for
-     * @return true/false depending on result
+     * @param uid PSI UID to check for.
+     * @return true/false depending on result.
      */
     boolean exists( String uid );
+
+    /**
+     * Checks for the existence of a TEI by UID. Takes into account also the deleted TEIs.
+     *
+     * @param uid PSI UID to check for.
+     * @return true/false depending on result.
+     */
+    boolean existsIncludingDeleted( String uid );
 }

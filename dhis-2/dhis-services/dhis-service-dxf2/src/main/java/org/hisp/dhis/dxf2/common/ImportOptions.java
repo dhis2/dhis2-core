@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
 
@@ -46,7 +47,8 @@ import org.hisp.dhis.system.notification.NotificationLevel;
  */
 public class ImportOptions
 {
-    private static final ImportOptions DEFAULT_OPTIONS = new ImportOptions().setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
+    private static final ImportOptions DEFAULT_OPTIONS = new ImportOptions()
+        .setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
 
     private IdSchemes idSchemes = new IdSchemes();
 
@@ -59,6 +61,8 @@ public class ImportOptions
     private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
 
     private MergeMode mergeMode = MergeMode.REPLACE;
+
+    private ImportReportMode reportMode = ImportReportMode.FULL;
 
     private boolean skipExistingCheck;
 
@@ -80,10 +84,12 @@ public class ImportOptions
 
     private boolean requireAttributeOptionCombo;
 
+    private boolean skipPatternValidation;
+
     private String filename;
 
     private NotificationLevel notificationLevel;
-    
+
     //--------------------------------------------------------------------------
     // Constructors
     //--------------------------------------------------------------------------
@@ -99,7 +105,7 @@ public class ImportOptions
     public ImportOptions instance()
     {
         ImportOptions options = new ImportOptions();
-        
+
         options.idSchemes = this.idSchemes;
         options.dryRun = this.dryRun;
         options.preheatCache = this.preheatCache;
@@ -116,12 +122,13 @@ public class ImportOptions
         options.strictOrganisationUnits = this.strictOrganisationUnits;
         options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
         options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
+        options.skipPatternValidation = this.skipPatternValidation;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
-        
+
         return options;
     }
-    
+
     public static ImportOptions getDefaultImportOptions()
     {
         return DEFAULT_OPTIONS;
@@ -142,11 +149,11 @@ public class ImportOptions
     {
         return preheatCache == null ? false : preheatCache;
     }
-    
+
     /**
      * Returns the notification level, or if not specified, returns the given
      * default notification level.
-     * 
+     *
      * @param defaultLevel the default notification level.
      * @return the notification level.
      */
@@ -215,6 +222,18 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportReportMode getReportMode()
+    {
+        return reportMode;
+    }
+
+    public void setReportMode( ImportReportMode reportMode )
+    {
+        this.reportMode = reportMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipExistingCheck()
     {
         return skipExistingCheck;
@@ -274,6 +293,13 @@ public class ImportOptions
     public boolean isRequireAttributeOptionCombo()
     {
         return requireAttributeOptionCombo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipPatternValidation()
+    {
+        return skipPatternValidation;
     }
 
     @JsonProperty
@@ -447,6 +473,12 @@ public class ImportOptions
     public ImportOptions setRequireAttributeOptionCombo( boolean requireAttributeOptionCombo )
     {
         this.requireAttributeOptionCombo = requireAttributeOptionCombo;
+        return this;
+    }
+
+    public ImportOptions setSkipPatternValidation( boolean skipPatternValidation )
+    {
+        this.skipPatternValidation = skipPatternValidation;
         return this;
     }
 

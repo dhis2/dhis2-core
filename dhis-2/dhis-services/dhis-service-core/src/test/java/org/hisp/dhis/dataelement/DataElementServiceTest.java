@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -202,6 +202,36 @@ public class DataElementServiceTest
         assertTrue( dataElements.containsAll( dataElementsRef ) );
     }
 
+    @Test
+    public void testGetAllDataElementsByType()
+    {
+        assertEquals( 0, dataElementService.getAllDataElements().size() );
+
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
+
+        dataElementA.setValueType( ValueType.FILE_RESOURCE );
+        dataElementB.setValueType( ValueType.EMAIL );
+        dataElementC.setValueType( ValueType.BOOLEAN );
+        dataElementD.setValueType( ValueType.FILE_RESOURCE );
+
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+        dataElementService.addDataElement( dataElementC );
+        dataElementService.addDataElement( dataElementD );
+
+        List<DataElement> dataElementsRef = new ArrayList<>();
+        dataElementsRef.add( dataElementA );
+        dataElementsRef.add( dataElementD );
+
+        List<DataElement> dataElements = dataElementService.getAllDataElementsByValueType( ValueType.FILE_RESOURCE );
+        assertNotNull( dataElements );
+        assertEquals( dataElementsRef.size(), dataElements.size() );
+        assertTrue( dataElements.containsAll( dataElementsRef ) );
+    }
+
     // -------------------------------------------------------------------------
     // DataElementGroup
     // -------------------------------------------------------------------------
@@ -372,7 +402,7 @@ public class DataElementServiceTest
     @Test
     public void testDataElementUrl()
     {
-        DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.DEFAULT );
+        DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.SUM );
 
         int id = dataElementService.addDataElement( de );
 

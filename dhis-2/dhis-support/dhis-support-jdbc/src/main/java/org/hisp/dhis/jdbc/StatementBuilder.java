@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ package org.hisp.dhis.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.Collection;
 
 /**
  * @author Lars Helge Overland
@@ -214,4 +216,14 @@ public interface StatementBuilder
     String getAddPrimaryKeyToExistingTable( String table, String column );
     
     String getDropNotNullConstraint( String table, String column, String type );
+
+    /**
+     * Generates a derived table containing one column of literal strings.
+     *
+     * @param values (non-empty) String values for the derived table
+     * @param table the desired table name alias
+     * @param column the desired column name
+     * @return the derived literal table
+     */
+    String literalStringTable( Collection<String> values, String table, String column );
 }

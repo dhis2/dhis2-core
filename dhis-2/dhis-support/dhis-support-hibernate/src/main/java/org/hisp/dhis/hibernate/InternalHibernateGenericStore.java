@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,15 +46,25 @@ public interface InternalHibernateGenericStore<T>
 
     Criteria getSharingCriteria();
 
+    Criteria getDataSharingCriteria();
+
     Criteria getSharingCriteria( String access );
 
+    Criteria getDataSharingCriteria( String access );
+
+    Criteria getDataSharingCriteria( User user, String access );
+
     Criteria getSharingCriteria( User user );
+
+    DetachedCriteria getDataSharingDetachedCriteria( User user );
 
     Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
 
     DetachedCriteria getSharingDetachedCriteria();
 
     DetachedCriteria getSharingDetachedCriteria( String access );
+
+    DetachedCriteria getDataSharingDetachedCriteria( String access );
 
     DetachedCriteria getSharingDetachedCriteria( User user );
 }

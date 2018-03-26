@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,18 +96,6 @@ public class HibernateProgramStageInstanceStore
         return criteria.list();
     }
 
-
-
-    @Override
-    public int count( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate,
-        Boolean completed )
-    {
-        Number rs = (Number) getCriteria( programStage, orgunitIds, startDate, endDate, completed ).setProjection(
-            Projections.rowCount() ).uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
-    }
-
     @Override
     public long getProgramStageInstanceCountLastUpdatedAfter( Date time )
     {
@@ -123,6 +111,13 @@ public class HibernateProgramStageInstanceStore
     public boolean exists( String uid )
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=? and deleted is false", Integer.class, uid );
+        return result != null && result > 0;
+    }
+
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
     }
 
@@ -144,13 +139,13 @@ public class HibernateProgramStageInstanceStore
 
         String hql =
             "select distinct psi from ProgramStageInstance as psi " +
-            "inner join psi.programStage as ps " +
-            "where :notificationTemplate in elements(ps.notificationTemplates) " +
-            "and psi.dueDate is not null " +
-            "and psi.executionDate is null " +
-            "and psi.status != :skippedEventStatus " +
-            "and cast(:targetDate as date) = psi.dueDate " +
-            "and psi.deleted is false";
+                "inner join psi.programStage as ps " +
+                "where :notificationTemplate in elements(ps.notificationTemplates) " +
+                "and psi.dueDate is not null " +
+                "and psi.executionDate is null " +
+                "and psi.status != :skippedEventStatus " +
+                "and cast(:targetDate as date) = psi.dueDate " +
+                "and psi.deleted is false";
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
@@ -168,56 +163,6 @@ public class HibernateProgramStageInstanceStore
     @Override
     protected ProgramStageInstance postProcessObject( ProgramStageInstance programStageInstance )
     {
-        return ( programStageInstance == null || programStageInstance.isDeleted() ) ? null : programStageInstance;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Criteria getCriteria( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate,
-        Date endDate, Boolean completed )
-    {
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "programInstance", "programInstance" );
-        criteria.add( Restrictions.eq( "programStage", programStage ) );
-
-        if ( completed == null )
-        {
-            criteria.createAlias( "programInstance.entityInstance", "entityInstance" );
-            criteria.createAlias( "entityInstance.organisationUnit", "regOrgunit" );
-            criteria.add( Restrictions.or( Restrictions.and( Restrictions.eq( "status", EventStatus.COMPLETED ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ), Restrictions.and(
-                    Restrictions.eq( "status", EventStatus.ACTIVE ), Restrictions.isNotNull( "executionDate" ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ),
-                Restrictions.and( Restrictions.eq( "status", EventStatus.ACTIVE ), Restrictions.isNull( "executionDate" ),
-                    Restrictions.between( "dueDate", startDate, endDate ),
-                    Restrictions.in( "regOrgunit.id", orgunitIds ) ), Restrictions.and(
-                    Restrictions.eq( "status", EventStatus.SKIPPED ),
-                    Restrictions.between( "dueDate", startDate, endDate ),
-                    Restrictions.in( "regOrgunit.id", orgunitIds ) ) ) );
-        }
-        else
-        {
-            if ( completed )
-            {
-                criteria.add( Restrictions.and( Restrictions.eq( "status", EventStatus.COMPLETED ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ) );
-            }
-            else
-            {
-                criteria.createAlias( "programInstance.entityInstance", "entityInstance" );
-                criteria.createAlias( "entityInstance.organisationUnit", "regOrgunit" );
-                criteria.add( Restrictions.and( Restrictions.eq( "status", EventStatus.ACTIVE ),
-                    Restrictions.isNotNull( "executionDate" ),
-                    Restrictions.between( "executionDate", startDate, endDate ),
-                    Restrictions.in( "organisationUnit.id", orgunitIds ) ) );
-            }
-        }
-
-        return criteria;
+        return (programStageInstance == null || programStageInstance.isDeleted()) ? null : programStageInstance;
     }
 }

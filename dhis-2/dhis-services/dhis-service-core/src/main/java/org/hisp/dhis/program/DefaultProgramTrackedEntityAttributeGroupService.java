@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,9 +44,9 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
+    private IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
 
-    public void setAttributeGroupStore( GenericIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
+    public void setAttributeGroupStore( IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
     {
         this.attributeGroupStore = attributeGroupStore;
     }
@@ -85,12 +85,6 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( String uid )
     {
         return attributeGroupStore.getByUid( uid );
-    }
-
-    @Override
-    public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroupByName( String name )
-    {
-        return attributeGroupStore.getByName( name );
     }
 
     @Override

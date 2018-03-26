@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,25 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 /**
  * @author Lars Helge Overland
@@ -62,11 +62,9 @@ public class JdbcCompletenessTargetTableManager
     
     @Override
     @Transactional
-    public List<AnalyticsTable> getTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        List<AnalyticsTable> tables = new ArrayList<>();
-        tables.add( new AnalyticsTable( getTableName(), getDimensionColumns( null ) ) );
-        return tables;
+        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -80,53 +78,31 @@ public class JdbcCompletenessTargetTableManager
     {
         return null;
     }    
+
+    @Override
+    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
+    {
+        return Lists.newArrayList();
+    }
     
     @Override
-    public void createTable( AnalyticsTable table )
+    protected void populateTable( AnalyticsTablePartition partition )
     {
-        final String tableName = table.getTempTableName();
-        
-        final String sqlDrop = "drop table " + tableName;
-        
-        executeSilently( sqlDrop );
+        final String tableName = partition.getTempTableName();
 
-        String sqlCreate = "create table " + tableName + " (";
+        String sql = "insert into " + tableName + " (";
 
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        validateDimensionColumns( columns );
-        
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-        
-        sqlCreate += "value double precision)";
-        
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
-    }
-
-    @Override
-    protected void populateTable( AnalyticsTable table )
-    {
-        final String tableName = table.getTempTableName();
-
-        String sql = "insert into " + table.getTempTableName() + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
         
         validateDimensionColumns( columns );
 
-        for ( AnalyticsTableColumn col : columns )
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
         }
 
-        sql += "value) select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -146,8 +122,7 @@ public class JdbcCompletenessTargetTableManager
         populateAndLog( sql, tableName );
     }
     
-    @Override
-    public List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
+    private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -160,7 +135,7 @@ public class JdbcCompletenessTargetTableManager
         List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
             categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
 
-        List<DataElementCategory> attributeCategories =
+        List<Category> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
         
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
@@ -179,34 +154,39 @@ public class JdbcCompletenessTargetTableManager
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
-        for ( DataElementCategory category : attributeCategories )
+        for ( Category category : attributeCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
         }
 
-        AnalyticsTableColumn ouOpening = new AnalyticsTableColumn( quote( "ouopeningdate"), "date", "ou.openingdate" );
-        AnalyticsTableColumn ouClosed = new AnalyticsTableColumn( quote( "oucloseddate"), "date", "ou.closeddate" );
-        AnalyticsTableColumn coStart = new AnalyticsTableColumn( quote( "costartdate" ), "date", "doc.costartdate" );
-        AnalyticsTableColumn coEnd = new AnalyticsTableColumn( quote( "coenddate" ), "date", "doc.coenddate" );
-        AnalyticsTableColumn ds = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" );
-        AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
-        
-        columns.addAll( Lists.newArrayList( ouOpening, ouClosed, coStart, coEnd, ds, ao ) );
-        
+        columns.add( new AnalyticsTableColumn( quote( "ouopeningdate"), "date", "ou.openingdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "oucloseddate"), "date", "ou.closeddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "costartdate" ), "date", "doc.costartdate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "coenddate" ), "date", "doc.coenddate" ) );
+        columns.add( new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "ds.uid" ) );
+        columns.add( new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" ) );
+                
         return filterDimensionColumns( columns );
+    }
+    
+    private List<AnalyticsTableColumn> getValueColumns()
+    {
+        final String dbl = statementBuilder.getDoubleColumnType();
+
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
     }
     
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
-        return null; // Not relevant
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override
     @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
-        return null; // Not needed
+        return ConcurrentUtils.getImmediateFuture();
     }
 }

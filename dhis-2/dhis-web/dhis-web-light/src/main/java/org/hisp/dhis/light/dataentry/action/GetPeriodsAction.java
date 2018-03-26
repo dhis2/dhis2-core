@@ -1,7 +1,7 @@
 package org.hisp.dhis.light.dataentry.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.light.dataentry.action;
 
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -78,9 +78,9 @@ public class GetPeriodsAction
         this.registrationService = registrationService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -214,7 +214,7 @@ public class GetPeriodsAction
 
         markLockedDataSets( organisationUnit, dataSet, periods );
 
-        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo(); //TODO
+        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo(); //TODO
         
         for ( Period period : periods )
         {

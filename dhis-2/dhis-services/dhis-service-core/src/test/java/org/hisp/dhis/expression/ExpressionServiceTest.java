@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,11 @@ package org.hisp.dhis.expression;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -75,7 +80,7 @@ public class ExpressionServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private ConstantService constantService;
@@ -98,15 +103,15 @@ public class ExpressionServiceTest
     @Autowired
     private PeriodService periodService;
 
-    private DataElementCategoryOption categoryOptionA;
-    private DataElementCategoryOption categoryOptionB;
-    private DataElementCategoryOption categoryOptionC;
-    private DataElementCategoryOption categoryOptionD;
+    private CategoryOption categoryOptionA;
+    private CategoryOption categoryOptionB;
+    private CategoryOption categoryOptionC;
+    private CategoryOption categoryOptionD;
 
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
+    private Category categoryA;
+    private Category categoryB;
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
     private DataElement deA;
     private DataElement deB;
@@ -129,9 +134,9 @@ public class ExpressionServiceTest
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
 
-    private DataElementCategoryOptionCombo coc;
-    private DataElementCategoryOptionCombo cocA;
-    private DataElementCategoryOptionCombo cocB;
+    private CategoryOptionCombo coc;
+    private CategoryOptionCombo cocA;
+    private CategoryOptionCombo cocB;
     
     private Constant constantA;
     
@@ -179,36 +184,36 @@ public class ExpressionServiceTest
         periodService.addPeriod( peMar );
         periodService.addPeriod( peApril );
 
-        categoryOptionA = new DataElementCategoryOption( "Under 5" );
-        categoryOptionB = new DataElementCategoryOption( "Over 5" );
-        categoryOptionC = new DataElementCategoryOption( "Male" );
-        categoryOptionD = new DataElementCategoryOption( "Female" );
+        categoryOptionA = new CategoryOption( "Under 5" );
+        categoryOptionB = new CategoryOption( "Over 5" );
+        categoryOptionC = new CategoryOption( "Male" );
+        categoryOptionD = new CategoryOption( "Female" );
 
-        categoryService.addDataElementCategoryOption( categoryOptionA );
-        categoryService.addDataElementCategoryOption( categoryOptionB );
-        categoryService.addDataElementCategoryOption( categoryOptionC );
-        categoryService.addDataElementCategoryOption( categoryOptionD );
+        categoryService.addCategoryOption( categoryOptionA );
+        categoryService.addCategoryOption( categoryOptionB );
+        categoryService.addCategoryOption( categoryOptionC );
+        categoryService.addCategoryOption( categoryOptionD );
 
-        categoryA = new DataElementCategory( "Age", DataDimensionType.DISAGGREGATION );
-        categoryB = new DataElementCategory( "Gender", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "Age", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "Gender", DataDimensionType.DISAGGREGATION );
 
         categoryA.getCategoryOptions().add( categoryOptionA );
         categoryA.getCategoryOptions().add( categoryOptionB );
         categoryB.getCategoryOptions().add( categoryOptionC );
         categoryB.getCategoryOptions().add( categoryOptionD );
 
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategory( categoryB );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
 
-        categoryCombo = new DataElementCategoryCombo( "Age and gender", DataDimensionType.DISAGGREGATION );
+        categoryCombo = new CategoryCombo( "Age and gender", DataDimensionType.DISAGGREGATION );
         categoryCombo.getCategories().add( categoryA );
         categoryCombo.getCategories().add( categoryB );
 
-        categoryService.addDataElementCategoryCombo( categoryCombo );
+        categoryService.addCategoryCombo( categoryCombo );
         
         categoryService.generateOptionCombos( categoryCombo );
         
-        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList( categoryCombo.getOptionCombos() );
+        List<CategoryOptionCombo> optionCombos = Lists.newArrayList( categoryCombo.getOptionCombos() );
         
         cocA = optionCombos.get( 0 );
         cocB = optionCombos.get( 1 );
@@ -225,7 +230,7 @@ public class ExpressionServiceTest
         dataElementService.addDataElement( deD );
         dataElementService.addDataElement( deE );
 
-        coc = categoryService.getDefaultDataElementCategoryOptionCombo();
+        coc = categoryService.getDefaultCategoryOptionCombo();
 
         coc.getId();
         optionCombos.add( coc );
@@ -290,7 +295,7 @@ public class ExpressionServiceTest
             "D{" + pdeA.getDimensionItem() + "}+" + "A{" + pteaA.getDimensionItem() + "}-10+" + "I{" + piA.getDimensionItem() + "}";
         expressionJ = "#{" + opA.getDimensionItem() + "}+#{" + opB.getDimensionItem() + "}";
         expressionK = "1.5*AVG(" + expressionJ + ")";
-        expressionL = "AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")";
+        expressionL = expressionA + "+AVG("+expressionJ+")+1.5*STDDEV("+expressionJ+")+" + expressionB;
         expressionM = "#{" + deA.getUid() + SEPARATOR + SYMBOL_WILDCARD + "}-#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
         expressionN = "#{" + deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() + "}-#{" + deB.getUid() + SEPARATOR + cocA.getUid() + "}";
         expressionR = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}" + " + R{" + reportingRate.getUid() + ".REPORTING_RATE}";
@@ -406,41 +411,31 @@ public class ExpressionServiceTest
         assertEquals( 2, reportingRates.size() );
         assertTrue( reportingRates.contains( reportingRate ) );
     }
-    
+
     @Test
-    public void testGetAggregatesInExpression()
+    public void testGetAggregatesAndNonAggregtesInExpression()
     {
-        Set<DataElement> dataElements = expressionService.getDataElementsInExpression( expressionK );
-        Set<String> aggregates = expressionService.getAggregatesInExpression( expressionK.toString() );
-
-        assertEquals( 2, dataElements.size() );
-        assertTrue( dataElements.contains( deA ) );
-        assertTrue( dataElements.contains( deB ) );
+        Set<String> aggregates = new HashSet<>();
+        Set<String> nonAggregates = new HashSet<>();
+        expressionService.getAggregatesAndNonAggregatesInExpression( expressionK.toString(), aggregates, nonAggregates );
 
         assertEquals( 1, aggregates.size() );
-
-        for ( String subexp : aggregates )
-        {
-            assertEquals( expressionJ, subexp );
-        }
-
         assertTrue( aggregates.contains( expressionJ ) );
 
-        dataElements = expressionService.getDataElementsInExpression( expressionK );
-        aggregates = expressionService.getAggregatesInExpression( expressionK.toString() );
+        assertEquals( 1, nonAggregates.size() );
+        assertTrue( nonAggregates.contains( "1.5*" ) );
 
-        assertEquals( 2, dataElements.size() );
-        assertTrue( dataElements.contains( deA ) );
-        assertTrue( dataElements.contains( deB ) );
+        aggregates = new HashSet<>();
+        nonAggregates = new HashSet<>();
+        expressionService.getAggregatesAndNonAggregatesInExpression( expressionL.toString(), aggregates, nonAggregates );
 
         assertEquals( 1, aggregates.size() );
-
-        for ( String subExpression : aggregates )
-        {
-            assertEquals( expressionJ, subExpression );
-        }
-
         assertTrue( aggregates.contains( expressionJ ) );
+
+        assertEquals( 3, nonAggregates.size() );
+        assertTrue( nonAggregates.contains( expressionA + "+" ) );
+        assertTrue( nonAggregates.contains( "+1.5*" ) );
+        assertTrue( nonAggregates.contains( "+" + expressionB ) );
     }
 
     @Test
@@ -465,7 +460,7 @@ public class ExpressionServiceTest
     @Test
     public void testGetOptionCombosInExpression()
     {
-        Set<DataElementCategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( expressionG );
+        Set<CategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( expressionG );
 
         assertNotNull( optionCombos );
         assertEquals( 1, optionCombos.size() );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.authority;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,8 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,9 +47,15 @@ public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
     @Override
     public Collection<String> getSystemAuthorities()
     {
-        return appManager.getApps( null ).stream()
+        Set<String> authorities = new HashSet<>();
+
+        appManager.getApps( null ).stream()
             .filter( app -> !StringUtils.isEmpty( app.getName() ) )
-            .map( app -> "See " + app.getName().trim() )
-            .collect( Collectors.toList() );
+            .forEach( app -> {
+                authorities.add( "See " + app.getName().trim() );
+                authorities.addAll( app.getAuthorities() );
+            } );
+
+        return authorities;
     }
 }

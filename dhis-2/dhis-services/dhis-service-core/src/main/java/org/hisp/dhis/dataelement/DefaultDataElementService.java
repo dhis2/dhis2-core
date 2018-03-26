@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,10 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,9 +57,9 @@ public class DefaultDataElementService
         this.dataElementStore = dataElementStore;
     }
 
-    private GenericNameableObjectStore<DataElementGroup> dataElementGroupStore;
+    private IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
 
-    public void setDataElementGroupStore( GenericNameableObjectStore<DataElementGroup> dataElementGroupStore )
+    public void setDataElementGroupStore( IdentifiableObjectStore<DataElementGroup> dataElementGroupStore )
     {
         this.dataElementGroupStore = dataElementGroupStore;
     }
@@ -118,6 +120,12 @@ public class DefaultDataElementService
     }
 
     @Override
+    public List<DataElement> getAllDataElementsByValueType( ValueType valueType )
+    {
+        return dataElementStore.getDataElementsByValueType( valueType );
+    }
+
+    @Override
     public List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant )
     {
         return dataElementStore.getDataElementsByZeroIsSignificant( zeroIsSignificant );
@@ -136,7 +144,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    public List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo )
     {
         return dataElementStore.getDataElementByCategoryCombo( categoryCombo );
     }
@@ -219,25 +227,6 @@ public class DefaultDataElementService
         List<DataElementGroup> dataElementGroups = dataElementGroupStore.getAllEqName( name );
 
         return !dataElementGroups.isEmpty() ? dataElementGroups.get( 0 ) : null;
-    }
-
-    @Override
-    public DataElementGroup getDataElementGroupByShortName( String shortName )
-    {
-        List<DataElementGroup> dataElementGroups = dataElementGroupStore.getAllEqShortName( shortName );
-
-        if ( dataElementGroups.isEmpty() )
-        {
-            return null;
-        }
-
-        return dataElementGroups.get( 0 );
-    }
-
-    @Override
-    public DataElementGroup getDataElementGroupByCode( String code )
-    {
-        return dataElementGroupStore.getByCode( code );
     }
 
     // -------------------------------------------------------------------------

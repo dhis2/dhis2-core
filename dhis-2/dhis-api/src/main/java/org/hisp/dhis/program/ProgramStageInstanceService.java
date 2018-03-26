@@ -1,7 +1,12 @@
 package org.hisp.dhis.program;
 
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.Date;
+
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +33,6 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 /**
  * @author Abyot Asalefew
  * @version $Id$
@@ -57,7 +53,7 @@ public interface ProgramStageInstanceService
      * Deletes a {@link ProgramStageInstance}.
      *
      * @param programStageInstance the ProgramStageInstance to delete.
-     * @param forceDelete false if PSI should be soft deleted.
+     * @param forceDelete          false if PSI should be soft deleted.
      */
     void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete );
 
@@ -75,7 +71,21 @@ public interface ProgramStageInstanceService
      */
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
 
-    boolean programStageInstanceExists(String uid);
+    /**
+     * Checks whether a {@link ProgramStageInstance} with the given identifier
+     * exists. Doesn't take into account the deleted values.
+     *
+     * @param uid the identifier.
+     */
+    boolean programStageInstanceExists( String uid );
+
+    /**
+     * Checks whether a {@link ProgramStageInstance} with the given identifier
+     * exists. Takes into accound also the deleted values.
+     *
+     * @param uid the identifier.
+     */
+    boolean programStageInstanceExistsIncludingDeleted( String uid );
 
     /**
      * Returns a {@link ProgramStageInstance}.
@@ -90,7 +100,7 @@ public interface ProgramStageInstanceService
      *
      * @param uid the UID.
      * @return the ProgramStageInstance with the given UID, or null if no
-     *         match.
+     * match.
      */
     ProgramStageInstance getProgramStageInstance( String uid );
 
@@ -99,33 +109,11 @@ public interface ProgramStageInstanceService
      * repeatable stages, the system returns the last event.
      *
      * @param programInstance the ProgramInstance.
-     * @param programStage the ProgramStage.
+     * @param programStage    the ProgramStage.
      * @return the ProgramStageInstance corresponding to the given
-     *          programInstance and ProgramStage, or null if no match.
+     * programInstance and ProgramStage, or null if no match.
      */
     ProgramStageInstance getProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage );
-
-    /**
-     * Retrieve an event list on a list of ProgramInstances with a certain status.
-     *
-     * @param programInstances the ProgramInstance list.
-     * @param status the EventStatus.
-     * @return a list of all ProgramStageInstances for the given ProgramInstances
-     *          and EventStatus.
-     */
-    List<ProgramStageInstance> getProgramStageInstances( Collection<ProgramInstance> programInstances,
-        EventStatus status );
-
-    /**
-     * Get all events by TrackedEntityInstance, optionally filtering by
-     * completed.
-     *
-     * @param entityInstance the TrackedEntityInstance.
-     * @param status the EventStatus.
-     * @return a list of all ProgramStageInstance for the given
-     *          TrackedEntityInstance and EventStatus.
-     */
-    List<ProgramStageInstance> getProgramStageInstances( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
      * Gets the number of ProgramStageInstances added since the given number of days.
@@ -140,31 +128,18 @@ public interface ProgramStageInstanceService
      * defined for sending upon completion.
      *
      * @param programStageInstance the ProgramStageInstance.
-     * @param skipNotifications whether to send prgram stage notifications or not.
-     * @param format the I18nFormat for the notification messages.
+     * @param skipNotifications    whether to send prgram stage notifications or not.
+     * @param format               the I18nFormat for the notification messages.
      */
     void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
 
     /**
-     * Creates a ProgramStageInstance. Will create a ProgramInstance in case
-     * the program is single event.
+     * Creates a program stage instance.
      *
-     * @param entityInstance the TrackedEntityInstance.
-     * @param program the Program.
-     * @param executionDate the report date of the event.
-     * @param organisationUnit the OrganisationUnit where the event took place.
-     * @return ProgramStageInstance the ProgramStageInstance which was created.
-     */
-    ProgramStageInstance createProgramStageInstance( TrackedEntityInstance entityInstance, Program program,
-        Date executionDate, OrganisationUnit organisationUnit );
-
-    /**
-     * Creates a program stage instance. 
-     *
-     * @param programInstance the ProgramInstance.
-     * @param programStage the ProgramStage.
-     * @param enrollmentDate the enrollment date.
-     * @param incidentDate date of the incident.
+     * @param programInstance  the ProgramInstance.
+     * @param programStage     the ProgramStage.
+     * @param enrollmentDate   the enrollment date.
+     * @param incidentDate     date of the incident.
      * @param organisationUnit the OrganisationUnit where the event took place.
      * @return ProgramStageInstance the ProgramStageInstance which was created.
      */

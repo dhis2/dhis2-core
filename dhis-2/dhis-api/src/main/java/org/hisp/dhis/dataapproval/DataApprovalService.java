@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+
+import java.util.List;
 
 /**
  * @author Jim Grace
@@ -127,7 +127,7 @@ public interface DataApprovalService
      * Gets the data approval record if it exists.
      *
      * @param approval the DataApproval object properties to look for
-     * @return
+     * @return a data approval record.
      */
     DataApproval getDataApproval( DataApproval approval );
 
@@ -138,10 +138,10 @@ public interface DataApprovalService
      * @param period Period to check for approval.
      * @param organisationUnit OrganisationUnit to check for approval.
      * @param attributeOptionCombo CategoryOptionCombo (if any) for approval.
-     * @return
+     * @return true if data is approved.
      */
     boolean isApproved( DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Returns the data approval status for a given data set, period,
@@ -156,7 +156,7 @@ public interface DataApprovalService
      * @return the data approval status.
      */
     DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Returns the data approval status and permissions for a given data set,
@@ -171,7 +171,7 @@ public interface DataApprovalService
      * @return the data approval status.
      */
     DataApprovalStatus getDataApprovalStatusAndPermissions( DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Returns a list of approval status and permissions for all of the
@@ -184,7 +184,7 @@ public interface DataApprovalService
      * @return list of statuses and permissions
      */
     List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit orgUnit, DataElementCategoryCombo attributeCombo );
+        Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo );
     
     /**
      * Deletes DataApprovals for the given organisation unit.

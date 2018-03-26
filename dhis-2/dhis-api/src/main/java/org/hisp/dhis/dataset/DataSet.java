@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,22 +36,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.InterpretableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
@@ -83,6 +77,8 @@ public class DataSet
     implements VersionedObject, MetadataObject, InterpretableObject
 {
     public static final int NO_EXPIRY = 0;
+
+    private String formName;
 
     /**
      * The PeriodType indicating the frequency that this DataSet should be used
@@ -127,7 +123,7 @@ public class DataSet
     /**
      * The CategoryCombo used for data attributes.
      */
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * Property indicating if the dataset could be collected using mobile data
@@ -172,6 +168,9 @@ public class DataSet
      */
     private DataApprovalWorkflow workflow;
 
+    /**
+     * Interpretations of this data set.
+     */
     private Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -221,6 +220,14 @@ public class DataSet
      * Render multi-organisationUnit forms either with OU vertically or horizontally.
      */
     private boolean renderHorizontally;
+    
+    /**
+    * Property indicating whether all compulsory fields should be filled before completing 
+    * data set
+    */
+    private boolean compulsoryFieldsCompleteOnly;
+
+    private ObjectStyle style;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -322,7 +329,7 @@ public class DataSet
      * @param dataElement   the data element.
      * @param categoryCombo the category combination.
      */
-    public boolean addDataSetElement( DataElement dataElement, DataElementCategoryCombo categoryCombo )
+    public boolean addDataSetElement( DataElement dataElement, CategoryCombo categoryCombo )
     {
         DataSetElement element = new DataSetElement( this, dataElement, categoryCombo );
         dataElement.getDataSetElements().add( element );
@@ -443,9 +450,9 @@ public class DataSet
         return dataElements;
     }
 
-    public Set<DataElementCategoryOptionCombo> getDataElementOptionCombos()
+    public Set<CategoryOptionCombo> getDataElementOptionCombos()
     {
-        Set<DataElementCategoryOptionCombo> optionCombos = new HashSet<>();
+        Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
         for ( DataSetElement element : dataSetElements )
         {
@@ -471,9 +478,9 @@ public class DataSet
 
         if ( categoryCombo != null )
         {
-            for ( DataElementCategory category : categoryCombo.getCategories() )
+            for ( Category category : categoryCombo.getCategories() )
             {
-                for ( DataElementCategoryOption categoryOption : category.getCategoryOptions() )
+                for ( CategoryOption categoryOption : category.getCategoryOptions() )
                 {
                     groupSets.addAll( categoryOption.getGroupSets() );
                 }
@@ -489,7 +496,7 @@ public class DataSet
      */
     public boolean hasCategoryCombo()
     {
-        return categoryCombo != null && !DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
+        return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
 
     /**
@@ -649,12 +656,12 @@ public class DataSet
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
         return categoryCombo;
     }
 
-    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
     }
@@ -743,6 +750,16 @@ public class DataSet
 
     public void setWorkflow( DataApprovalWorkflow workflow )
     {
+        if ( this.workflow != null )
+        {
+            this.workflow.getDataSets().remove( this );
+        }
+
+        if ( workflow != null )
+        {
+            workflow.getDataSets().add( this );
+        }
+
         this.workflow = workflow;
     }
 
@@ -855,4 +872,41 @@ public class DataSet
     {
         this.dataElementDecoration = dataElementDecoration;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCompulsoryFieldsCompleteOnly()
+    {
+        return compulsoryFieldsCompleteOnly;
+    }
+
+    public void setCompulsoryFieldsCompleteOnly( boolean compulsoryFieldsCompleteOnly )
+    {
+        this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
+    }    
+    
 }

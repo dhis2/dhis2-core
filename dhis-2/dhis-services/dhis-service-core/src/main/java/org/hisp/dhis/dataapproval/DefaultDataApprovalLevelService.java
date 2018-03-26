@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,14 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -82,9 +82,9 @@ public class DefaultDataApprovalLevelService
         this.organisationUnitService = organisationUnitService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -96,11 +96,11 @@ public class DefaultDataApprovalLevelService
         this.currentUserService = currentUserService;
     }
 
-    private SecurityService securityService;
+    private AclService aclService;
 
-    public void setSecurityService( SecurityService securityService )
+    public void setAclService( AclService aclService )
     {
-        this.securityService = securityService;
+        this.aclService = aclService;
     }
 
     // -------------------------------------------------------------------------
@@ -149,7 +149,7 @@ public class DefaultDataApprovalLevelService
 
         int levelAboveOrgUnitLevel = 0;
 
-        List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels();
+        List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels( currentUserService.getCurrentUser() );
         
         for ( DataApprovalLevel level : userApprovalLevels )
         {
@@ -171,15 +171,15 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo )
     {
         Set<CategoryOptionGroupSet> cogSets = null;
 
-        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultDataElementCategoryOptionCombo()  )
+        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultCategoryOptionCombo()  )
         {
             cogSets = new HashSet<>();
 
-            for ( DataElementCategoryOption option : attributeOptionCombo.getCategoryOptions() )
+            for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
             {
                 if ( option.getGroupSets() != null )
                 {
@@ -245,15 +245,15 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    public List<DataApprovalLevel> getUserDataApprovalLevels()
+    public List<DataApprovalLevel> getUserDataApprovalLevels( User user )
     {
-        return subsetUserDataApprovalLevels( getAllDataApprovalLevels() );
+        return subsetUserDataApprovalLevels( getAllDataApprovalLevels(), user );
     }
 
     @Override
-    public List<DataApprovalLevel> getUserDataApprovalLevels( DataApprovalWorkflow workflow )
+    public List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow )
     {
-        return subsetUserDataApprovalLevels( workflow.getSortedLevels() );
+        return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user );
     }
 
     @Override
@@ -680,7 +680,7 @@ public class DefaultDataApprovalLevelService
         for ( DataApprovalLevel level : approvalLevels )
         {
             if ( level.getOrgUnitLevel() >= userOrgUnitLevel &&
-                securityService.canRead( level ) &&
+                aclService.canRead( user, level ) &&
                 canReadCOGS( user, level.getCategoryOptionGroupSet() ) )
             {
                 userLevel = level;
@@ -721,11 +721,12 @@ public class DefaultDataApprovalLevelService
      * Returns the subset of approval levels that the user is allowed to access.
      *
      * @param approvalLevels the approval levels to test.
+     * @param user the user to test access for.
      * @return the subset of approval levels to which the user has access.
      */
-    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels )
+    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user )
     {
-        UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
+        UserCredentials userCredentials = user.getUserCredentials();
 
         int lowestNumberOrgUnitLevel = getCurrentUsersLowestNumberOrgUnitLevel();
 
@@ -742,9 +743,9 @@ public class DefaultDataApprovalLevelService
             {
                 CategoryOptionGroupSet cogs = approvalLevel.getCategoryOptionGroupSet();
 
-                addLevel = securityService.canRead( approvalLevel ) &&
+                addLevel = aclService.canRead( user, approvalLevel ) &&
                     cogs == null ? canSeeAllDimensions :
-                    ( securityService.canRead( cogs ) && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ) );
+                    ( aclService.canRead( user, cogs ) && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ) );
             }
 
             if ( addLevel )

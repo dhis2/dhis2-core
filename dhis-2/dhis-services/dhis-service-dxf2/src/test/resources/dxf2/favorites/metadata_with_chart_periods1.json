@@ -94,7 +94,7 @@
       "dataDimensionType": "DISAGGREGATION"
     }
   ],
-  "trackedEntities": [
+  "trackedEntityTypes": [
     {
       "attributeValues": [ ],
       "code": "Person",
@@ -168,7 +168,7 @@
       "hideLegend": false,
       "organisationUnitLevels": [ ],
       "regression": false,
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "hideEmptyRows": false,
       "publicAccess": "rw------",
       "id": "gyYXi0rXAIc",
@@ -222,7 +222,7 @@
       "hideLegend": false,
       "regression": false,
       "organisationUnitLevels": [ ],
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "organisationUnitGroups": [ ],
       "itemOrganisationUnitGroups": [ ],
       "categoryOptionGroups": [ ],
@@ -381,7 +381,7 @@
       ],
       "organisationUnitLevels": [ ],
       "regression": false,
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "hideLegend": false,
       "itemOrganisationUnitGroups": [ ],
       "organisationUnitGroups": [ ],
@@ -394,7 +394,7 @@
       "hideLegend": false,
       "regression": false,
       "organisationUnitLevels": [ ],
-      "aggregationType": "DEFAULT",
+      "aggregationType": "SUM",
       "itemOrganisationUnitGroups": [ ],
       "organisationUnitGroups": [ ],
       "categoryOptionGroups": [ ],

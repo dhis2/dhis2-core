@@ -19,10 +19,10 @@
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_datavalueaudit_organisationunitid" not-null="true" />
 
-    <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
+    <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo" column="categoryoptioncomboid"
       foreign-key="fk_datavalueaudit_categoryoptioncomboid" not-null="true" />
 
-    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="attributeoptioncomboid"
+    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo" column="attributeoptioncomboid"
       foreign-key="fk_datavalueaudit_attributeoptioncomboid" not-null="true" />
 
     <property name="value" length="50000" />

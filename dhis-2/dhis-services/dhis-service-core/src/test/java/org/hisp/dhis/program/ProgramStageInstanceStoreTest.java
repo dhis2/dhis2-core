@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -88,7 +88,7 @@ public class ProgramStageInstanceStoreTest
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
-    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
+    private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private OrganisationUnit organisationUnitA;
 

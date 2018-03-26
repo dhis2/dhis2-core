@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -95,13 +95,13 @@ public class Section
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElementCategoryCombo> getCategoryCombos()
+    public Set<CategoryCombo> getCategoryCombos()
     {
-        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
+        Set<CategoryCombo> categoryCombos = new HashSet<>();
 
         for ( DataElement dataElement : dataElements )
         {
-            DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo( dataSet );
+            CategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo( dataSet );
 
             if ( categoryCombo != null )
             {
@@ -117,13 +117,13 @@ public class Section
         return dataElements != null && !dataElements.isEmpty();
     }
 
-    public List<DataElement> getDataElementsByCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public List<DataElement> getDataElementsByCategoryCombo( CategoryCombo categoryCombo )
     {
         List<DataElement> dataElements = new ArrayList<>();
 
         for ( DataElement dataElement : this.dataElements )
         {
-            if ( dataElement.getCategoryCombo( this.dataSet ).equals( categoryCombo ) )
+            if ( dataElement.getDataElementCategoryCombo( this.dataSet ).equals( categoryCombo ) )
             {
                 dataElements.add( dataElement );
             }

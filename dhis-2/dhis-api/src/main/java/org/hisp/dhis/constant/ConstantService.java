@@ -1,7 +1,7 @@
 package org.hisp.dhis.constant;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,12 +51,6 @@ public interface ConstantService
     Constant getConstant( int constantId );
 
     Constant getConstant( String uid );
-
-    Constant getConstantByName( String constantName );
-
-    Constant getConstantByShortName( String shortName );
-
-    Constant getConstantByCode( String code );
 
     List<Constant> getAllConstants();
 

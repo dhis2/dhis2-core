@@ -56,6 +56,12 @@
         </action>
     </package>
 
+    <package name="dhis-web-maps" extends="dhis-web-commons" namespace="/dhis-web-maps">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
+
     <package name="dhis-web-mapping" extends="dhis-web-commons" namespace="/dhis-web-mapping">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">#</result>
@@ -89,7 +95,7 @@
         </action>
     </package>
 
-    <package name="dhis-web-dashboard-integration" extends="dhis-web-commons" namespace="/dhis-web-dashboard-integration">
+    <package name="dhis-web-dashboard" extends="dhis-web-commons" namespace="/dhis-web-dashboard">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">index.html</result>
         </action>
@@ -122,6 +128,18 @@
     <package name="dhis-web-datastore" extends="dhis-web-commons" namespace="/dhis-web-datastore">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">#</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-scheduler" extends="dhis-web-commons" namespace="/dhis-web-scheduler">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">#</result>
+        </action>
+    </package>
+    
+    <package name="dhis-web-data-administration" extends="dhis-web-commons" namespace="/dhis-web-data-administration">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
         </action>
     </package>
 

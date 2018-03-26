@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,11 @@ package org.hisp.dhis.dataapproval;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -102,7 +102,8 @@ public class DefaultDataApprovalAuditService
     {
         if ( !currentUserService.currentUserIsSuper() )
         {
-            Set<DataApprovalLevel> userLevels = new HashSet<>( dataApprovalLevelService.getUserDataApprovalLevels() );
+            Set<DataApprovalLevel> userLevels = new HashSet<>(
+                dataApprovalLevelService.getUserDataApprovalLevels( currentUserService.getCurrentUser() ) );
 
             if ( params.hasLevels() )
             {
@@ -136,7 +137,7 @@ public class DefaultDataApprovalAuditService
         User user = currentUserService.getCurrentUser();
 
         Set<CategoryOptionGroupSet> cogDimensionConstraints = user.getUserCredentials().getCogsDimensionConstraints();
-        Set<DataElementCategory> catDimensionConstraints = user.getUserCredentials().getCatDimensionConstraints();
+        Set<Category> catDimensionConstraints = user.getUserCredentials().getCatDimensionConstraints();
 
         if ( currentUserService.currentUserIsSuper() ||
             ( CollectionUtils.isEmpty( cogDimensionConstraints ) && CollectionUtils.isEmpty( catDimensionConstraints ) ) )
@@ -144,11 +145,11 @@ public class DefaultDataApprovalAuditService
             return;
         }
 
-        Map<DataElementCategoryOptionCombo, Boolean> readableOptionCombos = new HashMap<>(); // Local cached results
+        Map<CategoryOptionCombo, Boolean> readableOptionCombos = new HashMap<>(); // Local cached results
 
         for (Iterator<DataApprovalAudit> i = audits.iterator(); i.hasNext(); )
         {
-            DataElementCategoryOptionCombo optionCombo = i.next().getAttributeOptionCombo();
+            CategoryOptionCombo optionCombo = i.next().getAttributeOptionCombo();
 
             Boolean canRead = readableOptionCombos.get( optionCombo );
 
@@ -180,10 +181,10 @@ public class DefaultDataApprovalAuditService
      * @param catDimensionConstraints category constraints, if any.
      * @return whether the user can read the DataApprovalAudit.
      */
-    private boolean canReadOptionCombo( User user, DataElementCategoryOptionCombo optionCombo,
-        Set<CategoryOptionGroupSet> cogDimensionConstraints, Set<DataElementCategory> catDimensionConstraints )
+    private boolean canReadOptionCombo( User user, CategoryOptionCombo optionCombo,
+        Set<CategoryOptionGroupSet> cogDimensionConstraints, Set<Category> catDimensionConstraints )
     {
-        for ( DataElementCategoryOption option : optionCombo.getCategoryOptions() )
+        for ( CategoryOption option : optionCombo.getCategoryOptions() )
         {
             if ( !isOptionCogConstraintReadable( user, option, cogDimensionConstraints ) ||
                 !isOptionCatConstraintReadable( user, option, catDimensionConstraints ) )
@@ -208,7 +209,7 @@ public class DefaultDataApprovalAuditService
      * @param cogDimensionConstraints category option combo group constraints, if any.
      * @return whether the user can read the data element category option.
      */
-    private boolean isOptionCogConstraintReadable( User user, DataElementCategoryOption option,
+    private boolean isOptionCogConstraintReadable( User user, CategoryOption option,
         Set<CategoryOptionGroupSet> cogDimensionConstraints )
     {
         if ( CollectionUtils.isEmpty( cogDimensionConstraints ) )
@@ -242,8 +243,8 @@ public class DefaultDataApprovalAuditService
      * @param catDimensionConstraints category constraints, if any.
      * @return whether the user can read the data element category option.
      */
-    private boolean isOptionCatConstraintReadable( User user, DataElementCategoryOption option,
-        Set<DataElementCategory> catDimensionConstraints )
+    private boolean isOptionCatConstraintReadable( User user, CategoryOption option,
+        Set<Category> catDimensionConstraints )
     {
         if ( CollectionUtils.isEmpty( catDimensionConstraints ) )
         {

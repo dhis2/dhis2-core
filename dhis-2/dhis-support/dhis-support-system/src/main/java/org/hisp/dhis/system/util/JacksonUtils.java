@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,17 @@ package org.hisp.dhis.system.util;
  */
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -45,9 +50,9 @@ public class JacksonUtils
 
     static
     {
-        jsonMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        jsonMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false );
-        jsonMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        jsonMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
+        jsonMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
+        jsonMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
         jsonMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 
@@ -60,6 +65,56 @@ public class JacksonUtils
         catch ( IOException ex )
         {
             throw new UncheckedIOException( ex );
+        }
+    }
+    
+    public static <T> T fromJson( String string, Class<T> clazz )
+    {
+        try
+        {
+            return jsonMapper.readValue( string, clazz );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
+
+    public static <T> String toJson( T object )
+    {
+        try
+        {
+            return jsonMapper.writeValueAsString( object );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
+
+    public static <T, U> Map<T, U> fromJsonToMap( String object )
+        throws IOException
+    {
+        TypeReference<HashMap<T, U>> typeRef = new TypeReference<HashMap<T, U>>() {};
+
+        return jsonMapper.readValue( object, typeRef );
+    }
+
+    public static void fromObjectToReponse( HttpServletResponse response, Object clazz)
+    {
+        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        response.setContentType( "application/json" );
+
+        PrintWriter jsonResponse;
+        try
+        {
+            jsonResponse = response.getWriter();
+            jsonResponse.print( toJson( clazz ) );
+            jsonResponse.flush();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
         }
     }
 }

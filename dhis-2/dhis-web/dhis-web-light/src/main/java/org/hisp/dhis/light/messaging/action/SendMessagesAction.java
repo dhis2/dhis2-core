@@ -1,7 +1,7 @@
 package org.hisp.dhis.light.messaging.action;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,16 +125,11 @@ public class SendMessagesAction
         log.info( "SendMessagesAction.execute() called" );        
         
         updateRecipients(recipientCheckBox);
-        
-//        user = userService.getUser( userId );
+
         String metaData = MessageService.META_USER_AGENT
             + ServletActionContext.getRequest().getHeader( ContextUtils.HEADER_USER_AGENT );
 
-//        Set<User> users = new HashSet<User>();
-//        users.add( user );
-
-//        messageService.sendMessage( subject, text, metaData, users );
-        messageService.sendPrivateMessage( subject, text, metaData, recipient );
+        messageService.sendMessage( messageService.createPrivateMessage( recipient, subject, text, metaData ).build() );
 
         log.debug( "SendMessagesAction.execute() exit: " + SUCCESS);
                 

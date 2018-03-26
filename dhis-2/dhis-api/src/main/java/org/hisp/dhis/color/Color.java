@@ -1,7 +1,7 @@
 package org.hisp.dhis.color;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,9 @@ import org.hisp.dhis.common.EmbeddedObject;
 public class Color
     extends BaseIdentifiableObject implements EmbeddedObject
 {
+    /**
+     * Hex color code.
+     */
     private String color;
 
     // -------------------------------------------------------------------------

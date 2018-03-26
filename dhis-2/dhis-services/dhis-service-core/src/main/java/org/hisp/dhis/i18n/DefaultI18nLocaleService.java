@@ -1,7 +1,7 @@
 package org.hisp.dhis.i18n;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,24 +172,6 @@ public class DefaultI18nLocaleService
     public int getI18nLocaleCount()
     {
         return localeStore.getCount();
-    }
-
-    @Override
-    public int getI18nLocaleCountByName( String name )
-    {
-        return localeStore.getCountLikeName( name );
-    }
-    
-    @Override
-    public List<I18nLocale> getI18nLocalesBetween( int first, int max )
-    {
-        return localeStore.getAllOrderedName( first, max );
-    }
-    
-    @Override
-    public List<I18nLocale> getI18nLocalesBetweenLikeName( String name, int first, int max )
-    {
-        return localeStore.getAllLikeName( name, first, max );
     }
     
     @Override

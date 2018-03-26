@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,13 +62,21 @@ public final class UserContext
     {
         return threadUser.get();
     }
+    
+    public static String getUsername()
+    {
+        User user = getUser();
+        
+        return user != null ? user.getUsername() : "system-process";
+    }
 
     public static boolean haveUser()
     {
         return getUser() != null;
     }
 
-    // TODO need synchronized ?
+    // TODO Needs synchronized?
+    
     public static void setUserSetting( UserSettingKey key, Serializable value )
     {
         UserContext.setUserSetting( key.getName(), value );

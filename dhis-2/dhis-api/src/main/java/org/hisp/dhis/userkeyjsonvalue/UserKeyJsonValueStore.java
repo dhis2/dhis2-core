@@ -1,7 +1,7 @@
 package org.hisp.dhis.userkeyjsonvalue;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.userkeyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.List;
  * @author Stian Sandvold
  */
 public interface UserKeyJsonValueStore
-    extends GenericIdentifiableObjectStore<UserKeyJsonValue>
+    extends IdentifiableObjectStore<UserKeyJsonValue>
 {
     /**
      * Retrieves a KeyJsonValue based on the associated key and user

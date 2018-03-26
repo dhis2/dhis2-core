@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.command.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,13 @@ package org.hisp.dhis.sms.command.hibernate;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.parse.ParserType;
 
 public interface SMSCommandStore
-    extends GenericIdentifiableObjectStore<SMSCommand>
+    extends IdentifiableObjectStore<SMSCommand>
 {
     List<SMSCommand> getJ2MESMSCommands();
 

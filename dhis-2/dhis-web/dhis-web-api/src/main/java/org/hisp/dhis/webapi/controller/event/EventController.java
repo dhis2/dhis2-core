@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -51,7 +51,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.event.ImportEventTask;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
@@ -81,11 +80,11 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -117,6 +116,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
+import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -137,7 +138,7 @@ public class EventController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulingManager schedulingManager;
 
     @Autowired
     private EventService eventService;
@@ -198,7 +199,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Grid getEventsGrid(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -241,7 +241,7 @@ public class EventController
 
         boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
 
         if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
         {
@@ -266,7 +266,6 @@ public class EventController
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody RootNode getEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -309,7 +308,7 @@ public class EventController
 
         boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
 
         if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
         {
@@ -362,7 +361,6 @@ public class EventController
     }
 
     @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getCsvEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -395,7 +393,7 @@ public class EventController
 
         boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
 
         if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
         {
@@ -451,7 +449,7 @@ public class EventController
         @RequestParam Map<String, String> parameters, Model model )
         throws WebMessageException
     {
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
@@ -464,11 +462,10 @@ public class EventController
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( uid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
 
         if ( event == null )
         {
@@ -481,11 +478,10 @@ public class EventController
     }
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD') or hasRole('F_TRACKED_ENTITY_DATAVALUE_READ')" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
         HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
-        Event event = eventService.getEvent( eventUid );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
 
         if ( event == null )
         {
@@ -605,7 +601,6 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postXmlEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
@@ -642,16 +637,13 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
-            List<Event> events = eventService.getEventsXml( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+            List<Event> events = eventService.getEventsJson( inputStream );
+
+            startAsyncImport( importOptions, events, request, response );
         }
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postJsonEvent( @RequestParam( defaultValue = "CREATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
@@ -688,16 +680,13 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
             List<Event> events = eventService.getEventsJson( inputStream );
-            scheduler.executeTask( new ImportEventTask( events, eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+
+            startAsyncImport( importOptions, events, request, response );
         }
     }
 
     @RequestMapping( value = "/{uid}/note", method = RequestMethod.POST, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -715,7 +704,6 @@ public class EventController
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws IOException
     {
@@ -731,10 +719,7 @@ public class EventController
         }
         else
         {
-            TaskId taskId = new TaskId( TaskCategory.EVENT_IMPORT, currentUserService.getCurrentUser() );
-            scheduler.executeTask( new ImportEventsTask( events.getEvents(), eventService, importOptions, taskId ) );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TaskCategory.EVENT_IMPORT );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+            startAsyncImport( importOptions, events.getEvents(), request, response );
         }
     }
 
@@ -743,70 +728,54 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromXml( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
-        importSummary.setImportOptions( importOptions );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        updateEvent( updatedEvent, false, importOptions, request, response );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
+        updateEvent( updatedEvent, false, importOptions, request, response );
+    }
+
+    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    {
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions );
         importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     @RequestMapping( value = "/{uid}/{dataElementUid}", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid ) throws IOException, WebMessageException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
+            WebMessage webMsg = WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid );
+            webMessageService.send( webMsg, response, request );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        updateEvent( updatedEvent, true, null, request, response );
     }
 
     @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void putJsonEventForEventDate( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
     {
@@ -828,31 +797,34 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_DELETE')" )
     public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid ) throws WebMessageException
+        @PathVariable( "uid" ) String uid )
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
-        response.setStatus( HttpServletResponse.SC_OK );
-
-        try
-        {
-            ImportSummary importSummary = eventService.deleteEvent( uid );
-            webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
-        }
-        catch ( Exception ex )
-        {
-            webMessageService.send( WebMessageUtils.conflict( "Unable to delete event " + uid, ex.getMessage() ), response, request );
-        }
+        ImportSummary importSummary = eventService.deleteEvent( uid );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Starts an asynchronous import task.
+     *
+     * @param importOptions the ImportOptions.
+     * @param events        the events to import.
+     * @param request       the HttpRequest.
+     * @param response      the HttpResponse.
+     */
+    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request, HttpServletResponse response )
+    {
+        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+            EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
+
+        JacksonUtils.fromObjectToReponse( response, jobId );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
+    }
 
     private boolean fieldsContains( String match, List<String> fields )
     {

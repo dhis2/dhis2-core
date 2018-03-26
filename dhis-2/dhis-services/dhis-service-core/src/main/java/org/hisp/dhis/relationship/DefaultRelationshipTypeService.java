@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,29 +95,5 @@ public class DefaultRelationshipTypeService
     public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
     {
         return relationshipTypeStore.getRelationshipType( aIsToB, bIsToA );
-    }
-
-    @Override
-    public Integer getRelationshipTypeCountByName( String name )
-    {
-        return relationshipTypeStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<RelationshipType> getRelationshipTypesBetweenByName( String name, int min, int max )
-    {
-        return relationshipTypeStore.getAllLikeName( name, min, max );
-    }
-
-    @Override
-    public Integer getRelationshipTypeCount()
-    {
-        return relationshipTypeStore.getCount();
-    }
-
-    @Override
-    public List<RelationshipType> getRelationshipTypesBetween( int min, int max )
-    {
-        return relationshipTypeStore.getAllOrderedName( min, max );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporttable;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,24 +36,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.NumberType;
-import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.DisplayDensity;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.FontSize;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendDisplayStrategy;
@@ -65,12 +50,8 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.Objects;
 
 import static org.hisp.dhis.common.DimensionalObject.*;
 
@@ -86,6 +67,7 @@ public class ReportTable
     public static final String ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME = "organisation_unit_is_parent";
 
     public static final String SEPARATOR = "_";
+    public static final String DASH_PRETTY_SEPARATOR = " - ";
     public static final String SPACE = " ";
     public static final String KEY_ORGUNIT_GROUPSET = "orgunit_groupset_";
 
@@ -95,11 +77,11 @@ public class ReportTable
     public static final DimensionalItemObject[] IRT = new DimensionalItemObject[0];
     public static final DimensionalItemObject[][] IRT2D = new DimensionalItemObject[0][];
 
-    private static final String EMPTY = "";
+    public static final String EMPTY = "";
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
 
-    private static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
+    public static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
         DATA_X_DIM_ID, "data",
         CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
         PERIOD_DIM_ID, "period",
@@ -267,20 +249,18 @@ public class ReportTable
     /**
      * Default constructor.
      *
-     * @param name              the name.
-     * @param dataElements      the data elements.
-     * @param indicators        the indicators.
-     * @param reportingRates    the reporting rates.
-     * @param periods           the periods. Cannot have the name property set.
-     * @param relativePeriods   the relative periods. These periods must have the
-     *                          name property set. Not persisted.
+     * @param name the name.
+     * @param dataElements the data elements.
+     * @param indicators the indicators.
+     * @param reportingRates the reporting rates.
+     * @param periods the periods. Cannot have the name property set.
      * @param organisationUnits the organisation units.
-     * @param relativeUnits     the organisation units. Not persisted.
-     * @param doIndicators      indicating whether indicators should be crosstabulated.
-     * @param doPeriods         indicating whether periods should be crosstabulated.
-     * @param doUnits           indicating whether organisation units should be crosstabulated.
-     * @param relatives         the relative periods.
-     * @param i18nFormat        the i18n format. Not persisted.
+     * @param doIndicators indicating whether indicators should be crosstabulated.
+     * @param doPeriods indicating whether periods should be crosstabulated.
+     * @param doUnits indicating whether organisation units should be crosstabulated.
+     * @param relatives the relative periods.
+     * @param reportParams the report parameters.
+     * @param reportingPeriodName the reporting period name.
      */
     public ReportTable( String name, List<DataElement> dataElements, List<Indicator> indicators,
         List<ReportingRate> reportingRates, List<Period> periods,
@@ -362,7 +342,7 @@ public class ReportTable
 
         if ( isDimensional() )
         {
-            transientCategoryOptionCombos.addAll( getFirstCategoryCombo().getSortedOptionCombos() );
+            transientCategoryOptionCombos.addAll( Objects.requireNonNull( getFirstCategoryCombo() ).getSortedOptionCombos() );
             verify( nonEmptyLists( transientCategoryOptionCombos ) == 1, "Category option combos size must be larger than 0" );
         }
 
@@ -769,7 +749,7 @@ public class ReportTable
     /**
      * Returns the category combo of the first data element.
      */
-    private DataElementCategoryCombo getFirstCategoryCombo()
+    private CategoryCombo getFirstCategoryCombo()
     {
         if ( !getDataElements().isEmpty() )
         {

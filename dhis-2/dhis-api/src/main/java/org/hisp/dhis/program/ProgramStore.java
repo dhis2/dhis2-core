@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,17 @@ package org.hisp.dhis.program;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * @author Chau Thu Tran
  * @version $Id: ProgramStore.java Dec 14, 2011 9:22:17 AM $
  */
 public interface ProgramStore
-    extends GenericIdentifiableObjectStore<Program>
+    extends IdentifiableObjectStore<Program>
 {
     String ID = ProgramStore.class.getName();
 
@@ -63,22 +63,11 @@ public interface ProgramStore
     List<Program> get( OrganisationUnit organisationUnit );
 
     /**
-     * Get {@link Program} assigned to an {@link OrganisationUnit} by a type
+     * Get {@link Program} by TrackedEntityType
      *
-     * @param type    The type of program. There are three types, include Multi
-     *                events with registration, Single event with registration and
-     *                Single event without registration
-     * @param orgunit Where programs assigned
-     * @return Program list by a type specified
+     * @param trackedEntityType {@link TrackedEntityType}
      */
-    List<Program> get( ProgramType type, OrganisationUnit orgunit );
-
-    /**
-     * Get {@link Program} by TrackedEntity
-     *
-     * @param trackedEntity {@link TrackedEntity}
-     */
-    List<Program> getByTrackedEntity( TrackedEntity trackedEntity );
+    List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Get all Programs associated with the given DataEntryForm.

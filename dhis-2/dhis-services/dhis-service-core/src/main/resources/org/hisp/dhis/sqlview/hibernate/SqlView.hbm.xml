@@ -42,13 +42,13 @@
 
     <property name="publicAccess" length="8" />
 
-    <set name="userGroupAccesses" table="sqlviewusergroupaccesses">
+    <set name="userGroupAccesses" table="sqlviewusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="sqlviewid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <set name="userAccesses" table="sqlviewuseraccesses">
+    <set name="userAccesses" table="sqlviewuseraccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="sqlviewid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />

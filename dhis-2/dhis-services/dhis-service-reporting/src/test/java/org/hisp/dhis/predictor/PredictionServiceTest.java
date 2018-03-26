@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,20 @@ package org.hisp.dhis.predictor;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -54,7 +54,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.joda.time.DateTime;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -83,7 +82,7 @@ public class PredictionServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -106,24 +105,27 @@ public class PredictionServiceTest
     private DataElement dataElementX;
     private DataElement dataElementY;
 
-    private DataElementCategoryOptionCombo defaultCombo;
+    private CategoryOptionCombo defaultCombo;
 
-    private DataElementCategoryOptionCombo altCombo;
+    private CategoryOptionCombo altCombo;
 
-    DataElementCategoryOption altCategoryOption;
-    DataElementCategory altDataElementCategory;
-    DataElementCategoryCombo altDataElementCategoryCombo;
+    CategoryOption altCategoryOption;
+    Category altCategory;
+    CategoryCombo altCategoryCombo;
 
     private Set<DataElement> dataElements;
 
     private OrganisationUnit sourceA, sourceB, sourceC, sourceD, sourceE, sourceF, sourceG;
 
-    private Set<DataElementCategoryOptionCombo> optionCombos;
+    private Set<CategoryOptionCombo> optionCombos;
 
     private Expression expressionA;
     private Expression expressionB;
     private Expression expressionC;
     private Expression expressionD;
+    private Expression expressionE;
+    private Expression expressionF;
+    private Expression expressionG;
 
     private PeriodType periodTypeMonthly;
 
@@ -197,31 +199,34 @@ public class PredictionServiceTest
 
         dataSetService.addDataSet( dataSetMonthly );
 
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        altCategoryOption = new DataElementCategoryOption( "AltCategoryOption" );
-        categoryService.addDataElementCategoryOption( altCategoryOption );
-        altDataElementCategory = createDataElementCategory( 'A', altCategoryOption );
-        categoryService.addDataElementCategory( altDataElementCategory );
+        altCategoryOption = new CategoryOption( "AltCategoryOption" );
+        categoryService.addCategoryOption( altCategoryOption );
+        altCategory = createCategory( 'A', altCategoryOption );
+        categoryService.addCategory( altCategory );
 
-        altDataElementCategoryCombo = createCategoryCombo( 'Y', altDataElementCategory );
-        categoryService.addDataElementCategoryCombo( altDataElementCategoryCombo );
+        altCategoryCombo = createCategoryCombo( 'Y', altCategory );
+        categoryService.addCategoryCombo( altCategoryCombo );
 
-        altCombo = createCategoryOptionCombo( 'Z', altDataElementCategoryCombo, altCategoryOption );
+        altCombo = createCategoryOptionCombo( 'Z', altCategoryCombo, altCategoryOption );
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
         optionCombos.add( altCombo );
 
-        categoryService.addDataElementCategoryOptionCombo( altCombo );
+        categoryService.addCategoryOptionCombo( altCombo );
 
         expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*StdDev(#{" + dataElementA.getUid() + "})", "descriptionA" );
         expressionB = new Expression( "avg(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
         expressionC = new Expression( "135.79", "descriptionC" );
         expressionD = new Expression( SYMBOL_DAYS, "descriptionD" );
+        expressionE = new Expression( "SUM(#{" + dataElementA.getUid() + "})+#{" + dataElementB.getUid() + "}", "descriptionE" );
+        expressionF = new Expression( "#{" + dataElementB.getUid() + "}", "descriptionF" );
+        expressionG = new Expression( "SUM(#{" + dataElementA.getUid() + "}+#{" + dataElementB.getUid() + "})", "descriptionG" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -269,9 +274,27 @@ public class PredictionServiceTest
         dataValueService.addDataValue( createDataValue( e, p, s, value.toString(), defaultCombo, defaultCombo ) );
     }
 
-    private String getDataValue( DataElement dataElement, DataElementCategoryOptionCombo combo, OrganisationUnit source, Period period )
+    private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo, Number value )
+    {
+        dataValueService.addDataValue( createDataValue( e, p, s, value.toString(), defaultCombo, attributeOptionCombo ) );
+    }
+
+    private String getDataValue( DataElement dataElement, CategoryOptionCombo combo, OrganisationUnit source, Period period )
     {
         DataValue dv = dataValueService.getDataValue( dataElement, period, source, combo, defaultCombo );
+
+        if ( dv != null )
+        {
+            return dv.getValue();
+        }
+
+        return null;
+    }
+
+    private String getDataValue( DataElement dataElement, CategoryOptionCombo combo,
+        CategoryOptionCombo attributeOptionCombo, OrganisationUnit source, Period period )
+    {
+        DataValue dv = dataValueService.getDataValue( dataElement, period, source, combo, attributeOptionCombo );
 
         if ( dv != null )
         {
@@ -411,7 +434,7 @@ public class PredictionServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictWithCategoryOptionCombo()
     {
         useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 5 );
@@ -425,7 +448,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictSequential()
     {
         setupTestData();
@@ -450,7 +473,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictSeasonal()
     {
         setupTestData();
@@ -472,7 +495,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetPredictionsSeasonalWithOutbreak()
     {
         setupTestData();
@@ -497,7 +520,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictConstant()
     {
         setupTestData();
@@ -518,7 +541,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictInteger()
     {
         setupTestData();
@@ -534,7 +557,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictDays()
     {
         setupTestData();
@@ -555,7 +578,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictNoPeriods()
     {
         setupTestData();
@@ -565,5 +588,276 @@ public class PredictionServiceTest
 
         assertEquals( 0, predictionService.predict( p, monthStart( 2001, 8 ), monthStart( 2001, 8 ) ) );
     }
-}
 
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictWithCurrentPeriodData()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceA, 20 );
+        useDataValue( dataElementA, makeMonth( 2001, 8 ), sourceA, 30 );
+        useDataValue( dataElementA, makeMonth( 2001, 9 ), sourceA, 40 );
+
+        useDataValue( dataElementB, makeMonth( 2001, 7 ), sourceA, 1 );
+        useDataValue( dataElementB, makeMonth( 2001, 8 ), sourceA, 2 );
+        useDataValue( dataElementB, makeMonth( 2001, 9 ), sourceA, 3 );
+        useDataValue( dataElementB, makeMonth( 2001, 10 ), sourceA, 4 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictWithCurrentPeriodData",
+            expressionE, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 4, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 11 ) ) );
+
+        assertEquals( "11.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "22.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( "44.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictWithOnlyCurrentPeriodData()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceA, 20 );
+        useDataValue( dataElementA, makeMonth( 2001, 8 ), sourceA, 30 );
+        useDataValue( dataElementA, makeMonth( 2001, 9 ), sourceA, 40 );
+
+        useDataValue( dataElementB, makeMonth( 2001, 7 ), sourceA, 1 );
+        useDataValue( dataElementB, makeMonth( 2001, 8 ), sourceA, 2 );
+        useDataValue( dataElementB, makeMonth( 2001, 9 ), sourceA, 3 );
+        useDataValue( dataElementB, makeMonth( 2001, 10 ), sourceA, 4 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictWithOnlyCurrentPeriodData",
+            expressionF, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 4, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 11 ) ) );
+
+        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "2.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictMultipleDataElements()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 6 ), sourceA, 3 );
+        useDataValue( dataElementB, makeMonth( 2010, 6 ), sourceA, 5 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "A", expressionG, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 1, predictionService.predict( p, monthStart( 2010, 7 ), monthStart( 2010, 8 ) ) );
+
+        assertEquals( "8.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 7 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictMultipleAttributeOptionCombos()
+    {
+        CategoryOption optionJ = new CategoryOption( "CategoryOptionJ" );
+        CategoryOption optionK = new CategoryOption( "CategoryOptionK" );
+        CategoryOption optionL = new CategoryOption( "CategoryOptionL" );
+
+        categoryService.addCategoryOption( optionJ );
+        categoryService.addCategoryOption( optionK );
+        categoryService.addCategoryOption( optionL );
+
+        Category categoryJ = createCategory( 'J', optionJ, optionK );
+        Category categoryL = createCategory( 'L', optionL );
+        categoryJ.setDataDimension( true );
+        categoryL.setDataDimension( true );
+
+        categoryService.addCategory( categoryJ );
+        categoryService.addCategory( categoryL );
+
+        CategoryCombo categoryComboJL = createCategoryCombo( 'A', categoryJ, categoryL );
+
+        categoryService.addCategoryCombo( categoryComboJL );
+
+        CategoryOptionCombo optionComboJL = createCategoryOptionCombo( 'A',
+            categoryComboJL, optionJ, optionK );
+        CategoryOptionCombo optionComboKL = createCategoryOptionCombo( 'A',
+            categoryComboJL, optionK, optionL );
+
+        categoryService.addCategoryOptionCombo( optionComboJL );
+        categoryService.addCategoryOptionCombo( optionComboKL );
+
+        useDataValue( dataElementA, makeMonth( 2011, 6 ), sourceA, optionComboJL, 1 );
+        useDataValue( dataElementB, makeMonth( 2011, 6 ), sourceA, optionComboJL, 2 );
+
+        useDataValue( dataElementA, makeMonth( 2011, 6 ), sourceA, optionComboKL, 3 );
+        useDataValue( dataElementB, makeMonth( 2011, 6 ), sourceA, optionComboKL, 4 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "A", expressionG, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 2, predictionService.predict( p, monthStart( 2011, 7 ), monthStart( 2011, 8 ) ) );
+
+        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, optionComboJL, sourceA, makeMonth( 2011, 7 ) ) );
+        assertEquals( "7.0", getDataValue( dataElementX, defaultCombo, optionComboKL, sourceA, makeMonth( 2011, 7 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictIf()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 10 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 10 );
+
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceA, 20 );
+        useDataValue( dataElementB, makeMonth( 2001, 7 ), sourceA, 40 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictIf_A",
+            new Expression( "If(#{" + dataElementB.getUid() + "} == #{" + dataElementA.getUid() + "},1,2)", "ExpressionIf_A" ),
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ) ) );
+
+        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
+        assertEquals( "2.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+
+        p = createPredictor( dataElementX, defaultCombo, "PredictIf_B",
+            new Expression( "SUM(if(#{" + dataElementB.getUid() + "} < 2 * #{" + dataElementA.getUid() + "},3,4))", "ExpressionIf_B" ),
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) ) );
+
+        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+
+        p = createPredictor( dataElementX, defaultCombo, "PredictIf_C",
+            new Expression( "IF(SUM(#{" + dataElementB.getUid() + "}) != SUM(2 * #{" + dataElementA.getUid() + "}),5,6)", "ExpressionIf_C" ),
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ) ) );
+
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "6.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictIsNull()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 1 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 2 );
+
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceA, 3 );
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictIsNull",
+            new Expression( "#{" + dataElementA.getUid() + "} + If(IsNull(#{" + dataElementB.getUid() + "}),5,#{" + dataElementB.getUid() + "})", "ExpressionIsNull" ),
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 2, predictionService.predict( p, monthStart( 2001, 6 ), monthStart( 2001, 8 ) ) );
+
+        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
+        assertEquals( "8.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictStrategyNeverSkip()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceA, 1 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 2 );
+
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceA, 4 );
+
+        Expression expressionX = new Expression( "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionY", MissingValueStrategy.NEVER_SKIP );
+        Expression expressionY = new Expression( "10 + SUM( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.NEVER_SKIP );
+
+        expressionService.addExpression( expressionX );
+        expressionService.addExpression( expressionY );
+
+        Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictNeverSkipX",
+            expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        Predictor predictorY = createPredictor( dataElementY, defaultCombo, "PredictNeverSkipY",
+            expressionY, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 9, predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ) ) );
+
+        assertEquals( "13.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
+        assertEquals( "14.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 6 ) ) );
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
+
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
+        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
+
+        assertEquals( 2, predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ) ) );
+
+        assertEquals( "13", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
+        assertEquals( "14", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictStrategySkipIfAllValuesMissing()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceG, 1 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceG, 2 );
+
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceG, 4 );
+
+        Expression expressionX = new Expression( "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionY", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
+        Expression expressionY = new Expression( "10 + SUM( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
+
+        expressionService.addExpression( expressionX );
+        expressionService.addExpression( expressionY );
+
+        Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictNeverSkipX",
+            expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        Predictor predictorY = createPredictor( dataElementY, defaultCombo, "PredictNeverSkipY",
+            expressionY, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 2, predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ) ) );
+
+        assertEquals( "13.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
+        assertEquals( "14.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
+
+        assertEquals( 2, predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ) ) );
+
+        assertEquals( "13", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
+        assertEquals( "14", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testPredictStrategySkipIfAnyValueMissing()
+    {
+        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceG, 1 );
+        useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceG, 2 );
+
+        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceG, 4 );
+
+        Expression expressionX = new Expression( "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionY", MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING );
+        Expression expressionY = new Expression( "10 + SUM( #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "} )", "descriptionX", MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING );
+
+        expressionService.addExpression( expressionX );
+        expressionService.addExpression( expressionY );
+
+        Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictSkipIfAnyValueMissingX",
+            expressionX, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
+
+        Predictor predictorY = createPredictor( dataElementY, defaultCombo, "PredictSkipIfAnyValueMissingY",
+            expressionY, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        assertEquals( 1, predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ) ) );
+
+        assertEquals( "13.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
+
+        assertEquals( 1, predictionService.predict( predictorY, monthStart( 2001, 7 ), monthStart( 2001, 10 ) ) );
+
+        assertEquals( "13", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
+    }
+}

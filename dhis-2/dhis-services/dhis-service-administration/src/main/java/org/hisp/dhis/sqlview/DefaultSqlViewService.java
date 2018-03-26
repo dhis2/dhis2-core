@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -137,24 +137,6 @@ public class DefaultSqlViewService
         return sqlViewStore.getCount();
     }
 
-    @Override
-    public List<SqlView> getSqlViewsBetween( int first, int max )
-    {
-        return sqlViewStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<SqlView> getSqlViewsBetweenByName( String name, int first, int max )
-    {
-        return sqlViewStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public int getSqlViewCountByName( String name )
-    {
-        return sqlViewStore.getCountLikeName( name );
-    }
-    
     // -------------------------------------------------------------------------
     // Service methods
     // -------------------------------------------------------------------------

@@ -21,6 +21,8 @@
 
     <property name="description" type="text" />
 
+    <property name="formName" type="text" />
+
     <property name="version" />
 
     <property name="enrollmentDateLabel" column="enrollmentdatelabel" type="text" />
@@ -32,17 +34,16 @@
       <one-to-many class="org.hisp.dhis.program.ProgramStage" />
     </set>
 
+    <set name="programSections" order-by="sortOrder">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramSection" />
+    </set>
+
     <set name="organisationUnits" table="program_organisationunits">
       <cache usage="read-write" />
       <key column="programid" foreign-key="fk_program_organisationunits_programid" />
       <many-to-many column="organisationunitid"
         class="org.hisp.dhis.organisationunit.OrganisationUnit" foreign-key="fk_program_organisationunits_organisationunitid" />
-    </set>
-
-    <set name="validationCriteria" table="program_criteria">
-      <key column="programid" foreign-key="fk_program_criteria_programid" />
-      <many-to-many column="validationcriteriaid"
-        class="org.hisp.dhis.validation.ValidationCriteria" foreign-key="fk_program_criteria_validationcriteriaid" />
     </set>
 
     <property name="programType" column="type" type="org.hisp.dhis.program.ProgramTypeUserType" not-null="true" />
@@ -62,6 +63,12 @@
     <property name="expiryDays" />
 
     <property name="completeEventsExpiryDays" />
+    
+    <property name="minAttributesRequiredToSearch" />
+    
+    <property name="maxTeiCountToReturn" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
 
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />
@@ -114,11 +121,11 @@
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
       column="relatedprogramid" foreign-key="fk_program_relatedprogram" />
 
-    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid" />
 
-    <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
-      column="trackedentityid" foreign-key="fk_program_trackedentityid" />
+    <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+      column="trackedentitytypeid" foreign-key="fk_program_trackedentitytypeid" />
 
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
       column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all" />

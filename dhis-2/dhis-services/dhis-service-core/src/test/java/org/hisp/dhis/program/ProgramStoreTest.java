@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,18 +101,6 @@ public class ProgramStoreTest
 
         programs = programStore.getByType( ProgramType.WITHOUT_REGISTRATION );
         assertTrue( equals( programs, programC ) );
-    }
-
-    @Test
-    public void testGetProgramsByTypeOu()
-    {
-        programStore.save( programA );
-        programStore.save( programB );
-        programStore.save( programC );
-
-        List<Program> programs = programStore.get( ProgramType.WITH_REGISTRATION, organisationUnitA );
-        
-        assertTrue( equals( programs, programA, programB ) );
     }
 
     @Test

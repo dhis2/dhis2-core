@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,13 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
@@ -54,22 +52,24 @@ import org.hisp.dhis.period.PeriodType;
  * @author Jim Grace
  */
 public class PeriodTypeExtended
-{	
+{
     private PeriodType periodType;
 
     private Set<Period> periods = new HashSet<>();
 
     private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
-    private Set<DataElement> dataElements = new HashSet<>();
-
     private Set<PeriodType> allowedPeriodTypes = new HashSet<>();
 
-    private Map<OrganisationUnit, Set<DataElement>> orgUnitDataElements = new HashMap<>();
+    private Set<DimensionalItemObject> eventItems = new HashSet<>();
+
+    private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
+
+    private Set<DataElementOperand> dataItems = new HashSet<>();
 
     public PeriodTypeExtended( PeriodType periodType )
     {
-    	this.periodType = periodType;
+        this.periodType = periodType;
     }
 
     public String toString()
@@ -77,10 +77,11 @@ public class PeriodTypeExtended
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
             .append( "periodType", periodType )
             .append( "periods", periods )
-            .append( "rules", ruleXs.toArray() )
-            .append( "dataElements", dataElements )
-            .append( "allowedPeriodTypes", allowedPeriodTypes )
-            .append( "orgUnitDataElements", orgUnitDataElements.size() ).toString();
+            .append( "ruleXs", ruleXs.toArray() )
+            .append( "eventItems", eventItems )
+            .append( "eventItemsWithoutAttributeOptions", eventItemsWithoutAttributeOptions )
+            .append( "dataItems", dataItems )
+            .append( "allowedPeriodTypes", allowedPeriodTypes ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -107,38 +108,23 @@ public class PeriodTypeExtended
         return ruleXs;
     }
 
-    public void setRules( Set<ValidationRuleExtended> ruleXs )
+    public Set<DimensionalItemObject> getEventItems()
     {
-        this.ruleXs = ruleXs;
+        return eventItems;
     }
 
-    public Set<DataElement> getDataElements()
+    public Set<DimensionalItemObject> getEventItemsWithoutAttributeOptions()
     {
-        return dataElements;
+        return eventItemsWithoutAttributeOptions;
     }
 
-    public void setDataElements( Set<DataElement> dataElements )
+    public Set<DataElementOperand> getDataItems()
     {
-        this.dataElements = dataElements;
+        return dataItems;
     }
 
     public Set<PeriodType> getAllowedPeriodTypes()
     {
         return allowedPeriodTypes;
-    }
-
-    public void setAllowedPeriodTypes( Set<PeriodType> allowedPeriodTypes )
-    {
-        this.allowedPeriodTypes = allowedPeriodTypes;
-    }
-
-    public Map<OrganisationUnit, Set<DataElement>> getOrgUnitDataElements()
-    {
-        return orgUnitDataElements;
-    }
-
-    public void setOrgUnitDataElements( Map<OrganisationUnit, Set<DataElement>> orgUnitDataElements )
-    {
-        this.orgUnitDataElements = orgUnitDataElements;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.csv;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.csv;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -105,7 +105,7 @@ public class CsvImportServiceTest
 
         assertEquals( 3, metadata.getCategoryOptions().size() );
 
-        for ( DataElementCategoryOption categoryOption : metadata.getCategoryOptions() )
+        for ( CategoryOption categoryOption : metadata.getCategoryOptions() )
         {
             assertNotNull( categoryOption.getUid() );
             assertNotNull( categoryOption.getName() );

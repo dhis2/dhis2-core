@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ public class HibernateTrackedEntityAttributeStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<TrackedEntityAttribute> getDisplayInList()
+    public List<TrackedEntityAttribute> getDisplayInListNoProgram()
     {
         return getCriteria( Restrictions.eq( "displayInListNoProgram", true ) ).list();
     }

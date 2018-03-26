@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang.ArrayUtils;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.joda.time.DateTime;
@@ -41,6 +42,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 
 /**
  * @author Lars Helge Overland
@@ -68,6 +71,7 @@ public class RelativePeriods
     public static final String THISDAY = "thisDay";
     public static final String YESTERDAY = "yesterday";
     public static final String LAST_WEEK = "last_week";
+    public static final String LAST_BIWEEK = "last_biweek";
     public static final String LAST_MONTH = "reporting_month";
     public static final String LAST_BIMONTH = "reporting_bimonth";
     public static final String LAST_QUARTER = "reporting_quarter";
@@ -126,6 +130,9 @@ public class RelativePeriods
         streamToStringArray( IntStream.rangeClosed( 1, 4 ).map( i -> 4 - i + 1 ).boxed(), "financial_year_minus_", "" ),
         Collections.singletonList( "financial_year_this" ).toArray()
     );
+
+    // Generates and array containing "biweek1" -> "biweek26"
+    public static final String[] BIWEEKS_LAST_26 = streamToStringArray( IntStream.rangeClosed( 1, 26 ).boxed(), "biweek", "" );
 
     // Generates an array containing "w1" -> "w52"
     public static final String[] WEEKS_LAST_52 = streamToStringArray( IntStream.rangeClosed( 1, 52 ).boxed(), "w", "" );
@@ -203,7 +210,13 @@ public class RelativePeriods
 
     private boolean lastWeek = false;
 
+    private boolean thisBiWeek = false;
+
+    private boolean lastBiWeek = false;
+
     private boolean last4Weeks = false;
+
+    private boolean last4BiWeeks = false;
 
     private boolean last12Weeks = false;
 
@@ -250,7 +263,10 @@ public class RelativePeriods
      * @param last5FinancialYears   last 5 financial years
      * @param thisWeek              this week
      * @param lastWeek              last week
+     * @param thisBiWeek            this biweek
+     * @param lastBiWeek            last biweek
      * @param last4Weeks            last 4 weeks
+     * @param last4BiWeeks          last 4 biweeks
      * @param last12Weeks           last 12 weeks
      * @param last52Weeks           last 52 weeks
      */
@@ -261,7 +277,8 @@ public class RelativePeriods
         boolean monthsLastYear, boolean quartersLastYear, boolean lastYear, boolean last5Years,
         boolean last12Months, boolean last6Months, boolean last3Months, boolean last6BiMonths, boolean last4Quarters, boolean last2SixMonths,
         boolean thisFinancialYear, boolean lastFinancialYear, boolean last5FinancialYears,
-        boolean thisWeek, boolean lastWeek, boolean last4Weeks, boolean last12Weeks, boolean last52Weeks )
+        boolean thisWeek, boolean lastWeek, boolean thisBiWeek, boolean lastBiWeek, boolean last4Weeks, boolean last4BiWeeks,
+        boolean last12Weeks, boolean last52Weeks )
     {
         this.thisDay = thisDay;
         this.yesterday = yesterday;
@@ -296,7 +313,10 @@ public class RelativePeriods
         this.last5FinancialYears = last5FinancialYears;
         this.thisWeek = thisWeek;
         this.lastWeek = lastWeek;
+        this.thisBiWeek = thisBiWeek;
+        this.lastBiWeek = lastBiWeek;
         this.last4Weeks = last4Weeks;
+        this.last4BiWeeks = last4BiWeeks;
         this.last12Weeks = last12Weeks;
         this.last52Weeks = last52Weeks;
     }
@@ -343,7 +363,10 @@ public class RelativePeriods
         this.last5FinancialYears = false;
         this.thisWeek = false;
         this.lastWeek = false;
+        this.thisBiWeek = false;
+        this.lastBiWeek = false;
         this.last4Weeks = false;
+        this.last4BiWeeks = false;
         this.last12Weeks = false;
         this.last52Weeks = false;
 
@@ -373,6 +396,11 @@ public class RelativePeriods
         if ( isThisWeek() || isLastWeek() || isLast4Weeks() || isLast12Weeks() || isLast52Weeks() )
         {
             return PeriodType.getPeriodTypeByName( WeeklyPeriodType.NAME );
+        }
+
+        if ( isThisBiWeek() || isLastBiWeek() || isLast4BiWeeks() )
+        {
+            return PeriodType.getPeriodTypeByName( BiWeeklyPeriodType.NAME );
         }
 
         if ( isThisMonth() || isLastMonth() || isLast12Months() || isLast6Months() || isLast3Months() )
@@ -438,8 +466,6 @@ public class RelativePeriods
      */
     public PeriodType getHighestFrequencyPeriodType( List<Period> periods )
     {
-        PeriodType periodType = null;
-
         if ( periods != null && !periods.isEmpty() )
         {
             PeriodType lowestFrequencyOrder = periods.get( 0 ).getPeriodType();
@@ -455,7 +481,7 @@ public class RelativePeriods
             return lowestFrequencyOrder;
         }
 
-        return periodType;
+        return null;
     }
 
     /**
@@ -476,7 +502,7 @@ public class RelativePeriods
 
         Date rewindedDate = periodType.getRewindedDate( date, rewindedPeriods );
 
-        return getRelativePeriods( rewindedDate, format, dynamicNames );
+        return getRelativePeriods( rewindedDate, format, dynamicNames, FINANCIAL_YEAR_OCTOBER );
     }
 
     /**
@@ -484,7 +510,7 @@ public class RelativePeriods
      */
     public List<Period> getRelativePeriods()
     {
-        return getRelativePeriods( null, null, false );
+        return getRelativePeriods( null, null, false, FINANCIAL_YEAR_OCTOBER );
     }
 
     /**
@@ -496,22 +522,32 @@ public class RelativePeriods
      */
     public List<Period> getRelativePeriods( I18nFormat format, boolean dynamicNames )
     {
-        return getRelativePeriods( null, format, dynamicNames );
+        return getRelativePeriods( null, format, dynamicNames, FINANCIAL_YEAR_OCTOBER );
     }
 
     /**
      * Gets a list of Periods based on the given input and the state of this
      * RelativePeriods.
      *
-     * @param date the date representing now. If null the current date will be used.
-     * @param format the i18n format.
+     * @param date               the date representing now. If null the current date will be used.
+     * @param format             the i18n format.
+     * @param financialYearStart the start of a financial year. Configurable through system settings
+     *                           and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
      * @return a list of relative Periods.
      */
-    public List<Period> getRelativePeriods( Date date, I18nFormat format, boolean dynamicNames )
+    public List<Period> getRelativePeriods( Date date, I18nFormat format, boolean dynamicNames,
+        AnalyticsFinancialYearStartKey financialYearStart )
     {
         date = ( date != null ) ? date : new Date();
 
         List<Period> periods = new ArrayList<>();
+
+        if ( isThisFinancialPeriod() )
+        {
+            FinancialPeriodType financialPeriodType = financialYearStart.getFinancialPeriodType();
+
+            periods.addAll( getRelativeFinancialPeriods( financialPeriodType, format, dynamicNames ) );
+        }
 
         if ( isThisDay() )
         {
@@ -546,6 +582,16 @@ public class RelativePeriods
         if ( isLastWeek() )
         {
             periods.add( getRelativePeriod( new WeeklyPeriodType(), LAST_WEEK, new DateTime( date ).minusWeeks( 1 ).toDate(), dynamicNames, format ) );
+        }
+
+        if ( isThisBiWeek() )
+        {
+            periods.add( getRelativePeriod( new BiWeeklyPeriodType(),  LAST_BIWEEK, date, dynamicNames, format ) );
+        }
+
+        if ( isLastBiWeek() )
+        {
+            periods.add( getRelativePeriod( new BiWeeklyPeriodType(),  LAST_BIWEEK, new DateTime( date ).minusWeeks( 2 ).toDate(), dynamicNames, format ) );
         }
 
         if ( isThisMonth() )
@@ -613,11 +659,6 @@ public class RelativePeriods
             periods.add( getRelativePeriod( new YearlyPeriodType(), THIS_YEAR, date, dynamicNames, format ) );
         }
 
-        if ( isThisFinancialYear() )
-        {
-            periods.add( getRelativePeriod( new FinancialOctoberPeriodType(), THIS_FINANCIAL_YEAR, date, dynamicNames, format ) );
-        }
-
         if ( isLast3Months() )
         {
             periods.addAll( getRollingRelativePeriodList( new MonthlyPeriodType(), MONTHS_LAST_12, new DateTime( date ).minusMonths( 1 ).toDate(), dynamicNames, format ).subList( 9, 12 ) );
@@ -653,6 +694,11 @@ public class RelativePeriods
             periods.addAll( getRollingRelativePeriodList( new WeeklyPeriodType(), WEEKS_LAST_52, new DateTime( date ).minusWeeks( 1 ).toDate(), dynamicNames, format ).subList( 48, 52 ) );
         }
 
+        if ( isLast4BiWeeks() )
+        {
+            periods.addAll( getRollingRelativePeriodList( new BiWeeklyPeriodType(), BIWEEKS_LAST_26, new DateTime( date ).minusWeeks( 2 ).toDate(), dynamicNames, format ).subList( 22, 26 ) );
+        }
+
         if ( isLast12Weeks() )
         {
             periods.addAll( getRollingRelativePeriodList( new WeeklyPeriodType(), WEEKS_LAST_52, new DateTime( date ).minusWeeks( 1 ).toDate(), dynamicNames, format ).subList( 40, 52 ) );
@@ -680,19 +726,43 @@ public class RelativePeriods
             periods.add( getRelativePeriod( new YearlyPeriodType(), LAST_YEAR, date, dynamicNames, format ) );
         }
 
-        if ( isLastFinancialYear() )
-        {
-            periods.add( getRelativePeriod( new FinancialOctoberPeriodType(), LAST_FINANCIAL_YEAR, date, dynamicNames, format ) );
-        }
-
         if ( isLast5Years() )
         {
             periods.addAll( getRollingRelativePeriodList( new YearlyPeriodType(), LAST_5_YEARS, date, dynamicNames, format ) );
         }
 
+        return periods;
+    }
+
+    /**
+     * Gets a list of financial periods based on the given input and the state of this
+     * RelativePeriods.
+     *
+     * @param financialPeriodType   The financial period type to get
+     * @param format the i18n format.
+     * @return a list of relative Periods.
+     */
+    private List<Period> getRelativeFinancialPeriods( FinancialPeriodType financialPeriodType, I18nFormat format,
+        boolean dynamicNames )
+    {
+        Date date = new Date();
+        List<Period> periods = new ArrayList<>();
+
+        if ( isThisFinancialYear() )
+        {
+            periods.add( getRelativePeriod( financialPeriodType, THIS_FINANCIAL_YEAR, date, dynamicNames, format ) );
+        }
+
+        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate(); // Rewind one year
+
+        if ( isLastFinancialYear() )
+        {
+            periods.add( getRelativePeriod( financialPeriodType, LAST_FINANCIAL_YEAR, date, dynamicNames, format ) );
+        }
+
         if ( isLast5FinancialYears() )
         {
-            periods.addAll( getRollingRelativePeriodList( new FinancialOctoberPeriodType(), LAST_5_FINANCIAL_YEARS, date, dynamicNames, format ) );
+            periods.addAll( getRollingRelativePeriodList( financialPeriodType, LAST_5_FINANCIAL_YEARS, date, dynamicNames, format ) );
         }
 
         return periods;
@@ -712,6 +782,7 @@ public class RelativePeriods
 
         periods.addAll( periodTypes.contains( DailyPeriodType.NAME ) ? new DailyPeriodType().generateRollingPeriods( date ) : NO );
         periods.addAll( periodTypes.contains( WeeklyPeriodType.NAME ) ? new WeeklyPeriodType().generateRollingPeriods( date ) : NO );
+        periods.addAll( periodTypes.contains( BiWeeklyPeriodType.NAME ) ? new BiWeeklyPeriodType().generateRollingPeriods( date ) : NO);
         periods.addAll( periodTypes.contains( MonthlyPeriodType.NAME ) ? new MonthlyPeriodType().generateRollingPeriods( date ) : NO );
         periods.addAll( periodTypes.contains( BiMonthlyPeriodType.NAME ) ? new BiMonthlyPeriodType().generateRollingPeriods( date ) : NO );
         periods.addAll( periodTypes.contains( QuarterlyPeriodType.NAME ) ? new QuarterlyPeriodType().generateRollingPeriods( date ) : NO );
@@ -815,10 +886,13 @@ public class RelativePeriods
     /**
      * Returns a RelativePeriods instance based on the given list of RelativePeriodsEnum.
      *
-     * @param relativePeriod a list of RelativePeriodsEnum.
+     * @param relativePeriod     a list of RelativePeriodsEnum.
+     * @param financialYearStart the start of a financial year. Configurable through system settings
+     *                           and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
      * @return a RelativePeriods instance.
      */
-    public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date, I18nFormat format, boolean dynamicNames )
+    public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date,
+        I18nFormat format, boolean dynamicNames, AnalyticsFinancialYearStartKey financialYearStart )
     {
         Map<RelativePeriodEnum, RelativePeriods> map = new HashMap<>();
 
@@ -855,11 +929,15 @@ public class RelativePeriods
         map.put( RelativePeriodEnum.LAST_5_FINANCIAL_YEARS, new RelativePeriods().setLast5FinancialYears( true ) );
         map.put( RelativePeriodEnum.THIS_WEEK, new RelativePeriods().setThisWeek( true ) );
         map.put( RelativePeriodEnum.LAST_WEEK, new RelativePeriods().setLastWeek( true ) );
+        map.put( RelativePeriodEnum.THIS_BIWEEK, new RelativePeriods().setThisBiWeek( true ) );
+        map.put( RelativePeriodEnum.LAST_BIWEEK, new RelativePeriods().setLastBiWeek( true ) );
         map.put( RelativePeriodEnum.LAST_4_WEEKS, new RelativePeriods().setLast4Weeks( true ) );
+        map.put( RelativePeriodEnum.LAST_4_BIWEEKS, new RelativePeriods().setLast4BiWeeks( true ) );
         map.put( RelativePeriodEnum.LAST_12_WEEKS, new RelativePeriods().setLast12Weeks( true ) );
         map.put( RelativePeriodEnum.LAST_52_WEEKS, new RelativePeriods().setLast52Weeks( true ) );
 
-        return map.containsKey( relativePeriod ) ? map.get( relativePeriod ).getRelativePeriods( date, format, dynamicNames ) : new ArrayList<>();
+        return map.containsKey( relativePeriod ) ? map.get( relativePeriod ).getRelativePeriods( date, format, dynamicNames,
+            financialYearStart ) : new ArrayList<>();
     }
 
     /**
@@ -904,7 +982,10 @@ public class RelativePeriods
         add( list, RelativePeriodEnum.LAST_5_FINANCIAL_YEARS, last5FinancialYears );
         add( list, RelativePeriodEnum.THIS_WEEK, thisWeek );
         add( list, RelativePeriodEnum.LAST_WEEK, lastWeek );
+        add( list, RelativePeriodEnum.THIS_BIWEEK, thisBiWeek );
+        add( list, RelativePeriodEnum.LAST_BIWEEK, lastBiWeek );
         add( list, RelativePeriodEnum.LAST_4_WEEKS, last4Weeks );
+        add( list, RelativePeriodEnum.LAST_4_BIWEEKS, last4BiWeeks );
         add( list, RelativePeriodEnum.LAST_12_WEEKS, last12Weeks );
         add( list, RelativePeriodEnum.LAST_52_WEEKS, last52Weeks );
 
@@ -948,7 +1029,10 @@ public class RelativePeriods
             last5FinancialYears = relativePeriods.contains( RelativePeriodEnum.LAST_5_FINANCIAL_YEARS );
             thisWeek = relativePeriods.contains( RelativePeriodEnum.THIS_WEEK );
             lastWeek = relativePeriods.contains( RelativePeriodEnum.LAST_WEEK );
+            thisBiWeek = relativePeriods.contains( RelativePeriodEnum.THIS_BIWEEK );
+            lastBiWeek = relativePeriods.contains( RelativePeriodEnum.LAST_BIWEEK );
             last4Weeks = relativePeriods.contains( RelativePeriodEnum.LAST_4_WEEKS );
+            last4BiWeeks = relativePeriods.contains( RelativePeriodEnum.LAST_4_BIWEEKS );
             last12Weeks = relativePeriods.contains( RelativePeriodEnum.LAST_12_WEEKS );
             last52Weeks = relativePeriods.contains( RelativePeriodEnum.LAST_52_WEEKS );
         }
@@ -1409,6 +1493,32 @@ public class RelativePeriods
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0)
+    public boolean isThisBiWeek()
+    {
+        return thisBiWeek;
+    }
+
+    public RelativePeriods setThisBiWeek( boolean thisBiWeek )
+    {
+        this.thisBiWeek = thisBiWeek;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0)
+    public boolean isLastBiWeek()
+    {
+        return lastBiWeek;
+    }
+
+    public RelativePeriods setLastBiWeek( boolean lastBiWeek )
+    {
+        this.lastBiWeek = lastBiWeek;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0)
     public boolean isLast4Weeks()
     {
         return last4Weeks;
@@ -1417,6 +1527,19 @@ public class RelativePeriods
     public RelativePeriods setLast4Weeks( boolean last4Weeks )
     {
         this.last4Weeks = last4Weeks;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0)
+    public boolean isLast4BiWeeks()
+    {
+        return last4BiWeeks;
+    }
+
+    public RelativePeriods setLast4BiWeeks( boolean last4BiWeeks )
+    {
+        this.last4BiWeeks = last4BiWeeks;
         return this;
     }
 
@@ -1444,6 +1567,11 @@ public class RelativePeriods
     {
         this.last52Weeks = last52Weeks;
         return this;
+    }
+
+    public boolean isThisFinancialPeriod()
+    {
+        return isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears();
     }
 
     // -------------------------------------------------------------------------
@@ -1485,6 +1613,7 @@ public class RelativePeriods
         result = prime * result + (lastFinancialYear ? 1 : 0);
         result = prime * result + (last5FinancialYears ? 1 : 0);
         result = prime * result + (last4Weeks ? 1 : 0);
+        result = prime * result + (last4BiWeeks ? 1: 0);
         result = prime * result + (last12Weeks ? 1 : 0);
         result = prime * result + (last52Weeks ? 1 : 0);
 
@@ -1654,7 +1783,17 @@ public class RelativePeriods
             return false;
         }
 
+        if ( !lastBiWeek == other.lastBiWeek )
+        {
+            return false;
+        }
+
         if ( !last4Weeks == other.last4Weeks )
+        {
+            return false;
+        }
+
+        if ( !last4BiWeeks == other.last4BiWeeks )
         {
             return false;
         }

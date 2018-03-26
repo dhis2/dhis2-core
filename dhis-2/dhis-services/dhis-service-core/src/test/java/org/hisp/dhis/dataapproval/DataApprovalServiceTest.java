@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,18 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -61,13 +50,20 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.*;
 
 /**
  * @author Jim Grace
  */
-@Category( IntegrationTest.class )
+@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class DataApprovalServiceTest
     extends DhisTest
 {
@@ -89,7 +85,7 @@ public class DataApprovalServiceTest
     private PeriodService periodService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -100,11 +96,15 @@ public class DataApprovalServiceTest
     @Autowired
     protected CurrentUserService currentUserService;
 
+    @Autowired
+    protected DataSetService dataSetService;
+
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
 
-    private DataElementCategoryOptionCombo defaultOptionCombo;
+    private CategoryCombo defaultCategoryCombo;
+    private CategoryOptionCombo defaultOptionCombo;
 
     private PeriodType periodType;
 
@@ -145,39 +145,48 @@ public class DataApprovalServiceTest
     private DataApprovalWorkflow workflow3;
     private DataApprovalWorkflow workflow1234;
 
+    private DataSet dataSetA;
+    private DataSet dataSetB;
+    private DataSet dataSetC;
+    private DataSet dataSetD;
+    private DataSet dataSetE;
+    private DataSet dataSetF;
+    private DataSet dataSetG;
+    private DataSet dataSetH;
+
     private User userA;
     private User userB;
 
-    private DataElementCategoryOption optionA;
-    private DataElementCategoryOption optionB;
-    private DataElementCategoryOption optionC;
-    private DataElementCategoryOption optionD;
-    private DataElementCategoryOption optionE;
-    private DataElementCategoryOption optionF;
-    private DataElementCategoryOption optionG;
-    private DataElementCategoryOption optionH;
+    private CategoryOption optionA;
+    private CategoryOption optionB;
+    private CategoryOption optionC;
+    private CategoryOption optionD;
+    private CategoryOption optionE;
+    private CategoryOption optionF;
+    private CategoryOption optionG;
+    private CategoryOption optionH;
 
-    private DataElementCategoryOptionCombo optionComboAE;
-    private DataElementCategoryOptionCombo optionComboAF;
-    private DataElementCategoryOptionCombo optionComboAG;
-    private DataElementCategoryOptionCombo optionComboAH;
-    private DataElementCategoryOptionCombo optionComboBE;
-    private DataElementCategoryOptionCombo optionComboBF;
-    private DataElementCategoryOptionCombo optionComboBG;
-    private DataElementCategoryOptionCombo optionComboBH;
-    private DataElementCategoryOptionCombo optionComboCE;
-    private DataElementCategoryOptionCombo optionComboCF;
-    private DataElementCategoryOptionCombo optionComboCG;
-    private DataElementCategoryOptionCombo optionComboCH;
-    private DataElementCategoryOptionCombo optionComboDE;
-    private DataElementCategoryOptionCombo optionComboDF;
-    private DataElementCategoryOptionCombo optionComboDG;
-    private DataElementCategoryOptionCombo optionComboDH;
+    private CategoryOptionCombo optionComboAE;
+    private CategoryOptionCombo optionComboAF;
+    private CategoryOptionCombo optionComboAG;
+    private CategoryOptionCombo optionComboAH;
+    private CategoryOptionCombo optionComboBE;
+    private CategoryOptionCombo optionComboBF;
+    private CategoryOptionCombo optionComboBG;
+    private CategoryOptionCombo optionComboBH;
+    private CategoryOptionCombo optionComboCE;
+    private CategoryOptionCombo optionComboCF;
+    private CategoryOptionCombo optionComboCG;
+    private CategoryOptionCombo optionComboCH;
+    private CategoryOptionCombo optionComboDE;
+    private CategoryOptionCombo optionComboDF;
+    private CategoryOptionCombo optionComboDG;
+    private CategoryOptionCombo optionComboDH;
 
-    private DataElementCategory categoryA;
-    private DataElementCategory categoryB;
+    private Category categoryA;
+    private Category categoryB;
 
-    private DataElementCategoryCombo categoryComboA;
+    private CategoryCombo categoryComboA;
 
     private CategoryOptionGroup groupAB;
     private CategoryOptionGroup groupCD;
@@ -199,6 +208,9 @@ public class DataApprovalServiceTest
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
+
+        defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+        defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
@@ -272,6 +284,14 @@ public class DataApprovalServiceTest
         workflow3 = new DataApprovalWorkflow( "workflow3", periodType, newHashSet( level3 ) );
         workflow1234 = new DataApprovalWorkflow( "workflow1234", periodType, newHashSet( level1, level2, level3, level4 ) );
 
+        workflow0.setUid(    "workflow000" );
+        workflow1.setUid(    "workflow001" );
+        workflow12.setUid(   "workflow012" );
+        workflow12A.setUid(  "workflow12A" );
+        workflow12B.setUid(  "workflow12B" );
+        workflow3.setUid(    "workflow003" );
+        workflow1234.setUid( "workflo1234" );
+
         dataApprovalService.addWorkflow( workflow0 );
         dataApprovalService.addWorkflow( workflow1 );
         dataApprovalService.addWorkflow( workflow12 );
@@ -280,13 +300,35 @@ public class DataApprovalServiceTest
         dataApprovalService.addWorkflow( workflow3 );
         dataApprovalService.addWorkflow( workflow1234 );
 
+        dataSetA = createDataSet( 'A', periodType, defaultCategoryCombo );
+        dataSetB = createDataSet( 'B', periodType, defaultCategoryCombo );
+        dataSetC = createDataSet( 'C', periodType, defaultCategoryCombo );
+        dataSetD = createDataSet( 'D', periodType, defaultCategoryCombo );
+        dataSetE = createDataSet( 'E', periodType, defaultCategoryCombo );
+        dataSetF = createDataSet( 'F', periodType, defaultCategoryCombo );
+        dataSetG = createDataSet( 'G', periodType, defaultCategoryCombo );
+
+        dataSetA.setWorkflow( workflow0 );
+        dataSetB.setWorkflow( workflow1 );
+        dataSetC.setWorkflow( workflow12 );
+        dataSetD.setWorkflow( workflow12A );
+        dataSetE.setWorkflow( workflow12B );
+        dataSetF.setWorkflow( workflow3 );
+        dataSetG.setWorkflow( workflow1234 );
+
+        dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
+        dataSetService.addDataSet( dataSetC );
+        dataSetService.addDataSet( dataSetD );
+        dataSetService.addDataSet( dataSetE );
+        dataSetService.addDataSet( dataSetF );
+        dataSetService.addDataSet( dataSetG );
+
         userA = createUser( 'A' );
         userB = createUser( 'B' );
 
         userService.addUser( userA );
         userService.addUser( userB );
-
-        defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
     }
 
     @Override
@@ -320,33 +362,33 @@ public class DataApprovalServiceTest
 
     private void setUpCategories()
     {
-        optionA = new DataElementCategoryOption( "CategoryOptionA" );
-        optionB = new DataElementCategoryOption( "CategoryOptionB" );
-        optionC = new DataElementCategoryOption( "CategoryOptionC" );
-        optionD = new DataElementCategoryOption( "CategoryOptionD" );
-        optionE = new DataElementCategoryOption( "CategoryOptionE" );
-        optionF = new DataElementCategoryOption( "CategoryOptionF" );
-        optionG = new DataElementCategoryOption( "CategoryOptionG" );
-        optionH = new DataElementCategoryOption( "CategoryOptionH" );
+        optionA = new CategoryOption( "CategoryOptionA" );
+        optionB = new CategoryOption( "CategoryOptionB" );
+        optionC = new CategoryOption( "CategoryOptionC" );
+        optionD = new CategoryOption( "CategoryOptionD" );
+        optionE = new CategoryOption( "CategoryOptionE" );
+        optionF = new CategoryOption( "CategoryOptionF" );
+        optionG = new CategoryOption( "CategoryOptionG" );
+        optionH = new CategoryOption( "CategoryOptionH" );
 
-        categoryService.addDataElementCategoryOption( optionA );
-        categoryService.addDataElementCategoryOption( optionB );
-        categoryService.addDataElementCategoryOption( optionC );
-        categoryService.addDataElementCategoryOption( optionD );
-        categoryService.addDataElementCategoryOption( optionE );
-        categoryService.addDataElementCategoryOption( optionF );
-        categoryService.addDataElementCategoryOption( optionG );
-        categoryService.addDataElementCategoryOption( optionH );
+        categoryService.addCategoryOption( optionA );
+        categoryService.addCategoryOption( optionB );
+        categoryService.addCategoryOption( optionC );
+        categoryService.addCategoryOption( optionD );
+        categoryService.addCategoryOption( optionE );
+        categoryService.addCategoryOption( optionF );
+        categoryService.addCategoryOption( optionG );
+        categoryService.addCategoryOption( optionH );
 
-        categoryA = createDataElementCategory( 'A', optionA, optionB, optionC, optionD );
-        categoryB = createDataElementCategory( 'B', optionE, optionF, optionG, optionH );
+        categoryA = createCategory( 'A', optionA, optionB, optionC, optionD );
+        categoryB = createCategory( 'B', optionE, optionF, optionG, optionH );
 
-        categoryService.addDataElementCategory( categoryA );
-        categoryService.addDataElementCategory( categoryB );
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
 
         categoryComboA = createCategoryCombo( 'A', categoryA, categoryB );
 
-        categoryService.addDataElementCategoryCombo( categoryComboA );
+        categoryService.addCategoryCombo( categoryComboA );
 
         optionComboAE = createCategoryOptionCombo( 'A', categoryComboA, optionA, optionE );
         optionComboAF = createCategoryOptionCombo( 'B', categoryComboA, optionA, optionF );
@@ -365,22 +407,57 @@ public class DataApprovalServiceTest
         optionComboDG = createCategoryOptionCombo( 'O', categoryComboA, optionD, optionG );
         optionComboDH = createCategoryOptionCombo( 'P', categoryComboA, optionD, optionH );
 
-        categoryService.addDataElementCategoryOptionCombo( optionComboAE );
-        categoryService.addDataElementCategoryOptionCombo( optionComboAF );
-        categoryService.addDataElementCategoryOptionCombo( optionComboAG );
-        categoryService.addDataElementCategoryOptionCombo( optionComboAH );
-        categoryService.addDataElementCategoryOptionCombo( optionComboBE );
-        categoryService.addDataElementCategoryOptionCombo( optionComboBF );
-        categoryService.addDataElementCategoryOptionCombo( optionComboBG );
-        categoryService.addDataElementCategoryOptionCombo( optionComboBH );
-        categoryService.addDataElementCategoryOptionCombo( optionComboCE );
-        categoryService.addDataElementCategoryOptionCombo( optionComboCF );
-        categoryService.addDataElementCategoryOptionCombo( optionComboCG );
-        categoryService.addDataElementCategoryOptionCombo( optionComboCH );
-        categoryService.addDataElementCategoryOptionCombo( optionComboDE );
-        categoryService.addDataElementCategoryOptionCombo( optionComboDF );
-        categoryService.addDataElementCategoryOptionCombo( optionComboDG );
-        categoryService.addDataElementCategoryOptionCombo( optionComboDH );
+        optionComboAE.setUid( "optionComAE" );
+        optionComboAF.setUid( "optionComAF" );
+        optionComboAG.setUid( "optionComAG" );
+        optionComboAH.setUid( "optionComAH" );
+        optionComboBE.setUid( "optionComBE" );
+        optionComboBF.setUid( "optionComBF" );
+        optionComboBG.setUid( "optionComBG" );
+        optionComboBH.setUid( "optionComBH" );
+        optionComboCE.setUid( "optionComCE" );
+        optionComboCF.setUid( "optionComCF" );
+        optionComboCG.setUid( "optionComCG" );
+        optionComboCH.setUid( "optionComCH" );
+        optionComboDE.setUid( "optionComDE" );
+        optionComboDF.setUid( "optionComDF" );
+        optionComboDG.setUid( "optionComDG" );
+        optionComboDH.setUid( "optionComDH" );
+
+        categoryService.addCategoryOptionCombo( optionComboAE );
+        categoryService.addCategoryOptionCombo( optionComboAF );
+        categoryService.addCategoryOptionCombo( optionComboAG );
+        categoryService.addCategoryOptionCombo( optionComboAH );
+        categoryService.addCategoryOptionCombo( optionComboBE );
+        categoryService.addCategoryOptionCombo( optionComboBF );
+        categoryService.addCategoryOptionCombo( optionComboBG );
+        categoryService.addCategoryOptionCombo( optionComboBH );
+        categoryService.addCategoryOptionCombo( optionComboCE );
+        categoryService.addCategoryOptionCombo( optionComboCF );
+        categoryService.addCategoryOptionCombo( optionComboCG );
+        categoryService.addCategoryOptionCombo( optionComboCH );
+        categoryService.addCategoryOptionCombo( optionComboDE );
+        categoryService.addCategoryOptionCombo( optionComboDF );
+        categoryService.addCategoryOptionCombo( optionComboDG );
+        categoryService.addCategoryOptionCombo( optionComboDH );
+
+        categoryComboA.getOptionCombos().add( optionComboAE );
+        categoryComboA.getOptionCombos().add( optionComboAF );
+        categoryComboA.getOptionCombos().add( optionComboAG );
+        categoryComboA.getOptionCombos().add( optionComboAH );
+        categoryComboA.getOptionCombos().add( optionComboBE );
+        categoryComboA.getOptionCombos().add( optionComboBF );
+        categoryComboA.getOptionCombos().add( optionComboBG );
+        categoryComboA.getOptionCombos().add( optionComboBH );
+        categoryComboA.getOptionCombos().add( optionComboCF );
+        categoryComboA.getOptionCombos().add( optionComboCG );
+        categoryComboA.getOptionCombos().add( optionComboCH );
+        categoryComboA.getOptionCombos().add( optionComboDE );
+        categoryComboA.getOptionCombos().add( optionComboDF );
+        categoryComboA.getOptionCombos().add( optionComboDG );
+        categoryComboA.getOptionCombos().add( optionComboDH );
+
+        categoryService.updateCategoryCombo( categoryComboA );
 
         groupAB = createCategoryOptionGroup( 'A', optionA, optionB );
         groupCD = createCategoryOptionGroup( 'C', optionC, optionD );
@@ -416,7 +493,15 @@ public class DataApprovalServiceTest
         dataApprovalLevelService.addDataApprovalLevel( level2ABCD );
 
         workflow12A_H = new DataApprovalWorkflow( "workflow12A_H", periodType, newHashSet( level1, level2, level2ABCD, level2EFGH ) );
+        workflow12A_H.setUid( "workflo12AH" );
         dataApprovalService.addWorkflow( workflow12A_H );
+
+        dataSetH = createDataSet( 'H', periodType, categoryComboA );
+        dataSetH.setWorkflow( workflow12A_H );
+        dataSetService.addDataSet( dataSetH );
+
+        workflow12A_H.getDataSets().add( dataSetH );
+        dataApprovalService.updateWorkflow( workflow12A_H );
     }
 
     // -------------------------------------------------------------------------
@@ -441,7 +526,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testAddAllAndGetDataApprovalStatus()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -506,7 +591,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testDeleteDataApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -537,7 +622,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalState()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -633,7 +718,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateAbove()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -653,7 +738,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateWithMultipleChildren()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -704,7 +789,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testGetDataApprovalStateOtherPeriodTypes()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -722,13 +807,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -819,13 +905,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -886,13 +973,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveSameAndLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -943,13 +1031,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayApproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -969,13 +1058,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -1028,13 +1118,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -1086,13 +1177,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveWithAcceptAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_ACCEPT_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -1144,13 +1236,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMayUnapproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -1206,7 +1299,7 @@ public class DataApprovalServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testApprovalsWithCategories()
     {
         setUpCategories();
@@ -1214,7 +1307,8 @@ public class DataApprovalServiceTest
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS, DataApproval.AUTH_ACCEPT_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -1365,13 +1459,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testWorkflows()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow1234, periodA, organisationUnitC, defaultOptionCombo ) );
@@ -1391,13 +1486,14 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    @Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPeriodsEndingDuringWorkflowApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitC );
 
         CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL, DataApproval.AUTH_APPROVE );
-        userService.addUser( currentUserService.getCurrentUser() );
+        User currentUser = currentUserService.getCurrentUser();
+        userService.addUser( currentUser );
         setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
@@ -1446,7 +1542,7 @@ public class DataApprovalServiceTest
      * @return A String representing the state, level, and allowed user actions
      */
     private String statusAndPermissions( DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
-        DataElementCategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo attributeOptionCombo )
     {
         DataApprovalStatus status = dataApprovalService.getDataApprovalStatusAndPermissions( workflow, period, organisationUnit, attributeOptionCombo );
 

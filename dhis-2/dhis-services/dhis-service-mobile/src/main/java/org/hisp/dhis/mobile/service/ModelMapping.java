@@ -1,7 +1,7 @@
 package org.hisp.dhis.mobile.service;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramStageDataElement;
 import org.hisp.dhis.api.mobile.model.Model;
 import org.hisp.dhis.api.mobile.model.ModelList;
 import org.hisp.dhis.api.mobile.model.OptionSet;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +99,7 @@ public class ModelMapping
         List<Model> listCateOptCombo = new ArrayList<>();
         deCateOptCombo.setModels( listCateOptCombo );
 
-        for ( DataElementCategoryOptionCombo oneCatOptCombo : dataElement.getSortedCategoryOptionCombos() )
+        for ( CategoryOptionCombo oneCatOptCombo : dataElement.getSortedCategoryOptionCombos() )
         {
             Model oneCateOptCombo = new Model();
             oneCateOptCombo.setId( oneCatOptCombo.getId() );

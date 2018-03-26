@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,26 @@ package org.hisp.dhis.analytics.event.data;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.function.Function;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
-import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -58,179 +57,49 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DefaultEventQueryPlanner
     implements EventQueryPlanner
 {
-    private static final Log log = LogFactory.getLog( DefaultEventQueryPlanner.class );
-    
     @Autowired
     private QueryPlanner queryPlanner;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
     
     @Autowired
-    private PartitionManager partitionManager;
+    private QueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
     // EventQueryPlanner implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void validate( EventQueryParams params )
-        throws IllegalQueryException, MaintenanceModeException
-    {
-        String violation = null;
-
-        if ( params == null )
-        {
-            throw new IllegalQueryException( "Params cannot be null" );
-        }
-        
-        queryPlanner.validateMaintenanceMode();
-        
-        if ( !params.hasOrganisationUnits() )
-        {
-            violation = "At least one organisation unit must be specified";
-        }
-
-        if ( !params.getDuplicateDimensions().isEmpty() )
-        {
-            violation = "Dimensions cannot be specified more than once: " + params.getDuplicateDimensions();
-        }
-        
-        if ( !params.getDuplicateQueryItems().isEmpty() )
-        {
-            violation = "Query items cannot be specified more than once: " + params.getDuplicateQueryItems();
-        }
-        
-        if ( params.hasValueDimension() && params.getDimensionalObjectItems().contains( params.getValue() ) )
-        {
-            violation = "Value dimension cannot also be specified as an item or item filter";
-        }
-        
-        if ( params.hasAggregationType() && !( params.hasValueDimension() || params.isAggregateData() ) )
-        {
-            violation = "Value dimension or aggregate data must be specified when aggregation type is specified";
-        }
-        
-        if ( !params.hasPeriods() && ( params.getStartDate() == null || params.getEndDate() == null ) )
-        {
-            violation = "Start and end date or at least one period must be specified";
-        }
-        
-        if ( params.getStartDate() != null && params.getEndDate() != null && params.getStartDate().after( params.getEndDate() ) )
-        {
-            violation = "Start date is after end date: " + params.getStartDate() + " - " + params.getEndDate();
-        }
-
-        if ( params.getPage() != null && params.getPage() <= 0 )
-        {
-            violation = "Page number must be a positive number: " + params.getPage();
-        }
-        
-        if ( params.getPageSize() != null && params.getPageSize() < 0 )
-        {
-            violation = "Page size must be zero or a positive number: " + params.getPageSize();
-        }
-        
-        if ( params.hasLimit() && getMaxLimit() > 0 && params.getLimit() > getMaxLimit() )
-        {
-            violation = "Limit of: " + params.getLimit() + " is larger than max limit: " + getMaxLimit();
-        }
-        
-        if ( params.hasClusterSize() && params.getClusterSize() <= 0 )
-        {
-            violation = "Cluster size must be a positive number: " + params.getClusterSize();
-        }
-        
-        if ( params.hasBbox() && !ValidationUtils.bboxIsValid( params.getBbox() ) )
-        {
-            violation = "Bbox is invalid: " + params.getBbox() + ", must be on format: 'min-lng,min-lat,max-lng,max-lat'";
-        }
-        
-        if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
-        {
-            violation = "Cluster field must be specified when bbox or cluster size are specified";
-        }
-
-        for ( QueryItem item : params.getItemsAndItemFilters() )
-        {
-            if ( item.hasLegendSet() && item.hasOptionSet() )
-            {
-                violation = "Query item cannot specify both legend set and option set: " + item.getItemId();
-            }
-            
-            if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
-            {
-                violation = "Query item must be aggregateable when used in aggregate query: " + item.getItemId();
-            }
-        }
-        
-        if ( violation != null )
-        {
-            log.warn( String.format( "Event analytics validation failed: %s", violation ) );
-            
-            throw new IllegalQueryException( violation );
-        }
-    }
-    
-    // TODO use list of functional groupers and single loop
-    
-    @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
-        Set<String> validPartitions = partitionManager.getEventAnalyticsPartitions();
+        final List<EventQueryParams> queries = Lists.newArrayList( params );
+        
+        List<Function<EventQueryParams, List<EventQueryParams>>> groupers = new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
+            .add( q -> groupByQueryItems( q ) )
+            .add( q -> groupByOrgUnitLevel( q ) )
+            .add( q -> groupByPeriodType( q ) )
+            .add( q -> groupByPeriod( q ) )
+            .build();
 
-        List<EventQueryParams> queries = new ArrayList<>();
-        
-        List<EventQueryParams> groupedByQueryItems = groupByQueryItems( params );
-        
-        for ( EventQueryParams byQueryItem : groupedByQueryItems )
-        {        
-            List<EventQueryParams> groupedByPartition = groupByPartition( byQueryItem, validPartitions );
+        for ( Function<EventQueryParams, List<EventQueryParams>> grouper : groupers )
+        {
+            List<EventQueryParams> currentQueries = Lists.newArrayList( queries );
+            queries.clear();
             
-            for ( EventQueryParams byPartition : groupedByPartition )
-            {
-                List<EventQueryParams> groupedByOrgUnitLevel = QueryPlannerUtils.convert( queryPlanner.groupByOrgUnitLevel( byPartition ) );
-                
-                for ( EventQueryParams byOrgUnitLevel : groupedByOrgUnitLevel )
-                {
-                    queries.addAll( QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( byOrgUnitLevel ) ) );
-                }
-            }
+            currentQueries.forEach( query -> queries.addAll( grouper.apply( query ) ) );
         }
         
-        return queries;
+        return withTableNameAndPartitions( queries );
     }
 
     @Override
     public EventQueryParams planEventQuery( EventQueryParams params )
     {
-        Set<String> validPartitions = partitionManager.getEventAnalyticsPartitions();
-
-        String tableSuffix = PartitionUtils.SEP + params.getProgram().getUid();
-        
-        if ( params.hasStartEndDate() )
-        {
-            Period queryPeriod = new Period();
-            queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );
-            params.setPartitions( PartitionUtils.getPartitions( queryPeriod, AnalyticsTableType.EVENT.getTableName(), tableSuffix, validPartitions ) );
-        }
-                
-        //TODO periods, convert to start/end dates
-        
-        return params;
+        return withTableNameAndPartitions( params );
     }
     
     public void validateMaintenanceMode()
         throws MaintenanceModeException
     {
-        queryPlanner.validateMaintenanceMode();
-    }
-    
-    @Override
-    public int getMaxLimit()
-    {
-        return (Integer) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        queryValidator.validateMaintenanceMode();
     }
     
     // -------------------------------------------------------------------------
@@ -238,63 +107,67 @@ public class DefaultEventQueryPlanner
     // -------------------------------------------------------------------------
 
     /**
-     * Group by partition.
+     * Sets table name and partitions on the given query.
      * 
      * @param params the event query parameters.
-     * @param validPartitions the set of valid partitions.
-     * @return a list of {@link EventQueryParams}.
+     * @return a {@link EventQueryParams}.
      */
-    private List<EventQueryParams> groupByPartition( EventQueryParams params, Set<String> validPartitions )
+    private EventQueryParams withTableNameAndPartitions( EventQueryParams params )
     {
-        String tableSuffix = PartitionUtils.SEP + params.getProgram().getUid();
+        Partitions partitions = params.hasStartEndDate() ?
+            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
+            PartitionUtils.getPartitions( params.getAllPeriods() );
         
-        if ( params.hasEnrollmentProgramIndicatorDimension() ) 
-        {
-            List<EventQueryParams> indicatorQueries = new ArrayList<>();
-            
-            EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( AnalyticsTableType.ENROLLMENT.getTableName(), tableSuffix, validPartitions ) )
-                .build();
+        String baseName = params.hasEnrollmentProgramIndicatorDimension() ?
+            AnalyticsTableType.ENROLLMENT.getTableName() :
+            AnalyticsTableType.EVENT.getTableName();
         
-            if ( query.getPartitions().hasAny() )
-            {
-                indicatorQueries.add( query );
-            }
-            
-            return indicatorQueries;
-        }
-        else if ( params.hasStartEndDate() )
-        {
-            List<EventQueryParams> queries = new ArrayList<>();
-            
-            Period queryPeriod = new Period();
-            queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );
-            
-            EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( queryPeriod, AnalyticsTableType.EVENT.getTableName(), tableSuffix, validPartitions ) )
-                .build();
-            
-            if ( query.getPartitions().hasAny() )
-            {
-                queries.add( query );
-            }
-            
-            return queries;
-        }
-        else // Aggregate only
-        {
-            QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-                withTableName( AnalyticsTableType.EVENT.getTableName() ).
-                withTableSuffix( tableSuffix ).build();
-
-            return QueryPlannerUtils.convert( queryPlanner.groupByPartition( params, plannerParams ) );
-        }
+        String tableName = PartitionUtils.getTableName( baseName, params.getProgram() );
+        
+        return new EventQueryParams.Builder( params )
+            .withTableName( tableName )
+            .withPartitions( partitions )
+            .build();
     }
     
     /**
-     * Group by items if query items are to be collapsed in order to aggregate
-     * each item individually.
+     * Sets table name and partition on each query in the given list.
+     * 
+     * @param queries the list of queries.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> withTableNameAndPartitions( List<EventQueryParams> queries )
+    {
+        final List<EventQueryParams> list = new ArrayList<>();
+        queries.forEach( query -> list.add( withTableNameAndPartitions( query ) ) );
+        return list;
+    }
+    
+    /**
+     * Groups by organisation unit level.
+     * 
+     * @param params the event data query parameters.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> groupByOrgUnitLevel( EventQueryParams params )
+    {
+        return QueryPlannerUtils.convert( queryPlanner.groupByOrgUnitLevel( params ) );
+    }    
+
+    /**
+     * Groups by period types.
+     * 
+     * @param params the event data query parameters.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> groupByPeriodType( EventQueryParams params )
+    {
+        return QueryPlannerUtils.convert( queryPlanner.groupByPeriodType( params ) );
+    }
+
+    /**
+     * Groups by items if query items are to be collapsed in order to aggregate
+     * each item individually. Sets program on the given parameters.
      * 
      * @param params the event query parameters.
      * @return a list of {@link EventQueryParams}.
@@ -353,6 +226,43 @@ public class DefaultEventQueryPlanner
             queries.add( new EventQueryParams.Builder( params ).build() );
         }
         
+        return queries;
+    }
+
+    /**
+     * Groups the given query in sub queries for each dimension period. This applies
+     * if the aggregation type is {@link AggregationType#LAST} or 
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query includes
+     * a {@link ProgramIndicator} that does not use default analytics period boundaries: 
+     * {@link EventQueryParams#hasNonDefaultBoundaries()}.
+     * In this case, each period must be aggregated individually. 
+     * 
+     * @param params the data query parameters.
+     * @return a list of {@link EventQueryParams}.
+     */
+    private List<EventQueryParams> groupByPeriod( EventQueryParams params )
+    {
+        List<EventQueryParams> queries = new ArrayList<>();
+        
+        
+        if ( ( params.isLastPeriodAggregationType() || params.hasNonDefaultBoundaries() )  &&
+            !params.getPeriods().isEmpty() )
+        {
+            for ( DimensionalItemObject period : params.getPeriods() )
+            {
+                String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+                
+                EventQueryParams query = new EventQueryParams.Builder( params )
+                    .withPeriods( Lists.newArrayList( period ), periodType ).build();
+                
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( params );
+        }
+
         return queries;
     }
 }

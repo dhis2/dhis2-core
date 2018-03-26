@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        >
+<hibernate-mapping>
+    <class name="org.hisp.dhis.reservedvalue.SequentialNumberCounter" table="sequentialnumbercounter">
+        <id name="id" column="id">
+            <generator class="native"/>
+        </id>
+        <property name="ownerUid" unique-key="unique-group"/>
+        <property name="key" unique-key="unique-group"/>
+        <property name="counter"/>
+    </class>
+</hibernate-mapping>
