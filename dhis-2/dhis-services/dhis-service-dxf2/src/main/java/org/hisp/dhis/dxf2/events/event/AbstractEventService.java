@@ -260,27 +260,7 @@ public abstract class AbstractEventService
 
         for ( List<Event> _events : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> dataElements = new HashSet<>();
-            events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
-
-            if ( !dataElements.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", dataElements ) );
-                queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
-            }
+            prepareCaches( user, _events );
 
             for ( Event event : _events )
             {
@@ -328,11 +308,17 @@ public abstract class AbstractEventService
         return addEvent( event, currentUserService.getCurrentUser(), importOptions );
     }
 
-    protected ImportSummary addEvent( Event event, User user, ImportOptions importOptions )
+    private ImportSummary addEvent( Event event, User user, ImportOptions importOptions )
     {
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
+        }
+
+        if ( programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Event ID " + event.getEvent() + " was already used. The ID is unique and cannot be used more than once" ).setReference( event.getEvent() ).incrementIgnored();
         }
 
         Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
@@ -543,12 +529,12 @@ public abstract class AbstractEventService
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
-        
-        if( params.getProgramStage() == null )
+
+        if ( params.getProgramStage() == null )
         {
             throw new IllegalQueryException( "Program stage can not be null." );
-        }        
-        
+        }
+
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
@@ -942,27 +928,7 @@ public abstract class AbstractEventService
 
         for ( List<Event> _events : partitions )
         {
-            // prepare caches
-            Collection<String> orgUnits = _events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
-
-            if ( !orgUnits.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", orgUnits ) );
-                queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-            }
-
-            Collection<String> dataElements = new HashSet<>();
-            events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
-
-            if ( !dataElements.isEmpty() )
-            {
-                Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-                query.setUser( user );
-                query.add( Restrictions.in( "id", dataElements ) );
-                queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
-            }
+            prepareCaches( user, _events );
 
             for ( Event event : _events )
             {
@@ -997,14 +963,31 @@ public abstract class AbstractEventService
             importOptions = new ImportOptions();
         }
 
+        if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "No event or event ID was supplied" ).incrementIgnored();
+        }
+
         ImportSummary importSummary = new ImportSummary( event.getEvent() );
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getEvent() );
 
+        //TODO: If change of orgUnit should be supported, the logic of canWrite should be changed in order that it checks
+        // write access to the new orgUnit as well
+        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
+
         if ( programStageInstance == null )
         {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "ID " + event.getEvent() + " doesn't point to valid event" );
             importSummary.getConflicts().add( new ImportConflict( "Invalid Event ID.", event.getEvent() ) );
+
             return importSummary.incrementIgnored();
+        }
+
+        if ( !errors.isEmpty() )
+        {
+            return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
         }
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
@@ -1012,13 +995,6 @@ public abstract class AbstractEventService
         if ( organisationUnit == null )
         {
             organisationUnit = programStageInstance.getOrganisationUnit();
-        }
-
-        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
-
-        if ( !errors.isEmpty() )
-        {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
         Date executionDate = new Date();
@@ -1047,7 +1023,10 @@ public abstract class AbstractEventService
 
             if ( !userCredentials.isSuper() && !userCredentials.isAuthorized( "F_UNCOMPLETE_EVENT" ) )
             {
-                throw new IllegalQueryException( "User is not authorized to uncomplete events." );
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary.setDescription( "User is not authorized to uncomplete events." );
+
+                return importSummary;
             }
         }
 
@@ -1080,6 +1059,7 @@ public abstract class AbstractEventService
         }
 
         programStageInstance.setDueDate( dueDate );
+        //TODO: If change of orgUnit shouldn't be supported, the line below can be removed
         programStageInstance.setOrganisationUnit( organisationUnit );
 
         if ( !singleValue )
@@ -1112,14 +1092,17 @@ public abstract class AbstractEventService
 
             if ( attributeOptionCombo == null )
             {
+                importSummary.setStatus( ImportStatus.ERROR );
                 importSummary.getConflicts().add( new ImportConflict( "Invalid attribute option combo identifier:",
                     event.getAttributeCategoryOptions() ) );
+
                 return importSummary.incrementIgnored();
             }
 
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
         }
 
+        //TODO: Can event be deleted through UPDATE?
         programStageInstance.setDeleted( event.isDeleted() );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
@@ -1129,40 +1112,50 @@ public abstract class AbstractEventService
 
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(
             dataValueService.getTrackedEntityDataValues( programStageInstance ) );
-        Map<String, TrackedEntityDataValue> existingDataValues = getDataElementDataValueMap( dataValues );
+        Map<String, TrackedEntityDataValue> dataElementToValueMap = getDataElementDataValueMap(
+            dataValues );
 
-        for ( DataValue value : event.getDataValues() )
+        Map<String, DataElement> newDataElements = new HashMap<>();
+
+
+        ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap, newDataElements, user, importSummary, importOptions );
+        if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
-            DataElement dataElement = getDataElement( importOptions.getIdSchemes().getDataElementIdScheme(),
-                value.getDataElement() );
-            TrackedEntityDataValue dataValue = dataValueService.getTrackedEntityDataValue( programStageInstance,
-                dataElement );
+            return validationResult;
+        }
 
-            if ( !validateDataValue( programStageInstance, user, dataElement, value.getValue(), importSummary ) )
+        for ( DataValue dataValue : event.getDataValues() )
+        {
+            DataElement dataElement;
+            //The element was already saved. So make an update
+            if ( dataElementToValueMap.containsKey( dataValue.getDataElement() ) )
             {
-                continue;
-            }
 
-            if ( dataValue != null )
-            {
-                if ( StringUtils.isEmpty( value.getValue() ) && dataElement.isFileType()
-                    && !StringUtils.isEmpty( dataValue.getValue() ) )
+
+                TrackedEntityDataValue teiDataValue = dataElementToValueMap.get( dataValue.getDataElement() );
+                dataElement = teiDataValue.getDataElement();
+
+                if ( StringUtils.isEmpty( dataValue.getValue() ) && dataElement.isFileType()
+                    && !StringUtils.isEmpty( teiDataValue.getValue() ) )
                 {
-                    fileResourceService.deleteFileResource( dataValue.getValue() );
+                    fileResourceService.deleteFileResource( teiDataValue.getValue() );
                 }
 
-                dataValue.setValue( value.getValue() );
-                dataValue.setProvidedElsewhere( value.getProvidedElsewhere() );
-                dataValueService.updateTrackedEntityDataValue( dataValue );
+                teiDataValue.setValue( dataValue.getValue() );
+                teiDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+                dataValueService.updateTrackedEntityDataValue( teiDataValue );
 
-                dataValues.remove( dataValue );
+                //Marking that this dataValue was a part of an update, so it shouldn't be removed at the end.
+                dataValues.remove( teiDataValue );
             }
+            //This element - value wasn't present before. It is a new one. Save it.
             else
             {
-                TrackedEntityDataValue existingDataValue = existingDataValues.get( value.getDataElement() );
+                //In validation of data values I made sure that the value is present
+                dataElement = newDataElements.get( dataValue.getDataElement() );
 
-                saveDataValue( programStageInstance, event.getStoredBy(), dataElement, value.getValue(),
-                    value.getProvidedElsewhere(), existingDataValue, null );
+                saveDataValue( programStageInstance, event.getStoredBy(), dataElement, dataValue.getValue(),
+                    dataValue.getProvidedElsewhere(), null, null );
             }
         }
 
@@ -1171,7 +1164,7 @@ public abstract class AbstractEventService
             dataValues.forEach( dataValueService::deleteTrackedEntityDataValue );
         }
 
-        importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
+        importSummary.incrementUpdated();
 
         return importSummary;
     }
@@ -1244,12 +1237,17 @@ public abstract class AbstractEventService
         if ( programStageInstance != null )
         {
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
-                .incrementDeleted();
+
+            if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
+            {
+                entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+            }
+
+            String descMsg = "Deletion of event " + uid + " was successful";
+            return new ImportSummary( ImportStatus.SUCCESS, descMsg ).incrementDeleted();
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event: " + uid )
-            .incrementIgnored();
+        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." ).incrementIgnored();
     }
 
     @Override
@@ -1276,6 +1274,31 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private void prepareCaches( User user, List<Event> events )
+    {
+        // prepare caches
+        Collection<String> orgUnits = events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
+
+        if ( !orgUnits.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", orgUnits ) );
+            queryService.query( query ).forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
+        }
+
+        Collection<String> dataElements = new HashSet<>();
+        events.forEach( e -> e.getDataValues().forEach( v -> dataElements.add( v.getDataElement() ) ) );
+
+        if ( !dataElements.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", dataElements ) );
+            queryService.query( query ).forEach( de -> dataElementCache.put( de.getUid(), (DataElement) de ) );
+        }
+    }
 
     private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
     {
@@ -1304,6 +1327,52 @@ public abstract class AbstractEventService
         return organisationUnits;
     }
 
+    private ImportSummary validateDataValues(
+        Event event,
+        ProgramStageInstance programStageInstance,
+        Map<String, TrackedEntityDataValue> dataElementToValueMap,
+        Map<String, DataElement> newDataElements,
+        User user,
+        ImportSummary importSummary,
+        ImportOptions importOptions )
+    {
+        //Loop through values. If only one validation problem occurs -> FAIL (Either everything has to be OK or no change)
+        for ( DataValue dataValue : event.getDataValues() )
+        {
+            DataElement dataElement;
+            if ( dataElementToValueMap.containsKey( dataValue.getDataElement() ) )
+            {
+                dataElement = dataElementToValueMap.get( dataValue.getDataElement() ).getDataElement();
+            }
+            else
+            {
+                dataElement = getDataElement( importOptions.getIdSchemes().getDataElementIdScheme(),
+                    dataValue.getDataElement() );
+
+                //This can happen if a wrong dataElement UID is provided in payload
+                if ( dataElement == null )
+                {
+                    String descMsg = "Data element " + dataValue.getDataElement() + " doesn't exist in the system. Please, provide correct data element";
+
+                    importSummary.setStatus( ImportStatus.ERROR );
+                    importSummary.setDescription( descMsg );
+
+                    return importSummary;
+                }
+
+                newDataElements.put( dataValue.getDataElement(), dataElement );
+            }
+
+            //To keep it simple the fail fast approach is chosen: 1 error is enough. Return back an error.
+            if ( !validateDataValue( programStageInstance, user, dataElement, dataValue.getValue(), importSummary ) )
+            {
+                return importSummary;
+            }
+        }
+
+        return importSummary;
+    }
+
     private boolean validateDataValue( ProgramStageInstance programStageInstance, User user, DataElement dataElement, String value, ImportSummary importSummary )
     {
         String status = ValidationUtils.dataValueIsValid( value, dataElement );
@@ -1311,7 +1380,8 @@ public abstract class AbstractEventService
         if ( status != null )
         {
             importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), status ) );
-            importSummary.getImportCount().incrementIgnored();
+            importSummary.incrementIgnored();
+            importSummary.setStatus( ImportStatus.ERROR );
 
             return false;
         }
@@ -1321,7 +1391,10 @@ public abstract class AbstractEventService
         if ( !errors.isEmpty() )
         {
             errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
-            importSummary.getImportCount().incrementIgnored();
+            importSummary.incrementIgnored();
+            importSummary.setStatus( ImportStatus.ERROR );
+
+            return false;
         }
 
         return true;
@@ -1404,6 +1477,7 @@ public abstract class AbstractEventService
 
             importSummary.setReference( programStageInstance.getUid() );
         }
+
 
         Map<String, TrackedEntityDataValue> dataElementValueMap = Maps.newHashMap();
 
@@ -1540,6 +1614,7 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
+        //TODO: Can even be set as deleted via POST (create) method? Does it make any sense? (Deletion should be done in a way by using DELETE importStatregy and so delete method should be called.)
         programStageInstance.setDeleted( event.isDeleted() );
 
         if ( programStage.getCaptureCoordinates() )

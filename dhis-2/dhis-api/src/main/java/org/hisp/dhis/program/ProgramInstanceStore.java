@@ -90,7 +90,7 @@ public interface ProgramInstanceStore
     List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
     /**
-     * Checks for the existence of a PI by UID
+     * Checks for the existence of a PI by UID, Deleted PIs are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -98,9 +98,17 @@ public interface ProgramInstanceStore
     boolean exists( String uid );
 
     /**
+     * Checks for the existence of a PI by UID. Takes into account also the deleted PIs.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean existsIncludingDeleted( String uid );
+
+    /**
      * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
      *
-     * @param template the template.
+     * @param template         the template.
      * @param notificationDate the Date for which the notification is scheduled.
      * @return a list of ProgramInstance.
      */
