@@ -41,7 +41,6 @@ import java.util.function.Function;
  */
 public class NoOpCache<V> implements Cache<V>
 {
-
     private V defaultValue;
 
     public NoOpCache( CacheBuilder<V> cacheBuilder )
@@ -52,29 +51,21 @@ public class NoOpCache<V> implements Cache<V>
     @Override
     public Optional<V> getIfPresent( String key )
     {
-        if ( null == key )
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         return Optional.empty();
     }
 
     @Override
     public Optional<V> get( String key )
     {
-        if ( null == key )
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         return Optional.ofNullable( defaultValue );
     }
 
     @Override
     public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
-        if ( null == key || null == mappingFunction )
+        if ( null == mappingFunction )
         {
-            throw new IllegalArgumentException( "Key and mappingFunction cannot be null" );
+            throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
         return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
     }
@@ -82,9 +73,9 @@ public class NoOpCache<V> implements Cache<V>
     @Override
     public void put( String key, V value )
     {
-        if ( null == key || null == value )
+        if ( null == value )
         {
-            throw new IllegalArgumentException( "Key and Value cannot be null" );
+            throw new IllegalArgumentException( "Value cannot be null" );
         }
         // No operation
     }
@@ -92,10 +83,6 @@ public class NoOpCache<V> implements Cache<V>
     @Override
     public void invalidate( String key )
     {
-        if ( null == key )
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         // No operation
     }
 
@@ -103,7 +90,6 @@ public class NoOpCache<V> implements Cache<V>
     public void invalidateAll()
     {
         // No operation
-
     }
 
 }

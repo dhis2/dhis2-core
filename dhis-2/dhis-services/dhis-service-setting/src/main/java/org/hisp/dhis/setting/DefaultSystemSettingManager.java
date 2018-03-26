@@ -64,8 +64,7 @@ import com.google.common.collect.Lists;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-public class DefaultSystemSettingManager
-    implements SystemSettingManager
+public class DefaultSystemSettingManager implements SystemSettingManager
 {
    
     // -------------------------------------------------------------------------

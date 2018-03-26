@@ -60,8 +60,7 @@ import javax.annotation.PostConstruct;
  *
  * @author Torgeir Lorange Ostby
  */
-public class DefaultUserSettingService
-    implements UserSettingService
+public class DefaultUserSettingService implements UserSettingService
 {
     
     /**

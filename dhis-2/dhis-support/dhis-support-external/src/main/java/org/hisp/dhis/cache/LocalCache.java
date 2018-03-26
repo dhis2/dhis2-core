@@ -30,7 +30,6 @@ package org.hisp.dhis.cache;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
@@ -50,16 +49,7 @@ public class LocalCache<V> implements Cache<V>
      * Constructor to instantiate LocalCache object.
      * 
      * 
-     * @param refreshExpiryOnAccess Indicates whether the expiry (timeToLive)
-     *        has to reset on every access
-     * @param expiryInSeconds The time to live value in seconds
-     * @param maximumSize The maximum size this cache instance should hold. If
-     *        set to 0, then caching is disabled.
-     * @param defaultValue Default value to be returned if no associated value
-     *        for a key is found in the cache. The defaultValue will not be
-     *        stored in the cache, but should be used as an indicator that the
-     *        key did not have an associated value. By default the defaultValue
-     *        is null
+     * @param cacheBuilder CacheBuilder instance
      */
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
@@ -100,7 +90,7 @@ public class LocalCache<V> implements Cache<V>
     {
         if ( null == mappingFunction )
         {
-            throw new IllegalArgumentException( "Key and MappingFunction cannot be null" );
+            throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
         return Optional
             .ofNullable( Optional.ofNullable( caffeineCache.get( key, mappingFunction ) ).orElse( defaultValue ) );
@@ -111,7 +101,7 @@ public class LocalCache<V> implements Cache<V>
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Key and Value cannot be null" );
+            throw new IllegalArgumentException( "Value cannot be null" );
         }
         caffeineCache.put( key, value );
     }

@@ -30,7 +30,6 @@ package org.hisp.dhis.cache;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -57,17 +56,7 @@ public class RedisCache<V> implements Cache<V>
     /**
      * Constructor for instantiating RedisCache.
      * 
-     * @param region The cache region name which serves as a logical separation
-     *        and will be added as a prefix to the keys specified.
-     * @param refreshExpiryOnAccess Indicates whether the expiry (timeToLive)
-     *        has to reset on every access
-     * @param expiryInSeconds The time to live value in seconds
-     * @param defaultValue Default value to be returned if no associated value
-     *        for a key is found in the cache. The defaultValue will not be
-     *        stored in the cache, but should be used as an indicator that the
-     *        key did not have an associated value. By default the defaultValue
-     *        is null
-     * 
+     * @param cacheBuilder The cache builder instance
      */
     @SuppressWarnings( "unchecked" )
     public RedisCache( CacheBuilder<V> cacheBuilder )
@@ -108,7 +97,7 @@ public class RedisCache<V> implements Cache<V>
     {
         if ( null == mappingFunction )
         {
-            throw new IllegalArgumentException( "Key and MappingFunction cannot be null" );
+            throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
         String redisKey = generateActualKey( key );
         if ( expiryEnabled && refreshExpriryOnAccess )
@@ -142,7 +131,7 @@ public class RedisCache<V> implements Cache<V>
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Key and Value cannot be null" );
+            throw new IllegalArgumentException( "Value cannot be null" );
         }
         String redisKey = generateActualKey( key );
 
