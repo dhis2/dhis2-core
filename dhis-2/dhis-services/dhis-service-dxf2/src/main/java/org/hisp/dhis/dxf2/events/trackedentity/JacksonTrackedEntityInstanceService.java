@@ -51,7 +51,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -171,7 +170,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
 
         List<TrackedEntityInstance> create = new ArrayList<>();
         List<TrackedEntityInstance> update = new ArrayList<>();
-        List<String> delete = new ArrayList<>();
+        List<TrackedEntityInstance> delete = new ArrayList<>();
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -181,21 +180,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         {
             for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
             {
-                if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) )
-                {
-                    create.add( trackedEntityInstance );
-                }
-                else
-                {
-                    if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
-                    {
-                        create.add( trackedEntityInstance );
-                    }
-                    else
-                    {
-                        update.add( trackedEntityInstance );
-                    }
-                }
+                sortCreatesAndUpdates( trackedEntityInstance, create, update );
             }
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
@@ -204,12 +189,26 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         }
         else if ( importOptions.getImportStrategy().isDelete() )
         {
-            delete.addAll( trackedEntityInstances.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() ) );
+            delete.addAll( trackedEntityInstances );
+        }
+        else if ( importOptions.getImportStrategy().isSync() )
+        {
+            for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+            {
+                if ( trackedEntityInstance.isDeleted() )
+                {
+                    delete.add( trackedEntityInstance );
+                }
+                else
+                {
+                    sortCreatesAndUpdates( trackedEntityInstance, create, update );
+                }
+            }
         }
 
         importSummaries.addImportSummaries( addTrackedEntityInstances( create, importOptions ) );
         importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
-        importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete ) );
+        importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
@@ -217,6 +216,25 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         }
 
         return importSummaries;
+    }
+
+    private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
+    {
+        if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) )
+        {
+            create.add( trackedEntityInstance );
+        }
+        else
+        {
+            if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
+            {
+                create.add( trackedEntityInstance );
+            }
+            else
+            {
+                update.add( trackedEntityInstance );
+            }
+        }
     }
 
     // -------------------------------------------------------------------------

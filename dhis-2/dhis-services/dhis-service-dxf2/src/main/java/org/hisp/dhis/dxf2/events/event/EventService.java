@@ -117,7 +117,7 @@ public interface EventService
 
     ImportSummary deleteEvent( String uid );
 
-    ImportSummaries deleteEvents( List<String> uids );
+    ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
 

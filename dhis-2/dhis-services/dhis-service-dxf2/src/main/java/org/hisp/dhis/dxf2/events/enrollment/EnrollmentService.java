@@ -110,6 +110,6 @@ public interface EnrollmentService
 
     ImportSummary deleteEnrollment( String uid );
 
-    ImportSummaries deleteEnrollments( List<String> uids );
+    ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
 
 }

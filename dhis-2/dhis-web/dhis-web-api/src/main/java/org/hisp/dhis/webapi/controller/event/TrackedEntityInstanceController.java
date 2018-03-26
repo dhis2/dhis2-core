@@ -637,8 +637,11 @@ public class TrackedEntityInstanceController
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         importSummaries.getImportSummaries().stream()
-            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                !importOptions.getImportStrategy().isDelete() )
+            .filter(
+                importSummary -> !importOptions.isDryRun() &&
+                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                    !importOptions.getImportStrategy().isDelete() &&
+                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
             .forEach( importSummary -> importSummary.setHref(
                 ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/" + importSummary.getReference() ) );
 
@@ -664,11 +667,15 @@ public class TrackedEntityInstanceController
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceXml( inputStream, importOptions );
+        importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
         importSummaries.getImportSummaries().stream()
-            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                !importOptions.getImportStrategy().isDelete() )
+            .filter(
+                importSummary -> !importOptions.isDryRun() &&
+                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                    !importOptions.getImportStrategy().isDelete() &&
+                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
             .forEach( importSummary -> importSummary.setHref(
                 ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/" + importSummary.getReference() ) );
 

@@ -1257,17 +1257,25 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+        //TODO: Shouldn't access rights be checked for delete in the same way as for update? Currently, no check is present at all.
 
-        if ( programStageInstance != null )
+        boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
+        boolean existsEventIncludingDeleted = programStageInstanceService.programStageInstanceExistsIncludingDeleted( uid );
+
+        if ( existsEvent )
         {
+            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
             }
+        }
 
+        if ( existsEvent || existsEventIncludingDeleted )
+        {
             String descMsg = "Deletion of event " + uid + " was successful";
             ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg )
                 .incrementDeleted();
@@ -1287,7 +1295,7 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public ImportSummaries deleteEvents( List<String> uids )
+    public ImportSummaries deleteEvents( List<String> uids, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
@@ -1296,7 +1304,7 @@ public abstract class AbstractEventService
         {
             importSummaries.addImportSummary( deleteEvent( uid ) );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( clearSession && counter % FLUSH_FREQUENCY == 0 )
             {
                 clearSession();
             }

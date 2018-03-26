@@ -190,8 +190,11 @@ public class EnrollmentController
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         importSummaries.getImportSummaries().stream()
-            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                !importOptions.getImportStrategy().isDelete() )
+            .filter(
+                importSummary -> !importOptions.isDryRun() &&
+                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                    !importOptions.getImportStrategy().isDelete() &&
+                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
             .forEach( importSummary -> importSummary.setHref(
                 ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
@@ -219,6 +222,15 @@ public class EnrollmentController
         ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
         importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_XML_VALUE );
+
+        importSummaries.getImportSummaries().stream()
+            .filter(
+                importSummary -> !importOptions.isDryRun() &&
+                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                    !importOptions.getImportStrategy().isDelete() &&
+                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+            .forEach( importSummary -> importSummary.setHref(
+                ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
         if ( importSummaries.getImportSummaries().size() == 1 )
         {

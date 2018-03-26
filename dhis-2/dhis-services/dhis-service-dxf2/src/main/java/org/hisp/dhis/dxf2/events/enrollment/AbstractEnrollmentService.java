@@ -438,7 +438,6 @@ public abstract class AbstractEnrollmentService
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
-        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
 
         return importSummary;
@@ -703,6 +702,7 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
+        //TODO: I think, the programInstance.getEntityInstance() can be used instead of daoTrackedEntityInstance, and so daoTrackedEntityInstance variable is not needed at all ... (check delete method, where it is used)
         teiService.updateTrackedEntityInstance( daoTrackedEntityInstance );
 
         saveTrackedEntityComment( programInstance, enrollment );
@@ -710,7 +710,6 @@ public abstract class AbstractEnrollmentService
         importSummary.setReference( enrollment.getEnrollment() );
         importSummary.getImportCount().incrementUpdated();
 
-        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
 
         WebMessage webMsg = WebMessageUtils.importSummary( importSummary );
@@ -751,14 +750,33 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary deleteEnrollment( String uid )
     {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        String descMsg = "";
-        WebMessage webMsg = null;
+        return deleteEnrollment( uid, null, null, currentUserService.getCurrentUser() );
+    }
 
-        if ( programInstance != null )
+    private ImportSummary deleteEnrollment( String uid, Enrollment enrollment, ImportOptions importOptions, User user )
+    {
+        String descMsg = "Deletion of enrollment " + uid + " was successful";
+        WebMessage webMsg = null;
+        ImportSummary importSummary = null;
+
+        boolean existsEnrollment = programInstanceService.programInstanceExists( uid );
+        boolean existsEnrollmentIncludingDeleted = programInstanceService.programInstanceExistsIncludingDeleted( uid );
+
+        if ( existsEnrollment )
         {
-            User user = currentUserService.getCurrentUser();
-            if ( !programInstance.getProgramStageInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+            ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
+
+            if ( enrollment != null )
+            {
+                importSummary = new ImportSummary( uid );
+                importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+            }
+
+            Set<ProgramStageInstance> notDeletedProgramStageInstances = programInstance.getProgramStageInstances().stream()
+                .filter( pi -> !pi.isDeleted() )
+                .collect( Collectors.toSet() );
+
+            if ( !notDeletedProgramStageInstances.isEmpty() && user != null && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
             {
                 descMsg = "The enrollment to be deleted has associated events. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
                 webMsg = WebMessageUtils.forbidden( descMsg );
@@ -767,8 +785,16 @@ public abstract class AbstractEnrollmentService
 
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+        }
 
-            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of enrollment " + uid + " was successful." ).incrementDeleted();
+        if ( existsEnrollment || existsEnrollmentIncludingDeleted )
+        {
+            if ( importSummary == null )
+            {
+                importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg );
+            }
+
+            importSummary.incrementDeleted();
             webMsg = WebMessageUtils.importSummary( importSummary );
             importSummary.setWebMessage( webMsg );
 
@@ -781,16 +807,17 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummaries deleteEnrollments( List<String> uids )
+    public ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
+        User user = currentUserService.getCurrentUser();
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
 
-        for ( String uid : uids )
+        for ( Enrollment enrollment : enrollments )
         {
-            importSummaries.addImportSummary( deleteEnrollment( uid ) );
+            importSummaries.addImportSummary( deleteEnrollment( enrollment.getEnrollment(), enrollment, importOptions, user ) );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( clearSession && counter % FLUSH_FREQUENCY == 0 )
             {
                 clearSession();
             }
@@ -833,6 +860,7 @@ public abstract class AbstractEnrollmentService
     {
         List<Event> create = new ArrayList<>();
         List<Event> update = new ArrayList<>();
+        List<String> delete = new ArrayList<>();
 
         for ( Event event : enrollment.getEvents() )
         {
@@ -840,7 +868,11 @@ public abstract class AbstractEnrollmentService
             event.setProgram( programInstance.getProgram().getUid() );
             event.setTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
 
-            if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
+            if ( importOptions.getImportStrategy() == ImportStrategy.SYNC && event.isDeleted() )
+            {
+                delete.add( event.getEvent() );
+            }
+            else if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
             {
                 create.add( event );
             }
@@ -853,6 +885,7 @@ public abstract class AbstractEnrollmentService
         ImportSummaries importSummaries = new ImportSummaries();
         importSummaries.addImportSummaries( eventService.addEvents( create, importOptions, false ) );
         importSummaries.addImportSummaries( eventService.updateEvents( update, false, false ) );
+        importSummaries.addImportSummaries( eventService.deleteEvents( delete, false ) );
 
         return importSummaries;
     }

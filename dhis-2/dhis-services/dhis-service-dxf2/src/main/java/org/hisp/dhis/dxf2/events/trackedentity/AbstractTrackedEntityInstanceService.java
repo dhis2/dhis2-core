@@ -425,7 +425,6 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
-        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
@@ -536,7 +535,6 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
         importSummary.setWebMessage( WebMessageUtils.importSummary( importSummary ) );
 
@@ -550,24 +548,51 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
-        String descMsg = "";
-        WebMessage webMsg = null;
+        return deleteTrackedEntityInstance( uid, null, null );
+    }
 
-        if ( entityInstance != null )
+    private ImportSummary deleteTrackedEntityInstance( String uid, TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions )
+    {
+        String descMsg = "Deletion of tracked entity instance " + uid + " was successful";
+        WebMessage webMsg = null;
+        ImportSummary importSummary = null;
+
+        boolean existsTei = teiService.trackedEntityInstanceExists( uid );
+        boolean existsTeiIncludingDeleted = teiService.trackedEntityInstanceExistsIncludingDeleted( uid );
+
+        if ( existsTei )
         {
             User user = currentUserService.getCurrentUser();
+            org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( uid );
 
-            if ( !entityInstance.getProgramInstances().isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            if ( dtoEntityInstance != null )
             {
-                descMsg = "The " + entityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+                importSummary = new ImportSummary( uid );
+                importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
+            }
+
+            Set<ProgramInstance> notDeletedProgramInstances = daoEntityInstance.getProgramInstances().stream()
+                .filter( pi -> !pi.isDeleted() )
+                .collect( Collectors.toSet() );
+
+            if ( !notDeletedProgramInstances.isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            {
+                descMsg = "The " + daoEntityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
                 webMsg = WebMessageUtils.forbidden( descMsg );
                 return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
             }
 
-            teiService.deleteTrackedEntityInstance( entityInstance );
+            teiService.deleteTrackedEntityInstance( daoEntityInstance );
+        }
 
-            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
+        if ( existsTei || existsTeiIncludingDeleted )
+        {
+            if ( importSummary == null )
+            {
+                importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg );
+            }
+
+            importSummary.incrementDeleted();
             webMsg = WebMessageUtils.importSummary( importSummary );
             importSummary.setWebMessage( webMsg );
 
@@ -580,14 +605,14 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public ImportSummaries deleteTrackedEntityInstances( List<String> uids )
+    public ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
 
-        for ( String uid : uids )
+        for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            importSummaries.addImportSummary( deleteTrackedEntityInstance( uid ) );
+            importSummaries.addImportSummary( deleteTrackedEntityInstance( tei.getTrackedEntityInstance(), tei, importOptions ) );
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
@@ -608,13 +633,18 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         List<Enrollment> create = new ArrayList<>();
         List<Enrollment> update = new ArrayList<>();
+        List<Enrollment> delete = new ArrayList<>();
 
         for ( Enrollment enrollment : dtoEntityInstance.getEnrollments() )
         {
             enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
             enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
 
-            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            if ( importOptions.getImportStrategy() == ImportStrategy.SYNC && enrollment.isDeleted() )
+            {
+                delete.add( enrollment );
+            }
+            else if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }
@@ -628,6 +658,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
         importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, daoEntityInstance, false ) );
+        importSummaries.addImportSummaries( enrollmentService.deleteEnrollments( delete, importOptions, false ) );
 
         return importSummaries;
     }
