@@ -207,7 +207,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
 
         importSummaries.addImportSummaries( addEnrollments( create, importOptions, null, true ) );
-        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, null, true ) );
+        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, true ) );
         importSummaries.addImportSummaries( deleteEnrollments( delete, importOptions, true ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )

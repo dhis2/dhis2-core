@@ -972,8 +972,6 @@ public abstract class AbstractEventService
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getEvent() );
 
-        //TODO: If change of orgUnit should be supported, the logic of canWrite should be changed in order that it checks
-        // write access to the new orgUnit as well
         List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
 
         if ( programStageInstance == null )
@@ -990,15 +988,12 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
         }
 
-        //TODO: If change of orgUnit shouldn't be supported, the code below can be removed
-        //---------FROM HERE---------
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
 
         if ( organisationUnit == null )
         {
             organisationUnit = programStageInstance.getOrganisationUnit();
         }
-        //---------UNTIL HERE---------
 
         Date executionDate = new Date();
 
@@ -1062,7 +1057,6 @@ public abstract class AbstractEventService
         }
 
         programStageInstance.setDueDate( dueDate );
-        //TODO: If change of orgUnit shouldn't be supported, the line below can be removed
         programStageInstance.setOrganisationUnit( organisationUnit );
 
         if ( !singleValue )
@@ -1104,9 +1098,6 @@ public abstract class AbstractEventService
 
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
         }
-
-        //TODO: Can event be deleted through UPDATE?
-        programStageInstance.setDeleted( event.isDeleted() );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
         updateTrackedEntityInstance( programStageInstance, user );
@@ -1626,8 +1617,6 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
-        //TODO: Can even be set as deleted via POST (create) method? Does it make any sense? (Deletion should be done in a way by using DELETE importStatregy and so delete method should be called.)
-        programStageInstance.setDeleted( event.isDeleted() );
 
         if ( programStage.getCaptureCoordinates() )
         {

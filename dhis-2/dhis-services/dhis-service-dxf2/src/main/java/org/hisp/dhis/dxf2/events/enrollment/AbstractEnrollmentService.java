@@ -535,7 +535,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
+    public ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
         User user = currentUserService.getCurrentUser();
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
@@ -548,7 +548,7 @@ public abstract class AbstractEnrollmentService
 
             for ( Enrollment enrollment : _enrollments )
             {
-                importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions, user, daoTrackedEntityInstance ) );
+                importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions, user ) );
             }
 
             if ( clearSession && enrollments.size() >= FLUSH_FREQUENCY )
@@ -563,11 +563,11 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions )
     {
-        return updateEnrollment( enrollment, importOptions, currentUserService.getCurrentUser(), null );
+        return updateEnrollment( enrollment, importOptions, currentUserService.getCurrentUser() );
     }
 
     @Override
-    public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
+    public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user )
     {
         if ( importOptions == null )
         {
@@ -600,11 +600,6 @@ public abstract class AbstractEnrollmentService
             importSummary.setConflicts( importConflicts );
 
             return importSummary;
-        }
-
-        if ( daoTrackedEntityInstance == null )
-        {
-            daoTrackedEntityInstance = getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
         }
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
@@ -664,8 +659,7 @@ public abstract class AbstractEnrollmentService
         updateDateFields( enrollment, programInstance );
 
         programInstanceService.updateProgramInstance( programInstance );
-        //TODO: I think, the programInstance.getEntityInstance() can be used instead of daoTrackedEntityInstance, and so daoTrackedEntityInstance variable is not needed at all ... (check delete method, where it is used)
-        teiService.updateTrackedEntityInstance( daoTrackedEntityInstance );
+        teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
         saveTrackedEntityComment( programInstance, enrollment );
 
