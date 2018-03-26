@@ -266,7 +266,7 @@ public class EnrollmentController
         ImportSummary importSummary = enrollmentService.updateEnrollmentXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( importSummary.getWebMessage(), response, request );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
@@ -276,7 +276,7 @@ public class EnrollmentController
         ImportSummary importSummary = enrollmentService.updateEnrollmentJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( importSummary.getWebMessage(), response, request );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     @RequestMapping( value = "/{id}/cancelled", method = RequestMethod.PUT )
@@ -323,7 +323,7 @@ public class EnrollmentController
     public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
     {
         ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
-        webMessageService.send( importSummary.getWebMessage(), response, request );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     // -------------------------------------------------------------------------

@@ -759,7 +759,7 @@ public class EventController
     {
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions );
         importSummary.setImportOptions( importOptions );
-        webMessageService.send( importSummary.getWebMessage(), response, request );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     @RequestMapping( value = "/{uid}/{dataElementUid}", method = RequestMethod.PUT, consumes = "application/json" )
@@ -807,7 +807,7 @@ public class EventController
         @PathVariable( "uid" ) String uid )
     {
         ImportSummary importSummary = eventService.deleteEvent( uid );
-        webMessageService.send( importSummary.getWebMessage(), response, request );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     // -------------------------------------------------------------------------

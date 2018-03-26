@@ -45,8 +45,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
@@ -493,25 +491,17 @@ public abstract class AbstractTrackedEntityInstanceService
                 errorMsg = "trackedEntityInstance " + dtoEntityInstance.getTrackedEntityInstance()
                     + " does not point to valid trackedEntityInstance";
                 importConflicts.add( new ImportConflict( "TrackedEntityInstance", errorMsg ) );
-                importSummary.setWebMessage( WebMessageUtils.notFound( errorMsg ) );
             }
             else if ( !errors.isEmpty() )
             {
                 importSummary.setDescription( errors.toString() );
-                importSummary.setWebMessage( WebMessageUtils.forbidden( errors.toString() ) );
             }
             else if ( organisationUnit == null )
             {
                 errorMsg = "orgUnit " + dtoEntityInstance.getOrgUnit()
                     + " does not point to valid organisation unit";
                 importConflicts.add( new ImportConflict( "OrganisationUnit", errorMsg ) );
-                importSummary.setWebMessage( WebMessageUtils.badRequest( errorMsg ) );
             }
-            else
-            {
-                importSummary.setWebMessage( WebMessageUtils.badRequest( importConflicts.toString() ) );
-            }
-
 
             importSummary.setConflicts( importConflicts );
             return importSummary;
@@ -536,7 +526,6 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.getImportCount().incrementUpdated();
 
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
-        importSummary.setWebMessage( WebMessageUtils.importSummary( importSummary ) );
 
         return importSummary;
     }
@@ -554,7 +543,6 @@ public abstract class AbstractTrackedEntityInstanceService
     private ImportSummary deleteTrackedEntityInstance( String uid, TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions )
     {
         String descMsg = "Deletion of tracked entity instance " + uid + " was successful";
-        WebMessage webMsg = null;
         ImportSummary importSummary = null;
 
         boolean existsTei = teiService.trackedEntityInstanceExists( uid );
@@ -578,8 +566,7 @@ public abstract class AbstractTrackedEntityInstanceService
             if ( !notDeletedProgramInstances.isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
                 descMsg = "The " + daoEntityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
-                webMsg = WebMessageUtils.forbidden( descMsg );
-                return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
+                return new ImportSummary( ImportStatus.ERROR, descMsg ).incrementIgnored();
             }
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
@@ -592,16 +579,10 @@ public abstract class AbstractTrackedEntityInstanceService
                 importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg );
             }
 
-            importSummary.incrementDeleted();
-            webMsg = WebMessageUtils.importSummary( importSummary );
-            importSummary.setWebMessage( webMsg );
-
-            return importSummary;
+            return importSummary.incrementDeleted();
         }
 
-        descMsg = "ID " + uid + " does not point to a valid tracked entity instance";
-        webMsg = WebMessageUtils.notFound( descMsg );
-        return new ImportSummary( ImportStatus.ERROR, descMsg, webMsg ).incrementIgnored();
+        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid tracked entity instance" ).incrementIgnored();
     }
 
     @Override
