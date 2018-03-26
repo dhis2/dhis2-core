@@ -1154,7 +1154,7 @@ public abstract class AbstractEventService
                 {
                     programRuleEngineService.evaluate( programStageInstance );
                 }
-
+                
                 //Marking that this dataValue was a part of an update, so it shouldn't be removed at the end.
                 dataValues.remove( teiDataValue );
             }
