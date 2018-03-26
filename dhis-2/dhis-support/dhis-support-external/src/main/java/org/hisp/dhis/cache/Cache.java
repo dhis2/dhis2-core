@@ -34,86 +34,56 @@ public interface Cache<V>
 {
     /**
      * Returns the value associated with the {@code key} in this cache instance,
-     * or {@code Optional.empty()} if there is no cached value for the
-     * {@code key}.
-     * <p>
-     * Note: This method will NOT return the defaultValue in case of absence of
-     * associated cache value.
-     * </p>
+     * or {@code Optional.empty()} if there is no cached value.Note: This method
+     * will NOT return the defaultValue in case of absence of associated cache
+     * value.
      *
-     * @param key the key whose associated value is to be returned from the
-     *        cache instance
-     * 
-     * @return the value wrapped in Optional, to which the specified key is
-     *         mapped in the cache instance or {@code Optional.empty()} if this
-     *         cache contains no mapping for the key
+     * @param key the key whose associated value is to be retrieved
+     * @return the value wrapped in Optional, or {@code Optional.empty()}
      * @throws IllegalArgumentException if the specified key is null
      */
     Optional<V> getIfPresent( String key );
 
     /**
      * Returns the value associated with the {@code key} in this cache instance,
-     * or {@code defaultValue} if there is no cached value for the {@code key}.
-     * 
-     * <p>
-     * Note: This method will return the defaultValue in case of absence of
-     * associated cache value. But will not store the default value into the
-     * cache.
-     * </p>
+     * or {@code defaultValue} if there is no cached value.Note: This method
+     * will return the defaultValue in case of absence of associated cache
+     * value. But will not store the default value into the cache.
      *
-     * @param key the key whose associated value is to be returned from the
-     *        cache instance
-     * 
-     * @return the value wrapped in Optional, to which the specified key is
-     *         mapped in the cache instance or {@code Optional of defaultValue}
-     *         if this cache contains no mapping for the key
+     * @param key the key whose associated value is to be retrieved
+     * @return the value wrapped in Optional, or
+     *         {@code Optional of defaultValue}
      * @throws IllegalArgumentException if the specified key is null
      */
     Optional<V> get( String key );
 
     /**
-     * Returns the value associated with the {@code key} in this cache instance,
-     * obtaining that value from the {@code mappingFunction} if necessary. This
-     * method provides a simple substitute for the conventional "if cached,
-     * return; otherwise create, cache and return" pattern.
-     * <p>
-     * If the specified key is not already associated with a value, attempts to
-     * compute its value using the given mapping function and enters it into
-     * this cache unless {@code null}. The computation should be short and
-     * simple, and must not attempt to update any other mappings of this cache.
-     * </p>
-     * 
-     * <p>
-     * Note: This method will return the defaultValue in case of absence of
-     * associated cache value. But will not store the default value into the
-     * cache.
-     * </p>
-     * 
+     * Returns the value mapped to {@code key} in this cache instance, obtaining
+     * that value from the {@code mappingFunction} if necessary. This method
+     * provides a simple substitute for the conventional "if cached, return;
+     * otherwise create, cache and return" pattern. If value is null, the given
+     * mapping function is evaluated and entered into this cache unless
+     * {@code null}. Note: This method will return the defaultValue in case of
+     * absence of associated cache value. But will not store the default value
+     * into the cache.
      *
-     * @param key the key with which the specified value is to be associated
-     * @param mappingFunction the function to compute a value
-     * @return an optional containing current (existing or computed) value
-     *         associated with the specified key, or Optional.empty() if the
-     *         computed value is null
+     * @param key the key for retrieving the value
+     * @param mappingFunction the function to compute a value.
+     * @return an optional containing current (existing or computed) value, or
+     *         Optional.empty() if the computed value is null
      * @throws IllegalArgumentException if the specified key is null
-     * @throws IllegalStateException if the computation detectably attempts a
-     *         recursive update to this cache that would otherwise never
-     *         complete
-     * @throws RuntimeException or Error if the mappingFunction does so, in
-     *         which case the mapping is left unestablished
      */
     Optional<V> get( String key, Function<String, V> mappingFunction );
 
     /**
      * Associates the {@code value} with the {@code key} in this cache. If the
      * cache previously contained a value associated with the {@code key}, the
-     * old value is replaced by the new {@code value}.
-     * <p>
-     * Prefer {@link #get(String, Function)} when using the conventional "if
-     * cached, return; otherwise create, cache and return" pattern.
+     * old value is replaced by the new {@code value}.Prefer
+     * {@link #get(String, Function)} when using the conventional "if cached,
+     * return; otherwise create, cache and return" pattern.
      *
-     * @param key the key with which the specified value is to be associated
-     * @param value value to be associated with the specified key
+     * @param key the key for the value
+     * @param value value to be mapped to the key
      * @throws IllegalArgumentException if the specified key or value is null
      */
     void put( String key, V value );

@@ -41,18 +41,14 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Ameen Mohamed
  *
  */
-public class RedisEnabledCondition
-    implements
-    ConfigurationCondition
+public class RedisEnabledCondition implements ConfigurationCondition
 {
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-
         DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
             .getBean( "dhisConfigurationProvider" );
         return dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
-
     }
 
     @Override
@@ -60,5 +56,4 @@ public class RedisEnabledCondition
     {
         return ConfigurationPhase.REGISTER_BEAN;
     }
-
 }

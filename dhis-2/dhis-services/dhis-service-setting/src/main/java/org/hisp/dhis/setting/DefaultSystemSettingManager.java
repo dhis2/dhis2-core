@@ -84,6 +84,15 @@ public class DefaultSystemSettingManager
   
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+    
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    @Resource( name = "tripleDesStringEncryptor" )
+    private PBEStringEncryptor pbeStringEncryptor;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
 
 
     public void setSystemSettingStore( SystemSettingStore systemSettingStore )
@@ -98,15 +107,6 @@ public class DefaultSystemSettingManager
         this.flags = flags;
     }
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
-    @Resource( name = "tripleDesStringEncryptor" )
-    private PBEStringEncryptor pbeStringEncryptor;
-    
-    @Autowired
-    private CacheProvider cacheProvider;
-    
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------

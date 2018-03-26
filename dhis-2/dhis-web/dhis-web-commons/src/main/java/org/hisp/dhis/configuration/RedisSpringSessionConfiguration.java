@@ -1,7 +1,5 @@
 package org.hisp.dhis.configuration;
 
-import org.hisp.dhis.condition.RedisEnabledCondition;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,6 +28,7 @@ import org.hisp.dhis.condition.RedisEnabledCondition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;

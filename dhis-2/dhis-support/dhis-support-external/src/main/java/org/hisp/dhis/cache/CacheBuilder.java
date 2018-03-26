@@ -68,7 +68,7 @@ public class CacheBuilder<V>
     {
         this.configurationProvider = configurationProvider;
         this.redisTemplate = redisTemplate;
-        //Applying sensinble defaults
+        //Applying sensible defaults
         this.maximumSize = -1;
         this.region = "default";
         this.refreshExpiryOnAccess = false;
@@ -190,17 +190,17 @@ public class CacheBuilder<V>
     {
         if ( maximumSize == 0 )
         {
-            log.info( "NoOp Cache instance created for region=" + region );
+            log.info( String.format( "NoOp Cache instance created for region:'%s'", region ) );
             return new NoOpCache<V>( this );
         }
         else if ( configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ) )
         {
-            log.info( "Redis Cache instance created for region=" + region );
+            log.info( String.format( "Redis Cache instance created for region:'%s'", region ) );
             return new RedisCache<V>( this );
         }
         else
         {
-            log.info( "Local Cache instance created for region=" + region );
+            log.info( String.format( "Local Cache instance created for region:'%s'", region ) );
             return new LocalCache<V>( this );
         }
     }

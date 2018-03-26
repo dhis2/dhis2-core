@@ -95,7 +95,22 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    
+    @Autowired
+    private CurrentUserService currentUserService;
 
+    @Autowired
+    private UserSettingService userSettingService;
+
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
+    
     private PasswordManager passwordManager;
 
     public void setPasswordManager( PasswordManager passwordManager )
@@ -130,21 +145,6 @@ public class DefaultSecurityService
     {
         this.i18nManager = i18nManager;
     }
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    @Autowired
-    private AclService aclService;
-
-    @Autowired
-    private RestTemplate restTemplate;
-    
-    @Autowired
-    private CacheProvider cacheProvider;
     
     // -------------------------------------------------------------------------
     // Initialization

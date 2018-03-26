@@ -71,16 +71,23 @@ public class DefaultUserSettingService
  
     private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
+    
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+    
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
 
     private String getCacheKey( String settingName, String username )
     {
         return settingName + DimensionalObject.ITEM_SEP + username;
     }
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
+ 
     private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
@@ -109,12 +116,6 @@ public class DefaultUserSettingService
         this.systemSettingManager = systemSettingManager;
     }
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-    
-    @Autowired
-    private CacheProvider cacheProvider;
-    
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------

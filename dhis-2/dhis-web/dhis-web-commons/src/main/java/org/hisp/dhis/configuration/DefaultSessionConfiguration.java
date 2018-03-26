@@ -53,8 +53,6 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @Conditional( RedisDisabledCondition.class )
 public class DefaultSessionConfiguration
 {
-
-    
     /**
      * Defines a {@link CharacterEncodingFilter} named
      * springSessionRepositoryFilter
@@ -66,5 +64,4 @@ public class DefaultSessionConfiguration
     {
         return new CharacterEncodingFilter();
     }
-
 }
