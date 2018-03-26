@@ -30,8 +30,8 @@ package org.hisp.dhis.de.action;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -69,9 +69,9 @@ public class SaveMinMaxLimitsAction
         this.dataElementService = dataElementService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -141,8 +141,8 @@ public class SaveMinMaxLimitsAction
 
         DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
-        CategoryOptionCombo optionCombo = categoryService
-            .getCategoryOptionCombo( categoryOptionComboId );
+        DataElementCategoryOptionCombo optionCombo = categoryService
+            .getDataElementCategoryOptionCombo( categoryOptionComboId );
 
         MinMaxDataElement minMaxDataElement = minMaxDataElementService.getMinMaxDataElement( organisationUnit,
             dataElement, optionCombo );

@@ -1,0 +1,88 @@
+<script type="text/javascript">
+var i18n_confirm_deletes = '$encoder.jsEscape( $i18n.getString( "confirm_delete_lock_exceptions" ) , "'")';
+var i18n_deleting_lock_exceptions = '$encoder.jsEscape( $i18n.getString( "deleting_lock_exceptions" ) , "'")';
+
+$(function() {
+  dhis2.contextmenu.makeContextMenu({
+    menuId: 'contextMenu',
+    menuItemActiveClass: 'contextMenuItemActive',
+    listItemProps: ['id', 'uid', 'name', 'type', 'period-id', 'ds-id']
+  });
+});
+
+function removeLockExceptions( context ) {
+  var result = window.confirm(i18n_confirm_deletes + "\n\n" + context.name );
+
+  if( result ) {
+    setHeaderMessage(i18n_deleting_lock_exceptions, 0);
+
+    $.postJSON(
+      "batchRemoveLockException.action",
+      {
+        "dataSetId": context['ds-id'],
+        "periodId": context['period-id']
+      },
+      function( json ) {
+        if( json.response == "success" ) {
+          jQuery("tr#ds" + context['ds-id'] + "p" + context['period-id']).remove();
+
+          jQuery("table.listTable tbody tr").removeClass("listRow listAlternateRow");
+          jQuery("table.listTable tbody tr:odd").addClass("listAlternateRow");
+          jQuery("table.listTable tbody tr:even").addClass("listRow");
+          jQuery("table.listTable tbody").trigger("update");
+
+          setHeaderDelayMessage(i18n_delete_success);
+        }
+        else if( json.response == "error" ) {
+          setHeaderDelayMessage(json.message);
+        }
+      }
+    );
+  }
+}
+</script>
+
+<h3>$i18n.getString( "lock_exception_batch_removal" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="removeLockExceptions"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+	<tr>
+		<td style="vertical-align:top">
+      <table width="100%">
+        <tr>
+          <td colspan="4" style="text-align:right">
+             <input type="button" value="$i18n.getString( 'back_to_lock_exceptions' )" onclick="window.location.href='lockException.action'" style="width:160px"/>
+          </td>
+        </tr>
+      </table>
+			<table class="listTable" id="listTable">
+				<col/>
+        <thead>
+				<tr>
+					<th>$i18n.getString( "name" )</th>
+				</tr>
+        </thead>
+				<tbody id="list">
+
+				#foreach( $lockException in $lockExceptions )
+				<tr id="ds${lockException.dataSet.id}p${lockException.period.id}">
+          <td data-period-id="$lockException.period.id" data-ds-id="$lockException.dataSet.id" data-id="$!lockException.id" data-uid="$!lockException.uid" data-type="LockException" data-name="$encoder.htmlEncode( $!lockException.name )">
+            $encoder.htmlEncode( $!lockException.name )
+          </td>
+				</tr>
+				#end
+
+				</tbody>
+			</table>
+		</td>
+
+        <td style="width:20em; padding-left:2em; vertical-align:top">
+        </td>
+
+    </tr>
+</table>

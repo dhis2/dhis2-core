@@ -28,10 +28,10 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 public interface SectionStore
-    extends IdentifiableObjectStore<Section>
+    extends GenericIdentifiableObjectStore<Section>
 {
     String ID = SectionStore.class.getName();
 

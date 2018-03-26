@@ -28,11 +28,21 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
@@ -43,15 +53,10 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -75,13 +80,13 @@ public class DataValueBatchHandlerTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     private BatchHandler<DataValue> batchHandler;
     
     private DataElement dataElementA;
     
-    private CategoryOptionCombo categoryOptionComboA;
+    private DataElementCategoryOptionCombo categoryOptionComboA;
     
     private PeriodType periodTypeA;
     
@@ -113,7 +118,7 @@ public class DataValueBatchHandlerTest
         
         dataElementService.addDataElement( dataElementA );        
         
-        categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
+        categoryOptionComboA = categoryService.getDefaultDataElementCategoryOptionCombo();
         
         periodTypeA = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
         

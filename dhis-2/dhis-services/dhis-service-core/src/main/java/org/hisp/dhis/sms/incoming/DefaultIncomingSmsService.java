@@ -31,14 +31,12 @@ package org.hisp.dhis.sms.incoming;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
 
 public class DefaultIncomingSmsService
     implements IncomingSmsService
 {
-    private static final String DEFAULT_GATEWAY = "default";
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -64,32 +62,21 @@ public class DefaultIncomingSmsService
     @Override
     public List<IncomingSms> listAllMessage()
     {
-        return incomingSmsStore.getAllSmses();
+        return (List<IncomingSms>) incomingSmsStore.getAllSmses();
     }
 
     @Override
-    public int save( IncomingSms sms )
+    public int save( IncomingSms incomingSms )
     {
-        if ( sms.getReceivedDate() != null )
-        {
-            sms.setSentDate( sms.getReceivedDate() );
-        }
-        else
-        {
-            sms.setSentDate( new Date() );
-        }
-
-        sms.setReceivedDate( new Date() );
-        sms.setGatewayId( StringUtils.defaultIfBlank( sms.getGatewayId(), DEFAULT_GATEWAY ) );
-
-        incomingSmsStore.save( sms );
-        incomingSmsQueue.put( sms );
-        return sms.getId();
+        int smsId = incomingSmsStore.save( incomingSms );
+        incomingSmsQueue.put( incomingSms );
+        return smsId;
     }
 
     @Override
     public int save( String message, String originator, String gateway, Date receivedTime, User user )
     {
+
         IncomingSms sms = new IncomingSms();
         sms.setText( message );
         sms.setOriginator( originator );
@@ -106,6 +93,8 @@ public class DefaultIncomingSmsService
         }
         
         sms.setReceivedDate( new Date() );
+        sms.setEncoding( SmsMessageEncoding.ENC7BIT );
+        sms.setStatus( SmsMessageStatus.INCOMING );
         
         return save( sms );
     }

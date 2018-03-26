@@ -32,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.awt.Color;
 
-import org.junit.Before;
+import org.hisp.dhis.DhisSpringTest;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -40,11 +40,12 @@ import org.junit.Test;
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  */
 public class GeoToolsMapObjectTest
+    extends DhisSpringTest
 {
     private InternalMapObject geoToolsMapObject;
 
-    @Before
-    public void before()
+    @Override
+    public void setUpTest()
     {
         geoToolsMapObject = new InternalMapObject();
     }

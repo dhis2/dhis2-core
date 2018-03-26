@@ -46,13 +46,13 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -99,6 +99,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -143,13 +144,13 @@ public class Metadata
 
     private List<OptionSet> optionSets = new ArrayList<>();
 
-    private List<Category> categories = new ArrayList<>();
+    private List<DataElementCategory> categories = new ArrayList<>();
 
-    private List<CategoryOption> categoryOptions = new ArrayList<>();
+    private List<DataElementCategoryOption> categoryOptions = new ArrayList<>();
 
-    private List<CategoryCombo> categoryCombos = new ArrayList<>();
+    private List<DataElementCategoryCombo> categoryCombos = new ArrayList<>();
 
-    private List<CategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
+    private List<DataElementCategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
 
     private List<CategoryOptionGroup> categoryOptionGroups = new ArrayList<>();
 
@@ -228,6 +229,8 @@ public class Metadata
     private List<ProgramStageSection> programStageSections = new ArrayList<>();
 
     private List<RelationshipType> relationshipTypes = new ArrayList<>();
+
+    private List<ValidationCriteria> validationCriterias = new ArrayList<>();
 
     private List<ProgramRule> programRules = new ArrayList<>();
 
@@ -465,12 +468,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categories", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Category> getCategories()
+    public List<DataElementCategory> getCategories()
     {
         return categories;
     }
 
-    public void setCategories( List<Category> categories )
+    public void setCategories( List<DataElementCategory> categories )
     {
         this.categories = categories;
     }
@@ -478,12 +481,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public List<CategoryOption> getCategoryOptions()
+    public List<DataElementCategoryOption> getCategoryOptions()
     {
         return categoryOptions;
     }
 
-    public void setCategoryOptions( List<CategoryOption> categoryOptions )
+    public void setCategoryOptions( List<DataElementCategoryOption> categoryOptions )
     {
         this.categoryOptions = categoryOptions;
     }
@@ -491,12 +494,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public List<CategoryCombo> getCategoryCombos()
+    public List<DataElementCategoryCombo> getCategoryCombos()
     {
         return categoryCombos;
     }
 
-    public void setCategoryCombos( List<CategoryCombo> categoryCombos )
+    public void setCategoryCombos( List<DataElementCategoryCombo> categoryCombos )
     {
         this.categoryCombos = categoryCombos;
     }
@@ -504,12 +507,12 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public List<CategoryOptionCombo> getCategoryOptionCombos()
+    public List<DataElementCategoryOptionCombo> getCategoryOptionCombos()
     {
         return categoryOptionCombos;
     }
 
-    public void setCategoryOptionCombos( List<CategoryOptionCombo> categoryOptionCombos )
+    public void setCategoryOptionCombos( List<DataElementCategoryOptionCombo> categoryOptionCombos )
     {
         this.categoryOptionCombos = categoryOptionCombos;
     }
@@ -954,6 +957,19 @@ public class Metadata
     public void setRelationshipTypes( List<RelationshipType> relationshipTypes )
     {
         this.relationshipTypes = relationshipTypes;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "validationCriterias", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "validationCriteria", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ValidationCriteria> getValidationCriterias()
+    {
+        return validationCriterias;
+    }
+
+    public void setValidationCriterias( List<ValidationCriteria> validationCriterias )
+    {
+        this.validationCriterias = validationCriterias;
     }
 
     @JsonProperty

@@ -1,0 +1,70 @@
+<script>
+
+    function submitForm()
+    {
+    	#tblDynamicAttributesJavascript()
+		jQuery("#addSqlViewForm").submit();
+    }
+
+</script>
+
+<input type="hidden" id="curLocaleCode" value="$locale.getLanguage()_$locale.getCountry()"/>
+
+<h3>$encoder.htmlEncode( $i18n.getString( "add_new_sql_view" ) )</h3>
+
+#sharingCreateNotification( "sqlView" )
+
+<form id="addSqlViewForm" action="addSqlView.action" method="post" class="inputForm">
+    <table>
+        <tr>
+            <th colspan="2">$i18n.getString( "details" )</th>
+        </tr>
+        <tr>
+            <td><label for="name">$encoder.htmlEncode( $i18n.getString( "name" ) ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+            <td><input type="text" id="name" name="name"></td>
+        </tr>
+        <tr>
+            <td><label for="description">$encoder.htmlEncode( $i18n.getString( "description" ) )</label></td>
+            <td><textarea id="description" name="description"></textarea></td>
+        </tr>
+        <tr>
+            <td><label for="cacheStrategy">$encoder.htmlEncode( $i18n.getString( "cache_strategy" ) )</label></td>
+            <td>
+                <select id="cacheStrategy" name="cacheStrategy">
+                    <option value="RESPECT_SYSTEM_SETTING">$i18n.getString( "respect_system_setting" )</option>
+                    <option value="NO_CACHE">$i18n.getString( "no_cache" )</option>
+                    <option value="CACHE_1_HOUR">$i18n.getString( "cache_for_one_hour" )</option>
+                    <option value="CACHE_6AM_TOMORROW">$i18n.getString( "cache_until_6am_tomorrow" )</option>
+                    <option value="CACHE_TWO_WEEKS">$i18n.getString( "cache_for_two_weeks" )</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label for="type">$encoder.htmlEncode( $i18n.getString( "sql_type" ) )</label></td>
+            <td>
+                <select id="type" name="type">
+                    <option value="VIEW">$i18n.getString( "sql_view_type" ) ($i18n.getString( "created_in_database" ))</option>
+                    <option value="MATERIALIZED_VIEW">$i18n.getString( "materialized_sql_view_type" ) ($i18n.getString( "materialized_in_database" ))</option>
+                    <option value="QUERY">$i18n.getString( "sql_query_type" ) ($i18n.getString( "allows_for_variables" ))</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label for="sql_statement">$encoder.htmlEncode( $i18n.getString( "sql_statement" ) ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+            <td><textarea type="text" id="sqlquery" name="sqlquery" style="width:80em;height:20em">select </textarea></td>
+        </tr>
+    </table>
+
+    #tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+    <table>
+        <tr>
+            <td></td>
+            <td>
+                <input type="button" onclick="submitForm()"" value="$i18n.getString( 'save' )" style="width:10em" />
+                <input type="button" value="$i18n.getString( 'cancel' )" id="cancel" name="cancel" onclick="window.location.href='sqlView.action'" style="width:10em" />
+            </td>
+        </tr>
+    </table>
+
+</form>

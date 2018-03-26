@@ -28,7 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,9 +44,9 @@ public class DefaultTrackedEntityTypeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
+    private GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
 
-    public void setTrackedEntityTypeStore( IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
+    public void setTrackedEntityTypeStore( GenericIdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
     {
         this.trackedEntityTypeStore = trackedEntityTypeStore;
     }

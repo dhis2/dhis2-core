@@ -42,8 +42,8 @@ import javax.annotation.Resource;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -94,7 +94,7 @@ public class DataSetCompletenessServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private DataSetCompletenessService registrationCompletenessService;
@@ -135,7 +135,7 @@ public class DataSetCompletenessServiceTest
     private DataElement dataElementA;
     private DataElement dataElementB;
     
-    private CategoryOptionCombo categoryOptionCombo;
+    private DataElementCategoryOptionCombo categoryOptionCombo;
     
     private Date onTimeA;
     private Date tooLateA;
@@ -153,7 +153,7 @@ public class DataSetCompletenessServiceTest
     {
         setExternalTestDir( locationManager );
     
-        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         
         periodType = new MonthlyPeriodType();
         

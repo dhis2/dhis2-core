@@ -32,9 +32,6 @@ import com.google.common.base.MoreObjects;
 
 import com.google.common.collect.*;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -112,7 +109,7 @@ public class DataQueryParams
     public static final int DX_INDEX = 0;
 
     public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of( 
-        OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, Category.class );
+        OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, DataElementCategory.class );
     
     private static final ImmutableSet<String> DIMENSION_PERMUTATION_IGNORE_DIMS = ImmutableSet.of(
         DATA_X_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID );
@@ -930,14 +927,14 @@ public class DataQueryParams
 
             if ( !des.isEmpty() )
             {
-                Set<CategoryCombo> categoryCombos = Sets.newHashSet();
+                Set<DataElementCategoryCombo> categoryCombos = Sets.newHashSet();
 
                 for ( DimensionalItemObject de : des )
                 {
                     categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
                 }
 
-                for ( CategoryCombo cc : categoryCombos )
+                for ( DataElementCategoryCombo cc : categoryCombos )
                 {
                     items.addAll( cc.getSortedOptionCombos() );
                 }
@@ -2345,7 +2342,7 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withCategory( Category category )
+        public Builder withCategory( DataElementCategory category )
         {
             this.params.setDimensionOptions( category.getUid(), DimensionType.CATEGORY, null, new ArrayList<>( category.getItems() ) );
             return this;

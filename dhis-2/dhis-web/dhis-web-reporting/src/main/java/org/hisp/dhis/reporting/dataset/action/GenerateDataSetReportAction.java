@@ -32,8 +32,8 @@ import com.opensymphony.xwork2.Action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -101,9 +101,9 @@ public class GenerateDataSetReportAction
         this.periodService = periodService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -258,7 +258,7 @@ public class GenerateDataSetReportAction
 
         FormType formType = selectedDataSet.getFormType();
 
-        CategoryOptionCombo attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo attributeOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         registration = registrationService.getCompleteDataSetRegistration( selectedDataSet, selectedPeriod, selectedOrgunit, attributeOptionCombo );
 

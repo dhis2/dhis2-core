@@ -73,9 +73,9 @@ public class DefaultReportTableService
         this.reportTableStore = reportTableStore;
     }
 
-    private IdentifiableObjectStore<Report> reportStore;
+    private GenericIdentifiableObjectStore<Report> reportStore;
 
-    public void setReportStore( IdentifiableObjectStore<Report> reportStore )
+    public void setReportStore( GenericIdentifiableObjectStore<Report> reportStore )
     {
         this.reportStore = reportStore;
     }

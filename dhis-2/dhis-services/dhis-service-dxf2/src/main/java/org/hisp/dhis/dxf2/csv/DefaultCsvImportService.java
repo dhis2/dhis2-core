@@ -32,10 +32,6 @@ import com.csvreader.CsvReader;
 import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
@@ -80,7 +76,7 @@ public class DefaultCsvImportService
     implements CsvImportService
 {
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
@@ -259,10 +255,10 @@ public class DefaultCsvImportService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private List<CategoryOption> categoryOptionsFromCsv( CsvReader reader )
+    private List<DataElementCategoryOption> categoryOptionsFromCsv( CsvReader reader )
         throws IOException
     {
-        List<CategoryOption> list = new ArrayList<>();
+        List<DataElementCategoryOption> list = new ArrayList<>();
 
         while ( reader.readRecord() )
         {
@@ -270,7 +266,7 @@ public class DefaultCsvImportService
 
             if ( values != null && values.length > 0 )
             {
-                CategoryOption object = new CategoryOption();
+                DataElementCategoryOption object = new DataElementCategoryOption();
                 setIdentifiableObject( object, values );
                 object.setShortName( getSafe( values, 3, object.getName(), 50 ) );
                 list.add( object );
@@ -304,7 +300,7 @@ public class DefaultCsvImportService
     private List<DataElement> dataElementsFromCsv( CsvReader reader )
         throws IOException
     {
-        CategoryCombo categoryCombo = categoryService.getDefaultCategoryCombo();
+        DataElementCategoryCombo categoryCombo = categoryService.getDefaultDataElementCategoryCombo();
 
         List<DataElement> list = new ArrayList<>();
 
@@ -333,7 +329,7 @@ public class DefaultCsvImportService
                 String commentOptionSetUid = getSafe( values, 13, null, 11 );
                 object.setAutoFields();
 
-                CategoryCombo cc = new CategoryCombo();
+                DataElementCategoryCombo cc = new DataElementCategoryCombo();
                 cc.setUid( categoryComboUid );
                 cc.setAutoFields();
 

@@ -28,13 +28,13 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Ken Haase
  */
 public interface PredictorStore
-    extends IdentifiableObjectStore<Predictor>
+    extends GenericIdentifiableObjectStore<Predictor>
 {
     String ID = PredictorStore.class.getName();
 }

@@ -1,0 +1,10 @@
+{ "constant":
+  {
+    "id": "${constant.id}",
+	"uid": "${constant.uid}",
+	"name": "$!encoder.jsonEncode( ${constant.name} )",
+	"shortName": "$!encoder.jsonEncode( ${constant.shortName} )",
+	"code": "$!{constant.code}",
+	"value": "$!{constant.value}"
+  }
+}

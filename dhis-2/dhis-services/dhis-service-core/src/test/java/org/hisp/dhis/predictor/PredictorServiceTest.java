@@ -32,11 +32,11 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -68,7 +68,7 @@ public class PredictorServiceTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -81,17 +81,17 @@ public class PredictorServiceTest
     private DataElement dataElementD;
     private DataElement dataElementX;
 
-    private CategoryOptionCombo defaultCombo;
+    private DataElementCategoryOptionCombo defaultCombo;
 
-    private CategoryOptionCombo altCombo;
+    private DataElementCategoryOptionCombo altCombo;
 
-    CategoryOption altCategoryOption;
-    Category altCategory;
-    CategoryCombo altCategoryCombo;
+    DataElementCategoryOption altCategoryOption;
+    DataElementCategory altDataElementCategory;
+    DataElementCategoryCombo altDataElementCategoryCombo;
 
     private Set<DataElement> dataElements;
 
-    private Set<CategoryOptionCombo> optionCombos;
+    private Set<DataElementCategoryOptionCombo> optionCombos;
 
     private Expression expressionA;
     private Expression expressionB;
@@ -132,25 +132,25 @@ public class PredictorServiceTest
 
         periodTypeMonthly = PeriodType.getPeriodTypeByName( "Monthly" );
 
-        CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
-        defaultCombo = categoryService.getDefaultCategoryOptionCombo();
+        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
-        altCategoryOption = new CategoryOption( "AltCategoryOption" );
-        categoryService.addCategoryOption( altCategoryOption );
-        altCategory = createCategory( 'A', altCategoryOption );
-        categoryService.addCategory( altCategory );
+        altCategoryOption = new DataElementCategoryOption( "AltCategoryOption" );
+        categoryService.addDataElementCategoryOption( altCategoryOption );
+        altDataElementCategory = createDataElementCategory( 'A', altCategoryOption );
+        categoryService.addDataElementCategory( altDataElementCategory );
 
-        altCategoryCombo = createCategoryCombo( 'Y', altCategory );
-        categoryService.addCategoryCombo( altCategoryCombo );
+        altDataElementCategoryCombo = createCategoryCombo( 'Y', altDataElementCategory );
+        categoryService.addDataElementCategoryCombo( altDataElementCategoryCombo );
 
-        altCombo = createCategoryOptionCombo( 'Z', altCategoryCombo, altCategoryOption );
+        altCombo = createCategoryOptionCombo( 'Z', altDataElementCategoryCombo, altCategoryOption );
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
         optionCombos.add( altCombo );
 
-        categoryService.addCategoryOptionCombo( altCombo );
+        categoryService.addDataElementCategoryOptionCombo( altCombo );
 
         expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );

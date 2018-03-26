@@ -70,18 +70,26 @@ public class HibernateProgramInstanceStore
         );
 
     @Override
-    public int countProgramInstances( ProgramInstanceQueryParams params )
+    public int countDeletedProgramInstances( ProgramInstanceQueryParams params )
     {
-        String hql = buildCountProgramInstanceHql( params );
+        SqlHelper hlp = new SqlHelper( true );
+        String hql = buildProgramInstanceHqlBase( params, hlp );
+        hql += hlp.whereAnd() + " pi.deleted is true ";
 
+        hql.replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
         Query query = getQuery( hql );
 
         return ((Number) query.iterate().next()).intValue();
     }
 
-    public String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
+    @Override
+    public int countProgramInstances( ProgramInstanceQueryParams params )
     {
-        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
+        String hql = buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
+
+        Query query = getQuery( hql );
+
+        return ((Number) query.iterate().next()).intValue();
     }
 
     @Override
@@ -103,8 +111,21 @@ public class HibernateProgramInstanceStore
 
     private String buildProgramInstanceHql( ProgramInstanceQueryParams params )
     {
-        String hql = "from ProgramInstance pi";
+
         SqlHelper hlp = new SqlHelper( true );
+        String hql = buildProgramInstanceHqlBase( params, hlp );
+
+        if ( !params.isIncludeDeleted() )
+        {
+            hql += hlp.whereAnd() + " pi.deleted is false ";
+        }
+
+        return hql;
+    }
+
+    private String buildProgramInstanceHqlBase( ProgramInstanceQueryParams params, SqlHelper hlp )
+    {
+        String hql = "from ProgramInstance pi";
 
         if ( params.hasLastUpdated() )
         {
@@ -166,11 +187,6 @@ public class HibernateProgramInstanceStore
         if ( params.hasProgramEndDate() )
         {
             hql += hlp.whereAnd() + "pi.enrollmentDate <= '" + getMediumDateString( params.getProgramEndDate() ) + "'";
-        }
-
-        if ( !params.isIncludeDeleted() )
-        {
-            hql += hlp.whereAnd() + " pi.deleted is false ";
         }
 
         return hql;

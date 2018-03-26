@@ -31,7 +31,7 @@ package org.hisp.dhis.dataapproval;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
@@ -85,7 +85,7 @@ public class DataApproval
     /**
      * The attribute category option combo being approved (optional).
      */
-    private CategoryOptionCombo attributeOptionCombo;
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     /**
      * Whether the approval has been accepted (optional, usually by another
@@ -113,7 +113,7 @@ public class DataApproval
 
     public DataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
         Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo )
+        DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.dataApprovalLevel = dataApprovalLevel;
         this.workflow = workflow;
@@ -124,7 +124,7 @@ public class DataApproval
 
     public DataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
         Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo,
+        DataElementCategoryOptionCombo attributeOptionCombo,
         boolean accepted, Date created, User creator )
     {
         this.dataApprovalLevel = dataApprovalLevel;
@@ -243,12 +243,12 @@ public class DataApproval
         this.organisationUnit = organisationUnit;
     }
 
-    public CategoryOptionCombo getAttributeOptionCombo()
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }

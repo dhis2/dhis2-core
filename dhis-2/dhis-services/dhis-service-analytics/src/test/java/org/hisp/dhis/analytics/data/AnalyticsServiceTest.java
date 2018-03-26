@@ -33,13 +33,6 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.utils.AnalyticsTestUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -64,6 +57,7 @@ import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleStore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -87,11 +81,11 @@ import static org.junit.Assert.assertEquals;
  * 
  * @author Henning Haakonsen
  */
-@org.junit.experimental.categories.Category( IntegrationTest.class )
+@Category( IntegrationTest.class )
 public class AnalyticsServiceTest
     extends DhisTest
 {
-    private CategoryOptionCombo ocDef;
+    private DataElementCategoryOptionCombo ocDef;
 
     private Map<String, DataQueryParams> dataQueryParams = new HashMap<>();
 
@@ -103,7 +97,7 @@ public class AnalyticsServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -174,9 +168,9 @@ public class AnalyticsServiceTest
         ReportingRate reportingRateA;
         ReportingRate reportingRateB;
 
-        ocDef = categoryService.getDefaultCategoryOptionCombo();
+        ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
         ocDef.setUid( "o1234578def" );
-        categoryService.updateCategoryOptionCombo( ocDef );
+        categoryService.updateDataElementCategoryOptionCombo( ocDef );
 
         Period peJan = createPeriod( "2017-01" );
         Period peFeb = createPeriod( "2017-02" );
@@ -348,25 +342,25 @@ public class AnalyticsServiceTest
         indicatorService.addIndicator( indicatorF );
 
         // Validation results
-        CategoryOption optionA = new CategoryOption( "CategoryOptionA" );
-        CategoryOption optionB = new CategoryOption( "CategoryOptionB" );
-        categoryService.addCategoryOption( optionA );
-        categoryService.addCategoryOption( optionB );
+        DataElementCategoryOption optionA = new DataElementCategoryOption( "CategoryOptionA" );
+        DataElementCategoryOption optionB = new DataElementCategoryOption( "CategoryOptionB" );
+        categoryService.addDataElementCategoryOption( optionA );
+        categoryService.addDataElementCategoryOption( optionB );
 
-        Category categoryA = createCategory( 'A', optionA, optionB );
+        DataElementCategory categoryA = createDataElementCategory( 'A', optionA, optionB );
         categoryA.setDataDimensionType( DataDimensionType.ATTRIBUTE );
-        categoryService.addCategory( categoryA );
+        categoryService.addDataElementCategory( categoryA );
 
-        CategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
-        categoryService.addCategoryCombo( categoryComboA );
+        DataElementCategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
+        categoryService.addDataElementCategoryCombo( categoryComboA );
 
-        CategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        CategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
-        CategoryOptionCombo optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
+        DataElementCategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
+        DataElementCategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
+        DataElementCategoryOptionCombo optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
 
-        categoryService.addCategoryOptionCombo( optionComboA );
-        categoryService.addCategoryOptionCombo( optionComboB );
-        categoryService.addCategoryOptionCombo( optionComboC );
+        categoryService.addDataElementCategoryOptionCombo( optionComboA );
+        categoryService.addDataElementCategoryOptionCombo( optionComboB );
+        categoryService.addDataElementCategoryOptionCombo( optionComboC );
 
         CategoryOptionGroup optionGroupA = createCategoryOptionGroup( 'A', optionA );
         CategoryOptionGroup optionGroupB = createCategoryOptionGroup( 'B', optionB );

@@ -35,7 +35,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -56,9 +56,9 @@ public class DataValueAudit
 
     private OrganisationUnit organisationUnit;
 
-    private CategoryOptionCombo categoryOptionCombo;
+    private DataElementCategoryOptionCombo categoryOptionCombo;
 
-    private CategoryOptionCombo attributeOptionCombo;
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     private String value;
 
@@ -91,7 +91,7 @@ public class DataValueAudit
     }
 
     public DataValueAudit( DataElement dataElement, Period period, OrganisationUnit organisationUnit, 
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo,
         String value, String modifiedBy, AuditType auditType )
     {
         this.dataElement = dataElement;
@@ -204,24 +204,24 @@ public class DataValueAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getCategoryOptionCombo()
+    public DataElementCategoryOptionCombo getCategoryOptionCombo()
     {
         return categoryOptionCombo;
     }
 
-    public void setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    public void setCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
     {
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getAttributeOptionCombo()
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }

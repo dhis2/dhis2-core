@@ -1,0 +1,33 @@
+<script type="text/javascript">
+    function submitForm()
+    {
+        selectAllById( "attributes" );
+        document.getElementById( "sortOrderForm" ).submit();
+    }
+</script>
+
+<h3>$i18n.getString( "attribute_sort_order" )</h3>
+
+<form id="sortOrderForm" action="saveAttributeSortOrder.action" method="post">
+
+<p>
+	<input type="button" value="$i18n.getString( 'move_up' )" style="width:130px" onclick="moveUpSelectedOption( 'attributes' )" />
+	<input type="button" value="$i18n.getString( 'move_down' )" style="width:130px" onclick="moveDownSelectedOption( 'attributes' )" />
+	<input type="button" value="$i18n.getString( 'move_to_top' )" style="width:130px" onclick="moveSelectedOptionToTop( 'attributes' )" />
+	<input type="button" value="$i18n.getString( 'move_to_bottom' )" style="width:130px" onclick="moveSelectedOptionToBottom( 'attributes' )" />
+</p>
+
+<p>
+<select multiple id="attributes" name="attributes" size="25" style="width:680px">
+#foreach ( $attribute in $attributes )
+    <option value="$attribute.id">$attribute.name</option>
+#end
+</select>
+</p>
+
+<p>
+	<input type="button" value="$i18n.getString( 'save' )" style="width:130px" onclick="submitForm()"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" style="width:130px" onclick="window.location.href='attribute.action'"/>
+</p>
+
+</form>

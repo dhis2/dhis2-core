@@ -43,10 +43,10 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -344,7 +344,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
-        if ( CategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (CategoryCombo) object );
+        if ( DataElementCategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (DataElementCategoryCombo) object );
         if ( Dashboard.class.isInstance( object ) ) return handleDashboard( metadata, (Dashboard) object );
         if ( DataElementGroup.class.isInstance( object ) ) return handleDataElementGroup( metadata, (DataElementGroup) object );
         return metadata;
@@ -401,10 +401,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOptionCombo( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, CategoryOptionCombo categoryOptionCombo )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOptionCombo( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategoryOptionCombo categoryOptionCombo )
     {
         if ( categoryOptionCombo == null ) return metadata;
-        metadata.putValue( CategoryOptionCombo.class, categoryOptionCombo );
+        metadata.putValue( DataElementCategoryOptionCombo.class, categoryOptionCombo );
         handleAttributes( metadata, categoryOptionCombo );
 
         categoryOptionCombo.getCategoryOptions().forEach( categoryOption -> handleCategoryOption( metadata, categoryOption ) );
@@ -412,10 +412,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryCombo( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, CategoryCombo categoryCombo )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryCombo( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategoryCombo categoryCombo )
     {
         if ( categoryCombo == null ) return metadata;
-        metadata.putValue( CategoryCombo.class, categoryCombo );
+        metadata.putValue( DataElementCategoryCombo.class, categoryCombo );
         handleAttributes( metadata, categoryCombo );
 
         categoryCombo.getCategories().forEach( category -> handleCategory( metadata, category ) );
@@ -424,10 +424,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategory( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Category category )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategory( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategory category )
     {
         if ( category == null ) return metadata;
-        metadata.putValue( Category.class, category );
+        metadata.putValue( DataElementCategory.class, category );
         handleAttributes( metadata, category );
 
         category.getCategoryOptions().forEach( categoryOption -> handleCategoryOption( metadata, categoryOption ) );
@@ -435,10 +435,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOption( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, CategoryOption categoryOption )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOption( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategoryOption categoryOption )
     {
         if ( categoryOption == null ) return metadata;
-        metadata.putValue( CategoryOption.class, categoryOption );
+        metadata.putValue( DataElementCategoryOption.class, categoryOption );
         handleAttributes( metadata, categoryOption );
 
         return metadata;

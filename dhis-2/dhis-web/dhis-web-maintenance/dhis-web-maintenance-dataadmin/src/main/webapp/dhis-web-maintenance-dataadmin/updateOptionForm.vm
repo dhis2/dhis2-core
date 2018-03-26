@@ -1,0 +1,55 @@
+<script type="text/javascript">
+  jQuery(document).ready(function() {
+    validation('updateOptionForm', function(form) {
+      var codeEl = document.getElementById('code');
+      var value = codeEl.value;
+      var valueType = '$optionSet.valueType';
+
+      if( dhis2.validation.isValidValueType(value, valueType) ) {
+        #tblDynamicAttributesJavascript()
+        form.submit();
+      }
+    });
+
+    checkValueIsExist("name", "validateOption.action", { optionSetId: getFieldValue('optionSetId'), id: getFieldValue('optionId') });
+    checkValueIsExist("code", "validateOption.action", { optionSetId: getFieldValue('optionSetId'), id: getFieldValue('optionId') });
+  });
+
+</script>
+
+<h3>$i18n.getString( "edit_option" )</h3>
+
+<form id="updateOptionForm" name="updateOptionForm" action="updateOption.action" method="post" class="inputForm">
+  <input id='optionSetId' name='optionSetId' value='$optionSet.id' type='hidden'>
+  <input id='optionId' name='optionId' value='$option.id' type='hidden'>
+  <table>
+    <colgroup>
+      <col width="50px"/>
+      <col width="150px"/>
+      <col width="50px"/>
+    </colgroup>
+    <tr>
+      <th colspan='3'>$i18n.getString( "details" )</th>
+    </tr>
+    <tr>
+      <td><label for='name'>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td><input type="text" id="name" name="name" value='$option.name' class="{validate:{required:true}}"/></td>
+    </tr>
+    <tr>
+      <td><label for='code'>$i18n.getString( "code" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td><input type="text" id="code" name="code" style="background-color: lightgrey;" readonly disabled value='$option.code' class="{validate:{required:true}}"/></td>
+    </tr>
+  </table>
+
+  #tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+  <table
+  <tr>
+    <td></td>
+    <td colspan="2">
+      <input type="submit" value="$i18n.getString( 'update' )" style="width:10em">
+      <input type="button" onclick="window.location.href='option.action?optionSetId=$optionSet.id'" value="$i18n.getString( 'cancel' )" style="width:10em"/></p>
+    </td>
+  </tr>
+  </table>
+</form>

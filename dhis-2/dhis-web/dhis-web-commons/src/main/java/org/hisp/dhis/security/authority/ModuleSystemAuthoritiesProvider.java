@@ -78,7 +78,7 @@ public class ModuleSystemAuthoritiesProvider
     @Override
     public Collection<String> getSystemAuthorities()
     {
-        Set<String> authorities = new HashSet<>();
+        HashSet<String> authorities = new HashSet<>();
 
         for ( Module module : moduleManager.getAllModules() )
         {

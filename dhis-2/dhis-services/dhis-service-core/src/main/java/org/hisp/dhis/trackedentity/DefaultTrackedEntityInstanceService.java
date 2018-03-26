@@ -53,11 +53,13 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.validation.ValidationCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,6 +162,19 @@ public class DefaultTrackedEntityInstanceService
     @Override
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
     {
+        validateAndPrepareParams( params, sync );
+        return trackedEntityInstanceStore.countTrackedEntityInstances( params );
+    }
+
+    @Override
+    public int getDeletedTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    {
+        validateAndPrepareParams( params, sync );
+        return trackedEntityInstanceStore.getDeletedTrackedEntityInstanceCount( params );
+    }
+
+    private void validateAndPrepareParams( TrackedEntityInstanceQueryParams params, boolean sync )
+    {
         decideAccess( params );
         validate( params );
 
@@ -169,8 +184,6 @@ public class DefaultTrackedEntityInstanceService
         }
 
         params.setUser( currentUserService.getCurrentUser() );
-
-        return trackedEntityInstanceStore.countTrackedEntityInstances( params );
     }
 
     // TODO lower index on attribute value?
@@ -322,18 +335,18 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Current user is not authorized to query across all organisation units" );
         }
 
-        if( params.hasProgram() )
+        if ( params.hasProgram() )
         {
-            if( !aclService.canDataRead( user, params.getProgram() ) )
+            if ( !aclService.canDataRead( user, params.getProgram() ) )
             {
                 throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
             }
-            
-            if( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( user, params.getProgram().getTrackedEntityType() ) )
+
+            if ( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( user, params.getProgram().getTrackedEntityType() ) )
             {
                 throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
             }
-            
+
         }
 
         if ( params.hasTrackedEntityType() && !aclService.canDataRead( user, params.getTrackedEntityType() ) )
@@ -787,6 +800,60 @@ public class DefaultTrackedEntityInstanceService
     public boolean trackedEntityInstanceExistsIncludingDeleted( String uid )
     {
         return trackedEntityInstanceStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
+    public ValidationCriteria validateEnrollment( TrackedEntityInstance instance, Program program )
+    {
+        for ( ValidationCriteria criteria : program.getValidationCriteria() )
+        {
+            for ( TrackedEntityAttributeValue attributeValue : instance.getTrackedEntityAttributeValues() )
+            {
+                if ( attributeValue.getAttribute().getUid().equals( criteria.getProperty() ) )
+                {
+                    String value = attributeValue.getValue();
+                    ValueType valueType = attributeValue.getAttribute().getValueType();
+
+                    if ( valueType.isNumeric() )
+                    {
+                        int value1 = Integer.parseInt( value );
+                        int value2 = Integer.parseInt( criteria.getValue() );
+
+                        if ( (criteria.getOperator() == ValidationCriteria.OPERATOR_LESS_THAN && value1 >= value2)
+                            || (criteria.getOperator() == ValidationCriteria.OPERATOR_EQUAL_TO && value1 != value2)
+                            || (criteria.getOperator() == ValidationCriteria.OPERATOR_GREATER_THAN && value1 <= value2) )
+                        {
+                            return criteria;
+                        }
+                    }
+                    else if ( valueType.isDate() )
+                    {
+                        Date value1 = DateUtils.parseDate( value );
+                        Date value2 = DateUtils.parseDate( criteria.getValue() );
+
+                        int i = value1.compareTo( value2 );
+
+                        if ( i != criteria.getOperator() )
+                        {
+                            return criteria;
+                        }
+                    }
+                    else
+                    {
+                        if ( criteria.getOperator() == ValidationCriteria.OPERATOR_EQUAL_TO && !value.equals( criteria.getValue() ) )
+                        {
+                            return criteria;
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+        // Return null if all criteria are met
+
+        return null;
     }
 
     private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )

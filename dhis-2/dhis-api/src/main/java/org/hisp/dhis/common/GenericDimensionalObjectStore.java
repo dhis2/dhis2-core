@@ -34,7 +34,7 @@ import java.util.List;
  * @author Lars Helge Overland
  */
 public interface GenericDimensionalObjectStore<T>
-    extends IdentifiableObjectStore<T>
+    extends GenericIdentifiableObjectStore<T>
 {
     /**
      * Retrieves a List of dimensional objects.

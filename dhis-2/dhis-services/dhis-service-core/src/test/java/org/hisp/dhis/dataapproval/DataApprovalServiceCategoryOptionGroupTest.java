@@ -31,17 +31,12 @@ package org.hisp.dhis.dataapproval;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
-import org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupStore;
+import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -85,7 +80,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     private PeriodService periodService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private HibernateCategoryOptionGroupStore hibernateCategoryOptionGroupStore;
@@ -152,23 +147,23 @@ public class DataApprovalServiceCategoryOptionGroupTest
     private CurrentUserService indiaPartner1User;
     private CurrentUserService currentMockUserService;
 
-    private CategoryOption brazilA1;
-    private CategoryOption chinaA1_1;
-    private CategoryOption chinaA1_2;
-    private CategoryOption chinaA2;
-    private CategoryOption chinaB2;
-    private CategoryOption indiaA1;
+    private DataElementCategoryOption brazilA1;
+    private DataElementCategoryOption chinaA1_1;
+    private DataElementCategoryOption chinaA1_2;
+    private DataElementCategoryOption chinaA2;
+    private DataElementCategoryOption chinaB2;
+    private DataElementCategoryOption indiaA1;
 
-    private org.hisp.dhis.category.Category mechanismCategory;
+    private DataElementCategory mechanismCategory;
 
-    private CategoryCombo mechanismCategoryCombo;
+    private DataElementCategoryCombo mechanismCategoryCombo;
 
-    private CategoryOptionCombo brazilA1Combo;
-    private CategoryOptionCombo chinaA1_1Combo;
-    private CategoryOptionCombo chinaA1_2Combo;
-    private CategoryOptionCombo chinaA2Combo;
-    private CategoryOptionCombo chinaB2Combo;
-    private CategoryOptionCombo indiaA1Combo;
+    private DataElementCategoryOptionCombo brazilA1Combo;
+    private DataElementCategoryOptionCombo chinaA1_1Combo;
+    private DataElementCategoryOptionCombo chinaA1_2Combo;
+    private DataElementCategoryOptionCombo chinaA2Combo;
+    private DataElementCategoryOptionCombo chinaB2Combo;
+    private DataElementCategoryOptionCombo indiaA1Combo;
 
     private CategoryOptionGroup agencyA;
     private CategoryOptionGroup agencyB;
@@ -338,12 +333,12 @@ public class DataApprovalServiceCategoryOptionGroupTest
         UserGroup chinaPartner2Users = getUserGroup( "ChinaPartner2Users", userSet( chinaPartner2User ) );
         UserGroup indiaPartner1Users = getUserGroup( "IndiaPartner1Users", userSet( indiaPartner1User ) );
 
-        brazilA1 = new CategoryOption( "BrazilA1" );
-        chinaA1_1 = new CategoryOption( "ChinaA1_1" );
-        chinaA1_2 = new CategoryOption( "ChinaA1_2" );
-        chinaA2 = new CategoryOption( "ChinaA2" );
-        chinaB2 = new CategoryOption( "ChinaB2" );
-        indiaA1 = new CategoryOption( "IndiaA1" );
+        brazilA1 = new DataElementCategoryOption( "BrazilA1" );
+        chinaA1_1 = new DataElementCategoryOption( "ChinaA1_1" );
+        chinaA1_2 = new DataElementCategoryOption( "ChinaA1_2" );
+        chinaA2 = new DataElementCategoryOption( "ChinaA2" );
+        chinaB2 = new DataElementCategoryOption( "ChinaB2" );
+        indiaA1 = new DataElementCategoryOption( "IndiaA1" );
 
         brazilA1.setOrganisationUnits( Sets.newHashSet( brazil ) );
         chinaA1_1.setOrganisationUnits( Sets.newHashSet( china ) );
@@ -352,12 +347,12 @@ public class DataApprovalServiceCategoryOptionGroupTest
         chinaB2.setOrganisationUnits( Sets.newHashSet( china ) );
         indiaA1.setOrganisationUnits( Sets.newHashSet( india ) );
 
-        categoryService.addCategoryOption( brazilA1 );
-        categoryService.addCategoryOption( chinaA1_1 );
-        categoryService.addCategoryOption( chinaA1_2 );
-        categoryService.addCategoryOption( chinaA2 );
-        categoryService.addCategoryOption( chinaB2 );
-        categoryService.addCategoryOption( indiaA1 );
+        categoryService.addDataElementCategoryOption( brazilA1 );
+        categoryService.addDataElementCategoryOption( chinaA1_1 );
+        categoryService.addDataElementCategoryOption( chinaA1_2 );
+        categoryService.addDataElementCategoryOption( chinaA2 );
+        categoryService.addDataElementCategoryOption( chinaB2 );
+        categoryService.addDataElementCategoryOption( indiaA1 );
 
         setPrivateAccess( brazilA1, globalUsers, brazilInteragencyUsers, brazilAgencyAUsers, brazilPartner1Users );
         setPrivateAccess( chinaA1_1, globalUsers, chinaInteragencyUsers, chinaAgencyAUsers, chinaPartner1Users );
@@ -366,11 +361,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
         setPrivateAccess( chinaB2, globalUsers, chinaInteragencyUsers, chinaAgencyBUsers, chinaPartner2Users );
         setPrivateAccess( indiaA1, globalUsers, indiaInteragencyUsers, indiaAgencyAUsers, indiaPartner1Users );
 
-        mechanismCategory = createCategory( 'A', brazilA1, chinaA1_1, chinaA1_2, chinaA2, chinaB2, indiaA1 );
-        categoryService.addCategory( mechanismCategory );
+        mechanismCategory = createDataElementCategory( 'A', brazilA1, chinaA1_1, chinaA1_2, chinaA2, chinaB2, indiaA1 );
+        categoryService.addDataElementCategory( mechanismCategory );
 
         mechanismCategoryCombo = createCategoryCombo( 'A', mechanismCategory );
-        categoryService.addCategoryCombo( mechanismCategoryCombo );
+        categoryService.addDataElementCategoryCombo( mechanismCategoryCombo );
 
         brazilAgencyAUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
         chinaAgencyAUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
@@ -401,12 +396,12 @@ public class DataApprovalServiceCategoryOptionGroupTest
         chinaB2Combo = createCategoryOptionCombo( 'E', mechanismCategoryCombo, chinaB2 );
         indiaA1Combo = createCategoryOptionCombo( 'F', mechanismCategoryCombo, indiaA1 );
 
-        categoryService.addCategoryOptionCombo( brazilA1Combo );
-        categoryService.addCategoryOptionCombo( chinaA1_1Combo );
-        categoryService.addCategoryOptionCombo( chinaA1_2Combo );
-        categoryService.addCategoryOptionCombo( chinaA2Combo );
-        categoryService.addCategoryOptionCombo( chinaB2Combo );
-        categoryService.addCategoryOptionCombo( indiaA1Combo );
+        categoryService.addDataElementCategoryOptionCombo( brazilA1Combo );
+        categoryService.addDataElementCategoryOptionCombo( chinaA1_1Combo );
+        categoryService.addDataElementCategoryOptionCombo( chinaA1_2Combo );
+        categoryService.addDataElementCategoryOptionCombo( chinaA2Combo );
+        categoryService.addDataElementCategoryOptionCombo( chinaB2Combo );
+        categoryService.addDataElementCategoryOptionCombo( indiaA1Combo );
 
         mechanismCategoryCombo.getOptionCombos().add( brazilA1Combo );
         mechanismCategoryCombo.getOptionCombos().add( chinaA1_1Combo );
@@ -415,7 +410,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         mechanismCategoryCombo.getOptionCombos().add( chinaB2Combo );
         mechanismCategoryCombo.getOptionCombos().add( indiaA1Combo );
 
-        categoryService.updateCategoryCombo( mechanismCategoryCombo );
+        categoryService.updateDataElementCategoryCombo( mechanismCategoryCombo );
 
         agencyA = createCategoryOptionGroup( 'A', brazilA1, chinaA1_1, chinaA1_2, chinaA2, indiaA1 );
         agencyB = createCategoryOptionGroup( 'B', chinaB2 );
@@ -543,7 +538,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         DataApprovalLevel dal = status.getActionLevel();
         String approval = dal == null ? "approval=null" :
                 "ou=" + ( status.getOrganisationUnitUid() == null ? "(null)" : organisationUnitService.getOrganisationUnit( status.getOrganisationUnitUid() ).getName() )
-                        + " mechanism=" + ( status.getAttributeOptionComboUid() == null ? "(null)" : categoryService.getCategoryOptionCombo( status.getAttributeOptionComboUid() ).getName() )
+                        + " mechanism=" + ( status.getAttributeOptionComboUid() == null ? "(null)" : categoryService.getDataElementCategoryOptionCombo( status.getAttributeOptionComboUid() ).getName() )
                         + " level=" + ( dal == null ? "(null)" : dal.getLevel() );
 
         DataApprovalPermissions p = status.getPermissions();
@@ -594,7 +589,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private boolean approve( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo mechanismCombo )
+        DataElementCategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period,
                 organisationUnit, mechanismCombo, false, dateA, userA );
@@ -619,7 +614,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private boolean unapprove( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo mechanismCombo )
+        DataElementCategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period,
                 organisationUnit, mechanismCombo, false, dateA, userA );
@@ -644,7 +639,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private boolean accept( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo mechanismCombo )
+        DataElementCategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period,
                 organisationUnit, mechanismCombo, false, dateA, userA );
@@ -669,7 +664,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private boolean unaccept( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo mechanismCombo )
+        DataElementCategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period,
                 organisationUnit, mechanismCombo, false, dateA, userA );

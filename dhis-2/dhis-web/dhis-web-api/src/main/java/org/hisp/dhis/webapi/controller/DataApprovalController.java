@@ -41,9 +41,9 @@ import org.hisp.dhis.dataapproval.DataApprovalStateResponse;
 import org.hisp.dhis.dataapproval.DataApprovalStateResponses;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -135,7 +135,7 @@ public class DataApprovalController
     private PeriodService periodService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private RenderService renderService;
@@ -163,7 +163,7 @@ public class DataApprovalController
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         DataApprovalStatus status = dataApprovalService
             .getDataApprovalStatusAndPermissions( workflow, period, organisationUnit, optionCombo );
@@ -251,7 +251,7 @@ public class DataApprovalController
     private DataApprovalStateResponse getDataApprovalStateResponse( DataSet dataSet,
         OrganisationUnit organisationUnit, Period period )
     {
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         DataApprovalStatus status = dataApprovalService.getDataApprovalStatusAndPermissions( dataSet.getWorkflow(), period,
             organisationUnit, optionCombo );
@@ -286,14 +286,14 @@ public class DataApprovalController
 
         for ( DataApprovalWorkflow workflow : workflows )
         {
-            Set<CategoryCombo> attributeCombos = new HashSet<>();
+            Set<DataElementCategoryCombo> attributeCombos = new HashSet<>();
 
             for ( DataSet dataSet : workflow.getDataSets() )
             {
                 attributeCombos.add( dataSet.getCategoryCombo() );
             }
 
-            for ( CategoryCombo attributeCombo : attributeCombos )
+            for ( DataElementCategoryCombo attributeCombo : attributeCombos )
             {
                 statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit, attributeCombo ) );
             }
@@ -346,7 +346,7 @@ public class DataApprovalController
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
@@ -381,7 +381,7 @@ public class DataApprovalController
     {
         List<DataApproval> dataApprovalList = new ArrayList<>();
 
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
         {
@@ -422,7 +422,7 @@ public class DataApprovalController
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
@@ -457,7 +457,7 @@ public class DataApprovalController
     {
         List<DataApproval> dataApprovalList = new ArrayList<>();
 
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         for ( DataApprovalStateRequest approvalStateRequest : dataApprovalStateRequests )
         {
@@ -498,7 +498,7 @@ public class DataApprovalController
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
@@ -528,7 +528,7 @@ public class DataApprovalController
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
         DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+        DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         User user = currentUserService.getCurrentUser();
 
@@ -559,7 +559,7 @@ public class DataApprovalController
 
     private List<DataApproval> getApprovalsAsList( DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo optionCombo, boolean accepted, Date created, User creator )
+        DataElementCategoryOptionCombo optionCombo, boolean accepted, Date created, User creator )
     {
         List<DataApproval> approvals = new ArrayList<>();
 
@@ -583,20 +583,20 @@ public class DataApprovalController
         }
 
         User user = currentUserService.getCurrentUser();
-        CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         Date date = new Date();
 
         List<DataApproval> dataApprovals = new ArrayList<>();
 
-        List<CategoryOptionCombo> optionCombos = categoryService.getAllCategoryOptionCombos();
+        List<DataElementCategoryOptionCombo> optionCombos = categoryService.getAllDataElementCategoryOptionCombos();
 
-        Map<String, CategoryOptionCombo> comboMap = optionCombos.stream().collect( Collectors.toMap( CategoryOptionCombo::getUid, c -> c ) );
+        Map<String, DataElementCategoryOptionCombo> comboMap = optionCombos.stream().collect( Collectors.toMap( DataElementCategoryOptionCombo::getUid, c -> c ) );
 
         Map<String, OrganisationUnit> ouCache = new HashMap<>();
 
         for ( Approval approval : approvals.getApprovals() )
         {
-            CategoryOptionCombo atributeOptionCombo = comboMap.get( approval.getAoc() );
+            DataElementCategoryOptionCombo atributeOptionCombo = comboMap.get( approval.getAoc() );
             atributeOptionCombo = ObjectUtils.firstNonNull( atributeOptionCombo, defaultOptionCombo );
             OrganisationUnit unit = ouCache.get( approval.getOu() );
 
@@ -744,12 +744,12 @@ public class DataApprovalController
         return dataApprovalLevel;
     }
 
-    private CategoryOptionCombo getAndValidateAttributeOptionCombo( String aoc )
+    private DataElementCategoryOptionCombo getAndValidateAttributeOptionCombo( String aoc )
         throws WebMessageException
     {
         if ( aoc != null )
         {
-            CategoryOptionCombo optionCombo = categoryService.getCategoryOptionCombo( aoc );
+            DataElementCategoryOptionCombo optionCombo = categoryService.getDataElementCategoryOptionCombo( aoc );
 
             if ( optionCombo == null )
             {
@@ -759,6 +759,6 @@ public class DataApprovalController
             return optionCombo;
         }
 
-        return categoryService.getDefaultCategoryOptionCombo();
+        return categoryService.getDefaultDataElementCategoryOptionCombo();
     }
 }

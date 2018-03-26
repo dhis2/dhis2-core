@@ -28,10 +28,17 @@ package org.hisp.dhis.dataentryform;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -41,10 +48,6 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Bharath
@@ -62,13 +65,13 @@ public class DataEntryFormServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
     
     private PeriodType periodType;
     
     private DataElement dataElement;
     
-    private CategoryOptionCombo categoryOptionCombo;
+    private DataElementCategoryOptionCombo categoryOptionCombo;
     
     private I18n i18n;
     
@@ -90,7 +93,7 @@ public class DataEntryFormServiceTest
         
         dataElementService.addDataElement( dataElement );
         
-        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         
         dataElementUid = dataElement.getUid();
         categoryOptionComboUid = categoryOptionCombo.getUid();

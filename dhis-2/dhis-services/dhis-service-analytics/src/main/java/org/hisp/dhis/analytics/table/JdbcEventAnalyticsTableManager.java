@@ -43,9 +43,9 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
+import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -186,9 +186,9 @@ public class JdbcEventAnalyticsTableManager
 
         if ( program.hasCategoryCombo() )
         {
-            List<Category> categories = program.getCategoryCombo().getCategories();
+            List<DataElementCategory> categories = program.getCategoryCombo().getCategories();
             
-            for ( Category category : categories )
+            for ( DataElementCategory category : categories )
             {
                 if ( category.isDataDimension() )
                 {

@@ -31,12 +31,10 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -156,10 +154,6 @@ public class TrackedEntityAttributeController
     private List<ReservedValue> reserve( String id, int numberToReserve, int daysToLive )
         throws WebMessageException
     {
-        if ( numberToReserve > 1000 || numberToReserve < 1)
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "You can only reserve between 1 and 1000 values in a single request." ) );
-        }
 
         Map<String, List<String>> params = context.getParameterValuesMap();
         TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
@@ -171,6 +165,11 @@ public class TrackedEntityAttributeController
         if ( attribute.getTextPattern() == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "This attribute has no pattern" ) );
+        }
+
+        if ( numberToReserve < 1 )
+        {
+            numberToReserve = 1;
         }
 
         Map<String, String> values = getRequiredValues( attribute, params );
@@ -190,13 +189,13 @@ public class TrackedEntityAttributeController
 
             return result;
         }
-        catch ( ReserveValueException ex )
+        catch ( ReservedValueService.ReserveValueException e )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( ex.getMessage() ) );
+            throw new WebMessageException( WebMessageUtils.conflict( e.getMessage() ) );
         }
-        catch ( TextPatternGenerationException ex )
+        catch ( TextPatternService.TextPatternGenerationException e )
         {
-            throw new WebMessageException( WebMessageUtils.error( ex.getMessage() ) );
+            throw new WebMessageException( WebMessageUtils.error( e.getMessage() ) );
         }
     }
 

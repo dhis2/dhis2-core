@@ -384,8 +384,7 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += sqlHelper.whereAnd() + " " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
-                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += sqlHelper.whereAnd() + " " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -396,8 +395,7 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += sqlHelper.whereAnd() + " " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
-                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += sqlHelper.whereAnd() + " " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }

@@ -31,11 +31,6 @@ package org.hisp.dhis.expression;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -80,7 +75,7 @@ public class ExpressionServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private ConstantService constantService;
@@ -103,15 +98,15 @@ public class ExpressionServiceTest
     @Autowired
     private PeriodService periodService;
 
-    private CategoryOption categoryOptionA;
-    private CategoryOption categoryOptionB;
-    private CategoryOption categoryOptionC;
-    private CategoryOption categoryOptionD;
+    private DataElementCategoryOption categoryOptionA;
+    private DataElementCategoryOption categoryOptionB;
+    private DataElementCategoryOption categoryOptionC;
+    private DataElementCategoryOption categoryOptionD;
 
-    private Category categoryA;
-    private Category categoryB;
+    private DataElementCategory categoryA;
+    private DataElementCategory categoryB;
 
-    private CategoryCombo categoryCombo;
+    private DataElementCategoryCombo categoryCombo;
 
     private DataElement deA;
     private DataElement deB;
@@ -134,9 +129,9 @@ public class ExpressionServiceTest
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
 
-    private CategoryOptionCombo coc;
-    private CategoryOptionCombo cocA;
-    private CategoryOptionCombo cocB;
+    private DataElementCategoryOptionCombo coc;
+    private DataElementCategoryOptionCombo cocA;
+    private DataElementCategoryOptionCombo cocB;
     
     private Constant constantA;
     
@@ -184,36 +179,36 @@ public class ExpressionServiceTest
         periodService.addPeriod( peMar );
         periodService.addPeriod( peApril );
 
-        categoryOptionA = new CategoryOption( "Under 5" );
-        categoryOptionB = new CategoryOption( "Over 5" );
-        categoryOptionC = new CategoryOption( "Male" );
-        categoryOptionD = new CategoryOption( "Female" );
+        categoryOptionA = new DataElementCategoryOption( "Under 5" );
+        categoryOptionB = new DataElementCategoryOption( "Over 5" );
+        categoryOptionC = new DataElementCategoryOption( "Male" );
+        categoryOptionD = new DataElementCategoryOption( "Female" );
 
-        categoryService.addCategoryOption( categoryOptionA );
-        categoryService.addCategoryOption( categoryOptionB );
-        categoryService.addCategoryOption( categoryOptionC );
-        categoryService.addCategoryOption( categoryOptionD );
+        categoryService.addDataElementCategoryOption( categoryOptionA );
+        categoryService.addDataElementCategoryOption( categoryOptionB );
+        categoryService.addDataElementCategoryOption( categoryOptionC );
+        categoryService.addDataElementCategoryOption( categoryOptionD );
 
-        categoryA = new Category( "Age", DataDimensionType.DISAGGREGATION );
-        categoryB = new Category( "Gender", DataDimensionType.DISAGGREGATION );
+        categoryA = new DataElementCategory( "Age", DataDimensionType.DISAGGREGATION );
+        categoryB = new DataElementCategory( "Gender", DataDimensionType.DISAGGREGATION );
 
         categoryA.getCategoryOptions().add( categoryOptionA );
         categoryA.getCategoryOptions().add( categoryOptionB );
         categoryB.getCategoryOptions().add( categoryOptionC );
         categoryB.getCategoryOptions().add( categoryOptionD );
 
-        categoryService.addCategory( categoryA );
-        categoryService.addCategory( categoryB );
+        categoryService.addDataElementCategory( categoryA );
+        categoryService.addDataElementCategory( categoryB );
 
-        categoryCombo = new CategoryCombo( "Age and gender", DataDimensionType.DISAGGREGATION );
+        categoryCombo = new DataElementCategoryCombo( "Age and gender", DataDimensionType.DISAGGREGATION );
         categoryCombo.getCategories().add( categoryA );
         categoryCombo.getCategories().add( categoryB );
 
-        categoryService.addCategoryCombo( categoryCombo );
+        categoryService.addDataElementCategoryCombo( categoryCombo );
         
         categoryService.generateOptionCombos( categoryCombo );
         
-        List<CategoryOptionCombo> optionCombos = Lists.newArrayList( categoryCombo.getOptionCombos() );
+        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList( categoryCombo.getOptionCombos() );
         
         cocA = optionCombos.get( 0 );
         cocB = optionCombos.get( 1 );
@@ -230,7 +225,7 @@ public class ExpressionServiceTest
         dataElementService.addDataElement( deD );
         dataElementService.addDataElement( deE );
 
-        coc = categoryService.getDefaultCategoryOptionCombo();
+        coc = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         coc.getId();
         optionCombos.add( coc );
@@ -460,7 +455,7 @@ public class ExpressionServiceTest
     @Test
     public void testGetOptionCombosInExpression()
     {
-        Set<CategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( expressionG );
+        Set<DataElementCategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( expressionG );
 
         assertNotNull( optionCombos );
         assertEquals( 1, optionCombos.size() );

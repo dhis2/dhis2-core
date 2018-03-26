@@ -35,7 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang.builder.CompareToBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -61,7 +61,7 @@ public class ValidationResult
 
     private OrganisationUnit organisationUnit;
 
-    private CategoryOptionCombo attributeOptionCombo;
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     /**
      * The leftsideValue at the time of the violation
@@ -96,7 +96,7 @@ public class ValidationResult
     }
 
     public ValidationResult( ValidationRule validationRule, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo,
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo,
         Double leftsideValue, Double rightsideValue, int dayInPeriod )
     {
         this.validationRule = validationRule;
@@ -313,12 +313,12 @@ public class ValidationResult
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getAttributeOptionCombo()
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }

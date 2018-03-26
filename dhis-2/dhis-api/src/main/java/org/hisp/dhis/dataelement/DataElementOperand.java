@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -67,9 +66,9 @@ public class DataElementOperand
 
     private DataElement dataElement;
 
-    private CategoryOptionCombo categoryOptionCombo;
+    private DataElementCategoryOptionCombo categoryOptionCombo;
 
-    private CategoryOptionCombo attributeOptionCombo;
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -85,13 +84,13 @@ public class DataElementOperand
         this.dataElement = dataElement;
     }
 
-    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo )
+    public DataElementOperand( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo )
     {
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
-    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+    public DataElementOperand( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
@@ -234,11 +233,11 @@ public class DataElementOperand
         DataElement de = new DataElement();
         de.setUid( dataElementUid );
 
-        CategoryOptionCombo coc = null;
+        DataElementCategoryOptionCombo coc = null;
 
         if ( categoryOptionComboUid != null )
         {
-            coc = new CategoryOptionCombo();
+            coc = new DataElementCategoryOptionCombo();
             coc.setUid( categoryOptionComboUid );
         }
 
@@ -294,12 +293,12 @@ public class DataElementOperand
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getCategoryOptionCombo()
+    public DataElementCategoryOptionCombo getCategoryOptionCombo()
     {
         return categoryOptionCombo;
     }
 
-    public void setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    public void setCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
     {
         this.categoryOptionCombo = categoryOptionCombo;
     }
@@ -307,80 +306,19 @@ public class DataElementOperand
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getAttributeOptionCombo()
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }
 
     // -------------------------------------------------------------------------
-    // hashCode, equals and toString
+    // toString, mergeWith
     // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        int result = dataElement.hashCode();
-        result = 31 * result + (categoryOptionCombo != null ? categoryOptionCombo.hashCode() : 0);
-        result = 31 * result + (attributeOptionCombo != null ? attributeOptionCombo.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        DataElementOperand other = (DataElementOperand) object;
-
-        if ( !dataElement.equals( other.dataElement ) )
-        {
-            return false;
-        }
-
-        if ( categoryOptionCombo == null )
-        {
-            if ( other.categoryOptionCombo != null )
-            {
-                return false;
-            }
-        }
-        else if ( !categoryOptionCombo.equals( other.categoryOptionCombo ) )
-        {
-            return false;
-        }
-
-        if ( attributeOptionCombo == null )
-        {
-            if ( other.attributeOptionCombo != null )
-            {
-                return false;
-            }
-        }
-        else if ( !attributeOptionCombo.equals( other.attributeOptionCombo ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
 
     @Override
     public String toString()

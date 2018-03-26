@@ -30,13 +30,13 @@ package org.hisp.dhis.indicator;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
 public interface IndicatorStore
-    extends IdentifiableObjectStore<Indicator>
+    extends GenericIdentifiableObjectStore<Indicator>
 {
     String ID = IndicatorStore.class.getName();
 

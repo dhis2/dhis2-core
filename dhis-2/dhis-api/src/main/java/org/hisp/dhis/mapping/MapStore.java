@@ -28,13 +28,13 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
 public interface MapStore
-    extends IdentifiableObjectStore<Map>
+    extends GenericIdentifiableObjectStore<Map>
 {
     int countMapViewMaps( MapView mapView );
 }

@@ -30,11 +30,11 @@ package org.hisp.dhis.dataapproval;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -75,7 +75,7 @@ public class DataApprovalAuditStoreTest
     private PeriodService periodService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private UserService userService;
@@ -104,15 +104,15 @@ public class DataApprovalAuditStoreTest
 
     private User userA;
 
-    private CategoryOption optionA;
-    private CategoryOption optionB;
+    private DataElementCategoryOption optionA;
+    private DataElementCategoryOption optionB;
 
-    private Category categoryA;
+    private DataElementCategory categoryA;
 
-    private CategoryCombo categoryComboA;
+    private DataElementCategoryCombo categoryComboA;
 
-    private CategoryOptionCombo optionComboA;
-    private CategoryOptionCombo optionComboB;
+    private DataElementCategoryOptionCombo optionComboA;
+    private DataElementCategoryOptionCombo optionComboB;
 
     private Date dateA;
     private Date dateB;
@@ -158,21 +158,21 @@ public class DataApprovalAuditStoreTest
         userA = createUser( 'A' );
         userService.addUser( userA );
 
-        optionA = new CategoryOption( "CategoryOptionA" );
-        optionB = new CategoryOption( "CategoryOptionB" );
-        categoryService.addCategoryOption( optionA );
-        categoryService.addCategoryOption( optionB );
+        optionA = new DataElementCategoryOption( "CategoryOptionA" );
+        optionB = new DataElementCategoryOption( "CategoryOptionB" );
+        categoryService.addDataElementCategoryOption( optionA );
+        categoryService.addDataElementCategoryOption( optionB );
 
-        categoryA = createCategory( 'A', optionA, optionB );
-        categoryService.addCategory( categoryA );
+        categoryA = createDataElementCategory( 'A', optionA, optionB );
+        categoryService.addDataElementCategory( categoryA );
 
         categoryComboA = createCategoryCombo( 'A', categoryA );
-        categoryService.addCategoryCombo( categoryComboA );
+        categoryService.addDataElementCategoryCombo( categoryComboA );
 
         optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
         optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionA, optionB );
-        categoryService.addCategoryOptionCombo( optionComboA );
-        categoryService.addCategoryOptionCombo( optionComboB );
+        categoryService.addDataElementCategoryOptionCombo( optionComboA );
+        categoryService.addDataElementCategoryOptionCombo( optionComboB );
 
         dateA = getDate( 2017, 1, 1 );
         dateB = getDate( 2018, 1, 1 );

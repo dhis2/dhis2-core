@@ -56,7 +56,7 @@ public class DefaultAppManager
     private static final Log log = LogFactory.getLog( DefaultAppManager.class );
 
     @Autowired
-    private SystemSettingManager settingManager;
+    private SystemSettingManager appSettingManager;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -219,13 +219,13 @@ public class DefaultAppManager
     @Override
     public String getAppStoreUrl()
     {
-        return StringUtils.trimToNull( (String) settingManager.getSystemSetting( SettingKey.APP_STORE_URL ) );
+        return StringUtils.trimToNull( (String) appSettingManager.getSystemSetting( SettingKey.APP_STORE_URL ) );
     }
 
     @Override
     public void setAppStoreUrl( String appStoreUrl )
     {
-        settingManager.saveSystemSetting( SettingKey.APP_STORE_URL, appStoreUrl );
+        appSettingManager.saveSystemSetting( SettingKey.APP_STORE_URL, appStoreUrl );
     }
 
     /**

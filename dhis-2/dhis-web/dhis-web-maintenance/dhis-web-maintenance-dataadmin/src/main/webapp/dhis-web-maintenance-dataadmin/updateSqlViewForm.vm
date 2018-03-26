@@ -1,0 +1,87 @@
+<script>
+
+    function submitForm()
+    {
+    	#tblDynamicAttributesJavascript()
+		jQuery("#updateSqlViewForm").submit();
+    }
+
+</script>
+
+
+<input type="hidden" id="curLocaleCode" value="$locale.getLanguage()_$locale.getCountry()"/>
+
+<h3>$encoder.htmlEncode( $i18n.getString( "update_sql_view" ) )</h3>
+
+#if( "VIEW" == $sqlViewObject.type )
+#set( $type = $i18n.getString( "sql_view_type" ) )
+#elseif( "MATERIALIZED_VIEW" == $sqlViewObject.type )
+#set( $type = $i18n.getString( "materialized_sql_view_type" ) )
+#elseif( "QUERY" == $sqlViewObject.type )
+#set( $type = $i18n.getString( "sql_query_type" ) )
+#end
+
+<form id="updateSqlViewForm" action="updateSqlViewInstance.action" method="post" class="inputForm">
+
+    <div>
+        <input type="hidden" id="id" name="id" value="$!sqlViewObject.id" />
+        <input type="hidden" id="name" name="name" value="$!encoder.htmlEncode( $!sqlViewObject.name )" />
+        <input type="hidden" id="query" name="query" value="$!encoder.htmlEncode( $!sqlViewObject.query )" />
+        <input type="hidden" id="type" name="query" value="$sqlViewObject.type" />
+    </div>
+
+    <table>
+        <tr>
+            <th colspan="2">$i18n.getString( "details" )</th>
+        </tr>
+        <tr>
+            <td><label for="name">$encoder.htmlEncode( $i18n.getString( "name" ) ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+            <td>
+                <input type="text" id="name" name="name" value="$!encoder.htmlEncode( $!sqlViewObject.name )" disabled="disabled" />
+            </td>
+        </tr>
+        <tr>
+            <td><label for="description">$encoder.htmlEncode( $i18n.getString( "description" ) )</label></td>
+            <td>
+                <textarea id="description" name="description">$!encoder.htmlEncode( $!sqlViewObject.description )</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><label for="cacheStrategy">$encoder.htmlEncode( $i18n.getString( "cache_strategy" ) )</label></td>
+            <td>
+                <select id="cacheStrategy" name="cacheStrategy">
+                    <option value="RESPECT_SYSTEM_SETTING" #if( $!sqlViewObject.cacheStrategy == "RESPECT_SYSTEM_SETTING" ) selected="selected" #end>$i18n.getString( "respect_system_setting" )</option>
+                    <option value="NO_CACHE" #if( $!sqlViewObject.cacheStrategy == "NO_CACHE" ) selected="selected" #end>$i18n.getString( "no_cache" )</option>
+                    <option value="CACHE_1_HOUR" #if( $!sqlViewObject.cacheStrategy == "CACHE_1_HOUR" ) selected="selected" #end>$i18n.getString( "cache_for_one_hour" )</option>
+                    <option value="CACHE_6AM_TOMORROW" #if( $!sqlViewObject.cacheStrategy == "CACHE_6AM_TOMORROW" ) selected="selected" #end>$i18n.getString( "cache_until_6am_tomorrow" )</option>
+                    <option value="CACHE_TWO_WEEKS" #if( $!sqlViewObject.cacheStrategy == "CACHE_TWO_WEEKS" ) selected="selected" #end>$i18n.getString( "cache_for_two_weeks" )</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label>$encoder.htmlEncode( $i18n.getString( "sql_type" ) )</label></td>
+            <td><input type="text" disabled="disabled" value="${type}"/></td>
+        </tr>
+        <tr>
+            <td><label for="sqlquery">$encoder.htmlEncode( $i18n.getString( "sql_statement" ) ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+            <td>
+                <textarea type="text" id="sqlquery" name="sqlquery" style="width:80em;height:20em">$!encoder.htmlEncode( $!sqlViewObject.sqlQuery )</textarea>
+            </td>
+        </tr>
+        </table>
+
+        #tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+        <table>
+
+        <tr>
+            <td></td>
+            <td>
+                <input type="button" onclick="submitForm()" value="$i18n.getString( 'update' )" style="width:10em" />
+                <input type="button" value="$i18n.getString( 'cancel' )" id="cancel" name="cancel" onclick="window.location.href='sqlView.action'" style="width:10em" />
+            </td>
+        </tr>
+    </table>
+
+</form>
+

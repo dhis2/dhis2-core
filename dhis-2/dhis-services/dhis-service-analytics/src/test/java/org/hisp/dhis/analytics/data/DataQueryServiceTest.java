@@ -33,8 +33,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.*;
@@ -81,7 +79,7 @@ public class DataQueryServiceTest
     private ProgramDataElementDimensionItem pdA;
     private ProgramDataElementDimensionItem pdB;
     
-    private CategoryOptionCombo cocA;
+    private DataElementCategoryOptionCombo cocA;
     
     private ReportingRate rrA;
     private ReportingRate rrB;
@@ -127,7 +125,7 @@ public class DataQueryServiceTest
     private DataElementService dataElementService;
     
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
     
     @Autowired
     private DataSetService dataSetService;
@@ -177,7 +175,7 @@ public class DataQueryServiceTest
         pdA = new ProgramDataElementDimensionItem( prA, deE );
         pdB = new ProgramDataElementDimensionItem( prA, deF );
         
-        cocA = categoryService.getDefaultCategoryOptionCombo();
+        cocA = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         DataSet dsA = createDataSet( 'A', monthly );
         DataSet dsB = createDataSet( 'B', monthly );

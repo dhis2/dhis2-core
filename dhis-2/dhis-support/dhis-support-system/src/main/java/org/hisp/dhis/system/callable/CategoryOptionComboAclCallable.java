@@ -29,8 +29,8 @@ package org.hisp.dhis.system.callable;
  */
 
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 
 import java.util.concurrent.ExecutionException;
 
@@ -38,21 +38,21 @@ import java.util.concurrent.ExecutionException;
  * @author Lars Helge Overland
  */
 public class CategoryOptionComboAclCallable
-    extends IdentifiableObjectCallable<CategoryOptionCombo>
+    extends IdentifiableObjectCallable<DataElementCategoryOptionCombo>
 {
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public CategoryOptionComboAclCallable( CategoryService categoryService, IdScheme idScheme, String id )
+    public CategoryOptionComboAclCallable( DataElementCategoryService categoryService, IdScheme idScheme, String id )
     {
-        super( null, CategoryOptionCombo.class, idScheme, id );
+        super( null, DataElementCategoryOptionCombo.class, idScheme, id );
         this.categoryService = categoryService;
     }
 
     @Override
-    public CategoryOptionCombo call()
+    public DataElementCategoryOptionCombo call()
         throws ExecutionException
     {
-        return categoryService.getCategoryOptionComboAcl( idScheme.getIdentifiableProperty(), id );
+        return categoryService.getDataElementCategoryOptionComboAcl( idScheme.getIdentifiableProperty(), id );
     }
 
     @Override

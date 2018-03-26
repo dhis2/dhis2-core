@@ -59,7 +59,13 @@ public interface I18nLocaleService
     void deleteI18nLocale( I18nLocale locale );
     
     int getI18nLocaleCount();
-        
+    
+    int getI18nLocaleCountByName( String name );
+    
+    List<I18nLocale> getI18nLocalesBetween( int first, int max );
+    
+    List<I18nLocale> getI18nLocalesBetweenLikeName( String name, int first, int max );
+    
     List<Locale> getAllLocales();
 
 }

@@ -34,10 +34,10 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -82,9 +82,9 @@ public class DefaultDataApprovalLevelService
         this.organisationUnitService = organisationUnitService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -171,15 +171,15 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo )
+    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, DataElementCategoryOptionCombo attributeOptionCombo )
     {
         Set<CategoryOptionGroupSet> cogSets = null;
 
-        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultCategoryOptionCombo()  )
+        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultDataElementCategoryOptionCombo()  )
         {
             cogSets = new HashSet<>();
 
-            for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
+            for ( DataElementCategoryOption option : attributeOptionCombo.getCategoryOptions() )
             {
                 if ( option.getGroupSets() != null )
                 {

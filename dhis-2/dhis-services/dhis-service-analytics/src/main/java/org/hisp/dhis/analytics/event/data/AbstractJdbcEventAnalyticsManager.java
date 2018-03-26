@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -409,29 +408,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected String getColumn( QueryItem item )
     {
         String col = statementBuilder.columnQuote( item.getItemName() );
+        
         return item.isText() ? "lower(" + col + ")" : col;
-    }
-    
-    /**
-     * Returns an SQL to select the expression or column of the item. If the item is 
-     * a program indicator, the program indicator expression is returned - if the item 
-     * is a data element, the correct column name is returned.
-     * or boolean.
-     * 
-     * @param item the {@link QueryItem}.
-     */
-    protected String getSelectSql( QueryItem item, Date startDate, Date endDate )
-    {
-        if( item.isProgramIndicator() )
-        {
-            ProgramIndicator programIndicator = (ProgramIndicator)item.getItem();
-            return programIndicatorService.getAnalyticsSQl( 
-                programIndicator.getExpression(), programIndicator, startDate, endDate );
-        }
-        else
-        {
-            return getColumn( item );
-        }
     }
 
     /**

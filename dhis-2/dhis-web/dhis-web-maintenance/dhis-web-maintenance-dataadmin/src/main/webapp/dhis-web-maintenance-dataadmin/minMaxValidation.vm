@@ -1,0 +1,41 @@
+<script type="text/javascript">
+	var i18n_not_choose_dataset = '$encoder.jsEncode( $i18n.getString( "not_choose_dataset" ) )';
+	var i18n_not_choose_organisation = '$encoder.jsEncode( $i18n.getString( "not_choose_organisation" ) )';
+	var i18n_generating_min_max_values = '$encoder.jsEncode( $i18n.getString( "generating_min_max_values" ) )';
+	var i18n_removing_min_max_values = '$encoder.jsEncode( $i18n.getString( "removing_min_max_values" ) )';
+	
+	$(document).ready(function(){
+		$('#ouTD thead').hide();
+		$('#selectionTree').css('height', 310);	
+		$('#selectionTree').css('width', 350);	
+	});
+	
+</script>
+
+<h3>$i18n.getString( "min_max_value_generation" ) #openHelp( "minMaxValueGeneration" )</h3>
+
+<form id="minMaxGeneratingForm" method="post">
+<table>
+  <tr>
+    <th>$i18n.getString('available_dataset')</th>
+    <th>$i18n.getString( "organisation_unit_selection_tree" )</th>
+  </tr>
+  <tr>
+    <td>
+		<select size="20px" multiple="multiple" style="width:350px;height:315px" id="dataSetIds" name="dataSetIds">
+			#foreach( $dataSet in $dataSets )
+			  <option value="$dataSet.id">$encoder.htmlEncode( $dataSet.displayName )</option>
+			#end
+		</select>
+	</td>
+    <td id='ouTD'>#organisationUnitSelectionTree( false, false, true ) </td>
+    </td>
+  </tr>
+  <tr>
+  	<td>
+	  	<input type="button" onclick="javascipt:modifyMinMaxValues( false )" style="width:10em" value="$i18n.getString( 'generate' )">
+		<input type="button" onclick="javascipt:modifyMinMaxValues( true )" style="width:10em" value="$i18n.getString( 'remove' )"/>
+	</td>
+  </tr>
+</table>
+</form>

@@ -384,7 +384,7 @@ public class DataImportTest extends DhisSpringTest
     public void testCreateFirstSimpleTEIThen3EnrollmentsAndTestThatEnrollmentsHaveLinkToTEI() throws IOException
     {
         InputStream is =
-            new ClassPathResource( "dxf2/import/create_3_enrollments_to_programs_with_registration.json" )
+            new ClassPathResource( "dxf2/import/create_3_enrollments_1_to_program_with_registration_2_to_program_without_registration.json" )
                 .getInputStream();
         ImportOptions io = new ImportOptions();
         io.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
@@ -395,11 +395,12 @@ public class DataImportTest extends DhisSpringTest
     }
 
     //Test creation of TEI and 2-3 enrollments in 1 request -> take UIDs of all enrollments and check whether enrollments have a link to TEI
+    //TODO: This test should actually fail (and should be fixed) when the validation logic for enrollments into programs without registration is fixed
     @Test
     public void testCreateTEIAnd3EnrollmentsAndTestThatEnrollmentsHaveLinkToTEI() throws IOException
     {
         InputStream is =
-            new ClassPathResource( "dxf2/import/create_tei_and_3_enrollments_to_programs_with_registration.json" )
+            new ClassPathResource( "dxf2/import/create_tei_and_3_enrollments_1_with_2_without_registration.json" )
                 .getInputStream();
         ImportOptions io = new ImportOptions();
         io.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
@@ -424,6 +425,7 @@ public class DataImportTest extends DhisSpringTest
     }
 
     //Test creation of TEI, 2-3 enrollments and 2 event in 1 request -> take UIDs of all enrollments and check whether they have a link to TEI, -> check whether events have a link to TEI and enrollment
+    //TODO: This test should actually fail (and should be fixed) when the validation logic for enrollments into programs without registration is fixed
     @Test
     public void testCreateTEIAnd3EnrollmentsAnd2EventsAndTestThatEnrollmentsHaveLinkToTEIAndEventsHaveLinkToTEiAndEnrollment() throws IOException
     {
@@ -504,4 +506,6 @@ public class DataImportTest extends DhisSpringTest
             assertEquals( expectedTeiUid, psi.getProgramInstance().getEntityInstance().getUid() );
         }
     }
+
+    //TODO: More tests can be added. For example tests that test that import fails when we want to make an enrollment with TEI UID specified into program without registration
 }

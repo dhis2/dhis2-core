@@ -28,7 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
@@ -40,7 +40,7 @@ import java.util.List;
  * @version $Id$
  */
 public interface ProgramInstanceStore
-    extends IdentifiableObjectStore<ProgramInstance>
+    extends GenericIdentifiableObjectStore<ProgramInstance>
 {
     String ID = ProgramInstanceStore.class.getName();
 
@@ -51,6 +51,14 @@ public interface ProgramInstanceStore
      * @return Count of matching PIs
      */
     int countProgramInstances( ProgramInstanceQueryParams params );
+
+    /**
+     * Count all deleted program instances by PI query params.
+     *
+     * @param params ProgramInstanceQueryParams to use
+     * @return Count of matching already deleted PIs
+     */
+    int countDeletedProgramInstances( ProgramInstanceQueryParams params );
 
     /**
      * Get all program instances by PI query params.

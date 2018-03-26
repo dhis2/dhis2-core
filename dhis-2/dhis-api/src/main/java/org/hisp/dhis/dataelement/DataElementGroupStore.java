@@ -28,9 +28,9 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 public interface DataElementGroupStore
-    extends IdentifiableObjectStore<DataElementGroup>
+    extends GenericIdentifiableObjectStore<DataElementGroup>
 {
 }

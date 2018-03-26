@@ -36,7 +36,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -77,7 +77,7 @@ public class DataValidationTask
     private DataValueService dataValueService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private PeriodService periodService;
@@ -227,7 +227,7 @@ public class DataValidationTask
         {
             validationResults.add( new ValidationResult(
                 ruleX.getRule(), period, orgUnit,
-                categoryService.getCategoryOptionCombo( optionCombo ),
+                categoryService.getDataElementCategoryOptionCombo( optionCombo ),
                 roundSignificant( zeroIfNull( leftSide ) ),
                 roundSignificant( zeroIfNull( rightSide ) ),
                 periodService.getDayInPeriod( period, new Date() ) ) );

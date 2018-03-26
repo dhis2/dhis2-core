@@ -30,14 +30,14 @@ package org.hisp.dhis.program.message;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 
 public interface ProgramMessageStore
-    extends IdentifiableObjectStore<ProgramMessage>
+    extends GenericIdentifiableObjectStore<ProgramMessage>
 {
     List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params );
         

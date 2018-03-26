@@ -28,20 +28,22 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
+
+import static org.junit.Assert.*;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 
 /**
  * @author Lars Helge Overland
@@ -174,7 +176,7 @@ public class DimensionalObjectUtilsTest
         deA.setCode( "DCodeA" );
         deB.setCode( "DCodeB" );
         
-        CategoryOptionCombo ocA = new CategoryOptionCombo();
+        DataElementCategoryOptionCombo ocA = new DataElementCategoryOptionCombo();
         ocA.setUid( "C123456789A" );
         ocA.setCode( "CCodeA" );
         
@@ -213,7 +215,7 @@ public class DimensionalObjectUtilsTest
         deA.setAutoFields();
         deB.setAutoFields();
         
-        CategoryOptionCombo cocA = new CategoryOptionCombo();
+        DataElementCategoryOptionCombo cocA = new DataElementCategoryOptionCombo();
         cocA.setAutoFields();
 
         DataElementOperand opA = new DataElementOperand( deA );

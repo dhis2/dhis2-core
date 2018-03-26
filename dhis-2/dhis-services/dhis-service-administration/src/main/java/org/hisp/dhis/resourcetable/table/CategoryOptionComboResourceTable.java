@@ -28,21 +28,22 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import java.util.List;
+import java.util.Optional;
+
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import java.util.List;
-import java.util.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
 public class CategoryOptionComboResourceTable
-    extends ResourceTable<CategoryOptionCombo>
+    extends ResourceTable<DataElementCategoryOptionCombo>
 {
-    public CategoryOptionComboResourceTable( List<CategoryOptionCombo> objects, String columnQuote )
+    public CategoryOptionComboResourceTable( List<DataElementCategoryOptionCombo> objects, String columnQuote )
     {
         super( objects, columnQuote );
     }

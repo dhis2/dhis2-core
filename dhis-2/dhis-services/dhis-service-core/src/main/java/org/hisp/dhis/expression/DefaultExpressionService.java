@@ -47,8 +47,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.indicator.Indicator;
@@ -114,9 +114,9 @@ public class DefaultExpressionService
         this.constantService = constantService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -273,10 +273,10 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<CategoryOptionCombo> getOptionCombosInExpression( String expression )
+    public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
         return getIdObjectsInExpression( CATEGORY_OPTION_COMBO_OPERAND_PATTERN, expression, 
-            ( m ) -> categoryService.getCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
+            ( m ) -> categoryService.getDataElementCategoryOptionCombo( m.group( GROUP_CATEGORORY_OPTION_COMBO ) ) );
     }
 
     @Override
@@ -337,8 +337,8 @@ public class DefaultExpressionService
 
                 DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
-                CategoryOptionCombo optionCombo = optionComboUid == null ? null :
-                    categoryService.getCategoryOptionCombo( optionComboUid );
+                DataElementCategoryOptionCombo optionCombo = optionComboUid == null ? null :
+                    categoryService.getDataElementCategoryOptionCombo( optionComboUid );
 
                 operandsInExpression.add ( new DataElementOperand( dataElement, optionCombo ) );
             }

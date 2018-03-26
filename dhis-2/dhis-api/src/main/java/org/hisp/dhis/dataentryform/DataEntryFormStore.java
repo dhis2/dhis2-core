@@ -28,12 +28,12 @@ package org.hisp.dhis.dataentryform;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 import java.util.List;
 
 public interface DataEntryFormStore
-    extends IdentifiableObjectStore<DataEntryForm>
+    extends GenericIdentifiableObjectStore<DataEntryForm>
 {
     String ID = DataEntryFormStore.class.getName();
 

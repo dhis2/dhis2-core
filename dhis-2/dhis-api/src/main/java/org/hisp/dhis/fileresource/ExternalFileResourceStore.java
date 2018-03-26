@@ -28,13 +28,13 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Stian Sandvold
  */
 public interface ExternalFileResourceStore 
-    extends IdentifiableObjectStore<ExternalFileResource>
+    extends GenericIdentifiableObjectStore<ExternalFileResource>
 {
     /**
      * Returns a single ExternalFileResource with the given (unique) accessToken.

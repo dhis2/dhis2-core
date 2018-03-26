@@ -32,8 +32,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -147,9 +147,9 @@ public class DefaultDataIntegrityService
         this.dataEntryFormService = dataEntryFormService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -277,9 +277,9 @@ public class DefaultDataIntegrityService
     }
     
     @Override
-    public List<CategoryCombo> getInvalidCategoryCombos()
+    public List<DataElementCategoryCombo> getInvalidCategoryCombos()
     {
-        List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
+        List<DataElementCategoryCombo> categoryCombos = categoryService.getAllDataElementCategoryCombos();
         
         return categoryCombos.stream().filter( c -> !c.isValid() ).collect( Collectors.toList() );
     }

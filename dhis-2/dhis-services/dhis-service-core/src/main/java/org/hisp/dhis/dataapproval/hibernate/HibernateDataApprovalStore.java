@@ -57,9 +57,9 @@ import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -105,9 +105,9 @@ public class HibernateDataApprovalStore
         this.currentUserService = currentUserService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -134,27 +134,27 @@ public class HibernateDataApprovalStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void addDataApproval( DataApproval dataApproval )
+    public void addDataApproval( DataApproval dataApproval, User user )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        save( dataApproval );
+        save( dataApproval, user );
     }
 
     @Override
-    public void updateDataApproval( DataApproval dataApproval )
+    public void updateDataApproval( DataApproval dataApproval, User user )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        update( dataApproval );
+        update( dataApproval, user );
     }
 
     @Override
-    public void deleteDataApproval( DataApproval dataApproval )
+    public void deleteDataApproval( DataApproval dataApproval, User user )
     {
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
-        delete( dataApproval );
+        delete( dataApproval, user );
     }    
 
     @Override
@@ -175,7 +175,7 @@ public class HibernateDataApprovalStore
 
     @Override
     public DataApproval getDataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
     {
         Period storedPeriod = periodService.reloadPeriod( period );
 
@@ -192,7 +192,7 @@ public class HibernateDataApprovalStore
     @Override
     @SuppressWarnings("unchecked")
     public List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<CategoryOptionCombo> attributeOptionCombos )
+        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<DataElementCategoryOptionCombo> attributeOptionCombos )
     {
         List<Period> storedPeriods = periods.stream().map(p -> periodService.reloadPeriod( p ) ).collect( Collectors.toList() );
 
@@ -209,8 +209,8 @@ public class HibernateDataApprovalStore
     @Override
     public List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
         Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
-        CategoryCombo attributeCombo,
-        Set<CategoryOptionCombo> attributeOptionCombos )
+        DataElementCategoryCombo attributeCombo,
+        Set<DataElementCategoryOptionCombo> attributeOptionCombos )
     {
         // ---------------------------------------------------------------------
         // Get validation criteria
@@ -225,7 +225,7 @@ public class HibernateDataApprovalStore
         Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
 
         boolean isDefaultCombo = attributeOptionCombos != null && attributeOptionCombos.size() == 1
-            && categoryService.getDefaultCategoryOptionCombo().equals( attributeOptionCombos.toArray()[0] );
+            && categoryService.getDefaultDataElementCategoryOptionCombo().equals( attributeOptionCombos.toArray()[0] );
 
         boolean maySeeDefaultCategoryCombo =
             ( CollectionUtils.isEmpty( user.getUserCredentials().getCogsDimensionConstraints() )

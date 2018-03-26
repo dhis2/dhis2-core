@@ -28,8 +28,10 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.category.CategoryCombo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -38,7 +40,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -50,8 +52,8 @@ public class DataElementTest
     @Test
     public void testGetCategoryCombos()
     {
-        CategoryCombo ccA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
-        CategoryCombo ccB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
+        DataElementCategoryCombo ccA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        DataElementCategoryCombo ccB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
                 
         DataSet dsA = new DataSet( "DataSetA" );
         DataSet dsB = new DataSet( "DataSetB" );
@@ -59,7 +61,7 @@ public class DataElementTest
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
         
-        deA.setDataElementCategoryCombo( ccA );
+        deA.setDataElementCategoryCombo( ccA );        
         dsA.addDataSetElement( deA );
         dsB.addDataSetElement( deA, ccB );
         
@@ -76,8 +78,8 @@ public class DataElementTest
     @Test
     public void testGetCategoryComboDataSet()
     {
-        CategoryCombo ccA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
-        CategoryCombo ccB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
+        DataElementCategoryCombo ccA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        DataElementCategoryCombo ccB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
                 
         DataSet dsA = new DataSet( "DataSetA" );
         DataSet dsB = new DataSet( "DataSetB" );
@@ -85,18 +87,18 @@ public class DataElementTest
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
         
-        deA.setDataElementCategoryCombo( ccA );
+        deA.setDataElementCategoryCombo( ccA );        
         dsA.addDataSetElement( deA );
         dsB.addDataSetElement( deA, ccB );
         
-        assertEquals( ccA, deA.getDataElementCategoryCombo( dsA ) );
-        assertEquals( ccB, deA.getDataElementCategoryCombo( dsB ) );
+        assertEquals( ccA, deA.getCategoryCombo( dsA ) );
+        assertEquals( ccB, deA.getCategoryCombo( dsB ) );
         
         deB.setDataElementCategoryCombo( ccA );
         dsA.addDataSetElement( deB );
 
-        assertEquals( ccA, deB.getDataElementCategoryCombo( dsA ) );
-        assertEquals( ccA, deB.getDataElementCategoryCombo( dsB ) );
+        assertEquals( ccA, deB.getCategoryCombo( dsA ) );
+        assertEquals( ccA, deB.getCategoryCombo( dsB ) );
     }
     
     @Test

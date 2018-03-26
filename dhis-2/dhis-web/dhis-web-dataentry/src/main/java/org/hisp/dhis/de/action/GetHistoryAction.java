@@ -31,8 +31,8 @@ package org.hisp.dhis.de.action;
 import com.google.common.collect.Lists;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataelementhistory.DataElementHistory;
 import org.hisp.dhis.dataelementhistory.HistoryRetriever;
@@ -89,9 +89,9 @@ public class GetHistoryAction
         this.dataValueService = dataValueService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -255,11 +255,11 @@ public class GetHistoryAction
     {
         DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
-        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( optionComboId );
+        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( optionComboId );
 
         if ( categoryOptionCombo == null )
         {
-            categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+            categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         }
 
         if ( dataElement == null )
@@ -271,7 +271,7 @@ public class GetHistoryAction
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
+        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
 
         dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo, organisationUnit, period, HISTORY_LENGTH );
 

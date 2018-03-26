@@ -28,17 +28,23 @@ package org.hisp.dhis.datasetreport.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.datasetreport.DataSetReportStore;
@@ -48,8 +54,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-import java.util.Map.Entry;
+import com.google.common.collect.Lists;
+
+import org.hisp.dhis.commons.filter.FilterUtils;
 
 /**
  * @author Lars Helge Overland
@@ -114,9 +121,9 @@ public class AnalyticsDataSetReportStore
         for ( Section section : dataSet.getSections() )
         {
             List<DataElement> dataElements = new ArrayList<>( section.getDataElements() );
-            Set<Category> categories = new HashSet<>();
+            Set<DataElementCategory> categories = new HashSet<>();
             
-            for( CategoryCombo categoryCombo : section.getCategoryCombos() )
+            for( DataElementCategoryCombo categoryCombo : section.getCategoryCombos() )
             {
                 categories.addAll( categoryCombo.getCategories() );
             }            
@@ -128,7 +135,7 @@ public class AnalyticsDataSetReportStore
                 continue;
             }
             
-            for ( Category category : categories )
+            for ( DataElementCategory category : categories )
             {
                 if ( category.isDefault() )
                 {

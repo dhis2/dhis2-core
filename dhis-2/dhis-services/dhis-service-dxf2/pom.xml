@@ -20,15 +20,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-node</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-core</artifactId>
     </dependency>
-    <dependency>
+	<dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-validation</artifactId>
+      <artifactId>dhis-support-jdbc</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

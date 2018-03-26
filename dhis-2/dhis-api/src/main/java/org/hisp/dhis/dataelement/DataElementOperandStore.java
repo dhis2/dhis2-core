@@ -28,13 +28,13 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface DataElementOperandStore
-    extends IdentifiableObjectStore<DataElementOperand>
+    extends GenericIdentifiableObjectStore<DataElementOperand>
 {
     String ID = DataElementOperand.class.getName();
 }

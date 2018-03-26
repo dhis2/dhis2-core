@@ -28,13 +28,21 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dataentryform.DataEntryFormService.DATAELEMENT_TOTAL_PATTERN;
+import static org.hisp.dhis.dataentryform.DataEntryFormService.IDENTIFIER_PATTERN;
+import static org.hisp.dhis.dataentryform.DataEntryFormService.INDICATOR_PATTERN;
+
+import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -44,12 +52,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.hisp.dhis.dataentryform.DataEntryFormService.*;
 
 /**
  * Upgrades indicator formulas, expressions (for validation rules) and custom
@@ -75,7 +77,7 @@ public class ExpressionUpgrader
     private DataElementService dataElementService;
     
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
     
     @Autowired
     private IndicatorService indicatorService;
@@ -172,7 +174,7 @@ public class ExpressionUpgrader
                 
                 if ( matcher.groupCount() == 2 && matcher.group( 2 ) != null && !matcher.group( 2 ).trim().isEmpty() )
                 {
-                    CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
+                    DataElementCategoryOptionCombo coc = categoryService.getDataElementCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
                     replacement += "." + coc.getUid();
                 }
                 
@@ -218,7 +220,7 @@ public class ExpressionUpgrader
                     while ( matcher.find() )
                     {
                         DataElement de = dataElementService.getDataElement( Integer.parseInt( matcher.group( 1 ) ) );
-                        CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );                        
+                        DataElementCategoryOptionCombo coc = categoryService.getDataElementCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );                        
                         String replacement = "id=\"" + de.getUid() + "-" + coc.getUid() + "-val\"";                        
                         matcher.appendReplacement( sb, replacement );
                     }

@@ -1,0 +1,60 @@
+<script type="text/javascript">
+	jQuery(document).ready(	function(){
+		
+		var rules = getValidationRules( "i18nLocale" );
+		
+		validation2( 'addLocaleForm', function( form ){ form.submit(); },
+		{
+			'rules': rules
+		});
+		
+		checkValueIsExist( "localeCode", "validateLocale.action" );
+	});
+		
+</script>
+
+<h3>$i18n.getString( "create_new_locale" )</h3>
+									
+<form id="addLocaleForm" name="addLocaleForm" action="addLocale.action" method="post" class="inputForm">
+
+<table>	 
+	<thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "locale_details" )</th>
+      </tr>
+    </thead>
+    
+	<tbody>
+		<tr>
+			<td style="vertical-align:top;"><label>$i18n.getString( "language" ) </label></td>
+			<td style="vertical-align:top;">
+				<select id="language" name="language" onchange="setLocaleCode()" class="{validate:{required:true}}">
+					<option value="">[$i18n.getString( "locale_language_no_translation" )]</option>
+				    #foreach( $language in $availableLanguages.entrySet() )
+					<option value="$language.key">$language.value</option>
+				    #end
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td style="vertical-align:top;"><label>$i18n.getString( "country" ) </label></td>
+			<td style="vertical-align:top;">
+				<select id="country" name="country" onchange="setLocaleCode()">
+					<option value="">[$i18n.getString( "locale_country_no_translation" )]</option>
+				    #foreach( $country in $availableCountries.entrySet() )
+					<option value="$country.key">$country.value</option>
+				    #end
+				</select>
+				<input type="hidden" id="localeCode" name="localeCode" >
+			</td>
+		</tr>		
+	<tbody>
+</table>
+
+
+<p>
+	<input type="submit" name="save" value="$i18n.getString( 'add' )" style="width: 10em;" />
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='locale.action'" style="width: 10em;" />
+</p>
+
+</form>

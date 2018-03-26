@@ -28,7 +28,7 @@ package org.hisp.dhis.keyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 import java.util.List;
 import java.util.Date;
@@ -37,7 +37,7 @@ import java.util.Date;
  * @author Stian Sandvold
  */
 public interface KeyJsonValueStore
-    extends IdentifiableObjectStore<KeyJsonValue>
+    extends GenericIdentifiableObjectStore<KeyJsonValue>
 {
     /**
      * Retrieves a list of all namespaces

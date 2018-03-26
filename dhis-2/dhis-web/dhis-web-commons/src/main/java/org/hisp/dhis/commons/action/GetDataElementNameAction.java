@@ -29,8 +29,8 @@ package org.hisp.dhis.commons.action;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 
 import com.opensymphony.xwork2.Action;
@@ -52,9 +52,9 @@ public class GetDataElementNameAction
         this.dataElementService = dataElementService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -99,8 +99,8 @@ public class GetDataElementNameAction
         {
             DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
-            CategoryOptionCombo categoryOptionCombo = categoryService
-                .getCategoryOptionCombo( categoryOptionComboId );
+            DataElementCategoryOptionCombo categoryOptionCombo = categoryService
+                .getDataElementCategoryOptionCombo( categoryOptionComboId );
 
             name = dataElement.getName() + " " + categoryOptionCombo.getName();
         }

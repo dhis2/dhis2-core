@@ -33,13 +33,13 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -93,7 +93,7 @@ public class DataApprovalAuditServiceTest
     private PeriodService periodService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private UserService userService;
@@ -138,16 +138,16 @@ public class DataApprovalAuditServiceTest
 
     private User userZ;
 
-    private CategoryOption optionA;
-    private CategoryOption optionB;
+    private DataElementCategoryOption optionA;
+    private DataElementCategoryOption optionB;
 
-    private Category categoryA;
+    private DataElementCategory categoryA;
 
-    private CategoryCombo categoryComboA;
+    private DataElementCategoryCombo categoryComboA;
 
-    private CategoryOptionCombo optionComboA;
-    private CategoryOptionCombo optionComboB;
-    private CategoryOptionCombo optionComboC;
+    private DataElementCategoryOptionCombo optionComboA;
+    private DataElementCategoryOptionCombo optionComboB;
+    private DataElementCategoryOptionCombo optionComboC;
 
     private CategoryOptionGroup optionGroupA;
     private CategoryOptionGroup optionGroupB;
@@ -265,23 +265,23 @@ public class DataApprovalAuditServiceTest
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userCService.getCurrentUser() ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userDService.getCurrentUser() ) );
 
-        optionA = new CategoryOption( "CategoryOptionA" );
-        optionB = new CategoryOption( "CategoryOptionB" );
-        categoryService.addCategoryOption( optionA );
-        categoryService.addCategoryOption( optionB );
+        optionA = new DataElementCategoryOption( "CategoryOptionA" );
+        optionB = new DataElementCategoryOption( "CategoryOptionB" );
+        categoryService.addDataElementCategoryOption( optionA );
+        categoryService.addDataElementCategoryOption( optionB );
 
-        categoryA = createCategory( 'A', optionA, optionB );
-        categoryService.addCategory( categoryA );
+        categoryA = createDataElementCategory( 'A', optionA, optionB );
+        categoryService.addDataElementCategory( categoryA );
 
         categoryComboA = createCategoryCombo( 'A', categoryA );
-        categoryService.addCategoryCombo( categoryComboA );
+        categoryService.addDataElementCategoryCombo( categoryComboA );
 
         optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
         optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
         optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
-        categoryService.addCategoryOptionCombo( optionComboA );
-        categoryService.addCategoryOptionCombo( optionComboB );
-        categoryService.addCategoryOptionCombo( optionComboC );
+        categoryService.addDataElementCategoryOptionCombo( optionComboA );
+        categoryService.addDataElementCategoryOptionCombo( optionComboB );
+        categoryService.addDataElementCategoryOptionCombo( optionComboC );
 
         optionGroupA = createCategoryOptionGroup( 'A', optionA );
         optionGroupB = createCategoryOptionGroup( 'B', optionB );

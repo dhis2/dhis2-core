@@ -32,10 +32,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -79,13 +75,13 @@ public interface DimensionalObject
         ORGUNIT_DIM_ID, "Organisation unit" );
     
     Set<Class<? extends IdentifiableObject>> DYNAMIC_DIMENSION_CLASSES = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
-        add( Category.class ).
+        add( DataElementCategory.class ).
         add( DataElementGroupSet.class ).
         add( OrganisationUnitGroupSet.class ).
         add( CategoryOptionGroupSet.class ).build();
     
     Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> DIMENSION_CLASS_ITEM_CLASS_MAP = ImmutableMap.<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>>builder().
-        put( Category.class, CategoryOption.class ).
+        put( DataElementCategory.class, DataElementCategoryOption.class ).
         put( DataElementGroupSet.class, DataElementGroup.class ).
         put( OrganisationUnitGroupSet.class, OrganisationUnitGroup.class ).
         put( CategoryOptionGroupSet.class, CategoryOptionGroup.class ).build();

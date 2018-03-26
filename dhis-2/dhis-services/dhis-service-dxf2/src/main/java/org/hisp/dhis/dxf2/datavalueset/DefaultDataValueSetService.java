@@ -48,8 +48,8 @@ import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -137,7 +137,7 @@ public class DefaultDataValueSetService
     private IdentifiableObjectManager identifiableObjectManager;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -248,7 +248,7 @@ public class DefaultDataValueSetService
         if ( attributeOptionCombos != null )
         {
             params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects( 
-                CategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
+                DataElementCategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
         }
 
         return params
@@ -376,7 +376,7 @@ public class DefaultDataValueSetService
     {
         if ( params.isSingleDataValueSet() )
         {
-            CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo(); //TODO
+            DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo(); //TODO
 
             CompleteDataSetRegistration registration = registrationService
                 .getCompleteDataSetRegistration( params.getFirstDataSet(), params.getFirstPeriod(), params.getFirstOrganisationUnit(), optionCombo );
@@ -440,7 +440,7 @@ public class DefaultDataValueSetService
         CollectionNode collectionNode = new CollectionNode( "dataValues" );
         collectionNode.setWrapping( false );
 
-        for ( CategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
+        for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
         {
             ComplexNode complexNode = collectionNode.addChild( new ComplexNode( "dataValue" ) );
 
@@ -680,12 +680,12 @@ public class DefaultDataValueSetService
 
         CachingMap<String, DataElement> dataElementMap = new CachingMap<>();
         CachingMap<String, OrganisationUnit> orgUnitMap = new CachingMap<>();
-        CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
+        CachingMap<String, DataElementCategoryOptionCombo> optionComboMap = new CachingMap<>();
         CachingMap<String, DataSet> dataElementDataSetMap = new CachingMap<>();
         CachingMap<String, Period> periodMap = new CachingMap<>();
         CachingMap<String, Set<PeriodType>> dataElementPeriodTypesMap = new CachingMap<>();
-        CachingMap<String, Set<CategoryOptionCombo>> dataElementCategoryOptionComboMap = new CachingMap<>();
-        CachingMap<String, Set<CategoryOptionCombo>> dataElementAttrOptionComboMap = new CachingMap<>();
+        CachingMap<String, Set<DataElementCategoryOptionCombo>> dataElementCategoryOptionComboMap = new CachingMap<>();
+        CachingMap<String, Set<DataElementCategoryOptionCombo>> dataElementAttrOptionComboMap = new CachingMap<>();
         CachingMap<String, Boolean> dataElementOrgUnitMap = new CachingMap<>();
         CachingMap<String, Boolean> dataSetLockedMap = new CachingMap<>();
         CachingMap<String, Period> dataElementLatestFuturePeriodMap = new CachingMap<>();
@@ -705,9 +705,9 @@ public class DefaultDataValueSetService
             identifiableObjectManager, DataElement.class, dataElementIdScheme, null );
         IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable = new IdentifiableObjectCallable<>(
             identifiableObjectManager, OrganisationUnit.class, orgUnitIdScheme, trimToNull( dataValueSet.getOrgUnit() ) );
-        IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable = new CategoryOptionComboAclCallable(
+        IdentifiableObjectCallable<DataElementCategoryOptionCombo> categoryOptionComboCallable = new CategoryOptionComboAclCallable(
             categoryService, categoryOptComboIdScheme, null );
-        IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable = new CategoryOptionComboAclCallable(
+        IdentifiableObjectCallable<DataElementCategoryOptionCombo> attributeOptionComboCallable = new CategoryOptionComboAclCallable(
             categoryService, categoryOptComboIdScheme, null );
         IdentifiableObjectCallable<Period> periodCallable = new PeriodCallable( periodService, null, trimToNull( dataValueSet.getPeriod() ) );
 
@@ -719,7 +719,7 @@ public class DefaultDataValueSetService
         {
             dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme ) );
             orgUnitMap.load( identifiableObjectManager.getAll( OrganisationUnit.class ), o -> o.getPropertyValue( orgUnitIdScheme ) );
-            optionComboMap.load( identifiableObjectManager.getAll( CategoryOptionCombo.class ), o -> o.getPropertyValue( categoryOptComboIdScheme ) );
+            optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o.getPropertyValue( categoryOptComboIdScheme ) );
         }
 
         // ---------------------------------------------------------------------
@@ -734,9 +734,9 @@ public class DefaultDataValueSetService
 
         OrganisationUnit outerOrgUnit = orgUnitMap.get( trimToNull( dataValueSet.getOrgUnit() ), orgUnitCallable );
 
-        CategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
-        CategoryOptionCombo outerAttrOptionCombo = null;
+        DataElementCategoryOptionCombo outerAttrOptionCombo = null;
 
         if ( dataValueSet.getAttributeOptionCombo() != null )
         {
@@ -824,9 +824,9 @@ public class DefaultDataValueSetService
                 periodMap.get( trimToNull( dataValue.getPeriod() ), periodCallable.setId( trimToNull( dataValue.getPeriod() ) ) );
             final OrganisationUnit orgUnit = outerOrgUnit != null ? outerOrgUnit :
                 orgUnitMap.get( trimToNull( dataValue.getOrgUnit() ), orgUnitCallable.setId( trimToNull( dataValue.getOrgUnit() ) ) );
-            CategoryOptionCombo categoryOptionCombo =
+            DataElementCategoryOptionCombo categoryOptionCombo =
                 optionComboMap.get( trimToNull( dataValue.getCategoryOptionCombo() ), categoryOptionComboCallable.setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) );
-            CategoryOptionCombo attrOptionCombo = outerAttrOptionCombo != null ? outerAttrOptionCombo :
+            DataElementCategoryOptionCombo attrOptionCombo = outerAttrOptionCombo != null ? outerAttrOptionCombo :
                 optionComboMap.get( trimToNull( dataValue.getAttributeOptionCombo() ), attributeOptionComboCallable.setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
 
             // -----------------------------------------------------------------
@@ -849,7 +849,7 @@ public class DefaultDataValueSetService
 
             if ( !optionComboMap.isCacheLoaded() && optionComboMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
             {
-                optionComboMap.load( identifiableObjectManager.getAll( CategoryOptionCombo.class ), o -> o.getPropertyValue(
+                optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o.getPropertyValue(
                     categoryOptComboIdScheme ) );
 
                 log.info( "Category Option Combo cache heated after cache miss threshold reached" );
@@ -1033,7 +1033,7 @@ public class DefaultDataValueSetService
 
             String storedBy = dataValue.getStoredBy() == null || dataValue.getStoredBy().trim().isEmpty() ? currentUserName : dataValue.getStoredBy();
 
-            final CategoryOptionCombo aoc = attrOptionCombo;
+            final DataElementCategoryOptionCombo aoc = attrOptionCombo;
 
             DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), () -> aoc.getDateRange() );
 
@@ -1289,7 +1289,7 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     private void handleComplete( DataSet dataSet, Date completeDate, Period period, OrganisationUnit orgUnit,
-        CategoryOptionCombo attributeOptionCombo, ImportSummary summary )
+        DataElementCategoryOptionCombo attributeOptionCombo, ImportSummary summary )
     {
         if ( orgUnit == null )
         {

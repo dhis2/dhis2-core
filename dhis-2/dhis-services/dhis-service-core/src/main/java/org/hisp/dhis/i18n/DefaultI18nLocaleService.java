@@ -173,6 +173,24 @@ public class DefaultI18nLocaleService
     {
         return localeStore.getCount();
     }
+
+    @Override
+    public int getI18nLocaleCountByName( String name )
+    {
+        return localeStore.getCountLikeName( name );
+    }
+    
+    @Override
+    public List<I18nLocale> getI18nLocalesBetween( int first, int max )
+    {
+        return localeStore.getAllOrderedName( first, max );
+    }
+    
+    @Override
+    public List<I18nLocale> getI18nLocalesBetweenLikeName( String name, int first, int max )
+    {
+        return localeStore.getAllLikeName( name, first, max );
+    }
     
     @Override
     public List<Locale> getAllLocales()

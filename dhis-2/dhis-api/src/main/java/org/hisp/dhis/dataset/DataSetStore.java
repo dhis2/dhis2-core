@@ -30,7 +30,7 @@ package org.hisp.dhis.dataset;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -39,7 +39,7 @@ import org.hisp.dhis.period.PeriodType;
  * @author Kristian Nordal
  */
 public interface DataSetStore
-    extends IdentifiableObjectStore<DataSet>
+    extends GenericIdentifiableObjectStore<DataSet>
 {
     String ID = DataSetStore.class.getName();
 

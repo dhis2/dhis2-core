@@ -42,8 +42,7 @@ import org.hisp.dhis.api.mobile.model.DataSetValueList;
 import org.hisp.dhis.api.mobile.model.DataValue;
 import org.hisp.dhis.api.mobile.model.Model;
 import org.hisp.dhis.api.mobile.model.Section;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -88,7 +87,7 @@ public class FacilityReportingServiceImpl
 
     private PeriodService periodService;
 
-    private CategoryService categoryService;
+    private org.hisp.dhis.dataelement.DataElementCategoryService categoryService;
 
     private org.hisp.dhis.datavalue.DataValueService dataValueService;
 
@@ -386,7 +385,7 @@ public class FacilityReportingServiceImpl
 
         }
 
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dataSet, period,
             unit, optionCombo );
@@ -492,7 +491,7 @@ public class FacilityReportingServiceImpl
     {
         String value = dv.getValue().trim();
 
-        CategoryOptionCombo catOptCombo = categoryService.getCategoryOptionCombo( dv
+        DataElementCategoryOptionCombo catOptCombo = categoryService.getDataElementCategoryOptionCombo( dv
             .getCategoryOptComboID() );
 
         org.hisp.dhis.datavalue.DataValue dataValue = dataValueService.getDataValue( dataElement, period, unit,
@@ -500,7 +499,7 @@ public class FacilityReportingServiceImpl
 
         if ( dataValue == null )
         {
-            dataValue = new org.hisp.dhis.datavalue.DataValue( dataElement, period, unit, catOptCombo, categoryService.getDefaultCategoryOptionCombo(),
+            dataValue = new org.hisp.dhis.datavalue.DataValue( dataElement, period, unit, catOptCombo, categoryService.getDefaultDataElementCategoryOptionCombo(),
                 value, "", new Date(), "" );
             dataValueService.addDataValue( dataValue );
         }
@@ -561,7 +560,7 @@ public class FacilityReportingServiceImpl
     }
 
     @Required
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( org.hisp.dhis.dataelement.DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }

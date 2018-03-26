@@ -1,0 +1,11 @@
+#set( $size = $dataSets.size() )
+{ "dataSets": [
+#foreach( $dataSet in $dataSets )
+  {
+    "id": $!{dataSet.id},
+    "name": "$!encoder.jsonEncode( ${dataSet.displayName} )",
+	"periodType": "$!{dataSet.periodType.name}",
+	"allowFuturePeriods": "$!{dataSet.allowFuturePeriods}"
+  }#if( $velocityCount < $size ),#end
+#end
+] }

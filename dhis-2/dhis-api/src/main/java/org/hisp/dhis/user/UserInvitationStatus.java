@@ -54,9 +54,4 @@ public enum UserInvitationStatus
 
         return null;
     }
-
-    public String getValue()
-    {
-        return value;
-    }
 }

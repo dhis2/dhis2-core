@@ -30,7 +30,7 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * Defines the functionality for persisting DataApproval objects.
@@ -38,7 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * @author Jim Grace
  */
 public interface DataApprovalLevelStore
-    extends IdentifiableObjectStore<DataApprovalLevel>
+    extends GenericIdentifiableObjectStore<DataApprovalLevel>
 {
     String ID = DataApprovalLevelStore.class.getName();
 

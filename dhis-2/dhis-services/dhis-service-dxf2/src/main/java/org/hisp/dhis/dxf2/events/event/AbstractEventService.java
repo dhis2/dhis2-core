@@ -55,10 +55,10 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -197,7 +197,7 @@ public abstract class AbstractEventService
     protected IdentifiableObjectManager manager;
 
     @Autowired
-    protected CategoryService categoryService;
+    protected DataElementCategoryService categoryService;
 
     @Autowired
     protected FileResourceService fileResourceService;
@@ -230,11 +230,11 @@ public abstract class AbstractEventService
 
     private CachingMap<String, DataElement> dataElementCache = new CachingMap<>();
 
-    private CachingMap<String, CategoryOption> categoryOptionCache = new CachingMap<>();
+    private CachingMap<String, DataElementCategoryOption> categoryOptionCache = new CachingMap<>();
 
-    private CachingMap<String, CategoryOptionCombo> categoryOptionComboCache = new CachingMap<>();
+    private CachingMap<String, DataElementCategoryOptionCombo> categoryOptionComboCache = new CachingMap<>();
 
-    private CachingMap<String, CategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
+    private CachingMap<String, DataElementCategoryOptionCombo> attributeOptionComboCache = new CachingMap<>();
 
     private CachingMap<String, List<ProgramInstance>> activeProgramInstanceCache = new CachingMap<>();
 
@@ -710,7 +710,7 @@ public abstract class AbstractEventService
         event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo().getUid() );
         event.setAttributeCategoryOptions(
             String.join( ";", programStageInstance.getAttributeOptionCombo().getCategoryOptions().stream()
-                .map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
+                .map( DataElementCategoryOption::getUid ).collect( Collectors.toList() ) ) );
 
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
         {
@@ -794,7 +794,7 @@ public abstract class AbstractEventService
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
-        CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
+        DataElementCategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
         Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
@@ -972,8 +972,6 @@ public abstract class AbstractEventService
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getEvent() );
 
-        //TODO: If change of orgUnit should be supported, the logic of canWrite should be changed in order that it checks
-        // write access to the new orgUnit as well
         List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
 
         if ( programStageInstance == null )
@@ -1059,7 +1057,6 @@ public abstract class AbstractEventService
         }
 
         programStageInstance.setDueDate( dueDate );
-        //TODO: If change of orgUnit shouldn't be supported, the line below can be removed
         programStageInstance.setOrganisationUnit( organisationUnit );
 
         if ( !singleValue )
@@ -1087,7 +1084,7 @@ public abstract class AbstractEventService
         {
             IdScheme idScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
-            CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo(
+            DataElementCategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo(
                 program.getCategoryCombo(), event.getAttributeCategoryOptions(), event.getAttributeOptionCombo(), idScheme );
 
             if ( attributeOptionCombo == null )
@@ -1101,9 +1098,6 @@ public abstract class AbstractEventService
 
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
         }
-
-        //TODO: Can event be deleted through UPDATE?
-        programStageInstance.setDeleted( event.isDeleted() );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
         updateTrackedEntityInstance( programStageInstance, user );
@@ -1232,26 +1226,35 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+        //TODO: Shouldn't access rights be checked for delete in the same way as for update? Currently, no check is present at all.
 
-        if ( programStageInstance != null )
+        boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
+        boolean existsEventIncludingDeleted = programStageInstanceService.programStageInstanceExistsIncludingDeleted( uid );
+
+        if ( existsEvent )
         {
+            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
             }
-
-            String descMsg = "Deletion of event " + uid + " was successful";
-            return new ImportSummary( ImportStatus.SUCCESS, descMsg ).incrementDeleted();
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." ).incrementIgnored();
+        if ( existsEvent || existsEventIncludingDeleted )
+        {
+            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
+                .incrementDeleted();
+        }
+
+        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." )
+            .incrementIgnored();
     }
 
     @Override
-    public ImportSummaries deleteEvents( List<String> uids )
+    public ImportSummaries deleteEvents( List<String> uids, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
@@ -1260,7 +1263,7 @@ public abstract class AbstractEventService
         {
             importSummaries.addImportSummary( deleteEvent( uid ) );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( clearSession && counter % FLUSH_FREQUENCY == 0 )
             {
                 clearSession();
             }
@@ -1435,7 +1438,7 @@ public abstract class AbstractEventService
         String storedBy = getStoredBy( event, importSummary, user );
         String completedBy = getCompletedBy( event, importSummary, user );
 
-        CategoryOptionCombo aoc = null;
+        DataElementCategoryOptionCombo aoc = null;
 
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null) || event.getAttributeOptionCombo() != null )
         {
@@ -1454,7 +1457,7 @@ public abstract class AbstractEventService
         }
         else
         {
-            aoc = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
+            aoc = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
         }
 
         if ( !dryRun )
@@ -1580,7 +1583,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, String storeBy, String programStageInstanceIdentifier, CategoryOptionCombo aoc,
+        String completedBy, String storeBy, String programStageInstanceIdentifier, DataElementCategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1605,7 +1608,7 @@ public abstract class AbstractEventService
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status, Coordinate coordinate,
-        String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
+        String completedBy, ProgramStageInstance programStageInstance, DataElementCategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
         programStageInstance.setProgramInstance( programInstance );
@@ -1614,8 +1617,6 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
-        //TODO: Can even be set as deleted via POST (create) method? Does it make any sense? (Deletion should be done in a way by using DELETE importStatregy and so delete method should be called.)
-        programStageInstance.setDeleted( event.isDeleted() );
 
         if ( programStage.getCaptureCoordinates() )
         {
@@ -1739,20 +1740,20 @@ public abstract class AbstractEventService
         return dataElementCache.get( id, () -> manager.getObject( DataElement.class, idScheme, id ) );
     }
 
-    private CategoryOption getCategoryOption( IdScheme idScheme, String id )
+    private DataElementCategoryOption getCategoryOption( IdScheme idScheme, String id )
     {
-        return categoryOptionCache.get( id, () -> manager.getObject( CategoryOption.class, idScheme, id ) );
+        return categoryOptionCache.get( id, () -> manager.getObject( DataElementCategoryOption.class, idScheme, id ) );
     }
 
-    private CategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
+    private DataElementCategoryOptionCombo getCategoryOptionCombo( IdScheme idScheme, String id )
     {
-        return categoryOptionComboCache.get( id, () -> manager.getObject( CategoryOptionCombo.class, idScheme, id ) );
+        return categoryOptionComboCache.get( id, () -> manager.getObject( DataElementCategoryOptionCombo.class, idScheme, id ) );
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( String key, CategoryCombo categoryCombo,
-        Set<CategoryOption> categoryOptions )
+    private DataElementCategoryOptionCombo getAttributeOptionCombo( String key, DataElementCategoryCombo categoryCombo,
+        Set<DataElementCategoryOption> categoryOptions )
     {
-        return attributeOptionComboCache.get( key, () -> categoryService.getCategoryOptionCombo( categoryCombo, categoryOptions ) );
+        return attributeOptionComboCache.get( key, () -> categoryService.getDataElementCategoryOptionCombo( categoryCombo, categoryOptions ) );
     }
 
     private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
@@ -1965,7 +1966,7 @@ public abstract class AbstractEventService
         trackedEntityInstances.forEach( tei -> manager.update( tei, user ) );
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String cp,
+    private DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, String cp,
         String attributeOptionCombo, IdScheme idScheme )
     {
         Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
@@ -1973,7 +1974,7 @@ public abstract class AbstractEventService
         return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
+    private DataElementCategoryOptionCombo getAttributeOptionCombo( DataElementCategoryCombo categoryCombo, Set<String> opts,
         String attributeOptionCombo, IdScheme idScheme )
     {
         if ( categoryCombo == null )
@@ -1985,15 +1986,15 @@ public abstract class AbstractEventService
         // Attribute category options validation
         // ---------------------------------------------------------------------
 
-        CategoryOptionCombo attrOptCombo = null;
+        DataElementCategoryOptionCombo attrOptCombo = null;
 
         if ( opts != null )
         {
-            Set<CategoryOption> categoryOptions = new HashSet<>();
+            Set<DataElementCategoryOption> categoryOptions = new HashSet<>();
 
             for ( String uid : opts )
             {
-                CategoryOption categoryOption = getCategoryOption( idScheme, uid );
+                DataElementCategoryOption categoryOption = getCategoryOption( idScheme, uid );
 
                 if ( categoryOption == null )
                 {
@@ -2025,7 +2026,7 @@ public abstract class AbstractEventService
 
         if ( attrOptCombo == null )
         {
-            attrOptCombo = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
+            attrOptCombo = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
         }
 
         if ( attrOptCombo == null )

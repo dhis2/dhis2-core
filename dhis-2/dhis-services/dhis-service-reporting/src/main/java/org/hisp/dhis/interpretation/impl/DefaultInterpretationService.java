@@ -34,35 +34,23 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.interpretation.InterpretationStore;
-import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
 @Transactional
-public class DefaultInterpretationService 
+public class DefaultInterpretationService
     implements InterpretationService
 {
     // -------------------------------------------------------------------------
@@ -97,34 +85,6 @@ public class DefaultInterpretationService
         this.periodService = periodService;
     }
 
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
-
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
-    }
-    
-    private AclService aclService;
-
-    public void setAclService( AclService aclService )
-    {
-        this.aclService = aclService;
-    }
-
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
-        this.i18nManager = i18nManager;
-    }
-
     // -------------------------------------------------------------------------
     // InterpretationService implementation
     // -------------------------------------------------------------------------
@@ -133,9 +93,7 @@ public class DefaultInterpretationService
     public int saveInterpretation( Interpretation interpretation )
     {
         User user = currentUserService.getCurrentUser();
-        
-        Set<User> users = new HashSet<>();
-        
+
         if ( interpretation != null )
         {
             if ( user != null )
@@ -147,15 +105,9 @@ public class DefaultInterpretationService
             {
                 interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
             }
-
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );            
-            interpretation.setMentionsFromUsers( users );            
-            updateSharingForMentions( interpretation, users );
         }
 
         interpretationStore.save( interpretation );
-
-        sendNotifications( interpretation, null, users );
 
         return interpretation.getId();
     }
@@ -175,13 +127,7 @@ public class DefaultInterpretationService
     @Override
     public void updateInterpretation( Interpretation interpretation )
     {
-        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-        
-        interpretation.setMentionsFromUsers( users );
         interpretationStore.update( interpretation );
-        updateSharingForMentions( interpretation, users );
-        
-        sendNotifications( interpretation, null, users );
     }
 
     @Override
@@ -209,88 +155,15 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public void sendNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users )
-    {
-        if ( interpretation == null || users.isEmpty() )
-        {
-            return;
-        }
-        String link = systemSettingManager.getInstanceBaseUrl();
-
-        switch ( interpretation.getType() )
-        {
-        case MAP:
-            link += "/dhis-web-mapping/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case REPORT_TABLE:
-            link += "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case CHART:
-            link += "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case EVENT_REPORT:
-            link += "/dhis-web-event-reports/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case EVENT_CHART:
-            link += "/dhis-web-event-visualizer/index.html?id=" + interpretation.getChart().getUid()
-                + "&interpretationid=" + interpretation.getUid();
-            break;
-        default:
-            break;
-        }
-
-        StringBuilder messageContent;
-        I18n i18n = i18nManager.getI18n();
-
-        if ( comment != null )
-        {
-            messageContent = new StringBuilder( i18n.getString( "comment_mention_notification" ) ).append( ":" )
-                .append( "\n\n" ).append( comment.getText() );
-        }
-        else
-        {
-            messageContent = new StringBuilder( i18n.getString( "interpretation_mention_notification" ) ).append( ":" )
-                .append( "\n\n" ).append( interpretation.getText() );
-
-        }
-        messageContent.append( "\n\n" ).append( i18n.getString( "go_to" ) ).append( " " ).append( link );
-
-        User user = currentUserService.getCurrentUser();
-        StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
-            .append( i18n.getString( "mentioned_you_in_dhis2" ) );
-        messageService.sendMessage( messageService
-            .createPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta" ).build() );
-    }
-
-    @Override
-    public void updateSharingForMentions( Interpretation interpretation, Set<User> users )
-    {
-        for ( User user : users )
-        {
-            if ( !aclService.canRead( user, interpretation.getObject() ) )
-            {
-                interpretation.getObject().getUserAccesses().add( new UserAccess( user, AccessStringHelper.READ ) );
-            }
-        }
-    }
-    
-    @Override
     public InterpretationComment addInterpretationComment( String uid, String text )
     {
         Interpretation interpretation = getInterpretation( uid );
+
         User user = currentUserService.getCurrentUser();
 
         InterpretationComment comment = new InterpretationComment( text );
         comment.setLastUpdated( new Date() );
         comment.setUid( CodeGenerator.generateUid() );
-
-        Set<User> users = MentionUtils.getMentionedUsers( text, userService );
-        comment.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
 
         if ( user != null )
         {
@@ -298,9 +171,8 @@ public class DefaultInterpretationService
         }
 
         interpretation.addComment( comment );
-        interpretationStore.update( interpretation );
 
-        sendNotifications( interpretation, comment, users );
+        interpretationStore.update( interpretation );
 
         return comment;
     }

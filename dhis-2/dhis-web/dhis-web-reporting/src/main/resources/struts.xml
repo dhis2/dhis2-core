@@ -138,16 +138,8 @@
       <result name="xls" type="gridXlsResult" />
       <result name="pdf" type="gridPdfResult" />
     </action>
-
-    <action name="getReportParams" class="org.hisp.dhis.reporting.reportviewer.action.GetReportParamsAction">
-        <result name="success" type="velocity">/main.vm</result>
-        <param name="page">/dhis-web-reporting/inputReportParamsForm.vm</param>
-        <param name="menu">/dhis-web-reporting/menu.vm</param>
-        <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/generateReport.js</param>
-    </action>
-
-
-      <!-- Data Approval -->
+    
+    <!-- Data Approval -->
 
     <action name="showDataApprovalForm" class="org.hisp.dhis.reporting.dataapproval.action.GetDataApprovalOptionsAction">
       <result name="success" type="velocity">/main.vm</result>

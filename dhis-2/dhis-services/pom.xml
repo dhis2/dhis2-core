@@ -20,22 +20,14 @@
   
   <modules>
     <!-- Level 1 -->
-    <module>dhis-service-schema</module>
-    <module>dhis-service-setting</module>
-    <!-- Level 2 -->
-    <module>dhis-service-acl</module>
-    <!-- Level 4 -->
-    <module>dhis-service-node</module>
-    <!-- Level 5 -->
     <module>dhis-service-core</module>
-    <!-- Level 6 -->
-    <module>dhis-service-validation</module>
+    <!-- Level 2 -->
     <module>dhis-service-dxf2</module>
     <module>dhis-service-mobile</module>
     <module>dhis-service-administration</module>
-    <!-- Level 7 -->
+    <!-- Level 3 -->
     <module>dhis-service-analytics</module>
-    <!-- Level 8 -->
+    <!-- Level 4 -->
     <module>dhis-service-reporting</module>
   </modules>
   
@@ -50,6 +42,15 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis.rules</groupId>
+      <artifactId>rule-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cronutils</groupId>
+      <artifactId>cron-utils</artifactId>
+      <version>6.0.2</version>
     </dependency>
   </dependencies>
   <properties>

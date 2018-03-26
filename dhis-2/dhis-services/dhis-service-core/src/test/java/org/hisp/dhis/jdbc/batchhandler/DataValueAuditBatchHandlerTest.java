@@ -28,11 +28,13 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
@@ -49,9 +51,9 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Lars Helge Overland
@@ -78,13 +80,13 @@ public class DataValueAuditBatchHandlerTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     private BatchHandler<DataValueAudit> batchHandler;
 
     private DataElement dataElementA;
     
-    private CategoryOptionCombo categoryOptionComboA;
+    private DataElementCategoryOptionCombo categoryOptionComboA;
     
     private PeriodType periodTypeA;
     
@@ -117,7 +119,7 @@ public class DataValueAuditBatchHandlerTest
         
         dataElementService.addDataElement( dataElementA );        
         
-        categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
+        categoryOptionComboA = categoryService.getDefaultDataElementCategoryOptionCombo();
         
         periodTypeA = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
         

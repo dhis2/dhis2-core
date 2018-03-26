@@ -29,7 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -66,7 +66,7 @@ public class ProgramStageInstance
 
     private OrganisationUnit organisationUnit;
 
-    private CategoryOptionCombo attributeOptionCombo;
+    private DataElementCategoryOptionCombo attributeOptionCombo;
 
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
@@ -213,12 +213,12 @@ public class ProgramStageInstance
         return this;
     }
 
-    public CategoryOptionCombo getAttributeOptionCombo()
+    public DataElementCategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
 
-    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
     }

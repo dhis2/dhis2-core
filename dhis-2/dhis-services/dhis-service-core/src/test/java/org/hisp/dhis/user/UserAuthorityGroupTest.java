@@ -29,7 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
 
 import javax.annotation.Resource;
@@ -40,7 +40,7 @@ public class UserAuthorityGroupTest
     extends DhisSpringTest
 {
     @Resource(name="org.hisp.dhis.user.UserAuthorityGroupStore")
-    private IdentifiableObjectStore<UserAuthorityGroup> userAuthorityGroupStore;
+    private GenericIdentifiableObjectStore<UserAuthorityGroup> userAuthorityGroupStore;
 
     @Test
     public void testAddGetUserAuthorityGroup()

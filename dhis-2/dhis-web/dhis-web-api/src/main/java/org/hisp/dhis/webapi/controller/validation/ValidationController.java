@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller.validation;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -75,7 +75,7 @@ public class ValidationController
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private SchedulingManager schedulingManager;
@@ -109,11 +109,11 @@ public class ValidationController
             throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
         }
 
-        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
+        DataElementCategoryOptionCombo attributeOptionCombo = categoryService.getDataElementCategoryOptionCombo( aoc );
 
         if ( attributeOptionCombo == null )
         {
-            attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+            attributeOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         }
 
         ValidationSummary summary = new ValidationSummary();

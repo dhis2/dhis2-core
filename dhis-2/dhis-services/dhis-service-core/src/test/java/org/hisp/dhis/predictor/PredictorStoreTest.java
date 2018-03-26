@@ -30,8 +30,8 @@ package org.hisp.dhis.predictor;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -63,7 +63,7 @@ public class PredictorStoreTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -80,9 +80,9 @@ public class PredictorStoreTest
 
     private DataElement dataElementX;
 
-    private Set<CategoryOptionCombo> optionCombos;
+    private Set<DataElementCategoryOptionCombo> optionCombos;
 
-    private CategoryOptionCombo defaultCombo;
+    private DataElementCategoryOptionCombo defaultCombo;
 
     private Expression expressionA;
 
@@ -114,7 +114,7 @@ public class PredictorStoreTest
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementX );
 
-        CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         defaultCombo = categoryOptionCombo;
 
         optionCombos = new HashSet<>();

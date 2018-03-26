@@ -28,20 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-
-import java.util.Collection;
 
 /**
  * When storing DataValues without associated dimensions there is a need to
  * refer to a default dimension. This populator persists a
- * CategoryCombo named by the
- * CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME property and a
+ * DataElementCategoryCombo named by the
+ * DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME property and a
  * corresponding DataElementCatoryOptionCombo which should be used for this
  * purpose.
  * 
@@ -65,9 +62,9 @@ public class DataElementDefaultDimensionPopulator
         this.dataElementService = dataElementService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -79,22 +76,22 @@ public class DataElementDefaultDimensionPopulator
     @Override
     public void executeInTransaction()
     {
-        Category defaultCategory = categoryService.getCategoryByName( Category.DEFAULT_NAME );
+        DataElementCategory defaultCategory = categoryService.getDataElementCategoryByName( DataElementCategory.DEFAULT_NAME );
 
         if ( defaultCategory == null )
         {
             categoryService.generateDefaultDimension();
 
-            defaultCategory = categoryService.getCategoryByName( Category.DEFAULT_NAME );
+            defaultCategory = categoryService.getDataElementCategoryByName( DataElementCategory.DEFAULT_NAME );
 
             log.info( "Added default category" );
         }
 
-        categoryService.updateCategory( defaultCategory );
+        categoryService.updateDataElementCategory( defaultCategory );
 
-        String defaultName = CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+        String defaultName = DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
-        CategoryCombo categoryCombo = categoryService.getCategoryComboByName( defaultName );
+        DataElementCategoryCombo categoryCombo = categoryService.getDataElementCategoryComboByName( defaultName );
 
         if ( categoryCombo == null )
         {
@@ -102,7 +99,7 @@ public class DataElementDefaultDimensionPopulator
 
             log.info( "Added default dataelement dimension" );
 
-            categoryCombo = categoryService.getCategoryComboByName( defaultName );
+            categoryCombo = categoryService.getDataElementCategoryComboByName( defaultName );
         }
 
         // ---------------------------------------------------------------------

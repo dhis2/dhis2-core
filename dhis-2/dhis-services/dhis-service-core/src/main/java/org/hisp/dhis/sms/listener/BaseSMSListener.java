@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
@@ -86,7 +86,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private CategoryService dataElementCategoryService;
+    private DataElementCategoryService dataElementCategoryService;
 
     @Autowired
     private TrackedEntityDataValueService trackedEntityDataValueService;
@@ -215,7 +215,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         programStageInstance.setExecutionDate( sms.getSentDate() );
         programStageInstance.setDueDate( sms.getSentDate() );
         programStageInstance
-                .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
+                .setAttributeOptionCombo( dataElementCategoryService.getDefaultDataElementCategoryOptionCombo() );
         programStageInstance.setCompletedBy( "DHIS 2" );
 
         programStageInstanceService.addProgramStageInstance( programStageInstance );

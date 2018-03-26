@@ -1,0 +1,73 @@
+<script type="text/javascript">
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_locale" ) , "'" )';
+</script>
+
+<h3>$i18n.getString( "locale_management" ) #openHelp( "locale" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="removeLocale"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showLocaleDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+  <tr>
+  	<td>
+  	<table width="100%">
+		<tr valign="bottom">
+			<td>#filterDiv( "locale" )</td>
+			<td>&nbsp;</td>
+			<td align="right"><input type="button" value="$i18n.getString( "add_new" )" onclick="window.location.href='showAddLocaleForm.action'" style="width:70px"></td>
+		</tr>
+	</table>
+	</td>
+	<td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">
+		
+		<table class="listTable" id="listTable">
+			  <col />          
+			<thead>
+			  <tr>            
+				<th>$i18n.getString( "name" )</th>
+			  </tr>
+			</thead>
+			  <tbody id="list">
+				#foreach( $i18nLocale in $i18nLocales )
+				  <tr id="tr${i18nLocale.id}">
+            <td data-id="$!i18nLocale.id" data-uid="$!i18nLocale.uid" data-type="I18nLocale" data-name="$encoder.htmlEncode( $!i18nLocale.displayName )">
+              $encoder.htmlEncode( $!i18nLocale.displayName )
+            </td>
+				  </tr>
+				#end
+
+			  </tbody>
+        </table>
+        <p></p>
+		#parse( "/dhis-web-commons/paging/paging.vm" )
+		</td>
+
+    <td id="detailsData">
+
+			<div id="detailsArea" style="display:none">
+				<div style="float:right">
+					<a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+				</div>
+				<p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+				<p><label>$i18n.getString( "locale" ):</label><br/><span id="localeField"></span></p>
+				<p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+			</div>
+
+			<div id="warningArea" style="position:fixed;right:10px;top:200px;display:none">
+                <div style="float:right">
+                    <a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+                </div>
+                <p><span id="warningField"></span></p>
+            </div>
+		</td>
+		
+	</tr>
+</table>
+

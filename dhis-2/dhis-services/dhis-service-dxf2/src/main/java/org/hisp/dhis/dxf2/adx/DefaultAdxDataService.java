@@ -40,12 +40,12 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.category.CategoryComboMap;
-import org.hisp.dhis.category.CategoryComboMap.CategoryComboMapException;
+import org.hisp.dhis.dataelement.CategoryComboMap;
+import org.hisp.dhis.dataelement.CategoryComboMap.CategoryComboMapException;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
@@ -182,9 +182,9 @@ public class DefaultAdxDataService
         {
             AdxDataSetMetadata metadata = new AdxDataSetMetadata( dataSet );
 
-            CategoryCombo categoryCombo = dataSet.getCategoryCombo();
+            DataElementCategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
-            for ( CategoryOptionCombo aoc : categoryCombo.getOptionCombos() )
+            for ( DataElementCategoryOptionCombo aoc : categoryCombo.getOptionCombos() )
             {
                 Map<String, String> attributeDimensions = metadata.getExplodedCategoryAttributes(aoc.getId());
 
@@ -208,7 +208,7 @@ public class DefaultAdxDataService
 
                             adxWriter.writeAttribute( AdxDataService.DATAELEMENT, dv.getDataElement().getCode() );
 
-                            CategoryOptionCombo coc = dv.getCategoryOptionCombo();
+                            DataElementCategoryOptionCombo coc = dv.getCategoryOptionCombo();
 
                             Map<String, String> categoryDimensions = metadata.getExplodedCategoryAttributes(coc.getId());
 
@@ -408,7 +408,7 @@ public class DefaultAdxDataService
             }
 
             groupAttributes.put( AdxDataService.DATASET, dataSet.getUid() );
-            CategoryCombo attributeCombo = dataSet.getCategoryCombo();
+            DataElementCategoryCombo attributeCombo = dataSet.getCategoryCombo();
             convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo, 
                     categoryOptionIdScheme, categoryOptionComboIdScheme );
         }
@@ -470,7 +470,7 @@ public class DefaultAdxDataService
 
             //TODO expand to allow for category combos part of DataSetElements.
 
-            CategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
+            DataElementCategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
 
             convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, 
                     categoryOptionIdScheme, categoryOptionComboIdScheme );
@@ -513,14 +513,14 @@ public class DefaultAdxDataService
         dxfWriter.writeEndElement(); // dataValue
     }
 
-    private Map<String, Category> getCodeCategoryMap( CategoryCombo categoryCombo )
+    private Map<String, DataElementCategory> getCodeCategoryMap( DataElementCategoryCombo categoryCombo )
         throws AdxException
     {
-        Map<String, Category> categoryMap = new HashMap<>();
+        Map<String, DataElementCategory> categoryMap = new HashMap<>();
 
-        List<Category> categories = categoryCombo.getCategories();
+        List<DataElementCategory> categories = categoryCombo.getCategories();
 
-        for ( Category category : categories )
+        for ( DataElementCategory category : categories )
         {
             String categoryCode = category.getCode();
 
@@ -536,8 +536,8 @@ public class DefaultAdxDataService
         return categoryMap;
     }
 
-    private CategoryOptionCombo getCatOptComboFromAttributes( Map<String, String> attributes,
-        CategoryCombo catcombo, IdentifiableProperty scheme )
+    private DataElementCategoryOptionCombo getCatOptComboFromAttributes( Map<String, String> attributes,
+        DataElementCategoryCombo catcombo, IdentifiableProperty scheme )
         throws AdxException
     {
         CategoryComboMap catcomboMap;
@@ -554,7 +554,7 @@ public class DefaultAdxDataService
 
         String compositeIdentifier = StringUtils.EMPTY;
 
-        for ( Category category : catcomboMap.getCategories() )
+        for ( DataElementCategory category : catcomboMap.getCategories() )
         {
             String categoryCode = category.getCode();
 
@@ -573,7 +573,7 @@ public class DefaultAdxDataService
             compositeIdentifier += "\"" + catAttribute + "\"";
         }
 
-        CategoryOptionCombo catOptionCombo = catcomboMap.getCategoryOptionCombo( compositeIdentifier );
+        DataElementCategoryOptionCombo catOptionCombo = catcomboMap.getCategoryOptionCombo( compositeIdentifier );
 
         if ( catOptionCombo == null )
         {
@@ -584,7 +584,7 @@ public class DefaultAdxDataService
     }
 
     private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName, 
-            CategoryCombo catCombo, 
+            DataElementCategoryCombo catCombo, 
             IdScheme catOptIdScheme, IdScheme catOptComboIdScheme )
         throws AdxException
     {
@@ -595,7 +595,7 @@ public class DefaultAdxDataService
             return;
         }
 
-        Map<String, Category> categoryMap = getCodeCategoryMap( catCombo );
+        Map<String, DataElementCategory> categoryMap = getCodeCategoryMap( catCombo );
 
         Map<String, String> attributeOptions = new HashMap<>();
 
@@ -613,7 +613,7 @@ public class DefaultAdxDataService
             }
         }
 
-        CategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo, catOptIdScheme.getIdentifiableProperty() );
+        DataElementCategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo, catOptIdScheme.getIdentifiableProperty() );
 
         attributes.put( optionComboName, catOptCombo.getPropertyValue( catOptComboIdScheme ) );
 

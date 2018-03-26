@@ -28,17 +28,16 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.xerces.util.XMLChar;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetElement;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.xerces.util.XMLChar;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 
 /**
  * @author bobj
@@ -54,7 +53,7 @@ public class AdxDataSetMetadata
     {
         categoryOptionMap = new HashMap<>();
 
-        Set<CategoryCombo> catCombos = new HashSet<>();
+        Set<DataElementCategoryCombo> catCombos = new HashSet<>();
 
         catCombos.add( dataSet.getCategoryCombo() );
         
@@ -63,23 +62,23 @@ public class AdxDataSetMetadata
             catCombos.add( element.getResolvedCategoryCombo() );
         }
 
-        for ( CategoryCombo categoryCombo : catCombos )
+        for ( DataElementCategoryCombo categoryCombo : catCombos )
         {
-            for ( CategoryOptionCombo catOptCombo : categoryCombo.getOptionCombos() )
+            for ( DataElementCategoryOptionCombo catOptCombo : categoryCombo.getOptionCombos() )
             {
                 addExplodedCategoryAttributes( catOptCombo );
             }
         }
     }
 
-    private void addExplodedCategoryAttributes( CategoryOptionCombo coc )
+    private void addExplodedCategoryAttributes( DataElementCategoryOptionCombo coc )
         throws AdxException
     {
         Map<String, String> categoryAttributes = new HashMap<>();
 
         if ( !coc.isDefault() )
         {
-            for ( Category category : coc.getCategoryCombo().getCategories() )
+            for ( DataElementCategory category : coc.getCategoryCombo().getCategories() )
             {
                 String categoryCode = category.getCode();
                 

@@ -28,7 +28,7 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,9 +46,9 @@ public class DefaultOptionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<OptionSet> optionSetStore;
+    private GenericIdentifiableObjectStore<OptionSet> optionSetStore;
 
-    public void setOptionSetStore( IdentifiableObjectStore<OptionSet> optionSetStore )
+    public void setOptionSetStore( GenericIdentifiableObjectStore<OptionSet> optionSetStore )
     {
         this.optionSetStore = optionSetStore;
     }

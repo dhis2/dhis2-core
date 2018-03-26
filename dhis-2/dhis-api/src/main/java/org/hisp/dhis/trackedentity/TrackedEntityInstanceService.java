@@ -32,8 +32,10 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.validation.ValidationCriteria;
 
 import java.util.Date;
 import java.util.List;
@@ -115,6 +117,8 @@ public interface TrackedEntityInstanceService
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
+
+    int getDeletedTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
 
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.
@@ -245,4 +249,14 @@ public interface TrackedEntityInstanceService
      */
     int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
+
+    /**
+     * Validate tracked entity instance enrollment
+     *
+     * @param entityInstance TrackedEntityInstance object
+     * @param program        Program which person needs to enroll. If this parameter is
+     *                       null, the system check identifiers of the tracked entity instance
+     * @return ValidationCriteria object which is violated
+     */
+    ValidationCriteria validateEnrollment( TrackedEntityInstance entityInstance, Program program );
 }

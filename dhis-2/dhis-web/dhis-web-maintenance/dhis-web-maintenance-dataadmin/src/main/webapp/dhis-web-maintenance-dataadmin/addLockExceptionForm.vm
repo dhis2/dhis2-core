@@ -1,0 +1,43 @@
+<script type="text/javascript" src="javascript/lockException.js"></script>
+
+<h3>$i18n.getString( "create_new_lock_exception" )</h3>
+
+<form id="addLockExceptionForm" action="addLockException.action" method="post" >
+<input type="hidden" id="organisationUnitId" name="organisationUnitId" />
+
+<table>
+	<col style="width: 100px"/>
+	<col/>
+
+    <tr>
+        <td>#organisationUnitSelectionTree( true, true, true )</td>
+    </tr>
+
+    <tr>
+        <td>
+            <select id="dataSets" name="dataSetId" disabled="disabled" style="width: 100%;">
+                <option>-- $i18n.getString("please_select_an_organisation_unit") --</option>
+            </select>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <select id="periods" name="periodId" disabled="disabled" style="width:58%;">
+                <option>-- $i18n.getString("please_select_a_dataset") --</option>
+            </select>
+			<input type='button' id='prevPeriod' disabled="disabled" value="$i18n.getString('prev_year')" onclick="previousPeriodsSelected();" style="width: 20%;"/>
+			<input type='button' id='nextPeriod' disabled="disabled" value="$i18n.getString('next_year')" onclick="nextPeriodsSelected();" style="width: 20%;" />
+        </td>
+    </tr>
+
+	<tr>
+		<td colspan="2">
+			<br/>
+			<input type="submit" id="submit" disabled="disabled" value="$i18n.getString( 'add' )" style="width:10em"/>
+			<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='lockException.action'" style="width:10em"/>
+		</td>
+	</tr>
+</table>
+
+</form>

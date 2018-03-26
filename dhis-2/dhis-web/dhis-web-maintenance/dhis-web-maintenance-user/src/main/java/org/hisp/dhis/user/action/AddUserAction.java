@@ -34,9 +34,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
@@ -121,7 +121,7 @@ public class AddUserAction
     private UserGroupService userGroupService;
 
     @Autowired
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -381,7 +381,7 @@ public class AddUserAction
                 continue;
             }
 
-            Category cat = categoryService.getCategory( id );
+            DataElementCategory cat = categoryService.getDataElementCategory( id );
 
             if ( cat != null )
             {

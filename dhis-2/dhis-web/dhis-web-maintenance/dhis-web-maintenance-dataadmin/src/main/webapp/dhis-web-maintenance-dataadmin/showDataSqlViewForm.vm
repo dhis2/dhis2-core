@@ -1,0 +1,32 @@
+<script type="text/javascript">
+	jQuery( document ).ready( function()
+	{	
+		contentDiv = 'showDataSqlViewContent';
+
+		if ( jQuery( '#baseLink' ).length )
+		{
+			var newBaseLink = getFieldValue( 'baseLink' ).replace( 'exportSqlView.action', 'showDataSqlViewByAjax.action' );
+			setFieldValue( 'baseLink', newBaseLink );
+		}
+	} );
+
+</script>
+
+<h3>$i18n.getString( "view_data_for" ) &quot;${sqlView.name}&quot;</h3>
+
+<input type="hidden" id="viewTableName" value="${viewTableName}"/>
+
+<div>
+<input type="button" value="$i18n.getString( 'get_report_as_xls' )" onclick="window.location.href='../api/sqlViews/${sqlView.uid}/data.xls'" style="width:135px"/>
+<input type="button" value="$i18n.getString( 'get_report_as_csv' )" onclick="window.location.href='../api/sqlViews/${sqlView.uid}/data.csv'" style="width:135px"/>
+<input type="button" value="$i18n.getString( 'get_report_as_pdf' )" onclick="window.location.href='../api/sqlViews/${sqlView.uid}/data.pdf'" style="width:135px"/>
+<input type="button" value="$i18n.getString( 'get_report_as_html' )" onclick="window.location.href='../api/sqlViews/${sqlView.uid}/data.html+css'" style="width:135px"/>
+<input type="button" value="$i18n.getString( 'get_report_as_xml' )" onclick="window.location.href='../api/sqlViews/${sqlView.uid}/data.xml'" style="width:135px"/>
+<input type="button" value="$i18n.getString( 'get_report_as_json' )" onclick="window.location.href='../api/sqlViews/${sqlView.uid}/data.json'" style="width:135px"/>
+<input type="button" value="$i18n.getString( 'back' )" onclick="javascript:window.location.href='sqlView.action'" style="width:140px" style="width:135px"/>
+</div>
+<br/>
+
+<div id="showDataSqlViewContent">
+#parse( "/dhis-web-maintenance-dataadmin/showDataSqlViewGrid.vm" )
+</div>

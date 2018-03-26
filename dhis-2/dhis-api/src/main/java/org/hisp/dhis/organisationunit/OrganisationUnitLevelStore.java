@@ -28,7 +28,7 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * Defines methods for persisting OrganisationUnitLevels.
@@ -36,7 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface OrganisationUnitLevelStore
-    extends IdentifiableObjectStore<OrganisationUnitLevel>
+    extends GenericIdentifiableObjectStore<OrganisationUnitLevel>
 {
     String ID = OrganisationUnitLevelStore.class.getName();
 

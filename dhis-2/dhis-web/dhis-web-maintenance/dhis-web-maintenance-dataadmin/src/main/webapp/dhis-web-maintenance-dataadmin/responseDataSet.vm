@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSets>
+		#foreach ( $dataSet in $dataSets )
+		<dataSet>
+			<id>$dataSet.id</id>
+			<name>$encoder.xmlEncode( $dataSet.displayName )</name>
+			<locked>$dataSet.locked</locked>
+		</dataSet>
+		#end
+</dataSets>

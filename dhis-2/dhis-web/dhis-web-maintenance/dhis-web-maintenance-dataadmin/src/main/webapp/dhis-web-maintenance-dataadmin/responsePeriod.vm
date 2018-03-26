@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<periods>
+#foreach( $period in $periods )
+	<period>
+		<id>$period.id</id>
+		<startDate>$period.startDate</startDate>
+		<endDate>$period.endDate</endDate>
+		<name>$period.name</name>
+	</period>
+#end
+</periods>

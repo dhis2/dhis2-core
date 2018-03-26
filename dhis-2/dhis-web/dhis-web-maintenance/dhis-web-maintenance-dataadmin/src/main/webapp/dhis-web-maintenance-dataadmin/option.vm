@@ -1,0 +1,95 @@
+
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+	
+		dhis2.contextmenu.makeContextMenu({
+		  menuId: 'contextMenu',
+		  menuItemActiveClass: 'contextMenuItemActive'
+		});
+	});
+
+    var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_constant" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "option_management" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateOptionForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeOptionSet"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showOptionDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+	<input id='optionSetId' name='optionSetId' value='$optionSet.id' type='hidden'>
+	<tr>
+		<td style="vertical-align:top">
+			<table width="100%">
+				<col>          
+				<col width="120"> 
+				<tr>
+					<td>
+						<form onsubmit="submitFilter()" method="GET" action="option.action" id="filterKeyForm">
+							<input type="text" class="filterInput" placeholder="$i18n.getString('filter_by_name')" name="key" id="key" value="$!key">
+							<input type="hidden" id="optionSetId" name="optionSetId" value="$optionSet.id" />
+							<input type="hidden" value="" name="curKey" id="curKey">
+							<input type="submit" class="filterButton" value="Filter" id="filterButton">
+							<input type="button" class="filterButton" onclick="javascript:setFieldValue('key');byId('filterKeyForm').submit();" value="$i18n.getString('clear')">
+						</form>
+					</td>
+					<td colspan="3" style="text-align:right">
+						<input type="button" value="$i18n.getString( "add_new" )" onclick="window.location.href='showAddOptionForm.action?id=$optionSet.id'" style="width:150px"><br>
+						<input type="button" value="$i18n.getString( "sort_options" )" onclick="window.location.href='sortOptionsForm.action?id=$optionSet.id'" style="width:150px"><br>
+						<input type="button" value="$i18n.getString( "back" )" onclick="window.location.href='optionSet.action'" style="width:150px">
+					</td>
+				</tr>		
+			</table>
+      <table class="listTable">
+      <col width="60%"/>
+      <col width="40%"/>
+      <thead>
+      <tr>
+          <th>$i18n.getString( "name" )</th>
+          <th>$i18n.getString( "code" )</th>
+      </tr>
+      </thead>
+      <tbody id="list">
+      #foreach( $option in $options )
+      <tr id="tr${option.id}" data-id="$!option.id" data-uid="$!option.uid" data-type="Option" data-name="$encoder.htmlEncode( $!option.displayName )"
+          data-can-manage="$security.canManage( $option )"
+          data-can-update="$security.canUpdate( $option )"
+          data-can-delete="$security.canDelete( $option )">
+          <td>$!encoder.htmlEncode( $option.displayName )</td>
+          <td>$!encoder.htmlEncode( $option.code )</td>
+      </tr>
+      #end
+      </tbody>
+			</table>
+			#if($options.size() > 0)
+				<p></p>
+				#parse( "/dhis-web-commons/paging/paging.vm" )
+			#end
+		</td>
+		
+		<td id="detailsData">
+
+            <div id="detailsArea">
+                <div id="hideDetailsArea">
+					<a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/close.png" alt="$i18n.getString( 'hide_details' )"/></a>
+				</div>
+				<p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+				<p><label>$i18n.getString( "code" ):</label><br/><span id="codeField"></span></p>
+				<p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+			</div>
+
+			<div id="warningArea">
+                <div id="hideDetailsArea">
+                    <a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/close.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+                </div>
+                <p><span id="warningField"></span></p>
+            </div>
+		</td>
+	</tr>
+</table>

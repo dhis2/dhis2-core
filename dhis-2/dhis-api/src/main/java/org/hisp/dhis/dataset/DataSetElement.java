@@ -37,7 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 
 import java.util.Objects;
 
@@ -65,7 +65,7 @@ public class DataSetElement implements EmbeddedObject
     /**
      * Category combination, potentially null.
      */
-    private CategoryCombo categoryCombo;
+    private DataElementCategoryCombo categoryCombo;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -82,7 +82,7 @@ public class DataSetElement implements EmbeddedObject
         this.dataElement = dataElement;
     }
 
-    public DataSetElement( DataSet dataSet, DataElement dataElement, CategoryCombo categoryCombo )
+    public DataSetElement( DataSet dataSet, DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
         this.dataSet = dataSet;
         this.dataElement = dataElement;
@@ -98,7 +98,7 @@ public class DataSetElement implements EmbeddedObject
      * then returns the category combination of the data element of this data
      * set element.
      */
-    public CategoryCombo getResolvedCategoryCombo()
+    public DataElementCategoryCombo getResolvedCategoryCombo()
     {
         return hasCategoryCombo() ? getCategoryCombo() : dataElement.getDataElementCategoryCombo();
     }
@@ -206,12 +206,12 @@ public class DataSetElement implements EmbeddedObject
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getCategoryCombo()
+    public DataElementCategoryCombo getCategoryCombo()
     {
         return categoryCombo;
     }
 
-    public void setCategoryCombo( CategoryCombo categoryCombo )
+    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
     }

@@ -32,10 +32,6 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -110,9 +106,9 @@ public class DefaultResourceTableService
         this.dataApprovalLevelService = dataApprovalLevelService;
     }
     
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
     
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -142,7 +138,7 @@ public class DefaultResourceTableService
     public void generateDataSetOrganisationUnitCategoryTable()
     {
         resourceTableStore.generateResourceTable( new DataSetOrganisationUnitCategoryResourceTable( 
-            idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultCategoryOptionCombo() ) );
+            idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultDataElementCategoryOptionCombo() ) );
     }
     
     @Override
@@ -150,7 +146,7 @@ public class DefaultResourceTableService
     public void generateCategoryOptionComboNames()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable( 
-            idObjectManager.getAllNoAcl( CategoryCombo.class ),
+            idObjectManager.getAllNoAcl( DataElementCategoryCombo.class ), 
             statementBuilder.getColumnQuote() ) );
     }
 
@@ -186,7 +182,7 @@ public class DefaultResourceTableService
     public void generateCategoryTable()
     {
         resourceTableStore.generateResourceTable( new CategoryResourceTable( 
-            idObjectManager.getDataDimensionsNoAcl( Category.class ),
+            idObjectManager.getDataDimensionsNoAcl( DataElementCategory.class ),
             idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ),
             statementBuilder.getColumnQuote() ) );
     }
@@ -217,7 +213,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateCategoryOptionComboTable()
+    public void generateDataElementCategoryOptionComboTable()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable(
             null, statementBuilder.getColumnQuote() ) );            

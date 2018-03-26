@@ -1,0 +1,9 @@
+{ "sqlView":
+  {
+	"name": "$!encoder.jsonEncode( ${sqlViewObject.name} )",
+	"viewName": "$!encoder.jsonEncode( ${sqlViewObject.getViewName()} )",
+	"uid": "$!{sqlViewObject.uid}",
+	"description": "$!encoder.jsonEncode( ${sqlViewObject.description} )",
+	"sqlquery": "$!encoder.jsonEncode( ${sqlViewObject.sqlQuery} )"
+  }
+}

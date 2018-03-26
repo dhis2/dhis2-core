@@ -33,7 +33,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternMethod;
 import org.hisp.dhis.textpattern.TextPatternMethodUtils;
 import org.hisp.dhis.textpattern.TextPatternSegment;
@@ -47,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -71,8 +69,9 @@ public class DefaultReservedValueService
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
-    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
-        throws ReserveValueException, TextPatternGenerationException
+    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
+        Date expires )
+        throws ReserveValueException, TextPatternService.TextPatternGenerationException
     {
         long startTime = System.currentTimeMillis();
         int attemptsLeft = 10;
@@ -84,9 +83,7 @@ public class DefaultReservedValueService
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = (generatedSegment != null ?
-            key.replaceAll( Pattern.quote( generatedSegment.getRawSegment() ), "%" ) :
-            key);
+        String valueKey = (generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key);
 
         ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(),
             key,
@@ -205,10 +202,10 @@ public class DefaultReservedValueService
         return generatedValues;
     }
 
-    private boolean hasEnoughValuesLeft( ReservedValue reservedValue, long totalValues, int valuesRequired )
+    private boolean hasEnoughValuesLeft( ReservedValue reservedValue, int totalValues, int valuesRequired )
     {
         int used = reservedValueStore.getNumberOfUsedValues( reservedValue );
 
-        return totalValues >= valuesRequired + used;
+        return (totalValues - used) >= valuesRequired;
     }
 }

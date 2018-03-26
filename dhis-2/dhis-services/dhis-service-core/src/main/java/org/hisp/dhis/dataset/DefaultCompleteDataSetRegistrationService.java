@@ -2,8 +2,8 @@ package org.hisp.dhis.dataset;
 
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /*
@@ -66,9 +67,9 @@ public class DefaultCompleteDataSetRegistrationService
         this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -97,7 +98,7 @@ public class DefaultCompleteDataSetRegistrationService
     {
         if ( registration.getAttributeOptionCombo() == null )
         {
-            registration.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
+            registration.setAttributeOptionCombo( categoryService.getDefaultDataElementCategoryOptionCombo() );
         }
 
         completeDataSetRegistrationStore.saveCompleteDataSetRegistration( registration );
@@ -128,7 +129,7 @@ public class DefaultCompleteDataSetRegistrationService
 
     @Override
     public CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo )
     {
         return completeDataSetRegistrationStore.getCompleteDataSetRegistration( dataSet, period, source,
             attributeOptionCombo );
@@ -154,7 +155,7 @@ public class DefaultCompleteDataSetRegistrationService
 
     @Override
     public List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit )
+        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit )
     {
         List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
 

@@ -29,12 +29,12 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
  */
 public interface ProgramIndicatorStore
-    extends IdentifiableObjectStore<ProgramIndicator>
+    extends GenericIdentifiableObjectStore<ProgramIndicator>
 {
 }

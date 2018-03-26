@@ -54,6 +54,8 @@ public interface TrackedEntityInstanceService
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
 
+    int getDeletedTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
+
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params );
@@ -96,5 +98,5 @@ public interface TrackedEntityInstanceService
 
     ImportSummary deleteTrackedEntityInstance( String uid );
 
-    ImportSummaries deleteTrackedEntityInstances( List<String> uids );
+    ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
 }

@@ -39,6 +39,8 @@ import java.util.List;
 public interface MappingService
     extends AnalyticalObjectService<MapView>
 {
+    String ID = MappingService.class.getName();
+
     String GEOJSON_DIR = "geojson";
 
     String MAP_LEGEND_SYMBOLIZER_COLOR = "color";

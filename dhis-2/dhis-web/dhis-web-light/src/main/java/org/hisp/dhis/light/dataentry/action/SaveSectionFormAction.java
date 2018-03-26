@@ -35,8 +35,8 @@ import org.apache.commons.lang3.Validate;
 import org.apache.struts2.StrutsStatics;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -96,9 +96,9 @@ public class SaveSectionFormAction
         this.dataElementService = dataElementService;
     }
 
-    private CategoryService categoryService;
+    private DataElementCategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public void setCategoryService( DataElementCategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -307,7 +307,7 @@ public class SaveSectionFormAction
                 String value = parameterMap.get( key );
 
                 DataElement dataElement = dataElementService.getDataElement( dataElementId );
-                CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( optionComboId );
+                DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( optionComboId );
                 DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo );
 
                 value = value.trim();
@@ -423,7 +423,7 @@ public class SaveSectionFormAction
             }
         }
 
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo(); //TODO
+        DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo(); //TODO
 
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dataSet, period,
             organisationUnit, optionCombo );

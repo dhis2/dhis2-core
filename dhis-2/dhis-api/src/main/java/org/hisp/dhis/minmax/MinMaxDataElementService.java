@@ -28,8 +28,8 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Collection;
@@ -37,9 +37,12 @@ import java.util.List;
 
 /**
  * @author Lars Helge Overland
+ * @version $Id$
  */
 public interface MinMaxDataElementService
 {
+    String ID = MinMaxDataElementService.class.getName();
+
     int addMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
     void deleteMinMaxDataElement( MinMaxDataElement minMaxDataElement );
@@ -48,12 +51,14 @@ public interface MinMaxDataElementService
 
     MinMaxDataElement getMinMaxDataElement( int id );
 
-    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
+    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, DataElementCategoryOptionCombo optionCombo );
     
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement );
 
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements );
     
+    List<MinMaxDataElement> getAllMinMaxDataElements();
+
     List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     int countMinMaxDataElements( MinMaxDataElementQueryParams query );
@@ -62,7 +67,7 @@ public interface MinMaxDataElementService
     
     void removeMinMaxDataElements( DataElement dataElement );
     
-    void removeMinMaxDataElements( CategoryOptionCombo optionCombo );
+    void removeMinMaxDataElements( DataElementCategoryOptionCombo optionCombo );
     
     void removeMinMaxDataElements( Collection<DataElement> dataElements, OrganisationUnit parent );
 }

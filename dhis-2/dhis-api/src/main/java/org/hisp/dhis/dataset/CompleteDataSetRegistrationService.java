@@ -28,7 +28,7 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -68,7 +68,7 @@ public interface CompleteDataSetRegistrationService
      * @return the CompleteDataSetRegistration.
      */
     CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
+        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo );
 
     /**
      * Deletes a CompleteDataSetRegistration.
@@ -117,5 +117,5 @@ public interface CompleteDataSetRegistrationService
     */
     
     List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit );
+        OrganisationUnit source, DataElementCategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit );
 }

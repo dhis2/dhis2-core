@@ -30,13 +30,13 @@ package org.hisp.dhis.user;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
  * @author Nguyen Hong Duc
  */
 public interface UserStore
-    extends IdentifiableObjectStore<User>
+    extends GenericIdentifiableObjectStore<User>
 {
     String ID = UserStore.class.getName();
 

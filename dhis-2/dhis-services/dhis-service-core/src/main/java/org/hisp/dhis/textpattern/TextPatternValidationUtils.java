@@ -56,24 +56,25 @@ public class TextPatternValidationUtils
         return Pattern.compile( builder.toString() ).matcher( value ).matches();
     }
 
-    public static long getTotalValuesPotential( TextPatternSegment generatedSegment )
+    public static int getTotalValuesPotential( TextPatternSegment generatedSegment )
     {
-        long res = 1;
         if ( generatedSegment != null )
         {
             if ( TextPatternMethod.SEQUENTIAL.equals( generatedSegment.getMethod() ) )
             {
                 // Subtract by 1 since we don't use all zeroes.
-                res = (long) (Math.pow( 10, generatedSegment.getParameter().length() ) - 1);
+                return ((int) Math.pow( 10, generatedSegment.getParameter().length() )) - 1;
             }
             else if ( TextPatternMethod.RANDOM.equals( generatedSegment.getMethod() ) )
             {
+                int res = 1;
+
                 for ( char c : generatedSegment.getParameter().toCharArray() )
                 {
                     switch ( c )
                     {
                     case '*':
-                        res = res * 62;
+                        res = res * 26;
                         break;
                     case '#':
                         res = res * 10;
@@ -88,15 +89,12 @@ public class TextPatternValidationUtils
                         break;
                     }
                 }
+
+                return res;
             }
         }
 
-        if ( res < 0 )
-        {
-            res = Long.MAX_VALUE;
-        }
-
-        return res;
+        return 1;
     }
 
     public static boolean validateValueType( TextPattern textPattern, ValueType valueType )
