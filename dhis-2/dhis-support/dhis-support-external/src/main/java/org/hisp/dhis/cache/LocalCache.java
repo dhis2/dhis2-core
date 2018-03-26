@@ -42,7 +42,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  */
 public class LocalCache<V> implements Cache<V>
 {
-
     private com.github.benmanes.caffeine.cache.Cache<String, V> caffeineCache;
 
     private V defaultValue;
@@ -87,27 +86,19 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public Optional<V> getIfPresent( String key )
     {
-        if ( null == key)
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         return Optional.ofNullable( caffeineCache.getIfPresent( key ) );
     }
 
     @Override
     public Optional<V> get( String key )
     {
-        if ( null == key)
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         return Optional.ofNullable( Optional.ofNullable( caffeineCache.getIfPresent( key ) ).orElse( defaultValue ) );
     }
 
     @Override
     public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
-        if ( null == key || null == mappingFunction)
+        if ( null == mappingFunction )
         {
             throw new IllegalArgumentException( "Key and MappingFunction cannot be null" );
         }
@@ -118,7 +109,7 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public void put( String key, V value )
     {
-        if ( null == key || null == value )
+        if ( null == value )
         {
             throw new IllegalArgumentException( "Key and Value cannot be null" );
         }
@@ -128,10 +119,6 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public void invalidate( String key )
     {
-        if ( null == key)
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         caffeineCache.invalidate( key );
     }
 

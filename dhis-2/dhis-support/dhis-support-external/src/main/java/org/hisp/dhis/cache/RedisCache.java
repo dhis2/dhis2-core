@@ -42,7 +42,6 @@ import org.springframework.data.redis.core.RedisTemplate;
  */
 public class RedisCache<V> implements Cache<V>
 {
-
     private RedisTemplate<String, V> redisTemplate;
 
     private boolean refreshExpriryOnAccess;
@@ -84,10 +83,6 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Optional<V> getIfPresent( String key )
     {
-        if ( null == key )
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         String redisKey = generateActualKey( key );
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
@@ -99,10 +94,6 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Optional<V> get( String key )
     {
-        if ( null == key )
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         String redisKey = generateActualKey( key );
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
@@ -115,7 +106,7 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
-        if ( null == key || null == mappingFunction )
+        if ( null == mappingFunction )
         {
             throw new IllegalArgumentException( "Key and MappingFunction cannot be null" );
         }
@@ -149,34 +140,26 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public void put( String key, V value )
     {
-        if ( null == key || null == value )
+        if ( null == value )
         {
             throw new IllegalArgumentException( "Key and Value cannot be null" );
         }
         String redisKey = generateActualKey( key );
 
-        if ( null != value )
+        if ( expiryEnabled )
         {
-            if ( expiryEnabled )
-            {
-                redisTemplate.boundValueOps( redisKey ).set( value, expiryInSeconds, TimeUnit.SECONDS );
-            }
-            else
-            {
-                redisTemplate.boundValueOps( redisKey ).set( value );
-            }
+            redisTemplate.boundValueOps( redisKey ).set( value, expiryInSeconds, TimeUnit.SECONDS );
+        }
+        else
+        {
+            redisTemplate.boundValueOps( redisKey ).set( value );
         }
     }
 
     @Override
     public void invalidate( String key )
     {
-        if ( null == key )
-        {
-            throw new IllegalArgumentException( "Key cannot be null" );
-        }
         redisTemplate.delete( generateActualKey( key ) );
-
     }
 
     private String generateActualKey( String key )
@@ -188,7 +171,6 @@ public class RedisCache<V> implements Cache<V>
     public void invalidateAll()
     {
         // No operation
-
     }
 
 }

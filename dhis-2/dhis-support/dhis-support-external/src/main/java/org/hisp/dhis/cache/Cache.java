@@ -40,7 +40,6 @@ public interface Cache<V>
      *
      * @param key the key whose associated value is to be retrieved
      * @return the value wrapped in Optional, or {@code Optional.empty()}
-     * @throws IllegalArgumentException if the specified key is null
      */
     Optional<V> getIfPresent( String key );
 
@@ -53,7 +52,6 @@ public interface Cache<V>
      * @param key the key whose associated value is to be retrieved
      * @return the value wrapped in Optional, or
      *         {@code Optional of defaultValue}
-     * @throws IllegalArgumentException if the specified key is null
      */
     Optional<V> get( String key );
 
@@ -62,7 +60,7 @@ public interface Cache<V>
      * that value from the {@code mappingFunction} if necessary. This method
      * provides a simple substitute for the conventional "if cached, return;
      * otherwise create, cache and return" pattern. If value is null, the given
-     * mapping function is evaluated and entered into this cache unless
+     * mapping function is evaluated and inserted into this cache unless
      * {@code null}. Note: This method will return the defaultValue in case of
      * absence of associated cache value. But will not store the default value
      * into the cache.
@@ -71,7 +69,7 @@ public interface Cache<V>
      * @param mappingFunction the function to compute a value.
      * @return an optional containing current (existing or computed) value, or
      *         Optional.empty() if the computed value is null
-     * @throws IllegalArgumentException if the specified key is null
+     * @throws IllegalArgumentException if the specified mappingFunction is null
      */
     Optional<V> get( String key, Function<String, V> mappingFunction );
 
@@ -84,7 +82,7 @@ public interface Cache<V>
      *
      * @param key the key for the value
      * @param value value to be mapped to the key
-     * @throws IllegalArgumentException if the specified key or value is null
+     * @throws IllegalArgumentException if the specified value is null
      */
     void put( String key, V value );
 
@@ -94,7 +92,6 @@ public interface Cache<V>
      * not present.
      *
      * @param key the key whose mapping is to be removed from the cache
-     * @throws IllegalArgumentException if the specified key is null
      */
     void invalidate( String key );
 
