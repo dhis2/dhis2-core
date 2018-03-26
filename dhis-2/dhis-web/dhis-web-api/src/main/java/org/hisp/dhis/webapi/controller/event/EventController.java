@@ -42,7 +42,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -729,36 +729,29 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromXml( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
-        importSummary.setImportOptions( importOptions );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        updateEvent( updatedEvent, false, importOptions, request, response );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
+        updateEvent( updatedEvent, false, importOptions, request, response );
+    }
+
+    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    {
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions );
         importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
@@ -767,24 +760,19 @@ public class EventController
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid ) throws IOException, WebMessageException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
+            WebMessage webMsg = WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid );
+            webMessageService.send( webMsg, response, request );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        updateEvent( updatedEvent, true, null, request, response );
     }
 
     @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
@@ -810,24 +798,10 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid ) throws WebMessageException
+        @PathVariable( "uid" ) String uid )
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
-        response.setStatus( HttpServletResponse.SC_OK );
-
-        try
-        {
-            ImportSummary importSummary = eventService.deleteEvent( uid );
-            webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
-        }
-        catch ( Exception ex )
-        {
-            webMessageService.send( WebMessageUtils.conflict( "Unable to delete event " + uid, ex.getMessage() ), response, request );
-        }
+        ImportSummary importSummary = eventService.deleteEvent( uid );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     // -------------------------------------------------------------------------

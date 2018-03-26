@@ -75,9 +75,9 @@
 
   <bean id="org.hisp.dhis.webportal.menu.MenuStateManager" class="org.hisp.dhis.webportal.menu.SessionMenuStateManager" />
 
-  <bean id="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" class="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" />
+  <bean id="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" class="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" scope="prototype" />
 
-  <bean id="org.hisp.dhis.webportal.menu.action.GetModulesAction" class="org.hisp.dhis.webportal.menu.action.GetModulesAction" />
+  <bean id="org.hisp.dhis.webportal.menu.action.GetModulesAction" class="org.hisp.dhis.webportal.menu.action.GetModulesAction" scope="prototype" />
 
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalMenuInterceptor"
     class="org.hisp.dhis.webportal.interceptor.XWorkPortalMenuInterceptor">
@@ -291,6 +291,11 @@
 
   <!-- Common actions -->
 
+  <bean id="org.hisp.dhis.user.action.GetSystemAuthoritiesAction" class="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction"
+        scope="prototype">
+    <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
+  </bean>
+
   <bean id="org.hisp.dhis.commons.action.GetUserAction" class="org.hisp.dhis.commons.action.GetUserAction" scope="prototype">
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
   </bean>
@@ -320,7 +325,7 @@
   <bean id="org.hisp.dhis.commons.action.GetCategoryOptionCombosAction" class="org.hisp.dhis.commons.action.GetCategoryOptionCombosAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetDataElementAction" class="org.hisp.dhis.commons.action.GetDataElementAction"
@@ -357,13 +362,13 @@
   <bean id="org.hisp.dhis.commons.action.GetDataElementNameAction" class="org.hisp.dhis.commons.action.GetDataElementNameAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetDataElementsAction" class="org.hisp.dhis.commons.action.GetDataElementsAction"
     scope="prototype">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
@@ -375,7 +380,7 @@
 
   <bean id="org.hisp.dhis.commons.action.GetDataElementCategoriesAction" class="org.hisp.dhis.commons.action.GetDataElementCategoriesAction"
     scope="prototype">
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetDataSetsAction" class="org.hisp.dhis.commons.action.GetDataSetsAction"

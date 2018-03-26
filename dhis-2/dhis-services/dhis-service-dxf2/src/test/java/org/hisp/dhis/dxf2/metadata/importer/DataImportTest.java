@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.importer;
  */
 
 import com.google.common.collect.Sets;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -36,6 +37,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -70,10 +73,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class DataImportTest extends DhisSpringTest
 {
+    private static final String teiUID = "epkxNvNLgjk";
+
+    @Autowired
+    private SessionFactory sessionFactory;
+
     @Autowired
     private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService teiDXF2Service;
 
@@ -112,6 +120,7 @@ public class DataImportTest extends DhisSpringTest
     private IdentifiableObjectManager manager;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance teiA;
+    private Program programC;
 
     private List<ProgramTrackedEntityAttribute> createProgramTrackedEntityAttributes()
     {
@@ -142,12 +151,23 @@ public class DataImportTest extends DhisSpringTest
         pteAttributeC.setUid( "lxo3ITSkcpt" );
         pteAttributeC.setAttribute( teAttributeC );
 
+        TrackedEntityAttribute teAttributeD = createTrackedEntityAttribute( 'D' );
+        teAttributeD.setUid( "DODgdr5Oo2v" );
+        teAttributeD.setDimensionItemType( DimensionItemType.PROGRAM_ATTRIBUTE );
+
+        ProgramTrackedEntityAttribute pteAttributeD = createProgramTrackedEntityAttribute( 'D' );
+        pteAttributeD.setMandatory( true );
+        pteAttributeD.setUid( "DODgdr5Oo2b" );
+        pteAttributeD.setAttribute( teAttributeD );
+
         teaService.addTrackedEntityAttribute( teAttributeA );
         teaService.addTrackedEntityAttribute( teAttributeB );
         teaService.addTrackedEntityAttribute( teAttributeC );
+        teaService.addTrackedEntityAttribute( teAttributeD );
         manager.save( pteAttributeA );
         manager.save( pteAttributeB );
         manager.save( pteAttributeC );
+        manager.save( pteAttributeD );
 
         return new ArrayList<>( Arrays.asList( pteAttributeA, pteAttributeB, pteAttributeC ) );
     }
@@ -167,7 +187,11 @@ public class DataImportTest extends DhisSpringTest
         TrackedEntityAttributeValue valC = createTrackedEntityAttributeValue( 'C', tei, attrC );
         valC.setValue( "Male" );
 
-        return Sets.newHashSet( valA, valB, valC );
+        TrackedEntityAttribute attrD = teaService.getTrackedEntityAttribute( "DODgdr5Oo2v" );
+        TrackedEntityAttributeValue valD = createTrackedEntityAttributeValue( 'D', tei, attrD );
+        valC.setValue( "providerId_2" );
+
+        return Sets.newHashSet( valA, valB, valC, valD );
     }
 
     @Override
@@ -192,23 +216,37 @@ public class DataImportTest extends DhisSpringTest
 
         List<ProgramTrackedEntityAttribute> programAttributes = createProgramTrackedEntityAttributes();
 
-        Program programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
+        programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programC.setUid( "ur1Edk5Oe2n" );
         programC.setProgramType( ProgramType.WITH_REGISTRATION );
         programC.setTrackedEntityType( trackedEntityType );
         programC.setProgramAttributes( programAttributes );
 
+        Program programD = createProgram( 'D', new HashSet<>(), organisationUnitA );
+        programD.setUid( "fDd25txQckK" );
+        programD.setProgramType( ProgramType.WITH_REGISTRATION );
+        programD.setTrackedEntityType( trackedEntityType );
+        programD.setProgramAttributes( programAttributes );
+
+        Program programE = createProgram( 'E', new HashSet<>(), organisationUnitA );
+        programE.setUid( "IpHINAT79UW" );
+        programE.setProgramType( ProgramType.WITH_REGISTRATION );
+        programE.setTrackedEntityType( trackedEntityType );
+        programE.setProgramAttributes( programAttributes );
+
         teiA = createTrackedEntityInstance( 'A', organisationUnitA );
         teiA.setTrackedEntityType( trackedEntityType );
         Set<TrackedEntityAttributeValue> attributeValues = createTrackedEntityAttributeValues( teiA );
         teiA.setTrackedEntityAttributeValues( attributeValues );
-        teiA.setUid( "epkxNvNLgjk" );
+        teiA.setUid( teiUID );
 
         organisationUnitService.addOrganisationUnit( organisationUnitA );
         teiDBModelService.addTrackedEntityInstance( teiA );
         programService.addProgram( programA );
         programService.addProgram( programB );
         programService.addProgram( programC );
+        programService.addProgram( programD );
+        programService.addProgram( programE );
 
         ProgramStage programStageA = createProgramStage( 'A', programC );
         programStageA.setUid( "EPEcjy3FWmI" );
@@ -231,13 +269,37 @@ public class DataImportTest extends DhisSpringTest
 
         programC.setProgramStages( Sets.newHashSet( programStageA ) );
         programService.updateProgram( programC );
+
+        ProgramStage programStageD = createProgramStage( 'D', programD );
+        programStageD.setUid( "EPEcjy3FWmA" );
+        programStageD.setRepeatable( true );
+
+        programStageD.addDataElement( dataElementA, 1 );
+        programStageD.addDataElement( dataElementB, 2 );
+
+        programStageService.saveProgramStage( programStageD );
+
+        programD.setProgramStages( Sets.newHashSet( programStageD ) );
+        programService.updateProgram( programD );
+
+        ProgramStage programStageE = createProgramStage( 'E', programE );
+        programStageE.setUid( "EPEcjy3FWmB" );
+        programStageE.setRepeatable( true );
+
+        programStageE.addDataElement( dataElementA, 1 );
+        programStageE.addDataElement( dataElementB, 2 );
+
+        programStageService.saveProgramStage( programStageE );
+
+        programE.setProgramStages( Sets.newHashSet( programStageE ) );
+        programService.updateProgram( programE );
     }
 
 
     //Test creation of 2 events -> Check whether there is a link to TEI and enrollment
 
     @Test
-    public void testCreateSimpleTEI() throws IOException
+    public void testTEICreation() throws IOException
     {
         InputStream is = new ClassPathResource( "dxf2/import/create_simple_tei.json" ).getInputStream();
         ImportOptions io = new ImportOptions();
@@ -256,17 +318,73 @@ public class DataImportTest extends DhisSpringTest
         org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance tei = teiDXF2Service.getTrackedEntityInstance( teiUIDFromResponse );
 
         assertEquals( tei.getTrackedEntityInstance(), teiUIDFromResponse );
-
-//        checkResultsInTEISummaries( summaries );
     }
 
+    //Test update of TEI via POST method
+    @Test
+    public void testUpdateTEIViaPOSTMethod() throws IOException
+    {
+        InputStream is = new ClassPathResource( "dxf2/import/update_tei_through_post_method.json" )
+            .getInputStream();
+        ImportOptions io = new ImportOptions();
+        io.setStrategy( ImportStrategy.UPDATE );
+
+        ImportSummaries summaries = teiDXF2Service.addTrackedEntityInstanceJson( is, io );
+
+        assertEquals( ImportStatus.SUCCESS, summaries.getStatus() );
+
+        TrackedEntityInstance updatedTei = teiDXF2Service.getTrackedEntityInstance( teiUID );
+        checkAttributesValues( updatedTei );
+    }
+
+    //Test update of TEI via PUT method
+    @Test
+    public void testUpdateTEIViaPUTMethod() throws IOException
+    {
+        InputStream is = new ClassPathResource( "dxf2/import/update_tei_through_put_method.json" )
+            .getInputStream();
+        ImportOptions io = new ImportOptions();
+        io.setStrategy( ImportStrategy.UPDATE );
+
+        ImportSummary summary = teiDXF2Service.updateTrackedEntityInstanceJson( teiUID, is, io );
+        sessionFactory.getCurrentSession().flush();
+        sessionFactory.getCurrentSession().clear();
+
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        TrackedEntityInstance updatedTei = teiDXF2Service.getTrackedEntityInstance( teiUID );
+        checkAttributesValues( updatedTei );
+    }
+
+    //Test delete of TEI via POST method
+    @Test
+    public void testTEIDeleteViaPOSTMethod() throws IOException
+    {
+        TrackedEntityInstance tei = teiDXF2Service.getTrackedEntityInstance( teiUID );
+        assertFalse( tei.isDeleted() );
+        assertEquals( 3, tei.getAttributes().size() );
+
+        InputStream is = new ClassPathResource( "dxf2/import/delete_tei_via_post.json" )
+            .getInputStream();
+        ImportOptions io = new ImportOptions();
+        io.setStrategy( ImportStrategy.DELETE );
+
+        ImportSummaries summaries = teiDXF2Service.addTrackedEntityInstanceJson( is, io );
+        sessionFactory.getCurrentSession().flush();
+        sessionFactory.getCurrentSession().clear();
+
+        assertEquals( ImportStatus.SUCCESS, summaries.getStatus() );
+        assertNull( teiDXF2Service.getTrackedEntityInstance( teiUID ) );
+        assertFalse( teiDBModelService.trackedEntityInstanceExists( teiUID ) );
+        assertTrue( teiDBModelService.trackedEntityInstanceExistsIncludingDeleted( teiUID ) );
+    }
 
     //Test creation of simple TEI -> take the tei UID and create 3 enrollments -> take returned UID of each enrollment and check whether enrollments have a link to TEI
     @Test
     public void testCreateFirstSimpleTEIThen3EnrollmentsAndTestThatEnrollmentsHaveLinkToTEI() throws IOException
     {
         InputStream is =
-            new ClassPathResource( "dxf2/import/create_3_enrollments_1_to_program_with_registration_2_to_program_without_registration.json" )
+            new ClassPathResource( "dxf2/import/create_3_enrollments_to_programs_with_registration.json" )
                 .getInputStream();
         ImportOptions io = new ImportOptions();
         io.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
@@ -277,12 +395,11 @@ public class DataImportTest extends DhisSpringTest
     }
 
     //Test creation of TEI and 2-3 enrollments in 1 request -> take UIDs of all enrollments and check whether enrollments have a link to TEI
-    //TODO: This test should actually fail (and should be fixed) when the validation logic for enrollments into programs without registration is fixed
     @Test
     public void testCreateTEIAnd3EnrollmentsAndTestThatEnrollmentsHaveLinkToTEI() throws IOException
     {
         InputStream is =
-            new ClassPathResource( "dxf2/import/create_tei_and_3_enrollments_1_with_2_without_registration.json" )
+            new ClassPathResource( "dxf2/import/create_tei_and_3_enrollments_to_programs_with_registration.json" )
                 .getInputStream();
         ImportOptions io = new ImportOptions();
         io.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
@@ -307,7 +424,6 @@ public class DataImportTest extends DhisSpringTest
     }
 
     //Test creation of TEI, 2-3 enrollments and 2 event in 1 request -> take UIDs of all enrollments and check whether they have a link to TEI, -> check whether events have a link to TEI and enrollment
-    //TODO: This test should actually fail (and should be fixed) when the validation logic for enrollments into programs without registration is fixed
     @Test
     public void testCreateTEIAnd3EnrollmentsAnd2EventsAndTestThatEnrollmentsHaveLinkToTEIAndEventsHaveLinkToTEiAndEnrollment() throws IOException
     {
@@ -334,6 +450,26 @@ public class DataImportTest extends DhisSpringTest
         org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance tei = teiDXF2Service.getTrackedEntityInstance( teiUIDFromResponse );
 
         assertEquals( tei.getTrackedEntityInstance(), teiUIDFromResponse );
+    }
+
+    private void checkAttributesValues( TrackedEntityInstance tei )
+    {
+        List<Attribute> attributes = tei.getAttributes();
+        for ( Attribute attr : attributes )
+        {
+            if ( attr.getAttribute().equals( "w75KJ2mc4zz" ) )
+            {
+                assertEquals( "Frank", attr.getValue() );
+            }
+            else if ( attr.getAttribute().equals( "zDhUuAYrxNC" ) )
+            {
+                assertEquals( "Dattera", attr.getValue() );
+            }
+            else if ( attr.getAttribute().equals( "cejWyOfXge6" ) )
+            {
+                assertEquals( "Male", attr.getValue() );
+            }
+        }
     }
 
     private void checkResultsInEnrollments( ImportSummaries summaries, String expectedTeiUid )
@@ -368,6 +504,4 @@ public class DataImportTest extends DhisSpringTest
             assertEquals( expectedTeiUid, psi.getProgramInstance().getEntityInstance().getUid() );
         }
     }
-
-    //TODO: More tests can be added. For example tests that test that import fails when we want to make an enrollment with TEI UID specified into program without registration
 }

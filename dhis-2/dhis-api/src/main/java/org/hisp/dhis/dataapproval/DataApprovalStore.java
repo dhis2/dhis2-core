@@ -28,11 +28,10 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.List;
@@ -56,25 +55,22 @@ public interface DataApprovalStore
      * Adds a DataApproval in order to approve data.
      *
      * @param dataApproval the DataApproval to add.
-     * @param user the user doing the adding.
      */
-    void addDataApproval( DataApproval dataApproval, User user );
+    void addDataApproval( DataApproval dataApproval );
 
     /**
      * Updates a DataApproval.
      *
      * @param dataApproval the DataApproval to update.
-     * @param user the user doing the updating.
      */
-    void updateDataApproval( DataApproval dataApproval, User user );
+    void updateDataApproval( DataApproval dataApproval );
 
     /**
      * Deletes a DataApproval in order to un-approve data.
      *
      * @param dataApproval the DataApproval to delete.
-     * @param user the user doing the deleting.
      */
-    void deleteDataApproval( DataApproval dataApproval, User user );
+    void deleteDataApproval( DataApproval dataApproval );
 
     /**
      * Deletes DataApprovals for the given organisation unit.

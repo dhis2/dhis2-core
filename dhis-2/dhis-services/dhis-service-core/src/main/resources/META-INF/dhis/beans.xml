@@ -36,8 +36,6 @@
 
   <bean id="org.hisp.dhis.query.QueryService" class="org.hisp.dhis.query.DefaultQueryService" />
 
-  <bean id="org.hisp.dhis.security.acl.AclService" class="org.hisp.dhis.security.acl.DefaultAclService" />
-
   <bean class="org.hisp.dhis.patch.DefaultPatchService" />
 
   <bean id="org.hisp.dhis.render.RenderService" class="org.hisp.dhis.render.DefaultRenderService" />
@@ -129,7 +127,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
@@ -232,39 +230,39 @@
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.Category" />
+  <bean id="org.hisp.dhis.category.CategoryStore" class="org.hisp.dhis.category.hibernate.HibernateCategoryStore">
+    <property name="clazz" value="org.hisp.dhis.category.Category" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOption" />
+  <bean id="org.hisp.dhis.category.CategoryOptionStore" class="org.hisp.dhis.category.hibernate.HibernateCategoryOptionStore">
+    <property name="clazz" value="org.hisp.dhis.category.CategoryOption" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryComboStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryComboStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryCombo" />
+  <bean id="org.hisp.dhis.category.CategoryComboStore" class="org.hisp.dhis.category.hibernate.HibernateCategoryComboStore">
+    <property name="clazz" value="org.hisp.dhis.category.CategoryCombo" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionComboStore"
-    class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionComboStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOptionCombo" />
+  <bean id="org.hisp.dhis.category.CategoryOptionComboStore"
+    class="org.hisp.dhis.category.hibernate.HibernateCategoryOptionComboStore">
+    <property name="clazz" value="org.hisp.dhis.category.CategoryOptionCombo" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOptionGroup" />
+  <bean id="org.hisp.dhis.category.CategoryOptionGroupStore" class="org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupStore">
+    <property name="clazz" value="org.hisp.dhis.category.CategoryOptionGroup" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupSetStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupSetStore">
-    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOptionGroupSet" />
+  <bean id="org.hisp.dhis.category.CategoryOptionGroupSetStore" class="org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupSetStore">
+    <property name="clazz" value="org.hisp.dhis.category.CategoryOptionGroupSet" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -413,12 +411,6 @@
   <bean id="org.hisp.dhis.attribute.AttributeValueStore" class="org.hisp.dhis.attribute.hibernate.HibernateAttributeValueStore">
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="clazz" value="org.hisp.dhis.attribute.AttributeValue" />
-    <property name="cacheable" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.setting.SystemSettingStore" class="org.hisp.dhis.setting.hibernate.HibernateSystemSettingStore">
-    <property name="clazz" value="org.hisp.dhis.setting.SystemSetting" />
-    <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
 
@@ -778,7 +770,7 @@
     <property name="dataValueStore" ref="org.hisp.dhis.datavalue.DataValueStore" />
     <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
@@ -806,7 +798,7 @@
   <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalLevelService">
     <property name="dataApprovalLevelStore" ref="org.hisp.dhis.dataapproval.DataApprovalLevelStore" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
   </bean>
@@ -837,7 +829,7 @@
   <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationService"
     class="org.hisp.dhis.dataset.DefaultCompleteDataSetRegistrationService">
     <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.SectionService" class="org.hisp.dhis.dataset.DefaultSectionService">
@@ -856,7 +848,7 @@
     <property name="expressionStore" ref="org.hisp.dhis.expression.ExpressionStore" />
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
     <property name="dimensionService" ref="org.hisp.dhis.dimension.DimensionService" />
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
@@ -864,13 +856,13 @@
 
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
 
-  <bean id="org.hisp.dhis.dataelement.CategoryService" class="org.hisp.dhis.dataelement.DefaultCategoryService">
-    <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
-    <property name="categoryOptionStore" ref="org.hisp.dhis.dataelement.CategoryOptionStore" />
-    <property name="categoryComboStore" ref="org.hisp.dhis.dataelement.CategoryComboStore" />
-    <property name="categoryOptionComboStore" ref="org.hisp.dhis.dataelement.CategoryOptionComboStore" />
-    <property name="categoryOptionGroupStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupStore" />
-    <property name="categoryOptionGroupSetStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupSetStore" />
+  <bean id="org.hisp.dhis.category.CategoryService" class="org.hisp.dhis.dataelement.DefaultCategoryService">
+    <property name="categoryStore" ref="org.hisp.dhis.category.CategoryStore" />
+    <property name="categoryOptionStore" ref="org.hisp.dhis.category.CategoryOptionStore" />
+    <property name="categoryComboStore" ref="org.hisp.dhis.category.CategoryComboStore" />
+    <property name="categoryOptionComboStore" ref="org.hisp.dhis.category.CategoryOptionComboStore" />
+    <property name="categoryOptionGroupStore" ref="org.hisp.dhis.category.CategoryOptionGroupStore" />
+    <property name="categoryOptionGroupSetStore" ref="org.hisp.dhis.category.CategoryOptionGroupSetStore" />
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
@@ -1009,133 +1001,6 @@
   <bean id="oAuth2ClientService" class="org.hisp.dhis.security.oauth2.DefaultOAuth2ClientService" />
 
   <bean class="org.hisp.dhis.security.oauth2.OAuth2ClientDeletionHandler" />
-
-  <bean id="org.hisp.dhis.setting.SystemSettingManager" class="org.hisp.dhis.setting.DefaultSystemSettingManager">
-    <property name="systemSettingStore" ref="org.hisp.dhis.setting.SystemSettingStore" />
-    <property name="flags">
-      <list>
-        <value>afghanistan</value>
-        <value>africare</value>
-        <value>akros</value>
-        <value>algeria</value>
-        <value>angola</value>
-        <value>armenia</value>
-        <value>bangladesh</value>
-        <value>benin</value>
-        <value>bhutan</value>
-        <value>botswana</value>
-        <value>burkina_faso</value>
-        <value>burkina_faso_coat_of_arms</value>
-        <value>burundi</value>
-        <value>cambodia</value>
-        <value>cameroon</value>
-        <value>cape_verde</value>
-        <value>chad</value>
-        <value>china</value>
-        <value>colombia</value>
-        <value>congo_brazzaville</value>
-        <value>congo_kinshasa</value>
-        <value>cordaid</value>
-        <value>demoland</value>
-        <value>denmark</value>
-        <value>ecowas</value>
-        <value>ecuador</value>
-        <value>east_africa_community</value>
-        <value>egypt</value>
-        <value>engender_health</value>
-        <value>eritrea</value>
-        <value>ethiopia</value>
-        <value>equatorial_guinea</value>
-        <value>fhi360</value>
-        <value>forut</value>
-        <value>gambia</value>
-        <value>ghana</value>
-        <value>global_fund</value>
-        <value>grenada</value>
-        <value>guinea</value>
-        <value>guinea_bissau</value>
-        <value>haiti</value>
-        <value>honduras</value>
-        <value>icap</value>
-        <value>ippf</value>
-        <value>ima</value>
-        <value>india</value>
-        <value>indonesia</value>
-        <value>irc</value>
-        <value>iran</value>
-        <value>iraq</value>
-        <value>ivory_coast</value>
-        <value>jhpiego</value>
-        <value>kenya</value>
-        <value>kiribati</value>
-        <value>kurdistan</value>
-        <value>laos</value>
-        <value>lesotho</value>
-        <value>liberia</value>
-        <value>malawi</value>
-        <value>maldives</value>
-        <value>mongolia</value>
-        <value>mozambique</value>
-        <value>myanmar</value>
-        <value>mali</value>
-        <value>mhrp</value>
-        <value>msf</value>
-        <value>msh</value>
-        <value>msh_white</value>
-        <value>msi</value>
-        <value>namibia</value>
-        <value>nicaragua</value>
-        <value>nepal</value>
-        <value>niger</value>
-        <value>nigeria</value>
-        <value>norway</value>
-        <value>pakistan</value>
-        <value>palestine</value>
-        <value>palladium</value>
-        <value>pepfar</value>
-        <value>paraguay</value>
-        <value>pathfinder</value>
-        <value>philippines</value>
-        <value>planned_parenthood</value>
-        <value>peru</value>
-        <value>psi</value>
-        <value>puntland</value>
-        <value>rwanda</value>
-        <value>save_the_children</value>
-        <value>senegal</value>
-        <value>sierra_leone</value>
-        <value>sierra_leone_coat_of_arms</value>
-        <value>solomon_islands</value>
-        <value>somalia</value>
-        <value>somaliland</value>
-        <value>south_africa</value>
-        <value>south_africa_department_of_health</value>
-        <value>south_sudan</value>
-        <value>sri_lanka</value>
-        <value>sudan</value>
-        <value>swaziland</value>
-        <value>sweden</value>
-        <value>tajikistan</value>
-        <value>tanzania</value>
-        <value>timor_leste</value>
-        <value>republic_of_trinidad_and_tobago</value>
-        <value>togo</value>
-        <value>tonga</value>
-        <value>uganda</value>
-        <value>usaid</value>
-        <value>vietnam</value>
-        <value>vanuatu</value>
-        <value>zambia</value>
-        <value>zanzibar</value>
-        <value>zimbabwe</value>
-        <value>who</value>
-      </list>
-    </property>
-  </bean>
-
-  <bean id="org.hisp.dhis.setting.TranslateSystemSettingManager" class="org.hisp.dhis.setting.DefaultTranslateSystemSettingManager">
-    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
-  </bean>
 
   <bean id="org.hisp.dhis.setting.StyleManager" class="org.hisp.dhis.setting.DefaultStyleManager">
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
@@ -1536,7 +1401,7 @@
   <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
     class="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator">
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="name" value="DataElementDefaultDimensionPopulator" />
     <property name="runlevel" value="3" />
   </bean>
@@ -1656,6 +1521,12 @@
     <property name="runlevel" value="13" />
     <property name="skipInTests" value="true" />
   </bean>
+  
+  <bean id="org.hisp.dhis.startup.SettingUpgrader" class="org.hisp.dhis.startup.SettingUpgrader">
+    <property name="name" value="SettingUpgrader" />
+    <property name="runlevel" value="14" />
+    <property name="skipInTests" value="true" />
+  </bean>
 
   <!-- DeletionHandlers -->
 
@@ -1673,22 +1544,22 @@
 
   <bean id="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" class="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionDeletionHandler"
-    class="org.hisp.dhis.dataelement.CategoryOptionDeletionHandler" />
+  <bean id="org.hisp.dhis.category.CategoryOptionDeletionHandler"
+    class="org.hisp.dhis.category.CategoryOptionDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionComboDeletionHandler"
-    class="org.hisp.dhis.dataelement.CategoryOptionComboDeletionHandler">
+  <bean id="org.hisp.dhis.category.CategoryOptionComboDeletionHandler"
+    class="org.hisp.dhis.category.CategoryOptionComboDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryComboDeletionHandler"
-    class="org.hisp.dhis.dataelement.CategoryComboDeletionHandler">
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.CategoryService" />
+  <bean id="org.hisp.dhis.category.CategoryComboDeletionHandler"
+    class="org.hisp.dhis.category.CategoryComboDeletionHandler">
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataelement.CategoryDimensionDeletionHandler"
-    class="org.hisp.dhis.dataelement.CategoryDimensionDeletionHandler">
+  <bean id="org.hisp.dhis.category.CategoryDimensionDeletionHandler"
+    class="org.hisp.dhis.category.CategoryDimensionDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
@@ -1748,8 +1619,8 @@
 
   <bean id="org.hisp.dhis.user.UserSettingDeletionHandler" class="org.hisp.dhis.user.UserSettingDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.CategoryDeletionHandler"
-    class="org.hisp.dhis.dataelement.CategoryDeletionHandler" />
+  <bean id="org.hisp.dhis.category.CategoryDeletionHandler"
+    class="org.hisp.dhis.category.CategoryDeletionHandler" />
 
   <bean id="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler"
     class="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler" />
@@ -1767,11 +1638,11 @@
 
   <bean id="org.hisp.dhis.legend.LegendSetDeletionHandler" class="org.hisp.dhis.legend.LegendSetDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupDeletionHandler"
-    class="org.hisp.dhis.dataelement.CategoryOptionGroupDeletionHandler" />
+  <bean id="org.hisp.dhis.category.CategoryOptionGroupDeletionHandler"
+    class="org.hisp.dhis.category.CategoryOptionGroupDeletionHandler" />
 
-  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupSetDeletionHandler"
-    class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDeletionHandler" />
+  <bean id="org.hisp.dhis.category.CategoryOptionGroupSetDeletionHandler"
+    class="org.hisp.dhis.category.CategoryOptionGroupSetDeletionHandler" />
 
   <bean id="org.hisp.dhis.program.ProgramInstanceDeletionHandler"
     class="org.hisp.dhis.program.ProgramInstanceDeletionHandler">
@@ -1874,7 +1745,7 @@
       <aop:before pointcut="execution( * org.hisp.dhis.common.IdentifiableObjectManager.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataapproval.DataApprovalLevelService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataelement.DataElementService.delete*(..) )" method="intercept" />
-      <aop:before pointcut="execution( * org.hisp.dhis.dataelement.CategoryService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.category.CategoryService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataset.DataSetService.deleteDataSet(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.dataset.SectionService.delete*(..) )" method="intercept" />
       <aop:before pointcut="execution( * org.hisp.dhis.indicator.IndicatorService.delete*(..) )" method="intercept" />

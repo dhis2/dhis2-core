@@ -29,7 +29,7 @@ package org.hisp.dhis.indicator;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ public class IndicatorStoreTest
     private IdentifiableObjectManager idObjectManager;
 
     @Resource(name="org.hisp.dhis.indicator.IndicatorTypeStore")
-    private GenericIdentifiableObjectStore<IndicatorType> indicatorTypeStore;
+    private IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
 
     // -------------------------------------------------------------------------
     // Support methods
