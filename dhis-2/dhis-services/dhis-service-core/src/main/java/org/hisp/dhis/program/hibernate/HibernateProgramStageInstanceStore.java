@@ -114,6 +114,13 @@ public class HibernateProgramStageInstanceStore
         return result != null && result > 0;
     }
 
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
+        return result != null && result > 0;
+    }
+
     @SuppressWarnings( "unchecked" )
     @Override
     public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
@@ -132,13 +139,13 @@ public class HibernateProgramStageInstanceStore
 
         String hql =
             "select distinct psi from ProgramStageInstance as psi " +
-            "inner join psi.programStage as ps " +
-            "where :notificationTemplate in elements(ps.notificationTemplates) " +
-            "and psi.dueDate is not null " +
-            "and psi.executionDate is null " +
-            "and psi.status != :skippedEventStatus " +
-            "and cast(:targetDate as date) = psi.dueDate " +
-            "and psi.deleted is false";
+                "inner join psi.programStage as ps " +
+                "where :notificationTemplate in elements(ps.notificationTemplates) " +
+                "and psi.dueDate is not null " +
+                "and psi.executionDate is null " +
+                "and psi.status != :skippedEventStatus " +
+                "and cast(:targetDate as date) = psi.dueDate " +
+                "and psi.deleted is false";
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
@@ -156,6 +163,6 @@ public class HibernateProgramStageInstanceStore
     @Override
     protected ProgramStageInstance postProcessObject( ProgramStageInstance programStageInstance )
     {
-        return ( programStageInstance == null || programStageInstance.isDeleted() ) ? null : programStageInstance;
+        return (programStageInstance == null || programStageInstance.isDeleted()) ? null : programStageInstance;
     }
 }
