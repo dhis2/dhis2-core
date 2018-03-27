@@ -28,18 +28,24 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,9 +55,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @Author Zubair Asghar.
@@ -59,8 +63,12 @@ import java.util.List;
 @RunWith( MockitoJUnitRunner.class )
 public class ProgramNotificationServiceTest extends DhisConvenienceTest
 {
-    @InjectMocks
-    private DefaultProgramNotificationService programNotificationService;
+    private static final String SUBJECT = "subject";
+    private static final String MESSAGE = "message";
+    private static final String TEMPLATE_NAME = "message";
+    private static final String OU_PHONE_NUMBER = "471000000";
+    private static final String DE_PHONE_NUMBER = "47200000";
+    private static final String ATT_PHONE_NUMBER = "473000000";
 
     @Mock
     private MessageService messageService;
@@ -83,32 +91,58 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Mock
     private ProgramStageInstanceStore programStageInstanceStore;
 
-    private List<ProgramInstance> programInstances = new ArrayList<>();
+    @InjectMocks
+    private DefaultProgramNotificationService programNotificationService;
 
-    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+    private Set<ProgramInstance> programInstances = new HashSet<>();
+    private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
 
-    private List<ProgramNotificationTemplate> programNotificationTemplates = new ArrayList<>();
+    private OrganisationUnit root;
+    private OrganisationUnit lvlOneLeft;
+    private OrganisationUnit lvlOneRight;
+    private OrganisationUnit lvlTwoLeftLeft;
+    private OrganisationUnit lvlTwoLeftRight;
+
+    private DataElement dataElement;
+    private ProgramStageDataElement programStageDataElement;
+    private TrackedEntityDataValue dataValue;
+
+    private TrackedEntityAttribute trackedEntityAttribute;
+    private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
+    private TrackedEntityAttributeValue attributeValue;
 
     private NotificationMessage notificationMessage;
+    private ProgramNotificationTemplate programNotificationTemplate;
 
     @Before
     public void initTest()
     {
         setUpInstances();
 
-        BatchResponseStatus status = new BatchResponseStatus( Arrays.asList() );
-        when( programMessageService.sendMessages( anyList() ) ).thenReturn( status );
+        BatchResponseStatus status = new BatchResponseStatus(Collections.emptyList());
+        when( programMessageService.sendMessages( anyList() ) )
+            .thenReturn( status );
 
-        when( messageService.sendMessage( any() ) ).thenReturn( 1 );
+        when( messageService.sendMessage( any() ) )
+            .thenReturn( 1 );
 
-        when( programInstanceStore.getWithScheduledNotifications( any(), any()) ).thenReturn( programInstances );
-        when( programStageInstanceStore.getWithScheduledNotifications( any(), any() ) ).thenReturn( programStageInstances );
+        when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
+            .thenReturn( Lists.newArrayList( programInstances ) );
+        when( programStageInstanceStore.getWithScheduledNotifications( any(), any() ) )
+            .thenReturn( Lists.newArrayList( programStageInstances ) );
 
-        when( manager.getAll( ProgramNotificationTemplate.class ) ).thenReturn( programNotificationTemplates );
+        when( manager.getAll( ProgramNotificationTemplate.class ) )
+            .thenReturn( Collections.singletonList( programNotificationTemplate ) );
 
-        when( programNotificationMessageRenderer.render( any(), any() ) ).thenReturn( notificationMessage );
-        when( programStageNotificationMessageRenderer.render( any(), any() ) ).thenReturn( notificationMessage );
+        when( programNotificationMessageRenderer.render( any(), any() ) )
+            .thenReturn( notificationMessage );
+        when( programStageNotificationMessageRenderer.render( any(), any() ) )
+            .thenReturn( notificationMessage );
     }
+
+    // -------------------------------------------------------------------------
+    // Tests
+    // -------------------------------------------------------------------------
 
     @Test
     public void testIfProgramInstanceIsNull()
@@ -130,17 +164,121 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         verify( manager, never() ).getAll( any() );
     }
 
+    @Test
+    public void testSendCompletionNotification()
+    {
+    }
+
+    @Test
+    public void testSendEnrollmentNotification()
+    {
+
+    }
+
+    @Test
+    public void testScheduledNotification()
+    {
+
+    }
+
+    @Test
+    public void testUserGroupRecipient()
+    {
+
+    }
+
+    @Test
+    public void testTeiRecipient()
+    {
+
+    }
+
+    @Test
+    public void testOuContactRecipient()
+    {
+
+    }
+
+    @Test
+    public void testProgramAttributeRecipient()
+    {
+
+    }
+
+    @Test
+    public void testDataElementRecipient()
+    {
+
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
     private void setUpInstances()
     {
-        programInstances = new ArrayList<>();
-        programStageInstances = new ArrayList<>();
+        programNotificationTemplate = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.COMPLETION );
 
-        programNotificationTemplates = new ArrayList<>();
+        root = createOrganisationUnit( 'R' );
+        lvlOneLeft = createOrganisationUnit( '1' );
+        lvlOneRight = createOrganisationUnit( '2' );
+        lvlTwoLeftLeft = createOrganisationUnit( '3' );
+        lvlTwoLeftLeft.setPhoneNumber( OU_PHONE_NUMBER );
+        lvlTwoLeftRight = createOrganisationUnit( '4' );
 
-        notificationMessage = null;
+        configureHierarchy( root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight );
+
+        // Program
+        Program programA = createProgram( 'A' );
+        programA.setAutoFields();
+        programA.setOrganisationUnits( Sets.newHashSet( lvlTwoLeftLeft,lvlTwoLeftRight ) );
+        programA.setNotificationTemplates( Sets.newHashSet( programNotificationTemplate ) );
+        programA.getProgramAttributes().add( programTrackedEntityAttribute );
+
+        trackedEntityAttribute = createTrackedEntityAttribute( 'T' );
+        trackedEntityAttribute.setValueType( ValueType.PHONE_NUMBER );
+        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( 'O' );
+        programTrackedEntityAttribute.setAttribute( trackedEntityAttribute );
+
+        // ProgramStage
+        ProgramStage programStage = createProgramStage( 'S', programA );
+
+        dataElement = createDataElement( 'D' );
+        dataElement.setValueType( ValueType.PHONE_NUMBER );
+        programStageDataElement = createProgramStageDataElement( programStage, dataElement, 1 );
+
+
+        // ProgramInstance & TEI
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.setAutoFields();
+        tei.setOrganisationUnit( lvlTwoLeftLeft );
+
+        attributeValue = createTrackedEntityAttributeValue( 'P', tei, trackedEntityAttribute );
+        attributeValue.setValue( ATT_PHONE_NUMBER );
+        tei.getTrackedEntityAttributeValues().add( attributeValue );
+
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setAutoFields();
+        programInstance.setProgram( programA );
+        programInstance.setOrganisationUnit( lvlTwoLeftLeft );
+        programInstance.setEntityInstance( tei );
+
+        // ProgramStageInstance
+        ProgramStageInstance programStageInstance = createProgramStageInstance();
+        programStageInstance.setAutoFields();
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setOrganisationUnit( lvlTwoLeftLeft );
+        programStageInstance.setProgramStage( programStage );
+        dataValue = new TrackedEntityDataValue();
+        dataValue.setAutoFields();
+        dataValue.setDataElement( dataElement );
+        dataValue.setValue( DE_PHONE_NUMBER );
+        programStageInstance.getDataValues().add( dataValue );
+
+        // lists returned by stubs
+        programStageInstances.add( programStageInstance );
+        programInstances.add( programInstance );
+
+        notificationMessage = new NotificationMessage( SUBJECT, MESSAGE );
     }
 }
