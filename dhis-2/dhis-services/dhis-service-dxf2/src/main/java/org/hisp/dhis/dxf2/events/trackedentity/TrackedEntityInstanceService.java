@@ -96,5 +96,5 @@ public interface TrackedEntityInstanceService
 
     ImportSummary deleteTrackedEntityInstance( String uid );
 
-    ImportSummaries deleteTrackedEntityInstances( List<String> uids );
+    ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
 }

@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
@@ -42,7 +43,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -531,7 +531,7 @@ public class EventController
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
         {
             // -----------------------------------------------------------------
-            // The FileResource exists and is tied to DataValue, however the 
+            // The FileResource exists and is tied to DataValue, however the
             // underlying file content still not stored to external file store
             // -----------------------------------------------------------------
 
@@ -614,8 +614,11 @@ public class EventController
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
-                .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() )
+                .filter(
+                    importSummary -> !importOptions.isDryRun() &&
+                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                        !importOptions.getImportStrategy().isDelete() &&
+                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
                 .forEach( importSummary -> importSummary.setHref(
                     ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
@@ -657,8 +660,11 @@ public class EventController
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
-                .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() )
+                .filter(
+                    importSummary -> !importOptions.isDryRun() &&
+                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                        !importOptions.getImportStrategy().isDelete() &&
+                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
                 .forEach( importSummary -> importSummary.setHref(
                     ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
