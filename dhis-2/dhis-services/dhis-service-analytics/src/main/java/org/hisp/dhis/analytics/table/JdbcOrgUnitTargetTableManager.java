@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
@@ -164,13 +165,13 @@ public class JdbcOrgUnitTargetTableManager
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables, Collection<String> dataElements, int aggregationLevel )
     {
-        return null; // Not relevant
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override
     @Async
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
     {
-        return null; // Not needed
+        return ConcurrentUtils.getImmediateFuture();
     }
 }

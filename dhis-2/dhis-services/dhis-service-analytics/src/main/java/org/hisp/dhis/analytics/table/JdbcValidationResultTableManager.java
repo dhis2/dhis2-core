@@ -3,6 +3,7 @@ package org.hisp.dhis.analytics.table;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -149,13 +150,13 @@ public class JdbcValidationResultTableManager
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
         Collection<String> dataElements, int aggregationLevel )
     {
-        return null;
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
     {
-        return null;
+        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override
