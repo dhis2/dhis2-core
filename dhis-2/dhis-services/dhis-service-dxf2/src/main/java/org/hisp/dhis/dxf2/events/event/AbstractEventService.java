@@ -37,6 +37,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -55,10 +59,6 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -972,8 +972,6 @@ public abstract class AbstractEventService
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getEvent() );
 
-        //TODO: If change of orgUnit should be supported, the logic of canWrite should be changed in order that it checks
-        // write access to the new orgUnit as well
         List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
 
         if ( programStageInstance == null )
@@ -1059,7 +1057,6 @@ public abstract class AbstractEventService
         }
 
         programStageInstance.setDueDate( dueDate );
-        //TODO: If change of orgUnit shouldn't be supported, the line below can be removed
         programStageInstance.setOrganisationUnit( organisationUnit );
 
         if ( !singleValue )
@@ -1101,9 +1098,6 @@ public abstract class AbstractEventService
 
             programStageInstance.setAttributeOptionCombo( attributeOptionCombo );
         }
-
-        //TODO: Can event be deleted through UPDATE?
-        programStageInstance.setDeleted( event.isDeleted() );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
         updateTrackedEntityInstance( programStageInstance, user );
@@ -1232,26 +1226,35 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+        //TODO: Shouldn't access rights be checked for delete in the same way as for update? Currently, no check is present at all.
 
-        if ( programStageInstance != null )
+        boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
+        boolean existsEventIncludingDeleted = programStageInstanceService.programStageInstanceExistsIncludingDeleted( uid );
+
+        if ( existsEvent )
         {
+            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
             }
-
-            String descMsg = "Deletion of event " + uid + " was successful";
-            return new ImportSummary( ImportStatus.SUCCESS, descMsg ).incrementDeleted();
         }
 
-        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." ).incrementIgnored();
+        if ( existsEvent || existsEventIncludingDeleted )
+        {
+            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
+                .incrementDeleted();
+        }
+
+        return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid event." )
+            .incrementIgnored();
     }
 
     @Override
-    public ImportSummaries deleteEvents( List<String> uids )
+    public ImportSummaries deleteEvents( List<String> uids, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
@@ -1260,7 +1263,7 @@ public abstract class AbstractEventService
         {
             importSummaries.addImportSummary( deleteEvent( uid ) );
 
-            if ( counter % FLUSH_FREQUENCY == 0 )
+            if ( clearSession && counter % FLUSH_FREQUENCY == 0 )
             {
                 clearSession();
             }
@@ -1614,8 +1617,6 @@ public abstract class AbstractEventService
         programStageInstance.setExecutionDate( executionDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
-        //TODO: Can even be set as deleted via POST (create) method? Does it make any sense? (Deletion should be done in a way by using DELETE importStatregy and so delete method should be called.)
-        programStageInstance.setDeleted( event.isDeleted() );
 
         if ( programStage.getCaptureCoordinates() )
         {
