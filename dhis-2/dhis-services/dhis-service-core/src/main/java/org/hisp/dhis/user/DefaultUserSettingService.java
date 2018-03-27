@@ -30,11 +30,11 @@ package org.hisp.dhis.user;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.configuration.CacheProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;

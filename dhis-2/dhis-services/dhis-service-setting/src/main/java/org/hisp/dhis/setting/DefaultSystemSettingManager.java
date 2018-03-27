@@ -29,8 +29,8 @@ package org.hisp.dhis.setting;
  */
 
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.configuration.CacheProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
