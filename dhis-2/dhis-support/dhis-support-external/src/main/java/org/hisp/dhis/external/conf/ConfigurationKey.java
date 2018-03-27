@@ -77,6 +77,10 @@ public enum ConfigurationKey
     RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
     RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
     RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true ),
+    REDIS_HOST( "redis.host", "localhost", false ),
+    REDIS_PORT( "redis.port", "6379", false ),
+    REDIS_PASSWORD( "redis.password", "", true ),
+    REDIS_ENABLED( "redis.enabled", "false", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
 
     private final String key;
