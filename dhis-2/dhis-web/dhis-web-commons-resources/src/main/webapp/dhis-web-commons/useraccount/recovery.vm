@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html dir="ltr">
 <head>
     <title>$encoder.htmlEncode( $applicationTitle )</title>
     <script type="text/javascript" src="../javascripts/jQuery/jquery.min.js"></script>
