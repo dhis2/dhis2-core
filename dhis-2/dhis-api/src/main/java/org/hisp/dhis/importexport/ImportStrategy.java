@@ -37,6 +37,7 @@ public enum ImportStrategy
     UPDATE,
     CREATE_AND_UPDATE,
     DELETE,
+    SYNC,
 
     NEW_AND_UPDATES,
     NEW,
@@ -62,4 +63,10 @@ public enum ImportStrategy
     {
         return this == DELETE || this == DELETES;
     }
+
+    public boolean isSync()
+    {
+        return this == SYNC;
+    }
+
 }
