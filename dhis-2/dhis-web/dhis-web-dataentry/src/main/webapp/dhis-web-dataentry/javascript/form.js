@@ -2124,12 +2124,12 @@ function registerCompleteDataSet()
 	    	success: function( data, textStatus, xhr )
 	        {
                 dhis2.de.storageManager.clearCompleteDataSet( params );
-                if( data.status == 'SUCCESS' )
+                if( data && data.status == 'SUCCESS' )
                 {
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
                     disableCompleteButton();                    
                 }
-                else if( data.status == 'ERROR' )
+                else if( data && data.status == 'ERROR' )
                 {
                     handleDataSetCompletenessResponse( data );
                 }
@@ -2200,15 +2200,8 @@ function undoCompleteDataSet()
     	success: function( data, textStatus, xhr )
         {
             dhis2.de.storageManager.clearCompleteDataSet( params );
-            if( data.status == 'SUCCESS' )
-            {
-                $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-                disableCompleteButton();                    
-            }
-            else if( data.status == 'ERROR' )
-            {
-                handleDataSetCompletenessResponse( data );
-            }          
+            $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
+            disableUndoButton();         
         },
         error: function( xhr, textStatus, errorThrown )
         {
