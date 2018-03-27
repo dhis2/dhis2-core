@@ -45,7 +45,7 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.sync.SyncUtil;
+import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.render.DefaultRenderService;
@@ -115,7 +115,7 @@ public class DefaultSynchronizationManager
     @Override
     public AvailabilityStatus isRemoteServerAvailable()
     {
-        return SyncUtil.isRemoteServerAvailable( systemSettingManager, restTemplate );
+        return SyncUtils.isRemoteServerAvailable( systemSettingManager, restTemplate );
     }
 
     @Override

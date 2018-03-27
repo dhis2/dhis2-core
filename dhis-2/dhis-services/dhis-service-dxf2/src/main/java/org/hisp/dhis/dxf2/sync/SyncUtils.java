@@ -58,15 +58,15 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * @author David Katuscak
  */
 
-public class SyncUtil
+public class SyncUtils
 {
 
-    private static final Log log = LogFactory.getLog( SyncUtil.class );
+    private static final Log log = LogFactory.getLog( SyncUtils.class );
 
     public static final String HEADER_AUTHORIZATION = "Authorization";
     private static final String PING_PATH = "/api/system/ping";
 
-    private SyncUtil()
+    private SyncUtils()
     {
     }
 
@@ -210,7 +210,7 @@ public class SyncUtil
      */
     public static AvailabilityStatus testServerAvailability( SystemSettingManager systemSettingManager, RestTemplate restTemplate, int maxAttempts, long delayBetweenAttempts )
     {
-        AvailabilityStatus serverStatus = SyncUtil.isRemoteServerAvailable( systemSettingManager, restTemplate );
+        AvailabilityStatus serverStatus = SyncUtils.isRemoteServerAvailable( systemSettingManager, restTemplate );
 
         for ( int i = 1; i < maxAttempts; i++ )
         {

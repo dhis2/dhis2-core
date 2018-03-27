@@ -110,7 +110,7 @@ public class DataSyncJob extends AbstractJob
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
-        Date lastSuccessfulSync = SyncUtil.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC );
+        Date lastSuccessfulSync = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setLastUpdatedStartDate( lastSuccessfulSync );
@@ -156,7 +156,7 @@ public class DataSyncJob extends AbstractJob
 
         if ( syncResult )
         {
-            SyncUtil.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC, startTime );
+            SyncUtils.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC, startTime );
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
             log.info( "SUCCESS! Tracker sync was successfully done! It took " + syncDuration + " ms." );
         }
@@ -173,11 +173,11 @@ public class DataSyncJob extends AbstractJob
         final RequestCallback requestCallback = request ->
         {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-            request.getHeaders().add( SyncUtil.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
+            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
             renderService.toJson( request.getBody(), dtoTeis );
         };
 
-        return SyncUtil.runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, trackerSyncUrl, endpoint, MAX_SYNC_ATTEMPTS );
+        return SyncUtils.runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, trackerSyncUrl, endpoint, MAX_SYNC_ATTEMPTS );
     }
 
     //Tracker sync functionality:
@@ -204,7 +204,7 @@ public class DataSyncJob extends AbstractJob
 
     private AvailabilityStatus testServerAvailability()
     {
-        return SyncUtil.testServerAvailability(
+        return SyncUtils.testServerAvailability(
             systemSettingManager,
             restTemplate,
             MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS,
