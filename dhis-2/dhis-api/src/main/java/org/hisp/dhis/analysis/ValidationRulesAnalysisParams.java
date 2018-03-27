@@ -30,7 +30,7 @@ package org.hisp.dhis.analysis;
 
 public class ValidationRulesAnalysisParams
 {
-    private String validationRuleGroupId;
+    private Integer validationRuleGroupId;
 
     private String organisationUnitId;
 
@@ -46,7 +46,7 @@ public class ValidationRulesAnalysisParams
     {
     }
 
-    public ValidationRulesAnalysisParams( String validationRuleGroupId, String organisationUnitId, String starteDate, String endDate, boolean persist, boolean notification )
+    public ValidationRulesAnalysisParams( Integer validationRuleGroupId, String organisationUnitId, String starteDate, String endDate, boolean persist, boolean notification )
     {
         this.validationRuleGroupId = validationRuleGroupId;
         this.organisationUnitId = organisationUnitId;
@@ -56,12 +56,12 @@ public class ValidationRulesAnalysisParams
         this.notification = notification;
     }
 
-    public String getValidationRuleGroupId()
+    public Integer getValidationRuleGroupId()
     {
         return validationRuleGroupId;
     }
 
-    public void setValidationRuleGroupId( String validationRuleGroupId )
+    public void setValidationRuleGroupId( Integer validationRuleGroupId )
     {
         this.validationRuleGroupId = validationRuleGroupId;
     }

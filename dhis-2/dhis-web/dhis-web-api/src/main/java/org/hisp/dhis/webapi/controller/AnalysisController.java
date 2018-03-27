@@ -162,7 +162,11 @@ public class AnalysisController
     {
         I18nFormat format = i18nManager.getI18nFormat();
 
-        ValidationRuleGroup group = validationRuleService.getValidationRuleGroup( validationRulesAnalysisParams.getValidationRuleGroupId() );
+        ValidationRuleGroup group = null;
+        if ( validationRulesAnalysisParams.getValidationRuleGroupId() != null ) {
+            group = validationRuleService.getValidationRuleGroup( validationRulesAnalysisParams.getValidationRuleGroupId() );
+        }
+
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( validationRulesAnalysisParams.getOrganisationUnitId() );
         if ( organisationUnit == null )
         {
