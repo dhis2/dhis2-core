@@ -69,17 +69,8 @@ public class DataSyncJob extends AbstractJob
     @Autowired
     private RestTemplate restTemplate;
 
-//    @Autowired
-//    private TrackedEntityInstanceService teiDBService;
-
     @Autowired
     private TrackedEntityInstanceService teiService;
-
-//    @Autowired
-//    private EnrollmentService enrollmentService;
-//
-//    @Autowired
-//    private EventService eventService;
 
     @Autowired
     private RenderService renderService;
@@ -94,15 +85,6 @@ public class DataSyncJob extends AbstractJob
     {
         //TODO: Check logic in DataSynchronizationJob.execute()
 
-
-//        try
-//        {
-//            syncEventProgramData();
-//        }
-//        catch ( Exception e )
-//        {
-//            //TODO: Handle exception
-//        }
 
         try
         {

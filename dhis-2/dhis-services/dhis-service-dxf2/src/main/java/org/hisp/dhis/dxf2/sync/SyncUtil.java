@@ -54,6 +54,10 @@ import java.util.Date;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+/**
+ * @author David Katuscak
+ */
+
 public class SyncUtil
 {
 
@@ -138,7 +142,7 @@ public class SyncUtil
      *
      * @param summaries            ImportSummaries that should be analyzed
      * @param originalTopSummaries The top level ImportSummaries. Used only for logging purposes.
-     * @param endpoint             Tells against which endpoint the request was run
+     * @param endpoint             Specifies against which endpoint the request was run
      * @return true if everything is OK, false otherwise
      */
     private static boolean analyzeResultsInImportSummaries( ImportSummaries summaries, ImportSummaries originalTopSummaries, SyncEndpoint endpoint )
@@ -152,10 +156,10 @@ public class SyncUtil
                     return false;
                 }
 
-                //Based on against which endpoint the request was run, I need to check for errors Enrollments and Events, Events or no more checks are needed
+                //I need recursively check for errors on lower levels of the graph
                 if ( endpoint == SyncEndpoint.TEIS_ENDPOINT )
                 {
-                    //uses recursion. Be sure, that it will reach the end in some reasonable time!!! Correct value of endpoint argument is critical here!
+                    //Uses recursion. Correct value of endpoint argument is critical here.
                     if ( !analyzeResultsInImportSummaries( summary.getEnrollments(), originalTopSummaries, SyncEndpoint.ENROLLMENTS_ENDPOINT ) )
                     {
                         return false;
@@ -163,7 +167,7 @@ public class SyncUtil
                 }
                 else if ( endpoint == SyncEndpoint.ENROLLMENTS_ENDPOINT )
                 {
-                    //uses recursion. Be sure, that it will reach the end in some reasonable time!!! Correct value of endpoint argument is critical here!
+                    //Uses recursion. Correct value of endpoint argument is critical here.
                     if ( !analyzeResultsInImportSummaries( summary.getEvents(), originalTopSummaries, SyncEndpoint.EVENTS_ENDPOINT ) )
                     {
                         return false;
@@ -178,9 +182,9 @@ public class SyncUtil
     /**
      * Checks the ImportSummary. Returns true if everything is OK, false otherwise
      *
-     * @param summary
-     * @param topSummaries
-     * @param endpoint
+     * @param summary      ImportSummary that are checked for error/warning
+     * @param topSummaries References to the ImportSummaries from top level of the graph (Used to create proper log message)
+     * @param endpoint     Specifies against which endpoint the request was run
      * @return true if everything is OK, false otherwise
      */
     private static boolean checkSummaryStatus( ImportSummary summary, ImportSummaries topSummaries, SyncEndpoint endpoint )
@@ -194,6 +198,16 @@ public class SyncUtil
         return true;
     }
 
+    /**
+     * Checks the availability of remote server. In case of error it tries {@code maxAttempts} of time with a {@code delaybetweenAttempts} delay
+     * between retries before giving up.
+     *
+     * @param systemSettingManager Reference to SystemSettingManager
+     * @param restTemplate         Reference to RestTemplate
+     * @param maxAttempts          Specifies how many retries are done in case of error
+     * @param delayBetweenAttempts Specifies delay between retries
+     * @return AvailabilityStatus that says whether the server is available or not
+     */
     public static AvailabilityStatus testServerAvailability( SystemSettingManager systemSettingManager, RestTemplate restTemplate, int maxAttempts, long delayBetweenAttempts )
     {
         AvailabilityStatus serverStatus = SyncUtil.isRemoteServerAvailable( systemSettingManager, restTemplate );
@@ -222,6 +236,13 @@ public class SyncUtil
         return serverStatus;
     }
 
+    /**
+     * Checks the availability of remote server
+     *
+     * @param systemSettingManager Reference to SystemSettingManager
+     * @param restTemplate         Reference to RestTemplate
+     * @return AvailabilityStatus that says whether the server is available or not
+     */
     public static AvailabilityStatus isRemoteServerAvailable( SystemSettingManager systemSettingManager, RestTemplate restTemplate )
     {
         if ( !isRemoteServerConfigured( systemSettingManager ) )
@@ -323,9 +344,9 @@ public class SyncUtil
     /**
      * Sets the time of the last successful synchronization operation.
      *
-     * @param systemSettingManager
-     * @param settingKey
-     * @param time
+     * @param systemSettingManager Reference to SystemSettingManager
+     * @param settingKey           SettingKey used for keeping info about last sync success
+     * @param time                 Date of last sync success
      */
     public static void setSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey, Date time )
     {
@@ -335,9 +356,9 @@ public class SyncUtil
     /**
      * Return the time of last successful sync.
      *
-     * @param systemSettingManager
-     * @param settingKey
-     * @return
+     * @param systemSettingManager Reference to SystemSettingManager
+     * @param settingKey           SettingKey used for keeping info about last sync success
+     * @return The Date of last sync success
      */
     public static Date getLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey )
     {
