@@ -45,7 +45,7 @@ import java.util.concurrent.ScheduledFuture;
  * <li>This job configuration needs a job specific parameters object {@link JobParameters}, ie {@link org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters}.</li>
  * <li>Call scheduleJob with the job configuration.</li>
  * <li>The schedulingManager calls the spring scheduler with a runnable object {@link JobInstance}.</li>
- * <li>When the cron expression ocours the job will try to execute from the runnable object, job instance.</li>
+ * <li>When the cron expression occurs the job will try to execute from the runnable object, job instance.</li>
  * </ul>
  *
  * @author Henning Håkonsen
@@ -62,17 +62,18 @@ public interface SchedulingManager
 
     /**
      * Set up default behavior for a started job.
+     *
      * @param jobConfiguration the job which started
      */
     void jobConfigurationStarted( JobConfiguration jobConfiguration );
 
     /**
      * Set up default behavior for a finished job.
-     *
+     * <p>
      * A special case is if a job is disabled when running, but the job does not stop. The job wil run normally one last time and
      * try to set finished status. Since the job is disabled we manually set these parameters in this method so that the
      * job is not automatically rescheduled.
-     *
+     * <p>
      * Also we dont want to update a job configuration of the job is deleted.
      *
      * @param jobConfiguration the job which started
@@ -117,7 +118,7 @@ public interface SchedulingManager
      * Execute the given job immediately and return a ListenableFuture.
      *
      * @param callable the job to execute.
-     * @param <T> return type of the supplied callable.
+     * @param <T>      return type of the supplied callable.
      * @return a ListenableFuture representing the result of the job.
      */
     <T> ListenableFuture<T> executeJob( Callable<T> callable );
