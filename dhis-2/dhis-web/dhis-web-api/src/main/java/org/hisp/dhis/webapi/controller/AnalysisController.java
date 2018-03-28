@@ -200,7 +200,7 @@ public class AnalysisController
 
     }
 
-    @RequestMapping( value = "validationRules", method = RequestMethod.GET )
+    @RequestMapping( value = "validationRulesExpression", method = RequestMethod.GET )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String uid, @RequestParam String periodId, @RequestParam String organisationUnitId) throws WebMessageException {
         ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails(  );
