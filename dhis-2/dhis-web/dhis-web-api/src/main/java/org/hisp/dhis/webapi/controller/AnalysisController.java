@@ -173,7 +173,7 @@ public class AnalysisController
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
         }
 
-        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit, format.parseDate( validationRulesAnalysisParams.getStarteDate() ), format.parseDate( validationRulesAnalysisParams.getEndDate() ) )
+        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit, format.parseDate( validationRulesAnalysisParams.getStartDate() ), format.parseDate( validationRulesAnalysisParams.getEndDate() ) )
             .withIncludeOrgUnitDescendants( true )
             .withPersistResults( validationRulesAnalysisParams.isPersist() )
             .withSendNotifications( validationRulesAnalysisParams.isNotification() )

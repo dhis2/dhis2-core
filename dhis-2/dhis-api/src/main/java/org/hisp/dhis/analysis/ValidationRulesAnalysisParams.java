@@ -34,7 +34,7 @@ public class ValidationRulesAnalysisParams
 
     private String organisationUnitId;
 
-    private String starteDate;
+    private String startDate;
 
     private String endDate;
 
@@ -46,11 +46,11 @@ public class ValidationRulesAnalysisParams
     {
     }
 
-    public ValidationRulesAnalysisParams( Integer validationRuleGroupId, String organisationUnitId, String starteDate, String endDate, boolean persist, boolean notification )
+    public ValidationRulesAnalysisParams( Integer validationRuleGroupId, String organisationUnitId, String startDate, String endDate, boolean persist, boolean notification )
     {
         this.validationRuleGroupId = validationRuleGroupId;
         this.organisationUnitId = organisationUnitId;
-        this.starteDate = starteDate;
+        this.startDate = startDate;
         this.endDate = endDate;
         this.persist = persist;
         this.notification = notification;
@@ -76,14 +76,14 @@ public class ValidationRulesAnalysisParams
         this.organisationUnitId = organisationUnitId;
     }
 
-    public String getStarteDate()
+    public String getStartDate()
     {
-        return starteDate;
+        return startDate;
     }
 
-    public void setStarteDate( String starteDate )
+    public void setStartDate( String startDate )
     {
-        this.starteDate = starteDate;
+        this.startDate = startDate;
     }
 
     public String getEndDate()
