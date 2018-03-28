@@ -432,7 +432,8 @@ public class TrackedEntityAttribute
         return isUnique() && !getProgramScope() && !getOrgunitScope();
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getSkipSynchronization()
     {
         return skipSynchronization != null ? skipSynchronization : false;
