@@ -226,23 +226,7 @@ public class JacksonEventService extends AbstractEventService
         {
             for ( Event event : events )
             {
-                if ( StringUtils.isEmpty( event.getEvent() ) )
-                {
-                    create.add( event );
-                }
-                else
-                {
-                    ProgramStageInstance programStageInstance = manager.getObject( ProgramStageInstance.class, importOptions.getIdSchemes().getProgramStageInstanceIdScheme(), event.getEvent() );
-
-                    if ( programStageInstance == null )
-                    {
-                        create.add( event );
-                    }
-                    else
-                    {
-                        update.add( event );
-                    }
-                }
+                sortCreatesAndUpdates( event, create, update );
             }
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
@@ -253,10 +237,24 @@ public class JacksonEventService extends AbstractEventService
         {
             delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
         }
+        else if ( importOptions.getImportStrategy().isSync() )
+        {
+            for ( Event event : events )
+            {
+                if ( event.isDeleted() )
+                {
+                    delete.add( event.getEvent() );
+                }
+                else
+                {
+                    sortCreatesAndUpdates( event, create, update );
+                }
+            }
+        }
 
         importSummaries.addImportSummaries( addEvents( create, importOptions, true ) );
         importSummaries.addImportSummaries( updateEvents( update, false, true ) );
-        importSummaries.addImportSummaries( deleteEvents( delete ) );
+        importSummaries.addImportSummaries( deleteEvents( delete, true ) );
 
         if ( jobId != null )
         {
@@ -274,5 +272,26 @@ public class JacksonEventService extends AbstractEventService
         }
 
         return importSummaries;
+    }
+
+    private void sortCreatesAndUpdates( Event event, List<Event> create, List<Event> update )
+    {
+        if ( StringUtils.isEmpty( event.getEvent() ) )
+        {
+            create.add( event );
+        }
+        else
+        {
+            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
+
+            if ( programStageInstance == null )
+            {
+                create.add( event );
+            }
+            else
+            {
+                update.add( event );
+            }
+        }
     }
 }

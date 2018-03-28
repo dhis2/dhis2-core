@@ -51,7 +51,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -171,7 +170,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
 
         List<Enrollment> create = new ArrayList<>();
         List<Enrollment> update = new ArrayList<>();
-        List<String> delete = new ArrayList<>();
+        List<Enrollment> delete = new ArrayList<>();
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -181,21 +180,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         {
             for ( Enrollment enrollment : enrollments )
             {
-                if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
-                {
-                    create.add( enrollment );
-                }
-                else
-                {
-                    if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
-                    {
-                        create.add( enrollment );
-                    }
-                    else
-                    {
-                        update.add( enrollment );
-                    }
-                }
+                sortCreatesAndUpdates( enrollment, create, update );
             }
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
@@ -204,12 +189,26 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
         else if ( importOptions.getImportStrategy().isDelete() )
         {
-            delete.addAll( enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
+            delete.addAll( enrollments );
+        }
+        else if ( importOptions.getImportStrategy().isSync() )
+        {
+            for ( Enrollment enrollment : enrollments )
+            {
+                if ( enrollment.isDeleted() )
+                {
+                    delete.add( enrollment );
+                }
+                else
+                {
+                    sortCreatesAndUpdates( enrollment, create, update );
+                }
+            }
         }
 
         importSummaries.addImportSummaries( addEnrollments( create, importOptions, null, true ) );
-        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, null, true ) );
-        importSummaries.addImportSummaries( deleteEnrollments( delete ) );
+        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, true ) );
+        importSummaries.addImportSummaries( deleteEnrollments( delete, importOptions, true ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
@@ -217,6 +216,25 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
 
         return importSummaries;
+    }
+
+    private void sortCreatesAndUpdates( Enrollment enrollment, List<Enrollment> create, List<Enrollment> update )
+    {
+        if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
+        {
+            create.add( enrollment );
+        }
+        else
+        {
+            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            {
+                create.add( enrollment );
+            }
+            else
+            {
+                update.add( enrollment );
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
