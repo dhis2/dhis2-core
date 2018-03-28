@@ -36,6 +36,7 @@ import org.hisp.dhis.analysis.FollowupParams;
 import org.hisp.dhis.analysis.MinMaxOutlierAnalysisParams;
 import org.hisp.dhis.analysis.StdDevOutlierAnalysisParams;
 import org.hisp.dhis.analysis.UpdateFollowUpForDataValuesRequest;
+import org.hisp.dhis.analysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.analysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -48,6 +49,7 @@ import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
@@ -55,6 +57,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -66,6 +69,7 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
+import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
@@ -81,6 +85,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -114,6 +119,8 @@ public class AnalysisController
     private static final String KEY_ANALYSIS_DATA_VALUES = "analysisDataValues";
 
     private static final String KEY_VALIDATIONRESULT = "validationResult";
+
+    private static final String NULL_REPLACEMENT = "-";
 
     @Autowired
     private ContextUtils contextUtils;
@@ -154,6 +161,9 @@ public class AnalysisController
     @Autowired
     private FollowupAnalysisService followupAnalysisService;
 
+    @Autowired
+    private ExpressionService expressionService;
+
     @RequestMapping( value = "/validationRules", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
@@ -188,6 +198,47 @@ public class AnalysisController
 
         return validationResultsListToResponse( validationResults );
 
+    }
+
+    @RequestMapping( value = "validationRules", method = RequestMethod.GET )
+    @ResponseStatus( HttpStatus.OK )
+    public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String uid, @RequestParam String periodId, @RequestParam String organisationUnitId) throws WebMessageException {
+        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails(  );
+
+        ValidationRule validationRule = validationRuleService.getValidationRule( uid );
+        if ( validationRule == null ) {
+            throw new WebMessageException( WebMessageUtils.notFound( "Can't find ValidationRule with uid =" + uid ) );
+        }
+
+        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
+        if ( organisationUnit == null ) {
+            throw new WebMessageException( WebMessageUtils.notFound( "Can't find OrganisationUnit with uid =" + organisationUnitId ) );
+        }
+
+        Period period = periodService.getPeriod( periodId );
+        if ( period == null ) {
+            throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
+        }
+
+        for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
+        {
+            DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+
+            String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
+
+            validationRuleExpressionDetails.getLeftSideMap().put( operand.getName(), value );
+        }
+
+        for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
+        {
+            DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+
+            String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
+
+            validationRuleExpressionDetails.getRightSideMap().put( operand.getName(), value );
+        }
+
+        return validationRuleExpressionDetails;
     }
 
     @RequestMapping( value = "/stdDevOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )

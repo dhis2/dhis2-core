@@ -28,28 +28,48 @@ package org.hisp.dhis.analysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-public class UpdateFollowUpForDataValuesRequest
+import java.util.HashMap;
+import java.util.Map;
+
+@JacksonXmlRootElement
+public class ValidationRuleExpressionDetails
 {
-    private List<FollowupParams> followups;
+    private Map<String, String> leftSideMap = new HashMap<>();
 
-    public UpdateFollowUpForDataValuesRequest()
+    private Map<String, String> rightSideMap = new HashMap<>();
+
+    public ValidationRuleExpressionDetails()
     {
     }
 
-    public UpdateFollowUpForDataValuesRequest( List<FollowupParams> followups )
+    public ValidationRuleExpressionDetails( Map<String, String> leftSideMap, Map<String, String> rightSideMap )
     {
-        this.followups = followups;
+        this.leftSideMap = leftSideMap;
+        this.rightSideMap = rightSideMap;
     }
 
-    public List<FollowupParams> getFollowups()
+    @JsonProperty
+    public Map<String, String> getLeftSideMap()
     {
-        return followups;
+        return leftSideMap;
     }
 
-    public void setFollowups( List<FollowupParams> followups )
+    public void setLeftSideMap( Map<String, String> leftSideMap )
     {
-        this.followups = followups;
+        this.leftSideMap = leftSideMap;
+    }
+
+    @JsonProperty
+    public Map<String, String> getRightSideMap()
+    {
+        return rightSideMap;
+    }
+
+    public void setRightSideMap( Map<String, String> rightSideMap )
+    {
+        this.rightSideMap = rightSideMap;
     }
 }
