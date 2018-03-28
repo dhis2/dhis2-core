@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.sync;/*
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -49,6 +50,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * @author David Katuscak
+ */
 
 public class DataSyncJob extends AbstractJob
 {
@@ -60,7 +66,6 @@ public class DataSyncJob extends AbstractJob
     private static final int MAX_SYNC_ATTEMPTS = 3;
     private static final int DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS = 500; //in ms
 
-    //    private static final String IMPORT_STRATEGY_DELETE_SUFFIX = "?importStrategy=DELETE";
     private static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?importStrategy=SYNC";
 
     @Autowired
@@ -141,6 +146,7 @@ public class DataSyncJob extends AbstractJob
             queryParams.setPage( i );
 
             List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params );
+            filterOutNonSynchronizableAttributes( dtoTeis );
             log.info( "Going to sync TEIs (and related Enrollments and Events) numbers: " + ((i * TRACKER_SYNC_PAGE_SIZE) + 1) + " - " + ((i * TRACKER_SYNC_PAGE_SIZE) + dtoTeis.size()) );
 
             if ( log.isDebugEnabled() )
@@ -159,6 +165,23 @@ public class DataSyncJob extends AbstractJob
             SyncUtils.setSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC, startTime );
             long syncDuration = System.currentTimeMillis() - startTime.getTime();
             log.info( "SUCCESS! Tracker sync was successfully done! It took " + syncDuration + " ms." );
+        }
+    }
+
+    private void filterOutNonSynchronizableAttributes( List<TrackedEntityInstance> dtoTeis )
+    {
+        for ( TrackedEntityInstance tei : dtoTeis )
+        {
+            tei.setAttributes( tei.getAttributes().stream()
+                .filter( attr -> !attr.getSkipSynchronization() )
+                .collect( Collectors.toList() ) );
+
+            for ( Enrollment enrollment : tei.getEnrollments() )
+            {
+                enrollment.setAttributes( enrollment.getAttributes().stream()
+                    .filter( attr -> !attr.getSkipSynchronization() )
+                    .collect( Collectors.toList() ) );
+            }
         }
     }
 
