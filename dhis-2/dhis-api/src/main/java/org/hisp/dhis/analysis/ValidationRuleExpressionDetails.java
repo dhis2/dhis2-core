@@ -37,39 +37,39 @@ import java.util.Map;
 @JacksonXmlRootElement
 public class ValidationRuleExpressionDetails
 {
-    private Map<String, String> leftSideMap = new HashMap<>();
+    private Map<String, String> leftSide = new HashMap<>();
 
-    private Map<String, String> rightSideMap = new HashMap<>();
+    private Map<String, String> rightSide = new HashMap<>();
 
     public ValidationRuleExpressionDetails()
     {
     }
 
-    public ValidationRuleExpressionDetails( Map<String, String> leftSideMap, Map<String, String> rightSideMap )
+    public ValidationRuleExpressionDetails( Map<String, String> leftSide, Map<String, String> rightSide )
     {
-        this.leftSideMap = leftSideMap;
-        this.rightSideMap = rightSideMap;
+        this.leftSide = leftSide;
+        this.rightSide = rightSide;
     }
 
     @JsonProperty
-    public Map<String, String> getLeftSideMap()
+    public Map<String, String> getLeftSide()
     {
-        return leftSideMap;
+        return leftSide;
     }
 
-    public void setLeftSideMap( Map<String, String> leftSideMap )
+    public void setLeftSide( Map<String, String> leftSide )
     {
-        this.leftSideMap = leftSideMap;
+        this.leftSide = leftSide;
     }
 
     @JsonProperty
-    public Map<String, String> getRightSideMap()
+    public Map<String, String> getRightSide()
     {
-        return rightSideMap;
+        return rightSide;
     }
 
-    public void setRightSideMap( Map<String, String> rightSideMap )
+    public void setRightSide( Map<String, String> rightSide )
     {
-        this.rightSideMap = rightSideMap;
+        this.rightSide = rightSide;
     }
 }

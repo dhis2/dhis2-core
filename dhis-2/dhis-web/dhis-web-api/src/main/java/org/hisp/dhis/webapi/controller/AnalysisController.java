@@ -202,17 +202,17 @@ public class AnalysisController
 
     @RequestMapping( value = "validationRulesExpression", method = RequestMethod.GET )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String uid, @RequestParam String periodId, @RequestParam String organisationUnitId) throws WebMessageException {
+    public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId, @RequestParam String periodId, @RequestParam String organisationUnitId) throws WebMessageException {
         ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails(  );
 
-        ValidationRule validationRule = validationRuleService.getValidationRule( uid );
+        ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );
         if ( validationRule == null ) {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can't find ValidationRule with uid =" + uid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
         if ( organisationUnit == null ) {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can't find OrganisationUnit with uid =" + organisationUnitId ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
         }
 
         Period period = periodService.getPeriod( periodId );
@@ -226,7 +226,7 @@ public class AnalysisController
 
             String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
 
-            validationRuleExpressionDetails.getLeftSideMap().put( operand.getName(), value );
+            validationRuleExpressionDetails.getLeftSide().put( operand.getName(), value );
         }
 
         for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
@@ -235,7 +235,7 @@ public class AnalysisController
 
             String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
 
-            validationRuleExpressionDetails.getRightSideMap().put( operand.getName(), value );
+            validationRuleExpressionDetails.getRightSide().put( operand.getName(), value );
         }
 
         return validationRuleExpressionDetails;
