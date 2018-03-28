@@ -36,6 +36,7 @@ import org.hisp.dhis.analysis.FollowupParams;
 import org.hisp.dhis.analysis.MinMaxOutlierAnalysisParams;
 import org.hisp.dhis.analysis.StdDevOutlierAnalysisParams;
 import org.hisp.dhis.analysis.UpdateFollowUpForDataValuesRequest;
+import org.hisp.dhis.analysis.ValidationResultView;
 import org.hisp.dhis.analysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.analysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -167,13 +168,14 @@ public class AnalysisController
     @RequestMapping( value = "/validationRules", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    List<ValidationResult> performValidationRulesAnalysis( @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
+    List<ValidationResultView> performValidationRulesAnalysis( @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
 
         ValidationRuleGroup group = null;
-        if ( validationRulesAnalysisParams.getValidationRuleGroupId() != null ) {
+        if ( validationRulesAnalysisParams.getValidationRuleGroupId() != null )
+        {
             group = validationRuleService.getValidationRuleGroup( validationRulesAnalysisParams.getValidationRuleGroupId() );
         }
 
@@ -202,21 +204,26 @@ public class AnalysisController
 
     @RequestMapping( value = "validationRulesExpression", method = RequestMethod.GET )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId, @RequestParam String periodId, @RequestParam String organisationUnitId) throws WebMessageException {
-        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails(  );
+    public @ResponseBody
+    ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId, @RequestParam String periodId, @RequestParam String organisationUnitId ) throws WebMessageException
+    {
+        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
 
         ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );
-        if ( validationRule == null ) {
+        if ( validationRule == null )
+        {
             throw new WebMessageException( WebMessageUtils.notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
-        if ( organisationUnit == null ) {
+        if ( organisationUnit == null )
+        {
             throw new WebMessageException( WebMessageUtils.notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
         }
 
         Period period = periodService.getPeriod( periodId );
-        if ( period == null ) {
+        if ( period == null )
+        {
             throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
         }
 
@@ -546,7 +553,7 @@ public class AnalysisController
         return dataValuesToResponse;
     }
 
-    private List<ValidationResult> validationResultsListToResponse( List<ValidationResult> validationResults )
+    private List<ValidationResultView> validationResultsListToResponse( List<ValidationResult> validationResults )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         if ( validationResults == null )
@@ -554,11 +561,39 @@ public class AnalysisController
             return Collections.emptyList();
         }
 
+        List<ValidationResultView> validationResultViews = new ArrayList<>( validationResults.size() );
         for ( ValidationResult validationResult : validationResults )
         {
-            validationResult.getPeriod().setName( format.formatPeriod( validationResult.getPeriod() ) );
+            ValidationResultView validationResultView = new ValidationResultView();
+            ValidationRule validationRule = validationResult.getValidationRule();
+            if ( validationRule != null )
+            {
+                validationResultView.setValidationRuleId( validationRule.getUid() );
+                validationResultView.setValidationRuleDescription( validationRule.getDescription() );
+                validationResultView.setImportance( validationRule.getImportance().toString() );
+                validationResultView.setOperator( validationRule.getOperator().getMathematicalOperator() );
+            }
+
+            OrganisationUnit organisationUnit = validationResult.getOrganisationUnit();
+            if ( organisationUnit != null )
+            {
+                validationResultView.setOrganisationUnitId( organisationUnit.getUid() );
+                validationResultView.setOrganisationUnitDisplayName( organisationUnit.getDisplayName() );
+            }
+
+            Period period = validationResult.getPeriod();
+            if ( period != null )
+            {
+                validationResultView.setPeriodId( period.getIsoDate() );
+                validationResultView.setPeriodDisplayName( format.formatPeriod( period ) );
+            }
+
+            validationResultView.setLeftSideValue( validationResult.getLeftsideValue() );
+            validationResultView.setRightSideValue( validationResult.getRightsideValue() );
+
+            validationResultViews.add( validationResultView );
         }
 
-        return validationResults;
+        return validationResultViews;
     }
 }
