@@ -167,6 +167,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     public void testSendCompletionNotification()
     {
+        programNotificationService.sendCompletionNotifications( programInstances.iterator().next() );
     }
 
     @Test
@@ -211,6 +212,18 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     }
 
+    @Test
+    public void testSendToParent()
+    {
+
+    }
+
+    @Test
+    public void testSendToHierarchy()
+    {
+
+    }
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
