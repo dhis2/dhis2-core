@@ -442,7 +442,9 @@ public class HibernateDataApprovalStore
             "join organisationunit o on " + (orgUnits != null ? "o.organisationunitid in (" + orgUnitIds + ")" : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions ) + " " +
             "left join categoryoption_organisationunits coo on coo.categoryoptionid = co.categoryoptionid " +
             "left join organisationunit oc on oc.organisationunitid = coo.organisationunitid " +
-            "where ( coo.categoryoptionid is null or " + statementBuilder.position( "o.uid", "oc.path" ) + " <> 0 )" +
+            "where ( coo.categoryoptionid is null or " +
+                statementBuilder.position( "o.uid", "oc.path" ) + " <> 0  or " +
+                statementBuilder.position( "oc.uid", "o.path" ) + " <> 0 )" +
             ( attributeOptionCombos == null || attributeOptionCombos.isEmpty() ? "" : " and cocco.categoryoptioncomboid in (" +
                 StringUtils.join( IdentifiableObjectUtils.getIdentifiers( attributeOptionCombos ), "," ) + ") " ) +
             ( isSuperUser ? "" :
