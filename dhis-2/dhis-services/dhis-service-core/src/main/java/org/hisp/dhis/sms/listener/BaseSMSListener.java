@@ -158,7 +158,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         if ( !hasMandatoryParameters( commandValuePairs.keySet(), smsCommand.getCodes() ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getDefaultMessage(), SMSCommand.PARAMETER_MISSING ),
-                    sms.getOriginator(), ERROR );
+                sms.getOriginator(), ERROR );
 
             return false;
         }
@@ -166,7 +166,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         if ( !hasOrganisationUnit( sms, smsCommand ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ),
-                    sms.getOriginator(), 3 );
+                sms.getOriginator(), ERROR );
 
             return false;
         }
@@ -174,7 +174,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         if ( hasMultipleOrganisationUnits( sms, smsCommand ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getMoreThanOneOrgUnitMessage(),
-                    SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ), sms.getOriginator(), ERROR );
+                SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ), sms.getOriginator(), ERROR );
 
             return false;
         }
@@ -201,7 +201,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             update( sms, SmsMessageStatus.FAILED, false );
 
             sendFeedback( "Multiple active program instances exists for program: " + smsCommand.getProgram().getUid(),
-                    sms.getOriginator(), ERROR );
+                sms.getOriginator(), ERROR );
 
             return;
         }
@@ -215,7 +215,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         programStageInstance.setExecutionDate( sms.getSentDate() );
         programStageInstance.setDueDate( sms.getSentDate() );
         programStageInstance
-                .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
+            .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
         programStageInstance.setCompletedBy( "DHIS 2" );
 
         programStageInstanceService.addProgramStageInstance( programStageInstance );
@@ -234,7 +234,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         update( sms, SmsMessageStatus.PROCESSED, true );
 
         sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getSuccessMessage(), getSuccessMessage() ),
-                sms.getOriginator(), INFO );
+            sms.getOriginator(), INFO );
     }
 
     protected abstract String getDefaultPattern();
