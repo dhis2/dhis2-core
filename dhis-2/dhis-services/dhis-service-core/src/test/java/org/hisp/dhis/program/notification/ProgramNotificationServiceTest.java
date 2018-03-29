@@ -77,7 +77,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String ATT_PHONE_NUMBER = "473000000";
     private static final String USERA_PHONE_NUMBER = "47400000";
     private static final String USERB_PHONE_NUMBER = "47500000";
-    private static final String ATT_EMAIL = "test@test.org";
+    private static final String ATT_EMAIL = "attr@test.org";
+    private static final String DE_EMAIL = "de@test.org";
 
     @Mock
     private MessageService messageService;
@@ -87,6 +88,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     @Mock
     private ProgramNotificationMessageRenderer programNotificationMessageRenderer;
+
+    @Mock
+    private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
     @Mock
     private IdentifiableObjectManager manager;
@@ -103,11 +107,18 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private Set<ProgramInstance> programInstances = new HashSet<>();
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
     private List<ProgramMessage> sentProgramMessages = new ArrayList<>();
-    private List<MockMessage> sentInternalMessage = new ArrayList<>();
-    private List<User> members = new ArrayList<>();
+    private List<MockMessage> sentInternalMessages = new ArrayList<>();
     private User userA;
     private User userB;
     private UserGroup userGroup;
+
+    private User userLvlTwoLeftLeft;
+    private User userLvlTwoLeftRight;
+    private User userLvlOneLeft;
+    private User userLvlOneRight;
+    private User userRoot;
+    private UserGroup userGroupBasedOnHierarchy;
+    private UserGroup userGroupBasedOnParent;
 
     private OrganisationUnit root;
     private OrganisationUnit lvlOneLeft;
@@ -118,8 +129,11 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private TrackedEntityInstance tei;
 
     private DataElement dataElement;
+    private DataElement dataElementEmail;
     private ProgramStageDataElement programStageDataElement;
+    private ProgramStageDataElement programStageDataElementEmail;
     private TrackedEntityDataValue dataValue;
+    private TrackedEntityDataValue dataValueEmail;
 
     private TrackedEntityAttribute trackedEntityAttribute;
     private TrackedEntityAttribute trackedEntityAttributeEmail;
@@ -134,6 +148,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Before
     public void initTest()
     {
+        programNotificationService.setProgramStageNotificationRenderer( programStageNotificationMessageRenderer );
+        programNotificationService.setProgramNotificationRenderer( programNotificationMessageRenderer );
+
         setUpInstances();
 
         BatchResponseStatus status = new BatchResponseStatus(Collections.emptyList());
@@ -146,7 +163,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         when( messageService.sendMessage( any() ) )
             .thenAnswer( invocation -> {
 
-                sentInternalMessage.add( new MockMessage( invocation.getArguments() ) );
+                sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 40;
             });
 
@@ -160,6 +177,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         when( programNotificationMessageRenderer.render( any(), any() ) )
             .thenReturn( notificationMessage );
+
+        when( programStageNotificationMessageRenderer.render( any(), any() ) )
+                .thenReturn( notificationMessage );
     }
 
     // -------------------------------------------------------------------------
@@ -222,9 +242,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendCompletionNotifications( programInstances.iterator().next() );
 
-        assertEquals( 1, sentInternalMessage.size() );
+        assertEquals( 1, sentInternalMessages.size() );
 
-        MockMessage mockMessage = sentInternalMessage.iterator().next();
+        MockMessage mockMessage = sentInternalMessages.iterator().next();
 
         assertTrue( mockMessage.users.contains( userA ) );
         assertTrue( mockMessage.users.contains( userB ) );
@@ -280,21 +300,138 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementRecipient()
+    public void testDataElementRecipientWithSMS()
     {
+        programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.DATA_ELEMENT );
+        programNotificationTemplate.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        programNotificationTemplate.setRecipientDataElement( dataElement );
 
+        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        // no message when no template is attached
+        assertEquals( 0, sentProgramMessages.size() );
+
+        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        assertEquals( 1, sentProgramMessages.size() );
+
+    }
+
+    @Test
+    public void testDataElementRecipientWithEmail()
+    {
+        programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.DATA_ELEMENT );
+        programNotificationTemplate.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) );
+        programNotificationTemplate.setRecipientDataElement( dataElementEmail );
+
+        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        // no message when no template is attached
+        assertEquals( 0, sentProgramMessages.size() );
+
+        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        assertEquals( 1, sentProgramMessages.size() );
+    }
+
+    @Test
+    public void testDataElementRecipientWithInternalRecipients()
+    {
+        programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
+
+        programNotificationTemplate.setRecipientUserGroup( userGroup );
+
+        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        // no message when no template is attached
+        assertEquals( 0, sentInternalMessages.size() );
+
+        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        assertEquals( 1, sentInternalMessages.size() );
+
+        assertTrue( sentInternalMessages.iterator().next().users.contains( userA ) );
+        assertTrue( sentInternalMessages.iterator().next().users.contains( userB ) );
     }
 
     @Test
     public void testSendToParent()
     {
+        programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
 
+        programNotificationTemplate.setRecipientUserGroup( userGroupBasedOnParent );
+        programNotificationTemplate.setNotifyParentOrganisationUnitOnly( true );
+
+        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        assertEquals( 1, sentInternalMessages.size() );
+
+        Set<User> users = sentInternalMessages.iterator().next().users;
+
+        assertEquals( 1, users.size() );
+        assertTrue( users.contains( userLvlOneLeft ) );
     }
 
     @Test
     public void testSendToHierarchy()
     {
+        programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
 
+        programNotificationTemplate.setRecipientUserGroup( userGroupBasedOnHierarchy );
+        programNotificationTemplate.setNotifyUsersInHierarchyOnly( true );
+
+        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        assertEquals( 1, sentInternalMessages.size() );
+
+        Set<User> users = sentInternalMessages.iterator().next().users;
+
+        assertEquals( 3, users.size() );
+        assertTrue( users.contains( userLvlTwoLeftLeft ) );
+        assertTrue( users.contains( userLvlOneLeft ) );
+        assertTrue( users.contains( userRoot ) );
+
+        assertFalse( users.contains( userLvlTwoLeftRight ) );
+        assertFalse( users.contains( userLvlOneRight ) );
+    }
+
+    @Test
+    public void testSendToUsersAtOu()
+    {
+        programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT );
+
+        lvlTwoLeftLeft.getUsers().add( userLvlTwoLeftRight );
+
+        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+
+        programNotificationService.sendCompletionNotifications( programStageInstance );
+
+        assertEquals( 1, sentInternalMessages.size() );
+
+        Set<User> users = sentInternalMessages.iterator().next().users;
+
+        assertEquals( 2, users.size() );
+        assertTrue( users.contains( userLvlTwoLeftLeft ) );
+        assertTrue( users.contains( userLvlTwoLeftRight ) );
     }
     
     // -------------------------------------------------------------------------
@@ -326,6 +463,31 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         userGroup = createUserGroup( 'G', Sets.newHashSet( userA, userB ) );
 
+        // User based on hierarchy
+
+        userLvlTwoLeftLeft = createUser( 'K' );
+        userLvlTwoLeftLeft.getOrganisationUnits().add( lvlTwoLeftLeft );
+        lvlTwoLeftLeft.getUsers().add( userLvlTwoLeftLeft );
+
+        userLvlTwoLeftRight = createUser( 'L' );
+        userLvlTwoLeftRight.getOrganisationUnits().add( lvlTwoLeftRight );
+        lvlTwoLeftRight.getUsers().add( userLvlTwoLeftRight );
+
+        userLvlOneLeft = createUser( 'M' );
+        userLvlOneLeft.getOrganisationUnits().add( lvlOneLeft );
+        lvlOneLeft.getUsers().add( userLvlOneLeft );
+
+        userLvlOneRight = createUser( 'N' );
+        userLvlOneRight.getOrganisationUnits().add( lvlOneRight );
+        lvlOneRight.getUsers().add( userLvlOneLeft );
+
+        userRoot = createUser( 'R' );
+        userRoot.getOrganisationUnits().add( root );
+        root.getUsers().add( userRoot );
+
+        userGroupBasedOnHierarchy = createUserGroup( 'H', Sets.newHashSet( userLvlOneLeft, userLvlOneRight, userLvlTwoLeftLeft, userLvlTwoLeftRight, userRoot ) );
+        userGroupBasedOnParent = createUserGroup( 'H', Sets.newHashSet( userLvlTwoLeftLeft, userLvlTwoLeftRight ) );
+
         // Program
         Program programA = createProgram( 'A' );
         programA.setAutoFields();
@@ -346,8 +508,11 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         ProgramStage programStage = createProgramStage( 'S', programA );
 
         dataElement = createDataElement( 'D' );
+        dataElementEmail = createDataElement( 'E' );
         dataElement.setValueType( ValueType.PHONE_NUMBER );
+        dataElementEmail.setValueType( ValueType.EMAIL );
         programStageDataElement = createProgramStageDataElement( programStage, dataElement, 1 );
+        programStageDataElementEmail = createProgramStageDataElement( programStage, dataElementEmail, 2 );
 
 
         // ProgramInstance & TEI
@@ -378,6 +543,12 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         dataValue.setAutoFields();
         dataValue.setDataElement( dataElement );
         dataValue.setValue( DE_PHONE_NUMBER );
+
+        dataValueEmail = new TrackedEntityDataValue();
+        dataValueEmail.setAutoFields();
+        dataValueEmail.setDataElement( dataElementEmail );
+        dataValueEmail.setValue( DE_EMAIL );
+
         programStageInstance.getDataValues().add( dataValue );
 
         // lists returned by stubs

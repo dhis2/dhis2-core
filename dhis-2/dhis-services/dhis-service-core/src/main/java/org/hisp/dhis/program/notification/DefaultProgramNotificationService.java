@@ -321,7 +321,7 @@ public class DefaultProgramNotificationService
             throw new IllegalArgumentException( "Either of the arguments [programInstance, programStageInstance] must be non-null" );
         }
 
-        Set<User> recipients = template.getRecipientUserGroup().getMembers();
+        Set<User> recipients = Sets.newHashSet();
 
         OrganisationUnit eventOrgUnit = programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
 
@@ -331,6 +331,8 @@ public class DefaultProgramNotificationService
 
         if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
+             recipients = template.getRecipientUserGroup().getMembers();
+
             final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
 
             final boolean parentOrgUnitOnly = BooleanUtils.toBoolean( template.getNotifyParentOrganisationUnitOnly() );
