@@ -31,44 +31,71 @@ package org.hisp.dhis.analysis;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @JacksonXmlRootElement
 public class ValidationRuleExpressionDetails
 {
-    private Map<String, String> leftSide = new HashMap<>();
+    private static String NAME_PROPERTY_KEY = "name";
+    private static String VALUE_PROPERTY_KEY = "value";
 
-    private Map<String, String> rightSide = new HashMap<>();
+    private List<Map<String, String>> leftSide = new ArrayList<>();
+
+    private List<Map<String, String>> rightSide = new ArrayList<>();
 
     public ValidationRuleExpressionDetails()
     {
     }
 
-    public ValidationRuleExpressionDetails( Map<String, String> leftSide, Map<String, String> rightSide )
+    public ValidationRuleExpressionDetails( List<Map<String, String>> leftSide, List<Map<String, String>> rightSide )
     {
         this.leftSide = leftSide;
         this.rightSide = rightSide;
     }
 
+    private void addDetailTo( String name, String value, List<Map<String, String>> side )
+    {
+        if ( name != null )
+        {
+            Map<String, String> map = new HashMap<>();
+            map.put( NAME_PROPERTY_KEY, name );
+            map.put( VALUE_PROPERTY_KEY, value );
+
+            side.add( map );
+        }
+    }
+
+    public void addLeftSideDetail( String name, String value )
+    {
+        addDetailTo( name, value, leftSide );
+    }
+
+    public void addRightSideDetail( String name, String value )
+    {
+        addDetailTo( name, value, rightSide );
+    }
+
     @JsonProperty
-    public Map<String, String> getLeftSide()
+    public List<Map<String, String>> getLeftSide()
     {
         return leftSide;
     }
 
-    public void setLeftSide( Map<String, String> leftSide )
+    public void setLeftSide( List<Map<String, String>> leftSide )
     {
         this.leftSide = leftSide;
     }
 
     @JsonProperty
-    public Map<String, String> getRightSide()
+    public List<Map<String, String>> getRightSide()
     {
         return rightSide;
     }
 
-    public void setRightSide( Map<String, String> rightSide )
+    public void setRightSide( List<Map<String, String>> rightSide )
     {
         this.rightSide = rightSide;
     }

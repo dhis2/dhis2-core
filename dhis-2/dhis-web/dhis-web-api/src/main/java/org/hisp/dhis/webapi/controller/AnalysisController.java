@@ -121,8 +121,6 @@ public class AnalysisController
 
     private static final String KEY_VALIDATIONRESULT = "validationResult";
 
-    private static final String NULL_REPLACEMENT = "-";
-
     @Autowired
     private ContextUtils contextUtils;
 
@@ -231,18 +229,18 @@ public class AnalysisController
         {
             DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
 
-            String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
+            String value = dataValue != null ? dataValue.getValue() : null;
 
-            validationRuleExpressionDetails.getLeftSide().put( operand.getName(), value );
+            validationRuleExpressionDetails.addLeftSideDetail( operand.getName(), value );
         }
 
         for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
         {
             DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
 
-            String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
+            String value = dataValue != null ? dataValue.getValue() : null;
 
-            validationRuleExpressionDetails.getRightSide().put( operand.getName(), value );
+            validationRuleExpressionDetails.addRightSideDetail( operand.getName(), value );
         }
 
         return validationRuleExpressionDetails;
