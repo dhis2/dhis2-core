@@ -441,7 +441,7 @@ public class AnalysisController
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
 
-        GridUtils.toPdf( grid, response.getOutputStream() );
+        GridUtils.toXls( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "validationRules/report.csv", method = RequestMethod.GET )
@@ -453,7 +453,7 @@ public class AnalysisController
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
 
-        GridUtils.toPdf( grid, response.getOutputStream() );
+        GridUtils.toCsv( grid, response.getWriter() );
     }
 
     private Grid generateAnalysisReportGridFromResults( List<DeflatedDataValue> results )
