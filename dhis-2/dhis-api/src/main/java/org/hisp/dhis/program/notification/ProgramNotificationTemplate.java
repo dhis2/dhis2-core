@@ -64,6 +64,10 @@ public class ProgramNotificationTemplate
 
     private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
 
+    private Boolean notifyUsersInHierarchyOnly;
+
+    private Boolean notifyParentOrganisationUnitOnly;
+
     // -------------------------------------------------------------------------
     // Conditionally relevant properties
     // -------------------------------------------------------------------------
@@ -212,6 +216,30 @@ public class ProgramNotificationTemplate
     public void setRecipientDataElement( DataElement dataElement )
     {
         this.recipientDataElement = dataElement;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getNotifyUsersInHierarchyOnly()
+    {
+        return notifyUsersInHierarchyOnly;
+    }
+
+    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
+    {
+        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getNotifyParentOrganisationUnitOnly()
+    {
+        return notifyParentOrganisationUnitOnly;
+    }
+
+    public void setNotifyParentOrganisationUnitOnly( Boolean notifyParentOrganisationUnitOnly )
+    {
+        this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
     }
 
     @Override
