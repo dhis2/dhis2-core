@@ -58,6 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
 {
+    private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -102,6 +104,11 @@ public class TrackedEntityRegistrationSMSListener
             ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
 
         Map<String, String> parsedMessage = parseMessageInput( sms, smsCommand );
+
+        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( parsedMessage, smsCommand, sms ) )
+        {
+            return;
+        }
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
@@ -153,25 +160,11 @@ public class TrackedEntityRegistrationSMSListener
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
             new Date(), date, orgUnit );
 
-        sendFeedback( "Tracked Entity Registered Successfully", senderPhoneNumber, INFO );
+        sendFeedback( StringUtils.defaultIfBlank( smsCommand.getSuccessMessage(), SUCCESS_MESSAGE ), senderPhoneNumber, INFO );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
         incomingSmsService.update( sms );
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for TeiListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for TeiListener
-        return StringUtils.EMPTY;
     }
 
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,

@@ -97,18 +97,6 @@ public class SingleEventListener
         registerEvent( commandValuePairs, smsCommand, sms, ous );
     }
 
-    @Override
-    protected String getDefaultPattern()
-    {
-        return DEFAULT_PATTERN;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        return SUCCESS;
-    }
-
     // -------------------------------------------------------------------------
     // Supportive Methods
     // -------------------------------------------------------------------------

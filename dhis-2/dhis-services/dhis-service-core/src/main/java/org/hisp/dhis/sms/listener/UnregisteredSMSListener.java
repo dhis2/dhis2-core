@@ -28,7 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -123,17 +122,4 @@ public class UnregisteredSMSListener
         }
     }
 
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for UnregisteredSMSListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for UnregisteredSMSListener
-        return StringUtils.EMPTY;
-    }
 }

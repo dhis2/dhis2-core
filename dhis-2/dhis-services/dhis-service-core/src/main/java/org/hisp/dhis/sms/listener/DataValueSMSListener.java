@@ -118,6 +118,11 @@ public class DataValueSMSListener
 
         Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
 
+        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( parsedMessage, smsCommand, sms ) )
+        {
+            return;
+        }
+
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
@@ -185,20 +190,6 @@ public class DataValueSMSListener
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
         incomingSmsService.update( sms );
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for DataValueListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for DataValueListener
-        return StringUtils.EMPTY;
     }
 
     private Period getPeriod( SMSCommand command, Date date )

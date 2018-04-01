@@ -28,7 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
@@ -147,17 +146,4 @@ public class DhisMessageAlertListener
         }
     }
 
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for AlertSMSListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for AlertSMSListener
-        return StringUtils.EMPTY;
-    }
 }

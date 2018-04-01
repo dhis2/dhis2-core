@@ -112,18 +112,6 @@ public class ProgramStageDataEntrySMSListener
         registerProgramStage( teis.iterator().next(), sms, smsCommand, commandValuePairs, ous );
     }
 
-    @Override
-    protected String getDefaultPattern()
-    {
-        return DEFAULT_PATTERN;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        return SUCCESS;
-    }
-
     private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
     {
         List<ProgramInstance> programInstances = new ArrayList<>(

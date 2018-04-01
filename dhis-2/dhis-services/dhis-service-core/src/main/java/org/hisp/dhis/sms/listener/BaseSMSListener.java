@@ -64,7 +64,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 {
     private static final Log log = LogFactory.getLog( BaseSMSListener.class );
 
-    private static final String DEFAULT_PATTERN = "([\\w]+)\\s*\\=\\s*([\\w\\s ]+)\\s*(\\w|$)*\\s*";
+    private static final String DEFAULT_PATTERN = "([^\\s|=]+)\\s*\\=\\s*([-\\w\\s ]+)\\s*(\\=|$)*\\s*";
 
     protected static final int INFO = 1;
 
@@ -112,7 +112,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     protected boolean hasCorrectFormat( IncomingSms sms, SMSCommand smsCommand )
     {
-        String regexp = getDefaultPattern();
+        String regexp = DEFAULT_PATTERN;
 
         if ( smsCommand.getSeparator() != null && !smsCommand.getSeparator().trim().isEmpty() )
         {
@@ -233,13 +233,9 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         update( sms, SmsMessageStatus.PROCESSED, true );
 
-        sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getSuccessMessage(), getSuccessMessage() ),
+        sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE ),
             sms.getOriginator(), INFO );
     }
-
-    protected abstract String getDefaultPattern();
-
-    protected abstract String getSuccessMessage();
 
     protected  Map<String, String> parseMessageInput( IncomingSms sms, SMSCommand smsCommand )
     {
@@ -249,7 +245,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
         {
-            String regex = "([\\w]+)\\s*\\"+ smsCommand.getSeparator().trim() +"\\s*([\\w\\s ]+)\\s*(\\w|$)*\\s*";
+            String regex = DEFAULT_PATTERN.replaceAll( "=", smsCommand.getSeparator() );
 
             pattern = Pattern.compile( regex );
         }
