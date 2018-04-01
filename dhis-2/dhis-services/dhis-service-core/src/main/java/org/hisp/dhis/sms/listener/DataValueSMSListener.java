@@ -125,6 +125,11 @@ public class DataValueSMSListener
 
         Map<String, String> parsedMessage = this.parse( sms.getText(), smsCommand );
 
+        if ( !validateInputValues( parsedMessage, smsCommand, sms ) )
+        {
+            return;
+        }
+
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
