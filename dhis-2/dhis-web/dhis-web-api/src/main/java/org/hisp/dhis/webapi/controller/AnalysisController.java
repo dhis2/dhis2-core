@@ -421,7 +421,7 @@ public class AnalysisController
     @RequestMapping( value = "validationRules/report.pdf", method = RequestMethod.GET )
     public void getValidationRulesPdfReport( HttpSession session, HttpServletResponse response ) throws Exception
     {
-        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
+        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATIONRESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
@@ -433,7 +433,7 @@ public class AnalysisController
     @RequestMapping( value = "validationRules/report.xls", method = RequestMethod.GET )
     public void getValidationRulesXlsReport( HttpSession session, HttpServletResponse response ) throws Exception
     {
-        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
+        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATIONRESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
