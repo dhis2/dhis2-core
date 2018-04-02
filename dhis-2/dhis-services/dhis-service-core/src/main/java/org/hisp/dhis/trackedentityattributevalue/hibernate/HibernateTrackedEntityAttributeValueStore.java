@@ -28,7 +28,7 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
@@ -62,7 +62,7 @@ public class HibernateTrackedEntityAttributeValueStore
     public int deleteByTrackedEntityInstance( TrackedEntityInstance entityInstance )
     {
         Query query = getQuery( "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
-        query.setEntity( "entityInstance", entityInstance );
+        query.setParameter( "entityInstance", entityInstance );
         return query.executeUpdate();
     }
 
@@ -131,7 +131,7 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
     {
-        javax.persistence.Query query = getJpaQuery( "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
+        Query query = getQuery( "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
         query.setParameter( "attribute", attribute );
 
         return ((Long) query.getSingleResult()).intValue();

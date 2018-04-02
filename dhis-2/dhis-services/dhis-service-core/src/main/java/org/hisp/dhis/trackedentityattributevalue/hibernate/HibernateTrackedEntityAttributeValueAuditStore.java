@@ -29,12 +29,12 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  */
 
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -108,7 +108,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     {
         Session session = sessionFactory.getCurrentSession();
         Query query = session.createQuery( "delete TrackedEntityAttributeValueAudit where entityInstance = :entityInstance" );
-        query.setEntity( "entityInstance", entityInstance );
+        query.setParameter( "entityInstance", entityInstance );
         query.executeUpdate();
     }
     

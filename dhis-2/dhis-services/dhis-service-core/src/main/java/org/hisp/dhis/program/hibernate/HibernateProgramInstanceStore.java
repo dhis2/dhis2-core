@@ -31,9 +31,9 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -76,7 +76,7 @@ public class HibernateProgramInstanceStore
 
         Query query = getQuery( hql );
 
-        return ((Number) query.iterate().next()).intValue();
+        return ( Integer ) query.getSingleResult();
     }
 
     public String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
@@ -240,9 +240,9 @@ public class HibernateProgramInstanceStore
                 "and cast(:targetDate as date) = pi." + dateProperty;
 
         return getQuery( hql )
-            .setEntity( "notificationTemplate", template )
-            .setString( "activeEnrollmentStatus", ProgramStatus.ACTIVE.name() )
-            .setDate( "targetDate", targetDate ).list();
+            .setParameter( "notificationTemplate", template )
+            .setParameter( "activeEnrollmentStatus", ProgramStatus.ACTIVE )
+            .setParameter( "targetDate", targetDate ).list();
     }
 
     private String toDateProperty( NotificationTrigger trigger )

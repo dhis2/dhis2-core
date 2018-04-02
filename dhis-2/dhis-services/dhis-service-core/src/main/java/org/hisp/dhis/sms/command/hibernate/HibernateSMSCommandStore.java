@@ -31,7 +31,7 @@ package org.hisp.dhis.sms.command.hibernate;
 import java.util.List;
 
 import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -69,7 +69,7 @@ public class HibernateSMSCommandStore
     public int countDataSetSmsCommands( DataSet dataSet )
     {
         Query query = getQuery( "select count(distinct c) from SMSCommand c where c.dataset=:dataSet", true );
-        query.setEntity( "dataSet", dataSet );
+        query.setParameter( "dataSet", dataSet );
         // TODO rename dataset prop
 
         return ((Long) query.uniqueResult()).intValue();

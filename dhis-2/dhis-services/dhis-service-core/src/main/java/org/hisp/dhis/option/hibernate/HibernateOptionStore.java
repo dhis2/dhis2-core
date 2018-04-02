@@ -28,12 +28,12 @@ package org.hisp.dhis.option.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionStore;
+
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -62,7 +62,7 @@ public class HibernateOptionStore
         hql += "order by index(option)";
         
         Query query = getQuery( hql );
-        query.setInteger( "optionSetId", optionSetId );
+        query.setParameter( "optionSetId", optionSetId );
         
         if ( max != null )
         {

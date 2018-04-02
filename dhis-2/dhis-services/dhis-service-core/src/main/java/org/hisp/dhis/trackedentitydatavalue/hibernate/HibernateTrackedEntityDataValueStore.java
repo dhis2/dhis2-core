@@ -28,20 +28,20 @@ package org.hisp.dhis.trackedentitydatavalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueStore;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -60,7 +60,7 @@ public class HibernateTrackedEntityDataValueStore
     public int delete( ProgramStageInstance programStageInstance )
     {
         Query query = getQuery( "delete from TrackedEntityDataValue where programStageInstance = :programStageInstance" );
-        query.setEntity( "programStageInstance", programStageInstance );
+        query.setParameter( "programStageInstance", programStageInstance );
         return query.executeUpdate();
     }
 

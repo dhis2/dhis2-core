@@ -28,7 +28,7 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -187,12 +187,12 @@ public class HibernateUserStore
         
         if ( params.getQuery() != null )
         {
-            query.setString( "key", "%" + params.getQuery().toLowerCase() + "%" );
+            query.setParameter( "key", "%" + params.getQuery().toLowerCase() + "%" );
         }
         
         if ( params.getPhoneNumber() != null )
         {
-            query.setString( "phoneNumber", params.getPhoneNumber() );
+            query.setParameter( "phoneNumber", params.getPhoneNumber() );
         }
         
         if ( params.isCanManage() && params.getUser() != null )
@@ -204,7 +204,7 @@ public class HibernateUserStore
 
         if ( params.getDisabled() != null )
         {
-            query.setBoolean( "disabled", params.getDisabled().booleanValue() );
+            query.setParameter( "disabled", params.getDisabled().booleanValue() );
         }
         
         if ( params.isAuthSubset() && params.getUser() != null )
@@ -223,17 +223,17 @@ public class HibernateUserStore
         
         if ( params.getLastLogin() != null )
         {
-            query.setTimestamp( "lastLogin", params.getLastLogin() );
+            query.setParameter( "lastLogin", params.getLastLogin() );
         }
 
         if ( params.getDaysPassedSincePasswordChange() != null )
         {
-            query.setTimestamp( "daysPassedSincePasswordChange", params.getDaysPassedSincePasswordChange() );
+            query.setParameter( "daysPassedSincePasswordChange", params.getDaysPassedSincePasswordChange() );
         }
 
         if ( params.getInactiveSince() != null )
         {
-            query.setTimestamp( "inactiveSince", params.getInactiveSince() );
+            query.setParameter( "inactiveSince", params.getInactiveSince() );
         }
         
         if ( params.getOrganisationUnit() != null )
@@ -241,7 +241,7 @@ public class HibernateUserStore
             if ( params.getIncludeOrgUnitChildren() )
             {
                 // Match self and all children of selv in the path column.
-                query.setString( "organisationUnitUid", "%/" + params.getOrganisationUnit().getUid() + "%" );
+                query.setParameter( "organisationUnitUid", "%/" + params.getOrganisationUnit().getUid() + "%" );
             }
             else
             {

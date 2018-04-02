@@ -28,7 +28,7 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -45,8 +45,8 @@ public class HibernateUserAuthorityGroupStore
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
         Query query = getQuery( "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
-        query.setEntity( "dataSet", dataSet );
+        query.setParameter( "dataSet", dataSet );
 
-        return ((Long) query.uniqueResult()).intValue();
+        return ( ( Long ) query.getSingleResult() ).intValue();
     }
 }

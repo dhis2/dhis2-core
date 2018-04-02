@@ -29,8 +29,8 @@ package org.hisp.dhis.program.hibernate;
  */
 
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -121,12 +121,12 @@ public class HibernateProgramMessageStore
         
         if ( params.hasProgramInstance() )
         {
-            query.setInteger( "programInstance", params.getProgramInstance().getId() );
+            query.setParameter( "programInstance", params.getProgramInstance() );
         }
 
         if ( params.hasProgramStageInstance() )
         {
-            query.setInteger( "programStageInstance", params.getProgramStageInstance().getId() );
+            query.setParameter( "programStageInstance", params.getProgramStageInstance() );
         }
         
         if ( params.getMessageStatus() != null)
@@ -136,12 +136,12 @@ public class HibernateProgramMessageStore
 
         if ( params.getAfterDate() != null )
         {
-            query.setTime( "processeddate", params.getAfterDate() );
+            query.setParameter( "processeddate", params.getAfterDate() );
         }
         
         if ( params.getBeforeDate() != null )
         {
-            query.setTime( "processeddate", params.getBeforeDate() );
+            query.setParameter( "processeddate", params.getBeforeDate() );
         }
         
         return query;

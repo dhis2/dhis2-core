@@ -28,14 +28,14 @@ package org.hisp.dhis.keyjsonvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
+
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -59,7 +59,7 @@ public class HibernateKeyJsonValueStore
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
 
-        return getQuery( hql ).setString( "namespace", namespace ).list();
+        return getQuery( hql ).setParameter( "namespace", namespace ).list();
     }
 
     @Override
@@ -73,11 +73,11 @@ public class HibernateKeyJsonValueStore
             hql += " and lastupdated >= :lastUpdated ";
         }
         
-        Query query = getQuery( hql ).setString( "namespace", namespace );
+        Query query = getQuery( hql ).setParameter( "namespace", namespace );
         
         if ( lastUpdated != null )
         {
-            query.setTimestamp( "lastUpdated", lastUpdated );
+            query.setParameter( "lastUpdated", lastUpdated );
         }
 
         return query.list();

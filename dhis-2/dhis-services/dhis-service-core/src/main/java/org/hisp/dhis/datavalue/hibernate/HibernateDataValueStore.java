@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
@@ -281,7 +281,7 @@ public class HibernateDataValueStore
         }
         else if ( params.hasStartEndDate() )
         {
-            query.setDate( "startDate", params.getStartDate() ).setDate( "endDate", params.getEndDate() );
+            query.setParameter( "startDate", params.getStartDate() ).setDate( "endDate", params.getEndDate() );
         }
 
         if ( !params.isIncludeChildrenForOrganisationUnits() && !organisationUnits.isEmpty() )
@@ -296,7 +296,7 @@ public class HibernateDataValueStore
         
         if ( params.hasLastUpdated() )
         {
-            query.setDate( "lastUpdated", params.getLastUpdated() );
+            query.setParameter( "lastUpdated", params.getLastUpdated() );
         }
         
         if ( params.hasLimit() )
