@@ -107,7 +107,7 @@ public class HibernateTrackedEntityDataValueAuditStore
     {
         Session session = sessionFactory.getCurrentSession();
         Query query = session.createQuery( "delete TrackedEntityDataValueAudit where programStageInstance = :programStageInstance" );
-        query.setEntity( "programStageInstance", programStageInstance );
+        query.setParameter( "programStageInstance", programStageInstance );
         query.executeUpdate();
     }
 
