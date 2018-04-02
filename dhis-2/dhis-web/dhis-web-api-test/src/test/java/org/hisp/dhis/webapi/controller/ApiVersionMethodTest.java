@@ -54,7 +54,7 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
 
         mvc.perform( get( "/27" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
-
+        dhis-2/dhis-services/dhis-service-validation/src/main/java/org/hisp/dhis/dataanalysis/jdbc/JdbcDataAnalysisStore.java
         mvc.perform( get( "/26" + endpoint + "/a" ).session( session ) )
             .andExpect( status().isOk() );
 

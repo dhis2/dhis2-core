@@ -96,4 +96,18 @@ public interface DataAnalysisStore
      * @return a list of DeflatedDataValues.
      */
     List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet, int limit );
+
+    /**
+     * Returns a collection of DeflatedDataValues which are marked for followup and
+     * whose source OrganisationUnit is equal or subordinate to the given OrganisationUnit
+     * and starts between an interval of date
+     *
+     * @param organisationUnit the source OrganisationUnit.
+     * @param limit the maximum number of DeflatedDataValues to return.
+     * @param dataSet the dataSet of DeflatedDataValues to return. Null if look for all data sets.
+     * @param startDate the start date of interval to look for.
+     * @param endDate the end date of interval to look for.
+     * @return a list of DeflatedDataValues.
+     */
+    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, DataSet dataSet, int limit, Date startDate, Date endDate );
 }

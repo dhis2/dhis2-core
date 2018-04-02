@@ -60,7 +60,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
 /**
  * Data value service implementation. Note that data values are softly deleted,
  * which implies having the deleted property set to true and updated.
- * 
+ *
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
@@ -157,12 +157,12 @@ public class DefaultDataValueService
         // ---------------------------------------------------------------------
 
         DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
-        
+
         if ( softDelete != null )
         {
             softDelete.mergeWith( dataValue );
             softDelete.setDeleted( false );
-            
+
             dataValueStore.updateDataValue( softDelete );
         }
         else
@@ -184,11 +184,24 @@ public class DefaultDataValueService
         else if ( dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
         {
             dataValue.setLastUpdated( new Date() );
-            
+
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
             dataValueStore.updateDataValue( dataValue );
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateDataValues( List<DataValue> dataValues )
+    {
+        if ( dataValues != null && !dataValues.isEmpty() )
+        {
+            for ( DataValue dataValue : dataValues )
+            {
+                updateDataValue( dataValue );
+            }
         }
     }
 
@@ -202,10 +215,10 @@ public class DefaultDataValueService
 
         dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
-        
+
         dataValueStore.updateDataValue( dataValue );
     }
-    
+
     @Override
     @Transactional
     public void deleteDataValues( OrganisationUnit organisationUnit )
@@ -242,7 +255,7 @@ public class DefaultDataValueService
     public List<DataValue> getDataValues( DataExportParams params )
     {
         validate( params );
-        
+
         return dataValueStore.getDataValues( params );
     }
 
@@ -304,7 +317,7 @@ public class DefaultDataValueService
     {
         return dataValueStore.getAllDataValues();
     }
-    
+
     @Override
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )

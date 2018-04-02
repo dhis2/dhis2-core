@@ -159,9 +159,9 @@ public class GetValidationResultDetailsAction
         for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
         {
             DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, source, operand.getCategoryOptionCombo() );
-            
+
             String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
-            
+
             leftSideMap.put( operand.getName(), value );
         }
 

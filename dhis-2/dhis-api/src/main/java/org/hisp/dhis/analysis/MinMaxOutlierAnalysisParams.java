@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.analysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,18 +28,67 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Date;
 import java.util.List;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FollowupAnalysisService
+public class MinMaxOutlierAnalysisParams
 {
-    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit );
+    private String fromDate;
 
-    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, String dataSetId, int limit, Date startDate, Date endDate );
+    private String toDate;
+
+    private List<String> dataSetIds;
+
+    private String organisationUnitId;
+
+    public MinMaxOutlierAnalysisParams()
+    {
+    }
+
+    public MinMaxOutlierAnalysisParams( String fromDate, String toDate, List<String> dataSetIds, String organisationUnitId )
+    {
+        this.fromDate = fromDate;
+        this.toDate = toDate;
+        this.dataSetIds = dataSetIds;
+        this.organisationUnitId = organisationUnitId;
+    }
+
+    public String getFromDate()
+    {
+        return fromDate;
+    }
+
+    public void setFromDate( String fromDate )
+    {
+        this.fromDate = fromDate;
+    }
+
+    public String getToDate()
+    {
+        return toDate;
+    }
+
+    public void setToDate( String toDate )
+    {
+        this.toDate = toDate;
+    }
+
+    public List<String> getDataSetIds()
+    {
+        return dataSetIds;
+    }
+
+    public void setDataSetIds( List<String> dataSetIds )
+    {
+        this.dataSetIds = dataSetIds;
+    }
+
+    public String getOrganisationUnitId()
+    {
+        return organisationUnitId;
+    }
+
+    public void setOrganisationUnitId( String organisationUnitId )
+    {
+        this.organisationUnitId = organisationUnitId;
+    }
 }
