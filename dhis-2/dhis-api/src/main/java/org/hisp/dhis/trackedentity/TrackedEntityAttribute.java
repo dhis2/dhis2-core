@@ -436,7 +436,7 @@ public class TrackedEntityAttribute
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getSkipSynchronization()
     {
-        return skipSynchronization != null ? skipSynchronization : false;
+        return skipSynchronization;
     }
 
     public void setSkipSynchronization( Boolean skipSynchronization )
