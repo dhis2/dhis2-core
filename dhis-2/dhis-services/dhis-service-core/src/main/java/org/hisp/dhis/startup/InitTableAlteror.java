@@ -136,6 +136,10 @@ public class InitTableAlteror
         // 2FA fixes for 2.30
         executeSql( "UPDATE users set twofa = false where twofa is null" );
         executeSql( "ALTER TABLE  users alter column twofa set not null" );
+
+        // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
+        executeSql( "UPDATE trackedentityattribute SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
+        executeSql( "alter table trackedentityattribute alter column skipsynchronization set not null" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
@@ -180,32 +184,32 @@ public class InitTableAlteror
         // Transfer all existing references from dataelement to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO dataelementlegendsets (dataelementid, sort_order, legendsetid) SELECT dataelementid, 0, legendsetid FROM dataelement WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO datasetlegendsets (datasetid, sort_order, legendsetid) SELECT datasetid, 0, legendsetid FROM dataset WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO indicatorlegendsets (indicatorid, sort_order, legendsetid) SELECT indicatorid, 0, legendsetid FROM indicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO trackedentityattributelegendsets (trackedentityattributeid, sort_order, legendsetid) SELECT trackedentityattributeid, 0, legendsetid FROM trackedentityattribute WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid " );
     }
 
     private void updateMessageConversationMessageCount()
