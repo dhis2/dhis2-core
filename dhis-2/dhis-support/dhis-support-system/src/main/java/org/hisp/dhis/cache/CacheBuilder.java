@@ -181,7 +181,6 @@ public class CacheBuilder<V>
      * will not share any state. However, when using Redis Cache, every instance
      * created using this method will use the same redis store.
      * 
-     * 
      * @return A cache instance based on the system configuration and input
      *         parameters. Returns one of {@link RedisCache}, {@link LocalCache}
      *         or {@link NoOpCache}
@@ -239,5 +238,4 @@ public class CacheBuilder<V>
     {
         return redisTemplate;
     }
-
 }
