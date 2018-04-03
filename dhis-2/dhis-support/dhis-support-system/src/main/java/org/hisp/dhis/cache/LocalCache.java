@@ -1,4 +1,5 @@
 package org.hisp.dhis.cache;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -37,7 +38,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * Caffeine library which uses an in memory Map implementation.
  * 
  * @author Ameen Mohamed
- *
  */
 public class LocalCache<V> implements Cache<V>
 {
@@ -54,6 +54,7 @@ public class LocalCache<V> implements Cache<V>
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
+        
         if ( cacheBuilder.isExpiryEnabled() )
         {
             if ( cacheBuilder.isRefreshExpiryOnAccess() )
@@ -69,6 +70,7 @@ public class LocalCache<V> implements Cache<V>
         {
             builder.maximumSize( cacheBuilder.getMaximumSize() );
         }
+        
         this.caffeineCache = builder.build();
         this.defaultValue = cacheBuilder.getDefaultValue();
     }
@@ -117,5 +119,4 @@ public class LocalCache<V> implements Cache<V>
     {
         caffeineCache.invalidateAll();
     }
-
 }
