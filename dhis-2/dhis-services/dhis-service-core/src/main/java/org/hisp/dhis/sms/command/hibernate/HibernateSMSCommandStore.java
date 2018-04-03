@@ -41,7 +41,6 @@ import org.hisp.dhis.sms.parse.ParserType;
 public class HibernateSMSCommandStore
     extends HibernateIdentifiableObjectStore<SMSCommand> implements SMSCommandStore
 {
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<SMSCommand> getJ2MESMSCommands()
     {

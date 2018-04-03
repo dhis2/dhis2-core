@@ -50,25 +50,23 @@ public class HibernateDataEntryFormStore
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public DataEntryForm getDataEntryFormByName( String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        CriteriaQuery<DataEntryForm> query = builder.createQuery( DataEntryForm.class );
 
         Root<DataEntryForm> dataEntryForm = query.from( DataEntryForm.class );
         query.select( dataEntryForm );
         query.where( builder.like( dataEntryForm.get( "name" ), name ) );
 
-        return ( DataEntryForm ) executeQuery( query ).getResultList().stream().findFirst().orElse( null );
+        return uniqueResult( query );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        CriteriaQuery query = builder.createQuery();
 
         Root<ProgramStage> programStage = query.from( ProgramStage.class );
         query.select( programStage.get( "dataEntryForm" ) ).distinct( true );
@@ -79,6 +77,6 @@ public class HibernateDataEntryFormStore
             )
         );
 
-        return sessionFactory.getCurrentSession().createQuery( query ).list();
+        return getResultList( query );
     }
 }

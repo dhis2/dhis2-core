@@ -47,11 +47,9 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
+import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -197,14 +195,25 @@ public class HibernateGenericStore<T>
         return sessionFactory.getCriteriaBuilder();
     }
 
-    protected CriteriaQuery getCriteriaQuery()
+    /**
+     * Get Unique result from JPA CriteriaQuery
+     * @param criteriaQuery
+     * @param <T>
+     * @return unique result, if no record exists, returns null.
+     */
+    protected <T> T uniqueResult( @NotNull CriteriaQuery<T> criteriaQuery )
     {
-        return getCriteriaBuilder().createQuery();
+        return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList().stream().findFirst().orElse( null );
     }
 
-    protected TypedQuery executeQuery( CriteriaQuery query )
+    /**
+     * Get List result from JPA CriteriaQuery
+     * @param criteriaQuery
+     * @return list result
+     */
+    protected List<T> getResultList( @NotNull CriteriaQuery<T> criteriaQuery )
     {
-        return sessionFactory.getCurrentSession().createQuery( query );
+        return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList();
     }
 
     /**
@@ -302,17 +311,16 @@ public class HibernateGenericStore<T>
     }
     
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllByAttributes( List<Attribute> attributes )
     {
-        CriteriaQuery query = getCriteriaQuery();
+        CriteriaQuery<T> query =  getCriteriaBuilder().createQuery( clazz );
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
         query.select( root );
         query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
 
-        return sessionFactory.getCurrentSession().createQuery( query ).list();
+        return getResultList( query );
     }
 
     @Override
@@ -324,11 +332,10 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
@@ -339,11 +346,10 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
+        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
         Root root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
