@@ -39,6 +39,8 @@ import org.hisp.dhis.analysis.UpdateFollowUpForDataValuesRequest;
 import org.hisp.dhis.analysis.ValidationResultView;
 import org.hisp.dhis.analysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.analysis.ValidationRulesAnalysisParams;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -48,8 +50,6 @@ import org.hisp.dhis.dataanalysis.FollowupAnalysisService;
 import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService;
 import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSetService;
@@ -146,7 +146,7 @@ public class AnalysisController
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -362,8 +362,8 @@ public class AnalysisController
             DataElement dataElement = dataElementService.getDataElement( followup.getDataElementId() );
             Period period = periodService.getPeriod( followup.getPeriodId() );
             OrganisationUnit source = organisationUnitService.getOrganisationUnit( followup.getOrganisationUnitId() );
-            DataElementCategoryOptionCombo categoryOptionCombo = dataElementCategoryService.getDataElementCategoryOptionCombo( followup.getCategoryOptionComboId() );
-            DataElementCategoryOptionCombo attributeOptionCombo = dataElementCategoryService.getDataElementCategoryOptionCombo( followup.getAttributeOptionComboId() );
+            CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( followup.getCategoryOptionComboId() );
+            CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( followup.getAttributeOptionComboId() );
 
             DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
 

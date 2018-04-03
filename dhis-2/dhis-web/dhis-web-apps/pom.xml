@@ -219,7 +219,6 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-scheduler</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
-<<<<<<< HEAD
                 <!-- Data Quality App -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
@@ -229,7 +228,6 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-data-quality</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
-=======
                 <!-- Data Administration -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
@@ -239,7 +237,6 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-data-administration</outputDirectory>
                   <includes>**/*.*</includes>
                   </artifactItem>
->>>>>>> 205c32bfec39ddb51b4ebf9925c5242c0f69b92d
               </artifactItems>
             </configuration>
           </execution>
