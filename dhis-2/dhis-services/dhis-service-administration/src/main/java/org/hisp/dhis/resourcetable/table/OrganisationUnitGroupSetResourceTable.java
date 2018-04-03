@@ -89,16 +89,14 @@ public class OrganisationUnitGroupSetResourceTable
                 sql += "(" +
                     "select oug.name from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
-                    groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
 
                 sql += "(" +
                     "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
-                    groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
             }
