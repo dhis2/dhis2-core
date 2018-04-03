@@ -66,7 +66,7 @@
       <one-to-many class="org.hisp.dhis.dataset.Section" />
     </set>
 
-    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_dataset_categorycomboid" />
 
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"

@@ -15,7 +15,7 @@
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
       foreign-key="fk_dataelementoperand_dataelement" />
 
-    <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+    <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
       column="categoryoptioncomboid" foreign-key="fk_dataelementoperand_dataelementcategoryoptioncombo" />
 
   </class>

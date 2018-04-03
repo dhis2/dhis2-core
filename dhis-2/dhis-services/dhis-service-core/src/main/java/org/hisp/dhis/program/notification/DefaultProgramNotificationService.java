@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -210,6 +211,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance, NotificationTrigger trigger )
     {
+        if ( programStageInstance == null )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
 
         if ( templates.isEmpty() )
@@ -226,6 +232,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
     {
+        if ( programInstance == null  )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
 
         for ( ProgramNotificationTemplate template : templates )
@@ -312,23 +323,43 @@ public class DefaultProgramNotificationService
 
         Set<User> recipients = Sets.newHashSet();
 
+        OrganisationUnit eventOrgUnit = programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
+
+        Set<OrganisationUnit> orgUnitInHierarchy = Sets.newHashSet();
+
         ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
         if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
+             recipients = template.getRecipientUserGroup().getMembers();
+
+            final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
+
+            final boolean parentOrgUnitOnly = BooleanUtils.toBoolean( template.getNotifyParentOrganisationUnitOnly() );
+
+            if ( limitToHierarchy )
+            {
+                orgUnitInHierarchy.add( eventOrgUnit );
+                orgUnitInHierarchy.addAll( eventOrgUnit.getAncestors() );
+
+                recipients = recipients.stream().filter( r -> orgUnitInHierarchy.contains( r.getOrganisationUnit() ) ).collect( Collectors.toSet() );
+
+                return recipients;
+            }
+            else if ( parentOrgUnitOnly )
+            {
+                Set<User> parents = Sets.newHashSet();
+
+                recipients.stream().forEach( r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
+
+                return parents;
+            }
+
             recipients.addAll( template.getRecipientUserGroup().getMembers() );
         }
         else if ( recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT )
         {
-
-            OrganisationUnit organisationUnit =
-                    programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
-
-            recipients.addAll( organisationUnit.getUsers() );
-        }
-        else if ( recipientType == ProgramNotificationRecipient.PARENT_ORGANISATION_UNIT_OF_USERS_IN_GROUP )
-        {
-            template.getRecipientUserGroup().getMembers().forEach( user -> recipients.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
+            recipients.addAll( eventOrgUnit.getUsers() );
         }
 
         return recipients;
@@ -446,11 +477,11 @@ public class DefaultProgramNotificationService
     private void sendDhisMessages( Set<DhisMessage> messages )
     {
         messages.forEach( m ->
-                messageService.sendMessage(
-                        new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
-                                .withForceNotification( true )
-                                .build()
-                )
+            messageService.sendMessage(
+                new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
+                    .withForceNotification( true )
+                    .build()
+            )
         );
     }
 

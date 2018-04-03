@@ -30,13 +30,14 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -88,7 +89,7 @@ public class ProgramStageInstanceStoreTest
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
-    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
+    private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private OrganisationUnit organisationUnitA;
 
@@ -307,15 +308,15 @@ public class ProgramStageInstanceStoreTest
     {
 
         ProgramNotificationTemplate
-            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_DUE_DATE ),
-            a2 = createProgramNotificationTemplate( "a2", -2, SCHEDULED_DAYS_DUE_DATE ),
-            a3 = createProgramNotificationTemplate( "a3", 1, SCHEDULED_DAYS_DUE_DATE ),
-            b1 = createProgramNotificationTemplate( "b1", -1, SCHEDULED_DAYS_DUE_DATE ),
-            b2 = createProgramNotificationTemplate( "b2", -2, SCHEDULED_DAYS_DUE_DATE ),
-            b3 = createProgramNotificationTemplate( "b3", 1, SCHEDULED_DAYS_DUE_DATE ),
-            c1 = createProgramNotificationTemplate( "c1", -1, SCHEDULED_DAYS_DUE_DATE ),
-            c2 = createProgramNotificationTemplate( "c2", -2, SCHEDULED_DAYS_DUE_DATE ),
-            c3 = createProgramNotificationTemplate( "c3", 1, SCHEDULED_DAYS_DUE_DATE );
+            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE),
+            a2 = createProgramNotificationTemplate( "a2", -2, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a3 = createProgramNotificationTemplate( "a3", 1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            b1 = createProgramNotificationTemplate( "b1", -1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            b2 = createProgramNotificationTemplate( "b2", -2, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            b3 = createProgramNotificationTemplate( "b3", 1, SCHEDULED_DAYS_DUE_DATE,  ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            c1 = createProgramNotificationTemplate( "c1", -1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            c2 = createProgramNotificationTemplate( "c2", -2, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            c3 = createProgramNotificationTemplate( "c3", 1, SCHEDULED_DAYS_DUE_DATE,  ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
 
         programNotificationStore.save( a1 );
         programNotificationStore.save( a2 );

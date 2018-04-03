@@ -343,6 +343,26 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-setting</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-node</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-acl</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-validation</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-dxf2</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -584,6 +604,23 @@
         <version>1.1.5.RELEASE</version>
       </dependency>
 
+	<!-- Spring Session and Redis -->
+	  <dependency>
+	    	<groupId>org.springframework.session</groupId>
+		<artifactId>spring-session-data-redis</artifactId>
+		<version>${spring-session-data-redis.version}</version>
+	  </dependency>
+	  <dependency>
+		<groupId>biz.paluch.redis</groupId>
+		<artifactId>lettuce</artifactId>
+		<version>${lettuce.version}</version>
+	  </dependency>
+      <dependency>
+		<groupId>org.springframework.data</groupId>
+		<artifactId>spring-data-redis</artifactId>
+		<version>${spring-data-redis.version}</version>
+	  </dependency>
+
       <!-- Jasypt -->
       <dependency>
         <groupId>org.jasypt</groupId>
@@ -694,7 +731,7 @@
       <dependency>
         <groupId>com.cronutils</groupId>
         <artifactId>cron-utils</artifactId>
-        <version>7.0.1</version>
+        <version>6.0.2</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -1151,6 +1188,9 @@
     <spring.version>4.3.14.RELEASE</spring.version>
     <spring-security.version>4.2.4.RELEASE</spring-security.version>
     <spring-security-oauth2.version>2.2.0.RELEASE</spring-security-oauth2.version>
+    <spring-session-data-redis.version>1.3.2.RELEASE</spring-session-data-redis.version>
+    <lettuce.version>3.5.0.Final</lettuce.version>
+    <spring-data-redis.version>1.7.10.RELEASE</spring-data-redis.version>
     <struts.version>2.3.32</struts.version>
     <hibernate.version>5.2.11.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>

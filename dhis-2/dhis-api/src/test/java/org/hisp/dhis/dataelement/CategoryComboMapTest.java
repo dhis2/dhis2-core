@@ -28,6 +28,11 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryComboMap;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionType;
 
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -46,25 +51,25 @@ import static org.junit.Assert.assertTrue;
  */
 public class CategoryComboMapTest
 {
-    private DataElementCategoryOption categoryOptionA;
+    private CategoryOption categoryOptionA;
 
-    private DataElementCategoryOption categoryOptionB;
+    private CategoryOption categoryOptionB;
 
-    private DataElementCategoryOption categoryOptionC;
+    private CategoryOption categoryOptionC;
 
-    private DataElementCategoryOption categoryOptionD;
+    private CategoryOption categoryOptionD;
 
-    private DataElementCategoryOption categoryOptionE;
+    private CategoryOption categoryOptionE;
 
-    private DataElementCategoryOption categoryOptionF;
+    private CategoryOption categoryOptionF;
 
-    private DataElementCategory categoryA;
+    private Category categoryA;
 
-    private DataElementCategory categoryB;
+    private Category categoryB;
 
-    private DataElementCategory categoryC;
+    private Category categoryC;
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -73,12 +78,12 @@ public class CategoryComboMapTest
     @Before
     public void before()
     {
-        categoryOptionA = new DataElementCategoryOption( "OptionA" );
-        categoryOptionB = new DataElementCategoryOption( "OptionB" );
-        categoryOptionC = new DataElementCategoryOption( "OptionC" );
-        categoryOptionD = new DataElementCategoryOption( "OptionD" );
-        categoryOptionE = new DataElementCategoryOption( "OptionE" );
-        categoryOptionF = new DataElementCategoryOption( "OptionF" );
+        categoryOptionA = new CategoryOption( "OptionA" );
+        categoryOptionB = new CategoryOption( "OptionB" );
+        categoryOptionC = new CategoryOption( "OptionC" );
+        categoryOptionD = new CategoryOption( "OptionD" );
+        categoryOptionE = new CategoryOption( "OptionE" );
+        categoryOptionF = new CategoryOption( "OptionF" );
 
         categoryOptionA.setAutoFields();
         categoryOptionB.setAutoFields();
@@ -87,9 +92,9 @@ public class CategoryComboMapTest
         categoryOptionE.setAutoFields();
         categoryOptionF.setAutoFields();
 
-        categoryA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
-        categoryB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
-        categoryC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
 
         categoryA.setAutoFields();
         categoryB.setAutoFields();
@@ -102,12 +107,12 @@ public class CategoryComboMapTest
         categoryC.getCategoryOptions().add( categoryOptionE );
         categoryC.getCategoryOptions().add( categoryOptionF );
 
-        categoryCombo = new DataElementCategoryCombo( "CategoryCombo", DataDimensionType.DISAGGREGATION );
+        categoryCombo = new CategoryCombo( "CategoryCombo", DataDimensionType.DISAGGREGATION );
         categoryCombo.setAutoFields();
 
-        categoryCombo.addDataElementCategory( categoryA );
-        categoryCombo.addDataElementCategory( categoryB );
-        categoryCombo.addDataElementCategory( categoryC );
+        categoryCombo.addCategory( categoryA );
+        categoryCombo.addCategory( categoryB );
+        categoryCombo.addCategory( categoryC );
 
         categoryCombo.generateOptionCombos();
     }
@@ -119,14 +124,14 @@ public class CategoryComboMapTest
         {
             CategoryComboMap map = new CategoryComboMap( categoryCombo, NAME );
 
-            List<DataElementCategoryOption> catopts = new LinkedList<>();
+            List<CategoryOption> catopts = new LinkedList<>();
             catopts.add( categoryOptionA );
             catopts.add( categoryOptionC );
             catopts.add( categoryOptionE );
 
             String key = "\"" + categoryOptionA.getName() + "\"" + "\"" + categoryOptionC.getName() + "\"" + "\""
                 + categoryOptionE.getName() + "\"";
-            DataElementCategoryOptionCombo catoptcombo = map.getCategoryOptionCombo( key );
+            CategoryOptionCombo catoptcombo = map.getCategoryOptionCombo( key );
 
             assertNotNull( catoptcombo );
             assertTrue( catoptcombo.getCategoryOptions().containsAll( catopts ) );
@@ -144,7 +149,7 @@ public class CategoryComboMapTest
         {
             CategoryComboMap map = new CategoryComboMap( categoryCombo, IdentifiableProperty.UID );
 
-            List<DataElementCategoryOption> catopts = new LinkedList<>();
+            List<CategoryOption> catopts = new LinkedList<>();
             catopts.add( categoryOptionA );
             catopts.add( categoryOptionC );
             catopts.add( categoryOptionE );
@@ -152,7 +157,7 @@ public class CategoryComboMapTest
             String key = "\"" + categoryOptionA.getUid() + "\"" + "\"" + categoryOptionC.getUid() + "\"" + "\""
                 + categoryOptionE.getUid() + "\"";
 
-            DataElementCategoryOptionCombo catoptcombo = map.getCategoryOptionCombo( key );
+            CategoryOptionCombo catoptcombo = map.getCategoryOptionCombo( key );
 
             assertNotNull( catoptcombo );
             assertTrue( catoptcombo.getCategoryOptions().containsAll( catopts ) );

@@ -184,8 +184,7 @@ public class Jackson2PropertyIntrospectorService
 
                 if ( ParameterizedType.class.isInstance( type ) )
                 {
-                    ParameterizedType parameterizedType = (ParameterizedType) type;
-                    Class<?> klass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+                    Class<?> klass = (Class<?>) getInnerType( (ParameterizedType) type );
                     property.setItemKlass( Primitives.wrap( klass ) );
 
                     if ( collectProperties( klass ).isEmpty() )
@@ -322,5 +321,17 @@ public class Jackson2PropertyIntrospectorService
         } );
 
         return properties;
+    }
+
+    private Type getInnerType( ParameterizedType parameterizedType )
+    {
+        ParameterizedType innerType = parameterizedType;
+
+        while ( ParameterizedType.class.isInstance( innerType.getActualTypeArguments()[0] ) )
+        {
+            innerType = (ParameterizedType) parameterizedType.getActualTypeArguments()[0];
+        }
+
+        return innerType.getActualTypeArguments()[0];
     }
 }

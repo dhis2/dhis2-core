@@ -137,24 +137,6 @@ public class DefaultSqlViewService
         return sqlViewStore.getCount();
     }
 
-    @Override
-    public List<SqlView> getSqlViewsBetween( int first, int max )
-    {
-        return sqlViewStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<SqlView> getSqlViewsBetweenByName( String name, int first, int max )
-    {
-        return sqlViewStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public int getSqlViewCountByName( String name )
-    {
-        return sqlViewStore.getCountLikeName( name );
-    }
-    
     // -------------------------------------------------------------------------
     // Service methods
     // -------------------------------------------------------------------------

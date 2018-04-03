@@ -28,32 +28,15 @@ package org.hisp.dhis.dimension;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.hisp.dhis.common.DimensionalObjectUtils.*;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -63,7 +46,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -74,7 +62,7 @@ public class DimensionServiceTest
     private DataElement deA;
     private DataElement deB;
     
-    private DataElementCategoryOptionCombo cocA;
+    private CategoryOptionCombo cocA;
     
     private DataSet dsA;
     
@@ -121,7 +109,7 @@ public class DimensionServiceTest
     private DataSetService dataSetService;
     
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -138,7 +126,7 @@ public class DimensionServiceTest
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
         
-        cocA = categoryService.getDefaultDataElementCategoryOptionCombo();
+        cocA = categoryService.getDefaultCategoryOptionCombo();
         
         dsA = createDataSet( 'A' );
         
