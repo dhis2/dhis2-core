@@ -61,8 +61,7 @@ public class OrganisationUnitGroupSetResourceTable
         String statement = "create table " + getTempTableName() + " (" +
             "organisationunitid integer not null, " +
             "organisationunitname varchar(230), " +
-            "startdate date, " +
-            "enddate date, ";
+            "startdate date, ";
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
@@ -80,7 +79,7 @@ public class OrganisationUnitGroupSetResourceTable
     {
         String sql = 
             "insert into " + getTempTableName() + " " +
-            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, null as enddate, ";
+            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, ";
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
