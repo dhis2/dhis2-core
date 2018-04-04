@@ -50,9 +50,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.List;
 
-public class DataSyncJob extends AbstractJob
+public class ProgramDataSynchronizationJob extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( DataSyncJob.class );
+    private static final Log log = LogFactory.getLog( ProgramDataSynchronizationJob.class );
 
     //TODO: Use SystemSettings? (But a new one with periodic refresh)
     private static final int TRACKER_SYNC_PAGE_SIZE = 20;
@@ -60,7 +60,6 @@ public class DataSyncJob extends AbstractJob
     private static final int MAX_SYNC_ATTEMPTS = 3;
     private static final int DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS = 500; //in ms
 
-    //    private static final String IMPORT_STRATEGY_DELETE_SUFFIX = "?importStrategy=DELETE";
     private static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?importStrategy=SYNC";
 
     @Autowired
@@ -115,6 +114,7 @@ public class DataSyncJob extends AbstractJob
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setLastUpdatedStartDate( lastSuccessfulSync );
         queryParams.setIncludeDeleted( true );
+        queryParams.setSynchronizationTask( true );
 
         int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true );
         int pages = (int) Math.ceil( objectsToSync / TRACKER_SYNC_PAGE_SIZE );
@@ -196,7 +196,7 @@ public class DataSyncJob extends AbstractJob
 
         if ( !isRemoteServerAvailable.isAvailable() )
         {
-            return new ErrorReport( DataSyncJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
+            return new ErrorReport( ProgramDataSynchronizationJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
         }
 
         return super.validate();
@@ -209,11 +209,5 @@ public class DataSyncJob extends AbstractJob
             restTemplate,
             MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS,
             DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
-    }
-
-    public static void main( String[] args )
-    {
-        DataSyncJob syncJob = new DataSyncJob();
-        syncJob.syncTrackerProgramData();
     }
 }

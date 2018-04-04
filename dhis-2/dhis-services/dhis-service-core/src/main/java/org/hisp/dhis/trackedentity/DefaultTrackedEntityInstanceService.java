@@ -148,9 +148,27 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
-        for ( TrackedEntityInstance tei : trackedEntityInstances )
+        if ( !params.isSynchronizationTask() )
         {
-            tei.setTrackedEntityAttributeValues( tei.getTrackedEntityAttributeValues().stream().filter( av -> readableAttributes.contains( av.getAttribute() ) ).collect( Collectors.toSet() ) );
+            for ( TrackedEntityInstance tei : trackedEntityInstances )
+            {
+                tei.setTrackedEntityAttributeValues(
+                    tei.getTrackedEntityAttributeValues().stream()
+                        .filter( av -> readableAttributes.contains( av.getAttribute() ) )
+                        .collect( Collectors.toSet() )
+                );
+            }
+        }
+        else
+        {
+            for ( TrackedEntityInstance tei : trackedEntityInstances )
+            {
+                tei.setTrackedEntityAttributeValues(
+                    tei.getTrackedEntityAttributeValues().stream()
+                        .filter( av -> readableAttributes.contains( av.getAttribute() ) && !av.getAttribute().getSkipSynchronization() )
+                        .collect( Collectors.toSet() )
+                );
+            }
         }
 
         return trackedEntityInstances;
@@ -322,18 +340,18 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Current user is not authorized to query across all organisation units" );
         }
 
-        if( params.hasProgram() )
+        if ( params.hasProgram() )
         {
-            if( !aclService.canDataRead( user, params.getProgram() ) )
+            if ( !aclService.canDataRead( user, params.getProgram() ) )
             {
                 throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
             }
-            
-            if( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( user, params.getProgram().getTrackedEntityType() ) )
+
+            if ( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( user, params.getProgram().getTrackedEntityType() ) )
             {
                 throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
             }
-            
+
         }
 
         if ( params.hasTrackedEntityType() && !aclService.canDataRead( user, params.getTrackedEntityType() ) )
