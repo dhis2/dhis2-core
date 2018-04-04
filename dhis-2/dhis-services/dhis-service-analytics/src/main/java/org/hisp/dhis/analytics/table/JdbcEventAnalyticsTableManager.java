@@ -130,7 +130,6 @@ public class JdbcEventAnalyticsTableManager
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );
         final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
-        final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
@@ -161,9 +160,9 @@ public class JdbcEventAnalyticsTableManager
             "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
-                "and (psi.executiondate >= ougs.startdate or ougs.startdate is null) and (psi.executiondate <= ougs.enddate or ougs.enddate is null) " +
+                "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
+            "left join _dateperiodstructure dps on cast(psi.executiondate as date)=dps.dateperiod " +
             "where psi.executiondate >= '" + start + "' " + 
             "and psi.executiondate < '" + end + "' " +
             "and pr.programid=" + program.getId() + " " + 
