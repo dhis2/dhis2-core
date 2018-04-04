@@ -105,7 +105,7 @@ public class OrganisationUnitGroupSetResourceTable
                     "select oug.name from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
                     "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
@@ -114,7 +114,7 @@ public class OrganisationUnitGroupSetResourceTable
                     "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
                     "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
