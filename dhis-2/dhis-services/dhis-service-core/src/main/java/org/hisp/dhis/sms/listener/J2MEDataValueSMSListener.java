@@ -150,7 +150,18 @@ public class J2MEDataValueSMSListener
         this.sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, period, orgUnit );
     }
 
-    private Map<String, String> parse( String sms, SMSCommand smsCommand )
+    @Override
+    protected SMSCommand getSMSCommand( IncomingSms sms )
+    {
+        return null;
+    }
+
+    @Override
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
+    {
+    }
+
+    private Map<String, String> parse(String sms, SMSCommand smsCommand )
     {
         String[] keyValuePairs = null;
 

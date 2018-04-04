@@ -37,11 +37,13 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
@@ -65,11 +67,10 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     private static final Log log = LogFactory.getLog( BaseSMSListener.class );
 
     private static final String DEFAULT_PATTERN = "([^\\s|=]+)\\s*\\=\\s*([-\\w\\s ]+)\\s*(\\=|$)*\\s*";
+    private static final String NO_SMS_CONFIG = "No sms configuration found";
 
     protected static final int INFO = 1;
-
     protected static final int WARNING = 2;
-
     protected static final int ERROR = 3;
 
     private static final ImmutableMap<Integer, Consumer<String>> LOGGER = new ImmutableMap.Builder<Integer, Consumer<String>>()
@@ -103,11 +104,49 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
 
+    @Override
+    public boolean accept( IncomingSms sms )
+    {
+        if ( sms == null )
+        {
+            return false;
+        }
+
+        SMSCommand smsCommand = getSMSCommand( sms );
+
+        return smsCommand != null;
+    }
+
+    @Override
+    public void receive( IncomingSms sms )
+    {
+        SMSCommand smsCommand = getSMSCommand( sms );
+
+        Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
+
+        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( parsedMessage, smsCommand, sms ) )
+        {
+            return;
+        }
+
+        postProcess( sms, smsCommand, parsedMessage );
+    }
+
+    protected abstract void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage );
+
+    protected abstract SMSCommand getSMSCommand( IncomingSms sms );
+
     protected void sendFeedback( String message, String sender, int logType )
     {
         LOGGER.getOrDefault( logType, log::info ).accept( message );
 
-        smsSender.sendMessage( null, message, sender );
+        if( smsSender.isConfigured() )
+        {
+            smsSender.sendMessage( null, message, sender );
+            return;
+        }
+
+        LOGGER.getOrDefault( WARNING, log::info ).accept(  NO_SMS_CONFIG );
     }
 
     protected boolean hasCorrectFormat( IncomingSms sms, SMSCommand smsCommand )
@@ -123,7 +162,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         Matcher matcher = pattern.matcher( sms.getText() );
 
-        if ( !matcher.matches() )
+        if ( !matcher.find() )
         {
             sendFeedback(
                 StringUtils.defaultIfEmpty( smsCommand.getWrongFormatMessage(), SMSCommand.WRONG_FORMAT_MESSAGE ),

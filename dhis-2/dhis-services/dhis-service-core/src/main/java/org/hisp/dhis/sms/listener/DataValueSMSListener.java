@@ -50,7 +50,6 @@ import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
@@ -88,40 +87,16 @@ public class DataValueSMSListener
     private DataSetService dataSetService;
 
     @Autowired
-    private IncomingSmsService incomingSmsService;
-
-    @Autowired
     private DataElementService dataElementService;
 
     @Autowired
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
 
-    // -------------------------------------------------------------------------
-    // IncomingSmsListener implementation
-    // -------------------------------------------------------------------------
-
-    @Transactional
     @Override
-    public boolean accept( IncomingSms sms )
-    {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.KEY_VALUE_PARSER ) != null;
-    }
-
-    @Transactional
-    @Override
-    public void receive( IncomingSms sms )
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
         String message = sms.getText();
-        SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.KEY_VALUE_PARSER );
-
-        Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
-
-        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( parsedMessage, smsCommand, sms ) )
-        {
-            return;
-        }
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
@@ -157,7 +132,7 @@ public class DataValueSMSListener
             if ( parsedMessage.containsKey( code.getCode() ) )
             {
                 valueStored = storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, date,
-                    smsCommand.getDataset() );
+                        smsCommand.getDataset() );
             }
         }
 
@@ -187,12 +162,16 @@ public class DataValueSMSListener
         markCompleteDataSet( sms, orgUnit, parsedMessage, smsCommand, date );
         sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit );
 
-        sms.setStatus( SmsMessageStatus.PROCESSED );
-        sms.setParsed( true );
-        incomingSmsService.update( sms );
+        update( sms,  SmsMessageStatus.PROCESSED, true );
     }
 
-    private Period getPeriod( SMSCommand command, Date date )
+    @Override
+    protected SMSCommand getSMSCommand( IncomingSms sms )
+    {
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.KEY_VALUE_PARSER );
+    }
+
+    private Period getPeriod(SMSCommand command, Date date )
     {
         Period period = null;
         period = command.getDataset().getPeriodType().createPeriod();
@@ -214,6 +193,10 @@ public class DataValueSMSListener
 
         return period;
     }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private boolean storeDataValue( IncomingSms sms, OrganisationUnit orgunit, Map<String, String> parsedMessage,
         SMSCode code, SMSCommand command, Date date, DataSet dataSet )
