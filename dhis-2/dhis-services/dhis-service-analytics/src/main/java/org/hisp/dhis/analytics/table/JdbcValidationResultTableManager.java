@@ -129,7 +129,7 @@ public class JdbcValidationResultTableManager
             "inner join _periodstructure ps on vrs.periodid=ps.periodid " +
             "inner join validationrule vr on vr.validationruleid=vrs.validationruleid " +
             "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid " +
-                "and (pe.startdate >= ougs.startdate or ougs.startdate is null) " +
+                "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where pe.startdate >= '" + start + "' " +
