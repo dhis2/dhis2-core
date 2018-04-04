@@ -28,6 +28,7 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -99,6 +100,12 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
+    public Collection<V> getAll()
+    {
+        return caffeineCache.asMap().values();
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
@@ -107,6 +114,8 @@ public class LocalCache<V> implements Cache<V>
         }
         caffeineCache.put( key, value );
     }
+
+
 
     @Override
     public void invalidate( String key )

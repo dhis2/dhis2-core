@@ -86,8 +86,6 @@ public class JCloudsAppStorageService
 
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
-    private Map<String, App> apps = new HashMap<>();
-
     private Map<String, App> reservedNamespaces = new HashMap<>();
 
     private BlobStore blobStore;
@@ -191,13 +189,12 @@ public class JCloudsAppStorageService
     }
 
     @Override
-    public void discoverInstalledApps()
+    public Map<String, App> discoverInstalledApps()
     {
+        Map<String, App> appMap = new HashMap<>();
         List<App> appList = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-
-        apps.clear();
 
         log.info( " Starting JCloud discovery..." );
 
@@ -241,7 +238,7 @@ public class JCloudsAppStorageService
                     reservedNamespaces.put( namespace, app );
                 }
 
-                apps.put( app.getUrlFriendlyName(), app );
+                appMap.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from JClouds storage " );
             }
@@ -252,12 +249,7 @@ public class JCloudsAppStorageService
             log.info( " No apps found during JClouds discovery." );
         }
 
-    }
-
-    @Override
-    public Map<String, App> getApps()
-    {
-        return apps;
+        return appMap;
     }
 
     @Override
@@ -314,10 +306,10 @@ public class JCloudsAppStorageService
             // data is deleted
             // -----------------------------------------------------------------
 
-            if ( apps.containsKey( app.getName() ) )
+            /*if ( apps.containsKey( app.getName() ) )
             {
                 deleteApp( apps.get( app.getName() ) );
-            }
+            }*/
 
             // -----------------------------------------------------------------
             // Unzip the app

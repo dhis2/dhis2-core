@@ -84,6 +84,8 @@ public class App
 
     private Set<String> authorities = new HashSet<>();
 
+    private AppStatus status = AppStatus.OK;
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

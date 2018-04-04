@@ -28,6 +28,7 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -125,6 +126,12 @@ public class RedisCache<V> implements Cache<V>
         }
 
         return Optional.ofNullable( Optional.ofNullable( value ).orElse( defaultValue ) );
+    }
+
+    @Override
+    public Collection<V> getAll()
+    {
+        return redisTemplate.boundSetOps( cacheRegion ).members();
     }
 
     @Override

@@ -45,16 +45,10 @@ public interface AppStorageService
     /**
      * Looks trough the appropriate directory of apps to find all installed apps
      * using the AppStorageService
+     *
+     * @return A map of all app nams and apps found
      */
-    void discoverInstalledApps();
-
-    /**
-     * Returns a map of all apps found using the AppStorageService, referenced by
-     * their app names.
-     * 
-     * @return A map of all app names and apps found using the AppStorageService
-     */
-    Map<String, App> getApps();
+    Map<String, App> discoverInstalledApps();
 
     /**
      * Returns a map of namespaces and the apps reserving them.
