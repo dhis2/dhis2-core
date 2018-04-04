@@ -61,8 +61,7 @@ public class OrganisationUnitGroupSetResourceTable
         String statement = "create table " + getTempTableName() + " (" +
             "organisationunitid integer not null, " +
             "organisationunitname varchar(230), " +
-            "startdate date, " +
-            "enddate date, ";
+            "startdate date, ";
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
@@ -80,7 +79,7 @@ public class OrganisationUnitGroupSetResourceTable
     {
         String sql = 
             "insert into " + getTempTableName() + " " +
-            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, null as enddate, ";
+            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, ";
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
@@ -89,37 +88,33 @@ public class OrganisationUnitGroupSetResourceTable
                 sql += "(" +
                     "select oug.name from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
-                    groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
 
                 sql += "(" +
                     "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
-                    groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
             }
             else
             {
                 sql += "(" +
-                    "select oug.name " +
-                    "from orgunitgroup oug " +
+                    "select oug.name from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
                     "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
 
                 sql += "(" +
-                    "select oug.uid " +
-                    "from orgunitgroup oug " +
+                    "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
                     "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
