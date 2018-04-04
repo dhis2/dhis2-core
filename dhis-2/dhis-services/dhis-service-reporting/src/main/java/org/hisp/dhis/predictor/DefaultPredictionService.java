@@ -596,12 +596,12 @@ public class DefaultPredictionService implements PredictionService
 
         if ( !eventAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putAll( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
         }
 
         if ( !eventNonAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putAll( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
         }
 
         return dataValues;
