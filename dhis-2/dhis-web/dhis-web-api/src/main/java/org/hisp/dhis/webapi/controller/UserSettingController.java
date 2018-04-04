@@ -111,7 +111,7 @@ public class UserSettingController
             .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey.getName() ), useFallback )
             .get( key );
 
-        return value == null ? "null" : (String) value;
+        return String.valueOf( value );
     }
 
     @PostMapping( value = "/{key}" )
