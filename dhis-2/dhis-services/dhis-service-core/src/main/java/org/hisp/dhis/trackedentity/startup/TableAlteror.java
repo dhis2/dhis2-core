@@ -32,7 +32,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.quick.StatementHolder;
 import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Date;
 
 /**
  * @author Chau Thu Tran
@@ -235,7 +233,6 @@ public class TableAlteror
         executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTEVALUE_DELETE' where authority='F_PATIENTATTRIBUTEVALUE_DELETE'" );
 
         executeSql( "ALTER TABLE program_attributes RENAME COLUMN programattributeid TO programtrackedentityattributeid" );
-        createPersonTrackedEntityType();
 
         executeSql( "ALTER TABLE trackedentityattributevalue DROP COLUMN trackedentityattributeoptionid" );
         executeSql( "DROP TABLE trackedentityattributeoption" );
@@ -353,29 +350,6 @@ public class TableAlteror
 
         // Drop the column with name as completed
         executeSql( "ALTER TABLE programinstance DROP COLUMN completed" );
-    }
-
-    private void createPersonTrackedEntityType()
-    {
-        int exist = jdbcTemplate.queryForObject( "SELECT count(*) FROM trackedentitytype where name='Person'",
-            Integer.class );
-
-        if ( exist == 0 )
-        {
-
-            String id = statementBuilder.getAutoIncrementValue();
-            String uid = "MCPQUTHX1Ze";
-            String date = DateUtils.getSqlDateString( new Date() );
-
-            jdbcTemplate.execute( "INSERT INTO trackedentitytype(trackedentitytypeid,uid, code, created, lastupdated,name, description) values("
-                + id + ",'" + uid + "','Person','" + date + "','" + date + "','Person','Person')" );
-
-            jdbcTemplate.execute( "UPDATE program SET trackedentitytypeid="
-                + "  (SELECT trackedentitytypeid FROM trackedentitytype where name='Person') where trackedentitytypeid is null" );
-
-            jdbcTemplate.execute( "UPDATE trackedentityinstance SET trackedentitytypeid="
-                + "  (SELECT trackedentitytypeid FROM trackedentitytype where name='Person') where trackedentitytypeid is null" );
-        }
     }
 
     private void updateProgramStageList()
