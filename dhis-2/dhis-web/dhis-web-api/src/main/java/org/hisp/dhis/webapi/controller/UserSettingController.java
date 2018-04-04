@@ -107,9 +107,11 @@ public class UserSettingController
         UserSettingKey userSettingKey = getUserSettingKey( key );
         User user = getUser( userId, username );
 
-        return (String) userSettingService
+        Serializable value = userSettingService
             .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey.getName() ), useFallback )
             .get( key );
+
+        return value == null ? "null" : (String) value;
     }
 
     @PostMapping( value = "/{key}" )
@@ -197,7 +199,7 @@ public class UserSettingController
         }
         else
         {
-            user = userService.getUserCredentialsByUsername( username ).getUser();
+            user = userService.getUserCredentialsByUsername( username ).getUserInfo();
         }
 
         if ( user == null )
