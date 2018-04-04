@@ -136,7 +136,7 @@ public class TrackedEntityRegistrationSMSListener
             ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
     }
 
-    private TrackedEntityAttributeValue createTrackedEntityAttributeValue(Map<String, String> parsedMessage,
+    private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
           SMSCode code, TrackedEntityInstance trackedEntityInstance )
     {
         String value = parsedMessage.get( code.getCode() );
