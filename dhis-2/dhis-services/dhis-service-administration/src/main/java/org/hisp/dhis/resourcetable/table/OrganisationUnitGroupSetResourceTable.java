@@ -69,7 +69,7 @@ public class OrganisationUnitGroupSetResourceTable
             statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
         }
         
-        statement += "primary key (organisationunitid))";
+        statement += "primary key (organisationunitid, startdate))";
         
         return statement;
     }

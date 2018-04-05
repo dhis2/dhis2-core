@@ -69,7 +69,7 @@ public class DataElementGroupSetResourceTable
             statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
         }
         
-        statement += "primary key (dataelementid))";
+        statement += "primary key (dataelementid, startdate))";
         
         return statement;
     }
