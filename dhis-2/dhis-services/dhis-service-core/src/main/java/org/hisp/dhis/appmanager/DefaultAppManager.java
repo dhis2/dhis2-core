@@ -203,7 +203,14 @@ public class DefaultAppManager
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        return jCloudsAppStorageService.installApp( file, fileName );
+        App app = jCloudsAppStorageService.installApp( file, fileName );
+
+        if ( app.getAppState().ok() )
+        {
+            appCache.put( app.getKey(), app );
+        }
+
+        return app.getAppState();
     }
 
     @Override
@@ -216,6 +223,8 @@ public class DefaultAppManager
     public boolean deleteApp( App app, boolean deleteAppData )
     {
         boolean deleted = false;
+
+        appCache.invalidate( app.getKey() );
 
         if ( app != null )
         {

@@ -77,6 +77,7 @@ public interface Cache<V>
 
     /**
      * Returns a collection of all the values in the cache
+     *
      * @return collection with all cached values
      */
     Collection<V> getAll();

@@ -46,12 +46,12 @@ public interface AppStorageService
      * Looks trough the appropriate directory of apps to find all installed apps
      * using the AppStorageService
      *
-     * @return A map of all app nams and apps found
+     * @return A map of all app names and apps found
      */
     Map<String, App> discoverInstalledApps();
 
     /**
-     * Returns a map of namespaces and the apps reserving them.
+     * Returns a map of namespaces and the apps resesrving them.
      * 
      * @return a map of namespaces and the apps reserving them
      */
@@ -64,7 +64,7 @@ public interface AppStorageService
      * @param filename The name of the file
      * @return The status of the installation
      */
-    AppStatus installApp( File file, String filename );
+    App installApp( File file, String filename );
 
     /**
      * Deletes an app from the AppStoreService.

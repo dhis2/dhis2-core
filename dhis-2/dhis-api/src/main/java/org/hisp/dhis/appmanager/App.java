@@ -84,7 +84,7 @@ public class App
 
     private Set<String> authorities = new HashSet<>();
 
-    private AppStatus status = AppStatus.OK;
+    private AppStatus appState = AppStatus.OK;
 
     // -------------------------------------------------------------------------
     // Logic
@@ -290,6 +290,17 @@ public class App
     public void setAuthorities( Set<String> authorities )
     {
         this.authorities = authorities;
+    }
+    
+    @JsonProperty
+    public AppStatus getAppState()
+    {
+        return appState;
+    }
+
+    public void setAppState( AppStatus AppState )
+    {
+         this.appState = appState;
     }
 
     // -------------------------------------------------------------------------
