@@ -46,7 +46,8 @@
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_trackedentityattribute_legendsetid"></many-to-many>
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+        foreign-key="fk_trackedentityattribute_legendsetid"></many-to-many>
     </list>
 
     <property name="inherit" column="inherit" />
@@ -69,13 +70,15 @@
 
     <property name="pattern" />
 
-    <property name="textPattern" type="jbTextPattern" column="textpattern" not-null="false"/>
+    <property name="textPattern" type="jbTextPattern" column="textpattern" not-null="false" />
 
     <property name="style" type="jbObjectStyle" column="style" />
 
     <property name="orgunitScope" />
 
     <property name="programScope" />
+
+    <property name="skipSynchronization" not-null="false" />
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User"
