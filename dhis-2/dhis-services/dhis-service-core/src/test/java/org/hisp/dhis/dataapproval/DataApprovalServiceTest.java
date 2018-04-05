@@ -316,6 +316,33 @@ public class DataApprovalServiceTest
         dataSetF.setWorkflow( workflow3 );
         dataSetG.setWorkflow( workflow1234 );
 
+        dataSetA.addOrganisationUnit( organisationUnitA );
+        dataSetA.addOrganisationUnit( organisationUnitB );
+        dataSetA.addOrganisationUnit( organisationUnitC );
+        dataSetA.addOrganisationUnit( organisationUnitD );
+        dataSetA.addOrganisationUnit( organisationUnitE );
+        dataSetA.addOrganisationUnit( organisationUnitF );
+
+        dataSetC.addOrganisationUnit( organisationUnitA );
+        dataSetC.addOrganisationUnit( organisationUnitB );
+        dataSetC.addOrganisationUnit( organisationUnitC );
+
+        dataSetD.addOrganisationUnit( organisationUnitA );
+        dataSetD.addOrganisationUnit( organisationUnitB );
+
+        dataSetE.addOrganisationUnit( organisationUnitA );
+        dataSetE.addOrganisationUnit( organisationUnitB );
+
+        dataSetF.addOrganisationUnit( organisationUnitC );
+        dataSetF.addOrganisationUnit( organisationUnitD );
+
+        dataSetG.addOrganisationUnit( organisationUnitA );
+        dataSetG.addOrganisationUnit( organisationUnitB );
+        dataSetG.addOrganisationUnit( organisationUnitC );
+        dataSetG.addOrganisationUnit( organisationUnitD );
+        dataSetG.addOrganisationUnit( organisationUnitE );
+        dataSetG.addOrganisationUnit( organisationUnitF );
+
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
@@ -498,6 +525,8 @@ public class DataApprovalServiceTest
 
         dataSetH = createDataSet( 'H', periodType, categoryComboA );
         dataSetH.setWorkflow( workflow12A_H );
+        dataSetH.addOrganisationUnit( organisationUnitA );
+        dataSetH.addOrganisationUnit( organisationUnitB );
         dataSetService.addDataSet( dataSetH );
 
         workflow12A_H.getDataSets().add( dataSetH );
