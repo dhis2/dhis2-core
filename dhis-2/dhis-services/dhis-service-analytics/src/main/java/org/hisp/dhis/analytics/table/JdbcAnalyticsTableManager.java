@@ -213,7 +213,6 @@ public class JdbcAnalyticsTableManager
             "inner join dataelement de on dv.dataelementid=de.dataelementid " +
             "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
             "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-                "and (cast(date_trunc('month', pe.startdate) as date)=degs.startdate or degs.startdate is null) " +
             "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
             "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
             "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
