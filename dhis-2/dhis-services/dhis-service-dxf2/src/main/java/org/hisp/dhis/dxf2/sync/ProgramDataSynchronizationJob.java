@@ -49,16 +49,14 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * @author David Katuscak
+ */
 public class ProgramDataSynchronizationJob extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( ProgramDataSynchronizationJob.class );
-
-    //TODO: Use SystemSettings? (But a new one with periodic refresh)
-    private static final int TRACKER_SYNC_PAGE_SIZE = 20;
-    private static final int MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS = 3;
-    private static final int MAX_SYNC_ATTEMPTS = 3;
-    private static final int DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS = 500; //in ms
 
     private static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?importStrategy=SYNC";
 
@@ -108,16 +106,16 @@ public class ProgramDataSynchronizationJob extends AbstractJob
 
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+        final int trackerSyncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_SYNC_PAGE_SIZE );
 
         Date lastSuccessfulSync = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_TRACKER_DATA_SYNC );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setLastUpdatedStartDate( lastSuccessfulSync );
         queryParams.setIncludeDeleted( true );
-        queryParams.setSynchronizationTask( true );
 
         int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true );
-        int pages = (int) Math.ceil( objectsToSync / TRACKER_SYNC_PAGE_SIZE );
+        int pages = (int) Math.ceil( objectsToSync / trackerSyncPageSize );
 
         if ( objectsToSync == 0 )
         {
@@ -132,7 +130,7 @@ public class ProgramDataSynchronizationJob extends AbstractJob
 
         //TODO: Add functionality (to the query/queryParams) to order by timestamp? (Then I can always start by the oldest one and move to the newest ones.)
 
-        queryParams.setPageSize( TRACKER_SYNC_PAGE_SIZE );
+        queryParams.setPageSize( trackerSyncPageSize );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
         boolean syncResult = true;
 
@@ -141,7 +139,8 @@ public class ProgramDataSynchronizationJob extends AbstractJob
             queryParams.setPage( i );
 
             List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params );
-            log.info( "Going to sync TEIs (and related Enrollments and Events) numbers: " + ((i * TRACKER_SYNC_PAGE_SIZE) + 1) + " - " + ((i * TRACKER_SYNC_PAGE_SIZE) + dtoTeis.size()) );
+            filterOutNonSynchronizableAttributes( dtoTeis );
+            log.info( "Going to sync TEIs (and related Enrollments and Events) numbers: " + ((i * trackerSyncPageSize) + 1) + " - " + ((i * trackerSyncPageSize) + dtoTeis.size()) );
 
             if ( log.isDebugEnabled() )
             {
@@ -162,6 +161,18 @@ public class ProgramDataSynchronizationJob extends AbstractJob
         }
     }
 
+    private void filterOutNonSynchronizableAttributes( List<TrackedEntityInstance> dtoTeis )
+    {
+        for ( TrackedEntityInstance tei : dtoTeis )
+        {
+            tei.setAttributes( tei.getAttributes().stream()
+                .peek( attr -> System.out.println( "DTO level: Before: TEI: " + tei.getTrackedEntityInstance() + ", Attribute: UID: " + attr.getAttribute() + ", skipSync: " + attr.getSkipSynchronization() ) )
+                .filter( attr -> !attr.getSkipSynchronization() )
+                .peek( attr -> System.out.println( "DTO level: After: TEI: " + tei.getTrackedEntityInstance() + ", Attribute: UID: " + attr.getAttribute() + ", skipSync: " + attr.getSkipSynchronization() ) )
+                .collect( Collectors.toList() ) );
+        }
+    }
+
     private boolean sendTrackerSyncRequest( List<TrackedEntityInstance> dtoTeis, String username, String password, String trackerSyncUrl, SyncEndpoint endpoint )
     {
         if ( !testServerAvailability().isAvailable() )
@@ -177,7 +188,9 @@ public class ProgramDataSynchronizationJob extends AbstractJob
             renderService.toJson( request.getBody(), dtoTeis );
         };
 
-        return SyncUtils.runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, trackerSyncUrl, endpoint, MAX_SYNC_ATTEMPTS );
+        final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
+
+        return SyncUtils.runSyncRequestAndAnalyzeResponse( restTemplate, requestCallback, trackerSyncUrl, endpoint, maxSyncAttempts );
     }
 
     //Tracker sync functionality:
@@ -204,10 +217,13 @@ public class ProgramDataSynchronizationJob extends AbstractJob
 
     private AvailabilityStatus testServerAvailability()
     {
+        final int maxRemoteServerAvailabilityCheckAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+        final int delayBetweenRemoteServerAvailabilityCheckAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+
         return SyncUtils.testServerAvailability(
             systemSettingManager,
             restTemplate,
-            MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS,
-            DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+            maxRemoteServerAvailabilityCheckAttempts,
+            delayBetweenRemoteServerAvailabilityCheckAttempts );
     }
 }

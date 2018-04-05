@@ -148,27 +148,13 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
-        if ( !params.isSynchronizationTask() )
+        for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            for ( TrackedEntityInstance tei : trackedEntityInstances )
-            {
-                tei.setTrackedEntityAttributeValues(
-                    tei.getTrackedEntityAttributeValues().stream()
-                        .filter( av -> readableAttributes.contains( av.getAttribute() ) )
-                        .collect( Collectors.toSet() )
-                );
-            }
-        }
-        else
-        {
-            for ( TrackedEntityInstance tei : trackedEntityInstances )
-            {
-                tei.setTrackedEntityAttributeValues(
-                    tei.getTrackedEntityAttributeValues().stream()
-                        .filter( av -> readableAttributes.contains( av.getAttribute() ) && !av.getAttribute().getSkipSynchronization() )
-                        .collect( Collectors.toSet() )
-                );
-            }
+            tei.setTrackedEntityAttributeValues(
+                tei.getTrackedEntityAttributeValues().stream()
+                    .filter( av -> readableAttributes.contains( av.getAttribute() ) )
+                    .collect( Collectors.toSet() )
+            );
         }
 
         return trackedEntityInstances;

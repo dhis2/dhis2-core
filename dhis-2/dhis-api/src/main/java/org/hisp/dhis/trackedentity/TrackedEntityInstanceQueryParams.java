@@ -203,12 +203,6 @@ public class TrackedEntityInstanceQueryParams
      */
     private List<String> orders;
 
-    /**
-     * Indicates whether the query is run by Synchronization job or not. If yes, then the attributes with
-     * flag skipsynchronization set to true will not be included in the sync payload
-     */
-    private boolean synchronizationTask;
-
     // -------------------------------------------------------------------------
     // Transient properties
     // -------------------------------------------------------------------------
@@ -917,17 +911,6 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setInternalSearch( boolean internalSearch )
     {
         this.internalSearch = internalSearch;
-        return this;
-    }
-
-    public boolean isSynchronizationTask()
-    {
-        return synchronizationTask;
-    }
-
-    public TrackedEntityInstanceQueryParams setSynchronizationTask( boolean synchronizationTask )
-    {
-        this.synchronizationTask = synchronizationTask;
         return this;
     }
 
