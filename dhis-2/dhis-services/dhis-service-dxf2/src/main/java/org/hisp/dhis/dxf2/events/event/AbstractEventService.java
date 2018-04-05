@@ -88,6 +88,8 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.notification.ProgramNotificationEventType;
+import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -217,6 +219,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected ProgramRuleEngineService programRuleEngineService;
+
+    @Autowired
+    protected ProgramNotificationPublisher programNotificationPublisher;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -1048,6 +1053,14 @@ public abstract class AbstractEventService
             {
                 programStageInstanceService.completeProgramStageInstance( programStageInstance,
                     importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+
+                if ( !importOptions.isSkipNotifications() )
+                {
+                    programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
+
+                    programRuleEngineService.evaluate( programStageInstance );
+                }
+
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1144,11 +1157,6 @@ public abstract class AbstractEventService
                 teiDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
                 dataValueService.updateTrackedEntityDataValue( teiDataValue );
 
-                if ( !importOptions.isSkipNotifications() )
-                {
-                    programRuleEngineService.evaluate( programStageInstance );
-                }
-                
                 //Marking that this dataValue was a part of an update, so it shouldn't be removed at the end.
                 dataValues.remove( teiDataValue );
             }
@@ -1160,6 +1168,11 @@ public abstract class AbstractEventService
 
                 saveDataValue( programStageInstance, event.getStoredBy(), dataElement, dataValue.getValue(),
                     dataValue.getProvidedElsewhere(), null, null );
+            }
+
+            if ( !importOptions.isSkipNotifications() )
+            {
+                programRuleEngineService.evaluate( programStageInstance );
             }
         }
 
