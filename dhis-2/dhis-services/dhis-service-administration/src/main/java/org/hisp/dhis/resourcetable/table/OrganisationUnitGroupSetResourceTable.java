@@ -44,9 +44,12 @@ import java.util.Optional;
 public class OrganisationUnitGroupSetResourceTable
     extends ResourceTable<OrganisationUnitGroupSet>
 {
-    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects, String columnQuote )
+    private boolean supportsPartialIndexes;
+    
+    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects, String columnQuote, boolean supportsPartialIndexes )
     {
         super( objects, columnQuote );
+        this.supportsPartialIndexes = supportsPartialIndexes;
     }
 
     @Override
@@ -61,8 +64,7 @@ public class OrganisationUnitGroupSetResourceTable
         String statement = "create table " + getTempTableName() + " (" +
             "organisationunitid integer not null, " +
             "organisationunitname varchar(230), " +
-            "startdate date, " +
-            "enddate date, ";
+            "startdate date, ";
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
@@ -70,9 +72,7 @@ public class OrganisationUnitGroupSetResourceTable
             statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
         }
         
-        statement += "primary key (organisationunitid))";
-        
-        return statement;
+        return TextUtils.removeLastComma( statement ) + ")";
     }
 
     @Override
@@ -80,7 +80,7 @@ public class OrganisationUnitGroupSetResourceTable
     {
         String sql = 
             "insert into " + getTempTableName() + " " +
-            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, null as enddate, ";
+            "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, ";
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
@@ -89,37 +89,33 @@ public class OrganisationUnitGroupSetResourceTable
                 sql += "(" +
                     "select oug.name from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
-                    groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
 
                 sql += "(" +
                     "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
-                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " +
-                    groupSet.getId() + " " +
+                    "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
                     "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
             }
             else
             {
                 sql += "(" +
-                    "select oug.name " +
-                    "from orgunitgroup oug " +
+                    "select oug.name from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
                     "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
 
                 sql += "(" +
-                    "select oug.uid " +
-                    "from orgunitgroup oug " +
+                    "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
-                    "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
+                    "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
                     "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
@@ -141,6 +137,16 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();
+        String nameA = "in_orgunitgroupsetstructure_not_null_" + getRandomSuffix();
+        String nameB = "in_orgunitgroupsetstructure_null_" + getRandomSuffix();
+
+        // Two partial indexes as start date can be null
+        
+        String indexA = "create index " + nameA + " on " + getTempTableName() + "(organisationunitid, startdate) " + 
+            TextUtils.emptyIfFalse( "where startdate is not null", supportsPartialIndexes );
+        String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) " + 
+            TextUtils.emptyIfFalse( "where startdate is null", supportsPartialIndexes );
+
+        return Lists.newArrayList( indexA, indexB );
     }
 }
