@@ -30,16 +30,16 @@ package org.hisp.dhis.datavalue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -177,7 +177,8 @@ public class DefaultDataValueService
     @Transactional
     public void updateDataValue( DataValue dataValue )
     {
-        if ( dataValue.isNullValue() || dataValueIsZeroAndInsignificant( dataValue.getValue(), dataValue.getDataElement() ) )
+        if ( dataValue.isNullValue() ||
+            dataValueIsZeroAndInsignificant( dataValue.getValue(), dataValue.getDataElement() ) )
         {
             deleteDataValue( dataValue );
         }
@@ -185,7 +186,8 @@ public class DefaultDataValueService
         {
             dataValue.setLastUpdated( new Date() );
 
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE );
+            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                dataValue.getStoredBy(), AuditType.UPDATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
             dataValueStore.updateDataValue( dataValue );
@@ -209,7 +211,8 @@ public class DefaultDataValueService
     @Transactional
     public void deleteDataValue( DataValue dataValue )
     {
-        DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
+        DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+            currentUserService.getCurrentUsername(), AuditType.DELETE );
 
         dataValueAuditService.addDataValueAudit( dataValueAudit );
 
@@ -233,7 +236,8 @@ public class DefaultDataValueService
     }
 
     @Override
-    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, CategoryOptionCombo categoryOptionCombo )
+    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo )
     {
         CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
@@ -269,7 +273,8 @@ public class DefaultDataValueService
             throw new IllegalArgumentException( "Params cannot be null" );
         }
 
-        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() && params.getDataElementGroups().isEmpty() )
+        if ( params.getDataElements().isEmpty() && params.getDataSets().isEmpty() &&
+            params.getDataElementGroups().isEmpty() )
         {
             violation = "At least one valid data set or data element group must be specified";
         }

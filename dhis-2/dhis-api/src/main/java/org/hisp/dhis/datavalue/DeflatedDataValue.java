@@ -338,7 +338,9 @@ public class DeflatedDataValue
 
     public String getCategoryOptionComboNameParsed()
     {
-        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ? "" : categoryOptionComboName;
+        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ?
+            "" :
+            categoryOptionComboName;
     }
 
     // -------------------------------------------------------------------------

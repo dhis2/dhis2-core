@@ -46,7 +46,8 @@ public class ValidationRulesAnalysisParams
     {
     }
 
-    public ValidationRulesAnalysisParams( String validationRuleGroupId, String organisationUnitId, String startDate, String endDate, boolean persist, boolean notification )
+    public ValidationRulesAnalysisParams( String validationRuleGroupId, String organisationUnitId, String startDate,
+        String endDate, boolean persist, boolean notification )
     {
         this.validationRuleGroupId = validationRuleGroupId;
         this.organisationUnitId = organisationUnitId;

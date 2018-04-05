@@ -30,12 +30,12 @@ package org.hisp.dhis.dataanalysis.jdbc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataanalysis.DataAnalysisMeasures;
 import org.hisp.dhis.dataanalysis.DataAnalysisStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -113,7 +113,8 @@ public class JdbcDataAnalysisStore
         String sql =
             "select dv.sourceid, dv.categoryoptioncomboid, " +
                 "avg( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as average, " +
-                "stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation " +
+                "stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() +
+                " ) ) as standarddeviation " +
                 "from datavalue dv " +
                 "join organisationunit ou on ou.organisationunitid = dv.sourceid " +
                 "join period pe on dv.periodid = pe.periodid " +
@@ -135,7 +136,8 @@ public class JdbcDataAnalysisStore
 
             if ( standardDeviation != 0.0 )
             {
-                measures.add( new DataAnalysisMeasures( orgUnitId, categoryOptionComboId, average, standardDeviation ) );
+                measures
+                    .add( new DataAnalysisMeasures( orgUnitId, categoryOptionComboId, average, standardDeviation ) );
             }
         }
 
@@ -143,7 +145,8 @@ public class JdbcDataAnalysisStore
     }
 
     @Override
-    public List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<CategoryOptionCombo> categoryOptionCombos,
+    public List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements,
+        Collection<CategoryOptionCombo> categoryOptionCombos,
         Collection<Period> periods, Collection<OrganisationUnit> parents, int limit )
     {
         if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
@@ -188,7 +191,8 @@ public class JdbcDataAnalysisStore
     }
 
     @Override
-    public List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
+    public List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement,
+        CategoryOptionCombo categoryOptionCombo,
         Collection<Period> periods, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap )
     {
         if ( lowerBoundMap == null || lowerBoundMap.isEmpty() || periods.isEmpty() )
@@ -198,7 +202,8 @@ public class JdbcDataAnalysisStore
 
         //TODO parallel processes?
 
-        List<List<Integer>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 1000 ).getPages();
+        List<List<Integer>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 1000 )
+            .getPages();
 
         log.debug( "No of pages: " + organisationUnitPages.size() );
 
@@ -206,21 +211,26 @@ public class JdbcDataAnalysisStore
 
         for ( List<Integer> unitPage : organisationUnitPages )
         {
-            dataValues.addAll( getDeflatedDataValues( dataElement, categoryOptionCombo, periods, unitPage, lowerBoundMap, upperBoundMap ) );
+            dataValues.addAll(
+                getDeflatedDataValues( dataElement, categoryOptionCombo, periods, unitPage, lowerBoundMap,
+                    upperBoundMap ) );
         }
 
         return dataValues;
     }
 
-    private List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, List<Integer> organisationUnits, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap )
+    private List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement,
+        CategoryOptionCombo categoryOptionCombo,
+        Collection<Period> periods, List<Integer> organisationUnits, Map<Integer, Integer> lowerBoundMap,
+        Map<Integer, Integer> upperBoundMap )
     {
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
 
         String sql =
             "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
                 "dv.created, dv.comment, dv.followup, ou.name as sourcename, " +
-                "'" + dataElement.getName() + "' as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " +
+                "'" + dataElement.getName() +
+                "' as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " +
                 "'" + categoryOptionCombo.getName() + "' as categoryoptioncomboname " +
                 "from datavalue dv " +
                 "join period pe on dv.periodid = pe.periodid " +
@@ -233,8 +243,10 @@ public class JdbcDataAnalysisStore
         for ( Integer orgUnitUid : organisationUnits )
         {
             sql += "( dv.sourceid = " + orgUnitUid + " " +
-                "and ( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < " + lowerBoundMap.get( orgUnitUid ) + " " +
-                "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > " + upperBoundMap.get( orgUnitUid ) + " ) ) or ";
+                "and ( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < " +
+                lowerBoundMap.get( orgUnitUid ) + " " +
+                "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > " +
+                upperBoundMap.get( orgUnitUid ) + " ) ) or ";
         }
 
         sql = TextUtils.removeLastOr( sql ) + " ) ";
@@ -244,17 +256,20 @@ public class JdbcDataAnalysisStore
     }
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet,
+        int limit )
     {
         return getFollowupDataValuesBetweenInterval( organisationUnit, dataSet, limit, null, null );
     }
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, DataSet dataSet, int limit, Date startDate, Date endDate )
+    public List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit,
+        DataSet dataSet, int limit, Date startDate, Date endDate )
     {
 
         String dataSetIdCheck = dataSet != null ? " and dse.datasetid =" + dataSet.getId() + " " : " ";
-        String joinDataSet = dataSet != null ? " join datasetelement dse on dse.dataelementid = de.dataelementid" + " " : " ";
+        String joinDataSet =
+            dataSet != null ? " join datasetelement dse on dse.dataelementid = de.dataelementid" + " " : " ";
 
         String sql =
             "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, " +
@@ -275,12 +290,11 @@ public class JdbcDataAnalysisStore
         {
             sql +=
                 "and pe.startdate >= '" + DateUtils.getMediumDateString( startDate ) + "' " +
-                "and pe.enddate <= '" + DateUtils.getMediumDateString( endDate ) + "' ";
+                    "and pe.enddate <= '" + DateUtils.getMediumDateString( endDate ) + "' ";
         }
 
         sql += statementBuilder.limitRecord( 0, limit );
 
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper() );
-
     }
 }

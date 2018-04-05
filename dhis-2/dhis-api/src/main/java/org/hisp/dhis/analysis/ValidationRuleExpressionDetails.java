@@ -30,6 +30,7 @@ package org.hisp.dhis.analysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.Strings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,8 +40,9 @@ import java.util.Map;
 @JacksonXmlRootElement
 public class ValidationRuleExpressionDetails
 {
-    private static String NAME_PROPERTY_KEY = "name";
-    private static String VALUE_PROPERTY_KEY = "value";
+    private static final String NAME_PROPERTY_KEY = "name";
+
+    private static final String VALUE_PROPERTY_KEY = "value";
 
     private List<Map<String, String>> leftSide = new ArrayList<>();
 
@@ -58,7 +60,7 @@ public class ValidationRuleExpressionDetails
 
     private void addDetailTo( String name, String value, List<Map<String, String>> side )
     {
-        if ( name != null )
+        if ( !Strings.isNullOrEmpty( name ) )
         {
             Map<String, String> map = new HashMap<>();
             map.put( NAME_PROPERTY_KEY, name );

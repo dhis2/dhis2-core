@@ -41,5 +41,6 @@ public interface FollowupAnalysisService
 {
     List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit );
 
-    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, String dataSetId, int limit, Date startDate, Date endDate );
+    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, String dataSetId,
+        int limit, Date startDate, Date endDate );
 }

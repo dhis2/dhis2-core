@@ -119,7 +119,7 @@ public class AnalysisController
 
     private static final String KEY_ANALYSIS_DATA_VALUES = "analysisDataValues";
 
-    private static final String KEY_VALIDATIONRESULT = "validationResult";
+    private static final String KEY_VALIDATION_RESULT = "validationResult";
 
     @Autowired
     private ContextUtils contextUtils;
@@ -166,7 +166,8 @@ public class AnalysisController
     @RequestMapping( value = "/validationRules", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    List<ValidationResultView> performValidationRulesAnalysis( @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
+    List<ValidationResultView> performValidationRulesAnalysis(
+        @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -174,16 +175,20 @@ public class AnalysisController
         ValidationRuleGroup group = null;
         if ( validationRulesAnalysisParams.getValidationRuleGroupId() != null )
         {
-            group = validationRuleService.getValidationRuleGroup( validationRulesAnalysisParams.getValidationRuleGroupId() );
+            group = validationRuleService
+                .getValidationRuleGroup( validationRulesAnalysisParams.getValidationRuleGroupId() );
         }
 
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( validationRulesAnalysisParams.getOrganisationUnitId() );
+        OrganisationUnit organisationUnit = organisationUnitService
+            .getOrganisationUnit( validationRulesAnalysisParams.getOrganisationUnitId() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
         }
 
-        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit, format.parseDate( validationRulesAnalysisParams.getStartDate() ), format.parseDate( validationRulesAnalysisParams.getEndDate() ) )
+        ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit,
+            format.parseDate( validationRulesAnalysisParams.getStartDate() ),
+            format.parseDate( validationRulesAnalysisParams.getEndDate() ) )
             .withIncludeOrgUnitDescendants( true )
             .withPersistResults( validationRulesAnalysisParams.isPersist() )
             .withSendNotifications( validationRulesAnalysisParams.isNotification() )
@@ -194,29 +199,32 @@ public class AnalysisController
 
         Collections.sort( validationResults, new ValidationResultComparator() );
 
-        session.setAttribute( KEY_VALIDATIONRESULT, validationResults );
+        session.setAttribute( KEY_VALIDATION_RESULT, validationResults );
 
         return validationResultsListToResponse( validationResults );
-
     }
 
     @RequestMapping( value = "validationRulesExpression", method = RequestMethod.GET )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId, @RequestParam String periodId, @RequestParam String organisationUnitId ) throws WebMessageException
+    ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId,
+        @RequestParam String periodId, @RequestParam String organisationUnitId )
+        throws WebMessageException
     {
         ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
 
         ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );
         if ( validationRule == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
         }
 
         Period period = periodService.getPeriod( periodId );
@@ -225,18 +233,22 @@ public class AnalysisController
             throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
         }
 
-        for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
+        for ( DataElementOperand operand : expressionService
+            .getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
         {
-            DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+            DataValue dataValue = dataValueService
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
 
             String value = dataValue != null ? dataValue.getValue() : null;
 
             validationRuleExpressionDetails.addLeftSideDetail( operand.getName(), value );
         }
 
-        for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
+        for ( DataElementOperand operand : expressionService
+            .getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
         {
-            DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+            DataValue dataValue = dataValueService
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
 
             String value = dataValue != null ? dataValue.getValue() : null;
 
@@ -249,18 +261,22 @@ public class AnalysisController
     @RequestMapping( value = "/stdDevOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    List<DeflatedDataValue> performStdDevOutlierAnalysis( @RequestBody StdDevOutlierAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
+    List<DeflatedDataValue> performStdDevOutlierAnalysis(
+        @RequestBody StdDevOutlierAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
 
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( stdDevOutlierAnalysisParams.getOrganisationUnitId() );
+        OrganisationUnit organisationUnit = organisationUnitService
+            .getOrganisationUnit( stdDevOutlierAnalysisParams.getOrganisationUnitId() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
         }
 
-        Collection<Period> periods = periodService.getPeriodsBetweenDates( format.parseDate( stdDevOutlierAnalysisParams.getFromDate() ), format.parseDate( stdDevOutlierAnalysisParams.getToDate() ) );
+        Collection<Period> periods = periodService
+            .getPeriodsBetweenDates( format.parseDate( stdDevOutlierAnalysisParams.getFromDate() ),
+                format.parseDate( stdDevOutlierAnalysisParams.getToDate() ) );
 
         Set<DataElement> dataElements = new HashSet<>();
 
@@ -269,14 +285,19 @@ public class AnalysisController
             dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
         }
 
-        Date from = new DateTime( format.parseDate( stdDevOutlierAnalysisParams.getFromDate() ) ).minusYears( 2 ).toDate();
+        Date from = new DateTime( format.parseDate( stdDevOutlierAnalysisParams.getFromDate() ) ).minusYears( 2 )
+            .toDate();
 
-        log.info( "From date: " + stdDevOutlierAnalysisParams.getFromDate() + ", To date: " + stdDevOutlierAnalysisParams.getToDate() + ", Organisation unit: " + organisationUnit
+        log.info( "From date: " + stdDevOutlierAnalysisParams.getFromDate() + ", To date: " +
+            stdDevOutlierAnalysisParams.getToDate() + ", Organisation unit: " + organisationUnit
             + ", Std dev: " + stdDevOutlierAnalysisParams.getStandardDeviation() );
 
-        log.info( "Nr of data elements: " + dataElements.size() + " Nr of periods: " + periods.size() + "for Standard Deviation Outlier Analysis" );
+        log.info( "Nr of data elements: " + dataElements.size() + " Nr of periods: " + periods.size() +
+            "for Standard Deviation Outlier Analysis" );
 
-        List<DeflatedDataValue> dataValues = new ArrayList( stdDevOutlierAnalysisService.analyse( Sets.newHashSet( organisationUnit ), dataElements, periods, stdDevOutlierAnalysisParams.getStandardDeviation(), from ) );
+        List<DeflatedDataValue> dataValues = new ArrayList<>( stdDevOutlierAnalysisService
+            .analyse( Sets.newHashSet( organisationUnit ), dataElements, periods,
+                stdDevOutlierAnalysisParams.getStandardDeviation(), from ) );
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
 
@@ -286,18 +307,22 @@ public class AnalysisController
     @RequestMapping( value = "/minMaxOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    List<DeflatedDataValue> performMinMaxOutlierAnalysis( @RequestBody MinMaxOutlierAnalysisParams minMaxOutlierAnalysisParams, HttpSession session )
+    List<DeflatedDataValue> performMinMaxOutlierAnalysis(
+        @RequestBody MinMaxOutlierAnalysisParams minMaxOutlierAnalysisParams, HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
 
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( minMaxOutlierAnalysisParams.getOrganisationUnitId() );
+        OrganisationUnit organisationUnit = organisationUnitService
+            .getOrganisationUnit( minMaxOutlierAnalysisParams.getOrganisationUnitId() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
         }
 
-        Collection<Period> periods = periodService.getPeriodsBetweenDates( format.parseDate( minMaxOutlierAnalysisParams.getFromDate() ), format.parseDate( minMaxOutlierAnalysisParams.getToDate() ) );
+        Collection<Period> periods = periodService
+            .getPeriodsBetweenDates( format.parseDate( minMaxOutlierAnalysisParams.getFromDate() ),
+                format.parseDate( minMaxOutlierAnalysisParams.getToDate() ) );
 
         Set<DataElement> dataElements = new HashSet<>();
 
@@ -309,13 +334,17 @@ public class AnalysisController
             }
         }
 
-        Date from = new DateTime( format.parseDate( minMaxOutlierAnalysisParams.getFromDate() ) ).minusYears( 2 ).toDate();
+        Date from = new DateTime( format.parseDate( minMaxOutlierAnalysisParams.getFromDate() ) ).minusYears( 2 )
+            .toDate();
 
-        log.info( "From date: " + minMaxOutlierAnalysisParams.getFromDate() + ", To date: " + minMaxOutlierAnalysisParams.getToDate() + ", Organisation unit: " + organisationUnit );
+        log.info( "From date: " + minMaxOutlierAnalysisParams.getFromDate() + ", To date: " +
+            minMaxOutlierAnalysisParams.getToDate() + ", Organisation unit: " + organisationUnit );
 
-        log.info( "Nr of data elements: " + dataElements.size() + " Nr of periods: " + periods.size() + " for Min Max Outlier Analysis" );
+        log.info( "Nr of data elements: " + dataElements.size() + " Nr of periods: " + periods.size() +
+            " for Min Max Outlier Analysis" );
 
-        List<DeflatedDataValue> dataValues = new ArrayList( minMaxOutlierAnalysisService.analyse( Sets.newHashSet( organisationUnit ), dataElements, periods, null, from ) );
+        List<DeflatedDataValue> dataValues = new ArrayList<>( minMaxOutlierAnalysisService
+            .analyse( Sets.newHashSet( organisationUnit ), dataElements, periods, null, from ) );
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
 
@@ -325,12 +354,14 @@ public class AnalysisController
     @RequestMapping( value = "/followup", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
-    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody FollowupAnalysisParams followupAnalysisParams, HttpSession session )
+    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody FollowupAnalysisParams followupAnalysisParams,
+        HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
 
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( followupAnalysisParams.getOrganisationUnitId() );
+        OrganisationUnit organisationUnit = organisationUnitService
+            .getOrganisationUnit( followupAnalysisParams.getOrganisationUnitId() );
         if ( organisationUnit == null )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
@@ -344,7 +375,9 @@ public class AnalysisController
             endDate = new DateTime( format.parseDate( followupAnalysisParams.getEndDate() ) ).toDate();
         }
 
-        List<DeflatedDataValue> dataValues = new ArrayList( followupAnalysisService.getFollowupDataValuesBetweenInterval( organisationUnit, followupAnalysisParams.getDataSetId(), DataAnalysisService.MAX_OUTLIERS + 1, startDate, endDate ) ); // +1 to detect overflow
+        List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
+            .getFollowupDataValuesBetweenInterval( organisationUnit, followupAnalysisParams.getDataSetId(),
+                DataAnalysisService.MAX_OUTLIERS + 1, startDate, endDate ) ); // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
 
@@ -362,10 +395,13 @@ public class AnalysisController
             DataElement dataElement = dataElementService.getDataElement( followup.getDataElementId() );
             Period period = periodService.getPeriod( followup.getPeriodId() );
             OrganisationUnit source = organisationUnitService.getOrganisationUnit( followup.getOrganisationUnitId() );
-            CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( followup.getCategoryOptionComboId() );
-            CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( followup.getAttributeOptionComboId() );
+            CategoryOptionCombo categoryOptionCombo = categoryService
+                .getCategoryOptionCombo( followup.getCategoryOptionComboId() );
+            CategoryOptionCombo attributeOptionCombo = categoryService
+                .getCategoryOptionCombo( followup.getAttributeOptionComboId() );
 
-            DataValue dataValue = dataValueService.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
+            DataValue dataValue = dataValueService
+                .getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
 
             if ( dataValue != null )
             {
@@ -373,7 +409,9 @@ public class AnalysisController
                 dataValues.add( dataValue );
             }
 
-            log.info( followup.isFollowup() ? "Data value will be marked for follow-up" : "Data value will be unmarked for follow-up" );
+            log.info( followup.isFollowup() ?
+                "Data value will be marked for follow-up" :
+                "Data value will be unmarked for follow-up" );
         }
 
         if ( dataValues.size() > 0 )
@@ -383,73 +421,95 @@ public class AnalysisController
     }
 
     @RequestMapping( value = "/report.pdf", method = RequestMethod.GET )
-    public void getPdfReport( HttpSession session, HttpServletResponse response ) throws Exception
+    public void getPdfReport( HttpSession session, HttpServletResponse response )
+        throws Exception
     {
+        @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
         Grid grid = generateAnalysisReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
+        contextUtils
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING, filename,
+                false );
 
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "/report.xls", method = RequestMethod.GET )
-    public void getXlsReport( HttpSession session, HttpServletResponse response ) throws Exception
+    public void getXlsReport( HttpSession session, HttpServletResponse response )
+        throws Exception
     {
+        @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
         Grid grid = generateAnalysisReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, false );
 
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "/report.csv", method = RequestMethod.GET )
-    public void getCSVReport( HttpSession session, HttpServletResponse response ) throws Exception
+    public void getCSVReport( HttpSession session, HttpServletResponse response )
+        throws Exception
     {
+        @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
         Grid grid = generateAnalysisReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
+        contextUtils
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename,
+                false );
 
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
     @RequestMapping( value = "validationRules/report.pdf", method = RequestMethod.GET )
-    public void getValidationRulesPdfReport( HttpSession session, HttpServletResponse response ) throws Exception
+    public void getValidationRulesPdfReport( HttpSession session, HttpServletResponse response )
+        throws Exception
     {
-        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATIONRESULT );
+        @SuppressWarnings( "unchecked" )
+        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
+        contextUtils
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING, filename,
+                false );
 
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "validationRules/report.xls", method = RequestMethod.GET )
-    public void getValidationRulesXlsReport( HttpSession session, HttpServletResponse response ) throws Exception
+    public void getValidationRulesXlsReport( HttpSession session, HttpServletResponse response )
+        throws Exception
     {
-        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATIONRESULT );
+        @SuppressWarnings( "unchecked" )
+        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, false );
 
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "validationRules/report.csv", method = RequestMethod.GET )
-    public void getValidationRulesCSVReport( HttpSession session, HttpServletResponse response ) throws Exception
+    public void getValidationRulesCSVReport( HttpSession session, HttpServletResponse response )
+        throws Exception
     {
-        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATIONRESULT );
+        @SuppressWarnings( "unchecked" )
+        List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, false );
+        contextUtils
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename,
+                false );
 
         GridUtils.toCsv( grid, response.getWriter() );
     }
@@ -517,7 +577,8 @@ public class AnalysisController
                 grid.addValue( unit.getName() );
                 grid.addValue( format.formatPeriod( period ) );
                 grid.addValue( validationResult.getValidationRule().getName() );
-                grid.addValue( i18n.getString( validationResult.getValidationRule().getImportance().toString().toLowerCase() ) );
+                grid.addValue(
+                    i18n.getString( validationResult.getValidationRule().getImportance().toString().toLowerCase() ) );
                 grid.addValue( validationResult.getValidationRule().getLeftSide().getDescription() );
                 grid.addValue( String.valueOf( validationResult.getLeftsideValue() ) );
                 grid.addValue( i18n.getString( validationResult.getValidationRule().getOperator().toString() ) );
@@ -537,18 +598,17 @@ public class AnalysisController
             return Collections.emptyList();
         }
 
-        List<DeflatedDataValue> dataValuesToResponse = deflatedDataValues;
         if ( deflatedDataValues.size() > DataAnalysisService.MAX_OUTLIERS )
         {
             return deflatedDataValues.subList( 0, DataAnalysisService.MAX_OUTLIERS );
         }
 
-        for ( DeflatedDataValue dataValue : dataValuesToResponse )
+        for ( DeflatedDataValue dataValue : deflatedDataValues )
         {
             dataValue.getPeriod().setName( format.formatPeriod( dataValue.getPeriod() ) );
         }
 
-        return dataValuesToResponse;
+        return deflatedDataValues;
     }
 
     private List<ValidationResultView> validationResultsListToResponse( List<ValidationResult> validationResults )

@@ -46,7 +46,8 @@ public class StdDevOutlierAnalysisParams
     {
     }
 
-    public StdDevOutlierAnalysisParams( String fromDate, String toDate, List<String> dataSetIds, Double standardDeviation, String organisationUnitId )
+    public StdDevOutlierAnalysisParams( String fromDate, String toDate, List<String> dataSetIds,
+        Double standardDeviation, String organisationUnitId )
     {
         this.fromDate = fromDate;
         this.toDate = toDate;

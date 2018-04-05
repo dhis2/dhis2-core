@@ -46,7 +46,8 @@ public class FollowupParams
     {
     }
 
-    public FollowupParams( int dataElementId, int periodId, int organisationUnitId, int categoryOptionComboId, int attributeOptionComboId, boolean followup )
+    public FollowupParams( int dataElementId, int periodId, int organisationUnitId, int categoryOptionComboId,
+        int attributeOptionComboId, boolean followup )
     {
         this.dataElementId = dataElementId;
         this.periodId = periodId;

@@ -44,7 +44,8 @@ public class MinMaxOutlierAnalysisParams
     {
     }
 
-    public MinMaxOutlierAnalysisParams( String fromDate, String toDate, List<String> dataSetIds, String organisationUnitId )
+    public MinMaxOutlierAnalysisParams( String fromDate, String toDate, List<String> dataSetIds,
+        String organisationUnitId )
     {
         this.fromDate = fromDate;
         this.toDate = toDate;
