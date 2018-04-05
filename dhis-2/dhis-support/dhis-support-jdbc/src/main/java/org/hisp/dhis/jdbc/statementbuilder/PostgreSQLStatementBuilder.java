@@ -182,4 +182,10 @@ public class PostgreSQLStatementBuilder
             .append(" (").append(column).append(")")
             .toString();
     }
+
+    @Override
+    public boolean supportsPartialIndexes()
+    {
+        return false;
+    }
 }
