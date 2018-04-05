@@ -44,9 +44,12 @@ import java.util.Optional;
 public class OrganisationUnitGroupSetResourceTable
     extends ResourceTable<OrganisationUnitGroupSet>
 {
-    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects, String columnQuote )
+    private boolean supportsPartialIndexes;
+    
+    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects, String columnQuote, boolean supportsPartialIndexes )
     {
         super( objects, columnQuote );
+        this.supportsPartialIndexes = supportsPartialIndexes;
     }
 
     @Override
@@ -139,9 +142,11 @@ public class OrganisationUnitGroupSetResourceTable
 
         // Two partial indexes as start date can be null
         
-        String indexA = "create index " + nameA + " on " + getTempTableName() + "(organisationunitid, startdate) where startdate is not null";
-        String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) where startdate is null";
-        
+        String indexA = "create index " + nameA + " on " + getTempTableName() + "(organisationunitid, startdate) " + 
+            TextUtils.emptyIfFalse( "where startdate is not null", supportsPartialIndexes );
+        String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) " + 
+            TextUtils.emptyIfFalse( "where startdate is null", supportsPartialIndexes );
+
         return Lists.newArrayList( indexA, indexB );
     }
 }

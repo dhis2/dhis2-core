@@ -178,7 +178,7 @@ public class DefaultResourceTableService
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            statementBuilder.getColumnQuote(), statementBuilder.supportsPartialIndexes() ) );
     }
 
     @Override
