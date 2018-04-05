@@ -140,7 +140,7 @@ public class ProgramDataSynchronizationJob extends AbstractJob
 
             List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params );
             filterOutNonSynchronizableAttributes( dtoTeis );
-            log.info( "Going to sync TEIs (and related Enrollments and Events) numbers: " + ((i * trackerSyncPageSize) + 1) + " - " + ((i * trackerSyncPageSize) + dtoTeis.size()) );
+            log.info( "Syncing page '" + i + "', size of the page is:  " + trackerSyncPageSize );
 
             if ( log.isDebugEnabled() )
             {
@@ -166,9 +166,7 @@ public class ProgramDataSynchronizationJob extends AbstractJob
         for ( TrackedEntityInstance tei : dtoTeis )
         {
             tei.setAttributes( tei.getAttributes().stream()
-                .peek( attr -> System.out.println( "DTO level: Before: TEI: " + tei.getTrackedEntityInstance() + ", Attribute: UID: " + attr.getAttribute() + ", skipSync: " + attr.getSkipSynchronization() ) )
                 .filter( attr -> !attr.getSkipSynchronization() )
-                .peek( attr -> System.out.println( "DTO level: After: TEI: " + tei.getTrackedEntityInstance() + ", Attribute: UID: " + attr.getAttribute() + ", skipSync: " + attr.getSkipSynchronization() ) )
                 .collect( Collectors.toList() ) );
         }
     }
