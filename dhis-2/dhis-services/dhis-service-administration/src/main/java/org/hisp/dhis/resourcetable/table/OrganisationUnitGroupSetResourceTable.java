@@ -134,10 +134,14 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        String name = "in_orgunitgroupsetstructure_" + getRandomSuffix();
+        String nameA = "in_orgunitgroupsetstructure_not_null_" + getRandomSuffix();
+        String nameB = "in_orgunitgroupsetstructure_null_" + getRandomSuffix();
 
-        String sql = "create index " + name + " on " + getTempTableName() + "(organisationunitid, startdate)";
+        // Two partial indexes as start date can be null
         
-        return Lists.newArrayList( sql );
+        String indexA = "create index " + nameA + " on " + getTempTableName() + "(organisationunitid, startdate) where startdate is not null";
+        String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) where startdate is null";
+        
+        return Lists.newArrayList( indexA, indexB );
     }
 }
