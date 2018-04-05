@@ -69,7 +69,7 @@ public class OrganisationUnitGroupSetResourceTable
             statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
         }
         
-        return TextUtils.removeLastComma( statement );
+        return TextUtils.removeLastComma( statement ) + ")";
     }
 
     @Override
