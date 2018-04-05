@@ -198,6 +198,7 @@ public class DataSetServiceTest
         dataApprovalService.addWorkflow( workflow );
 
         dataSet.setWorkflow( workflow );
+        dataSet.addOrganisationUnit( unit );
         dataSetService.updateDataSet( dataSet );
 
         User user = mockCurrentUserService.getCurrentUser();
