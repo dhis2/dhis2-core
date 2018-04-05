@@ -69,9 +69,7 @@ public class OrganisationUnitGroupSetResourceTable
             statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
         }
         
-        statement += "primary key (organisationunitid))";
-        
-        return statement;
+        return TextUtils.removeLastComma( statement ) + ")";
     }
 
     @Override
@@ -136,6 +134,14 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();
+        String nameA = "in_orgunitgroupsetstructure_not_null_" + getRandomSuffix();
+        String nameB = "in_orgunitgroupsetstructure_null_" + getRandomSuffix();
+
+        // Two partial indexes as start date can be null
+        
+        String indexA = "create index " + nameA + " on " + getTempTableName() + "(organisationunitid, startdate) where startdate is not null";
+        String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) where startdate is null";
+        
+        return Lists.newArrayList( indexA, indexB );
     }
 }

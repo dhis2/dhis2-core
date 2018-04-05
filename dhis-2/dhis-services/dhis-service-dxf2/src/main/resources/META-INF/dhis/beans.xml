@@ -156,6 +156,6 @@
 
   <bean id="dataSynchJob" class="org.hisp.dhis.dxf2.synch.DataSynchronizationJob" />
 
-  <bean id="dataSyncJob" class="org.hisp.dhis.dxf2.sync.DataSyncJob" />
+  <bean id="programDataSyncJob" class="org.hisp.dhis.dxf2.sync.ProgramDataSynchronizationJob" />
 
 </beans>
