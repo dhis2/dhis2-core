@@ -186,6 +186,6 @@ public class PostgreSQLStatementBuilder
     @Override
     public boolean supportsPartialIndexes()
     {
-        return false;
+        return true;
     }
 }
