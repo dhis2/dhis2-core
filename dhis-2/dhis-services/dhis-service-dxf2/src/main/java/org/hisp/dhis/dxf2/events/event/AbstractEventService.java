@@ -1056,8 +1056,6 @@ public abstract class AbstractEventService
 
                 if ( !importOptions.isSkipNotifications() )
                 {
-                    programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
-
                     programRuleEngineService.evaluate( programStageInstance );
                 }
 
