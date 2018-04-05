@@ -50,14 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProgramStageDataEntrySMSListener
     extends BaseSMSListener
 {
-    private static final String DEFAULT_PATTERN = "(\\w+)\\s*((\\w+\\s*)=(\\s*\\w+\\s*),\\s*)*((\\w+\\s*)=(\\s*\\w+))";
-
-    private static final String SUCCESS = "Program Stage registered successfully";
-
     private static final String MORE_THAN_ONE_TEI = "More than one tracked entity found for given phone number";
-
     private static final String NO_OU_FOUND = "No organisation unit found";
-
     private static final String NO_TEI_EXIST = "No tracked entity exists with given phone number";
 
     // -------------------------------------------------------------------------
@@ -80,51 +74,29 @@ public class ProgramStageDataEntrySMSListener
     // IncomingSmsListener implementation
     // -------------------------------------------------------------------------
 
-    @Transactional
     @Override
-    public boolean accept( IncomingSms sms )
+    public void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage  )
     {
-        return getCommand( sms ) != null;
-    }
-
-    @Transactional
-    @Override
-    public void receive( IncomingSms sms )
-    {
-        SMSCommand smsCommand = getCommand( sms );
-
         Set<OrganisationUnit> ous = getOrganisationUnits( sms );
 
         List<TrackedEntityInstance> teis = getTrackedEntityInstanceByPhoneNumber( sms, smsCommand, ous );
-
-        Map<String, String> commandValuePairs = parseMessageInput( sms, smsCommand );
-
-        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( commandValuePairs, smsCommand, sms ) )
-        {
-            return;
-        }
 
         if ( !validate( teis, ous, sms ) )
         {
             return;
         }
 
-        registerProgramStage( teis.iterator().next(), sms, smsCommand, commandValuePairs, ous );
+        registerProgramStage( teis.iterator().next(), sms, smsCommand, parsedMessage, ous );
     }
 
     @Override
-    protected String getDefaultPattern()
+    protected SMSCommand getSMSCommand( IncomingSms sms )
     {
-        return DEFAULT_PATTERN;
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
+            ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
     }
 
-    @Override
-    protected String getSuccessMessage()
-    {
-        return SUCCESS;
-    }
-
-    private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
+    private void registerProgramStage(TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
     {
         List<ProgramInstance> programInstances = new ArrayList<>(
                 programInstanceService.getProgramInstances( tei, smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
@@ -169,12 +141,6 @@ public class ProgramStageDataEntrySMSListener
         params.getFilters().add( item );
 
         return params;
-    }
-
-    private SMSCommand getCommand( IncomingSms sms )
-    {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-                ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
     }
 
     private boolean validate( List<TrackedEntityInstance> teis, Set<OrganisationUnit> ous, IncomingSms sms )
