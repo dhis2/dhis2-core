@@ -151,20 +151,17 @@ public class J2MEDataValueSMSListener
     }
 
     @Override
-    protected String getDefaultPattern()
+    protected SMSCommand getSMSCommand( IncomingSms sms )
     {
-        // Not supported for J2MEListener
-        return StringUtils.EMPTY;
+        return null;
     }
 
     @Override
-    protected String getSuccessMessage()
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
-        // Not supported for J2MEListener
-        return StringUtils.EMPTY;
     }
 
-    private Map<String, String> parse( String sms, SMSCommand smsCommand )
+    private Map<String, String> parse(String sms, SMSCommand smsCommand )
     {
         String[] keyValuePairs = null;
 
