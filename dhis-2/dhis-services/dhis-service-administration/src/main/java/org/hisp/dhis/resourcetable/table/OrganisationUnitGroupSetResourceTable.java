@@ -69,9 +69,7 @@ public class OrganisationUnitGroupSetResourceTable
             statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
         }
         
-        statement += "primary key (organisationunitid, startdate))";
-        
-        return statement;
+        return TextUtils.removeLastComma( statement );
     }
 
     @Override
@@ -136,6 +134,10 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();
+        String name = "in_orgunitgroupsetstructure_" + getRandomSuffix();
+
+        String sql = "create index " + name + " on " + getTempTableName() + "(organisationunitid, startdate)";
+        
+        return Lists.newArrayList( sql );
     }
 }

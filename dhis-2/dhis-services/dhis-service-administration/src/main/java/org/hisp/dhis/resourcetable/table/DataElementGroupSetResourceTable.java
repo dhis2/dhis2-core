@@ -60,8 +60,7 @@ public class DataElementGroupSetResourceTable
     {
         String statement = "create table " + getTempTableName() + " (" +
             "dataelementid integer not null, " +
-            "dataelementname varchar(230), " +
-            "startdate date, ";
+            "dataelementname varchar(230), ";
         
         for ( DataElementGroupSet groupSet : objects )
         {
@@ -69,7 +68,7 @@ public class DataElementGroupSetResourceTable
             statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
         }
         
-        statement += "primary key (dataelementid, startdate))";
+        statement += "primary key (dataelementid))";
         
         return statement;
     }
@@ -79,7 +78,7 @@ public class DataElementGroupSetResourceTable
     {
         String sql = 
             "insert into " + getTempTableName() + " " +
-            "select d.dataelementid as dataelementid, d.name as dataelementname, null as startdate, ";
+            "select d.dataelementid as dataelementid, d.name as dataelementname, ";
         
         for ( DataElementGroupSet groupSet : objects )
         {
