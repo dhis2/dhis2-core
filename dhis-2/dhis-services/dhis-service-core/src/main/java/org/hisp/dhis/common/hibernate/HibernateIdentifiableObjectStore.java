@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
@@ -65,11 +64,15 @@ import org.hisp.dhis.user.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author bobj
@@ -368,7 +371,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        return getObject( Restrictions.eq( "uid", uid ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        predicates.add( root -> builder.equal( root.get( "uid" ), uid ) );
+
+        return getObject( builder, predicates );
     }
 
     @Override

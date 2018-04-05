@@ -28,6 +28,7 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -46,11 +47,19 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -138,24 +147,6 @@ public class HibernateGenericStore<T>
         return getSession().createQuery( hql ).setCacheable( cacheable );
     }
 
-    protected final TypedQuery getJpaQuery( String jpaQuery )
-    {
-        return getSession().createQuery( jpaQuery ).setCacheable( cacheable );
-    }
-
-    /**
-     * Creates a SqlQuery.
-     *
-     * @param sql the sql query.
-     * @return a SqlQuery instance.
-     */
-    protected final NativeQuery getSqlQuery( String sql )
-    {
-        NativeQuery query = getSession().createNativeQuery( sql );
-        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
-        return query;
-    }
-    
     /**
      * Creates a Criteria for the implementation Class type.
      * <p>
@@ -172,17 +163,17 @@ public class HibernateGenericStore<T>
         return getExecutableCriteria( criteria );
     }
 
-    public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
-    {
-        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
-    }
-
     /**
      * Override to add additional restrictions to criteria before
      * it is invoked.
      */
     protected void preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
     {
+    }
+
+    public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
+    {
+        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
     }
 
     protected Criteria getClazzCriteria()
@@ -193,27 +184,6 @@ public class HibernateGenericStore<T>
     protected CriteriaBuilder getCriteriaBuilder()
     {
         return sessionFactory.getCriteriaBuilder();
-    }
-
-    /**
-     * Get Unique result from JPA CriteriaQuery
-     * @param criteriaQuery
-     * @param <T>
-     * @return unique result, if no record exists, returns null.
-     */
-    protected <T> T uniqueResult( @NotNull CriteriaQuery<T> criteriaQuery )
-    {
-        return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList().stream().findFirst().orElse( null );
-    }
-
-    /**
-     * Get List result from JPA CriteriaQuery
-     * @param criteriaQuery
-     * @return list result
-     */
-    protected List<T> getResultList( @NotNull CriteriaQuery<T> criteriaQuery )
-    {
-        return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList();
     }
 
     /**
@@ -234,6 +204,160 @@ public class HibernateGenericStore<T>
 
         criteria.setCacheable( cacheable );
         return criteria;
+    }
+
+    //------------------------------------------------------------------------------------------
+    // JPA Methods
+    //------------------------------------------------------------------------------------------
+
+    protected  final TypedQuery<T> getCriteriaQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders )
+    {
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+
+        List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+
+        if ( !predicates.isEmpty() )
+        {
+            query.where( predicates.toArray( new Predicate[0] ) );
+        }
+
+        return getExecutableCriteriaQuery( query );
+    }
+
+    public final TypedQuery<T> getJpaQuery( CriteriaBuilder builder )
+    {
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+
+        Root<T> root = query.from(  getClazz() );
+
+        query.select( root );
+
+        preProcessCriteriaQuery( query );
+
+        return  getExecutableCriteriaQuery( query );
+    }
+
+    public final TypedQuery<T> getExecutableCriteriaQuery( CriteriaQuery<T> criteriaQuery )
+    {
+        return sessionFactory.getCurrentSession()
+            .createQuery( criteriaQuery )
+            .setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+    }
+
+    protected void preProcessCriteriaQuery( CriteriaQuery<T> criteriaQuery )
+    {
+    }
+
+    /**
+     * Get Unique result from JPA CriteriaQuery
+     * @param criteriaQuery
+     * @param <T>
+     * @return unique result, if no record exists, returns null.
+     */
+    protected <T> T getSingleResult( @NotNull TypedQuery<T> query )
+    {
+        List<T> list = query.getResultList();
+
+        if ( list != null && list.size() > 1 )
+        {
+            throw new NonUniqueResultException( "More than one entity found for query" );
+        }
+
+        return query.getResultList().stream().findFirst().orElse( null );
+    }
+
+    /**
+     * Get List result from JPA CriteriaQuery
+     * @param criteriaQuery
+     * @return list result
+     */
+    protected List<T> getResultList( @NotNull CriteriaQuery<T> criteriaQuery )
+    {
+        return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList();
+    }
+
+    /**
+     * Retrieves an object based on the given Criterions.
+     *
+     * @param expressions the Criterions for the Criteria.
+     * @return an object of the implementation Class type.
+     */
+    @SuppressWarnings( "unchecked" )
+    protected final T getObject( CriteriaBuilder builder,  List<Function<Root<T>, Predicate>> predicateProviders )
+    {
+        return (T)  getSingleResult( getCriteriaQuery( builder, predicateProviders ) );
+    }
+
+    protected final TypedQuery getJpaQuery( String jpaQuery )
+    {
+        return getSession().createQuery( jpaQuery ).setCacheable( cacheable );
+    }
+
+    /**
+     * Creates a {@link CriteriaQuery}.
+     *
+     * @param builder the {@link CriteriaBuilder} to create the query from.
+     * @param predicateProviders list of predicate restrictions to apply to criteria.
+     * @return a list of objects.
+     */
+    protected final List<T> getList( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders )
+    {
+        return getQuery( builder, predicateProviders ).getResultList();
+    }
+
+    /**
+     * Creates a {@link CriteriaQuery}.
+     *
+     * @param builder the {@link CriteriaBuilder} to create the query from.
+     * @param predicateProvider predicate restrictions to apply to criteria.
+     * @return a list of objects.
+     */
+    protected final List<T> getList( CriteriaBuilder builder, Function<Root<T>, Predicate> predicateProvider )
+    {
+        List<Function<Root<T>, Predicate>> providers = predicateProvider != null ? Lists.newArrayList( predicateProvider ) : Lists.newArrayList();
+
+        return getList( builder, providers );
+    }
+
+    /**
+     * Creates a {@link TypedQuery}.
+     *
+     * @param builder the {@link CriteriaBuilder} to create the query from.
+     * @param predicateProviders the providers of {@link Predicate} for the query.
+     * @return a typed query.
+     */
+    private TypedQuery<T> getQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders )
+    {
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root );
+
+        List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+
+        if ( !predicates.isEmpty() )
+        {
+            query.where( predicates.toArray( new Predicate[0] ) );
+        }
+
+        return sessionFactory.getCurrentSession().createQuery( query );
+    }
+
+    //------------------------------------------------------------------------------------------
+    // End JPA Methods
+    //------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a SqlQuery.
+     *
+     * @param sql the sql query.
+     * @return a SqlQuery instance.
+     */
+    protected final NativeQuery getSqlQuery( String sql )
+    {
+        NativeQuery query = getSession().createNativeQuery( sql );
+        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+        return query;
     }
 
     /**
@@ -302,12 +426,12 @@ public class HibernateGenericStore<T>
     {
         return object;
     }
-    
+
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAll()
     {
-        return getCriteria().list();
+
+        return getList( getCriteriaBuilder(), Lists.newArrayList() );
     }
     
     @Override
@@ -320,6 +444,7 @@ public class HibernateGenericStore<T>
         query.select( root );
         query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
 
+        List<Function<Root, Predicate>> predicates = new ArrayList<>();
         return getResultList( query );
     }
 

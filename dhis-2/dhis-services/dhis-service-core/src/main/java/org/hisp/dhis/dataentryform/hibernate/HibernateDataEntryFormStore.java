@@ -35,8 +35,11 @@ import org.hisp.dhis.program.ProgramStage;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Bharath Kumar
@@ -53,13 +56,10 @@ public class HibernateDataEntryFormStore
     public DataEntryForm getDataEntryFormByName( String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<DataEntryForm> query = builder.createQuery( DataEntryForm.class );
+        List<Function<Root<DataEntryForm>, Predicate>> predicates = new ArrayList<>();
+        predicates.add( root -> builder.equal( root.get( "name" ), name ) );
 
-        Root<DataEntryForm> dataEntryForm = query.from( DataEntryForm.class );
-        query.select( dataEntryForm );
-        query.where( builder.like( dataEntryForm.get( "name" ), name ) );
-
-        return uniqueResult( query );
+        return getObject( builder, predicates );
     }
 
     @Override

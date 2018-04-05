@@ -89,7 +89,6 @@ public class HibernateTrackedEntityDataValueAuditStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max )
     {

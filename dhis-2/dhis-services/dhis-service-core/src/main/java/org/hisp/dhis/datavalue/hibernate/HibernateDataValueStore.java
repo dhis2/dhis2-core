@@ -140,7 +140,7 @@ public class HibernateDataValueStore
         String hql = "delete from DataValue d where d.source = :source";
 
         sessionFactory.getCurrentSession().createQuery( hql ).
-            setEntity( "source", organisationUnit ).executeUpdate();
+            setParameter( "source", organisationUnit ).executeUpdate();
     }
 
     @Override
@@ -149,7 +149,7 @@ public class HibernateDataValueStore
         String hql = "delete from DataValue d where d.dataElement = :dataElement";
 
         sessionFactory.getCurrentSession().createQuery( hql )
-            .setEntity( "dataElement", dataElement ).executeUpdate();
+            .setParameter( "dataElement", dataElement ).executeUpdate();
     }
 
     @Override
