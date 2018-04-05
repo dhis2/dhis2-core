@@ -121,12 +121,12 @@ public class DefaultDataQueryService
 
         if ( dataQueryRequest.getMeasureCriteria() != null && !dataQueryRequest.getMeasureCriteria().isEmpty() )
         {
-            params.withMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( dataQueryRequest.getMeasureCriteria() ) );
+            params.withMeasureCriteria( getMeasureCriteriaFromParam( dataQueryRequest.getMeasureCriteria() ) );
         }
 
         if ( dataQueryRequest.getPreAggregationMeasureCriteria() != null && !dataQueryRequest.getPreAggregationMeasureCriteria().isEmpty() )
         {
-            params.withPreAggregationMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( dataQueryRequest.getPreAggregationMeasureCriteria()) );
+            params.withPreAggregationMeasureCriteria( getMeasureCriteriaFromParam( dataQueryRequest.getPreAggregationMeasureCriteria()) );
         }
         
         if ( dataQueryRequest.getAggregationType() != null )
