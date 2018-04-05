@@ -1,4 +1,5 @@
 package org.hisp.dhis.cache;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -100,5 +101,4 @@ public interface Cache<V>
      * this method does not clear anything.
      */
     void invalidateAll();
-
 }
