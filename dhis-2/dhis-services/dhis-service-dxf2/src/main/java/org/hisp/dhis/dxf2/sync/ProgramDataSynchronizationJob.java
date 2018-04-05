@@ -215,13 +215,13 @@ public class ProgramDataSynchronizationJob extends AbstractJob
 
     private AvailabilityStatus testServerAvailability()
     {
-        final int maxRemoteServerAvailabilityCheckAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
-        final int delayBetweenRemoteServerAvailabilityCheckAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+        final int maxAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
+        final int delayBetweenAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS );
 
-        return SyncUtils.testServerAvailability(
+        return SyncUtils.testServerAvailabilityWithRetries(
             systemSettingManager,
             restTemplate,
-            maxRemoteServerAvailabilityCheckAttempts,
-            delayBetweenRemoteServerAvailabilityCheckAttempts );
+            maxAttempts,
+            delayBetweenAttempts );
     }
 }
