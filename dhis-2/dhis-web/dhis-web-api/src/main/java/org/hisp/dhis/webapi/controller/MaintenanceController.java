@@ -1,5 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -89,6 +91,9 @@ public class MaintenanceController
 
     @Autowired
     private ResourceTableService resourceTableService;
+
+    @Autowired
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -290,7 +295,8 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
         @RequestParam( required = false ) boolean cacheClear,
-        @RequestParam( required = false ) boolean appReload )
+        @RequestParam( required = false ) boolean appReload,
+        @RequestParam( required = false ) boolean resourceTableUpdate )
     {
         if ( analyticsTableClear )
         {
@@ -365,6 +371,11 @@ public class MaintenanceController
         if ( appReload )
         {
             appManager.reloadApps();
+        }
+        
+        if ( resourceTableUpdate )
+        {
+            analyticsTableGenerator.generateResourceTables( null );
         }
     }
 }
