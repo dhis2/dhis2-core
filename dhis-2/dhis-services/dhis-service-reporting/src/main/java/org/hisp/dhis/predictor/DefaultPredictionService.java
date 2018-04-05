@@ -77,6 +77,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
  * @author Ken Haase
@@ -189,7 +190,7 @@ public class DefaultPredictionService implements PredictionService
                     for ( Period period : outputPeriods )
                     {
                         ListMapMap<String, String, Double> aggregateSampleMap = getAggregateSamples( aggregateDataMap,
-                            aggregates, samplePeriodsMap.get( period ), constantMap );
+                            aggregates, samplePeriodsMap.get( period ), constantMap, generator.getMissingValueStrategy() );
 
                         MapMap<String, DimensionalItemObject, Double> nonAggregateSampleMap = firstNonNull(
                             nonAggregateDataMap.get( period ), new MapMap<>() );
@@ -220,7 +221,8 @@ public class DefaultPredictionService implements PredictionService
                             Double value = expressionService.getExpressionValue( generator, nonAggregateValueMap,
                                 constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
 
-                            if ( value != null && !value.isNaN() && !value.isInfinite() )
+                            if ( value != null && !value.isNaN() && !value.isInfinite() &&
+                                !dataValueIsZeroAndInsignificant( Double.toString( value ), outputDataElement ) )
                             {
                                 String valueString = outputDataElement.getValueType().isInteger() ?
                                     Long.toString( Math.round( value ) ) :
@@ -337,12 +339,13 @@ public class DefaultPredictionService implements PredictionService
      * @param aggregates the aggregate expressions.
      * @param samplePeriods the periods to sample from.
      * @param constantMap any constants used in evaluating expressions.
+     * @param missingValueStrategy strategy for sampled period missing values.
      * @return lists of sample values by attributeOptionCombo and expression
      */
     private ListMapMap<String, String, Double> getAggregateSamples (
         MapMapMap<Period, String, DimensionalItemObject, Double> dataMap,
         Collection<String> aggregates, List<Period> samplePeriods,
-        Map<String, Double> constantMap )
+        Map<String, Double> constantMap, MissingValueStrategy missingValueStrategy )
     {
         ListMapMap<String, String, Double> result = new ListMapMap<>();
 
@@ -350,7 +353,7 @@ public class DefaultPredictionService implements PredictionService
         {
             for ( String aggregate : aggregates )
             {
-                Expression expression = new Expression( aggregate, "Aggregated" );
+                Expression expression = new Expression( aggregate, "Aggregated", missingValueStrategy );
 
                 for ( Period period : samplePeriods )
                 {
@@ -593,12 +596,12 @@ public class DefaultPredictionService implements PredictionService
 
         if ( !eventAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putAll( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
         }
 
         if ( !eventNonAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putAll( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
         }
 
         return dataValues;

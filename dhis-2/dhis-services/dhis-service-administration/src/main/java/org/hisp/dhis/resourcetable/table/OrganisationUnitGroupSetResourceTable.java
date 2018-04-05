@@ -118,7 +118,7 @@ public class OrganisationUnitGroupSetResourceTable
                     "inner join organisationunit ou2 ON ou2.organisationunitid = ougm.organisationunitid AND ou.path LIKE concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
-                    "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+                    "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
             }
         }
         

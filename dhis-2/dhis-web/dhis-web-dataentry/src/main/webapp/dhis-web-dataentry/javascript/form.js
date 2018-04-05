@@ -583,6 +583,8 @@ dhis2.de.addEventListeners = function()
         var optionComboId = split.optionComboId;
         var name = dataElementId + "-" + optionComboId + "-val";
 
+        $( this ).unbind( 'click' );
+        
         $( this ).click( function()
         {
             if ( $(this).hasClass( "checked" ) )
@@ -1655,10 +1657,15 @@ function getAndInsertDataValues()
 
     $( '.entryfield' ).val( '' );
     $( '.entrytime' ).val( '' );
-    $( '.entryselect' ).removeAttr( 'checked' );
-    $( '.entrytrueonly' ).removeAttr( 'checked' );
-    $( '.entrytrueonly' ).removeAttr( 'onclick' );
-    $( '.entrytrueonly' ).removeAttr( 'onkeydown' );
+    $( '.entryselect' ).each( function()
+    {
+        $( this ).removeClass( 'checked' );
+        $( this ).prop( 'checked', false );
+        
+    } );
+    $( '.entrytrueonly' ).prop( 'checked', false );
+    $( '.entrytrueonly' ).prop( 'onclick', null );
+    $( '.entrytrueonly' ).prop( 'onkeydown', null );
 
     $( '.entryfield' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entryselect' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
@@ -1818,23 +1825,23 @@ function insertDataValues( json )
             {
                 dhis2.de.setOptionNameInField( fieldId, value );
             }
-            else if ( $( fieldId ).attr( 'class' ) == 'entryselect' )
+            else if ( $( fieldId ).hasClass( 'entryselect' ) )
             {                
                 var fId = fieldId.substring(1, fieldId.length);
-
-                console.log("id "+fId);
     
                 if( value.val == 'true' )
                 {
-                  $('input[id=' + fId + ']')[0].click();
+                  $('input[id=' + fId + ']:nth(0)').prop( 'checked', true );
+                  $('input[id=' + fId + ']:nth(0)').addClass( 'checked' );
                 }
                 else if ( value.val == 'false')
                 {
-                  $('input[id=' + fId + ']')[1].click();
+                  $('input[id=' + fId + ']:nth(1)').prop( 'checked', true );
+                  $('input[id=' + fId + ']:nth(1)').addClass( 'checked' );
                 }
                 else{
-                    $('input[id=' + fId + ']')[0].prop('checked',false);
-                    $('input[id=' + fId + ']')[1].prop('checked',false);
+                    $('input[id=' + fId + ']:nth(0)').prop( 'checked', false );
+                    $('input[id=' + fId + ']:nth(1)').prop( 'checked', false );
                 }
             }
             else if ( $( fieldId ).attr( 'class' ) == 'entryfileresource' )

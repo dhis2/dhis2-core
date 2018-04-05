@@ -50,7 +50,7 @@ public class Map4<R, S, T, U, V>
     {
         MapMapMap<S, T, U, V> map = this.get( key1 );
         map = map == null ? new MapMapMap<>() : map;
-        map.putAll( m );
+        map.putMap( m );
         this.put( key1, map );
     }
 
