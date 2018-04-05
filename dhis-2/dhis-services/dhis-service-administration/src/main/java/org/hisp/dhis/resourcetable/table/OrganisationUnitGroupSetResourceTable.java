@@ -146,7 +146,7 @@ public class OrganisationUnitGroupSetResourceTable
             TextUtils.emptyIfFalse( "where startdate is not null", supportsPartialIndexes );
         String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) " + 
             TextUtils.emptyIfFalse( "where startdate is null", supportsPartialIndexes );
-        
+
         return Lists.newArrayList( indexA, indexB );
     }
 }
