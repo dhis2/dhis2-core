@@ -74,8 +74,8 @@ public class SyncUtils
      * Run a synchronization request against the syncUrl and analyzes the response for errors.
      * If the network problems occur during the sync, the sync is retried the maxSyncAttempts times until give up.
      *
-     * @param restTemplate
-     * @param requestCallback
+     * @param restTemplate    Spring Rest Template instance
+     * @param requestCallback Request callback
      * @param syncUrl         Url against which the sync request is run
      * @param endpoint        Endpoint against which the sync request is run
      * @param maxSyncAttempts Specifies how many times the sync should be retried if it fails due to network problems
@@ -83,15 +83,15 @@ public class SyncUtils
      */
     public static boolean runSyncRequestAndAnalyzeResponse( RestTemplate restTemplate, RequestCallback requestCallback, String syncUrl, SyncEndpoint endpoint, int maxSyncAttempts )
     {
-        boolean retrySyncDueToNetworkError = false;
+        boolean networkErrorOccurred = true;
         int syncAttemptsDone = 0;
 
         ResponseExtractor<ImportSummaries> responseExtractor = new ImportSummariesResponseExtractor();
         ImportSummaries summaries = null;
 
-        while ( !retrySyncDueToNetworkError )
+        while ( networkErrorOccurred )
         {
-            retrySyncDueToNetworkError = false;
+            networkErrorOccurred = false;
             syncAttemptsDone++;
             try
             {
@@ -117,7 +117,7 @@ public class SyncUtils
 
                 if ( syncAttemptsDone <= maxSyncAttempts )
                 {
-                    retrySyncDueToNetworkError = true;
+                    networkErrorOccurred = true;
                 }
                 else
                 {
@@ -208,9 +208,9 @@ public class SyncUtils
      * @param delayBetweenAttempts Specifies delay between retries
      * @return AvailabilityStatus that says whether the server is available or not
      */
-    public static AvailabilityStatus testServerAvailability( SystemSettingManager systemSettingManager, RestTemplate restTemplate, int maxAttempts, long delayBetweenAttempts )
+    public static AvailabilityStatus testServerAvailabilityWithRetries( SystemSettingManager systemSettingManager, RestTemplate restTemplate, int maxAttempts, long delayBetweenAttempts )
     {
-        AvailabilityStatus serverStatus = SyncUtils.isRemoteServerAvailable( systemSettingManager, restTemplate );
+        AvailabilityStatus serverStatus = isRemoteServerAvailable( systemSettingManager, restTemplate );
 
         for ( int i = 1; i < maxAttempts; i++ )
         {
