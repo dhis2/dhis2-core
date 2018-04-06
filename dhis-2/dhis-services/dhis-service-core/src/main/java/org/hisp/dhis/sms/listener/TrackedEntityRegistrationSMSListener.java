@@ -29,8 +29,6 @@ package org.hisp.dhis.sms.listener;
  */
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -60,8 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
 {
-    private static final String defaultPattern = "([a-zA-Z]+)\\s*(\\d+)";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -106,7 +102,6 @@ public class TrackedEntityRegistrationSMSListener
             ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
 
         Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
-
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
@@ -154,7 +149,7 @@ public class TrackedEntityRegistrationSMSListener
         programInstanceService.enrollTrackedEntityInstance(
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
             new Date(), date, orgUnit );
-        
+
         smsSender.sendMessage( null, "Tracked Entity Registered Successfully ", senderPhoneNumber );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );

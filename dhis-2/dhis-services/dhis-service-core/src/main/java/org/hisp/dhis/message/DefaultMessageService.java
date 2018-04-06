@@ -267,9 +267,15 @@ public class DefaultMessageService
 
         UserGroup userGroup = dataSet.getNotificationRecipients();
 
+        Set<User> recipients = new HashSet<>();
+
         User sender = currentUserService.getCurrentUser();
 
-        Set<User> recipients = new HashSet<>();
+        // No need send notification if data set is completed through sms
+        if ( sender == null )
+        {
+            return 0;
+        }
 
         if ( userGroup != null )
         {

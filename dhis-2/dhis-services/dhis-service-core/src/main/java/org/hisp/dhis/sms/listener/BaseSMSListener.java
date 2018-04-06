@@ -64,8 +64,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 {
     private static final Log log = LogFactory.getLog( BaseSMSListener.class );
 
-    private static final String FIELD_SEPARATOR = "|";
-    private static final String CODE_VALUE_SEPARATOR = "=";
+    private static final String DEFAULT_PATTERN = "([^\\s|=]+)\\s*\\=\\s*([-\\w\\s ]+)\\s*(\\=|$)*\\s*";
 
     protected static final int INFO = 1;
 
@@ -246,19 +245,25 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     {
         HashMap<String, String> output = new HashMap<>();
 
-        String message = sms.getText().substring( SmsUtils.getCommandString( sms ).length() ).trim();
+        Pattern pattern = Pattern.compile( DEFAULT_PATTERN );
 
-        String[] messageParts = StringUtils.split( message, !StringUtils.isBlank( smsCommand.getSeparator() ) ? smsCommand.getSeparator() : FIELD_SEPARATOR );
-
-        String codeValueSeparator = !StringUtils.isBlank( smsCommand.getCodeValueSeparator() ) ? smsCommand.getCodeValueSeparator() : CODE_VALUE_SEPARATOR;
-
-        for ( String string : messageParts )
+        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
         {
-            String key = StringUtils.split( string, codeValueSeparator )[0].trim();
+            String regex = DEFAULT_PATTERN.replaceAll( "=", smsCommand.getSeparator() );
 
-            String value = StringUtils.split( string, codeValueSeparator )[1].trim();
+            pattern = Pattern.compile( regex );
+        }
 
-            output.put( key, value );
+        Matcher matcher = pattern.matcher( sms.getText() );
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 ).trim();
+            String value = matcher.group( 2 ).trim();
+
+            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
+            {
+                output.put( key, value );
+            }
         }
 
         return output;

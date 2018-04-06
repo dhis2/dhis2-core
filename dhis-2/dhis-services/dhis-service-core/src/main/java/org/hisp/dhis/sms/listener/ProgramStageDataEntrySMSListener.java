@@ -31,8 +31,6 @@ package org.hisp.dhis.sms.listener;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
@@ -53,8 +51,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProgramStageDataEntrySMSListener
     extends BaseSMSListener
 {
-    private static final Log log = LogFactory.getLog( ProgramStageDataEntrySMSListener.class );
-
     private static final String DEFAULT_PATTERN = "(\\w+)\\s*((\\w+\\s*)=(\\s*\\w+\\s*),\\s*)*((\\w+\\s*)=(\\s*\\w+))";
 
     private static final String SUCCESS = "Program Stage registered successfully";
@@ -132,7 +128,7 @@ public class ProgramStageDataEntrySMSListener
     private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
     {
         List<ProgramInstance> programInstances = new ArrayList<>(
-                programInstanceService.getProgramInstances( tei, smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
+            programInstanceService.getProgramInstances( tei, smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
         register( programInstances, keyValue, smsCommand, sms, ous );
     }
@@ -145,7 +141,7 @@ public class ProgramStageDataEntrySMSListener
 
         List<TrackedEntityInstance> teis = new ArrayList<>();
 
-        attributes.parallelStream()
+        attributes.stream()
             .map( attr -> getParams( attr, sms, command.getProgram(), ous ) )
             .forEach( param -> teis.addAll( trackedEntityInstanceService.getTrackedEntityInstances( param ) ) );
 
@@ -179,7 +175,7 @@ public class ProgramStageDataEntrySMSListener
     private SMSCommand getCommand( IncomingSms sms )
     {
         return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-                ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
+            ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
     }
 
     private boolean validate( List<TrackedEntityInstance> teis, Set<OrganisationUnit> ous, IncomingSms sms )

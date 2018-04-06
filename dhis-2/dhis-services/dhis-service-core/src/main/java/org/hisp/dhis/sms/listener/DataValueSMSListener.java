@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.listener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -60,8 +61,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -69,10 +68,6 @@ import javax.annotation.Resource;
 public class DataValueSMSListener
     extends BaseSMSListener
 {
-    private static final String DEFAULTPATTERN = "([a-zA-Z]+)\\s*(\\d+)";
-
-    private static final String SEPARATOR = "=";
-
     private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
 
     // -------------------------------------------------------------------------
@@ -123,7 +118,7 @@ public class DataValueSMSListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.KEY_VALUE_PARSER );
 
-        Map<String, String> parsedMessage = this.parse( sms.getText(), smsCommand );
+        Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
 
         if ( !validateInputValues( parsedMessage, smsCommand, sms ) )
         {
@@ -133,18 +128,6 @@ public class DataValueSMSListener
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
-
-        if ( orgUnits == null || orgUnits.size() == 0 )
-        {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
-            }
-        }
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
         Period period = getPeriod( smsCommand, date );
@@ -170,25 +153,19 @@ public class DataValueSMSListener
 
         if ( parsedMessage.isEmpty() )
         {
-            if ( StringUtils.isEmpty( smsCommand.getDefaultMessage() ) )
-            {
-                throw new SMSParserException( "No values reported for command '" + smsCommand.getName() + "'" );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getDefaultMessage() );
-            }
+            String error = StringUtils.defaultIfBlank( smsCommand.getDefaultMessage(), "No values reported for command '" + smsCommand.getName() + "'" );
+
+            sendFeedback( null, error, ERROR );
+
+            throw new SMSParserException( error );
         }
         else if ( !valueStored )
         {
-            if ( StringUtils.isEmpty( smsCommand.getWrongFormatMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.WRONG_FORMAT_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getWrongFormatMessage() );
-            }
+            String error = StringUtils.defaultIfBlank( smsCommand.getWrongFormatMessage(), SMSCommand.WRONG_FORMAT_MESSAGE );
+
+            sendFeedback( null, error, ERROR );
+
+            throw new SMSParserException( error );
         }
 
         markCompleteDataSet( sms, orgUnit, parsedMessage, smsCommand, date );
@@ -239,14 +216,7 @@ public class DataValueSMSListener
     private boolean storeDataValue( IncomingSms sms, OrganisationUnit orgunit, Map<String, String> parsedMessage,
         SMSCode code, SMSCommand command, Date date, DataSet dataSet )
     {
-        String sender = sms.getOriginator();
-        String storedBy = SmsUtils.getUser( sender, command, Collections.singletonList( getUser( sms ) ) )
-            .getUsername();
-
-        if ( StringUtils.isBlank( storedBy ) )
-        {
-            storedBy = "[unknown] from [" + sender + "]";
-        }
+        String storedBy = getUser( sms ).getUsername();
 
         DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
             .getDataElementCategoryOptionCombo( code.getOptionId() );
@@ -384,7 +354,7 @@ public class DataValueSMSListener
             }
             catch ( Exception e )
             {
-                e.printStackTrace();
+                DebugUtils.getStackTrace( e );
                 return false;
             }
         }
@@ -395,7 +365,7 @@ public class DataValueSMSListener
     private void markCompleteDataSet( IncomingSms sms, OrganisationUnit orgunit, Map<String, String> parsedMessage,
         SMSCommand command, Date date )
     {
-        String sender = sms.getOriginator();
+        String sender = getUser( sms ).getPhoneNumber();
 
         Period period = null;
         int numberOfEmptyValue = 0;
@@ -435,18 +405,9 @@ public class DataValueSMSListener
             return;
         }
 
-        // Go through the complete process
-        String storedBy = SmsUtils.getUser( sender, command, Collections.singletonList( getUser( sms ) ) )
-            .getUsername();
-
-        if ( StringUtils.isBlank( storedBy ) )
-        {
-            storedBy = "[unknown] from [" + sender + "]";
-        }
-
         // If new values are submitted re-register as complete
         deregisterCompleteDataSet( command.getDataset(), period, orgunit );
-        registerCompleteDataSet( command.getDataset(), period, orgunit, storedBy );
+        registerCompleteDataSet( command.getDataset(), period, orgunit, sender );
     }
 
     protected void sendSuccessFeedback( String sender, SMSCommand command, Map<String, String> parsedMessage, Date date,
@@ -558,32 +519,5 @@ public class DataValueSMSListener
         {
             registrationService.deleteCompleteDataSetRegistration( registration );
         }
-    }
-
-    private Map<String, String> parse( String sms, SMSCommand smsCommand )
-    {
-        HashMap<String, String> output = new HashMap<>();
-        Pattern pattern = Pattern.compile( DEFAULTPATTERN );
-
-        if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
-        {
-            String x = "([^\\s|" + smsCommand.getSeparator().trim() + "]+)\\s*\\" + smsCommand.getSeparator().trim()
-                    + "\\s*([-\\w\\s ]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
-            pattern = Pattern.compile( x );
-        }
-
-        Matcher matcher = pattern.matcher( sms );
-        while ( matcher.find() )
-        {
-            String key = matcher.group( 1 ).trim();
-            String value = matcher.group( 2 ).trim();
-
-            if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
-            {
-                output.put( key, value );
-            }
-        }
-
-        return output;
     }
 }

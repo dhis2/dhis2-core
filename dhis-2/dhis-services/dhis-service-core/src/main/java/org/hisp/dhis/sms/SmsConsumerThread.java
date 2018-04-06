@@ -34,6 +34,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
@@ -68,7 +69,6 @@ public class SmsConsumerThread
         while ( message != null )
         {
             log.info( "Received SMS: " + message.getText() );
-            
             try
             {
                 for ( IncomingSmsListener listener : listeners )
@@ -89,7 +89,7 @@ public class SmsConsumerThread
             }
             catch ( Exception e )
             {
-                e.printStackTrace();
+                DebugUtils.getStackTrace( e );
 
                 message.setStatus( SmsMessageStatus.FAILED );
                 message.setParsed( false );
