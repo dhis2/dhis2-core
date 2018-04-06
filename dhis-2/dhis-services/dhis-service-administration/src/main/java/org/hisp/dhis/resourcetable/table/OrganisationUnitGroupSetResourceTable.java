@@ -38,6 +38,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
@@ -46,9 +48,9 @@ public class OrganisationUnitGroupSetResourceTable
 {
     private boolean supportsPartialIndexes;
     
-    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects, String columnQuote, boolean supportsPartialIndexes )
+    public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects, boolean supportsPartialIndexes )
     {
-        super( objects, columnQuote );
+        super( objects );
         this.supportsPartialIndexes = supportsPartialIndexes;
     }
 
@@ -68,8 +70,8 @@ public class OrganisationUnitGroupSetResourceTable
         
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            statement += columnQuote + groupSet.getName() + columnQuote + " varchar(230), ";
-            statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
+            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
         }
         
         return TextUtils.removeLastComma( statement ) + ")";
@@ -91,14 +93,14 @@ public class OrganisationUnitGroupSetResourceTable
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
-                    "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+                    "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
                 sql += "(" +
                     "select oug.uid from orgunitgroup oug " +
                     "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid " +
                     "inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = " + groupSet.getId() + " " +
                     "where ougm.organisationunitid = ou.organisationunitid " +
-                    "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
+                    "limit 1) as " + quote( groupSet.getUid() ) + ", ";
             }
             else
             {
@@ -109,7 +111,7 @@ public class OrganisationUnitGroupSetResourceTable
                     "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
-                    "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+                    "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
                 sql += "(" +
                     "select oug.uid from orgunitgroup oug " +
@@ -118,7 +120,7 @@ public class OrganisationUnitGroupSetResourceTable
                     "inner join organisationunit ou2 on ou2.organisationunitid = ougm.organisationunitid and ou.path like concat(ou2.path, '%') " +
                     "where ougm.orgunitgroupid is not null " +
                     "order by hierarchylevel desc " +
-                    "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
+                    "limit 1) as " + quote( groupSet.getUid() ) + ", ";
             }
         }
         

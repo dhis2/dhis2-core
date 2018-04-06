@@ -44,9 +44,9 @@ import com.google.common.collect.Lists;
 public class DataApprovalMinLevelResourceTable
     extends ResourceTable<OrganisationUnitLevel>
 {
-    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects, String columnQuote )
+    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
 
     @Override
