@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -55,6 +56,8 @@ public class Attribute
     private String value;
 
     private String storedBy;
+
+    private boolean skipSynchronization = false;
 
     public Attribute()
     {
@@ -166,6 +169,17 @@ public class Attribute
     public void setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
+    }
+
+    @JsonIgnore
+    public Boolean getSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
+
+    public void setSkipSynchronization( boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
     }
 
     @Override
