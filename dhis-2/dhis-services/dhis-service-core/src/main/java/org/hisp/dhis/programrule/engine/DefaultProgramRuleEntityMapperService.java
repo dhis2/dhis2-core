@@ -81,7 +81,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> RuleVariablePreviousEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, prv -> RuleVariableNewestEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, prv -> RuleVariableNewestStageEvent.create( prv.getName(),
-            prv.getDataElement().getUid(), prv.getProgramStage().getUid() ,RuleValueType.TEXT ) )
+            prv.getDataElement().getUid(), prv.getProgramStage().getUid() , toMappedValueType( prv ) ) )
         .build();
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>> VALUE_TYPE_MAPPER = new
