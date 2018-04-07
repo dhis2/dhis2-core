@@ -154,7 +154,6 @@ public class SimplisticHttpGetGateWay
 
             status.setResponseObject( response );
             status.setDescription( response.getResponseMessage() );
-            status.setOk( true );
         }
         catch ( IOException e )
         {
