@@ -130,7 +130,7 @@ public class SimplisticHttpGetGateWay
 
             httpConnection = getRequestHeaderParameters( httpConnection, genericHttpConfiguration.getParameters() );
 
-            String data = getPostData( text, recipients, genericHttpConfiguration );
+            String data = getEncodedData( text, recipients, genericHttpConfiguration );
 
             writer = new OutputStreamWriter( httpConnection.getOutputStream() );
 
@@ -200,7 +200,7 @@ public class SimplisticHttpGetGateWay
         return urlConnection;
     }
 
-    private String getPostData( String text, Set<String> recipients, GenericHttpGatewayConfig config ) throws UnsupportedEncodingException
+    private String getEncodedData( String text, Set<String> recipients, GenericHttpGatewayConfig config ) throws UnsupportedEncodingException
     {
         Map<String, String> parameters = getUrlParameters( config.getParameters() );
         parameters.put( config.getMessageParameter(), text );
