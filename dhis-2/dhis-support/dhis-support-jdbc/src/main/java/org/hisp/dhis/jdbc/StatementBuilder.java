@@ -226,4 +226,12 @@ public interface StatementBuilder
      * @return the derived literal table
      */
     String literalStringTable( Collection<String> values, String table, String column );
+
+    /**
+     * Indicates whether the DBMS supports partial indexes (index statements with
+     * {@code where} clauses).
+     * 
+     * @return true if partial indexes are supported.
+     */
+    boolean supportsPartialIndexes();
 }

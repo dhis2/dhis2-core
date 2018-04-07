@@ -476,6 +476,18 @@ public class TextUtils
     }
     
     /**
+     * Returns the empty string if the given test is false, the string if not.
+     * 
+     * @param string the string.
+     * @param test the test to check.
+     * @return a string.
+     */
+    public static String emptyIfFalse( String string, boolean test )
+    {
+        return test ? string : EMPTY;
+    }
+    
+    /**
      * Invokes append tail on matcher with the given string buffer, and returns
      * the string buffer as a string.
      * 

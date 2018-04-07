@@ -130,6 +130,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
+                "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
             "where pr.programid=" + program.getId() + " " + 
             "and pi.organisationunitid is not null " +
