@@ -183,7 +183,6 @@ public class DefaultSynchronizationManager
             summary = restTemplate
                 .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
         }
-
         catch ( HttpClientErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();

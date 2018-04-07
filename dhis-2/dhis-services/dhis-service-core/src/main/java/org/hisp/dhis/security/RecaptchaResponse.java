@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.security;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,55 +28,72 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Jim Grace
+ * @author Lars Helge Overland
  */
-public class Map4<R, S, T, U, V>
-    extends HashMap<R, MapMapMap<S, T, U, V>>
+public class RecaptchaResponse
 {
-    private static final long serialVersionUID = -2806972962597162013L;
+    @JsonProperty( value = "success" )
+    private Boolean success;
+    
+    @JsonProperty( value = "challenge_ts" )
+    private String challengeTs;
+    
+    @JsonProperty( value = "hostname" )
+    private String hostname;
+    
+    @JsonProperty( value = "error-codes" )
+    private List<String> errorCodes = new ArrayList<>();
 
-    public MapMapMap<S, T, U, V> putEntry( R key1, S key2, T key3, U key4, V value )
+    @JsonIgnore
+    public boolean success()
     {
-        MapMapMap<S, T, U, V> map = this.get( key1 );
-        map = map == null ? new MapMapMap<>() : map;
-        map.putEntry( key2, key3, key4, value );
-        return this.put( key1, map );
+        return success != null && success;
+    }
+    
+    public Boolean getSuccess()
+    {
+        return success;
     }
 
-    public void putEntries( R key1, MapMapMap<S, T, U, V> m )
+    public void setSuccess( Boolean success )
     {
-        MapMapMap<S, T, U, V> map = this.get( key1 );
-        map = map == null ? new MapMapMap<>() : map;
-        map.putMap( m );
-        this.put( key1, map );
+        this.success = success;
     }
 
-    public void putMap( Map4<R, S, T, U, V> map )
+    public String getChallengeTs()
     {
-        for ( Entry<R, MapMapMap<S, T, U, V>> entry : map.entrySet() )
-        {
-            this.putEntries( entry.getKey(), entry.getValue() );
-        }
+        return challengeTs;
     }
 
-    public V getValue( R key1, S key2, T key3, U key4 )
+    public void setChallengeTs( String challengeTs )
     {
-        return this.get( key1 ) == null ? null : this.get( key1 ).getValue( key2, key3, key4 );
+        this.challengeTs = challengeTs;
     }
 
-    @SafeVarargs
-    public static <R, S, T, U, V> Map4<R, S, T, U, V> asMap4( final SimpleEntry<R, MapMapMap<S, T, U, V>>... entries )
+    public String getHostname()
     {
-        Map4<R, S, T, U, V> map = new Map4<>();
+        return hostname;
+    }
 
-        for ( SimpleEntry<R, MapMapMap<S, T, U, V>> entry : entries )
-        {
-            map.put( entry.getKey(), entry.getValue() );
-        }
+    public void setHostname( String hostname )
+    {
+        this.hostname = hostname;
+    }
 
-        return map;
+    public List<String> getErrorCodes()
+    {
+        return errorCodes;
+    }
+
+    public void setErrorCodes( List<String> errorCodes )
+    {
+        this.errorCodes = errorCodes;
     }
 }

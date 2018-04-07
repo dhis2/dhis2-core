@@ -474,6 +474,18 @@ public class TextUtils
     {
         return test != null && test.equals( string ) ? EMPTY : string;
     }
+
+    /**
+     * Returns the empty string if the given test is false, the string if not.
+     * 
+     * @param string the string.
+     * @param test the test to check.
+     * @return a string.
+     */
+    public static String emptyIfFalse( String string, boolean test )
+    {
+        return test ? string : EMPTY;
+    }
     
     /**
      * Invokes append tail on matcher with the given string buffer, and returns
