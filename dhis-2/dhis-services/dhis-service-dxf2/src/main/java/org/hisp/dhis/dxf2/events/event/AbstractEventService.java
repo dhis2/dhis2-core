@@ -629,10 +629,24 @@ public abstract class AbstractEventService
         return eventStore.getEventCount( params, null );
     }
 
+    //TODO: In next step, remove executeEventPush() from DefaultSynchronizationManager and therefore, remove also method below as it won't be used anymore
     @Override
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
     {
         EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
+        Events anonymousEvents = new Events();
+        List<Event> events = eventStore.getEvents( params, null );
+        anonymousEvents.setEvents( events );
+        return anonymousEvents;
+    }
+
+    @Override
+    public Events getAnonymousEventsForSync( Date lastSuccessTime, int pageSize, int page )
+    {
+        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
+        params.setPageSize( pageSize );
+        params.setPage( page );
+
         Events anonymousEvents = new Events();
         List<Event> events = eventStore.getEvents( params, null );
         anonymousEvents.setEvents( events );

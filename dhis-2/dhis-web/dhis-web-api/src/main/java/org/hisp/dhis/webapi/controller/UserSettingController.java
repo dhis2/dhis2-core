@@ -134,7 +134,7 @@ public class UserSettingController
             throw new WebMessageException( WebMessageUtils.conflict( "You need to specify a new value" ) );
         }
 
-        userSettingService.saveUserSetting( userSettingKey, newValue, user );
+        userSettingService.saveUserSetting( userSettingKey, UserSettingKey.getAsRealClass( key, newValue ), user );
 
         return WebMessageUtils.ok( "User setting saved" );
     }
