@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DataQueryRequest;
-import org.hisp.dhis.common.DataQueryRequest.DataQueryRequestBuilder;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
@@ -112,9 +111,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
             .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
             .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
             .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
@@ -123,9 +121,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+            .order( order ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -164,8 +162,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
             .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
             .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
             .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
@@ -174,9 +172,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+            .order( order ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -216,8 +214,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
             .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
             .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
             .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
@@ -226,9 +224,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );       
+            .order( order ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );       
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -268,8 +266,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
             .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
             .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
             .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
@@ -278,9 +276,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );        
+            .order( order ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -320,8 +318,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
             .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
             .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
             .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
@@ -330,9 +328,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );        
+            .order( order ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -372,8 +370,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
             .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
             .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
             .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
@@ -382,9 +380,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );        
+            .order( order ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -424,12 +422,11 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
+            .apiVersion( apiVersion ).order( order ).build();
         
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
-            .apiVersion( apiVersion ).order( order );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromUrl( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params );
@@ -470,8 +467,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
             .measureCriteria( measureCriteria ).preAggregationMeasureCriteria( preAggregationMeasureCriteria )
             .startDate( startDate ).endDate( endDate ).skipMeta( skipMeta ).skipData( skipData )
             .skipRounding( skipRounding ).completedOnly( completedOnly ).hierarchyMeta( hierarchyMeta )
@@ -480,9 +477,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).approvalLevel( approvalLevel )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
-            .order( order ); 
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );               
+            .order( order ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );               
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false, params.getLatestEndDate() );
         return AnalyticsUtils.getDebugDataSql( params );
@@ -510,14 +507,14 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
             .skipData( skipData ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
-            .allowAllPeriods( true ).apiVersion( apiVersion );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );        
+            .allowAllPeriods( true ).apiVersion( apiVersion ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
@@ -541,14 +538,14 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
             .skipData( skipData ).hierarchyMeta( hierarchyMeta ).showHierarchy( showHierarchy )
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
-            .allowAllPeriods( true ).apiVersion( apiVersion );
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+            .allowAllPeriods( true ).apiVersion( apiVersion ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
@@ -593,8 +590,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
             .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
             .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
             .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
@@ -602,9 +599,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
             .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .apiVersion( apiVersion );  
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );       
+            .apiVersion( apiVersion ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );       
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
@@ -643,8 +640,8 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
-        builder.dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
+        DataQueryRequest request = DataQueryRequest.newBuilder()
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
             .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
             .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
             .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
@@ -652,9 +649,9 @@ public class AnalyticsController
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
             .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .apiVersion( apiVersion );  
-        DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );   
+            .apiVersion( apiVersion ).build();
+        
+        DataQueryParams params = dataQueryService.getFromUrl( request );   
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
