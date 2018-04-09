@@ -4,6 +4,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
@@ -75,6 +76,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -170,11 +172,11 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
-
-            if ( rowSet.getString( "psi_uid" ) == null )
-            {
-                continue;
-            }
+        	
+        	if( rowSet.getString( "psi_uid" ) == null || ( params.getCategoryOptionCombo() == null && !user.isSuper() && rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null ) )
+        	{
+        		continue;
+        	}
 
             if ( event.getUid() == null || !event.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
@@ -205,6 +207,11 @@ public class JdbcEventStore
                     event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
                 }
 
+                if( params.getCategoryOptionCombo() == null )
+                {
+                	event.setOptionSize( rowSet.getInt( "option_size" ) );
+                }
+                
                 event.setAttributeOptionCombo( rowSet.getString( "coc_categoryoptioncombouid" ) );
                 event.setAttributeCategoryOptions( rowSet.getString( "deco_uid" ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
@@ -245,7 +252,7 @@ public class JdbcEventStore
                         event.setCoordinate( coordinate );
                     }
                 }
-
+                
                 events.add( event );
             }
             else
@@ -287,6 +294,11 @@ public class JdbcEventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
         }
+        
+        if( params.getCategoryOptionCombo() == null )
+        {
+        	return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null && splitToArray( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() ).collect( Collectors.toList() );
+        }        
 
         return events;
     }
@@ -527,6 +539,8 @@ public class JdbcEventStore
      */
     private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+    	User user = currentUserService.getCurrentUser();
+    	
         String sql = "select * from (";
 
         sql += getEventSelectQuery( params, organisationUnits );
@@ -536,6 +550,14 @@ public class JdbcEventStore
         sql += getEventPagingQuery( params );
 
         sql += ") as event left join (";
+        
+        
+        if( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault() && !user.isSuper() )
+        {
+        	sql += getCategoryOptionSharingForUser( user );
+            
+            sql += "left join (";
+        }
 
         if ( params.isIncludeAttributes() )
         {
@@ -566,7 +588,7 @@ public class JdbcEventStore
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, "
             + "psi.latitude as psi_latitude, psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
-            + "coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
+            + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
             + "deco.uid AS deco_uid, pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
             + "p.type as p_type, ps.uid as ps_uid, ps.code as ps_code, ps.capturecoordinates as ps_capturecoordinates, "
             + "ou.uid as ou_uid, ou.code as ou_code, ou.name as ou_name, "
@@ -809,6 +831,33 @@ public class JdbcEventStore
 
         return sql;
     }
+    
+    private String getCategoryOptionSharingForUser( User user )
+    {
+        List<Integer> userGroupIds = getIdentifiers( user.getGroups() );
+        
+        String sql = "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+				+ "as cocount on event.coc_categoryoptioncomboid = cocount.categoryoptioncomboid "
+        		+ "left join ("
+				+ "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
+				+ "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
+				+ "ua.access as ua_access, ua.userid as usr_id from dataelementcategoryoption deco "
+				+ "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
+				+ "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
+				+ "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
+				+ "left join useraccess ua on coua.useraccessid = ua.useraccessid " + " where ua.userid="
+				+ user.getId();
+        
+        if( userGroupIds != null && !userGroupIds.isEmpty() )
+        {
+            sql += " or uga.usergroupid in (" + getCommaDelimitedString( userGroupIds ) + ") ";
+        }
+        
+        sql += " ) as decoa on event.cocco_categoryoptionid = decoa.deco_id ";
+        
+        return sql;            
+    }	
+    
 
     private String getEventPagingQuery( EventSearchParams params )
     {

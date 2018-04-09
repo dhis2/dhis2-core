@@ -842,6 +842,23 @@ public abstract class AbstractEventService
         {
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
+        
+        if( attributeOptionCombo != null )
+        {
+        	if( !userCredentials.isSuper() )
+        	{
+        		if( !aclService.canDataRead( user, attributeOptionCombo ) )
+        		{
+        			throw new IllegalQueryException( "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
+        		}
+        	}
+        	
+    		if( attributeOptionCombo.isDefault() )
+    		{
+    			attributeOptionCombo = null;
+    		}
+        	
+        }
 
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
 
