@@ -283,6 +283,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 attribute.setCode( attributeValue.getAttribute().getCode() );
                 attribute.setValue( attributeValue.getValue() );
                 attribute.setStoredBy( attributeValue.getStoredBy() );
+                attribute.setSkipSynchronization( attributeValue.getAttribute().getSkipSynchronization() );
 
                 trackedEntityInstance.getAttributes().add( attribute );
             }

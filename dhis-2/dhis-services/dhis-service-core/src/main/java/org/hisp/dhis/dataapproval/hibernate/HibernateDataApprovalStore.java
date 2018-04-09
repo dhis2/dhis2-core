@@ -452,7 +452,9 @@ public class HibernateDataApprovalStore
                 "select 1 from dataelementcategoryoptionusergroupaccesses couga " +
                 "left join usergroupaccess uga on uga.usergroupaccessid = couga.usergroupaccessid " +
                 "left join usergroupmembers ugm on ugm.usergroupid = uga.usergroupid " +
-                "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") )" );
+                    "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") ) " ) +
+                "and exists (select 1 from organisationunit od where od.path like o.path || '%' and od.organisationunitid in " +
+                "(select distinct sourceid from datasetsource dss join dataset ds on ds.datasetid = dss.datasetid where ds.workflowid = " + workflow.getId() + "))";
 
         log.debug( "User " + user.getUsername() + " superuser " + isSuperUser
             + " workflow " + workflow.getName() + " period " + period.getIsoDate()
