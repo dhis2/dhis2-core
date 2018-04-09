@@ -1074,6 +1074,14 @@ public class TableAlteror
 
         executeSql("alter table jobconfiguration drop column configurable;");
 
+        // Remove UserRole constraint for Program and DataSet from 2.29
+        executeSql( "alter table program_userroles drop constraint fk_program_userroles;" );
+        executeSql( "alter table program_userroles drop constraint fk_userroleprogram_programid;" );
+        executeSql( "alter table program_userroles drop constraint fk_userroleprogram_userroleid;" );
+        executeSql( "alter table program_userroles drop constraint fkd6350dd7a3100c9f;" );
+        executeSql( "alter table userroledataset drop constraint fk_userroledataset_datasetid;" );
+        executeSql( "alter table userroledataset drop constraint fk_userroledataset_userroleid;" );
+
         log.info( "Tables updated" );
 
     }
