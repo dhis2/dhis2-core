@@ -50,10 +50,10 @@ public interface DataQueryService
     /**
      * Creates a data query parameter object from the given URL.
      *
-     * @param dataQueryRequest A request wrapper object containing the url parameters
+     * @param request request wrapper object containing the URL parameters.
      * @return a data query parameter object created based on the given URL info.
      */
-    DataQueryParams getFromUrl( DataQueryRequest dataQueryRequest );
+    DataQueryParams getFromUrl( DataQueryRequest request );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.
