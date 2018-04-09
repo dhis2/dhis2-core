@@ -100,61 +100,61 @@ public class DefaultDataQueryService
     //TODO introduce ExternalDataQueryParams and replace individual parameters
     
     @Override
-    public DataQueryParams getFromUrl( DataQueryRequest dataQueryRequest )
+    public DataQueryParams getFromUrl( DataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
-        IdScheme inputIdScheme = ObjectUtils.firstNonNull( dataQueryRequest.getInputIdScheme(), IdScheme.UID );
+        IdScheme inputIdScheme = ObjectUtils.firstNonNull( request.getInputIdScheme(), IdScheme.UID );
         
-        if ( dataQueryRequest.getDimension() != null && !dataQueryRequest.getDimension().isEmpty() )
+        if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
-            params.addDimensions( getDimensionalObjects( dataQueryRequest.getDimension(), dataQueryRequest.getRelativePeriodDate(), dataQueryRequest.getUserOrgUnit(), format, 
-                dataQueryRequest.isAllowAllPeriods(), inputIdScheme ) );
+            params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format, 
+                request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
-        if ( dataQueryRequest.getFilter() != null && !dataQueryRequest.getFilter().isEmpty() )
+        if ( request.getFilter() != null && !request.getFilter().isEmpty() )
         {
-            params.addFilters( getDimensionalObjects( dataQueryRequest.getFilter(), dataQueryRequest.getRelativePeriodDate(), dataQueryRequest.getUserOrgUnit(), format, dataQueryRequest.isAllowAllPeriods(), inputIdScheme ) );
+            params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format, request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
-        if ( dataQueryRequest.getMeasureCriteria() != null && !dataQueryRequest.getMeasureCriteria().isEmpty() )
+        if ( request.getMeasureCriteria() != null && !request.getMeasureCriteria().isEmpty() )
         {
-            params.withMeasureCriteria( getMeasureCriteriaFromParam( dataQueryRequest.getMeasureCriteria() ) );
+            params.withMeasureCriteria( getMeasureCriteriaFromParam( request.getMeasureCriteria() ) );
         }
 
-        if ( dataQueryRequest.getPreAggregationMeasureCriteria() != null && !dataQueryRequest.getPreAggregationMeasureCriteria().isEmpty() )
+        if ( request.getPreAggregationMeasureCriteria() != null && !request.getPreAggregationMeasureCriteria().isEmpty() )
         {
-            params.withPreAggregationMeasureCriteria( getMeasureCriteriaFromParam( dataQueryRequest.getPreAggregationMeasureCriteria()) );
+            params.withPreAggregationMeasureCriteria( getMeasureCriteriaFromParam( request.getPreAggregationMeasureCriteria()) );
         }
         
-        if ( dataQueryRequest.getAggregationType() != null )
+        if ( request.getAggregationType() != null )
         {
-            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( dataQueryRequest.getAggregationType() ) );
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
         return params
-            .withStartDate( dataQueryRequest.getStartDate() )
-            .withEndDate( dataQueryRequest.getEndDate() )
-            .withOrder( dataQueryRequest.getOrder())
-            .withSkipMeta( dataQueryRequest.isSkipMeta() )
-            .withSkipData( dataQueryRequest.isSkipData() )
-            .withSkipRounding( dataQueryRequest.isSkipRounding() )
-            .withCompletedOnly( dataQueryRequest.isCompletedOnly() )
-            .withIgnoreLimit( dataQueryRequest.isIgnoreLimit() )
-            .withHierarchyMeta( dataQueryRequest.isHierarchyMeta() )
-            .withHideEmptyRows( dataQueryRequest.isHideEmptyRows() )
-            .withHideEmptyColumns( dataQueryRequest.isHideEmptyColumns() )
-            .withShowHierarchy( dataQueryRequest.isShowHierarchy() )
-            .withIncludeNumDen( dataQueryRequest.isIncludeNumDen() )
-            .withIncludeMetadataDetails( dataQueryRequest.isIncludeMetadataDetails() )
-            .withDisplayProperty( dataQueryRequest.getDisplayProperty() )
-            .withOutputIdScheme( dataQueryRequest.getOutputIdScheme() )
+            .withStartDate( request.getStartDate() )
+            .withEndDate( request.getEndDate() )
+            .withOrder( request.getOrder())
+            .withSkipMeta( request.isSkipMeta() )
+            .withSkipData( request.isSkipData() )
+            .withSkipRounding( request.isSkipRounding() )
+            .withCompletedOnly( request.isCompletedOnly() )
+            .withIgnoreLimit( request.isIgnoreLimit() )
+            .withHierarchyMeta( request.isHierarchyMeta() )
+            .withHideEmptyRows( request.isHideEmptyRows() )
+            .withHideEmptyColumns( request.isHideEmptyColumns() )
+            .withShowHierarchy( request.isShowHierarchy() )
+            .withIncludeNumDen( request.isIncludeNumDen() )
+            .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
+            .withDisplayProperty( request.getDisplayProperty() )
+            .withOutputIdScheme( request.getOutputIdScheme() )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withDuplicatesOnly( dataQueryRequest.isDuplicatesOnly() )
-            .withApprovalLevel( dataQueryRequest.getApprovalLevel() )
-            .withApiVersion( dataQueryRequest.getApiVersion() )
+            .withDuplicatesOnly( request.isDuplicatesOnly() )
+            .withApprovalLevel( request.getApprovalLevel() )
+            .withApiVersion( request.getApiVersion() )
             .build();
     }
 

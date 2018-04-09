@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -36,61 +37,61 @@ import org.hisp.dhis.analytics.SortOrder;
 
 public class DataQueryRequest
 {
-    private Set<String> dimension;
+    protected Set<String> dimension;
 
-    private Set<String> filter;
+    protected Set<String> filter;
 
-    private AggregationType aggregationType;
+    protected AggregationType aggregationType;
 
-    private String measureCriteria;
+    protected String measureCriteria;
 
-    private String preAggregationMeasureCriteria;
+    protected String preAggregationMeasureCriteria;
 
-    private Date startDate;
+    protected Date startDate;
 
-    private Date endDate;
+    protected Date endDate;
 
-    private SortOrder order;
+    protected SortOrder order;
 
-    private boolean skipMeta;
+    protected boolean skipMeta;
 
-    private boolean skipData;
+    protected boolean skipData;
 
-    private boolean skipRounding;
+    protected boolean skipRounding;
 
-    private boolean completedOnly;
+    protected boolean completedOnly;
 
-    private boolean hierarchyMeta;
+    protected boolean hierarchyMeta;
 
-    private boolean ignoreLimit;
+    protected boolean ignoreLimit;
 
-    private boolean hideEmptyRows;
+    protected boolean hideEmptyRows;
 
-    private boolean hideEmptyColumns;
+    protected boolean hideEmptyColumns;
 
-    private boolean showHierarchy;
+    protected boolean showHierarchy;
 
-    private boolean includeNumDen;
+    protected boolean includeNumDen;
 
-    private boolean includeMetadataDetails;
+    protected boolean includeMetadataDetails;
 
-    private boolean duplicatesOnly;
+    protected boolean duplicatesOnly;
 
-    private boolean allowAllPeriods;
+    protected boolean allowAllPeriods;
 
-    private DisplayProperty displayProperty;
+    protected DisplayProperty displayProperty;
 
-    private IdScheme outputIdScheme;
+    protected IdScheme outputIdScheme;
 
-    private IdScheme inputIdScheme;
+    protected IdScheme inputIdScheme;
 
-    private String approvalLevel;
+    protected String approvalLevel;
 
-    private Date relativePeriodDate;
+    protected Date relativePeriodDate;
 
-    private String userOrgUnit;
+    protected String userOrgUnit;
 
-    private DhisApiVersion apiVersion;
+    protected DhisApiVersion apiVersion;
 
     public Set<String> getDimension()
     {
@@ -232,277 +233,245 @@ public class DataQueryRequest
         return allowAllPeriods;
     }
 
-    private DataQueryRequest( DataQueryRequestBuilder builder )
+    /**
+     * Copies all properties of this request onto the given request.
+     * 
+     * @param request the querequestry to copy properties onto.
+     * @return the given request with all properties of this request set.
+     */
+    public <T extends DataQueryRequest> T copyTo( T request )
     {
-        this.dimension = builder.dimension;
-        this.filter = builder.filter;
-        this.aggregationType = builder.aggregationType;
-        this.measureCriteria = builder.measureCriteria;
-        this.preAggregationMeasureCriteria = builder.preAggregationMeasureCriteria;
-        this.startDate = builder.startDate;
-        this.endDate = builder.endDate;
-        this.order = builder.order;
-        this.skipMeta = builder.skipMeta;
-        this.skipData = builder.skipData;
-        this.skipRounding = builder.skipRounding;
-        this.completedOnly = builder.completedOnly;
-        this.hierarchyMeta = builder.hierarchyMeta;
-        this.ignoreLimit = builder.ignoreLimit;
-        this.hideEmptyRows = builder.hideEmptyRows;
-        this.hideEmptyColumns = builder.hideEmptyColumns;
-        this.showHierarchy = builder.showHierarchy;
-        this.includeNumDen = builder.includeNumDen;
-        this.includeMetadataDetails = builder.includeMetadataDetails;
-        this.displayProperty = builder.displayProperty;
-        this.outputIdScheme = builder.outputIdScheme;
-        this.inputIdScheme = builder.inputIdScheme;
-        this.approvalLevel = builder.approvalLevel;
-        this.relativePeriodDate = builder.relativePeriodDate;
-        this.userOrgUnit = builder.userOrgUnit;
-        this.apiVersion = builder.apiVersion;
-        this.allowAllPeriods = builder.allowAllPeriods;
-        this.duplicatesOnly = builder.duplicatesOnly;
+        request.dimension = new HashSet<>( this.dimension );
+        request.filter = new HashSet<>( this.filter );
+        request.aggregationType = this.aggregationType;
+        request.measureCriteria = this.measureCriteria;
+        request.preAggregationMeasureCriteria = this.preAggregationMeasureCriteria;
+        request.startDate = this.startDate;
+        request.endDate = this.endDate;
+        request.order = this.order;
+        request.skipMeta = this.skipMeta;
+        request.skipData = this.skipData;
+        request.skipRounding = this.skipRounding;
+        request.completedOnly = this.completedOnly;
+        request.hierarchyMeta = this.hierarchyMeta;
+        request.ignoreLimit = this.ignoreLimit;
+        request.hideEmptyRows = this.hideEmptyRows;
+        request.hideEmptyColumns = this.hideEmptyColumns;
+        request.showHierarchy = this.showHierarchy;
+        request.includeNumDen = this.includeNumDen;
+        request.includeMetadataDetails = this.includeMetadataDetails;
+        request.displayProperty = this.displayProperty;
+        request.outputIdScheme = this.outputIdScheme;
+        request.inputIdScheme = this.inputIdScheme;
+        request.approvalLevel = this.approvalLevel;
+        request.relativePeriodDate = this.relativePeriodDate;
+        request.userOrgUnit = this.userOrgUnit;
+        request.apiVersion = this.apiVersion;
+        request.allowAllPeriods = this.allowAllPeriods;
+        request.duplicatesOnly = this.duplicatesOnly;
+
+        return request;
     }
-    
+
     public static DataQueryRequestBuilder newBuilder()
     {
         return new DataQueryRequest.DataQueryRequestBuilder();
     }
-    
+
+    protected DataQueryRequest()
+    {
+    }
+
+    protected DataQueryRequest instance()
+    {
+        return copyTo( new DataQueryRequest() );
+    }
 
     public static class DataQueryRequestBuilder
     {
-        private Set<String> dimension;
-
-        private Set<String> filter;
-
-        private AggregationType aggregationType;
-
-        private String measureCriteria;
-
-        private String preAggregationMeasureCriteria;
-
-        private Date startDate;
-
-        private Date endDate;
-
-        private SortOrder order;
-
-        private boolean skipMeta;
-
-        private boolean skipData;
-
-        private boolean skipRounding;
-
-        private boolean completedOnly;
-
-        private boolean hierarchyMeta;
-
-        private boolean ignoreLimit;
-
-        private boolean hideEmptyRows;
-
-        private boolean hideEmptyColumns;
-
-        private boolean showHierarchy;
-
-        private boolean includeNumDen;
-
-        private boolean includeMetadataDetails;
-
-        private DisplayProperty displayProperty;
-
-        private IdScheme outputIdScheme;
-
-        private IdScheme inputIdScheme;
-
-        private String approvalLevel;
-
-        private Date relativePeriodDate;
-
-        private String userOrgUnit;
-
-        private DhisApiVersion apiVersion;
-
-        private boolean duplicatesOnly;
-
-        private boolean allowAllPeriods;
+        private DataQueryRequest request;
 
         protected DataQueryRequestBuilder()
         {
+            this.request = new DataQueryRequest();
+        }
+
+        protected DataQueryRequestBuilder( DataQueryRequest request )
+        {
+            this.request = request.instance();
         }
 
         public DataQueryRequestBuilder dimension( Set<String> dimension )
         {
-            this.dimension = dimension;
+            this.request.dimension = dimension;
             return this;
         }
 
         public DataQueryRequestBuilder filter( Set<String> filter )
         {
-            this.filter = filter;
+            this.request.filter = filter;
             return this;
         }
 
         public DataQueryRequestBuilder aggregationType( AggregationType aggregationType )
         {
-            this.aggregationType = aggregationType;
+            this.request.aggregationType = aggregationType;
             return this;
         }
 
         public DataQueryRequestBuilder measureCriteria( String measureCriteria )
         {
-            this.measureCriteria = measureCriteria;
+            this.request.measureCriteria = measureCriteria;
             return this;
         }
 
         public DataQueryRequestBuilder preAggregationMeasureCriteria( String preAggregationMeasureCriteria )
         {
-            this.preAggregationMeasureCriteria = preAggregationMeasureCriteria;
+            this.request.preAggregationMeasureCriteria = preAggregationMeasureCriteria;
             return this;
         }
 
         public DataQueryRequestBuilder startDate( Date startDate )
         {
-            this.startDate = startDate;
+            this.request.startDate = startDate;
             return this;
         }
 
         public DataQueryRequestBuilder endDate( Date endDate )
         {
-            this.endDate = endDate;
+            this.request.endDate = endDate;
             return this;
         }
 
         public DataQueryRequestBuilder order( SortOrder order )
         {
-            this.order = order;
+            this.request.order = order;
             return this;
         }
 
         public DataQueryRequestBuilder skipMeta( boolean skipMeta )
         {
-            this.skipMeta = skipMeta;
+            this.request.skipMeta = skipMeta;
             return this;
         }
 
         public DataQueryRequestBuilder skipData( boolean skipData )
         {
-            this.skipData = skipData;
+            this.request.skipData = skipData;
             return this;
         }
 
         public DataQueryRequestBuilder skipRounding( boolean skipRounding )
         {
-            this.skipRounding = skipRounding;
+            this.request.skipRounding = skipRounding;
             return this;
         }
 
         public DataQueryRequestBuilder completedOnly( boolean completedOnly )
         {
-            this.completedOnly = completedOnly;
+            this.request.completedOnly = completedOnly;
             return this;
         }
 
         public DataQueryRequestBuilder hierarchyMeta( boolean hierarchyMeta )
         {
-            this.hierarchyMeta = hierarchyMeta;
+            this.request.hierarchyMeta = hierarchyMeta;
             return this;
         }
 
         public DataQueryRequestBuilder ignoreLimit( boolean ignoreLimit )
         {
-            this.ignoreLimit = ignoreLimit;
+            this.request.ignoreLimit = ignoreLimit;
             return this;
         }
 
         public DataQueryRequestBuilder hideEmptyRows( boolean hideEmptyRows )
         {
-            this.hideEmptyRows = hideEmptyRows;
+            this.request.hideEmptyRows = hideEmptyRows;
             return this;
         }
 
         public DataQueryRequestBuilder hideEmptyColumns( boolean hideEmptyColumns )
         {
-            this.hideEmptyColumns = hideEmptyColumns;
+            this.request.hideEmptyColumns = hideEmptyColumns;
             return this;
         }
 
         public DataQueryRequestBuilder showHierarchy( boolean showHierarchy )
         {
-            this.showHierarchy = showHierarchy;
+            this.request.showHierarchy = showHierarchy;
             return this;
         }
 
         public DataQueryRequestBuilder includeNumDen( boolean includeNumDen )
         {
-            this.includeNumDen = includeNumDen;
+            this.request.includeNumDen = includeNumDen;
             return this;
         }
 
         public DataQueryRequestBuilder includeMetadataDetails( boolean includeMetadataDetails )
         {
-            this.includeMetadataDetails = includeMetadataDetails;
+            this.request.includeMetadataDetails = includeMetadataDetails;
             return this;
         }
 
         public DataQueryRequestBuilder displayProperty( DisplayProperty displayProperty )
         {
-            this.displayProperty = displayProperty;
+            this.request.displayProperty = displayProperty;
             return this;
         }
 
         public DataQueryRequestBuilder outputIdScheme( IdScheme outputIdScheme )
         {
-            this.outputIdScheme = outputIdScheme;
+            this.request.outputIdScheme = outputIdScheme;
             return this;
         }
 
         public DataQueryRequestBuilder inputIdScheme( IdScheme inputIdScheme )
         {
-            this.inputIdScheme = inputIdScheme;
+            this.request.inputIdScheme = inputIdScheme;
             return this;
         }
 
         public DataQueryRequestBuilder approvalLevel( String approvalLevel )
         {
-            this.approvalLevel = approvalLevel;
+            this.request.approvalLevel = approvalLevel;
             return this;
         }
 
         public DataQueryRequestBuilder relativePeriodDate( Date relativePeriodDate )
         {
-            this.relativePeriodDate = relativePeriodDate;
+            this.request.relativePeriodDate = relativePeriodDate;
             return this;
         }
 
         public DataQueryRequestBuilder userOrgUnit( String userOrgUnit )
         {
-            this.userOrgUnit = userOrgUnit;
+            this.request.userOrgUnit = userOrgUnit;
             return this;
         }
 
         public DataQueryRequestBuilder apiVersion( DhisApiVersion apiVersion )
         {
-            this.apiVersion = apiVersion;
+            this.request.apiVersion = apiVersion;
             return this;
         }
 
         public DataQueryRequestBuilder duplicatesOnly( boolean duplicatesOnly )
         {
-            this.duplicatesOnly = duplicatesOnly;
+            this.request.duplicatesOnly = duplicatesOnly;
             return this;
         }
 
         public DataQueryRequestBuilder allowAllPeriods( boolean allowAllPeriods )
         {
-            this.allowAllPeriods = allowAllPeriods;
+            this.request.allowAllPeriods = allowAllPeriods;
             return this;
         }
 
         public DataQueryRequest build()
         {
-            return new DataQueryRequest( this );
+            return request;
         }
 
     }
