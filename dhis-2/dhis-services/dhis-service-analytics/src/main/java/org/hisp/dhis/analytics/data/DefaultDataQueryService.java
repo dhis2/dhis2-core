@@ -100,7 +100,7 @@ public class DefaultDataQueryService
     //TODO introduce ExternalDataQueryParams and replace individual parameters
     
     @Override
-    public DataQueryParams getFromUrl( DataQueryRequest request )
+    public DataQueryParams getFromRequest( DataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         

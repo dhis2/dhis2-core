@@ -195,7 +195,7 @@ public class GeoFeatureController
         builder.dimension( dimensionParams ).aggregationType( AggregationType.SUM ).displayProperty( displayProperty )
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );       
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );       
 
         boolean useOrgUnitGroup = ou == null;
         DimensionalObject dimensionalObject = params
