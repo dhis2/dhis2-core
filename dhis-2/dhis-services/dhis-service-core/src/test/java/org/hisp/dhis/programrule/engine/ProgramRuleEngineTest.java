@@ -185,7 +185,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Date enrollmentDate;
 
-    private String expressionA = "#{ProgramRuleVariableA}=='malaria'";
+    private String expressionA = "#{ProgramRuleVariableA}=='malaria' && V{event_status}=='ACTIVE'";
 
     private String expressionB = "#{ProgramRuleVariableB}=='bcgdoze'";
 
