@@ -52,10 +52,6 @@ import java.util.Set;
 public class SingleEventListener
     extends BaseSMSListener
 {
-    private static final String DEFAULT_PATTERN = "(\\w+)\\s*((\\w+\\s*)=(\\s*\\w+\\s*),\\s*)*((\\w+\\s*)=(\\s*\\w+))";
-    
-    private static final String SUCCESS = "Event registered successfully";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -95,18 +91,6 @@ public class SingleEventListener
         }
 
         registerEvent( commandValuePairs, smsCommand, sms, ous );
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        return DEFAULT_PATTERN;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        return SUCCESS;
     }
 
     // -------------------------------------------------------------------------

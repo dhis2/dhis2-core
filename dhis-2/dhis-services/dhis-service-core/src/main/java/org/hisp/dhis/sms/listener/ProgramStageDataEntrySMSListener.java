@@ -50,10 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProgramStageDataEntrySMSListener
     extends BaseSMSListener
 {
-    private static final String DEFAULT_PATTERN = "(\\w+)\\s*((\\w+\\s*)=(\\s*\\w+\\s*),\\s*)*((\\w+\\s*)=(\\s*\\w+))";
-
-    private static final String SUCCESS = "Program Stage registered successfully";
-
     private static final String MORE_THAN_ONE_TEI = "More than one tracked entity found for given phone number";
 
     private static final String NO_OU_FOUND = "No organisation unit found";
@@ -110,18 +106,6 @@ public class ProgramStageDataEntrySMSListener
         }
 
         registerProgramStage( teis.iterator().next(), sms, smsCommand, commandValuePairs, ous );
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        return DEFAULT_PATTERN;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        return SUCCESS;
     }
 
     private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand, Map<String, String> keyValue, Set<OrganisationUnit> ous )
