@@ -100,21 +100,8 @@ public class DataValueSMSListener
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
-        if ( orgUnits == null || orgUnits.size() == 0 )
-        {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
-            }
-        }
-
-        OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
+        OrganisationUnit orgUnit = getOrganisationUnits( sms ).iterator().next();
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
 
@@ -132,7 +119,7 @@ public class DataValueSMSListener
             if ( parsedMessage.containsKey( code.getCode() ) )
             {
                 valueStored = storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, date,
-                        smsCommand.getDataset() );
+                    smsCommand.getDataset() );
             }
         }
 
