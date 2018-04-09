@@ -100,64 +100,61 @@ public class DefaultDataQueryService
     //TODO introduce ExternalDataQueryParams and replace individual parameters
     
     @Override
-    public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
-        String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
-        boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
-        boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
-        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion, SortOrder order )
+    public DataQueryParams getFromUrl( DataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
-        inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
+        IdScheme inputIdScheme = ObjectUtils.firstNonNull( request.getInputIdScheme(), IdScheme.UID );
         
-        if ( dimensionParams != null && !dimensionParams.isEmpty() )
+        if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
-            params.addDimensions( getDimensionalObjects( dimensionParams, relativePeriodDate, userOrgUnit, format, allowAllPeriods, inputIdScheme ) );
+            params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format, 
+                request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
-        if ( filterParams != null && !filterParams.isEmpty() )
+        if ( request.getFilter() != null && !request.getFilter().isEmpty() )
         {
-            params.addFilters( getDimensionalObjects( filterParams, relativePeriodDate, userOrgUnit, format, allowAllPeriods, inputIdScheme ) );
+            params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format, request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
-        if ( measureCriteria != null && !measureCriteria.isEmpty() )
+        if ( request.getMeasureCriteria() != null && !request.getMeasureCriteria().isEmpty() )
         {
-            params.withMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( measureCriteria ) );
+            params.withMeasureCriteria( getMeasureCriteriaFromParam( request.getMeasureCriteria() ) );
         }
 
-        if ( preAggregationMeasureCriteria != null && !preAggregationMeasureCriteria.isEmpty() )
+        if ( request.getPreAggregationMeasureCriteria() != null && !request.getPreAggregationMeasureCriteria().isEmpty() )
         {
-            params.withPreAggregationMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( preAggregationMeasureCriteria) );
+            params.withPreAggregationMeasureCriteria( getMeasureCriteriaFromParam( request.getPreAggregationMeasureCriteria()) );
         }
         
-        if ( aggregationType != null )
+        if ( request.getAggregationType() != null )
         {
-            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
         return params
-            .withStartDate( startDate )
-            .withEndDate( endDate )
-            .withOrder(order)
-            .withSkipMeta( skipMeta )
-            .withSkipData( skipData )
-            .withSkipRounding( skipRounding )
-            .withCompletedOnly( completedOnly )
-            .withIgnoreLimit( ignoreLimit )
-            .withHierarchyMeta( hierarchyMeta )
-            .withHideEmptyRows( hideEmptyRows )
-            .withHideEmptyColumns( hideEmptyColumns )
-            .withShowHierarchy( showHierarchy )
-            .withIncludeNumDen( includeNumDen )
-            .withIncludeMetadataDetails( includeMetadataDetails )
-            .withDisplayProperty( displayProperty )
-            .withOutputIdScheme( outputIdScheme )
+            .withStartDate( request.getStartDate() )
+            .withEndDate( request.getEndDate() )
+            .withOrder( request.getOrder())
+            .withSkipMeta( request.isSkipMeta() )
+            .withSkipData( request.isSkipData() )
+            .withSkipRounding( request.isSkipRounding() )
+            .withCompletedOnly( request.isCompletedOnly() )
+            .withIgnoreLimit( request.isIgnoreLimit() )
+            .withHierarchyMeta( request.isHierarchyMeta() )
+            .withHideEmptyRows( request.isHideEmptyRows() )
+            .withHideEmptyColumns( request.isHideEmptyColumns() )
+            .withShowHierarchy( request.isShowHierarchy() )
+            .withIncludeNumDen( request.isIncludeNumDen() )
+            .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
+            .withDisplayProperty( request.getDisplayProperty() )
+            .withOutputIdScheme( request.getOutputIdScheme() )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withDuplicatesOnly( duplicatesOnly )
-            .withApprovalLevel( approvalLevel )
-            .withApiVersion( apiVersion )
+            .withDuplicatesOnly( request.isDuplicatesOnly() )
+            .withApprovalLevel( request.getApprovalLevel() )
+            .withApiVersion( request.getApiVersion() )
             .build();
     }
 
