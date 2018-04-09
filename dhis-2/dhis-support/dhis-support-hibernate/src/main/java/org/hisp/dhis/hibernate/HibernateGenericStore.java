@@ -437,15 +437,13 @@ public class HibernateGenericStore<T>
     @Override
     public List<T> getAllByAttributes( List<Attribute> attributes )
     {
-        CriteriaQuery<T> query =  getCriteriaBuilder().createQuery( clazz );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        Root root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
-        query.select( root );
-        query.where( joinAttributeValue.get( "attribute" ).in( attributes ) );
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        List<Function<Root, Predicate>> predicates = new ArrayList<>();
-        return getResultList( query );
+        predicates.add( root ->  root.join( "attributeValues", JoinType.INNER ).get( "attribute" ).in( attributes ) );
+
+        return getList( builder, predicates );
     }
 
     @Override
@@ -476,7 +474,7 @@ public class HibernateGenericStore<T>
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
-        Root root = query.from( getClazz() );
+        Root<T> root = query.from( getClazz() );
         Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
         query.select( root.get( "attributeValues" ) );
         query.where(
