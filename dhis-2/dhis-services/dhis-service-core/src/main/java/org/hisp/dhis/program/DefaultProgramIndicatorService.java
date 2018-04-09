@@ -31,6 +31,8 @@ package org.hisp.dhis.program;
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
@@ -63,6 +65,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import static org.apache.commons.lang3.StringUtils.trim;
@@ -73,8 +76,9 @@ import static org.apache.commons.lang3.StringUtils.trim;
 public class DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
+    private static final Log log = LogFactory.getLog( DefaultProgramIndicatorService.class );
 
-    private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
+    private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction>builder()
         .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
         .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
         .put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() )
@@ -86,7 +90,7 @@ public class DefaultProgramIndicatorService
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
 
-    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
+    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String>builder()
         .put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" )
         .put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" ).put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" )
         .put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" ).put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" )
@@ -290,9 +294,11 @@ public class DefaultProgramIndicatorService
 
         sqlExpression = getSubstitutedVariablesForAnalyticsSql( sqlExpression, programIndicator, startDate, endDate );
 
-        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate, endDate );
+        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate,
+            endDate );
 
-        sqlExpression = getSubstitutedElementsAnalyticsSql( sqlExpression, ignoreMissingValues, programIndicator, startDate,
+        sqlExpression = getSubstitutedElementsAnalyticsSql( sqlExpression, ignoreMissingValues, programIndicator,
+            startDate,
             endDate );
 
         return sqlExpression;
@@ -386,7 +392,8 @@ public class DefaultProgramIndicatorService
             String key = matcher.group( 1 );
             String el1 = matcher.group( 2 );
             String el2 = matcher.group( 3 );
-            boolean equalsZero = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSZERO );
+            boolean equalsZero =
+                matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSZERO );
             boolean equalsEmpty = matcher.group( 4 ) != null
                 && matcher.group( 4 ).matches( ProgramIndicator.EQUALSEMPTY );
 
@@ -396,8 +403,9 @@ public class DefaultProgramIndicatorService
 
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
-                    columnName = AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? getDataValueEnrollmentSql(
-                        el2, el1, programIndicator, startDate, endDate ) : statementBuilder.columnQuote( el2 );
+                    columnName =
+                        AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType() ? getDataValueEnrollmentSql(
+                            el2, el1, programIndicator, startDate, endDate ) : statementBuilder.columnQuote( el2 );
                 }
                 else
                 // ProgramIndicator.KEY_ATTRIBUTE
@@ -443,9 +451,9 @@ public class DefaultProgramIndicatorService
             String columnName = "\"" + dataElementUid + "\"";
             return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
                 ".pi = enrollmenttable.pi and " + columnName + " is not null " +
-                (programIndicator.getEndEventBoundary() != null ? ("and " + 
-                programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) + 
-                " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " + 
+                (programIndicator.getEndEventBoundary() != null ? ("and " +
+                    programIndicator.getEndEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) +
+                    " ") : "") + (programIndicator.getStartEventBoundary() != null ? ("and " +
                 programIndicator.getStartEventBoundary().getSqlCondition( reportingStartDate, reportingEndDate ) +
                 " ") : "") + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
         }
@@ -485,8 +493,17 @@ public class DefaultProgramIndicatorService
             return expr;
         }
 
-        if ( !ExpressionUtils.isValid( expr, null ) )
+        // Catch any exceptions from interpreting the expression, incase the expression is invalid.
+        try
         {
+            if ( !ExpressionUtils.isValid( expr, null ) )
+            {
+                return ProgramIndicator.EXPRESSION_NOT_VALID;
+            }
+        }
+        catch ( Exception e )
+        {
+            log.warn( "Expression '" + expression + "' is invalid: " + e.getMessage(), e );
             return ProgramIndicator.EXPRESSION_NOT_VALID;
         }
 
@@ -504,9 +521,18 @@ public class DefaultProgramIndicatorService
             return expr;
         }
 
-        if ( !ExpressionUtils.isBoolean( expr, null ) )
+        // Catch any exceptions from interpreting the expression, incase the expression is invalid.
+        try
         {
-            return ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
+            if ( !ExpressionUtils.isBoolean( expr, null ) )
+            {
+                return ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
+            }
+        }
+        catch ( Exception e )
+        {
+            log.warn( "Filter '" + filter + "' is invalid: " + e.getMessage(), e );
+            return ProgramIndicator.EXPRESSION_NOT_VALID;
         }
 
         return ProgramIndicator.VALID;
@@ -604,7 +630,7 @@ public class DefaultProgramIndicatorService
      * based on the given expression. Wraps the count variables with
      * <code>nullif</code> to avoid potential division by zero.
      *
-     * @param var the program indicator variable.
+     * @param var        the program indicator variable.
      * @param expression the program indicator expression.
      * @return a SQL select clause.
      */
