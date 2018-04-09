@@ -526,7 +526,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 3, params.getPeriods().size() );
@@ -546,7 +546,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 1, params.getFilterOrganisationUnits().size() );
@@ -564,7 +564,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramDataElements().size() );
@@ -583,7 +583,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramAttributes().size() );
@@ -603,7 +603,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams ).inputIdScheme( IdScheme.CODE );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 2, params.getProgramAttributes().size() );
@@ -622,7 +622,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams ).inputIdScheme( IdScheme.CODE );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         assertEquals( 2, params.getDataElements().size() );
         assertEquals( 1, params.getIndicators().size() );
@@ -643,7 +643,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
 
         
         assertEquals( 3, params.getDataElements().size() );
@@ -665,7 +665,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 4, params.getDataElements().size() );
         assertEquals( 12, params.getPeriods().size() );
@@ -683,7 +683,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 1, params.getOrganisationUnits().size() );  
         assertEquals( 2, params.getDataElements().size() );
@@ -701,7 +701,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 3, params.getOrganisationUnits().size() );  
         assertEquals( 2, params.getDataElements().size() );
@@ -719,7 +719,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 2, params.getOrganisationUnits().size() );  
         assertEquals( 2, params.getDataElements().size() );
@@ -736,7 +736,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        dataQueryService.getFromUrl( dataQueryRequest );
+        dataQueryService.getFromRequest( dataQueryRequest );
     }
     
     @Test( expected = IllegalQueryException.class )
@@ -749,7 +749,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        dataQueryService.getFromUrl( dataQueryRequest );
+        dataQueryService.getFromRequest( dataQueryRequest );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -762,7 +762,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        dataQueryService.getFromUrl( dataQueryRequest );
+        dataQueryService.getFromRequest( dataQueryRequest );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -775,7 +775,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        dataQueryService.getFromUrl( dataQueryRequest );
+        dataQueryService.getFromRequest( dataQueryRequest );
     }
 
     @Test
@@ -791,7 +791,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).filter( filterParams );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         List<DimensionalItemObject> periods = params.getPeriods();
         
@@ -811,7 +811,7 @@ public class DataQueryServiceTest
         DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
         builder.dimension( dimensionParams ).allowAllPeriods( true );
         DataQueryRequest dataQueryRequest = builder.build();
-        DataQueryParams params = dataQueryService.getFromUrl( dataQueryRequest );
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );
         
         assertEquals( 0, params.getPeriods().size() );
     }

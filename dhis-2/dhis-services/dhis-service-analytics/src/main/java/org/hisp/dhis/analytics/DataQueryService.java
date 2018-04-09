@@ -48,12 +48,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public interface DataQueryService
 {
     /**
-     * Creates a data query parameter object from the given URL.
+     * Creates a data query parameter object from the given request.
      *
      * @param request request wrapper object containing the URL parameters.
      * @return a data query parameter object created based on the given URL info.
      */
-    DataQueryParams getFromUrl( DataQueryRequest request );
+    DataQueryParams getFromRequest( DataQueryRequest request );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.

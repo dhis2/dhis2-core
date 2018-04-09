@@ -123,7 +123,7 @@ public class AnalyticsController
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
             .order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -174,7 +174,7 @@ public class AnalyticsController
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
             .order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -226,7 +226,7 @@ public class AnalyticsController
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
             .order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );       
+        DataQueryParams params = dataQueryService.getFromRequest( request );       
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -278,7 +278,7 @@ public class AnalyticsController
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
             .order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );        
+        DataQueryParams params = dataQueryService.getFromRequest( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -330,7 +330,7 @@ public class AnalyticsController
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
             .order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );        
+        DataQueryParams params = dataQueryService.getFromRequest( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -382,7 +382,7 @@ public class AnalyticsController
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
             .order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );        
+        DataQueryParams params = dataQueryService.getFromRequest( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
@@ -426,7 +426,7 @@ public class AnalyticsController
             .dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
             .apiVersion( apiVersion ).order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params );
@@ -479,7 +479,7 @@ public class AnalyticsController
             .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion )
             .order( order ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );               
+        DataQueryParams params = dataQueryService.getFromRequest( request );               
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false, params.getLatestEndDate() );
         return AnalyticsUtils.getDebugDataSql( params );
@@ -514,7 +514,7 @@ public class AnalyticsController
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
             .allowAllPeriods( true ).apiVersion( apiVersion ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );        
+        DataQueryParams params = dataQueryService.getFromRequest( request );        
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
@@ -545,7 +545,7 @@ public class AnalyticsController
             .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).userOrgUnit( userOrgUnit )
             .allowAllPeriods( true ).apiVersion( apiVersion ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
@@ -601,7 +601,7 @@ public class AnalyticsController
             .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .apiVersion( apiVersion ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );       
+        DataQueryParams params = dataQueryService.getFromRequest( request );       
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
@@ -651,7 +651,7 @@ public class AnalyticsController
             .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .apiVersion( apiVersion ).build();
         
-        DataQueryParams params = dataQueryService.getFromUrl( request );   
+        DataQueryParams params = dataQueryService.getFromRequest( request );   
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
