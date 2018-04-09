@@ -42,9 +42,7 @@
 
   <bean class="org.hisp.dhis.amqp.RabbitMQAmqpService" />
 
-  <bean class="org.hisp.dhis.kafka.KafkaConfig" />
-
-  <bean class="org.hisp.dhis.kafka.KafkaService" />
+  <bean class="org.hisp.dhis.kafka.DefaultKafkaManager" />
 
   <!-- Store definitions -->
 

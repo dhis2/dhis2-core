@@ -28,26 +28,21 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class KafkaService
+public interface KafkaManager
 {
-    private static final Log log = LogFactory.getLog( KafkaService.class );
+    KafkaTemplate<String, String> getKafkaTemplate();
 
-    private final KafkaTemplate<String, String> template;
+    KafkaAdmin getKafkaAdmin();
 
-    public KafkaService( KafkaTemplate<String, String> template )
-    {
-        this.template = template;
-    }
+    ConsumerFactory<String, String> getConsumerFactory( String group );
 
-    public KafkaTemplate<String, String> getTemplate()
-    {
-        return template;
-    }
+    ProducerFactory<String, String> getProducerFactory();
 }

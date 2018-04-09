@@ -28,15 +28,14 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.system.SystemService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -50,47 +49,45 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Configuration
-public class KafkaConfig
+public class DefaultKafkaManager implements KafkaManager
 {
+    private static final Log log = LogFactory.getLog( DefaultKafkaManager.class );
+
     private final SystemService systemService;
 
-    public KafkaConfig( SystemService systemService )
+    public DefaultKafkaManager( SystemService systemService )
     {
         this.systemService = systemService;
     }
 
-    @Bean
-    public KafkaAdmin kafkaAdmin()
+    @Override
+    public KafkaTemplate<String, String> getKafkaTemplate()
     {
+        return new KafkaTemplate<>( getProducerFactory() );
+    }
+
+    @Override
+    public KafkaAdmin getKafkaAdmin()
+    {
+        Kafka kafka = systemService.getSystemInfo().getKafka();
+
         Map<String, Object> props = new HashMap<>();
-        props.put( AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092" );
+        props.put( AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
 
         return new KafkaAdmin( props );
     }
 
-    @Bean
-    public KafkaTemplate<String, String> kafkaTemplate()
-    {
-        return new KafkaTemplate<>( kafkaProducerFactory() );
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory()
-    {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory( kafkaConsumerFactory() );
-        return factory;
-    }
-
-    @Bean
-    public ConsumerFactory<String, String> kafkaConsumerFactory()
+    /**
+     * Build a kafka consumer factory for a given group-id.
+     */
+    @Override
+    public ConsumerFactory<String, String> getConsumerFactory( String group )
     {
         Kafka kafka = systemService.getSystemInfo().getKafka();
 
         Map<String, Object> props = new HashMap<>();
         props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
-        props.put( ConsumerConfig.GROUP_ID_CONFIG, "group1" );
+        props.put( ConsumerConfig.GROUP_ID_CONFIG, group );
         props.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true );
         props.put( ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100" );
         props.put( ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000" );
@@ -100,8 +97,8 @@ public class KafkaConfig
         );
     }
 
-    @Bean
-    public ProducerFactory<String, String> kafkaProducerFactory()
+    @Override
+    public ProducerFactory<String, String> getProducerFactory()
     {
         Kafka kafka = systemService.getSystemInfo().getKafka();
 
@@ -116,4 +113,13 @@ public class KafkaConfig
             props, new StringSerializer(), new StringSerializer()
         );
     }
+
+    /*
+    private ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory()
+    {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory( kafkaConsumerFactory() );
+        return factory;
+    }
+    */
 }
