@@ -28,9 +28,33 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "kafka", namespace = DxfNamespaces.DXF_2_0 )
 public class Kafka
 {
+    private final String bootstrapServers;
+
+    public Kafka( String bootstrapServers )
+    {
+        this.bootstrapServers = bootstrapServers;
+    }
+
+    @JsonProperty( "bootstrap-servers" )
+    @JacksonXmlProperty( localName = "bootstrap-servers", namespace = DxfNamespaces.DXF_2_0 )
+    public String getBootstrapServers()
+    {
+        return bootstrapServers;
+    }
+
+    public boolean isValid()
+    {
+        return bootstrapServers != null;
+    }
 }
