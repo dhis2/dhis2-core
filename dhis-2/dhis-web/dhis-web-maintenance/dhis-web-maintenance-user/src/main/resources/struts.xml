@@ -97,13 +97,11 @@
       <param name="page">/dhis-web-maintenance-user/allRole.vm</param>
       <param name="menu">/dhis-web-maintenance-user/menu.vm</param>
       <param name="javascripts">javascript/role.js,javascript/filterTable.js</param>
-      <param name="requiredAuthorities">F_USERROLE_LIST</param>
     </action>
 
     <action name="getRole" class="org.hisp.dhis.user.action.GetRoleAction">
       <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonUserRole.vm</result>
       <param name="onExceptionReturn">plainTextError</param>
-      <param name="requiredAuthorities">F_USERROLE_LIST</param>
     </action>
 
     <action name="removeRole" class="org.hisp.dhis.user.action.RemoveRoleAction">
