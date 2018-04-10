@@ -165,10 +165,10 @@ public class DefaultTrackedEntityInstanceService
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
     {
         decideAccess( params );
-        validate( params );
 
         if ( !sync )
         {
+            validate( params );
             validateSearchScope( params );
         }
 
