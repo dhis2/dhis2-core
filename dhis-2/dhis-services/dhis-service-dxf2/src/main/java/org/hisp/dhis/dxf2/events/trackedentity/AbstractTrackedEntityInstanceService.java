@@ -169,9 +169,9 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean androidSync, boolean regularSync )
     {
-        return teiService.getTrackedEntityInstanceCount( params, sync );
+        return teiService.getTrackedEntityInstanceCount( params, androidSync, regularSync );
     }
 
     @Override

@@ -162,13 +162,19 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean androindSync, boolean regularSync )
     {
         decideAccess( params );
 
-        if ( !sync )
+        //skip validation only if it is regularSync. Otherwise do validate
+        if ( !regularSync )
         {
             validate( params );
+        }
+
+        //validateSearchScope only and only if it is not androidSync nor regularSync
+        if ( !androindSync && !regularSync )
+        {
             validateSearchScope( params );
         }
 

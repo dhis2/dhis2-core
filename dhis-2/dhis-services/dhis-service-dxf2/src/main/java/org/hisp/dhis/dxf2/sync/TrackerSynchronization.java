@@ -84,7 +84,7 @@ public class TrackerSynchronization
         queryParams.setLastUpdatedStartDate( lastSuccess );
         queryParams.setIncludeDeleted( true );
 
-        int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, true );
+        int objectsToSync = teiService.getTrackedEntityInstanceCount( queryParams, false, true );
 
         if ( objectsToSync == 0 )
         {
