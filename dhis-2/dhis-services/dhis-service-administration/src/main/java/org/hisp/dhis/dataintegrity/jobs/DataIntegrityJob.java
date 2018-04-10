@@ -77,6 +77,10 @@ public class DataIntegrityJob
     {
         Timer timer = new SystemTimer().start();
 
+        notifier.notify(
+            jobConfiguration, NotificationLevel.INFO,
+            "Starting data integrity job", false );
+
         FlattenedDataIntegrityReport report = dataIntegrityService.getFlattenedDataIntegrityReport();
 
         timer.stop();
