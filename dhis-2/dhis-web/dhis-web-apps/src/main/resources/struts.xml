@@ -139,7 +139,7 @@
     
     <package name="dhis-web-user" extends="dhis-web-commons" namespace="/dhis-web-user">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
-            <result name="success" type="redirect">#</result>
+            <result name="success" type="redirect">index.html</result>
         </action>
     </package>
     

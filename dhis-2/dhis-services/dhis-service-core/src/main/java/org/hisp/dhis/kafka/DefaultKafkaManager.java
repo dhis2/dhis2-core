@@ -28,8 +28,6 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -51,8 +49,6 @@ import java.util.Map;
  */
 public class DefaultKafkaManager implements KafkaManager
 {
-    private static final Log log = LogFactory.getLog( DefaultKafkaManager.class );
-
     private final SystemService systemService;
 
     public DefaultKafkaManager( SystemService systemService )
