@@ -48,11 +48,13 @@ import java.util.List;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
- * Default ACL implementation that uses SchemaDescriptors to get authorities / sharing flags.
+ * Default ACL implementation that uses SchemaDescriptors to get authorities /
+ * sharing flags.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DefaultAclService implements AclService
+public class DefaultAclService
+    implements AclService
 {
     private final SchemaService schemaService;
 
@@ -111,12 +113,13 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
-        	if( object instanceof CategoryOptionCombo )
-        	{
-        		return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.READ );
-        	}
-        	
-            if ( !schema.isShareable() || object.getUser() == null || object.getPublicAccess() == null || checkUser( user, object )
+            if ( object instanceof CategoryOptionCombo )
+            {
+                return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.READ );
+            }
+
+            if ( !schema.isShareable() || object.getUser() == null || object.getPublicAccess() == null
+                || checkUser( user, object )
                 || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
             {
                 return true;
@@ -147,13 +150,14 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
         {
-        	if( object instanceof CategoryOptionCombo )
-        	{
-        		return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ ) || checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE );
-        	}
-        	
-            if ( schema.isDataShareable() &&
-                (checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ )
+            if ( object instanceof CategoryOptionCombo )
+            {
+                return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ )
+                    || checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE );
+            }
+
+            if ( schema.isDataShareable()
+                && (checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ )
                     || checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE )) )
             {
                 return true;
@@ -188,18 +192,18 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-        	if( object instanceof CategoryOptionCombo )
-        	{
-        		return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.WRITE );
-        	}
-        	
+            if ( object instanceof CategoryOptionCombo )
+            {
+                return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.WRITE );
+            }
+
             if ( !schema.isShareable() )
             {
                 return true;
             }
 
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
+            if ( checkSharingAccess( user, object ) && (checkUser( user, object )
+                || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
             {
                 return true;
             }
@@ -231,12 +235,13 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-        	if( object instanceof CategoryOptionCombo )
-        	{
-        		return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE );
-        	}
-        	
-            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE ) )
+            if ( object instanceof CategoryOptionCombo )
+            {
+                return checkOptionComboSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE );
+            }
+
+            if ( schema.isDataShareable()
+                && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE ) )
             {
                 return true;
             }
@@ -276,13 +281,14 @@ public class DefaultAclService implements AclService
                 return true;
             }
 
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
+            if ( checkSharingAccess( user, object ) && (checkUser( user, object )
+                || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
             {
                 return true;
             }
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) && checkSharingAccess( user, object ) )
+        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object )
+            && checkSharingAccess( user, object ) )
         {
             return true;
         }
@@ -321,8 +327,8 @@ public class DefaultAclService implements AclService
                 return true;
             }
 
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
+            if ( checkSharingAccess( user, object ) && (checkUser( user, object )
+                || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
             {
                 return true;
             }
@@ -390,7 +396,7 @@ public class DefaultAclService implements AclService
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
             && ((!schema.getAuthorityByType( AuthorityType.EXTERNALIZE ).isEmpty() && haveOverrideAuthority( user ))
-            || haveAuthority( user, schema.getAuthorityByType( AuthorityType.EXTERNALIZE ) ));
+                || haveAuthority( user, schema.getAuthorityByType( AuthorityType.EXTERNALIZE ) ));
     }
 
     @Override
@@ -445,10 +451,7 @@ public class DefaultAclService implements AclService
 
         if ( isDataShareable( object.getClass() ) )
         {
-            AccessData data = new AccessData(
-                canDataRead( user, object ),
-                canDataWrite( user, object )
-            );
+            AccessData data = new AccessData( canDataRead( user, object ), canDataWrite( user, object ) );
 
             access.setData( data );
         }
@@ -563,7 +566,8 @@ public class DefaultAclService implements AclService
         {
             if ( !canMakeExternal )
             {
-                errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
+                errorReports.add(
+                    new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
             }
         }
 
@@ -576,7 +580,8 @@ public class DefaultAclService implements AclService
                 return errorReports;
             }
 
-            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3009, user.getUsername(), object.getClass() ) );
+            errorReports
+                .add( new ErrorReport( object.getClass(), ErrorCode.E3009, user.getUsername(), object.getClass() ) );
         }
         else
         {
@@ -585,13 +590,15 @@ public class DefaultAclService implements AclService
                 return errorReports;
             }
 
-            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3008, user.getUsername(), object.getClass() ) );
+            errorReports
+                .add( new ErrorReport( object.getClass(), ErrorCode.E3008, user.getUsername(), object.getClass() ) );
         }
 
         return errorReports;
     }
 
-    private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing( User user, T object )
+    private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing( User user,
+        T object )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
         Schema schema = schemaService.getSchema( object.getClass() );
@@ -603,7 +610,8 @@ public class DefaultAclService implements AclService
 
         if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
         {
-            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
+            errorReports
+                .add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
         }
 
         return errorReports;
@@ -627,7 +635,7 @@ public class DefaultAclService implements AclService
     /**
      * Should user be allowed access to this object.
      *
-     * @param user   User to check against
+     * @param user User to check against
      * @param object Object to check against
      * @return true/false depending on if access should be allowed
      */
@@ -637,11 +645,13 @@ public class DefaultAclService implements AclService
     }
 
     /**
-     * Is the current user allowed to create/update the object given based on its sharing settings.
+     * Is the current user allowed to create/update the object given based on
+     * its sharing settings.
      *
-     * @param user   User to check against
+     * @param user User to check against
      * @param object Object to check against
-     * @return true/false depending on if sharing settings are allowed for given user
+     * @return true/false depending on if sharing settings are allowed for given
+     *         user
      */
     private boolean checkSharingAccess( User user, IdentifiableObject object )
     {
@@ -673,15 +683,17 @@ public class DefaultAclService implements AclService
     }
 
     /**
-     * If the given user allowed to access the given object using the permissions given.
+     * If the given user allowed to access the given object using the
+     * permissions given.
      *
-     * @param user       User to check against
-     * @param object     Object to check against
+     * @param user User to check against
+     * @param object Object to check against
      * @param permission Permission to check against
      * @return true if user can access object, false otherwise
-     */    
-    private boolean checkSharingPermission( User user, IdentifiableObject object, AccessStringHelper.Permission permission )
-    {    	
+     */
+    private boolean checkSharingPermission( User user, IdentifiableObject object,
+        AccessStringHelper.Permission permission )
+    {
         if ( AccessStringHelper.isEnabled( object.getPublicAccess(), permission ) )
         {
             return true;
@@ -699,7 +711,9 @@ public class DefaultAclService implements AclService
 
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
-            /* Is the user allowed to read to this object through user access? */
+            /*
+             * Is the user allowed to read to this object through user access?
+             */
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
                 && user.equals( userAccess.getUser() ) )
             {
@@ -709,26 +723,27 @@ public class DefaultAclService implements AclService
 
         return false;
     }
-    
-    private boolean checkOptionComboSharingPermission( User user, IdentifiableObject object, AccessStringHelper.Permission permission )
+
+    private boolean checkOptionComboSharingPermission( User user, IdentifiableObject object,
+        AccessStringHelper.Permission permission )
     {
-    	CategoryOptionCombo optionCombo = (CategoryOptionCombo) object; 
-    	
-    	if( optionCombo.isDefault() || optionCombo.getCategoryOptions().isEmpty() )
-    	{
-    		return true;
-    	}
-    	
-    	List<Integer> accessibleOptions = new ArrayList<>();
-		
-		for( CategoryOption option : optionCombo.getCategoryOptions() )
-		{    			
-			if( checkSharingPermission( user, option, permission ) )
-			{
-				accessibleOptions.add( option.getId() );
-			}
-		}
-		
-		return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
+        CategoryOptionCombo optionCombo = (CategoryOptionCombo) object;
+
+        if ( optionCombo.isDefault() || optionCombo.getCategoryOptions().isEmpty() )
+        {
+            return true;
+        }
+
+        List<Integer> accessibleOptions = new ArrayList<>();
+
+        for ( CategoryOption option : optionCombo.getCategoryOptions() )
+        {
+            if ( checkSharingPermission( user, option, permission ) )
+            {
+                accessibleOptions.add( option.getId() );
+            }
+        }
+
+        return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
     }
 }
