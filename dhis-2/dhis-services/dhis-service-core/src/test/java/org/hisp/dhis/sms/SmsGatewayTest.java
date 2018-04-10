@@ -38,13 +38,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -71,19 +68,17 @@ public class SmsGatewayTest extends DhisConvenienceTest
 
     private SmsGatewayConfig smsGatewayConfig;
 
-    private ResponseEntity<String> responseEntity;
-
     private Set<String> recipients = new HashSet<>();
 
     @Before
     public void initTest()
     {
-        responseEntity = new ResponseEntity<>(RESPONSE_STRING, HttpStatus.OK );
+        ResponseEntity<String> responseEntity = new ResponseEntity<>( RESPONSE_STRING, HttpStatus.OK );
 
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ), any( Class.class ) ) )
+        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
             .thenReturn( responseEntity );
 
-        recipients.add(PHONE_NUMBER);
+        recipients.add( PHONE_NUMBER );
     }
 
     @Test
@@ -113,7 +108,7 @@ public class SmsGatewayTest extends DhisConvenienceTest
         assertNotNull( status );
         assertEquals( GatewayResponse.RESULT_CODE_0, status.getResponseObject() );
 
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ), any( Class.class ) ) )
+        when( restTemplate.exchange( any(), any() , any(), eq( String.class ) ) )
             .thenReturn( null );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
