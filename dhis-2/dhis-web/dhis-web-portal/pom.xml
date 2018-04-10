@@ -61,12 +61,6 @@
 
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-maintenance-user</artifactId>
-      <version>${project.version}</version>
-      <type>war</type>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-maintenance-mobile</artifactId>
       <version>${project.version}</version>
       <type>war</type>
