@@ -162,13 +162,17 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         decideAccess( params );
 
-        if ( !sync )
+        if ( !skipAccessValidation )
         {
             validate( params );
+        }
+
+        if ( !skipSearchScopeValidation )
+        {
             validateSearchScope( params );
         }
 
