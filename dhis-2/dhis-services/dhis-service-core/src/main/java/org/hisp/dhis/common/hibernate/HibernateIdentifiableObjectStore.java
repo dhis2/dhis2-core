@@ -51,6 +51,7 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -60,13 +61,19 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -186,13 +193,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void save( T object, boolean clearSharing )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         String username = user != null ? user.getUsername() : "system-process";
 
         if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )
         {
             object.setAutoFields();
-            
+
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
@@ -245,7 +252,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-        
+
         getSession().save( object );
 
         if ( MetadataObject.class.isInstance( object ) )
@@ -268,7 +275,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         if ( IdentifiableObject.class.isInstance( object ) )
         {
             object.setAutoFields();
-            
+
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
             identifiableObject.setAutoFields();
             identifiableObject.setLastUpdatedBy( user );
@@ -327,7 +334,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public final T get( int id )
     {
         T object = (T) getSession().get( getClazz(), id );
-        
+
         if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
@@ -338,10 +345,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public final List<T> getAll()
     {
-        return getSharingCriteria().list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+        return getSharingQuery( builder ).getResultList();
     }
 
     @Override
@@ -360,7 +367,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        return getSharingObject( Restrictions.eq( "uid", uid ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>>  predicates = new ArrayList<>();
+        predicates.add( root -> builder.equal( root.get( "uid" ), uid ) );
+
+        return getSingleResult( getSharingQuery( builder, predicates ) );
     }
 
     @Override
@@ -717,7 +729,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     //----------------------------------------------------------------------------------------------------------------
 
     /**
-     * Creates a criteria with sharing restrictions relative to the given 
+     * Creates a criteria with sharing restrictions relative to the given
      * user and access string.
      */
     public final Criteria getSharingCriteria()
@@ -728,7 +740,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     /**
      * Creates a detached criteria with data sharing restrictions relative to the
      * given user and access string.
-     * 
+     *
      * @param user the user.
      * @param access the access string.
      * @return a DetachedCriteria.
@@ -780,9 +792,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Creates a detached criteria with sharing restrictions relative to the given 
+     * Creates a detached criteria with sharing restrictions relative to the given
      * user and access string.
-     * 
+     *
      * @param user the user.
      * @param access the access string.
      * @return a DetachedCriteria.
@@ -837,6 +849,88 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return criteria;
     }
 
+    // ----------------------------------------------------------------------
+    // JPA Implementations
+    // ----------------------------------------------------------------------
+
+    /**
+     * Creates a criteria with sharing restrictions relative to the given
+     * user and access string.
+     */
+    public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
+    {
+        return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
+    }
+
+    protected List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    {
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        CriteriaQuery<T> criteria = builder.createQuery( getClazz() ) ;
+
+        preProcessCriteriaQuery( criteria );
+
+        if ( !sharingEnabled( user ) || user == null )
+        {
+            return predicates;
+        }
+
+        Function<Root<T>, Subquery<Integer>> userGroupPredicate = ( ( Root<T> root ) -> {
+            Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
+            Root<T> ugdc = userGroupSubQuery.from( getClazz() );
+            userGroupSubQuery.select( ugdc.get("id") );
+            Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
+            return userGroupSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
+                    builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
+                    builder.like( uga.get( "access" ), access ) ) );
+        } );
+
+        Function<Root<T>, Subquery<Integer>> userPredicate = ( root -> {
+            Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
+            Root<T> udc = userSubQuery.from( getClazz() );
+            userSubQuery.select( udc.get( "id" ) );
+            Join<T, UserAccess> ua = udc.join( "userAccesses" );
+            return userSubQuery.where(
+                builder.and(
+                    builder.equal( root.get( "id" ), udc.get( "id" ) ),
+                    builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
+                    builder.like( ua.get( "access" ), access ) ) );
+        } );
+
+        predicates.add( root -> builder.or(
+            builder.like( root.get( "publicAccess" ), access ),
+            builder.isNull( root.get( "publicAccess" ) ),
+            builder.isNull( root.get( "user" ) ),
+            builder.equal( root.get( "user" ).get( "id" ), user.getId() ),
+            builder.exists( userGroupPredicate.apply( root ) ),
+            builder.exists( userPredicate.apply( root ) ) ) );
+
+
+        return predicates;
+    }
+
+    protected final TypedQuery<T> getSharingQuery( CriteriaBuilder builder )
+    {
+        return getSharingQuery( builder, new ArrayList<>() );
+    }
+
+    protected final TypedQuery<T> getSharingQuery( CriteriaBuilder builder,  List<Function<Root<T>, Predicate>> predicates )
+    {
+        List<Function<Root<T>, Predicate>> sharingPredicates = getSharingPredicates( builder );
+
+        if ( !predicates.isEmpty() )
+        {
+            sharingPredicates.addAll( predicates );
+        }
+
+        TypedQuery<T> query = getCriteriaQuery( builder, sharingPredicates );
+
+        return query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+    }
+
+
     /**
      * Creates a sharing Criteria for the implementation Class type restricted by the
      * given Criterions.
@@ -871,7 +965,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     /**
      * Checks whether the given user has public access to the given identifiable object.
-     * 
+     *
      * @param user the user.
      * @param identifiableObject the identifiable object.
      * @return true or false.
