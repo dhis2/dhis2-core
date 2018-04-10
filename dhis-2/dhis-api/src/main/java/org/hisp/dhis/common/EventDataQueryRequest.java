@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -282,8 +283,8 @@ public class EventDataQueryRequest
         request.stage = this.stage;
         request.startDate = this.startDate;
         request.endDate = this.endDate;
-        request.dimension = this.dimension;
-        request.filter = this.filter;
+        request.dimension = new HashSet<>( this.dimension );
+        request.filter = new HashSet<>( this.filter );
         request.value = this.value;
         request.aggregationType = this.aggregationType;
         request.skipMeta = this.skipMeta;
@@ -305,8 +306,8 @@ public class EventDataQueryRequest
         request.userOrgUnit = this.userOrgUnit;
         request.apiVersion = this.apiVersion;
         request.ouMode = this.ouMode;
-        request.asc = this.asc;
-        request.desc = this.desc;
+        request.asc = new HashSet<>( this.asc );
+        request.desc = new HashSet<>( this.desc );
         request.coordinatesOnly = this.coordinatesOnly;
         request.coordinateField = this.coordinateField;
         request.page = this.page;
