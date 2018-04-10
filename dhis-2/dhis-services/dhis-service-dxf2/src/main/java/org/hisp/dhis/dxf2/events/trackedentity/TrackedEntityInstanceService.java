@@ -52,7 +52,7 @@ public interface TrackedEntityInstanceService
 
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean androidSync, boolean regularSync );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
