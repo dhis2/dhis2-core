@@ -44,7 +44,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.BufferedReader;
 import java.net.URI;
 import java.util.List;
 import java.util.Random;
@@ -90,9 +89,9 @@ public class BulkSmsGateway
     }
 
     @Override
-    protected Class<?> getGatewayType()
+    protected SmsGatewayConfig getGatewayType()
     {
-        return BulkSmsGatewayConfig.class;
+        return new BulkSmsGatewayConfig();
     }
 
     @Override

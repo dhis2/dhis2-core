@@ -77,10 +77,10 @@ public abstract class SmsGateway
 
     public boolean accept( SmsGatewayConfig gatewayConfig )
     {
-        return gatewayConfig != null && gatewayConfig.getClass().isAssignableFrom( getGatewayType() );
+        return gatewayConfig != null && gatewayConfig.getClass().isInstance( getGatewayType() );
     }
 
-    protected abstract Class<?> getGatewayType();
+    protected abstract SmsGatewayConfig getGatewayType();
 
     protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 

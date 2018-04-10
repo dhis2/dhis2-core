@@ -102,9 +102,9 @@ public class SimplisticHttpGetGateWay
      }
 
     @Override
-    protected Class<?> getGatewayType()
+    protected SmsGatewayConfig getGatewayType()
     {
-        return GenericHttpGatewayConfig.class;
+        return new GenericHttpGatewayConfig();
     }
 
     @Override
