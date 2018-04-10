@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.spring2fa;
+package org.hisp.dhis.kafka;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,41 +28,21 @@ package org.hisp.dhis.security.spring2fa;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
-
-import javax.servlet.http.HttpServletRequest;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaAdmin;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
 /**
- * @author Henning Håkonsen
- * @author Lars Helge Øverland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TwoFactorWebAuthenticationDetails
-    extends WebAuthenticationDetails
+public interface KafkaManager
 {
-    private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+    KafkaTemplate<String, String> getKafkaTemplate();
 
-    private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+    KafkaAdmin getKafkaAdmin();
 
-    private String code;
+    ConsumerFactory<String, String> getConsumerFactory( String group );
 
-    private String ip;
-
-    public TwoFactorWebAuthenticationDetails( HttpServletRequest request )
-    {
-        super( request );
-        code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
-        ip = ObjectUtils.firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
-    }
-
-    public String getCode()
-    {
-        return code;
-    }
-
-    public String getIp()
-    {
-        return ip;
-    }
+    ProducerFactory<String, String> getProducerFactory();
 }
-

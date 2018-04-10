@@ -42,6 +42,7 @@ import org.hisp.dhis.security.RecaptchaResponse;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -517,6 +518,7 @@ public class AccountController
     {
         UsernamePasswordAuthenticationToken token =
             new UsernamePasswordAuthenticationToken( username, rawPassword, authorities );
+        token.setDetails( new TwoFactorWebAuthenticationDetails( request ) );
 
         Authentication auth = authenticationManager.authenticate( token );
 
