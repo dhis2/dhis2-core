@@ -35,7 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -129,7 +129,7 @@ public class DefaultDataSetNotificationService
     private PeriodService periodService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -174,6 +174,7 @@ public class DefaultDataSetNotificationService
 
         if ( templates == null || templates.isEmpty() )
         {
+            log.info( "No template found" );
             return;
         }
 
@@ -268,7 +269,7 @@ public class DefaultDataSetNotificationService
         registration.setDataSet( dataSet );
         registration.setPeriod( periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
         registration.setPeriodName( getPeriodString( registration.getPeriod() ) );
-        registration.setAttributeOptionCombo( categoryService.getDefaultDataElementCategoryOptionCombo() );
+        registration.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
         registration.setSource( ou );
 
         return registration;
@@ -369,7 +370,7 @@ public class DefaultDataSetNotificationService
             }
         }
 
-        log.info( String.format( "%d single dataset notifications created.", batch.totalMessageCount() ) );
+        log.info( String.format( "Number of SINGLE notifications created: %d", batch.totalMessageCount() ) );
 
         return batch;
     }
@@ -477,7 +478,7 @@ public class DefaultDataSetNotificationService
     {
         messages.forEach( m ->
             internalMessageService.sendMessage(
-                new MessageConversationParams.Builder(m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
+                new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
                 .build()
             )
         );

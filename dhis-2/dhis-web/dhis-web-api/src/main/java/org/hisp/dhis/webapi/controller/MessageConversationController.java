@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -143,15 +142,6 @@ public class MessageConversationController
         if ( options.getOptions().containsKey( "query" ) )
         {
             messageConversations = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
-        }
-        else if ( options.hasPaging() )
-        {
-            int count = messageService.getMessageConversationCount();
-
-            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
-            metadata.setPager( pager );
-
-            messageConversations = new ArrayList<>( messageService.getMessageConversations( pager.getOffset(), pager.getPageSize() ) );
         }
         else
         {

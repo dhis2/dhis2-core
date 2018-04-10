@@ -31,9 +31,6 @@ package org.hisp.dhis.analytics.table;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -74,9 +71,6 @@ public class DefaultAnalyticsTableGenerator
     private MessageService messageService;
     
     @Autowired
-    private AnalyticsTableHookService tableHookService;
-
-    @Autowired
     private SystemSettingManager systemSettingManager;
 
     @Autowired
@@ -108,9 +102,6 @@ public class DefaultAnalyticsTableGenerator
             {
                 notifier.notify( jobId, "Updating resource tables" );
                 generateResourceTables();
-                
-                notifier.notify( jobId, "Invoking resource table hooks" );
-                invokeSqlHooks();
             }
 
             for ( AnalyticsTableService service : analyticsTableServices )
@@ -193,15 +184,9 @@ public class DefaultAnalyticsTableGenerator
         resourceTableService.generateDataElementTable();
         resourceTableService.generatePeriodTable();
         resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();
+        resourceTableService.generateCategoryOptionComboTable();
         resourceTableService.createAllSqlViews();
 
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );
-    }
-    
-    private void invokeSqlHooks()
-    {
-        List<AnalyticsTableHook> hooks = tableHookService.getByPhase( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED );
-        tableHookService.executeAnalyticsTableSqlHooks( hooks );
     }
 }

@@ -63,8 +63,9 @@ public interface ProgramInstanceService
     /**
      * Deletes a program instance. Based on the forceDelete parameter, the program instance is
      * either soft deleted (false) or hard deleted (true)
+     *
      * @param programInstance to delete
-     * @param forceDelete soft delete or hard delete
+     * @param forceDelete     soft delete or hard delete
      */
     void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
 
@@ -92,12 +93,20 @@ public interface ProgramInstanceService
     ProgramInstance getProgramInstance( String uid );
 
     /**
-     * Checks for the existence of a PI by UID
+     * Checks for the existence of a PI by UID. Deleted values are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
      */
     boolean programInstanceExists( String uid );
+
+    /**
+     * Checks for the existence of a PI by UID. Takes into account also the deleted values.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean programInstanceExistsIncludingDeleted( String uid );
 
     /**
      * Returns a ProgramInstanceQueryParams based on the given input.
@@ -110,18 +119,19 @@ public interface ProgramInstanceService
      * @param programStartDate      the start date for enrollment in the given
      *                              Program.
      * @param programEndDate        the end date for enrollment in the given Program.
-     * @param trackedEntityType         the TrackedEntityType uid.
+     * @param trackedEntityType     the TrackedEntityType uid.
      * @param trackedEntityInstance the TrackedEntityInstance uid.
      * @param followUp              indicates follow up status in the given Program.
      * @param page                  the page number.
      * @param pageSize              the page size.
      * @param totalPages            indicates whether to include the total number of pages.
      * @param skipPaging            whether to skip paging.
+     * @param includeDeleted        whether to include soft deleted ones
      * @return a ProgramInstanceQueryParams.
      */
     ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program,
         ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
-        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging );
+        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
 
     /**
      * Returns a list with program instance values based on the given
@@ -240,7 +250,7 @@ public interface ProgramInstanceService
      * @param programInstance ProgramInstance
      */
     void cancelProgramInstanceStatus( ProgramInstance programInstance );
-    
+
     /**
      * Incomplete a program instance. This is is possible only if there is
      * no other program instance with active status.

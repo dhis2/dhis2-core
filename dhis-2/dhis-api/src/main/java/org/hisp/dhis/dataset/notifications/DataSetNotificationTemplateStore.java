@@ -28,7 +28,7 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 
@@ -38,9 +38,9 @@ import java.util.List;
  * Created by zubair@dhis2.org on 13.07.17.
  */
 public interface DataSetNotificationTemplateStore
-    extends GenericIdentifiableObjectStore<DataSetNotificationTemplate>
+    extends IdentifiableObjectStore<DataSetNotificationTemplate>
 {
-    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, NotificationTrigger trigger );
+    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, DataSetNotificationTrigger trigger );
 
     List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
 }

@@ -28,22 +28,21 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import java.util.Collection;
+import java.util.List;
+
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Chau Thu Tran
@@ -62,7 +61,7 @@ public class ProgramDeletionHandler
     private IdentifiableObjectManager idObjectManager;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -75,10 +74,10 @@ public class ProgramDeletionHandler
     }
 
     @Override
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        DataElementCategoryCombo defaultCategoryCombo = categoryService
-            .getDataElementCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+        CategoryCombo defaultCategoryCombo = categoryService
+            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
 
         Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
@@ -90,20 +89,6 @@ public class ProgramDeletionHandler
                 idObjectManager.updateNoAcl( program );
             }
         }        
-    }
-
-    @Override
-    public void deleteValidationCriteria( ValidationCriteria validationCriteria )
-    {
-        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-
-        for ( Program program : programs )
-        {
-            if ( program.getValidationCriteria().remove( validationCriteria ) )
-            {
-                idObjectManager.updateNoAcl( program );
-            }
-        }
     }
 
     @Override

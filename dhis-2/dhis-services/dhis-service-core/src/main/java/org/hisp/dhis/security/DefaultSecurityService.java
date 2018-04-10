@@ -28,10 +28,20 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
@@ -58,16 +68,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
 /**
  * @author Lars Helge Overland
  */
@@ -90,14 +90,27 @@ public class DefaultSecurityService
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
-    private final LoadingCache<String, Integer> CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS = Caffeine.newBuilder()
-        .expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
-        .build( ( u ) -> 0 );
+    private Cache<Integer> userFailedLoginAttemptCache;
     
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    
+    @Autowired
+    private CurrentUserService currentUserService;
 
+    @Autowired
+    private UserSettingService userSettingService;
+
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
+    
     private PasswordManager passwordManager;
 
     public void setPasswordManager( PasswordManager passwordManager )
@@ -132,18 +145,20 @@ public class DefaultSecurityService
     {
         this.i18nManager = i18nManager;
     }
+    
+    // -------------------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------------------
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    @Autowired
-    private AclService aclService;
-
-    @Autowired
-    private RestTemplate restTemplate;
+    
+    @PostConstruct
+    public void init()
+    {
+        this.userFailedLoginAttemptCache = cacheProvider.newCacheBuilder( Integer.class )
+            .forRegion( "userFailedLoginAttempt" ).expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
+            .withDefaultValue( 0 ).build();
+        
+    }
 
     // -------------------------------------------------------------------------
     // SecurityService implementation
@@ -157,11 +172,11 @@ public class DefaultSecurityService
             return;
         }
         
-        Integer attempts = CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username );
+        Integer attempts = userFailedLoginAttemptCache.get( username ).get();
         
         attempts++;
         
-        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.put( username, attempts );
+        userFailedLoginAttemptCache.put( username, attempts );
     }
 
     @Override
@@ -172,7 +187,7 @@ public class DefaultSecurityService
             return;
         }
         
-        CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.invalidate( username );        
+        userFailedLoginAttemptCache.invalidate( username );        
     }
 
     @Override
@@ -183,7 +198,7 @@ public class DefaultSecurityService
             return false;
         }
         
-        return CACHE_USERNAME_FAILED_LOGIN_ATTEMPTS.get( username ) > LOGIN_MAX_FAILED_ATTEMPTS;
+        return userFailedLoginAttemptCache.get( username ).get() > LOGIN_MAX_FAILED_ATTEMPTS;
     }
     
     private boolean isBlockFailedLogins()
@@ -628,7 +643,7 @@ public class DefaultSecurityService
     }
 
     @Override
-    public Map<String, Object> verifyRecaptcha( String key, String remoteIp )
+    public RecaptchaResponse verifyRecaptcha( String key, String remoteIp )
         throws IOException
     {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -641,7 +656,7 @@ public class DefaultSecurityService
 
         log.info( "Recaptcha result: " + result );
 
-        return JacksonUtils.fromJsonToMap( result );
+        return JacksonUtils.fromJson( result, RecaptchaResponse.class );
     }
 
     @Override

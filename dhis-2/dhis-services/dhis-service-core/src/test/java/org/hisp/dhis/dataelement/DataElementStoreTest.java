@@ -187,30 +187,6 @@ public class DataElementStoreTest
     }
 
     @Test
-    public void testGetDataElementByShortName()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementStore.save( dataElementA );
-        int idA = dataElementA.getId();
-        dataElementStore.save( dataElementB );
-        int idB = dataElementB.getId();
-
-        dataElementA = dataElementStore.getByShortName( "DataElementShortA" );
-        assertNotNull( dataElementA );
-        assertEquals( idA, dataElementA.getId() );
-        assertEquals( "DataElementA", dataElementA.getName() );
-
-        dataElementB = dataElementStore.getByShortName( "DataElementShortB" );
-        assertNotNull( dataElementB );
-        assertEquals( idB, dataElementB.getId() );
-        assertEquals( "DataElementB", dataElementB.getName() );
-
-        DataElement dataElementC = dataElementStore.getByShortName( "DataElementShortC" );
-        assertNull( dataElementC );
-    }
-
-    @Test
     public void testGetAllDataElements()
     {
         assertEquals( 0, dataElementStore.getAll().size() );

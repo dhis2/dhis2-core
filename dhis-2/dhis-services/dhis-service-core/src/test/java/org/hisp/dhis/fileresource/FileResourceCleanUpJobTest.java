@@ -51,7 +51,6 @@ import java.util.Date;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
-import static org.hisp.dhis.DhisConvenienceTest.*;
 
 /**
  * @author Kristian Wærstad

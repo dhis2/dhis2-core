@@ -30,14 +30,14 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 
 /**
  * @author markusbekken
  */
 public interface ProgramRuleVariableStore
-    extends GenericNameableObjectStore<ProgramRuleVariable>
+    extends IdentifiableObjectStore<ProgramRuleVariable>
 {
     String ID = ProgramRuleVariableStore.class.getName();
 

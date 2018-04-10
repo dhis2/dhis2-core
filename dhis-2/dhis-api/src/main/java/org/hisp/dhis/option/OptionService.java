@@ -87,12 +87,6 @@ public interface OptionService
 
     List<OptionGroup> getAllOptionGroups();
 
-    OptionGroup getOptionGroupByName( String name );
-
-    OptionGroup getOptionGroupByCode( String code );
-
-    OptionGroup getOptionGroupByShortName( String shortName );
-
     // -------------------------------------------------------------------------
     // OptionGroupSet
     // -------------------------------------------------------------------------
@@ -108,6 +102,4 @@ public interface OptionService
     void deleteOptionGroupSet( OptionGroupSet group );
 
     List<OptionGroupSet> getAllOptionGroupSets();
-
-    OptionGroupSet getOptionGroupSetByName( String name );
 }

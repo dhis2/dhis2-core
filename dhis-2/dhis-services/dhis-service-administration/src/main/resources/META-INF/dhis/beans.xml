@@ -21,7 +21,7 @@
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
     <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
   
@@ -36,7 +36,7 @@
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
 	<property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
-	<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+	<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
 	<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="programIndicatorService" ref="org.hisp.dhis.program.ProgramIndicatorService" />
   </bean>

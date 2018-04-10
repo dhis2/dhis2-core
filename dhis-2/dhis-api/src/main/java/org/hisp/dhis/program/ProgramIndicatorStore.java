@@ -1,5 +1,6 @@
 package org.hisp.dhis.program;
 
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,12 +29,12 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
  */
 public interface ProgramIndicatorStore
-    extends GenericNameableObjectStore<ProgramIndicator>
+    extends IdentifiableObjectStore<ProgramIndicator>
 {
 }

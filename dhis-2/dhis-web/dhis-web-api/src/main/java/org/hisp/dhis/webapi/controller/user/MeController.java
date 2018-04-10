@@ -63,14 +63,17 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.user.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -90,7 +93,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
 public class MeController
 {
     @Autowired
@@ -376,6 +379,14 @@ public class MeController
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
         return dashboard;
+    }
+
+    @PostMapping( value = "/dashboard/interpretations/read" )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
+    public void updateInterpretationsLastRead()
+    {
+        interpretationService.updateCurrentUserLastChecked();
     }
 
     //------------------------------------------------------------------------------------------------

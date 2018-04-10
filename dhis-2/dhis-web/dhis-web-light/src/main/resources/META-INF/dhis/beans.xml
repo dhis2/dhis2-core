@@ -66,7 +66,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
 		<property name="registrationService"
 			ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
-		<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+		<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
 	</bean>
 
 	<bean id="org.hisp.dhis.light.dataentry.action.GetDataSetOverviewAction"
@@ -79,7 +79,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<property name="formUtils" ref="org.hisp.dhis.light.utils.FormUtils" />
 		<property name="registrationService"
 			ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
-		<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+		<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
 	</bean>
 
 	<bean id="org.hisp.dhis.light.dataentry.action.MarkComplete"
@@ -91,7 +91,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<property name="registrationService"
 			ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
 		<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-		<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+		<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
 	</bean>
 
 	<bean id="org.hisp.dhis.light.dataentry.action.UndoCompleteAction"
@@ -102,7 +102,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<property name="registrationService"
 			ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
 		<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-		<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+		<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
 	</bean>
 
 	<bean id="org.hisp.dhis.light.dataentry.action.GetSectionFormAction"
@@ -122,7 +122,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<property name="organisationUnitService"
 			ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
 		<property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-		<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+		<property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
 		<property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
 		<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
 		<property name="registrationService"

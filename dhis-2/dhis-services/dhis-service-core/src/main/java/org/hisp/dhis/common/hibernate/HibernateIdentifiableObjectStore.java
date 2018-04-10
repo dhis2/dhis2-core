@@ -34,16 +34,36 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
+import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
+import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,9 +75,26 @@ import java.util.Set;
  * @author bobj
  */
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
-    extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>
+    extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
+
+    @Autowired
+    protected CurrentUserService currentUserService;
+
+    /**
+     * Allows injection (e.g. by a unit test)
+     */
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
+    @Autowired
+    protected DeletedObjectService deletedObjectService;
+
+    @Autowired
+    protected AclService aclService;
 
     private boolean transientIdentifiableProperties = false;
 
@@ -79,21 +116,237 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     // -------------------------------------------------------------------------
+    // InternalHibernateGenericStore implementation
+    // -------------------------------------------------------------------------
+
+    public final Criteria getDataSharingCriteria()
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+    }
+
+    public final Criteria getDataSharingCriteria( String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+    }
+
+    public final Criteria getDataSharingCriteria( User user, String access )
+    {
+        return getExecutableCriteria( getDataSharingDetachedCriteria( UserInfo.fromUser( user ), access ) );
+    }
+
+    public final Criteria getSharingCriteria( String access )
+    {
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
+    }
+
+    public final Criteria getSharingCriteria( User user )
+    {
+        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria()
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria( String access )
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
+    {
+        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
+    }
+
+    public final DetachedCriteria getSharingDetachedCriteria( User user )
+    {
+        return getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
+    }
+
+    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
+    {
+        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
+    }
+
+    // -------------------------------------------------------------------------
     // IdentifiableObjectStore implementation
     // -------------------------------------------------------------------------
 
     @Override
     public void save( T object )
     {
-        object.setAutoFields();
-        super.save( object );
+        save( object, true );
+    }
+
+    @Override
+    public void save( T object, boolean clearSharing )
+    {
+        User user = currentUserService.getCurrentUser();
+        
+        String username = user != null ? user.getUsername() : "system-process";
+
+        if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )
+        {
+            object.setAutoFields();
+            
+            BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+            identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
+
+            if ( clearSharing )
+            {
+                identifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
+
+                if ( identifiableObject.getUserGroupAccesses() != null )
+                {
+                    identifiableObject.getUserGroupAccesses().clear();
+                }
+
+                if ( identifiableObject.getUserAccesses() != null )
+                {
+                    identifiableObject.getUserAccesses().clear();
+                }
+            }
+
+            if ( identifiableObject.getUser() == null )
+            {
+                identifiableObject.setUser( user );
+            }
+        }
+
+        if ( user != null && aclService.isShareable( clazz ) )
+        {
+            BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+
+            if ( clearSharing )
+            {
+                if ( aclService.canMakePublic( user, identifiableObject.getClass() ) )
+                {
+                    if ( aclService.defaultPublic( identifiableObject.getClass() ) )
+                    {
+                        identifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
+                    }
+                }
+                else if ( aclService.canMakePrivate( user, identifiableObject.getClass() ) )
+                {
+                    identifiableObject.setPublicAccess( AccessStringHelper.newInstance().build() );
+                }
+            }
+
+            if ( !checkPublicAccess( user, identifiableObject ) )
+            {
+                AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE_DENIED );
+                throw new CreateAccessDeniedException( object.toString() );
+            }
+        }
+
+        AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
+        
+        getSession().save( object );
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+        }
     }
 
     @Override
     public void update( T object )
     {
-        object.setAutoFields();
-        super.update( object );
+        update( object, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public void update( T object, User user )
+    {
+        String username = user != null ? user.getUsername() : "system-process";
+
+        if ( IdentifiableObject.class.isInstance( object ) )
+        {
+            object.setAutoFields();
+            
+            BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+            identifiableObject.setAutoFields();
+            identifiableObject.setLastUpdatedBy( user );
+
+            if ( identifiableObject.getUser() == null )
+            {
+                identifiableObject.setUser( user );
+            }
+        }
+
+        if ( !isUpdateAllowed( object, user ) )
+        {
+            AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED );
+            throw new UpdateAccessDeniedException( object.toString() );
+        }
+
+        AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );
+
+        if ( object != null )
+        {
+            getSession().update( object );
+        }
+
+        if ( MetadataObject.class.isInstance( object ) )
+        {
+            deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) object ) );
+        }
+    }
+
+    @Override
+    public void delete( T object )
+    {
+        delete( object, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public final void delete( T object, User user )
+    {
+        String username = user != null ? user.getUsername() : "system-process";
+
+        if ( !isDeleteAllowed( object, user ) )
+        {
+            AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_DELETE_DENIED );
+            throw new DeleteAccessDeniedException( object.toString() );
+        }
+
+        AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_DELETE );
+
+        if ( object != null )
+        {
+            getSession().delete( object );
+        }
+    }
+
+    @Override
+    public final T get( int id )
+    {
+        T object = (T) getSession().get( getClazz(), id );
+        
+        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
+        {
+            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
+            throw new ReadAccessDeniedException( object.toString() );
+        }
+
+        return postProcessObject( object );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getAll()
+    {
+        return getSharingCriteria().list();
+    }
+
+    @Override
+    public int getCount()
+    {
+        return ((Number) getSharingCriteria()
+            .setProjection( Projections.countDistinct( "id" ) )
+            .uniqueResult()).intValue();
     }
 
     @Override
@@ -135,26 +388,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
 
-        if ( !isReadAllowed( object ) )
-        {
-            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
-            throw new ReadAccessDeniedException( object.toString() );
-        }
-
-        return object;
-    }
-
-    /**
-     * Uses query since name property might not be unique.
-     */
-    @Override
-    public final T getByShortName( String shortName )
-    {
-        List<T> list = getList( Restrictions.eq( "shortName", shortName ) );
-
-        T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
-
-        if ( !isReadAllowed( object ) )
+        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( object.toString() );
@@ -202,36 +436,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqNameIgnoreCase( String name )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "name", name ).ignoreCase() )
-            .addOrder( Order.asc( "name" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqShortName( String shortName )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "shortName", shortName ) )
-            .addOrder( Order.asc( "shortName" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllEqShortNameIgnoreCase( String shortName )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "shortName", shortName ).ignoreCase() )
-            .addOrder( Order.asc( "shortName" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLikeName( String name )
     {
         return getSharingCriteria()
@@ -273,21 +477,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<T> getAllLikeShortName( String shortName )
-    {
-        if ( NameableObject.class.isAssignableFrom( clazz ) )
-        {
-            return getSharingCriteria()
-                .add( Restrictions.like( "shortName", "%" + shortName + "%" ).ignoreCase() )
-                .addOrder( Order.asc( "shortName" ) )
-                .list();
-        }
-
-        return getAllLikeName( shortName ); // Fallback to name
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedName()
     {
         return getSharingCriteria()
@@ -307,15 +496,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<T> getAllOrderedLastUpdated()
-    {
-        return getSharingCriteria()
-            .addOrder( Order.desc( "lastUpdated" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedLastUpdated( int first, int max )
     {
         return getSharingCriteria()
@@ -325,37 +505,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public int getCountEqName( String name )
-    {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.eq( "name", name ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
-    }
-
-    @Override
-    public int getCountEqShortName( String shortName )
-    {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.eq( "shortName", shortName ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
-    }
-
-    @Override
     public int getCountLikeName( String name )
     {
         return ((Number) getSharingCriteria()
             .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
-    }
-
-    @Override
-    public int getCountLikeShortName( String shortName )
-    {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.like( "shortName", "%" + shortName + "%" ).ignoreCase() )
             .setProjection( Projections.countDistinct( "id" ) )
             .uniqueResult()).intValue();
     }
@@ -405,26 +558,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingCriteria()
             .add( Restrictions.le( "created", created ) )
             .addOrder( Order.desc( "created" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllGeCreatedOrderedName( Date created )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "created", created ) )
-            .addOrder( Order.asc( "name" ) )
-            .list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<T> getAllGeLastUpdatedOrderedName( Date lastUpdated )
-    {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "lastUpdated", lastUpdated ) )
-            .addOrder( Order.asc( "name" ) )
             .list();
     }
 
@@ -502,6 +635,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
+    public List<T> getAllNoAcl()
+    {
+        return super.getAll();
+    }
+
+    @Override
     public List<T> getByUidNoAcl( Collection<String> uids )
     {
         List<T> list = new ArrayList<>();
@@ -523,24 +663,280 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     //----------------------------------------------------------------------------------------------------------------
-    // No ACL (unfiltered methods)
+    // Data sharing
     //----------------------------------------------------------------------------------------------------------------
 
     @Override
-    public int getCountEqNameNoAcl( String name )
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll()
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.name = :name" );
-        query.setParameter( "name", name );
-
-        return ((Long) query.uniqueResult()).intValue();
+        return getDataSharingCriteria( AclService.LIKE_READ_DATA ).list();
     }
 
     @Override
-    public int getCountEqShortNameNoAcl( String shortName )
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll( User user )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.shortName = :shortName" );
-        query.setParameter( "shortName", shortName );
+        return getDataSharingCriteria( user, AclService.LIKE_READ_DATA ).list();
+    }
 
-        return ((Long) query.uniqueResult()).intValue();
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataWriteAll()
+    {
+        return getDataSharingCriteria( AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataWriteAll( User user )
+    {
+        return getDataSharingCriteria( user, AclService.LIKE_WRITE_DATA ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public final List<T> getDataReadAll( int first, int max )
+    {
+        return getDataSharingCriteria()
+            .setFirstResult( first )
+            .setMaxResults( max )
+            .list();
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
+    // Supportive methods
+    //----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Creates a criteria with sharing restrictions relative to the given 
+     * user and access string.
+     */
+    public final Criteria getSharingCriteria()
+    {
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
+    }
+
+    /**
+     * Creates a detached criteria with data sharing restrictions relative to the
+     * given user and access string.
+     * 
+     * @param user the user.
+     * @param access the access string.
+     * @return a DetachedCriteria.
+     */
+    protected DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        if ( user == null || !dataSharingEnabled( user ) )
+        {
+            return criteria;
+        }
+
+        Assert.notNull( user, "User argument can't be null." );
+
+        Disjunction disjunction = Restrictions.disjunction();
+
+        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
+
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
+
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
+
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
+
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
+
+        criteria.add( disjunction );
+
+        return criteria;
+    }
+
+    /**
+     * Creates a detached criteria with sharing restrictions relative to the given 
+     * user and access string.
+     * 
+     * @param user the user.
+     * @param access the access string.
+     * @return a DetachedCriteria.
+     */
+    protected DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        preProcessDetachedCriteria( criteria );
+
+        if ( !sharingEnabled( user ) || user == null )
+        {
+            return criteria;
+        }
+
+        Assert.notNull( user, "User argument can't be null." );
+
+        Disjunction disjunction = Restrictions.disjunction();
+
+        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
+        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
+        disjunction.add( Restrictions.isNull( "c.user.id" ) );
+        disjunction.add( Restrictions.eq( "c.user.id", user.getId() ) );
+
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
+
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
+
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
+
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
+
+        criteria.add( disjunction );
+
+        return criteria;
+    }
+
+    /**
+     * Creates a sharing Criteria for the implementation Class type restricted by the
+     * given Criterions.
+     *
+     * @param expressions the Criterions for the Criteria.
+     * @return a Criteria instance.
+     */
+    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
+    {
+        Criteria criteria = getSharingCriteria();
+
+        for ( Criterion expression : expressions )
+        {
+            criteria.add( expression );
+        }
+
+        criteria.setCacheable( cacheable );
+        return criteria;
+    }
+
+    /**
+     * Retrieves an object based on the given Criterions using a sharing Criteria.
+     *
+     * @param expressions the Criterions for the Criteria.
+     * @return an object of the implementation Class type.
+     */
+    @SuppressWarnings( "unchecked" )
+    protected final T getSharingObject( Criterion... expressions )
+    {
+        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
+    }
+
+    /**
+     * Checks whether the given user has public access to the given identifiable object.
+     * 
+     * @param user the user.
+     * @param identifiableObject the identifiable object.
+     * @return true or false.
+     */
+    protected boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
+    {
+        return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
+            (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
+                !AccessStringHelper.canReadOrWrite( identifiableObject.getPublicAccess() ));
+    }
+
+    protected boolean forceAcl()
+    {
+        return Dashboard.class.isAssignableFrom( clazz );
+    }
+
+    protected boolean sharingEnabled( User user )
+    {
+        return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
+    }
+
+    protected boolean sharingEnabled( UserInfo userInfo )
+    {
+        return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
+    }
+
+    protected boolean dataSharingEnabled( UserInfo userInfo )
+    {
+        return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
+    }
+
+    protected boolean isReadAllowed( T object, User user )
+    {
+        if ( IdentifiableObject.class.isInstance( object ) )
+        {
+            IdentifiableObject idObject = (IdentifiableObject) object;
+
+            if ( sharingEnabled( user ) )
+            {
+                return aclService.canRead( user, idObject );
+            }
+        }
+
+        return true;
+    }
+
+    protected boolean isUpdateAllowed( T object, User user )
+    {
+        if ( IdentifiableObject.class.isInstance( object ) )
+        {
+            IdentifiableObject idObject = (IdentifiableObject) object;
+
+            if ( aclService.isShareable( clazz ) )
+            {
+                return aclService.canUpdate( user, idObject );
+            }
+        }
+
+        return true;
+    }
+
+    protected boolean isDeleteAllowed( T object, User user )
+    {
+        if ( IdentifiableObject.class.isInstance( object ) )
+        {
+            IdentifiableObject idObject = (IdentifiableObject) object;
+
+            if ( aclService.isShareable( clazz ) )
+            {
+                return aclService.canDelete( user, idObject );
+            }
+        }
+
+        return true;
     }
 }

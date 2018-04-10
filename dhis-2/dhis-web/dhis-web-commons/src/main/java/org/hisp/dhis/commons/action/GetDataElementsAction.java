@@ -31,8 +31,8 @@ package org.hisp.dhis.commons.action;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -68,9 +68,9 @@ public class GetDataElementsAction
         this.dataElementService = dataElementService;
     }
 
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -168,7 +168,7 @@ public class GetDataElementsAction
         }
         else if ( categoryComboId != null && categoryComboId != ALL )
         {
-            DataElementCategoryCombo categoryCombo = categoryService.getDataElementCategoryCombo( categoryComboId );
+            CategoryCombo categoryCombo = categoryService.getCategoryCombo( categoryComboId );
 
             if ( categoryCombo != null )
             {

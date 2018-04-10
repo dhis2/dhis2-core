@@ -28,9 +28,12 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.schema.annotation.Property;
+
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
 /**
  * @author Henning Håkonsen
@@ -40,7 +43,7 @@ public class PushAnalysisJobParameters
 {
     private static final long serialVersionUID = -1848833906375595488L;
 
-    @Property
+    @Property( required = TRUE )
     private String pushAnalysis;
 
     public PushAnalysisJobParameters()
@@ -60,6 +63,12 @@ public class PushAnalysisJobParameters
     @Override
     public ErrorReport validate()
     {
+
+        if ( pushAnalysis == null )
+        {
+            return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
+        }
+
         return null;
     }
 }

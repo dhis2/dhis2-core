@@ -185,7 +185,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Date enrollmentDate;
 
-    private String expressionA = "#{ProgramRuleVariableA}=='malaria'";
+    private String expressionA = "#{ProgramRuleVariableA}=='malaria' && V{event_status}=='ACTIVE'";
 
     private String expressionB = "#{ProgramRuleVariableB}=='bcgdoze'";
 
@@ -196,10 +196,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private String expressionF = "A{ProgramRuleVariableF}=='xmen'";
 
     private String location = "feedback";
-
-    private int weightA = 80;
-
-    private int heightA = 165;
 
     private String programRuleActionCData = "#{ProgramRuleVariableC} + #{ProgramRuleVariableD}";
 
@@ -311,7 +307,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-     public void testDisplayTextAction() throws Exception
+    public void testDisplayTextAction() throws Exception
     {
         setUpDisplayTextAction();
 

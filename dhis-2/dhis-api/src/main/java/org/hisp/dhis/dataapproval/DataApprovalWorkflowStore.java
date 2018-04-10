@@ -28,7 +28,7 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * Defines the functionality for persisting DataApproval objects.
@@ -37,6 +37,6 @@ import org.hisp.dhis.common.GenericNameableObjectStore;
  */
 
 public interface DataApprovalWorkflowStore
-    extends GenericNameableObjectStore<DataApprovalWorkflow>
+    extends IdentifiableObjectStore<DataApprovalWorkflow>
 {
 }

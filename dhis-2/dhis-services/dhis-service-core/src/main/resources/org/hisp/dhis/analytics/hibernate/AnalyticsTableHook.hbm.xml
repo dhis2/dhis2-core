@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.analytics.AnalyticsTableHook" table="analyticstablehook">
+  <class name="org.hisp.dhis.analytics.AnalyticsTableHook" table="tablehook">
 
     <cache usage="read-write" />
 
@@ -14,6 +14,8 @@
       <generator class="native" />
     </id>
     &identifiableProperties;
+    
+    <property name="name" unique="true" not-null="true" />
     
     <property name="phase" column="analyticstablephase" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">

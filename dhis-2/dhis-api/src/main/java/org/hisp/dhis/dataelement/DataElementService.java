@@ -28,6 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
@@ -134,10 +135,10 @@ public interface DataElementService
     /**
      * Returns all DataElements with the given category combo.
      *
-     * @param categoryCombo the DataElementCategoryCombo.
+     * @param categoryCombo the CategoryCombo.
      * @return all DataElements with the given category combo.
      */
-    List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
+    List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo );
 
     /**
      * Returns all DataElements which are not member of any DataElementGroups.
@@ -233,22 +234,6 @@ public interface DataElementService
      * no DataElementGroups exist.
      */
     List<DataElementGroup> getAllDataElementGroups();
-
-    /**
-     * Returns a DataElementGroup with a given short name.
-     *
-     * @param shortName the short name of the DataElementGroup to return.
-     * @return the DataElementGroup with the given short name, or null if no match.
-     */
-    DataElementGroup getDataElementGroupByShortName( String shortName );
-
-    /**
-     * Returns a DataElementGroup with a given code.
-     *
-     * @param code the shortName of the DataElementGroup to return.
-     * @return the DataElementGroup with the given code, or null if no match.
-     */
-    DataElementGroup getDataElementGroupByCode( String code );
 
     /**
      * Returns all DataElements which zeroIsSignificant property is true or false.

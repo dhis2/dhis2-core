@@ -77,14 +77,6 @@ public interface OrganisationUnitGroupService
     OrganisationUnitGroup getOrganisationUnitGroup( int id );
 
     /**
-     * Returns the OrganisationUnitGroups with the given UIDs.
-     * 
-     * @param uids collection of UIDs.
-     * @return a list OrganisationUnitGroups with the given UIDs.
-     */
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsByUid( Collection<String> uids );
-    
-    /**
      * Returns the OrganisationUnitGroup with the given UID.
      * 
      * @param uid the UID of the OrganisationUnitGroup.
@@ -92,32 +84,6 @@ public interface OrganisationUnitGroupService
      */
     OrganisationUnitGroup getOrganisationUnitGroup( String uid );
 
-    /**
-     * Returns an OrganisationUnitGroup with a given name.
-     * 
-     *
-     * @param name the name of the OrganisationUnitGroup.
-     * @return the OrganisationUnitGroup with the given name, or null if no
-     *         match.
-     */
-    List<OrganisationUnitGroup> getOrganisationUnitGroupByName( String name );
-
-    /**
-     * Returns the OrganisationUnitGroup with the given code.
-     *
-     * @param code the code.
-     * @return the OrganisationUnitGroup with the given code, or null if no match.
-     */
-    OrganisationUnitGroup getOrganisationUnitGroupByCode( String code );
-
-    /**
-     * Returns the OrganisationUnitGroup with the given short name.
-     *
-     * @param shortName the short name.
-     * @return the OrganisationUnitGroup with the given short name, or null if no match.
-     */
-    OrganisationUnitGroup getOrganisationUnitGroupByShortName( String shortName );
-    
     /**
      * Returns all OrganisationUnitGroups.
      * 
@@ -178,24 +144,6 @@ public interface OrganisationUnitGroupService
     OrganisationUnitGroupSet getOrganisationUnitGroupSet( String uid );
 
     /**
-     * Returns the OrganisationUnitGroupSets with the given uids.
-     * 
-     * @param uids the collection of uids.
-     * @return the OrganisationUnitGroupSets with the given uids.
-     */
-    List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetsByUid( Collection<String> uids );
-    
-    /**
-     * Returns an OrganisationUnitGroupSet with a given name.
-     * 
-     *
-     * @param name the name of the OrganisationUnitGroupSet to return.
-     * @return the OrganisationUnitGroupSet with the given name, or null if no
-     *         match.
-     */
-    List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetByName( String name );
-
-    /**
      * Returns all OrganisationUnitGroupSets.
      * 
      * @return a list of all OrganisationUnitGroupSets, or an empty
@@ -230,22 +178,6 @@ public interface OrganisationUnitGroupService
      * @return a Collection of OrganisationUnitGroupSets.
      */
     List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsNotAssignedTo( OrganisationUnit organisationUnit );
-
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsBetween( int first, int max );
     
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsBetweenByName( String name, int first, int max );
-    
-    int getOrganisationUnitGroupCount();
-    
-    int getOrganisationUnitGroupCountByName( String name );
-
-    List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetsBetween( int first, int max );
-    
-    List<OrganisationUnitGroupSet> getOrganisationUnitGroupSetsBetweenByName( String name, int first, int max );
-    
-    int getOrganisationUnitGroupSetCount();
-    
-    int getOrganisationUnitGroupSetCountByName( String name );
-
     void mergeWithCurrentUserOrganisationUnits( OrganisationUnitGroup organisationUnitGroup, Collection<OrganisationUnit> mergeOrganisationUnits );
 }

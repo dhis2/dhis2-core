@@ -30,11 +30,11 @@ package org.hisp.dhis.i18n;
 
 import java.util.Locale;
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 
 public interface I18nLocaleStore
-    extends GenericNameableObjectStore<I18nLocale>
+    extends IdentifiableObjectStore<I18nLocale>
 {
     I18nLocale getI18nLocaleByLocale( Locale locale );
 }

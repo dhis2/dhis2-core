@@ -30,22 +30,16 @@ package org.hisp.dhis.sms.listener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.DailyPeriodType;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.*;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -58,10 +52,9 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Pattern;
-
-import javax.annotation.Resource;
 
 @Transactional
 public class J2MEDataValueSMSListener
@@ -76,7 +69,7 @@ public class J2MEDataValueSMSListener
     private DataValueService dataValueService;
 
     @Autowired
-    private DataElementCategoryService dataElementCategoryService;
+    private CategoryService dataElementCategoryService;
 
     @Autowired
     private SMSCommandService smsCommandService;
@@ -158,20 +151,17 @@ public class J2MEDataValueSMSListener
     }
 
     @Override
-    protected String getDefaultPattern()
+    protected SMSCommand getSMSCommand( IncomingSms sms )
     {
-        // Not supported for J2MEListener
-        return StringUtils.EMPTY;
+        return null;
     }
 
     @Override
-    protected String getSuccessMessage()
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
-        // Not supported for J2MEListener
-        return StringUtils.EMPTY;
     }
 
-    private Map<String, String> parse( String sms, SMSCommand smsCommand )
+    private Map<String, String> parse(String sms, SMSCommand smsCommand )
     {
         String[] keyValuePairs = null;
 
@@ -209,8 +199,8 @@ public class J2MEDataValueSMSListener
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-            .getDataElementCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getCategoryOptionCombo( code.getOptionId() );
 
         DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgUnit, optionCombo );
 
@@ -266,8 +256,8 @@ public class J2MEDataValueSMSListener
     {
         CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
 
-        DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-            .getDefaultDataElementCategoryOptionCombo(); // TODO
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getDefaultCategoryOptionCombo(); // TODO
 
         if ( registrationService.getCompleteDataSetRegistration( dataSet, period, organisationUnit,
             optionCombo ) == null )
@@ -278,7 +268,7 @@ public class J2MEDataValueSMSListener
             registration.setDate( new Date() );
             registration.setStoredBy( storedBy );
             registration.setPeriodName( registration.getPeriod().toString() );
-            registrationService.saveCompleteDataSetRegistration( registration, false );
+            registrationService.saveCompleteDataSetRegistration( registration );
         }
     }
 
@@ -291,8 +281,8 @@ public class J2MEDataValueSMSListener
 
         for ( SMSCode code : command.getCodes() )
         {
-            DataElementCategoryOptionCombo optionCombo = dataElementCategoryService
-                .getDataElementCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId() );
 
             DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgunit, optionCombo );
 

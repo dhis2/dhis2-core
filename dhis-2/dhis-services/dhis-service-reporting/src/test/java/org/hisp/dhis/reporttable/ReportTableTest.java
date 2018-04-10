@@ -41,7 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -50,8 +50,8 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
@@ -69,6 +69,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -77,10 +78,10 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 public class ReportTableTest
-    extends DhisSpringTest
+    extends DhisConvenienceTest
 {
     private List<DataElement> dataElements;
-    private List<DataElementCategoryOptionCombo> categoryOptionCombos;
+    private List<CategoryOptionCombo> categoryOptionCombos;
     private List<Indicator> indicators;
     private List<ReportingRate> reportingRates;
     private List<Period> periods;
@@ -98,10 +99,10 @@ public class ReportTableTest
     private DataElementGroup deGroupA;
     private DataElementGroup deGroupB;
     
-    private DataElementCategoryOptionCombo categoryOptionComboA;
-    private DataElementCategoryOptionCombo categoryOptionComboB;
+    private CategoryOptionCombo categoryOptionComboA;
+    private CategoryOptionCombo categoryOptionComboB;
 
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
     
     private IndicatorType indicatorType;
     
@@ -133,9 +134,8 @@ public class ReportTableTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Override
-    public void setUpTest()
-        throws Exception
+    @Before
+    public void before()
     {
         dataElements = new ArrayList<>();
         categoryOptionCombos = new ArrayList<>();
@@ -177,7 +177,7 @@ public class ReportTableTest
         categoryOptionCombos.add( categoryOptionComboA );
         categoryOptionCombos.add( categoryOptionComboB );
 
-        categoryCombo = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        categoryCombo = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
         categoryCombo.setId( 'A' );
         categoryCombo.setOptionCombos( new HashSet<>( categoryOptionCombos ) );
         

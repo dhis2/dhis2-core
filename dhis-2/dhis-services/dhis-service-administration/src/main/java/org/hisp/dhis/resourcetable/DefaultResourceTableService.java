@@ -32,6 +32,10 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -106,9 +110,9 @@ public class DefaultResourceTableService
         this.dataApprovalLevelService = dataApprovalLevelService;
     }
     
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
     
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -129,8 +133,7 @@ public class DefaultResourceTableService
     public void generateOrganisationUnitStructures()
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitStructureResourceTable( 
-            null, statementBuilder.getColumnQuote(), 
-            organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels() ) );
+            null, organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels() ) );
     }
     
     @Override
@@ -138,7 +141,7 @@ public class DefaultResourceTableService
     public void generateDataSetOrganisationUnitCategoryTable()
     {
         resourceTableStore.generateResourceTable( new DataSetOrganisationUnitCategoryResourceTable( 
-            idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultDataElementCategoryOptionCombo() ) );
+            idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultCategoryOptionCombo() ) );
     }
     
     @Override
@@ -146,8 +149,7 @@ public class DefaultResourceTableService
     public void generateCategoryOptionComboNames()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable( 
-            idObjectManager.getAllNoAcl( DataElementCategoryCombo.class ), 
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getAllNoAcl( CategoryCombo.class ) ) );
     }
 
     @Override
@@ -155,8 +157,7 @@ public class DefaultResourceTableService
     public void generateDataElementGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new DataElementGroupSetResourceTable(
-            idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ) ) );
     }
 
     @Override
@@ -164,8 +165,7 @@ public class DefaultResourceTableService
     public void generateIndicatorGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new IndicatorGroupSetResourceTable(
-            idObjectManager.getAllNoAcl( IndicatorGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getAllNoAcl( IndicatorGroupSet.class ) ) );
     }
 
     @Override
@@ -174,7 +174,7 @@ public class DefaultResourceTableService
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            statementBuilder.supportsPartialIndexes() ) );
     }
 
     @Override
@@ -182,9 +182,8 @@ public class DefaultResourceTableService
     public void generateCategoryTable()
     {
         resourceTableStore.generateResourceTable( new CategoryResourceTable( 
-            idObjectManager.getDataDimensionsNoAcl( DataElementCategory.class ),
-            idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getDataDimensionsNoAcl( Category.class ),
+            idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ) ) );
     }
 
     @Override
@@ -192,31 +191,27 @@ public class DefaultResourceTableService
     public void generateDataElementTable()
     {
         resourceTableStore.generateResourceTable( new DataElementResourceTable( 
-            idObjectManager.getAllNoAcl( DataElement.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getAllNoAcl( DataElement.class ) ) );
     }
 
     @Override
     public void generateDatePeriodTable()
     {
-        resourceTableStore.generateResourceTable( new DatePeriodResourceTable( 
-            null, statementBuilder.getColumnQuote() ) );
+        resourceTableStore.generateResourceTable( new DatePeriodResourceTable( null ) );
     }
 
     @Override
     @Transactional
     public void generatePeriodTable()
     {
-        resourceTableStore.generateResourceTable( new PeriodResourceTable( 
-            periodService.getAllPeriods(), statementBuilder.getColumnQuote() ) );
+        resourceTableStore.generateResourceTable( new PeriodResourceTable( periodService.getAllPeriods() ) );
     }
 
     @Override
     @Transactional
-    public void generateDataElementCategoryOptionComboTable()
+    public void generateCategoryOptionComboTable()
     {
-        resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable(
-            null, statementBuilder.getColumnQuote() ) );            
+        resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable( null ) );            
     }
 
     @Override
@@ -227,8 +222,7 @@ public class DefaultResourceTableService
         
         if ( orgUnitLevels.size() > 0 )
         {
-            resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( 
-                orgUnitLevels, statementBuilder.getColumnQuote() ) );
+            resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( orgUnitLevels ) );
         }
     }
     

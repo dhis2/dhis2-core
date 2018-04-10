@@ -28,12 +28,12 @@ package org.hisp.dhis.dataelementhistory;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -43,9 +43,9 @@ public class DataElementHistory
 {
     private DataElement dataElement;
     
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
     
-    private DataElementCategoryOptionCombo attributeOptionCombo;
+    private CategoryOptionCombo attributeOptionCombo;
 
     private OrganisationUnit organisationUnit;
     
@@ -116,22 +116,22 @@ public class DataElementHistory
         this.dataElement = dataElement;
     }
     
-    public DataElementCategoryOptionCombo getOptionCombo()
+    public CategoryOptionCombo getOptionCombo()
     {
     	return optionCombo;
     }
     
-    public void setOptionCombo( DataElementCategoryOptionCombo optionCombo )
+    public void setOptionCombo( CategoryOptionCombo optionCombo )
     {
     	this.optionCombo = optionCombo;
     }
     
-    public DataElementCategoryOptionCombo getAttributeOptionCombo()
+    public CategoryOptionCombo getAttributeOptionCombo()
     {
     	return attributeOptionCombo;
     }
     
-    public void setAttributeOptionComboOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
+    public void setAttributeOptionComboOptionCombo( CategoryOptionCombo attributeOptionCombo )
     {
     	this.attributeOptionCombo = attributeOptionCombo;
     }

@@ -33,9 +33,9 @@ import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
@@ -112,7 +112,7 @@ public class UpdateUserAction
     private UserGroupService userGroupService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -123,6 +123,13 @@ public class UpdateUserAction
     public void setId( Integer id )
     {
         this.id = id;
+    }
+
+    private boolean twoFA;
+
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
     }
 
     private boolean externalAuth;
@@ -258,6 +265,7 @@ public class UpdateUserAction
         user.setPhoneNumber( StringUtils.trimToNull( phoneNumber ) );
 
         UserCredentials userCredentials = user.getUserCredentials();
+        userCredentials.setTwoFA( twoFA );
         userCredentials.setExternalAuth( externalAuth );
         userCredentials.setOpenId( StringUtils.trimToNull( openId ) );
         userCredentials.setLdapId( StringUtils.trimToNull( ldapId ) );
@@ -317,7 +325,7 @@ public class UpdateUserAction
                 continue;
             }
 
-            DataElementCategory cat = categoryService.getDataElementCategory( id );
+            Category cat = categoryService.getCategory( id );
 
             if ( cat != null )
             {

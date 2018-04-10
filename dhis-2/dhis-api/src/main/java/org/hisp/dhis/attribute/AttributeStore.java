@@ -29,13 +29,12 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
@@ -51,8 +50,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 
@@ -62,7 +61,7 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AttributeStore
-    extends GenericNameableObjectStore<Attribute>
+    extends IdentifiableObjectStore<Attribute>
 {
     String ID = AttributeStore.class.getName();
 
@@ -81,7 +80,7 @@ public interface AttributeStore
         .put( ProgramStage.class, "programStageAttribute" )
         .put( TrackedEntityType.class, "trackedEntityTypeAttribute" )
         .put( TrackedEntityAttribute.class, "trackedEntityAttributeAttribute" )
-        .put( DataElementCategoryOption.class, "categoryOptionAttribute" )
+        .put( CategoryOption.class, "categoryOptionAttribute" )
         .put( CategoryOptionGroup.class, "categoryOptionGroupAttribute" )
         .put( Document.class, "documentAttribute" )
         .put( Option.class, "optionAttribute" )
@@ -91,7 +90,7 @@ public interface AttributeStore
         .put( ProgramIndicator.class, "programIndicatorAttribute" )
         .put( SqlView.class, "sqlViewAttribute" )
         .put( Section.class, "sectionAttribute" )
-        .put( DataElementCategoryOptionCombo.class, "categoryOptionComboAttribute" )
+        .put( CategoryOptionCombo.class, "categoryOptionComboAttribute" )
         .build();
 
     /**
