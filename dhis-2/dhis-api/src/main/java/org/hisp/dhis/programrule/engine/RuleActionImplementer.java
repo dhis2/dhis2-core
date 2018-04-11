@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule.engine;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleEffect;
 
 /**
  * Created by zubair@dhis2.org on 04.01.18.
@@ -39,7 +40,7 @@ public interface RuleActionImplementer
 {
     boolean accept( RuleAction ruleAction );
 
-    void implement( RuleAction ruleAction, ProgramInstance programInstance );
+    void implement( RuleEffect ruleEffect, ProgramInstance programInstance );
 
-    void implement( RuleAction ruleAction, ProgramStageInstance programStageInstance );
+    void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
 }

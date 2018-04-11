@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.*;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -69,9 +70,14 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
     }
 
     @Override
-    public void implement( RuleAction ruleAction, ProgramInstance programInstance )
+    public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleAction );
+        if ( ruleEffect == null )
+        {
+            return;
+        }
+
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
         if ( template == null )
         {
@@ -96,9 +102,14 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
     }
 
     @Override
-    public void implement( RuleAction ruleAction, ProgramStageInstance programStageInstance )
+    public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleAction );
+        if ( ruleEffect == null )
+        {
+            return;
+        }
+
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
         if ( template == null )
         {
@@ -124,11 +135,6 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
 
     private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )
     {
-        if ( action == null )
-        {
-            return null;
-        }
-
         RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
 
         return programNotificationTemplateStore.getByUid( sendMessage.notification() );

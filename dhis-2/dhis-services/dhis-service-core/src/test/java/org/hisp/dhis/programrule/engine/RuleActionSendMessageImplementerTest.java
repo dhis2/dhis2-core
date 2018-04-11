@@ -44,6 +44,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,6 +100,10 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     private ProgramNotificationEventType eventType;
 
     private ExternalNotificationLogEntry logEntry;
+
+    private RuleEffect ruleEffectWithActionSendMessage;
+
+    private RuleEffect ruleEffectWithActionSetMandatoryField;
 
     private RuleAction ruleActionSendMessage;
 
@@ -162,7 +167,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         ArgumentCaptor<ProgramNotificationEventType> argumentEventCaptor = ArgumentCaptor.forClass( ProgramNotificationEventType.class );
         ArgumentCaptor<ProgramInstance> argumentInstanceCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
-        implementer.implement( ruleActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
@@ -178,7 +183,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         ArgumentCaptor<ProgramNotificationEventType> argumentEventCaptor = ArgumentCaptor.forClass( ProgramNotificationEventType.class );
         ArgumentCaptor<ProgramStageInstance> argumentStageInstanceCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        implementer.implement( ruleActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
@@ -193,7 +198,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     {
         String key = template.getUid() + programInstance.getUid();
 
-        implementer.implement( ruleActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
         assertEquals( key, logEntry.getKey() );
     }
@@ -204,7 +209,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         // overriding stub to check null templates
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, never() ).isValidForSending( anyString() );
@@ -216,7 +221,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, never() ).isValidForSending( anyString() );
@@ -250,6 +255,8 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
             }
         };
 
+        ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
+
         setMandatoryFieldFalse = new RuleActionSetMandatoryField()
         {
             @Nonnull
@@ -259,6 +266,8 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
                 return MANDATORY_FIELD;
             }
         };
+
+        ruleEffectWithActionSetMandatoryField = RuleEffect.create( setMandatoryFieldFalse );
 
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 
