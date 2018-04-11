@@ -225,19 +225,6 @@ public class HibernateGenericStore<T>
         return getExecutableTypedQuery( query );
     }
 
-    public final TypedQuery<T> getJpaQuery( CriteriaBuilder builder )
-    {
-        CriteriaQuery<T> query = builder.createQuery( getClazz() );
-
-        Root<T> root = query.from(  getClazz() );
-
-        query.select( root );
-
-        preProcessCriteriaQuery( query );
-
-        return  getExecutableTypedQuery( query );
-    }
-
     public final TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return sessionFactory.getCurrentSession()
@@ -245,7 +232,7 @@ public class HibernateGenericStore<T>
             .setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
     }
 
-    protected void preProcessCriteriaQuery( CriteriaQuery<T> criteriaQuery )
+    protected void  preProcessCriteriaQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicates )
     {
     }
 

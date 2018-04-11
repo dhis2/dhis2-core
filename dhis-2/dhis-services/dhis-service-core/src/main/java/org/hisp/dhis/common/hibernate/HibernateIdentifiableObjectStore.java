@@ -868,7 +868,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         CriteriaQuery<T> criteria = builder.createQuery( getClazz() ) ;
 
-        preProcessCriteriaQuery( criteria );
+        preProcessCriteriaQuery( builder, predicates );
 
         if ( !sharingEnabled( user ) || user == null )
         {
