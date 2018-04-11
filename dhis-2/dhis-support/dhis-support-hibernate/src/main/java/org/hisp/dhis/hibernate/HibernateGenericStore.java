@@ -210,7 +210,7 @@ public class HibernateGenericStore<T>
     // JPA Methods
     //------------------------------------------------------------------------------------------
 
-    protected  final TypedQuery<T> getCriteriaQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders )
+    protected  final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders )
     {
         CriteriaQuery<T> query = builder.createQuery( getClazz() );
         Root<T> root = query.from( getClazz() );
@@ -222,7 +222,7 @@ public class HibernateGenericStore<T>
             query.where( predicates.toArray( new Predicate[0] ) );
         }
 
-        return getExecutableCriteriaQuery( query );
+        return getExecutableTypedQuery( query );
     }
 
     public final TypedQuery<T> getJpaQuery( CriteriaBuilder builder )
@@ -235,10 +235,10 @@ public class HibernateGenericStore<T>
 
         preProcessCriteriaQuery( query );
 
-        return  getExecutableCriteriaQuery( query );
+        return  getExecutableTypedQuery( query );
     }
 
-    public final TypedQuery<T> getExecutableCriteriaQuery( CriteriaQuery<T> criteriaQuery )
+    public final TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return sessionFactory.getCurrentSession()
             .createQuery( criteriaQuery )
@@ -250,8 +250,8 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Get Unique result from JPA CriteriaQuery
-     * @param criteriaQuery
+     * Get Unique result from JPA TypedQuery
+     * @param typedQuery
      * @param <T>
      * @return unique result, if no record exists, returns null.
      */
@@ -286,7 +286,7 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     protected final T getObject( CriteriaBuilder builder,  List<Function<Root<T>, Predicate>> predicateProviders )
     {
-        return (T)  getSingleResult( getCriteriaQuery( builder, predicateProviders ) );
+        return (T)  getSingleResult( getTypedQuery( builder, predicateProviders ) );
     }
 
     protected final TypedQuery getJpaQuery( String jpaQuery )

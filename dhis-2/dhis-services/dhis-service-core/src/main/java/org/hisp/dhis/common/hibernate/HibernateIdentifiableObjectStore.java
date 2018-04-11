@@ -925,7 +925,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             sharingPredicates.addAll( predicates );
         }
 
-        TypedQuery<T> query = getCriteriaQuery( builder, sharingPredicates );
+        TypedQuery<T> query = getTypedQuery( builder, sharingPredicates );
 
         return query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
     }
