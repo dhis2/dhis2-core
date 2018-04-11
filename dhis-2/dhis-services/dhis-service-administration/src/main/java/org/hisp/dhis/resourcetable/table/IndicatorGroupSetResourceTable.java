@@ -38,15 +38,17 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
 public class IndicatorGroupSetResourceTable
     extends ResourceTable<IndicatorGroupSet>
 {
-    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects, String columnQuote )
+    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
 
     @Override
@@ -64,8 +66,8 @@ public class IndicatorGroupSetResourceTable
         
         for ( IndicatorGroupSet groupSet : objects )
         {
-            statement += columnQuote + groupSet.getName() + columnQuote + " varchar(230), ";
-            statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
+            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
         }
         
         statement += "primary key (indicatorid))";
@@ -87,14 +89,14 @@ public class IndicatorGroupSetResourceTable
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
                 "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " + groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
-                "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+                "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
             sql += "(" +
                 "select ig.uid from indicatorgroup ig " +
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
                 "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " + groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
-                "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";            
+                "limit 1) as " + quote( groupSet.getUid() ) + ", ";            
         }
 
         sql = TextUtils.removeLastComma( sql ) + " ";

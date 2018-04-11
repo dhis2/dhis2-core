@@ -33,6 +33,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.Coordinate.CoordinateObject;
+import org.hisp.dhis.common.DataQueryRequest.DataQueryRequestBuilder;
+import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -188,11 +190,12 @@ public class GeoFeatureController
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( ou );
         dimensionParams.add( oug );
-
-        DataQueryParams params = dataQueryService
-            .getFromUrl( dimensionParams, null, AggregationType.SUM, null, null, null, null, false, false,
-                false, false, false, false, false, false, false, false, false, displayProperty, null, null, false, null,
-                relativePeriodDate, userOrgUnit, false, apiVersion, null );
+        
+        DataQueryRequestBuilder builder = DataQueryRequest.newBuilder();
+        builder.dimension( dimensionParams ).aggregationType( AggregationType.SUM ).displayProperty( displayProperty )
+            .relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit ).apiVersion( apiVersion );
+        DataQueryRequest dataQueryRequest = builder.build();
+        DataQueryParams params = dataQueryService.getFromRequest( dataQueryRequest );       
 
         boolean useOrgUnitGroup = ou == null;
         DimensionalObject dimensionalObject = params

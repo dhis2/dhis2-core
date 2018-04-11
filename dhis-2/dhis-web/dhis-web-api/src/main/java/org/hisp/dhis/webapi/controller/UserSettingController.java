@@ -107,9 +107,11 @@ public class UserSettingController
         UserSettingKey userSettingKey = getUserSettingKey( key );
         User user = getUser( userId, username );
 
-        return (String) userSettingService
+        Serializable value = userSettingService
             .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey.getName() ), useFallback )
             .get( key );
+
+        return String.valueOf( value );
     }
 
     @PostMapping( value = "/{key}" )
@@ -132,7 +134,7 @@ public class UserSettingController
             throw new WebMessageException( WebMessageUtils.conflict( "You need to specify a new value" ) );
         }
 
-        userSettingService.saveUserSetting( userSettingKey, newValue, user );
+        userSettingService.saveUserSetting( userSettingKey, UserSettingKey.getAsRealClass( key, newValue ), user );
 
         return WebMessageUtils.ok( "User setting saved" );
     }
@@ -197,7 +199,7 @@ public class UserSettingController
         }
         else
         {
-            user = userService.getUserCredentialsByUsername( username ).getUser();
+            user = userService.getUserCredentialsByUsername( username ).getUserInfo();
         }
 
         if ( user == null )

@@ -1,4 +1,5 @@
 package org.hisp.dhis.cache;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -37,7 +38,6 @@ import org.springframework.data.redis.core.RedisTemplate;
  * shared redis cache server for any number of instances.
  * 
  * @author Ameen Mohamed
- *
  */
 public class RedisCache<V> implements Cache<V>
 {
@@ -99,6 +99,7 @@ public class RedisCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
+        
         String redisKey = generateActualKey( key );
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
@@ -161,5 +162,4 @@ public class RedisCache<V> implements Cache<V>
     {
         // No operation
     }
-
 }

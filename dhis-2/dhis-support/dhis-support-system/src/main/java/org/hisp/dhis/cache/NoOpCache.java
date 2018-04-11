@@ -37,7 +37,6 @@ import java.util.function.Function;
  * disabled.
  * 
  * @author Ameen Mohamed
- *
  */
 public class NoOpCache<V> implements Cache<V>
 {
@@ -91,5 +90,4 @@ public class NoOpCache<V> implements Cache<V>
     {
         // No operation
     }
-
 }

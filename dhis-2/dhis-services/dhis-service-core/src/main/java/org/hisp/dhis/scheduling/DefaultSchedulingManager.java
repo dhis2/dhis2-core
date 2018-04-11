@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -159,7 +160,7 @@ public class DefaultSchedulingManager
                         }
                         catch ( Exception e )
                         {
-                            e.printStackTrace();
+                            log.error( DebugUtils.getStackTrace( e ) );
                         }
                     }, new CronTrigger( jobConfiguration.getCronExpression() ) );
 
@@ -238,7 +239,7 @@ public class DefaultSchedulingManager
             }
             catch ( Exception e )
             {
-                e.printStackTrace();
+                log.error( DebugUtils.getStackTrace( e ) );
             }
         } );
         currentTasks.put( jobConfiguration.getUid(), future );

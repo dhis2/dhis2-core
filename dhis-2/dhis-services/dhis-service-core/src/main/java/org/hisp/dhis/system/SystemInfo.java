@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.kafka.Kafka;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
@@ -66,7 +67,7 @@ public class SystemInfo
     private String intervalSinceLastAnalyticsTableSuccess;
 
     private String lastAnalyticsTableRuntime;
-    
+
     private Date lastSystemMonitoringSuccess;
 
     // -------------------------------------------------------------------------
@@ -122,9 +123,9 @@ public class SystemInfo
     private String systemMetadataVersion;
 
     private String instanceBaseUrl;
-    
+
     private String systemMonitoringUrl;
-    
+
     private Boolean isMetadataVersionEnabled;
 
     private Date lastMetadataVersionSyncAttempt;
@@ -134,6 +135,8 @@ public class SystemInfo
     private MetadataAudit metadataAudit;
 
     private RabbitMQ rabbitMQ;
+
+    private Kafka kafka;
 
     public SystemInfo instance()
     {
@@ -654,5 +657,17 @@ public class SystemInfo
     public void setRabbitMQ( RabbitMQ rabbitMQ )
     {
         this.rabbitMQ = rabbitMQ;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Kafka getKafka()
+    {
+        return kafka;
+    }
+
+    public void setKafka( Kafka kafka )
+    {
+        this.kafka = kafka;
     }
 }
