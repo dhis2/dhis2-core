@@ -31,8 +31,6 @@ package org.hisp.dhis.program;
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
@@ -75,7 +73,6 @@ import static org.apache.commons.lang3.StringUtils.trim;
 public class DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
-    private static final Log log = LogFactory.getLog( DefaultProgramIndicatorService.class );
 
     private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
         .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
@@ -488,17 +485,8 @@ public class DefaultProgramIndicatorService
             return expr;
         }
 
-        // Catch any exceptions from interpreting the expression, incase the expression is invalid.
-        try
+        if ( !ExpressionUtils.isValid( expr, null ) )
         {
-            if ( !ExpressionUtils.isValid( expr, null ) )
-            {
-                return ProgramIndicator.EXPRESSION_NOT_VALID;
-            }
-        }
-        catch ( Exception e )
-        {
-            log.warn( "Expression '" + expression + "' is invalid: " + e.getMessage(), e );
             return ProgramIndicator.EXPRESSION_NOT_VALID;
         }
 
@@ -516,18 +504,9 @@ public class DefaultProgramIndicatorService
             return expr;
         }
 
-        // Catch any exceptions from interpreting the expression, incase the expression is invalid.
-        try
+        if ( !ExpressionUtils.isBoolean( expr, null ) )
         {
-            if ( !ExpressionUtils.isBoolean( expr, null ) )
-            {
-                return ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
-            }
-        }
-        catch ( Exception e )
-        {
-            log.warn( "Filter '" + filter + "' is invalid: " + e.getMessage(), e );
-            return ProgramIndicator.EXPRESSION_NOT_VALID;
+            return ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
         }
 
         return ProgramIndicator.VALID;
