@@ -41,6 +41,7 @@ import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Nonnull;
 import java.util.Date;
 
 /**
@@ -85,6 +86,12 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
             return;
         }
 
+        if ( !ruleEffect.data().isEmpty() )
+        {
+            scheduleNotification( ruleEffect.data(), programInstance, template );
+            return;
+        }
+
         String key = generateKey( template, programInstance );
 
         if ( !notificationLoggingService.isValidForSending( key ) )
@@ -117,6 +124,12 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
             return;
         }
 
+        if ( !ruleEffect.data().isEmpty() )
+        {
+            scheduleNotification( ruleEffect.data(), programStageInstance.getProgramInstance(), template );
+            return;
+        }
+
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
         if ( !notificationLoggingService.isValidForSending( key ) )
@@ -131,6 +144,11 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
         notificationLoggingService.save( entry );
 
         publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
+    }
+
+    private void scheduleNotification( String data, ProgramInstance programInstance, ProgramNotificationTemplate template )
+    {
+
     }
 
     private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )

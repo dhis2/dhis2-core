@@ -76,7 +76,7 @@ import javax.annotation.Nonnull;
 public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "123abc";
-
+    private static final String DATA = "123abc";
     private static final String MANDATORY_FIELD = "fname";
 
     // -------------------------------------------------------------------------
@@ -252,6 +252,13 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
             public String notification()
             {
                 return NOTIFICATION_UID;
+            }
+
+            @Nonnull
+            @Override
+            public String data()
+            {
+                return DATA;
             }
         };
 
