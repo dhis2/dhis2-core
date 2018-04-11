@@ -44,7 +44,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.BufferedReader;
 import java.net.URI;
 import java.util.List;
 import java.util.Random;
@@ -90,9 +89,9 @@ public class BulkSmsGateway
     }
 
     @Override
-    protected Class<?> getGatewayType()
+    protected SmsGatewayConfig getGatewayConfigType()
     {
-        return BulkSmsGatewayConfig.class;
+        return new BulkSmsGatewayConfig();
     }
 
     @Override
@@ -182,7 +181,7 @@ public class BulkSmsGateway
 
         String response = responseEntity.getBody();
 
-        GatewayResponse gatewayResponse = BULKSMS_GATEWAY_RESPONSE_MAP.get( StringUtils.split( response, "|" )[0] );
+        GatewayResponse gatewayResponse = BULKSMS_GATEWAY_RESPONSE_MAP.getOrDefault( StringUtils.split( response, "|" )[0], GatewayResponse.RESULT_CODE_40 );
 
         gatewayResponse.setBatchId( StringUtils.split( response, "|" )[2] );
 
