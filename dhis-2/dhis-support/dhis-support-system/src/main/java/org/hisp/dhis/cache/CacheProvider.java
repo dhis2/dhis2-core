@@ -31,11 +31,9 @@ package org.hisp.dhis.cache;
  * Provides cache builder to build instances.
  * 
  * @author Ameen Mohamed
- *
  */
 public interface CacheProvider
 {
-
     /**
      * Creates a new {@link CacheBuilder} that can be used to build a cache that
      * stores the valueType specified.
@@ -46,5 +44,4 @@ public interface CacheProvider
      *         {@link CacheBuilder}
      */
     public <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
-
 }

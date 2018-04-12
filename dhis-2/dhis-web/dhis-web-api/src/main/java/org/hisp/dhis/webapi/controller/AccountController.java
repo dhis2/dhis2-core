@@ -38,9 +38,11 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.RecaptchaResponse;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -72,7 +74,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -88,9 +89,6 @@ public class AccountController
 
     private static final int MAX_LENGTH = 80;
     private static final int MAX_PHONE_NO_LENGTH = 30;
-
-    private static final String SUCCESS = "success";
-    private static final String ERROR_CODES = "error-codes";
 
     @Autowired
     private UserService userService;
@@ -322,21 +320,15 @@ public class AccountController
             }
 
             // ---------------------------------------------------------------------
-            // Check result from API, return 500 if not
+            // Check result from API, return 500 if validation failed
             // ---------------------------------------------------------------------
 
-            Map<String, Object> resultMap = securityService.verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-
-            // ---------------------------------------------------------------------
-            // Check if verification was successful, return 400 if not
-            // ---------------------------------------------------------------------
-
-            if ( !((boolean) resultMap.get( SUCCESS )) )
+            RecaptchaResponse recaptchaResponse = securityService.verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+            
+            if ( !recaptchaResponse.success() )
             {
-                List<String> errorCodes = (List<String>) resultMap.get( ERROR_CODES );
-                log.info( "Recaptcha failed: " + errorCodes );
-
-                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha failed: " + String.valueOf( errorCodes ) ) );
+                log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() ) );
             }
         }
 
@@ -526,6 +518,7 @@ public class AccountController
     {
         UsernamePasswordAuthenticationToken token =
             new UsernamePasswordAuthenticationToken( username, rawPassword, authorities );
+        token.setDetails( new TwoFactorWebAuthenticationDetails( request ) );
 
         Authentication auth = authenticationManager.authenticate( token );
 

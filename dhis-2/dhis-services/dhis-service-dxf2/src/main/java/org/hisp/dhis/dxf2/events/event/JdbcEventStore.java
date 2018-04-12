@@ -145,7 +145,7 @@ public class JdbcEventStore
     {
         User user = currentUserService.getCurrentUser();
 
-        if ( !user.isSuper() )
+        if ( user != null && !user.isSuper() )
         {
             params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
                 .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
@@ -479,7 +479,7 @@ public class JdbcEventStore
                 return false;
             }
         }
-        
+
         return true;
     }
 

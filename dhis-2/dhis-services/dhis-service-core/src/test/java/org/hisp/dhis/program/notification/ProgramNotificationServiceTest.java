@@ -130,8 +130,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private DataElement dataElement;
     private DataElement dataElementEmail;
-    private ProgramStageDataElement programStageDataElement;
-    private ProgramStageDataElement programStageDataElementEmail;
     private TrackedEntityDataValue dataValue;
     private TrackedEntityDataValue dataValueEmail;
 
@@ -146,6 +144,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private ProgramNotificationTemplate programNotificationTemplate;
 
     @Before
+    @SuppressWarnings("unchecked")
     public void initTest()
     {
         programNotificationService.setProgramStageNotificationRenderer( programStageNotificationMessageRenderer );
@@ -511,9 +510,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         dataElementEmail = createDataElement( 'E' );
         dataElement.setValueType( ValueType.PHONE_NUMBER );
         dataElementEmail.setValueType( ValueType.EMAIL );
-        programStageDataElement = createProgramStageDataElement( programStage, dataElement, 1 );
-        programStageDataElementEmail = createProgramStageDataElement( programStage, dataElementEmail, 2 );
-
 
         // ProgramInstance & TEI
         tei = new TrackedEntityInstance();

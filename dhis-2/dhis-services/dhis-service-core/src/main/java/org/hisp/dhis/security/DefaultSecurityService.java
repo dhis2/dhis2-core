@@ -643,7 +643,7 @@ public class DefaultSecurityService
     }
 
     @Override
-    public Map<String, Object> verifyRecaptcha( String key, String remoteIp )
+    public RecaptchaResponse verifyRecaptcha( String key, String remoteIp )
         throws IOException
     {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -656,7 +656,7 @@ public class DefaultSecurityService
 
         log.info( "Recaptcha result: " + result );
 
-        return JacksonUtils.fromJsonToMap( result );
+        return JacksonUtils.fromJson( result, RecaptchaResponse.class );
     }
 
     @Override

@@ -55,9 +55,8 @@ public class UserAuthorityGroup
     public static final String AUTHORITY_ALL = "ALL";
 
     public static final String[] CRITICAL_AUTHS = { "ALL", "F_SCHEDULING_ADMIN", "F_SYSTEM_SETTING",
-        "F_SQLVIEW_PUBLIC_ADD", "F_SQLVIEW_PRIVATE_ADD", "F_SQLVIEW_DELETE", "F_SQLVIEW_EXECUTE",
-        "F_SQLVIEW_MANAGEMENT", "F_USERROLE_PUBLIC_ADD", "F_USERROLE_PRIVATE_ADD", "F_USERROLE_DELETE",
-        "F_USERROLE_LIST" };
+        "F_SQLVIEW_PUBLIC_ADD", "F_SQLVIEW_PRIVATE_ADD", "F_SQLVIEW_DELETE", 
+        "F_USERROLE_PUBLIC_ADD", "F_USERROLE_PRIVATE_ADD", "F_USERROLE_DELETE" };
 
     /**
      * Required and unique.

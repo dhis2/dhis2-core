@@ -52,10 +52,6 @@ import java.util.Set;
 public class SingleEventListener
     extends BaseSMSListener
 {
-    private static final String DEFAULT_PATTERN = "(\\w+)\\s*((\\w+\\s*)=(\\s*\\w+\\s*),\\s*)*((\\w+\\s*)=(\\s*\\w+))";
-    
-    private static final String SUCCESS = "Event registered successfully";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -70,43 +66,19 @@ public class SingleEventListener
     // Implementation
     // -------------------------------------------------------------------------
 
-    @Transactional
     @Override
-    public boolean accept( IncomingSms sms )
+    protected SMSCommand getSMSCommand( IncomingSms sms )
     {
         return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.EVENT_REGISTRATION_PARSER ) != null;
+            ParserType.EVENT_REGISTRATION_PARSER );
     }
 
-    @Transactional
     @Override
-    public void receive( IncomingSms sms )
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
-        SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.EVENT_REGISTRATION_PARSER );
-
         Set<OrganisationUnit> ous = getOrganisationUnits( sms );
 
-        Map<String, String> commandValuePairs = parseMessageInput( sms, smsCommand );
-
-        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( commandValuePairs, smsCommand, sms ) )
-        {
-            return;
-        }
-
-        registerEvent( commandValuePairs, smsCommand, sms, ous );
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        return DEFAULT_PATTERN;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        return SUCCESS;
+        registerEvent( parsedMessage, smsCommand, sms, ous );
     }
 
     // -------------------------------------------------------------------------
