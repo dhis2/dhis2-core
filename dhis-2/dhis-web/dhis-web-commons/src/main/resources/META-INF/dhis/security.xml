@@ -418,8 +418,6 @@
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW</value>
         <value>F_USER_GROUPS_READ_ONLY_ADD_MEMBERS</value>
         <value>F_PROGRAM_DASHBOARD_CONFIG_ADMIN</value>
-        <value>F_LEGEND_ADD</value>
-        <value>F_LEGEND_DELETE</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_READ</value>
@@ -434,7 +432,6 @@
         <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_PREDICTOR_RUN</value>
         <value>F_SEND_EMAIL</value>
-        <value>F_VIEW_SETTINGS</value>
         <value>F_TEI_CASCADE_DELETE</value>
         <value>F_ENROLLMENT_CASCADE_DELETE</value>
       </set>

@@ -169,9 +169,9 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
-        return teiService.getTrackedEntityInstanceCount( params, sync );
+        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
     }
 
     @Override
@@ -283,6 +283,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 attribute.setCode( attributeValue.getAttribute().getCode() );
                 attribute.setValue( attributeValue.getValue() );
                 attribute.setStoredBy( attributeValue.getStoredBy() );
+                attribute.setSkipSynchronization( attributeValue.getAttribute().getSkipSynchronization() );
 
                 trackedEntityInstance.getAttributes().add( attribute );
             }

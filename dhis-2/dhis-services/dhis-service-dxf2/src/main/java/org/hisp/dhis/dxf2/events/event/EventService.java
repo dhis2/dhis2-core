@@ -79,6 +79,8 @@ public interface EventService
 
     Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
 
+    Events getAnonymousEventsForSync( Date lastSuccessTime, int pageSize, int page );
+
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------

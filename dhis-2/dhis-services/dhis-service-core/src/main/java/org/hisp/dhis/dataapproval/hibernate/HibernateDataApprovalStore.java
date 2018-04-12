@@ -442,7 +442,9 @@ public class HibernateDataApprovalStore
             "join organisationunit o on " + (orgUnits != null ? "o.organisationunitid in (" + orgUnitIds + ")" : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions ) + " " +
             "left join categoryoption_organisationunits coo on coo.categoryoptionid = co.categoryoptionid " +
             "left join organisationunit oc on oc.organisationunitid = coo.organisationunitid " +
-            "where ( coo.categoryoptionid is null or " + statementBuilder.position( "o.uid", "oc.path" ) + " <> 0 )" +
+            "where ( coo.categoryoptionid is null or " +
+                statementBuilder.position( "o.uid", "oc.path" ) + " <> 0  or " +
+                statementBuilder.position( "oc.uid", "o.path" ) + " <> 0 )" +
             ( attributeOptionCombos == null || attributeOptionCombos.isEmpty() ? "" : " and cocco.categoryoptioncomboid in (" +
                 StringUtils.join( IdentifiableObjectUtils.getIdentifiers( attributeOptionCombos ), "," ) + ") " ) +
             ( isSuperUser ? "" :
@@ -450,7 +452,9 @@ public class HibernateDataApprovalStore
                 "select 1 from dataelementcategoryoptionusergroupaccesses couga " +
                 "left join usergroupaccess uga on uga.usergroupaccessid = couga.usergroupaccessid " +
                 "left join usergroupmembers ugm on ugm.usergroupid = uga.usergroupid " +
-                "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") )" );
+                    "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") ) " ) +
+                "and exists (select 1 from organisationunit od where od.path like o.path || '%' and od.organisationunitid in " +
+                "(select distinct sourceid from datasetsource dss join dataset ds on ds.datasetid = dss.datasetid where ds.workflowid = " + workflow.getId() + "))";
 
         log.debug( "User " + user.getUsername() + " superuser " + isSuperUser
             + " workflow " + workflow.getName() + " period " + period.getIsoDate()

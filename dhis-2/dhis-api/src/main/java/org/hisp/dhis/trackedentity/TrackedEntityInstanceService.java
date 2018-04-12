@@ -61,7 +61,7 @@ import java.util.Set;
  * <p>Attributes specified in the query follows on the next column indexes.
  * Example usage for retrieving TEIs with two attributes using one attribute as
  * filter:</p>
- * <p>
+ *
  * <pre>
  * <code>
  * TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -114,7 +114,7 @@ public interface TrackedEntityInstanceService
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.

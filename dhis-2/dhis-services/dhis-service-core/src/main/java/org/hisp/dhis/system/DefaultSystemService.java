@@ -42,6 +42,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.kafka.Kafka;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -253,6 +254,17 @@ public class DefaultSystemService
         if ( rabbitMQ.isValid() )
         {
             info.setRabbitMQ( rabbitMQ );
+        }
+
+        // ---------------------------------------------------------------------
+        // Kafka
+        // ---------------------------------------------------------------------
+
+        Kafka kafka = new Kafka( dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ) );
+
+        if ( kafka.isValid() )
+        {
+            info.setKafka( kafka );
         }
 
         // ---------------------------------------------------------------------
