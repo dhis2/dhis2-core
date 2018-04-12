@@ -169,9 +169,9 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
-        return teiService.getTrackedEntityInstanceCount( params, sync );
+        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
     }
 
     @Override
