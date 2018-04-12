@@ -1,55 +1,5 @@
 package org.hisp.dhis.dxf2.events.event;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
-
-import javax.annotation.Resource;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.*;
-import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -77,6 +27,78 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
+import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
+import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.query.Order;
+import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,8 +172,8 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
-
-            if ( rowSet.getString( "psi_uid" ) == null )
+            if ( rowSet.getString( "psi_uid" ) == null || 
+                ( params.getCategoryOptionCombo() == null && !user.isSuper() && rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null ) )
             {
                 continue;
             }
@@ -185,6 +207,11 @@ public class JdbcEventStore
                     event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
                 }
 
+                if ( params.getCategoryOptionCombo() == null )
+                {
+                    event.setOptionSize( rowSet.getInt( "option_size" ) );
+                }
+                
                 event.setAttributeOptionCombo( rowSet.getString( "coc_categoryoptioncombouid" ) );
                 event.setAttributeCategoryOptions( rowSet.getString( "deco_uid" ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
@@ -225,7 +252,7 @@ public class JdbcEventStore
                         event.setCoordinate( coordinate );
                     }
                 }
-
+                
                 events.add( event );
             }
             else
@@ -267,6 +294,11 @@ public class JdbcEventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
         }
+        
+        if ( params.getCategoryOptionCombo() == null )
+        {
+            return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null && splitToArray( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() ).collect( Collectors.toList() );
+        }        
 
         return events;
     }
@@ -507,6 +539,8 @@ public class JdbcEventStore
      */
     private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+    	User user = currentUserService.getCurrentUser();
+    	
         String sql = "select * from (";
 
         sql += getEventSelectQuery( params, organisationUnits );
@@ -515,7 +549,14 @@ public class JdbcEventStore
 
         sql += getEventPagingQuery( params );
 
-        sql += ") as event left join (";
+        sql += ") as event left join (";        
+        
+        if ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault() && !user.isSuper() )
+        {
+            sql += getCategoryOptionSharingForUser( user );
+            
+            sql += "left join (";
+        }
 
         if ( params.isIncludeAttributes() )
         {
@@ -546,7 +587,7 @@ public class JdbcEventStore
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, "
             + "psi.latitude as psi_latitude, psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
-            + "coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
+            + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
             + "deco.uid AS deco_uid, pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
             + "p.type as p_type, ps.uid as ps_uid, ps.code as ps_code, ps.capturecoordinates as ps_capturecoordinates, "
             + "ou.uid as ou_uid, ou.code as ou_code, ou.name as ou_name, "
@@ -789,6 +830,33 @@ public class JdbcEventStore
 
         return sql;
     }
+    
+    private String getCategoryOptionSharingForUser( User user )
+    {
+        List<Integer> userGroupIds = getIdentifiers( user.getGroups() );
+        
+        String sql = "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+            + "as cocount on event.coc_categoryoptioncomboid = cocount.categoryoptioncomboid "
+            + "left join ("
+            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
+            + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
+            + "ua.access as ua_access, ua.userid as usr_id from dataelementcategoryoption deco "
+            + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
+            + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
+            + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
+            + "left join useraccess ua on coua.useraccessid = ua.useraccessid " + " where ua.userid="
+            + user.getId();
+        
+        if ( userGroupIds != null && !userGroupIds.isEmpty() )
+        {
+            sql += " or uga.usergroupid in (" + getCommaDelimitedString( userGroupIds ) + ") ";
+        }
+        
+        sql += " ) as decoa on event.cocco_categoryoptionid = decoa.deco_id ";
+        
+        return sql;            
+    }	
+    
 
     private String getEventPagingQuery( EventSearchParams params )
     {
