@@ -72,7 +72,9 @@ public class DefaultQueryPlanner implements QueryPlanner
             );
         }
 
-        Query npQuery = Query.from( query ).setPlannedQuery( true );
+        Query npQuery = Query.from( query )
+            .setUser( query.getUser() ).setPlannedQuery( true );
+
         Query pQuery = getQuery( npQuery, persistedOnly )
             .setUser( query.getUser() ).setPlannedQuery( true );
 

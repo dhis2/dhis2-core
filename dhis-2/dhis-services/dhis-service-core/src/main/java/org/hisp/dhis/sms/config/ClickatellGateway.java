@@ -70,9 +70,9 @@ public class ClickatellGateway
     }
 
     @Override
-    protected Class<?> getGatewayType()
+    protected SmsGatewayConfig getGatewayConfigType()
     {
-        return ClickatellGatewayConfig.class;
+        return new ClickatellGatewayConfig();
     }
 
     @Override
