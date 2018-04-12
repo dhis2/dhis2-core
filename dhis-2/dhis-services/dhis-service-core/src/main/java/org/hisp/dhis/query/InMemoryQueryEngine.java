@@ -38,6 +38,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -53,12 +54,14 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
 {
     private final SchemaService schemaService;
     private final AclService aclService;
+    private final CurrentUserService currentUserService;
 
     @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService )
+    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService, CurrentUserService currentUserService )
     {
         this.schemaService = schemaService;
         this.aclService = aclService;
+        this.currentUserService = currentUserService;
     }
 
     @Override
@@ -82,6 +85,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
 
     private void validateQuery( Query query )
     {
+        if ( query.getUser() == null )
+        {
+            query.setUser( currentUserService.getCurrentUser() );
+        }
+
         if ( query.getSchema() == null )
         {
             throw new QueryException( "Invalid Query object, does not contain Schema" );
