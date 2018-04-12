@@ -186,7 +186,7 @@
       <param name="page">/dhis-web-reporting/viewDataMartForm.vm</param>
       <param name="menu">/dhis-web-reporting/menu.vm</param>
       <param name="javascripts">javascript/dataMart.js</param>
-      <param name="requiredAuthorities">F_DATA_MART_ADMIN</param>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
     </action>
 
   </package>

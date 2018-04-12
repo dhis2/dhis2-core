@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.spring2fa;
+package org.hisp.dhis.kafka;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,41 +28,33 @@ package org.hisp.dhis.security.spring2fa;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
-
-import javax.servlet.http.HttpServletRequest;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
- * @author Henning Håkonsen
- * @author Lars Helge Øverland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TwoFactorWebAuthenticationDetails
-    extends WebAuthenticationDetails
+@JacksonXmlRootElement( localName = "kafka", namespace = DxfNamespaces.DXF_2_0 )
+public class Kafka
 {
-    private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+    private final String bootstrapServers;
 
-    private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
-
-    private String code;
-
-    private String ip;
-
-    public TwoFactorWebAuthenticationDetails( HttpServletRequest request )
+    public Kafka( String bootstrapServers )
     {
-        super( request );
-        code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
-        ip = ObjectUtils.firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
+        this.bootstrapServers = bootstrapServers;
     }
 
-    public String getCode()
+    @JsonProperty( "bootstrap-servers" )
+    @JacksonXmlProperty( localName = "bootstrap-servers", namespace = DxfNamespaces.DXF_2_0 )
+    public String getBootstrapServers()
     {
-        return code;
+        return bootstrapServers;
     }
 
-    public String getIp()
+    public boolean isValid()
     {
-        return ip;
+        return bootstrapServers != null;
     }
 }
-

@@ -72,7 +72,7 @@ public class ResourceTableController
     private WebMessageService webMessageService;
 
     @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATA_MART_ADMIN')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void analytics(
         @RequestParam( required = false ) boolean skipResourceTables,
         @RequestParam( required = false ) boolean skipAggregate,
