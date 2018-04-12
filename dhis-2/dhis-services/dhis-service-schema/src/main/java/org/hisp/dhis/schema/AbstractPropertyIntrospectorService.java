@@ -138,7 +138,7 @@ public abstract class AbstractPropertyIntrospectorService
         Map<String, List<String>> joinTableToRoles = new HashMap<>();
 
         SessionFactoryImplementor sessionFactoryImplementor = (SessionFactoryImplementor) sessionFactory;
-        MetamodelImplementor metamodelImplementor = ( MetamodelImplementor ) sessionFactory.getMetamodel();
+        MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
 
         Iterator<?> collectionIterator = metamodelImplementor.collectionPersisters().values().iterator();
 
@@ -198,7 +198,8 @@ public abstract class AbstractPropertyIntrospectorService
     protected Map<String, Property> getPropertiesFromHibernate( Class<?> klass )
     {
         updateJoinTables();
-        MetamodelImplementor metamodelImplementor = (MetamodelImplementor) sessionFactory.getMetamodel();
+        SessionFactoryImplementor sessionFactoryImplementor = ( SessionFactoryImplementor ) sessionFactory;
+        MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
 
         try
         {
@@ -211,8 +212,6 @@ public abstract class AbstractPropertyIntrospectorService
         }
 
         Map<String, Property> properties = new HashMap<>();
-
-        SessionFactoryImplementor sessionFactoryImplementor = (SessionFactoryImplementor) sessionFactory;
 
         MetadataImplementor metadataImplementor = HibernateMetadata.getMetadataImplementor();
 
@@ -245,7 +244,7 @@ public abstract class AbstractPropertyIntrospectorService
             if ( property.isCollection() )
             {
                 CollectionType collectionType = (CollectionType) type;
-                CollectionPersister persister = sessionFactoryImplementor.getCollectionPersister( collectionType.getRole() );
+                CollectionPersister persister = metamodelImplementor.collectionPersister( collectionType.getRole() );
 
                 property.setOwner( !persister.isInverse() );
                 property.setManyToMany( persister.isManyToMany() );

@@ -880,6 +880,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             Root<T> ugdc = userGroupSubQuery.from( getClazz() );
             userGroupSubQuery.select( ugdc.get("id") );
             Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
+
             return userGroupSubQuery.where(
                 builder.and(
                     builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
@@ -892,6 +893,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             Root<T> udc = userSubQuery.from( getClazz() );
             userSubQuery.select( udc.get( "id" ) );
             Join<T, UserAccess> ua = udc.join( "userAccesses" );
+
             return userSubQuery.where(
                 builder.and(
                     builder.equal( root.get( "id" ), udc.get( "id" ) ),
