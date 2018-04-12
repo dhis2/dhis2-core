@@ -77,6 +77,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "123abc";
     private static final String DATA = "123abc";
+
     private static final String MANDATORY_FIELD = "fname";
 
     // -------------------------------------------------------------------------
