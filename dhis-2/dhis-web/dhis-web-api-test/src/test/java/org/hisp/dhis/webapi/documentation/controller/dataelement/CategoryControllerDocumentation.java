@@ -31,8 +31,8 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
 
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.Category;
-import org.hisp.dhis.dataelement.CategoryOption;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;

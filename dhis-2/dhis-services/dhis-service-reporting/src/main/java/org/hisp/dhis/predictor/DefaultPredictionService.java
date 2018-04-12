@@ -46,8 +46,8 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -635,12 +635,12 @@ public class DefaultPredictionService
 
         if ( !eventAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putAll( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventAttributeOptionObjects, true, periods, orgUnits ) );
         }
 
         if ( !eventNonAttributeOptionObjects.isEmpty() )
         {
-            dataValues.putAll( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
+            dataValues.putMap( getEventDataValues( eventNonAttributeOptionObjects, false, periods, orgUnits ) );
         }
 
         return dataValues;

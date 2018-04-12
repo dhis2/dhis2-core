@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.AbstractNode;
@@ -48,7 +49,10 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -69,15 +73,17 @@ public class DefaultFieldFilterService implements FieldFilterService
 {
     private static final Log log = LogFactory.getLog( DefaultFieldFilterService.class );
 
-    private final Pattern FIELD_PATTERN = Pattern.compile( "^(?<field>\\w+)" );
+    private final static Pattern FIELD_PATTERN = Pattern.compile( "^(?<field>\\w+)" );
 
-    private final Pattern TRANSFORMER_PATTERN = Pattern.compile( "(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
+    private final static Pattern TRANSFORMER_PATTERN = Pattern.compile( "(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
-    @Autowired
-    private FieldParser fieldParser;
+    private final FieldParser fieldParser;
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
+
+    private final AclService aclService;
+
+    private final CurrentUserService currentUserService;
 
     @Autowired( required = false )
     private Set<NodeTransformer> nodeTransformers = new HashSet<>();
@@ -85,6 +91,15 @@ public class DefaultFieldFilterService implements FieldFilterService
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
     private ImmutableMap<String, NodeTransformer> transformers = ImmutableMap.of();
+
+    public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService,
+        CurrentUserService currentUserService )
+    {
+        this.fieldParser = fieldParser;
+        this.schemaService = schemaService;
+        this.aclService = aclService;
+        this.currentUserService = currentUserService;
+    }
 
     @PostConstruct
     public void init()
@@ -161,8 +176,13 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         final FieldMap finalFieldMap = fieldMap;
 
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
+
         objects.forEach( object -> {
-            AbstractNode node = buildNode( finalFieldMap, wrapper, object, params.getDefaults() );
+            AbstractNode node = buildNode( finalFieldMap, wrapper, object, params.getUser(), params.getDefaults() );
 
             if ( node != null )
             {
@@ -173,10 +193,10 @@ public class DefaultFieldFilterService implements FieldFilterService
         return collectionNode;
     }
 
-    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, Defaults defaults )
+    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
-        return buildNode( fieldMap, klass, object, schema.getName(), defaults );
+        return buildNode( fieldMap, klass, object, user, schema.getName(), defaults );
     }
 
     private boolean shouldExclude( Object object, Defaults defaults )
@@ -185,7 +205,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
     }
 
-    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, String nodeName, Defaults defaults )
+    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -197,14 +217,17 @@ public class DefaultFieldFilterService implements FieldFilterService
             return new SimpleNode( schema.getName(), null );
         }
 
-
         if ( shouldExclude( object, defaults ) )
         {
-            System.err.println( "Exclude: " + object );
             return null;
         }
 
         updateFields( fieldMap, schema.getKlass() );
+
+        if ( fieldMap.containsKey( "access" ) && schema.isIdentifiableObject() )
+        {
+            ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (IdentifiableObject) object, user ) );
+        }
 
         for ( String fieldKey : fieldMap.keySet() )
         {
@@ -264,7 +287,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                         for ( Object collectionObject : collection )
                         {
-                            Node node = buildNode( map, property.getItemKlass(), collectionObject, defaults );
+                            Node node = buildNode( map, property.getItemKlass(), collectionObject, user, defaults );
 
                             if ( node != null && !node.getChildren().isEmpty() )
                             {
@@ -303,7 +326,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue, defaults );
+                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue, user, defaults );
                     }
                 }
             }
@@ -316,7 +339,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                     for ( Object collectionObject : (Collection<?>) returnValue )
                     {
-                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, property.getName(), defaults );
+                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user, property.getName(), defaults );
 
                         if ( !node.getChildren().isEmpty() )
                         {
@@ -326,7 +349,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    child = buildNode( fieldValue, property.getKlass(), returnValue, defaults );
+                    child = buildNode( fieldValue, property.getKlass(), returnValue, user, defaults );
                 }
             }
 

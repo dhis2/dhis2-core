@@ -28,7 +28,7 @@ package org.hisp.dhis.dataintegrity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;

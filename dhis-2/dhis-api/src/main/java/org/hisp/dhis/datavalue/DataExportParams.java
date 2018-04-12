@@ -34,7 +34,7 @@ import com.google.common.collect.Sets;
 
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

@@ -175,7 +175,7 @@ public class DefaultMessageService
         conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
 
         // Add UserMessages
-        params.getRecipients()
+        params.getRecipients().stream().filter( r -> !r.equals( params.getSender() ) )
             .forEach( ( recipient ) -> conversation.addUserMessage( new UserMessage( recipient, false ) ) );
 
         if ( params.getSender() != null )
@@ -245,6 +245,12 @@ public class DefaultMessageService
         UserGroup userGroup = dataSet.getNotificationRecipients();
 
         User sender = currentUserService.getCurrentUser();
+
+        // data set completed through sms
+        if ( sender == null )
+        {
+            return 0;
+        }
 
         Set<User> recipients = new HashSet<>();
 

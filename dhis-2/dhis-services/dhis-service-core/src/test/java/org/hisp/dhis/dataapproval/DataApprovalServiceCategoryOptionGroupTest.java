@@ -31,12 +31,17 @@ package org.hisp.dhis.dataapproval;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
-import org.hisp.dhis.dataelement.*;
-import org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupStore;
+import org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -154,7 +159,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     private CategoryOption chinaB2;
     private CategoryOption indiaA1;
 
-    private org.hisp.dhis.dataelement.Category mechanismCategory;
+    private org.hisp.dhis.category.Category mechanismCategory;
 
     private CategoryCombo mechanismCategoryCombo;
 
@@ -486,6 +491,20 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         dataSetA.setWorkflow( workflowAll );
         dataSetB.setWorkflow( workflowAgency );
+
+        dataSetA.addOrganisationUnit( global );
+        dataSetA.addOrganisationUnit( americas );
+        dataSetA.addOrganisationUnit( asia );
+        dataSetA.addOrganisationUnit( brazil );
+        dataSetA.addOrganisationUnit( china );
+        dataSetA.addOrganisationUnit( india );
+
+        dataSetB.addOrganisationUnit( global );
+        dataSetB.addOrganisationUnit( americas );
+        dataSetB.addOrganisationUnit( asia );
+        dataSetB.addOrganisationUnit( brazil );
+        dataSetB.addOrganisationUnit( china );
+        dataSetB.addOrganisationUnit( india );
 
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );

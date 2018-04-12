@@ -28,7 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;

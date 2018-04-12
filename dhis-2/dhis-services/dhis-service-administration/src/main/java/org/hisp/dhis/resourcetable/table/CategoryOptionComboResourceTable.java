@@ -29,7 +29,7 @@ package org.hisp.dhis.resourcetable.table;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -42,9 +42,9 @@ import java.util.Optional;
 public class CategoryOptionComboResourceTable
     extends ResourceTable<CategoryOptionCombo>
 {
-    public CategoryOptionComboResourceTable( List<CategoryOptionCombo> objects, String columnQuote )
+    public CategoryOptionComboResourceTable( List<CategoryOptionCombo> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
     
     @Override

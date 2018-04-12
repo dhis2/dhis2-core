@@ -29,8 +29,8 @@ package org.hisp.dhis.dataapproval;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.CategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;

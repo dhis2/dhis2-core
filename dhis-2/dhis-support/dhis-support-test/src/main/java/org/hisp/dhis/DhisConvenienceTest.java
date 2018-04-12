@@ -36,6 +36,13 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.Color;
@@ -1692,14 +1699,14 @@ public abstract class DhisConvenienceTest
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
-        String name, int days, NotificationTrigger trigger )
+            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient )
     {
         return new ProgramNotificationTemplate(
             name,
             "Subject",
             "Message",
             trigger,
-            ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            recipient,
             Sets.newHashSet(),
             days,
             null, null
@@ -1752,6 +1759,18 @@ public abstract class DhisConvenienceTest
         option.setCode( "OptionCode" + uniqueCharacter );
 
         return option;
+    }
+
+    public static void configureHierarchy( OrganisationUnit root, OrganisationUnit lvlOneLeft,
+        OrganisationUnit lvlOneRight, OrganisationUnit lvlTwoLeftLeft, OrganisationUnit lvlTwoLeftRight )
+    {
+        root.getChildren().addAll( Sets.newHashSet( lvlOneLeft, lvlOneRight ) );
+        lvlOneLeft.setParent( root );
+        lvlOneRight.setParent( root );
+
+        lvlOneLeft.getChildren().addAll( Sets.newHashSet( lvlTwoLeftLeft, lvlTwoLeftRight ) );
+        lvlTwoLeftLeft.setParent( lvlOneLeft );
+        lvlTwoLeftRight.setParent( lvlOneLeft );
     }
 
     // -------------------------------------------------------------------------

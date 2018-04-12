@@ -32,7 +32,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
@@ -225,18 +225,6 @@ public class ValidationNotificationServiceTest
      *               / \
      *  lvlTwoLeftLeft  lvlTwoLeftRight
      */
-    private static void configureHierarchy( OrganisationUnit root, OrganisationUnit lvlOneLeft,
-        OrganisationUnit lvlOneRight,
-        OrganisationUnit lvlTwoLeftLeft, OrganisationUnit lvlTwoLeftRight )
-    {
-        root.getChildren().addAll( Sets.newHashSet( lvlOneLeft, lvlOneRight ) );
-        lvlOneLeft.setParent( root );
-        lvlOneRight.setParent( root );
-
-        lvlOneLeft.getChildren().addAll( Sets.newHashSet( lvlTwoLeftLeft, lvlTwoLeftRight ) );
-        lvlTwoLeftLeft.setParent( lvlOneLeft );
-        lvlTwoLeftRight.setParent( lvlOneLeft );
-    }
 
     // -------------------------------------------------------------------------
     // Tests

@@ -28,12 +28,8 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
@@ -43,12 +39,22 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import javax.annotation.Resource;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import com.google.common.collect.Lists;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -58,21 +64,9 @@ import java.util.stream.Collectors;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-public class DefaultSystemSettingManager
-    implements SystemSettingManager
+public class DefaultSystemSettingManager implements SystemSettingManager
 {
-    /**
-     * Cache for system settings. Does not accept nulls. Disabled during test phase.
-     */
-    private static final Cache<String, Optional<Serializable>> SETTING_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 1, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 400 )
-        .build();
-
-    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
-
+   
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -80,6 +74,25 @@ public class DefaultSystemSettingManager
     private static final Log log = LogFactory.getLog( DefaultSystemSettingManager.class );
 
     private SystemSettingStore systemSettingStore;
+    
+    /**
+     * Cache for system settings. Does not accept nulls. Disabled during test phase.
+     */
+    private Cache<Serializable> settingCache;
+    
+  
+    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+    
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    @Resource( name = "tripleDesStringEncryptor" )
+    private PBEStringEncryptor pbeStringEncryptor;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
+
 
     public void setSystemSettingStore( SystemSettingStore systemSettingStore )
     {
@@ -93,11 +106,19 @@ public class DefaultSystemSettingManager
         this.flags = flags;
     }
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
+    // -------------------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------------------
 
-    @Resource( name = "tripleDesStringEncryptor" )
-    private PBEStringEncryptor pbeStringEncryptor;
+    
+    @PostConstruct
+    public void init()
+    {
+        settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build();
+ 
+    }
+
 
     // -------------------------------------------------------------------------
     // SystemSettingManager implementation
@@ -107,7 +128,7 @@ public class DefaultSystemSettingManager
     @Transactional
     public void saveSystemSetting( String name, Serializable value )
     {
-        SETTING_CACHE.invalidate( name );
+        settingCache.invalidate( name );
 
         SystemSetting setting = systemSettingStore.getByName( name );
 
@@ -148,7 +169,7 @@ public class DefaultSystemSettingManager
 
         if ( setting != null )
         {
-            SETTING_CACHE.invalidate( name );
+            settingCache.invalidate( name );
 
             systemSettingStore.delete( setting );
         }
@@ -182,8 +203,8 @@ public class DefaultSystemSettingManager
     @Override
     public Serializable getSystemSetting( SettingKey setting )
     {
-        Optional<Serializable> value = SETTING_CACHE.get( setting.getName(),
-            key -> getSystemSettingOptional( key, setting.getDefaultValue() ) );
+        Optional<Serializable> value = settingCache.get( setting.getName(),
+            key -> getSystemSettingOptional( key, setting.getDefaultValue() ).orElse( null ) );
 
         return value.orElse( null );
     }
@@ -337,7 +358,7 @@ public class DefaultSystemSettingManager
     @Override
     public void invalidateCache()
     {
-        SETTING_CACHE.invalidateAll();
+        settingCache.invalidateAll();
     }
 
     // -------------------------------------------------------------------------

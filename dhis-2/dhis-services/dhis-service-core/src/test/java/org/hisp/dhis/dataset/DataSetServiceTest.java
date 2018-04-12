@@ -36,7 +36,7 @@ import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -205,6 +205,7 @@ public class DataSetServiceTest
         dataApprovalService.addWorkflow( workflow );
 
         dataSet.setWorkflow( workflow );
+        dataSet.addOrganisationUnit( unit );
         dataSetService.updateDataSet( dataSet );
 
         User user = mockCurrentUserService.getCurrentUser();

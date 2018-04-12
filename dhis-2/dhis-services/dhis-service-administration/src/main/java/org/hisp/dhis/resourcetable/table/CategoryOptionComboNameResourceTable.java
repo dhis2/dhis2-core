@@ -30,8 +30,8 @@ package org.hisp.dhis.resourcetable.table;
 
 import com.google.common.collect.Lists;
 
-import org.hisp.dhis.dataelement.CategoryCombo;
-import org.hisp.dhis.dataelement.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -47,9 +47,9 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 public class CategoryOptionComboNameResourceTable
     extends ResourceTable<CategoryCombo>
 {
-    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects, String columnQuote )
+    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
     
     @Override

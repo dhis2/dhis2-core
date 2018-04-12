@@ -43,6 +43,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 
 /**
  * @author Henning Håkonsen
@@ -85,6 +86,12 @@ public class TwoFactorAuthenticationProvider
         // -------------------------------------------------------------------------
 
         String username = auth.getName();
+        if ( authDetails == null )
+        {
+            log.info( "Missing authentication details in authentication request." );
+            throw new PreAuthenticatedCredentialsNotFoundException( "Missing authentication details in authentication request." );
+        }
+
         String ip = authDetails.getIp();
 
         if ( securityService.isLocked( ip ) )

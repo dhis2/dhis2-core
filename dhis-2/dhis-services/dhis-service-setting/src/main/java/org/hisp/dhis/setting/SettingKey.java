@@ -109,7 +109,7 @@ public enum SettingKey
     LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME( "keyLastSuccessfulAnalyticsTablesRuntime" ),
     LAST_MONITORING_RUN( "keyLastMonitoringRun", Date.class ),
     LAST_SUCCESSFUL_DATA_SYNC( "keyLastSuccessfulDataSynch", Date.class ),
-    LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", Date.class ),
+    LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH( "keyLastSuccessfulSystemMonitoringPush", Date.class ),
@@ -151,7 +151,13 @@ public enum SettingKey
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
     STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class ),
-    FILE_RESOURCE_RETENTION_STRATEGY( "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE, FileResourceRetentionStrategy.class );
+    FILE_RESOURCE_RETENTION_STRATEGY( "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE, FileResourceRetentionStrategy.class ),
+    LAST_SUCCESSFUL_TRACKER_DATA_SYNC( "syncLastSuccessfulTrackerDataSync", new Date( 0 ), Date.class ),
+    TRACKER_SYNC_PAGE_SIZE( "syncTrackerPageSize", 20, Integer.class ),
+    EVENT_SYNC_PAGE_SIZE( "syncEventsPageSize", 60, Integer.class ),
+    MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncMaxRemoteServerAvailabilityCheckAttempts", 3, Integer.class ),
+    MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
+    DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class );
 
     private final String name;
 

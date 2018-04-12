@@ -37,8 +37,8 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
@@ -133,7 +133,7 @@ public class JdbcCompletenessTableManager
             "inner join period pe on cdr.periodid=pe.periodid " +
             "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
             "inner join _organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid " +
-                "and (pe.startdate >= ougs.startdate or ougs.startdate is null) and (pe.enddate <= ougs.enddate or ougs.enddate is null) " +
+                "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
             "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where pe.startdate >= '" + start + "' " +

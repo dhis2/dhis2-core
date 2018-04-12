@@ -710,6 +710,8 @@ public class TableAlteror
         executeSql( "UPDATE userroleauthorities SET authority='F_ATTRIBUTE_PUBLIC_ADD' WHERE authority='F_ATTRIBUTE_ADD'" );
         executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-dashboard' WHERE authority='M_dhis-web-dashboard-integration'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority='M_dhis-web-data-administration' WHERE authority='M_dhis-web-maintenance-dataadmin'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );
@@ -1081,6 +1083,14 @@ public class TableAlteror
         executeSql( "ALTER TABLE users alter column secret set not null" );
 
         executeSql( "drop table userroleprogram");
+
+        // Remove UserRole constraint for Program and DataSet from 2.29
+        executeSql( "alter table program_userroles drop constraint fk_program_userroles;" );
+        executeSql( "alter table program_userroles drop constraint fk_userroleprogram_programid;" );
+        executeSql( "alter table program_userroles drop constraint fk_userroleprogram_userroleid;" );
+        executeSql( "alter table program_userroles drop constraint fkd6350dd7a3100c9f;" );
+        executeSql( "alter table userroledataset drop constraint fk_userroledataset_datasetid;" );
+        executeSql( "alter table userroledataset drop constraint fk_userroledataset_userroleid;" );
         
         log.info( "Tables updated" );
 

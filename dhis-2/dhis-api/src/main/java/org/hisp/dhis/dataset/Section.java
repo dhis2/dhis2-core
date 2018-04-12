@@ -37,7 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.CategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.annotation.PropertyRange;

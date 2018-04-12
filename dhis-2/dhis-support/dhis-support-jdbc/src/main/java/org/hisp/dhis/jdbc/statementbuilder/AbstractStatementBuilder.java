@@ -199,4 +199,10 @@ public abstract class AbstractStatementBuilder
 
         return sb.append(") ").append( table ).toString();
     }
+    
+    @Override
+    public boolean supportsPartialIndexes()
+    {
+        return false;
+    }
 }
