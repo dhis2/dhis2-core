@@ -150,7 +150,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void dispatchEvents( List<Event> events )
     {
-
+        
     }
 
     @Override

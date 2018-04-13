@@ -65,7 +65,7 @@ public class DefaultKafkaManager implements KafkaManager
     public boolean isEnabled()
     {
         Kafka kafka = systemService.getSystemInfo().getKafka();
-        return kafka == null || !kafka.isValid();
+        return kafka != null && kafka.isValid();
     }
 
     @Override
