@@ -106,13 +106,14 @@ public interface TrackedEntityInstanceService
     Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Returns a list with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params               the TrackedEntityInstanceQueryParams.
+     * @param skipAccessValidation If true, access validation is skippes. Should be set to true only for internal
+     *                             tasks (e.g. currently used by synchronization job)
      * @return List of TEIs matching the params
      */
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 

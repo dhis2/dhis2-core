@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstances;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -112,7 +113,7 @@ public class TrackerSynchronization
         {
             queryParams.setPage( i );
 
-            List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params );
+            List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams, params, true );
             filterOutNonSynchronizableAttributes( dtoTeis );
             log.info( String.format( "Syncing page %d, page size is: %d", i, trackerSyncPageSize ) );
 
@@ -147,11 +148,14 @@ public class TrackerSynchronization
 
     private boolean sendTrackerSyncRequest( List<TrackedEntityInstance> dtoTeis, String username, String password )
     {
+        TrackedEntityInstances teis = new TrackedEntityInstances();
+        teis.setTrackedEntityInstances( dtoTeis );
+
         final RequestCallback requestCallback = request ->
         {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
-            renderService.toJson( request.getBody(), dtoTeis );
+            renderService.toJson( request.getBody(), teis );
         };
 
         return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, SyncEndpoint.TEIS_ENDPOINT );
