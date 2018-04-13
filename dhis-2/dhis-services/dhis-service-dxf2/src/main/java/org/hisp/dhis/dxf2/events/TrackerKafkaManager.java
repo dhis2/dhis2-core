@@ -44,11 +44,11 @@ public interface TrackerKafkaManager
 {
     String TOPIC_BULK_EVENTS = "bulk-events";
     String TOPIC_BULK_ENROLLMENTS = "bulk-enrollments";
-    String TOPIC_BULK_TRACKED_ENTITY = "bulk-tracked-entities";
+    String TOPIC_BULK_TRACKED_ENTITIES = "bulk-tracked-entities";
 
     String GROUP_BULK_EVENTS = "bulk-events-1";
     String GROUP_BULK_ENROLLMENTS = "bulk-enrollments-1";
-    String GROUP_BULK_TRACKED_ENTITY = "bulk-tracked-entities-1";
+    String GROUP_BULK_TRACKED_ENTITIES = "bulk-tracked-entities-1";
 
     boolean isEnabled();
 

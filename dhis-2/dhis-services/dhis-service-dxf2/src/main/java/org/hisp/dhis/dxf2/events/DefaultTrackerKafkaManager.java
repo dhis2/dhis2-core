@@ -80,7 +80,7 @@ public class DefaultTrackerKafkaManager
 
         this.cfEvent = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Event.class ), GROUP_BULK_EVENTS );
         this.cfEnrollment = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Enrollment.class ), GROUP_BULK_ENROLLMENTS );
-        this.cfTrackedEntity = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( TrackedEntityInstance.class ), GROUP_BULK_TRACKED_ENTITY );
+        this.cfTrackedEntity = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( TrackedEntityInstance.class ), GROUP_BULK_TRACKED_ENTITIES );
 
         this.ktEvent = kafkaManager.getKafkaTemplate( this.pfEvent );
         this.ktEnrollment = kafkaManager.getKafkaTemplate( this.pfEnrollment );
