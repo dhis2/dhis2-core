@@ -35,11 +35,23 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerKafkaManager
 {
+    String TOPIC_BULK_EVENTS = "bulk-events";
+    String TOPIC_BULK_ENROLLMENTS = "bulk-events";
+    String TOPIC_BULK_TRACKED_ENTITY = "bulk-events";
+
+    String GROUP_BULK_EVENTS = "bulk-events-1";
+    String GROUP_BULK_ENROLLMENTS = "bulk-events-1";
+    String GROUP_BULK_TRACKED_ENTITY = "bulk-events-1";
+
+    boolean isEnabled();
+
     ConsumerFactory<String, Event> getCfEvent();
 
     ConsumerFactory<String, Enrollment> getCfEnrollment();
@@ -57,4 +69,10 @@ public interface TrackerKafkaManager
     KafkaTemplate<String, Enrollment> getKtEnrollment();
 
     KafkaTemplate<String, TrackedEntityInstance> getKtTrackedEntity();
+
+    void dispatchEvents( List<Event> events );
+
+    void dispatchEnrollments( List<Enrollment> enrollments );
+
+    void dispatchTrackedEntity( List<TrackedEntityInstance> trackedEntities );
 }

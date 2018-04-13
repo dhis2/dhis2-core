@@ -34,11 +34,15 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.kafka.KafkaManager;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+
+import java.util.List;
 
 /**
  * Tracker specific KafkaManager, uses JsonSerializer/JsonDeserializer to automatically serialize deserialize Jackson objects.
@@ -49,33 +53,44 @@ public class DefaultTrackerKafkaManager
     implements TrackerKafkaManager
 {
     private final KafkaManager kafkaManager;
-    private final ConsumerFactory<String, Event> cfEvent;
-    private final ConsumerFactory<String, Enrollment> cfEnrollment;
-    private final ConsumerFactory<String, TrackedEntityInstance> cfTrackedEntity;
 
-    private final ProducerFactory<String, Event> pfEvent;
-    private final ProducerFactory<String, Enrollment> pfEnrollment;
-    private final ProducerFactory<String, TrackedEntityInstance> pfTrackedEntity;
+    private ConsumerFactory<String, Event> cfEvent;
+    private ConsumerFactory<String, Enrollment> cfEnrollment;
+    private ConsumerFactory<String, TrackedEntityInstance> cfTrackedEntity;
 
-    private final KafkaTemplate<String, Event> ktEvent;
-    private final KafkaTemplate<String, Enrollment> ktEnrollment;
-    private final KafkaTemplate<String, TrackedEntityInstance> ktTrackedEntity;
+    private ProducerFactory<String, Event> pfEvent;
+    private ProducerFactory<String, Enrollment> pfEnrollment;
+    private ProducerFactory<String, TrackedEntityInstance> pfTrackedEntity;
+
+    private KafkaTemplate<String, Event> ktEvent;
+    private KafkaTemplate<String, Enrollment> ktEnrollment;
+    private KafkaTemplate<String, TrackedEntityInstance> ktTrackedEntity;
 
     public DefaultTrackerKafkaManager( KafkaManager kafkaManager )
     {
         this.kafkaManager = kafkaManager;
+    }
 
+    @EventListener
+    public void init( ContextRefreshedEvent event )
+    {
         this.pfEvent = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>() );
         this.pfEnrollment = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>() );
         this.pfTrackedEntity = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>() );
 
-        this.cfEvent = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Event.class ), "bulk-events" );
-        this.cfEnrollment = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Enrollment.class ), "bulk-enrollments" );
-        this.cfTrackedEntity = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( TrackedEntityInstance.class ), "bulk-tracked-entities" );
+        this.cfEvent = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Event.class ), GROUP_BULK_EVENTS );
+        this.cfEnrollment = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Enrollment.class ), GROUP_BULK_ENROLLMENTS );
+        this.cfTrackedEntity = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( TrackedEntityInstance.class ), GROUP_BULK_TRACKED_ENTITY );
 
         this.ktEvent = kafkaManager.getKafkaTemplate( this.pfEvent );
         this.ktEnrollment = kafkaManager.getKafkaTemplate( this.pfEnrollment );
         this.ktTrackedEntity = kafkaManager.getKafkaTemplate( this.pfTrackedEntity );
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return kafkaManager.isEnabled();
     }
 
     @Override
@@ -130,5 +145,23 @@ public class DefaultTrackerKafkaManager
     public KafkaTemplate<String, TrackedEntityInstance> getKtTrackedEntity()
     {
         return ktTrackedEntity;
+    }
+
+    @Override
+    public void dispatchEvents( List<Event> events )
+    {
+
+    }
+
+    @Override
+    public void dispatchEnrollments( List<Enrollment> enrollments )
+    {
+
+    }
+
+    @Override
+    public void dispatchTrackedEntity( List<TrackedEntityInstance> trackedEntities )
+    {
+
     }
 }

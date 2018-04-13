@@ -40,6 +40,8 @@ import org.springframework.kafka.core.ProducerFactory;
  */
 public interface KafkaManager
 {
+    boolean isEnabled();
+
     KafkaAdmin getKafkaAdmin();
 
     //--------------------------------------------------------------------------

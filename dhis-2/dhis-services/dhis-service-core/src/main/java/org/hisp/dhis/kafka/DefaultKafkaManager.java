@@ -62,21 +62,10 @@ public class DefaultKafkaManager implements KafkaManager
     }
 
     @Override
-    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( ProducerFactory<K, V> producerFactory )
+    public boolean isEnabled()
     {
-        return new KafkaTemplate<>( producerFactory );
-    }
-
-    @Override
-    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer )
-    {
-        return getKafkaTemplate( getProducerFactory( keySerializer, serializer ) );
-    }
-
-    @Override
-    public KafkaTemplate<String, String> getKafkaTemplate()
-    {
-        return getKafkaTemplate( new StringSerializer(), new StringSerializer() );
+        Kafka kafka = systemService.getSystemInfo().getKafka();
+        return kafka == null || !kafka.isValid();
     }
 
     @Override
@@ -88,6 +77,36 @@ public class DefaultKafkaManager implements KafkaManager
         props.put( AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
 
         return new KafkaAdmin( props );
+    }
+
+    @Override
+    public KafkaTemplate<String, String> getKafkaTemplate()
+    {
+        return getKafkaTemplate( new StringSerializer(), new StringSerializer() );
+    }
+
+    @Override
+    public ConsumerFactory<String, String> getConsumerFactory( String group )
+    {
+        return getConsumerFactory( new StringDeserializer(), new StringDeserializer(), group );
+    }
+
+    @Override
+    public ProducerFactory<String, String> getProducerFactory()
+    {
+        return getProducerFactory( new StringSerializer(), new StringSerializer() );
+    }
+
+    @Override
+    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( ProducerFactory<K, V> producerFactory )
+    {
+        return new KafkaTemplate<>( producerFactory );
+    }
+
+    @Override
+    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer )
+    {
+        return getKafkaTemplate( getProducerFactory( keySerializer, serializer ) );
     }
 
     /**
@@ -111,12 +130,6 @@ public class DefaultKafkaManager implements KafkaManager
     }
 
     @Override
-    public ConsumerFactory<String, String> getConsumerFactory( String group )
-    {
-        return getConsumerFactory( new StringDeserializer(), new StringDeserializer(), group );
-    }
-
-    @Override
     public <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer )
     {
         Kafka kafka = systemService.getSystemInfo().getKafka();
@@ -131,12 +144,6 @@ public class DefaultKafkaManager implements KafkaManager
         return new DefaultKafkaProducerFactory<>(
             props, keySerializer, serializer
         );
-    }
-
-    @Override
-    public ProducerFactory<String, String> getProducerFactory()
-    {
-        return getProducerFactory( new StringSerializer(), new StringSerializer() );
     }
 
     /*
