@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -958,6 +959,7 @@ public class ValidationServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testValidateWithCategoryOptions()
     {
         CategoryOption optionA = new CategoryOption( "CategoryOptionA" );

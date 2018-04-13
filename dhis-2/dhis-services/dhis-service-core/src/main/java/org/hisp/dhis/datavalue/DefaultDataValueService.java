@@ -313,12 +313,9 @@ public class DefaultDataValueService
     }
 
     @Override
-    public Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
-        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        Collection<OrganisationUnit> orgUnits )
+    public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
-        return dataValueStore.getDataElementOperandValues( dataElementOperands,
-            periods, orgUnits );
+        return dataValueStore.getDeflatedDataValues( params );
     }
 
     @Override
@@ -340,15 +337,5 @@ public class DefaultDataValueService
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );
-    }
-
-    @Override
-    public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
-        Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints )
-    {
-        return dataValueStore.getDataValueMapByAttributeCombo( dataElementOperands, date, orgUnits,
-            periodTypes, attributeCombo, cogDimensionConstraints, coDimensionConstraints );
     }
 }
