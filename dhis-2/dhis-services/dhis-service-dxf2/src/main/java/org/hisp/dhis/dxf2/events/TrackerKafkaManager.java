@@ -1,4 +1,4 @@
-package org.hisp.dhis.kafka;
+package org.hisp.dhis.dxf2.events;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,39 +28,33 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface KafkaManager
+public interface TrackerKafkaManager
 {
-    KafkaAdmin getKafkaAdmin();
+    ConsumerFactory<String, Event> getCfEvent();
 
-    //--------------------------------------------------------------------------
-    // String based kafka serializer/deserializer
-    //--------------------------------------------------------------------------
+    ConsumerFactory<String, Enrollment> getCfEnrollment();
 
-    KafkaTemplate<String, String> getKafkaTemplate();
+    ConsumerFactory<String, TrackedEntityInstance> getCfTrackedEntity();
 
-    ConsumerFactory<String, String> getConsumerFactory( String group );
+    ProducerFactory<String, Event> getPfEvent();
 
-    ProducerFactory<String, String> getProducerFactory();
+    ProducerFactory<String, Enrollment> getPfEnrollment();
 
-    //--------------------------------------------------------------------------
-    // Generic implementations, requires serializer/deserializer instances
-    //--------------------------------------------------------------------------
+    ProducerFactory<String, TrackedEntityInstance> getPfTrackedEntity();
 
-    <K, V> KafkaTemplate<K, V> getKafkaTemplate( ProducerFactory<K, V> producerFactory );
+    KafkaTemplate<String, Event> getKtEvent();
 
-    <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
+    KafkaTemplate<String, Enrollment> getKtEnrollment();
 
-    <K, D> ConsumerFactory<K, D> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<D> deserializer, String group );
-
-    <K, D> ProducerFactory<K, D> getProducerFactory( Serializer<K> keySerializer, Serializer<D> serializer );
+    KafkaTemplate<String, TrackedEntityInstance> getKtTrackedEntity();
 }

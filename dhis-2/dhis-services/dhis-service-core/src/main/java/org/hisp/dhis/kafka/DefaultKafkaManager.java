@@ -62,9 +62,15 @@ public class DefaultKafkaManager implements KafkaManager
     }
 
     @Override
+    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( ProducerFactory<K, V> producerFactory )
+    {
+        return new KafkaTemplate<>( producerFactory );
+    }
+
+    @Override
     public <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer )
     {
-        return new KafkaTemplate<>( getProducerFactory( keySerializer, serializer ) );
+        return getKafkaTemplate( getProducerFactory( keySerializer, serializer ) );
     }
 
     @Override
