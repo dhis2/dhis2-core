@@ -75,17 +75,6 @@ public class ProgramDataSynchronizationJob extends AbstractJob
     {
         try
         {
-            eventSync.syncEventProgramData();
-        }
-        catch ( Exception e )
-        {
-            log.error( "EventPrograms data sync failed.", e );
-            notifier.notify( jobConfiguration, "Event sync failed: " + e.getMessage() );
-            messageService.sendSystemErrorNotification( "Event sync failed", e );
-        }
-
-        try
-        {
             trackerSync.syncTrackerProgramData();
             notifier.notify( jobConfiguration, "Tracker programs data sync successful" );
         }
