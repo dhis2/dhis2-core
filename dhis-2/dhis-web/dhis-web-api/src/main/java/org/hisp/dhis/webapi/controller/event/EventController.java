@@ -811,6 +811,20 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
+    // BULK IMPORT
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/bulk", method = RequestMethod.POST, consumes = "application/json" )
+    public void postBulkJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
+    {
+        importOptions.setImportStrategy( strategy );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+
+        List<Event> events = eventService.getEventsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

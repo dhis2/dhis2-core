@@ -31,6 +31,8 @@ package org.hisp.dhis.kafka;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.system.SystemService;
@@ -45,6 +47,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * These methods should be considered utility methods, don't call these for every single kafka call. Get the template or factory you need
+ * and reuse it for your requests.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DefaultKafkaManager implements KafkaManager
@@ -57,9 +62,15 @@ public class DefaultKafkaManager implements KafkaManager
     }
 
     @Override
+    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer )
+    {
+        return new KafkaTemplate<>( getProducerFactory( keySerializer, serializer ) );
+    }
+
+    @Override
     public KafkaTemplate<String, String> getKafkaTemplate()
     {
-        return new KafkaTemplate<>( getProducerFactory() );
+        return getKafkaTemplate( new StringSerializer(), new StringSerializer() );
     }
 
     @Override
@@ -77,7 +88,7 @@ public class DefaultKafkaManager implements KafkaManager
      * Build a kafka consumer factory for a given group-id.
      */
     @Override
-    public ConsumerFactory<String, String> getConsumerFactory( String group )
+    public <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group )
     {
         Kafka kafka = systemService.getSystemInfo().getKafka();
 
@@ -89,12 +100,18 @@ public class DefaultKafkaManager implements KafkaManager
         props.put( ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000" );
 
         return new DefaultKafkaConsumerFactory<>(
-            props, new StringDeserializer(), new StringDeserializer()
+            props, keyDeserializer, deserializer
         );
     }
 
     @Override
-    public ProducerFactory<String, String> getProducerFactory()
+    public ConsumerFactory<String, String> getConsumerFactory( String group )
+    {
+        return getConsumerFactory( new StringDeserializer(), new StringDeserializer(), group );
+    }
+
+    @Override
+    public <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer )
     {
         Kafka kafka = systemService.getSystemInfo().getKafka();
 
@@ -106,8 +123,14 @@ public class DefaultKafkaManager implements KafkaManager
         props.put( ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432 );
 
         return new DefaultKafkaProducerFactory<>(
-            props, new StringSerializer(), new StringSerializer()
+            props, keySerializer, serializer
         );
+    }
+
+    @Override
+    public ProducerFactory<String, String> getProducerFactory()
+    {
+        return getProducerFactory( new StringSerializer(), new StringSerializer() );
     }
 
     /*

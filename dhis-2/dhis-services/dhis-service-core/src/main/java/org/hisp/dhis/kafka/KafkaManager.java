@@ -28,6 +28,8 @@ package org.hisp.dhis.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -38,11 +40,25 @@ import org.springframework.kafka.core.ProducerFactory;
  */
 public interface KafkaManager
 {
-    KafkaTemplate<String, String> getKafkaTemplate();
-
     KafkaAdmin getKafkaAdmin();
+
+    //--------------------------------------------------------------------------
+    // String based kafka serializer/deserializer
+    //--------------------------------------------------------------------------
+
+    KafkaTemplate<String, String> getKafkaTemplate();
 
     ConsumerFactory<String, String> getConsumerFactory( String group );
 
     ProducerFactory<String, String> getProducerFactory();
+
+    //--------------------------------------------------------------------------
+    // Generic implementations, requires serializer/deserializer instances
+    //--------------------------------------------------------------------------
+
+    <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
+
+    <K, D> ConsumerFactory<K, D> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<D> deserializer, String group );
+
+    <K, D> ProducerFactory<K, D> getProducerFactory( Serializer<K> keySerializer, Serializer<D> serializer );
 }
