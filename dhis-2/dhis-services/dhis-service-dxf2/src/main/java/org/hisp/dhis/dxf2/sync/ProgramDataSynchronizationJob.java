@@ -87,6 +87,7 @@ public class ProgramDataSynchronizationJob extends AbstractJob
         try
         {
             trackerSync.syncTrackerProgramData();
+            notifier.notify( jobConfiguration, "Tracker programs data sync successful" );
         }
         catch ( Exception e )
         {
@@ -94,8 +95,6 @@ public class ProgramDataSynchronizationJob extends AbstractJob
             notifier.notify( jobConfiguration, "TrackerPrograms data sync failed: " + e.getMessage() );
             messageService.sendSystemErrorNotification( "TrackerProgram data sync failed", e );
         }
-
-        notifier.notify( jobConfiguration, "Event and Tracker programs data sync successful" );
     }
 
     @Override
