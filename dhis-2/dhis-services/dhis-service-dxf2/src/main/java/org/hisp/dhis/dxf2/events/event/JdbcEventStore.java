@@ -144,8 +144,10 @@ public class JdbcEventStore
     public List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
         User user = currentUserService.getCurrentUser();
+        
+        boolean isSuperUser = isSuper( user );
 
-        if ( user != null && !user.isSuper() )
+        if ( !isSuperUser  )
         {
             params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
                 .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
@@ -173,7 +175,7 @@ public class JdbcEventStore
         while ( rowSet.next() )
         {
             if ( rowSet.getString( "psi_uid" ) == null || 
-                ( params.getCategoryOptionCombo() == null && !user.isSuper() && rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null ) )
+                ( params.getCategoryOptionCombo() == null && !isSuperUser && rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null ) )
             {
                 continue;
             }
@@ -306,7 +308,6 @@ public class JdbcEventStore
     @Override
     public List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-
         String sql = buildGridSql( params, organisationUnits );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -551,7 +552,7 @@ public class JdbcEventStore
 
         sql += ") as event left join (";        
         
-        if ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault() && !user.isSuper() )
+        if ( ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault() ) && !isSuper( user ) )
         {
             sql += getCategoryOptionSharingForUser( user );
             
@@ -892,7 +893,6 @@ public class JdbcEventStore
 
     private String getGridOrderQuery( EventSearchParams params )
     {
-
         if ( params.getGridOrders() != null && params.getDataElements() != null && !params.getDataElements().isEmpty()
             && STATIC_EVENT_COLUMNS != null && !STATIC_EVENT_COLUMNS.isEmpty() )
         {
@@ -969,5 +969,10 @@ public class JdbcEventStore
             + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";
 
         return sql;
+    }
+
+    private boolean isSuper( User user )
+    {
+        return user == null || user.isSuper();
     }
 }
