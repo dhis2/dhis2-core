@@ -71,6 +71,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -370,9 +371,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         List<Function<Root<T>, Predicate>>  predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
         predicates.add( root -> builder.equal( root.get( "uid" ), uid ) );
 
-        return getSingleResult( getSharingQuery( builder, predicates ) );
+        return getSingleResult( builder, predicates );
     }
 
     @Override
@@ -386,6 +390,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
         predicates.add( root -> builder.equal( root.get( "uid" ), uid ) );
 
         return getObject( builder, predicates );
@@ -404,7 +409,15 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final T getByName( String name )
     {
-        List<T> list = getList( Restrictions.eq( "name", name ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.equal( root.get( "name" ), name ) );
+
+        List<T> list = getList(  builder, predicates );
 
         T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
 
@@ -425,11 +438,18 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        return getSharingObject( Restrictions.eq( "code", code ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.equal( root.get( "code" ), code ) );
+
+        return getSingleResult( builder, predicates );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public T getByUniqueAttributeValue( Attribute attribute, String value )
     {
         if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
@@ -437,43 +457,65 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return null;
         }
 
-        Criteria criteria = getSharingCriteria();
-        criteria.createAlias( "attributeValues", "av" );
-        criteria.add( Restrictions.eq( "av.value", value ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (T) criteria.uniqueResult();
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.equal( root.join( ( "attributeValues" ), JoinType.INNER ).get( "value" ) , value ) );
+
+        return getSingleResult(  builder, predicates );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllEqName( String name )
     {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "name", name ) )
-            .addOrder( Order.asc( "name" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.equal( root.get( "name" ), name ) );
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "name" ) );
+
+        return getList( builder, predicates, order );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLikeName( String name )
     {
-        return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .addOrder( Order.asc( "name" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.like( root.get( "name" ), "%" + name + "%" ) );
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "name" ) );
+
+        return getList( builder, predicates, order );
+
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public List<T> getAllLikeName( String name, int first, int max )
     {
-        return getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .addOrder( Order.asc( "name" ) )
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.like( root.get( "name" ), "%" + name + "%" ) );
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "name" ) );
+
+        return getList( builder, predicates, order, first, max );
     }
 
     @Override
@@ -868,7 +910,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         CriteriaQuery<T> criteria = builder.createQuery( getClazz() ) ;
 
-        preProcessCriteriaQuery( builder, predicates );
+        preProcessPredicates( builder, predicates );
 
         if ( !sharingEnabled( user ) || user == null )
         {
@@ -932,6 +974,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
     }
 
+    protected final CriteriaQuery<T> getSharingCriteriaQuery( CriteriaBuilder builder,  List<Function<Root<T>, Predicate>> predicates )
+    {
+        List<Function<Root<T>, Predicate>> sharingPredicates = getSharingPredicates( builder );
+
+        if ( !predicates.isEmpty() )
+        {
+            sharingPredicates.addAll( predicates );
+        }
+
+        CriteriaQuery<T> query = getCriteriaQuery( builder, sharingPredicates );
+
+        return query;
+    }
+
 
     /**
      * Creates a sharing Criteria for the implementation Class type restricted by the
@@ -951,18 +1007,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         criteria.setCacheable( cacheable );
         return criteria;
-    }
-
-    /**
-     * Retrieves an object based on the given Criterions using a sharing Criteria.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return an object of the implementation Class type.
-     */
-    @SuppressWarnings( "unchecked" )
-    protected final T getSharingObject( Criterion... expressions )
-    {
-        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
     }
 
     /**

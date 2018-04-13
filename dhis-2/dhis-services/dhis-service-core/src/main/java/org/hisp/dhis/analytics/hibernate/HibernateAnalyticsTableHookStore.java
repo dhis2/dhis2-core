@@ -52,7 +52,7 @@ public class HibernateAnalyticsTableHookStore
     @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {
-        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase" )
+        return getTypedQuery( "from AnalyticsTableHook h where h.phase = :phase" )
             .setParameter( "phase", phase )
             .getResultList();
     }
@@ -61,7 +61,7 @@ public class HibernateAnalyticsTableHookStore
     @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
     {
-        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
+        return getTypedQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
             .setParameter( "phase", phase )
             .setParameter( "resourceTableType", resourceTableType )
             .getResultList();
@@ -71,7 +71,7 @@ public class HibernateAnalyticsTableHookStore
     @SuppressWarnings("unchecked")
     public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
     {
-        return getJpaQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
+        return getTypedQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
             .setParameter( "phase", phase )
             .setParameter( "analyticsTableType", analyticsTableType )
             .getResultList();

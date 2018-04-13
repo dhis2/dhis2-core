@@ -641,7 +641,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    protected void preProcessCriteriaQuery( CriteriaBuilder builder, List<Function<Root<TrackedEntityInstance>, Predicate>> predicates )
+    protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<TrackedEntityInstance>, Predicate>> predicates )
     {
         predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }
