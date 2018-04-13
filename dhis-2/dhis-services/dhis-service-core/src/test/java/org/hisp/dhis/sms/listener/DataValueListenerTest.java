@@ -122,7 +122,6 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private CompleteDataSetRegistration deletedCompleteDataSetRegistration;
 
     private DataValue fetchedDataValue;
-    private DataValue fetchedDataValueB;
     private DataValue addedDataValue;
     private DataValue updatedDataValue;
 
@@ -385,7 +384,6 @@ public class DataValueListenerTest extends DhisConvenienceTest
         dataElementB.setValueType(ValueType.TEXT );
 
         fetchedDataValue = createDataValue( dataElement, period, organisationUnitA, FETCHED_DATA_VALUE, categoryOptionCombo );
-        fetchedDataValueB = createDataValue( dataElementB, period, organisationUnitA, FETCHED_DATA_VALUE, categoryOptionCombo );
 
         fetchedCompleteDataSetRegistration = new CompleteDataSetRegistration( dataSet, period, organisationUnitA, categoryOptionCombo, new Date(), STORED_BY );
 

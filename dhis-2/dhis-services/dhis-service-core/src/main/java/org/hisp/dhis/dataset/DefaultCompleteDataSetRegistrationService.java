@@ -11,6 +11,7 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -92,6 +93,9 @@ public class DefaultCompleteDataSetRegistrationService
     @Autowired
     private PeriodService periodService;
 
+    @Autowired
+    private MessageService messageService;
+
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
@@ -105,6 +109,11 @@ public class DefaultCompleteDataSetRegistrationService
         }
 
         completeDataSetRegistrationStore.saveCompleteDataSetRegistration( registration );
+
+        if ( registration.getDataSet().isNotifyCompletingUser() )
+        {
+            messageService.sendCompletenessMessage( registration );
+        }
         
         notificationEventPublisher.publishEvent( registration );
     }

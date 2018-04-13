@@ -125,7 +125,7 @@ public class DefaultTrackedEntityInstanceService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
+    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
@@ -135,7 +135,11 @@ public class DefaultTrackedEntityInstanceService
         }
 
         decideAccess( params );
-        validate( params );
+        //AccessValidation should be skipped only and only if it is internal service that runs the task (for example sync job)
+        if ( !skipAccessValidation )
+        {
+            validate( params );
+        }
 
         params.setUser( currentUserService.getCurrentUser() );
 
@@ -162,12 +166,16 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         decideAccess( params );
-        validate( params );
 
-        if ( !sync )
+        if ( !skipAccessValidation )
+        {
+            validate( params );
+        }
+
+        if ( !skipSearchScopeValidation )
         {
             validateSearchScope( params );
         }

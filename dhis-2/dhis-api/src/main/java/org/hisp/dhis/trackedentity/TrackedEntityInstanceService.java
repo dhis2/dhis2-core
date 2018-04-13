@@ -61,7 +61,7 @@ import java.util.Set;
  * <p>Attributes specified in the query follows on the next column indexes.
  * Example usage for retrieving TEIs with two attributes using one attribute as
  * filter:</p>
- * <p>
+ *
  * <pre>
  * <code>
  * TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -106,15 +106,16 @@ public interface TrackedEntityInstanceService
     Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Returns a list with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params               the TrackedEntityInstanceQueryParams.
+     * @param skipAccessValidation If true, access validation is skippes. Should be set to true only for internal
+     *                             tasks (e.g. currently used by synchronization job)
      * @return List of TEIs matching the params
      */
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.

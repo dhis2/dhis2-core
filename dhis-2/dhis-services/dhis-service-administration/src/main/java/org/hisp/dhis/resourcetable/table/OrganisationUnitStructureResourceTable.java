@@ -42,6 +42,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
@@ -53,9 +55,9 @@ public class OrganisationUnitStructureResourceTable
     private int organisationUnitLevels;
     
     public OrganisationUnitStructureResourceTable( List<OrganisationUnit> objects, 
-        String columnQuote, OrganisationUnitService organisationUnitService, int organisationUnitLevels )
+        OrganisationUnitService organisationUnitService, int organisationUnitLevels )
     {
-        super( objects, columnQuote );
+        super( objects );
         this.organisationUnitService = organisationUnitService;
         this.organisationUnitLevels = organisationUnitLevels;
     }
@@ -76,9 +78,9 @@ public class OrganisationUnitStructureResourceTable
         
         for ( int k = 1 ; k <= organisationUnitLevels; k++ )
         {
-            sql.append( ", " ).append( columnQuote ).append( "idlevel" + k ).append( columnQuote ).append (" integer, " ).
-                append( columnQuote ).append( "uidlevel" + k ).append( columnQuote ).append( " character(11), " ).
-                append( columnQuote ).append( "namelevel" + k ).append( columnQuote ).append( " text" );
+            sql.append( ", " ).append( quote( "idlevel" + k ) ).append (" integer, " )
+                .append( quote( "uidlevel" + k ) ).append( " character(11), " )
+                .append( quote( "namelevel" + k ) ).append( " text" );
         }
         
         return sql.append( ");" ).toString();

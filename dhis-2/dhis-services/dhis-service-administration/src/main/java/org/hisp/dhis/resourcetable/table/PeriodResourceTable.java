@@ -43,15 +43,17 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
 public class PeriodResourceTable
     extends ResourceTable<Period>
 {
-    public PeriodResourceTable( List<Period> objects, String columnQuote )
+    public PeriodResourceTable( List<Period> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
 
     @Override
@@ -69,7 +71,7 @@ public class PeriodResourceTable
         
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
-            sql += ", " + columnQuote + periodType.getName().toLowerCase() + columnQuote + " VARCHAR(15)";
+            sql += ", " + quote( periodType.getName().toLowerCase() ) + " VARCHAR(15)";
         }
         
         sql += ")";

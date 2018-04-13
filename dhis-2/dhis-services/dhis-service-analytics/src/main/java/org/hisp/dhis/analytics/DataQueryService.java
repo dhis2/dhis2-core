@@ -32,8 +32,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -45,49 +48,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public interface DataQueryService
 {
     /**
-     * Creates a data query parameter object from the given URL.
+     * Creates a data query parameter object from the given request.
      *
-     * @param dimensionParams the dimension URL parameters.
-     * @param filterParams the filter URL parameters.
-     * @param aggregationType the aggregation type.
-     * @param measureCriteria the measure criteria.
-     * @param preAggregationMeasureCriteria the pre aggregation measure criteria
-     * @param startDate start date of query
-     * @param endDate end date of query
-     * @param skipMeta whether to skip the meta data part of the response.
-     * @param skipData whether to skip the data part of the response.
-     * @param skipRounding whether to skip rounding and provide full precision
-     *         for values.
-     * @param completedOnly whether to only include completed events.
-     * @param hierarchyMeta whether to include meta data about the organisation
-     *         units in the hierarchy.
-     * @param ignoreLimit whether to ignore the max number of cells limit.
-     * @param hideEmptyRows whether to hide rows without data values, applies to
-     *         table layout.
-     * @param hideEmptyColumns whether to hide columns without data values, applies
-     *         to table layout.
-     * @param showHierarchy whether to show the organisation unit hierarchy
-     *         together with the name.
-     * @param includeNumDen whether to include the numerator and denominator of
-     *         values in the response.
-     * @param includeMetadataDetails whether to include metadata details in the response.
-     * @param displayProperty the property to display for meta-data.
-     * @param outputIdScheme the identifier scheme to use in the query response.
-     * @param inputIdScheme the identifier scheme to interpret dimension and filters.
-     * @param duplicatesOnly whether to include duplicate data values only,
-     *         applies to data value set format only.
-     * @param approvalLevel the approval level identifier.
-     * @param relativePeriodDate the date to use as basis for relative periods.
-     * @param userOrgUnit the user organisation unit to use, overrides current user.
-     * @param allowAllPeriods whether to allow all period items, meaning specifying the
-     *         period dimension with no period items.
-     * @param apiVersion the API version used for the request.
+     * @param request request wrapper object containing the URL parameters.
      * @return a data query parameter object created based on the given URL info.
      */
-    DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
-        String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
-        boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy, boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, 
-        IdScheme outputIdScheme, IdScheme inputIdScheme, boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion, SortOrder order );
+    DataQueryParams getFromRequest( DataQueryRequest request );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.

@@ -74,6 +74,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -149,10 +150,11 @@ public abstract class AbstractTrackedEntityInstanceService
     // READ
     // -------------------------------------------------------------------------
 
+    @Transactional
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params )
+    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService.getTrackedEntityInstances( queryParams );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService.getTrackedEntityInstances( queryParams, skipAccessValidation );
 
         List<TrackedEntityInstance> dtoTEIItems = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
@@ -169,9 +171,9 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
-        return teiService.getTrackedEntityInstanceCount( params, sync );
+        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
     }
 
     @Override

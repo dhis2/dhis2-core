@@ -47,9 +47,9 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 public class CategoryOptionComboNameResourceTable
     extends ResourceTable<CategoryCombo>
 {
-    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects, String columnQuote )
+    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
     
     @Override
