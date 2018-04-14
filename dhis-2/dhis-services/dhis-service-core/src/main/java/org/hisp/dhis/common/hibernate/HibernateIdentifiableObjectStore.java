@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
@@ -519,51 +518,69 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLikeName( Set<String> nameWords, int first, int max )
     {
-        Conjunction conjunction = Restrictions.conjunction();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "name" ) );
+
+        List<Function<Root<T>, Predicate>> conjunction = new ArrayList<>();
 
         for ( String word : nameWords )
         {
-            conjunction.add( Restrictions.like( "name", "%" + word + "%" ).ignoreCase() );
+            conjunction.add( root -> builder.like( builder.lower( root.get( "name") ), "%" + word.toLowerCase() + "%" ) ) ;
         }
 
-        return getSharingCriteria()
-            .add( conjunction )
-            .addOrder( Order.asc( "name" ) )
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .list();
+        predicates.add( root -> builder.and( conjunction.toArray( new Predicate[0] ) ) );
+
+        return getList( builder, predicates, order, first, max );
+
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedName()
     {
-        return getSharingCriteria()
-            .addOrder( Order.asc( "name" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "name" ) );
+
+        return getList( builder, predicates, order );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedName( int first, int max )
     {
-        return getSharingCriteria()
-            .addOrder( Order.asc( "name" ) )
-            .setFirstResult( first ).setMaxResults( max )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "name" ) );
+
+        return getList( builder, predicates, order, first, max );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllOrderedLastUpdated( int first, int max )
     {
-        return getSharingCriteria()
-            .addOrder( Order.desc( "lastUpdated" ) )
-            .setFirstResult( first ).setMaxResults( max )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "lastUpdated" ) );
+
+        return getList( builder, predicates, order, first, max );
     }
 
     @Override
