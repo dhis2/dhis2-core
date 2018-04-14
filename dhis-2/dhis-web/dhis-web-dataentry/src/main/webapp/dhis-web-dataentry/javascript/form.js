@@ -1817,15 +1817,16 @@ function insertDataValues( json )
         var commentId = '#' + value.id + '-comment';
         if ( $( fieldId ).length > 0 ) // Set values
         {
-            if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
+            var entryField = $( fieldId );
+            if ( 'true' == value.val && ( entryField.attr( 'name' ) == 'entrytrueonly' || entryField.hasClass( "entrytrueonly" ) ) )
             {
-                $( fieldId ).prop( 'checked', true );
+              $( fieldId ).prop( 'checked', true );
             }
-            else if ( $( fieldId ).attr( 'name' ) == 'entryoptionset' || $( fieldId ).hasClass( "entryoptionset" ) )
+            else if ( entryField.attr( 'name' ) == 'entryoptionset' || entryField.hasClass( "entryoptionset" ) )
             {
                 dhis2.de.setOptionNameInField( fieldId, value );
             }
-            else if ( $( fieldId ).hasClass( 'entryselect' ) )
+            else if ( entryField.hasClass( 'entryselect' ) )
             {                
                 var fId = fieldId.substring(1, fieldId.length);
     
@@ -1844,7 +1845,7 @@ function insertDataValues( json )
                     $('input[id=' + fId + ']:nth(1)').prop( 'checked', false );
                 }
             }
-            else if ( $( fieldId ).attr( 'class' ) == 'entryfileresource' )
+            else if ( entryField.attr( 'class' ) == 'entryfileresource' )
             {
                 var $field = $( fieldId );
 
