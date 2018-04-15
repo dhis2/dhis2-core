@@ -58,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +68,10 @@ public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramNotificationService.class );
+
+    private static final Predicate<ProgramNotificationTemplate> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
+        Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getNotificationTrigger() ) &&
+        pnt.getScheduledDate().equals( new Date() );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -130,6 +135,7 @@ public class DefaultProgramNotificationService
     public void sendScheduledNotificationsForDay( Date notificationDate )
     {
         Clock clock = new Clock( log ).startClock()
+
             .logTime( "Processing ProgramStageNotification messages" );
 
         List<ProgramNotificationTemplate> scheduledTemplates = getScheduledTemplates();
@@ -143,6 +149,34 @@ public class DefaultProgramNotificationService
 
             totalMessageCount += batch.messageCount();
         }
+
+        clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
+    }
+
+    @Transactional
+    @Override
+    public void sendScheduledNotificationsForDay( ProgramInstance programInstance )
+    {
+        Clock clock = new Clock( log ).startClock()
+            .logTime( "Processing ProgramStageNotification messages" );
+
+        List<ProgramNotificationTemplate> templates = identifiableObjectManager.getAll( ProgramNotificationTemplate.class ).stream()
+            .filter( IS_SCHEDULED_BY_PROGRAM_RULE ).collect( Collectors.toList() );
+
+        if( templates.isEmpty() )
+        {
+            return;
+        }
+
+        int totalMessageCount = 0;
+
+        List<MessageBatch> batches = templates.stream()
+            .map( pnt -> createProgramInstanceMessageBatch( pnt, Collections.singletonList( programInstance ) ) )
+            .collect( Collectors.toList() );
+
+        batches.stream().forEach( this::sendAll );
+
+        totalMessageCount = batches.stream().mapToInt( MessageBatch::messageCount ).sum();
 
         clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
     }

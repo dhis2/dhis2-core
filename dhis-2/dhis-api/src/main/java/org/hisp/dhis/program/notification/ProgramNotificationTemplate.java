@@ -45,6 +45,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -80,6 +81,8 @@ public class ProgramNotificationTemplate
 
     private DataElement recipientDataElement = null;
 
+    private Date scheduledDate = null;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -90,7 +93,7 @@ public class ProgramNotificationTemplate
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute )
+        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute, Date scheduledDate )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
@@ -101,6 +104,7 @@ public class ProgramNotificationTemplate
         this.relativeScheduledDays = relativeScheduledDays;
         this.recipientUserGroup = recipientUserGroup;
         this.recipientProgramAttribute = recipientProgramAttribute;
+        this.scheduledDate = scheduledDate;
     }
 
     // -------------------------------------------------------------------------
@@ -240,6 +244,18 @@ public class ProgramNotificationTemplate
     public void setNotifyParentOrganisationUnitOnly( Boolean notifyParentOrganisationUnitOnly )
     {
         this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getScheduledDate()
+    {
+        return scheduledDate;
+    }
+
+    public void setScheduledDate( Date scheduledDate )
+    {
+        this.scheduledDate = scheduledDate;
     }
 
     @Override
