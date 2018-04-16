@@ -132,6 +132,7 @@ public class CompleteDataSetRegistrationServiceTest
         elementB = createDataElement( 'B' );
         elementC = createDataElement( 'C' );
         elementD = createDataElement( 'D' );
+        elementE = createDataElement( 'E' );
 
         dataElementService.addDataElement( elementA );
         dataElementService.addDataElement( elementB );
@@ -164,6 +165,12 @@ public class CompleteDataSetRegistrationServiceTest
 
         onTimeA = getDate( 2000, 1, 10 );
     }
+
+//    @Override
+//    public boolean emptyDatabaseAfterTest()
+//    {
+//        return true;
+//    }
 
     // -------------------------------------------------------------------------
     // Tests
@@ -248,7 +255,6 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testGetMissingCompulsoryFields()
     {
-
         DataElementOperand compulsoryA = new DataElementOperand( elementA, optionCombo );
         DataElementOperand compulsoryB = new DataElementOperand( elementB, optionCombo );
         DataElementOperand compulsoryC = new DataElementOperand( elementC, optionCombo );
@@ -257,16 +263,17 @@ public class CompleteDataSetRegistrationServiceTest
         dataSetA.addCompulsoryDataElementOperand( compulsoryB );
         dataSetA.addCompulsoryDataElementOperand( compulsoryC );
 
-        dataValueService.addDataValue( new DataValue( elementA, periodA, sourceA, optionCombo, optionCombo ) );
-        dataValueService.addDataValue( new DataValue( elementE, periodA, sourceA, optionCombo, optionCombo ) );
+        dataValueService.addDataValue( new DataValue( elementA, periodA, sourceA, optionCombo, optionCombo, "10" ) );
+        dataValueService.addDataValue( new DataValue( elementE, periodA, sourceA, optionCombo, optionCombo, "20" ) );
 
-        List<DataElementOperand> missingCompulsoryFields = completeDataSetRegistrationService.getMissingCompulsoryFields(
+        List<DataElementOperand> missingFields = completeDataSetRegistrationService.getMissingCompulsoryFields(
             dataSetA, periodA, sourceA, optionCombo );
 
-        assertEquals( 2, missingCompulsoryFields.size() );
+        Collections.sort( missingFields );
 
-        Collections.sort( missingCompulsoryFields );
+        assertEquals( 2, missingFields.size() );
 
-        System.out.println( missingCompulsoryFields.toString() );
+        assertEquals( "DataElementB", missingFields.get( 0 ).getDataElement().getName() );
+        assertEquals( "DataElementC", missingFields.get( 1 ).getDataElement().getName() );
     }
 }

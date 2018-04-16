@@ -56,7 +56,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -449,15 +448,6 @@ public class HibernateDataValueStore
         {
             where += sqlHelper.whereAnd() + "dv.deleted is false";
         }
-
-        log.error( sql + where );
-        System.out.println( sql + where );
-
-        try
-        {
-            Thread.sleep( 10 );
-        }
-        catch ( InterruptedException e ) {}
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql + where );
 

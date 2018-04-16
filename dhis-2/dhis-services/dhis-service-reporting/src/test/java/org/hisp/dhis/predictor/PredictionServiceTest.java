@@ -448,7 +448,7 @@ public class PredictionServiceTest
     }
 
     @Test
-//    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictSequential()
     {
         setupTestData();
@@ -469,7 +469,7 @@ public class PredictionServiceTest
         assertEquals( "15.25", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 11 ) ) );
 
         // Make sure we can do it again.
-//        assertEquals( 8, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) ) );
+        assertEquals( 8, predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) ) );
     }
 
     @Test

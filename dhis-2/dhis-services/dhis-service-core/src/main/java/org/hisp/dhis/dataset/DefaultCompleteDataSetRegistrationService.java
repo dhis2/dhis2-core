@@ -205,7 +205,7 @@ public class DefaultCompleteDataSetRegistrationService
                 {
                     Map<Integer, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
 
-                    if ( deDataPresent != null && ( deo.getCategoryOptionCombo() == null || deDataPresent.get( deo.getCategoryOptionCombo() ) != null ) )
+                    if ( deDataPresent != null && ( deo.getCategoryOptionCombo() == null || deDataPresent.get( deo.getCategoryOptionCombo().getId() ) != null ) )
                     {
                         continue;
                     }
