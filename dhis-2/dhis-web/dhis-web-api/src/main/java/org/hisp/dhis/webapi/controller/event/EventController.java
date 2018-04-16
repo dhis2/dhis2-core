@@ -819,7 +819,7 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/queue", method = RequestMethod.POST, consumes = "application/json" )
-    public void postBulkJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+    public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
         if ( !trackerKafkaManager.isEnabled() )
