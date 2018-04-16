@@ -1,4 +1,6 @@
-package org.hisp.dhis.dxf2.sync;/*
+package org.hisp.dhis.dxf2.sync;
+
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -51,7 +53,6 @@ import java.util.stream.Collectors;
  */
 public class TrackerSynchronization
 {
-
     private static final Log log = LogFactory.getLog( TrackerSynchronization.class );
 
     private final TrackedEntityInstanceService teiService;

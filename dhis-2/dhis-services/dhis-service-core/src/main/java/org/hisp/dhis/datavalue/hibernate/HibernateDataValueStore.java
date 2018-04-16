@@ -29,8 +29,6 @@ package org.hisp.dhis.datavalue.hibernate;
  */
 
 import com.google.common.collect.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -69,8 +67,6 @@ import static org.hisp.dhis.commons.util.TextUtils.*;
 public class HibernateDataValueStore
     implements DataValueStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -347,7 +343,7 @@ public class HibernateDataValueStore
 
         if ( params.hasDataElementOperands() )
         {
-            List<DataElementOperand> queryDeos = getQueryDeos( params );
+            List<DataElementOperand> queryDeos = getQueryDataElementOperands( params );
             List<Integer> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() ).collect( Collectors.toList() );
             List<Integer> cocIdList = queryDeos.stream()
                 .map( de -> de.getCategoryOptionCombo() == null ? null : de.getCategoryOptionCombo().getId() )
@@ -527,7 +523,7 @@ public class HibernateDataValueStore
      * @param params the data export parameters
      * @return data element operands to use for query
      */
-    private List<DataElementOperand> getQueryDeos(  DataExportParams params )
+    private List<DataElementOperand> getQueryDataElementOperands(  DataExportParams params )
     {
         Set<DataElementOperand> deos = params.getDataElementOperands();
 
