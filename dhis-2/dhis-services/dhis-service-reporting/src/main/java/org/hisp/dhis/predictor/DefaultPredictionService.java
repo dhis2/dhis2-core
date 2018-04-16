@@ -49,8 +49,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.MissingValueStrategy;
@@ -603,6 +605,7 @@ public class DefaultPredictionService
     private Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataValues(
         Set<DimensionalItemObject> dimensionItems, Set<Period> periods, List<OrganisationUnit> orgUnits)
     {
+        Set<DataElement> dataElements = new HashSet<>();
         Set<DataElementOperand> dataElementOperands = new HashSet<>();
         Set<DimensionalItemObject> eventAttributeOptionObjects = new HashSet<>();
         Set<DimensionalItemObject> eventNonAttributeOptionObjects = new HashSet<>();
@@ -610,13 +613,13 @@ public class DefaultPredictionService
 
         for ( DimensionalItemObject o : dimensionItems )
         {
-            if ( o instanceof DataElementOperand )
+            if ( o instanceof DataElement )
+            {
+                dataElements.add( (DataElement) o );
+            }
+            else if ( o instanceof DataElementOperand )
             {
                 dataElementOperands.add( (DataElementOperand) o );
-            }
-            else if ( o instanceof DataElement )
-            {
-                dataElementOperands.add( new DataElementOperand( (DataElement) o ) );
             }
             else if ( hasAttributeOptions( o ) )
             {
@@ -628,9 +631,9 @@ public class DefaultPredictionService
             }
         }
 
-        if ( !dataElementOperands.isEmpty() )
+        if ( !dataElements.isEmpty() || !dataElementOperands.isEmpty() )
         {
-            dataValues = dataValueService.getDataElementOperandValues( dataElementOperands, periods, orgUnits );
+            dataValues = getAggregateDataValues( dataElements, dataElementOperands, periods, orgUnits );
         }
 
         if ( !eventAttributeOptionObjects.isEmpty() )
@@ -644,6 +647,82 @@ public class DefaultPredictionService
         }
 
         return dataValues;
+    }
+
+    private Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getAggregateDataValues(
+        Set<DataElement> dataElements, Set<DataElementOperand> dataElementOperands, Set<Period> periods, List<OrganisationUnit> orgUnits )
+    {
+        DataExportParams params = new DataExportParams();
+        params.setDataElements( dataElements );
+        params.setDataElementOperands( dataElementOperands );
+        params.setPeriods( periods );
+        params.setOrganisationUnits( new HashSet<>( orgUnits ) );
+        params.setReturnParentOrgUnit( true );
+
+        List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
+
+        Map<Integer, DataElement> dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
+        Map<String, DataElementOperand> dataElementOperandLookup = dataElementOperands.stream().collect(
+            Collectors.toMap( deo -> deo.getDataElement().getId() + "." + deo.getCategoryOptionCombo().getId(), deo -> deo ) );
+        Map<Integer, Period> periodLookup = periods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
+        Map<Integer, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, ou -> ou ) );
+        Map<Integer, CategoryOptionCombo> aocLookup = new HashMap<>();
+
+        Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> dataValues = new Map4<>();
+
+        for ( DeflatedDataValue dv : deflatedDataValues )
+        {
+            DataElement dataElement = dataElementLookup.get( dv.getDataElementId() );
+            DataElementOperand dataElementOperand = dataElementOperandLookup.get( dv.getDataElementId() + "." + dv.getCategoryOptionComboId() );
+            Period p = periodLookup.get( dv.getPeriodId() );
+            OrganisationUnit orgUnit = orgUnitLookup.get( dv.getSourceId() );
+            CategoryOptionCombo attributeOptionCombo = aocLookup.get( dv.getAttributeOptionComboId() );
+            String stringValue = dv.getValue();
+
+            if ( attributeOptionCombo == null )
+            {
+                attributeOptionCombo = categoryService.getCategoryOptionCombo( dv.getAttributeOptionComboId() );
+
+                aocLookup.put( dv.getAttributeOptionComboId(), attributeOptionCombo );
+            }
+
+            if ( dataElement != null )
+            {
+                addAggregateDataValue( dataValues, orgUnit, p, attributeOptionCombo, dataElement, stringValue );
+            }
+
+            if ( dataElementOperand != null )
+            {
+                addAggregateDataValue( dataValues, orgUnit, p, attributeOptionCombo, dataElementOperand, stringValue );
+            }
+        }
+
+        return dataValues;
+    }
+
+    private void addAggregateDataValue( Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> dataValues,
+        OrganisationUnit orgUnit, Period p, CategoryOptionCombo attributeOptionCombo, DimensionalItemObject dimensionItem,
+        String stringValue )
+    {
+        Double value;
+
+        try
+        {
+            value = Double.parseDouble( stringValue );
+        }
+        catch ( NumberFormatException e )
+        {
+            return; // Ignore any non-numeric values.
+        }
+
+        Double valueSoFar = dataValues.getValue( orgUnit, p, attributeOptionCombo.getUid(), dimensionItem );
+
+        if ( valueSoFar != null )
+        {
+            value += valueSoFar;
+        }
+
+        dataValues.putEntry( orgUnit, p, attributeOptionCombo.getUid(), dimensionItem, value );
     }
 
     /**
@@ -660,7 +739,7 @@ public class DefaultPredictionService
      * @return the map of values
      */
     private Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getEventDataValues(
-        Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions, Set<Period> periods, List<OrganisationUnit> orgUnits)
+        Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions, Set<Period> periods, List<OrganisationUnit> orgUnits )
     {
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> eventDataValues = new Map4<>();
 

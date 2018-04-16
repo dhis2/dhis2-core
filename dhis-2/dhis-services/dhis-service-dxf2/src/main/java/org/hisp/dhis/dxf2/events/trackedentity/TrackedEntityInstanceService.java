@@ -50,7 +50,7 @@ public interface TrackedEntityInstanceService
     // READ
     // -------------------------------------------------------------------------
 
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params );
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params, boolean skipAccessValidation );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
