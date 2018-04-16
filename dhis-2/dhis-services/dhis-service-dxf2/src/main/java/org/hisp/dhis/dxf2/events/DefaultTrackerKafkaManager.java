@@ -150,18 +150,27 @@ public class DefaultTrackerKafkaManager
     @Override
     public void dispatchEvents( List<Event> events )
     {
-        
+        for ( Event event : events )
+        {
+            ktEvent.send( TOPIC_BULK_EVENTS, event );
+        }
     }
 
     @Override
     public void dispatchEnrollments( List<Enrollment> enrollments )
     {
-
+        for ( Enrollment enrollment : enrollments )
+        {
+            ktEnrollment.send( TOPIC_BULK_ENROLLMENTS, enrollment );
+        }
     }
 
     @Override
     public void dispatchTrackedEntity( List<TrackedEntityInstance> trackedEntities )
     {
-
+        for ( TrackedEntityInstance trackedEntity : trackedEntities )
+        {
+            ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES, trackedEntity );
+        }
     }
 }
