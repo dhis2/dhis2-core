@@ -78,6 +78,11 @@ public class DefaultTrackerKafkaManager
     @EventListener
     public void init( ContextRefreshedEvent event )
     {
+        if ( !kafkaManager.isEnabled() )
+        {
+            return;
+        }
+
         ObjectMapper jsonMapper = DefaultRenderService.getJsonMapper();
 
         this.pfEvent = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>( jsonMapper ) );
