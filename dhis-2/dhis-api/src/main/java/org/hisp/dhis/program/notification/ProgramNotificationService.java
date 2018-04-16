@@ -62,7 +62,7 @@ public interface ProgramNotificationService
      * Sends all notifications which are scheduled by program rule and having scheduledDate
      * for today.
      */
-    void sendScheduledNotificationsForDay( ProgramInstance programInstance );
+    void sendScheduledNotifications();
 
     /**
      * Send completion notifications for the ProgramStageInstance.

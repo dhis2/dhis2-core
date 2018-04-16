@@ -45,6 +45,7 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.system.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,9 +55,7 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -65,6 +64,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 
 import javax.annotation.Nonnull;
@@ -76,7 +77,6 @@ import javax.annotation.Nonnull;
 public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "123abc";
-    private static final String DATA = "123abc";
 
     private static final String MANDATORY_FIELD = "fname";
 
@@ -98,15 +98,18 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 
     private ProgramNotificationTemplate template;
 
+    private ProgramNotificationTemplate spyTemplate = null;
+
     private ProgramNotificationEventType eventType;
 
     private ExternalNotificationLogEntry logEntry;
 
     private RuleEffect ruleEffectWithActionSendMessage;
-
+    private RuleEffect ruleEffectWithActionSendMessageWithDate;
     private RuleEffect ruleEffectWithActionSetMandatoryField;
 
     private RuleAction ruleActionSendMessage;
+    private RuleAction ruleActionSendMessageWithDate;
 
     private RuleAction setMandatoryFieldFalse;
 
@@ -116,6 +119,11 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 
     private ProgramRule programRuleA;
 
+    private String data = "today";
+
+    private SimpleDateFormat format = new SimpleDateFormat( "yyyy-MM-dd" );
+
+
     @Before
     public void initTest()
     {
@@ -124,6 +132,11 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         // stub for templateStore;
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
+        doAnswer( invocation ->
+        {
+            spyTemplate = (ProgramNotificationTemplate) invocation.getArguments()[0];
+            return 0;
+        }).when( templateStore ).update( any() );
 
         // stub for publisher
 
@@ -195,6 +208,19 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     }
 
     @Test
+    public void test_ImplementForScheduledNotifications()
+    {
+        assertNull( spyTemplate );
+
+        implementer.implement( ruleEffectWithActionSendMessageWithDate, programInstance );
+
+        assertNotNull( spyTemplate );
+        assertNotNull( spyTemplate.getScheduledDate() );
+        assertTrue( DateUtils.isToday( spyTemplate.getScheduledDate() ) );
+        assertNotNull( spyTemplate.getProgramInstance() );
+    }
+
+    @Test
     public void test_loggingServiceKey()
     {
         String key = template.getUid() + programInstance.getUid();
@@ -259,11 +285,33 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
             @Override
             public String data()
             {
-                return DATA;
+                return null;
             }
         };
 
         ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
+
+        ruleActionSendMessageWithDate = new RuleActionSendMessage()
+        {
+            @Nonnull
+            @Override
+            public String notification()
+            {
+                return NOTIFICATION_UID;
+            }
+
+            @Nonnull
+            @Override
+            public String data()
+            {
+                return data;
+            }
+        };
+
+
+        data = format.format( new Date() );
+
+        ruleEffectWithActionSendMessageWithDate = RuleEffect.create( ruleActionSendMessageWithDate,  data );
 
         setMandatoryFieldFalse = new RuleActionSetMandatoryField()
         {

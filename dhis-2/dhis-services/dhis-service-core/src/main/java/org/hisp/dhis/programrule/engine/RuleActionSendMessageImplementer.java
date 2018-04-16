@@ -39,9 +39,9 @@ import org.hisp.dhis.program.notification.*;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Nonnull;
 import java.util.Date;
 
 /**
@@ -124,6 +124,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
             return;
         }
 
+        // for notification scheduling
         if ( !ruleEffect.data().isEmpty() )
         {
             scheduleNotification( ruleEffect.data(), programStageInstance.getProgramInstance(), template );
@@ -146,9 +147,19 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
         publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
     }
 
-    private void scheduleNotification( String data, ProgramInstance programInstance, ProgramNotificationTemplate template )
+    private void scheduleNotification( String date, ProgramInstance programInstance, ProgramNotificationTemplate template )
     {
+        if ( !DateUtils.dateIsValid( date ) )
+        {
+            log.error( "Date format is invalid" );
 
+            return;
+        }
+
+        template.setScheduledDate( DateUtils.parseDate( date ) );
+        template.setProgramInstance( programInstance );
+
+        programNotificationTemplateStore.update( template );
     }
 
     private ProgramNotificationTemplate getNotificationTemplate( RuleAction action )

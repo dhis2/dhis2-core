@@ -1709,7 +1709,22 @@ public abstract class DhisConvenienceTest
             recipient,
             Sets.newHashSet(),
             days,
-            null, null, null
+            null, null, null, null
+        );
+    }
+
+    public static ProgramNotificationTemplate createProgramNotificationTemplate(
+            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate, ProgramInstance programInstance )
+    {
+        return new ProgramNotificationTemplate(
+                name,
+                "Subject",
+                "Message",
+                trigger,
+                recipient,
+                Sets.newHashSet(),
+                days,
+                null, null, scheduledDate, programInstance
         );
     }
 

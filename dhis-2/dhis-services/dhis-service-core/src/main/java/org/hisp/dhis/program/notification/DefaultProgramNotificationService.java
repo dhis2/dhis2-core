@@ -50,6 +50,7 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
@@ -71,7 +72,7 @@ public class DefaultProgramNotificationService
 
     private static final Predicate<ProgramNotificationTemplate> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
         Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getNotificationTrigger() ) &&
-        pnt.getScheduledDate().equals( new Date() );
+        pnt.getScheduledDate() != null && DateUtils.isToday( pnt.getScheduledDate() ) && pnt.getProgramInstance() != null;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -155,7 +156,7 @@ public class DefaultProgramNotificationService
 
     @Transactional
     @Override
-    public void sendScheduledNotificationsForDay( ProgramInstance programInstance )
+    public void sendScheduledNotifications()
     {
         Clock clock = new Clock( log ).startClock()
             .logTime( "Processing ProgramStageNotification messages" );
@@ -171,7 +172,7 @@ public class DefaultProgramNotificationService
         int totalMessageCount = 0;
 
         List<MessageBatch> batches = templates.stream()
-            .map( pnt -> createProgramInstanceMessageBatch( pnt, Collections.singletonList( programInstance ) ) )
+            .map( pnt -> createProgramInstanceMessageBatch( pnt, Collections.singletonList( pnt.getProgramInstance() ) ) )
             .collect( Collectors.toList() );
 
         batches.stream().forEach( this::sendAll );

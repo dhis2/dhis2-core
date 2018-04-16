@@ -28,6 +28,9 @@
 
     <property name="scheduledDate" column="scheduleddate" type="timestamp" not-null="false" />
 
+    <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
+                 column="programinstanceid" foreign-key="fk_programstagenotification_programinstanceid" not-null="false" />
+
     <!-- TODO Should we allow null-templates? -->
 
     <property name="subjectTemplate" column="subjecttemplate" not-null="false" length="100" />

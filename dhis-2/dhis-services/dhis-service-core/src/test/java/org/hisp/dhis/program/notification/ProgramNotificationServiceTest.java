@@ -141,7 +141,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private TrackedEntityAttributeValue attributeValueEmail;
 
     private NotificationMessage notificationMessage;
+
     private ProgramNotificationTemplate programNotificationTemplate;
+    private ProgramNotificationTemplate programNotificationTemplateForToday;
+    private ProgramNotificationTemplate programNotificationTemplateForYesterday;
 
     @Before
     @SuppressWarnings("unchecked")
@@ -432,6 +435,32 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         assertTrue( users.contains( userLvlTwoLeftLeft ) );
         assertTrue( users.contains( userLvlTwoLeftRight ) );
     }
+
+    @Test
+    public void testScheduledNotifications()
+    {
+        sentProgramMessages.clear();
+
+        when( manager.getAll( ProgramNotificationTemplate.class ) )
+            .thenReturn( Collections.singletonList( programNotificationTemplateForToday ) );
+
+        programNotificationService.sendScheduledNotifications();
+
+        assertEquals( 1, sentProgramMessages.size() );
+    }
+
+    @Test
+    public void testScheduledNotificationsWithDateInPast()
+    {
+        sentInternalMessages.clear();
+
+        when( manager.getAll( ProgramNotificationTemplate.class ) )
+            .thenReturn( Collections.singletonList( programNotificationTemplateForYesterday ) );
+
+        programNotificationService.sendScheduledNotifications();
+
+        assertEquals( 0, sentProgramMessages.size() );
+    }
     
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -528,6 +557,15 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programInstance.setProgram( programA );
         programInstance.setOrganisationUnit( lvlTwoLeftLeft );
         programInstance.setEntityInstance( tei );
+
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+
+        Date today = cal.getTime();
+        cal.add( java.util.Calendar.DATE, -1 );
+        Date yesterday = cal.getTime();
+
+        programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today, programInstance );
+        programNotificationTemplateForYesterday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, yesterday, programInstance );
 
         // ProgramStageInstance
         ProgramStageInstance programStageInstance = createProgramStageInstance();

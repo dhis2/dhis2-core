@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -83,6 +84,8 @@ public class ProgramNotificationTemplate
 
     private Date scheduledDate = null;
 
+    private ProgramInstance programInstance = null;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -93,7 +96,8 @@ public class ProgramNotificationTemplate
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute, Date scheduledDate )
+        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup,
+        TrackedEntityAttribute recipientProgramAttribute, Date scheduledDate, ProgramInstance programInstance )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
@@ -105,6 +109,7 @@ public class ProgramNotificationTemplate
         this.recipientUserGroup = recipientUserGroup;
         this.recipientProgramAttribute = recipientProgramAttribute;
         this.scheduledDate = scheduledDate;
+        this.programInstance = programInstance;
     }
 
     // -------------------------------------------------------------------------
@@ -258,6 +263,18 @@ public class ProgramNotificationTemplate
         this.scheduledDate = scheduledDate;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramInstance getProgramInstance()
+    {
+        return programInstance;
+    }
+
+    public void setProgramInstance( ProgramInstance programInstance )
+    {
+        this.programInstance = programInstance;
+    }
+
     @Override
     public String toString()
     {
@@ -269,6 +286,8 @@ public class ProgramNotificationTemplate
             .add( "deliveryChannels", deliveryChannels )
             .add( "messageTemplate", messageTemplate )
             .add( "subjectTemplate", subjectTemplate )
+            .add( "scheduledDate", scheduledDate )
+            .add( "programInstance", programInstance )
             .toString();
     }
 }
