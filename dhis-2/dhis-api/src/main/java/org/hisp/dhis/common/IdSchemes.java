@@ -28,15 +28,16 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.util.ObjectUtils;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * Identifier schemes used to map meta data. The general identifier
  * scheme can be overridden by id schemes specific to individual
  * object types. The default id scheme is UID.
- * 
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class IdSchemes
@@ -46,7 +47,7 @@ public class IdSchemes
     private IdScheme dataElementIdScheme;
 
     private IdScheme categoryOptionComboIdScheme;
-    
+
     private IdScheme categoryOptionIdScheme;
 
     private IdScheme orgUnitIdScheme;
@@ -89,6 +90,8 @@ public class IdSchemes
     // Object type id schemes
     //--------------------------------------------------------------------------
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getDataElementIdScheme()
     {
         return getScheme( dataElementIdScheme );
@@ -100,6 +103,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getCategoryOptionComboIdScheme()
     {
         return getScheme( categoryOptionComboIdScheme );
@@ -111,6 +116,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getCategoryOptionIdScheme()
     {
         return getScheme( categoryOptionIdScheme );
@@ -122,6 +129,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getAttributeOptionComboIdScheme()
     {
         return getScheme( attributeOptionComboIdScheme );
@@ -133,6 +142,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getDataSetIdScheme()
     {
         return getScheme( dataSetIdScheme );
@@ -144,6 +155,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getOrgUnitIdScheme()
     {
         return getScheme( orgUnitIdScheme );
@@ -155,6 +168,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getProgramIdScheme()
     {
         return getScheme( programIdScheme );
@@ -166,6 +181,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getProgramStageIdScheme()
     {
         return getScheme( programStageIdScheme );
@@ -177,6 +194,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getProgramStageInstanceIdScheme()
     {
         return getScheme( programStageInstanceIdScheme );
@@ -188,6 +207,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getTrackedEntityIdScheme()
     {
         return getScheme( trackedEntityIdScheme );
@@ -199,6 +220,8 @@ public class IdSchemes
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdScheme getTrackedEntityAttributeIdScheme()
     {
         return getScheme( trackedEntityAttributeIdScheme );

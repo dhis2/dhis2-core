@@ -46,7 +46,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.events.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -54,6 +53,7 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
+import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -831,7 +831,7 @@ public class EventController
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         List<Event> events = eventService.getEventsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
-        trackerKafkaManager.dispatchEvents( events );
+        trackerKafkaManager.dispatchEvents( currentUserService.getCurrentUser(), importOptions, events );
     }
 
     // -------------------------------------------------------------------------

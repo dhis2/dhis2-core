@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.dxf2.events.kafka;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,9 +28,11 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -52,27 +54,27 @@ public interface TrackerKafkaManager
 
     boolean isEnabled();
 
-    ConsumerFactory<String, Event> getCfEvent();
+    ConsumerFactory<String, KafkaEvent> getCfEvent();
 
-    ConsumerFactory<String, Enrollment> getCfEnrollment();
+    ConsumerFactory<String, KafkaEnrollment> getCfEnrollment();
 
-    ConsumerFactory<String, TrackedEntityInstance> getCfTrackedEntity();
+    ConsumerFactory<String, KafkaTrackedEntity> getCfTrackedEntity();
 
-    ProducerFactory<String, Event> getPfEvent();
+    ProducerFactory<String, KafkaEvent> getPfEvent();
 
-    ProducerFactory<String, Enrollment> getPfEnrollment();
+    ProducerFactory<String, KafkaEnrollment> getPfEnrollment();
 
-    ProducerFactory<String, TrackedEntityInstance> getPfTrackedEntity();
+    ProducerFactory<String, KafkaTrackedEntity> getPfTrackedEntity();
 
-    KafkaTemplate<String, Event> getKtEvent();
+    KafkaTemplate<String, KafkaEvent> getKtEvent();
 
-    KafkaTemplate<String, Enrollment> getKtEnrollment();
+    KafkaTemplate<String, KafkaEnrollment> getKtEnrollment();
 
-    KafkaTemplate<String, TrackedEntityInstance> getKtTrackedEntity();
+    KafkaTemplate<String, KafkaTrackedEntity> getKtTrackedEntity();
 
-    void dispatchEvents( List<Event> events );
+    void dispatchEvents( User user, ImportOptions importOptions, List<Event> events );
 
-    void dispatchEnrollments( List<Enrollment> enrollments );
+    void dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments );
 
-    void dispatchTrackedEntity( List<TrackedEntityInstance> trackedEntities );
+    void dispatchTrackedEntity( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities );
 }
