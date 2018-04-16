@@ -283,7 +283,7 @@ public class DefaultValidationService
         {
             PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( periodTypeXMap,
                 period.getPeriodType() );
-            periodTypeX.getPeriods().add( period );
+            periodTypeX.addPeriod( period );
         }
 
         generateAllowedPeriods( periodTypeXMap.values() );
@@ -364,7 +364,16 @@ public class DefaultValidationService
 
                 if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
                 {
-                    periodTypeX.getDataItems().add( (DataElementOperand) item );
+                    DataElementOperand deo = (DataElementOperand) item;
+
+                    if ( deo.getCategoryOptionCombo() != null )
+                    {
+                        periodTypeX.addDataElementOperand( deo );
+                    }
+                    else
+                    {
+                        periodTypeX.addDataElement( deo.getDataElement() );
+                    }
                 }
                 else if ( hasAttributeOptions( item ) )
                 {
