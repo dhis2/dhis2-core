@@ -1,6 +1,4 @@
-package org.hisp.dhis.dxf2.sync;
-
-/*
+package org.hisp.dhis.dxf2.sync;/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -75,6 +73,18 @@ public class ProgramDataSynchronizationJob extends AbstractJob
 
     @Override public void execute( JobConfiguration jobConfiguration )
     {
+        try
+        {
+            eventSync.syncEventProgramData();
+            notifier.notify( jobConfiguration, "Event programs data sync successful" );
+        }
+        catch ( Exception e )
+        {
+            log.error( "EventPrograms data sync failed.", e );
+            notifier.notify( jobConfiguration, "Event sync failed: " + e.getMessage() );
+            messageService.sendSystemErrorNotification( "Event sync failed", e );
+        }
+
         try
         {
             trackerSync.syncTrackerProgramData();
