@@ -28,12 +28,14 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.kafka.KafkaManager;
+import org.hisp.dhis.render.DefaultRenderService;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -74,13 +76,18 @@ public class DefaultTrackerKafkaManager
     @EventListener
     public void init( ContextRefreshedEvent event )
     {
-        this.pfEvent = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>() );
-        this.pfEnrollment = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>() );
-        this.pfTrackedEntity = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>() );
+        ObjectMapper jsonMapper = DefaultRenderService.getJsonMapper();
 
-        this.cfEvent = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Event.class ), GROUP_BULK_EVENTS );
-        this.cfEnrollment = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( Enrollment.class ), GROUP_BULK_ENROLLMENTS );
-        this.cfTrackedEntity = kafkaManager.getConsumerFactory( new StringDeserializer(), new JsonDeserializer<>( TrackedEntityInstance.class ), GROUP_BULK_TRACKED_ENTITIES );
+        this.pfEvent = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>( jsonMapper ) );
+        this.pfEnrollment = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>( jsonMapper ) );
+        this.pfTrackedEntity = kafkaManager.getProducerFactory( new StringSerializer(), new JsonSerializer<>( jsonMapper ) );
+
+        this.cfEvent = kafkaManager.getConsumerFactory(
+            new StringDeserializer(), new JsonDeserializer<>( Event.class, jsonMapper ), GROUP_BULK_EVENTS );
+        this.cfEnrollment = kafkaManager.getConsumerFactory(
+            new StringDeserializer(), new JsonDeserializer<>( Enrollment.class, jsonMapper ), GROUP_BULK_ENROLLMENTS );
+        this.cfTrackedEntity = kafkaManager.getConsumerFactory(
+            new StringDeserializer(), new JsonDeserializer<>( TrackedEntityInstance.class, jsonMapper ), GROUP_BULK_TRACKED_ENTITIES );
 
         this.ktEvent = kafkaManager.getKafkaTemplate( this.pfEvent );
         this.ktEnrollment = kafkaManager.getKafkaTemplate( this.pfEnrollment );

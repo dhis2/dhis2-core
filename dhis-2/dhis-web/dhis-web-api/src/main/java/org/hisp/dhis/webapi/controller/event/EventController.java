@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
+import org.hisp.dhis.dxf2.events.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -181,6 +182,9 @@ public class EventController
 
     @Autowired
     private ContextUtils contextUtils;
+
+    @Autowired
+    private TrackerKafkaManager trackerKafkaManager;
 
     private Schema schema;
 
@@ -811,17 +815,23 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
-    // BULK IMPORT
+    // QUEUED IMPORT
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/bulk", method = RequestMethod.POST, consumes = "application/json" )
+    @RequestMapping( value = "/queue", method = RequestMethod.POST, consumes = "application/json" )
     public void postBulkJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
+        if ( !trackerKafkaManager.isEnabled() )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration not enabled." ) );
+        }
+
         importOptions.setImportStrategy( strategy );
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
 
         List<Event> events = eventService.getEventsJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
+        trackerKafkaManager.dispatchEvents( events );
     }
 
     // -------------------------------------------------------------------------
