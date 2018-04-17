@@ -204,7 +204,7 @@ public class TrackedEntityInstanceController
         if ( trackedEntityInstance == null )
         {
             trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                getTrackedEntityInstanceParams( fields ) );
+                getTrackedEntityInstanceParams( fields ), false );
         }
         else
         {

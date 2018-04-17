@@ -521,7 +521,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // ---------------------------------------------------------------------
 
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
-                mdProps.orgUnit, mdProps.attrOptCombo, false );
+                mdProps.orgUnit, mdProps.attrOptCombo );
 
             if( !missingDataElementOperands.isEmpty() )
             {
