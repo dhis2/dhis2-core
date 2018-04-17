@@ -52,9 +52,11 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
@@ -230,24 +232,16 @@ public class HibernateGenericStore<T>
     {
         return sessionFactory.getCurrentSession()
             .createQuery( criteriaQuery )
-            .setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+            .setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
     }
 
     protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicates )
     {
     }
 
-    /**
-     * Get Unique result from JPA TypedQuery
-     * @param builder
-     * @param predicateProviders
-     * @return unique result, if no record exists, returns null.
-     */
-    protected T getSingleResult( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders )
+   protected <Y> Y getSingleResult( TypedQuery<Y> typedQuery )
     {
-        TypedQuery<T> typedQuery = getTypedQuery( builder, predicateProviders );
-
-        List<T> list = typedQuery.getResultList();
+        List<Y> list = typedQuery.getResultList();
 
         if ( list != null && list.size() > 1 )
         {
@@ -275,7 +269,7 @@ public class HibernateGenericStore<T>
      */
     protected final T getObject( CriteriaBuilder builder,  List<Function<Root<T>, Predicate>> predicateProviders )
     {
-        return getSingleResult(  builder, predicateProviders );
+        return getSingleResult( getTypedQuery( builder, predicateProviders ) );
     }
 
     protected final TypedQuery getTypedQuery( String jpaQuery )
@@ -360,6 +354,41 @@ public class HibernateGenericStore<T>
         return typedQuery;
     }
 
+    protected  final Long count( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders, Function<Root<T>, Expression<Long>> countExpression )
+    {
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
+        Root<T> root = query.from( getClazz() );
+
+        if ( countExpression != null )
+        {
+            query.select( countExpression.apply( root ) );
+        }
+
+        if ( predicateProviders != null && !predicateProviders.isEmpty() )
+        {
+            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+            query.where( predicates.toArray( new Predicate[0] ) );
+        }
+
+        return getCurrentSession().createQuery( query ).getSingleResult();
+    }
+
+    protected final <Y> Y getObjectProperty( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders, String property, Class<Y> propertyClass )
+    {
+        CriteriaQuery<Y> query = builder.createQuery(  propertyClass );
+        Root<T> root = query.from( getClazz() );
+
+        query.select( root.get( property ) );
+
+        if ( predicateProviders != null && !predicateProviders.isEmpty() )
+        {
+            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+            query.where( predicates.toArray( new Predicate[0] ) );
+        }
+
+        return getSingleResult( getCurrentSession().createQuery( query ) );
+    }
+
     //------------------------------------------------------------------------------------------
     // End JPA Methods
     //------------------------------------------------------------------------------------------
@@ -373,7 +402,7 @@ public class HibernateGenericStore<T>
     protected final NativeQuery getSqlQuery( String sql )
     {
         NativeQuery query = getSession().createNativeQuery( sql );
-        query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+        query.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
         return query;
     }
 

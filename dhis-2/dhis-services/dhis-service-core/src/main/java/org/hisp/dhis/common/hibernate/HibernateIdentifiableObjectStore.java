@@ -50,8 +50,8 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaUtils;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -69,6 +69,7 @@ import org.springframework.util.Assert;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
@@ -375,7 +376,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         predicates.add( root -> builder.equal( root.get( "uid" ), uid ) );
 
-        return getSingleResult( builder, predicates );
+        return getObject( builder, predicates );
     }
 
     @Override
@@ -445,7 +446,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         predicates.add( root -> builder.equal( root.get( "code" ), code ) );
 
-        return getSingleResult( builder, predicates );
+        return getObject( builder, predicates );
     }
 
     @Override
@@ -464,7 +465,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         predicates.add( root -> builder.equal( root.join( ( "attributeValues" ), JoinType.INNER ).get( "value" ) , value ) );
 
-        return getSingleResult(  builder, predicates );
+        return getObject( builder, predicates );
     }
 
     @Override
@@ -586,63 +587,105 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public int getCountLikeName( String name )
     {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.like( "name", "%" + name + "%" ).ignoreCase() )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" ) );
+
+        Function<Root<T>,Expression<Long>> countExpression = root -> builder.countDistinct( root.get( "id" ) );
+
+        return count( builder, predicates, countExpression  ).intValue();
     }
 
     @Override
     public int getCountGeLastUpdated( Date lastUpdated )
     {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.ge( "lastUpdated", lastUpdated ) )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) ) ;
+
+        Function<Root<T>,Expression<Long>> countExpression = root -> builder.countDistinct( root.get( "id" ) );
+
+        return count( builder, predicates, countExpression  ).intValue();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllGeLastUpdated( Date lastUpdated )
     {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "lastUpdated", lastUpdated ) )
-            .addOrder( Order.desc( "lastUpdated" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) ) ;
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.desc( root.get( "lastUpdated" ) );
+
+        return getList( builder, predicates, order );
     }
 
     @Override
     public int getCountGeCreated( Date created )
     {
-        return ((Number) getSharingCriteria()
-            .add( Restrictions.ge( "created", created ) )
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) ) ;
+
+        Function<Root<T>,Expression<Long>> countExpression = root -> builder.countDistinct( root.get( "id" ) );
+
+        return count( builder, predicates, countExpression  ).intValue();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllGeCreated( Date created )
     {
-        return getSharingCriteria()
-            .add( Restrictions.ge( "created", created ) )
-            .addOrder( Order.desc( "created" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) ) ;
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.desc( root.get( "created" ) );
+
+        return getList( builder, predicates, order );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllLeCreated( Date created )
     {
-        return getSharingCriteria()
-            .add( Restrictions.le( "created", created ) )
-            .addOrder( Order.desc( "created" ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        predicates.addAll( getSharingPredicates( builder ) );
+
+        predicates.add( root -> builder.lessThanOrEqualTo( root.get( "created" ), created ) ) ;
+
+        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.desc( root.get( "created" ) );
+
+        return getList( builder, predicates, order );
     }
 
     @Override
     public Date getLastUpdated()
     {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+
         return (Date) getClazzCriteria().setProjection( Projections.property( "lastUpdated" ) )
             .addOrder( Order.desc( "lastUpdated" ) )
             .setMaxResults( 1 )
@@ -988,7 +1031,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         TypedQuery<T> query = getTypedQuery( builder, sharingPredicates );
 
-        return query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
+        return query.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
     }
 
     protected final CriteriaQuery<T> getSharingCriteriaQuery( CriteriaBuilder builder,  List<Function<Root<T>, Predicate>> predicates )
