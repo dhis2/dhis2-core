@@ -94,6 +94,7 @@ public class ProgramNotificationJob
         calendar.set( Calendar.HOUR, 0 );
 
         programNotificationService.sendScheduledNotificationsForDay( calendar.getTime() );
+        programNotificationService.sendScheduledNotifications();
     }
 
 }
