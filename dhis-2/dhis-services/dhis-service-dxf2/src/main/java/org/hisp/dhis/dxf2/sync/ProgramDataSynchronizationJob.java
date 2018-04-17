@@ -1,4 +1,6 @@
-package org.hisp.dhis.dxf2.sync;/*
+package org.hisp.dhis.dxf2.sync;
+
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *

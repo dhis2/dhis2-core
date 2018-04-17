@@ -37,6 +37,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -81,6 +82,16 @@ public class ValidationRunContext
     {
         validationResults = new ConcurrentLinkedQueue<>();
     }
+
+    // -------------------------------------------------------------------------
+    // Id-to-Object Caches
+    // -------------------------------------------------------------------------
+
+    private Map<Integer, Period> periodIdMap = new ConcurrentHashMap<>();
+
+    private Map<Integer, CategoryOptionCombo> aocIdMap = new ConcurrentHashMap<>();
+
+    private Map<String, CategoryOptionCombo> aocUidMap = new ConcurrentHashMap<>();
 
     // -------------------------------------------------------------------------
     // Getter methods
@@ -139,6 +150,21 @@ public class ValidationRunContext
     public Queue<ValidationResult> getValidationResults()
     {
         return validationResults;
+    }
+
+    public Map<Integer, Period> getPeriodIdMap()
+    {
+        return periodIdMap;
+    }
+
+    public Map<Integer, CategoryOptionCombo> getAocIdMap()
+    {
+        return aocIdMap;
+    }
+
+    public Map<String, CategoryOptionCombo> getAocUidMap()
+    {
+        return aocUidMap;
     }
 
     // -------------------------------------------------------------------------
