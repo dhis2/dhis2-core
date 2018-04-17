@@ -72,7 +72,7 @@ public class PushAnalysis
 
     private boolean enabled;
 
-    private int schedulingDayOfFrequency;
+    private Integer schedulingDayOfFrequency;
 
     private SchedulingFrequency schedulingFrequency;
 
@@ -162,12 +162,13 @@ public class PushAnalysis
         this.schedulingFrequency = schedulingFrequency;
     }
 
-    public int getSchedulingDayOfFrequency()
+    // Deprecated since 2.29
+    public Integer getSchedulingDayOfFrequency()
     {
         return schedulingDayOfFrequency;
     }
 
-    public void setSchedulingDayOfFrequency( int schedulingDayOfFrequency )
+    public void setSchedulingDayOfFrequency( Integer schedulingDayOfFrequency )
     {
         this.schedulingDayOfFrequency = schedulingDayOfFrequency;
     }
