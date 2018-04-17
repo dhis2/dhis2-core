@@ -185,6 +185,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Date enrollmentDate;
 
+    private String scheduledDate;
+
     private String expressionA = "#{ProgramRuleVariableA}=='malaria' && V{event_status}=='ACTIVE'";
 
     private String expressionB = "#{ProgramRuleVariableB}=='bcgdoze'";
@@ -194,6 +196,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private String expressionE = "A{ProgramRuleVariableE}=='test'";
 
     private String expressionF = "A{ProgramRuleVariableF}=='xmen'";
+
+    private String dataExpression = "d2:addDays('2018-04-15', '2')";
 
     private String location = "feedback";
 
@@ -304,6 +308,28 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
 
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
+    }
+
+    @Test
+    public void testSchedulingByProgramRule() throws Exception
+    {
+        setUpScheduleMessage();
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P3" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionSendMessage );
+
+        RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
+
+        assertEquals( "PNT-1-SCH", ruleActionSendMessage.notification() );
+
+        assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
     }
 
     @Test
@@ -857,6 +883,32 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleActionForSendMessage.setProgramNotificationTemplate(  pnt );
         programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
+        programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
+
+        programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
+        programRuleService.updateProgramRule( programRuleC );
+    }
+
+    private void setUpScheduleMessage()
+    {
+        scheduledDate = "2018-04-17";
+
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT-Schedule" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-1-SCH" );
+
+        programNotificationTemplateStore.save( pnt );
+
+        programRuleActionForSendMessage = createProgramRuleAction( 'Z', programRuleE );
+        programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionForSendMessage.setProgramNotificationTemplate(  pnt );
+        programRuleActionForSendMessage.setContent( "STATIC-TEXT-SCHEDULE" );
+        programRuleActionForSendMessage.setData( dataExpression );
         programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
 
         programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
