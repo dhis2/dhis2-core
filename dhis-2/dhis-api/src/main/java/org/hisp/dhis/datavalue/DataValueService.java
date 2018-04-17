@@ -32,13 +32,11 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.Map4;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 
 import java.util.Collection;
 import java.util.Date;
@@ -145,7 +143,7 @@ public interface DataValueService
      * Returns data values for the given data export parameters.
      * <p>
      * Example usage:
-     *
+     * <p>
      * <pre>
      * {@code
      * List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
@@ -192,29 +190,12 @@ public interface DataValueService
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns values for a collection of DataElementOperands, where each operand
-     * may include a specific CategoryOptionCombo, or may speicify a null COC if
-     * all CategoryOptionCombos are to be summed.
-     * <p>
-     * Returns values within the periods specified, for the organisation units
-     * specified or any of the organisation units' descendants.
-     * <p>
-     * NOTE that the collection of orgUnits should have non-overlapping
-     * descendants, in order to permit efficient database queries for this
-     * method. This can be assured by making each call to this method with
-     * only orgUnits at the same hierarchy level as each other.
-     * <p>
-     * Returns the values mapped by organisation unit, period, attribute option
-     * combo UID, and DimensionalItemObject (containing the DataElementOperand.)
+     * Returns deflated data values for the given data export parameters.
      *
-     * @param dataElementOperands the DataElementOperands.
-     * @param periods             the Periods of the DataValues.
-     * @param orgUnits            the OrganisationUnit trees to include.
-     * @return the map of values
+     * @param params the data export parameters.
+     * @return a list of deflated data values.
      */
-    Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
-        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        Collection<OrganisationUnit> orgUnits );
+    List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params );
 
     /**
      * Gets the number of DataValues persisted since the given number of days.
@@ -245,23 +226,4 @@ public interface DataValueService
      * @return the number of DataValues.
      */
     int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
-
-    /**
-     * Returns a map of values for each attribute option combo found.
-     * <p>
-     * In the (unlikely) event that the same dataElement/optionCombo is found in
-     * more than one period for the same organisationUnit, date, and attribute
-     * combo, the value is returned from the period with the shortest duration.
-     *
-     * @param dataElementOperands DataElementOperands to fetch
-     * @param date                date which must be present in the period
-     * @param orgUnits            organisation units for which to fetch the values
-     * @param periodTypes         allowable period types in which to find the data
-     * @param attributeCombo      the attribute combo to check (if restricted)
-     * @return map of values by org unit ID, attribute option combo UID, and DataElementOperand
-     */
-    MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        Set<DataElementOperand> dataElementOperands, Date date, List<OrganisationUnit> orgUnits,
-        Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints );
 }

@@ -295,7 +295,7 @@
 
   <!-- Common actions -->
 
-  <bean id="org.hisp.dhis.user.action.GetSystemAuthoritiesAction" class="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction"
+  <bean id="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction" class="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction"
         scope="prototype">
     <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
   </bean>
