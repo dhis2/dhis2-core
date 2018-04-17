@@ -269,7 +269,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             {
                 if ( property.isCollection() )
                 {
-                    for ( Object item : ((Collection) object) )
+                    for ( Object item : ((Collection<?>) object) )
                     {
                         ((BaseIdentifiableObject) item).setAccess( aclService.getAccess( (T) item, query.getUser() ) );
                     }
