@@ -34,6 +34,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -41,6 +42,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,6 +51,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserGroupService userGroupService;
 
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
@@ -78,6 +83,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         user.setUserCredentials( userCredentials );
         sessionFactory.getCurrentSession().update( user );
         bundle.removeExtras( persistedObject, "uc" );
+
+        updateUserGroups( user, bundle.getUser() );
     }
 
     @Override
@@ -110,6 +117,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
         sessionFactory.getCurrentSession().update( user.getUserCredentials() );
         bundle.removeExtras( persistedObject, "uc" );
+
+        updateUserGroups( user, bundle.getUser() );
     }
 
     @Override
@@ -163,5 +172,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             user.setUserCredentials( userCredentials );
             sessionFactory.getCurrentSession().update( user );
         }
+    }
+
+    private void updateUserGroups( User user, User currentUser )
+    {
+        Set<String> groups = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
+
+        userGroupService.updateUserGroups( user, groups, currentUser  );
     }
 }
