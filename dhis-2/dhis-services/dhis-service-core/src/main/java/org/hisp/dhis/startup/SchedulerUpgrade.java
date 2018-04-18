@@ -28,12 +28,7 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.transaction.Transactional;
-
+import com.google.api.client.util.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
@@ -47,7 +42,10 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.api.client.util.Sets;
+import javax.transaction.Transactional;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hisp.dhis.scheduling.JobType.*;
 
@@ -153,7 +151,7 @@ public class SchedulerUpgrade
             pushAnalysisService
                 .getAll()
                 .forEach( ( pa ) -> {
-                    String cron;
+                    String cron = "";
 
                     switch ( pa.getSchedulingFrequency() )
                     {
@@ -167,12 +165,15 @@ public class SchedulerUpgrade
                         cron = "0 0 4 " + pa.getSchedulingDayOfFrequency() + " */1 *";
                         break;
                     default:
-                        cron = "";
                         break;
                     }
 
-                    jobConfigurationService.addJobConfiguration( new JobConfiguration( "PushAnalysis: " + pa.getUid(), PUSH_ANALYSIS, cron,
-                        new PushAnalysisJobParameters( pa.getUid() ), true, pa.getEnabled() ) );
+                    if( !cron.isEmpty() )
+                    {
+                        jobConfigurationService.addJobConfiguration(
+                            new JobConfiguration( "PushAnalysis: " + pa.getUid(), PUSH_ANALYSIS, cron,
+                                new PushAnalysisJobParameters( pa.getUid() ), true, pa.getEnabled() ) );
+                    }
                 } );
 
 
