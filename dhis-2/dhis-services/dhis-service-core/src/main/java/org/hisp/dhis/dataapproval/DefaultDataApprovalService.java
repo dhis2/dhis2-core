@@ -47,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -183,6 +184,8 @@ public class DefaultDataApprovalService
     {
         log.debug( "approveData ( " + dataApprovalList.size() + " items )" );
 
+        boolean accepted = ! (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+
         User currentUser = currentUserService.getCurrentUser();
 
         validateAttributeOptionCombos( dataApprovalList );
@@ -252,6 +255,8 @@ public class DefaultDataApprovalService
 
                 throw new DataMayNotBeApprovedException();
             }
+
+            da.setAccepted( accepted );
 
             checkedList.add ( da );
         }
@@ -459,14 +464,20 @@ public class DefaultDataApprovalService
             + organisationUnit.getName() + ", "
             + ( attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName() ) + " )" );
 
+        DataApprovalStatus status;
+
         List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow,
             periodService.reloadPeriod( period ), Lists.newArrayList( organisationUnit ),
             organisationUnit.getHierarchyLevel(), null,
             attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ) );
 
-        if ( statuses != null && !statuses.isEmpty() )
+        if ( statuses == null || statuses.isEmpty() )
         {
-            DataApprovalStatus status = statuses.get( 0 );
+            status = new DataApprovalStatus( DataApprovalState.UNAPPROVABLE );
+        }
+        else
+        {
+            status = statuses.get( 0 );
 
             if ( status.getApprovedLevel() != null )
             {
@@ -481,20 +492,9 @@ public class DefaultDataApprovalService
                     status.setCreator( da.getCreator() );
                 }
             }
-
-            return status;
         }
 
-        return new DataApprovalStatus( DataApprovalState.UNAPPROVABLE );
-    }
-
-    @Override
-    public DataApprovalStatus getDataApprovalStatusAndPermissions( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
-    {
-        DataApprovalStatus status = getDataApprovalStatus( workflow, period, organisationUnit, attributeOptionCombo );
-
-        status.setPermissions( makePermissionsEvaluator().getPermissions( status, workflow ) );
+        makePermissionsEvaluator().evaluatePermissions( status, workflow );
 
         return status;
     }
@@ -512,7 +512,7 @@ public class DefaultDataApprovalService
 
         for ( DataApprovalStatus status : statusList )
         {
-            status.setPermissions( permissionsEvaluator.getPermissions( status, workflow ) );
+            makePermissionsEvaluator().evaluatePermissions( status, workflow );
         }
 
         return statusList;
@@ -626,7 +626,7 @@ public class DefaultDataApprovalService
 
             for ( DataApprovalStatus status : statuses )
             {
-                status.setPermissions( evaluator.getPermissions( status, da.getWorkflow() ) );
+                makePermissionsEvaluator().evaluatePermissions( status, da.getWorkflow() );
 
                 statusMap.put( daKey( da, status.getAttributeOptionComboUid() ), status );
             }
