@@ -40,10 +40,12 @@ import org.hisp.dhis.common.DxfNamespaces;
 public class Kafka
 {
     private final String bootstrapServers;
+    private final int retries;
 
-    public Kafka( String bootstrapServers )
+    public Kafka( String bootstrapServers, int retries )
     {
         this.bootstrapServers = bootstrapServers;
+        this.retries = retries;
     }
 
     @JsonProperty( "bootstrap-servers" )
@@ -51,6 +53,13 @@ public class Kafka
     public String getBootstrapServers()
     {
         return bootstrapServers;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getRetries()
+    {
+        return retries;
     }
 
     public boolean isValid()

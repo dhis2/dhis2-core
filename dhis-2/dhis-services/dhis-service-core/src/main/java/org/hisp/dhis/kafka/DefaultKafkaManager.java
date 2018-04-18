@@ -136,10 +136,11 @@ public class DefaultKafkaManager implements KafkaManager
 
         Map<String, Object> props = new HashMap<>();
         props.put( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
-        props.put( ProducerConfig.RETRIES_CONFIG, 0 );
+        props.put( ProducerConfig.RETRIES_CONFIG, kafka.getRetries() );
         props.put( ProducerConfig.BATCH_SIZE_CONFIG, 16384 );
-        props.put( ProducerConfig.LINGER_MS_CONFIG, 1 );
+        props.put( ProducerConfig.LINGER_MS_CONFIG, 10 );
         props.put( ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432 );
+        props.put( ProducerConfig.ACKS_CONFIG, 1 );
 
         return new DefaultKafkaProducerFactory<>(
             props, keySerializer, serializer

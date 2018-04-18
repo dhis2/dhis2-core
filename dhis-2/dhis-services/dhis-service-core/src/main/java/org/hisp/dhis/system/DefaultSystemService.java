@@ -260,7 +260,10 @@ public class DefaultSystemService
         // Kafka
         // ---------------------------------------------------------------------
 
-        Kafka kafka = new Kafka( dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ) );
+        Kafka kafka = new Kafka(
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) )
+        );
 
         if ( kafka.isValid() )
         {
