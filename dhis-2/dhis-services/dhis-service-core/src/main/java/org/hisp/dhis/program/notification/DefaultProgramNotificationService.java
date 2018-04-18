@@ -177,8 +177,8 @@ public class DefaultProgramNotificationService
             .collect( Collectors.toList() );
 
         batches.addAll( templates.stream().filter( ProgramNotificationTemplate::hasProgramStageInstance )
-                .map( pnt -> createProgramStageInstanceMessageBatch( pnt, Collections.singletonList( pnt.getProgramStageInstance() ) ) )
-                .collect( Collectors.toList() ) );
+            .map( pnt -> createProgramStageInstanceMessageBatch( pnt, Collections.singletonList( pnt.getProgramStageInstance() ) ) )
+            .collect( Collectors.toList() ) );
 
         batches.stream().forEach( this::sendAll );
 

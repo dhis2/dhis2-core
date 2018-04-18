@@ -105,6 +105,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private ProgramRuleAction programRuleActionForSendMessage;
 
+    private ProgramRuleAction programRuleActionForScheduleMessage;
+
     private ProgramRuleAction programRuleActionForDisplayTextForEnrollment;
 
     private ProgramRuleVariable programRuleVariableA;
@@ -904,14 +906,14 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programNotificationTemplateStore.save( pnt );
 
-        programRuleActionForSendMessage = createProgramRuleAction( 'Z', programRuleE );
-        programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
-        programRuleActionForSendMessage.setProgramNotificationTemplate(  pnt );
-        programRuleActionForSendMessage.setContent( "STATIC-TEXT-SCHEDULE" );
-        programRuleActionForSendMessage.setData( dataExpression );
-        programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
+        programRuleActionForScheduleMessage = createProgramRuleAction( 'Z', programRuleE );
+        programRuleActionForScheduleMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionForScheduleMessage.setProgramNotificationTemplate(  pnt );
+        programRuleActionForScheduleMessage.setContent( "STATIC-TEXT-SCHEDULE" );
+        programRuleActionForScheduleMessage.setData( dataExpression );
+        programRuleActionService.addProgramRuleAction( programRuleActionForScheduleMessage );
 
-        programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
+        programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForScheduleMessage ) );
         programRuleService.updateProgramRule( programRuleC );
     }
 }
