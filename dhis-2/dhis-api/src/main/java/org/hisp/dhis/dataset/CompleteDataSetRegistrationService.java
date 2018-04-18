@@ -112,10 +112,9 @@ public interface CompleteDataSetRegistrationService
     * @param period               the Period.
     * @param source               the Source.
     * @param attributeOptionCombo the attribute option combo.    
-    * @param multiOrgUnit whether to check for multi orgunits or not
     * @return list of missing compulsory fields, null if all are filled.
     */
     
     List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit );
+        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
 }

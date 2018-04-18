@@ -88,7 +88,6 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.query.Order;
@@ -366,7 +365,7 @@ public abstract class AbstractEventService
             if ( entityInstance == null )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                        + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
+                    + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
             }
 
             List<ProgramInstance> programInstances = new ArrayList<>(
@@ -376,12 +375,12 @@ public abstract class AbstractEventService
             {
                 return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
                     + " is not enrolled in program: " + program.getUid() ).setReference( event.getEvent() )
-                        .incrementIgnored();
+                    .incrementIgnored();
             }
             else if ( programInstances.size() > 1 )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
-                        + " have multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
+                    + " have multiple active enrollments in program: " + program.getUid() ).setReference( event.getEvent() ).incrementIgnored();
             }
 
             programInstance = programInstances.get( 0 );
@@ -629,6 +628,7 @@ public abstract class AbstractEventService
     }
 
     //TODO: In next step, remove executeEventPush() from DefaultSynchronizationManager and therefore, remove also method below as it won't be used anymore
+    //TODO: Do changes from the comment above
     @Override
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
     {
@@ -747,7 +747,9 @@ public abstract class AbstractEventService
 
                 try
                 {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(), new TypeReference<List<Double>>() {} );
+                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(), new TypeReference<List<Double>>()
+                    {
+                    } );
 
                     coordinate.setLongitude( list.get( 0 ) );
                     coordinate.setLatitude( list.get( 1 ) );
@@ -766,7 +768,7 @@ public abstract class AbstractEventService
         Collection<TrackedEntityDataValue> dataValues = dataValueService.getTrackedEntityDataValues( programStageInstance );
 
         for ( TrackedEntityDataValue dataValue : dataValues )
-        {       
+        {
             errors = trackerAccessManager.canRead( user, dataValue );
 
             if ( !errors.isEmpty() )
