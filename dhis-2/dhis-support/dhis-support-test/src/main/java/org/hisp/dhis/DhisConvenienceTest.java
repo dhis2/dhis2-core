@@ -1709,12 +1709,12 @@ public abstract class DhisConvenienceTest
             recipient,
             Sets.newHashSet(),
             days,
-            null, null, null, null
+            null, null, null, null, null
         );
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
-            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate, ProgramInstance programInstance )
+            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate, ProgramInstance programInstance, ProgramStageInstance programStageInstance )
     {
         return new ProgramNotificationTemplate(
                 name,
@@ -1724,7 +1724,7 @@ public abstract class DhisConvenienceTest
                 recipient,
                 Sets.newHashSet(),
                 days,
-                null, null, scheduledDate, programInstance
+                null, null, scheduledDate, programInstance, programStageInstance
         );
     }
 

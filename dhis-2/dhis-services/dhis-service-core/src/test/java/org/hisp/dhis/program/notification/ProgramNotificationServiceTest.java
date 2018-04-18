@@ -144,6 +144,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private ProgramNotificationTemplate programNotificationTemplate;
     private ProgramNotificationTemplate programNotificationTemplateForToday;
+    private ProgramNotificationTemplate programNotificationTemplateForTodayWithPsi;
     private ProgramNotificationTemplate programNotificationTemplateForYesterday;
 
     @Before
@@ -437,7 +438,20 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testScheduledNotifications()
+    public void testScheduledNotificationsWithProgramStageInstance()
+    {
+        sentProgramMessages.clear();
+
+        when( manager.getAll( ProgramNotificationTemplate.class ) )
+            .thenReturn( Collections.singletonList( programNotificationTemplateForTodayWithPsi ) );
+
+        programNotificationService.sendScheduledNotifications();
+
+        assertEquals( 1, sentProgramMessages.size() );
+    }
+
+    @Test
+    public void testScheduledNotificationsWithProgramInstance()
     {
         sentProgramMessages.clear();
 
@@ -558,15 +572,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programInstance.setOrganisationUnit( lvlTwoLeftLeft );
         programInstance.setEntityInstance( tei );
 
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-
-        Date today = cal.getTime();
-        cal.add( java.util.Calendar.DATE, -1 );
-        Date yesterday = cal.getTime();
-
-        programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today, programInstance );
-        programNotificationTemplateForYesterday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, yesterday, programInstance );
-
         // ProgramStageInstance
         ProgramStageInstance programStageInstance = createProgramStageInstance();
         programStageInstance.setAutoFields();
@@ -588,6 +593,16 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         // lists returned by stubs
         programStageInstances.add( programStageInstance );
         programInstances.add( programInstance );
+
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+
+        Date today = cal.getTime();
+        cal.add( java.util.Calendar.DATE, -1 );
+        Date yesterday = cal.getTime();
+
+        programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today, programInstance, null );
+        programNotificationTemplateForYesterday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, yesterday, programInstance, null );
+        programNotificationTemplateForTodayWithPsi = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today, null, programStageInstance );
 
         notificationMessage = new NotificationMessage( SUBJECT, MESSAGE );
     }

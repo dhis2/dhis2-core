@@ -58,11 +58,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -208,9 +204,9 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_ImplementForScheduledNotifications()
+    public void test_ImplementForScheduledNotificationsWithProgramInstance()
     {
-        assertNull( spyTemplate );
+        spyTemplate = null;
 
         implementer.implement( ruleEffectWithActionSendMessageWithDate, programInstance );
 
@@ -218,6 +214,21 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         assertNotNull( spyTemplate.getScheduledDate() );
         assertTrue( DateUtils.isToday( spyTemplate.getScheduledDate() ) );
         assertNotNull( spyTemplate.getProgramInstance() );
+        assertEquals( programInstance, spyTemplate.getProgramInstance() );
+    }
+
+    @Test
+    public void test_ImplementForScheduledNotificationsWithProgramStageInstance()
+    {
+        spyTemplate = null;
+
+        implementer.implement( ruleEffectWithActionSendMessageWithDate, programStageInstance );
+
+        assertNotNull( spyTemplate );
+        assertNotNull( spyTemplate.getScheduledDate() );
+        assertTrue( DateUtils.isToday( spyTemplate.getScheduledDate() ) );
+        assertNotNull( spyTemplate.getProgramStageInstance() );
+        assertEquals( programStageInstance, spyTemplate.getProgramStageInstance() );
     }
 
     @Test

@@ -28,8 +28,10 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
@@ -43,6 +45,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.function.BiConsumer;
 
 /**
  * Created by zubair@dhis2.org on 04.01.18.
@@ -50,6 +53,12 @@ import java.util.Date;
 public class RuleActionSendMessageImplementer implements RuleActionImplementer
 {
     private static final Log log = LogFactory.getLog( RuleActionSendMessageImplementer.class );
+
+    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, BiConsumer<ProgramNotificationTemplate, BaseIdentifiableObject>> OBJECT_MAPPER =
+        new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, BiConsumer<ProgramNotificationTemplate, BaseIdentifiableObject>>()
+        .put( ProgramInstance.class, ( pnt, object ) -> pnt.setProgramInstance( (ProgramInstance) object ) )
+        .put( ProgramStageInstance.class, ( pnt, object ) -> pnt.setProgramStageInstance( (ProgramStageInstance) object ) )
+        .build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -127,7 +136,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
         // for notification scheduling
         if ( !ruleEffect.data().isEmpty() )
         {
-            scheduleNotification( ruleEffect.data(), programStageInstance.getProgramInstance(), template );
+            scheduleNotification( ruleEffect.data(), programStageInstance, template );
             return;
         }
 
@@ -147,7 +156,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
         publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
     }
 
-    private void scheduleNotification( String date, ProgramInstance programInstance, ProgramNotificationTemplate template )
+    private void scheduleNotification( String date, BaseIdentifiableObject object, ProgramNotificationTemplate template )
     {
         if ( !DateUtils.dateIsValid( date ) )
         {
@@ -157,7 +166,13 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
         }
 
         template.setScheduledDate( DateUtils.parseDate( date ) );
-        template.setProgramInstance( programInstance );
+
+        OBJECT_MAPPER.getOrDefault( object.getClass(), ( pnt, obj ) ->
+        {
+            pnt.setProgramInstance( null );
+            pnt.setProgramStageInstance( null );
+
+        } ).accept( template, object );
 
         programNotificationTemplateStore.update( template );
     }

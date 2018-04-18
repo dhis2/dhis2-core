@@ -72,7 +72,8 @@ public class DefaultProgramNotificationService
 
     private static final Predicate<ProgramNotificationTemplate> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
         Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getNotificationTrigger() ) &&
-        pnt.getScheduledDate() != null && DateUtils.isToday( pnt.getScheduledDate() ) && pnt.getProgramInstance() != null;
+        pnt.getScheduledDate() != null && DateUtils.isToday( pnt.getScheduledDate() ) &&
+        ( pnt.hasProgramInstance() || pnt.hasProgramStageInstance() );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -171,9 +172,13 @@ public class DefaultProgramNotificationService
 
         int totalMessageCount = 0;
 
-        List<MessageBatch> batches = templates.stream()
+        List<MessageBatch> batches = templates.stream().filter( ProgramNotificationTemplate::hasProgramInstance )
             .map( pnt -> createProgramInstanceMessageBatch( pnt, Collections.singletonList( pnt.getProgramInstance() ) ) )
             .collect( Collectors.toList() );
+
+        batches.addAll( templates.stream().filter( ProgramNotificationTemplate::hasProgramStageInstance )
+                .map( pnt -> createProgramStageInstanceMessageBatch( pnt, Collections.singletonList( pnt.getProgramStageInstance() ) ) )
+                .collect( Collectors.toList() ) );
 
         batches.stream().forEach( this::sendAll );
 
