@@ -153,6 +153,24 @@ public class HibernateProgramStageInstanceStore
             .setDate( "targetDate", targetDate ).list();
     }
 
+    @SuppressWarnings( "unchecked" )
+    @Override
+    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template )
+    {
+        if ( template == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        String hql =
+                "select distinct psi from ProgramStageInstance as psi " +
+                "inner join psi.programStage as ps " +
+                "where :notificationTemplate in elements(ps.notificationTemplates) ";
+
+        return getQuery( hql )
+            .setEntity( "notificationTemplate", template ).list();
+    }
+
     @Override
     protected void preProcessDetachedCriteria( DetachedCriteria criteria )
     {

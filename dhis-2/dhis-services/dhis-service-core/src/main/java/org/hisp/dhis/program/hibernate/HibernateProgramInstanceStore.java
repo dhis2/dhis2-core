@@ -31,6 +31,7 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.poi.util.SuppressForbidden;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
@@ -245,7 +246,25 @@ public class HibernateProgramInstanceStore
             .setDate( "targetDate", targetDate ).list();
     }
 
-    private String toDateProperty( NotificationTrigger trigger )
+    @SuppressWarnings( "unchecked" )
+    @Override
+    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template )
+    {
+        if ( template == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        String hql =
+                "select distinct pi from ProgramInstance as pi " +
+                "inner join pi.program as p " +
+                "where :notificationTemplate in elements(p.notificationTemplates) ";
+
+        return getQuery( hql )
+            .setEntity( "notificationTemplate", template ).list();
+    }
+
+    private String toDateProperty(NotificationTrigger trigger )
     {
         if ( trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )
         {

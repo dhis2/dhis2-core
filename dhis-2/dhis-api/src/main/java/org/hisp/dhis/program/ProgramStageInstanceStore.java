@@ -106,4 +106,12 @@ public interface ProgramStageInstanceStore
      * @return a list of ProgramStageInstance.
      */
     List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
+
+    /**
+     * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate.
+     *
+     * @param template         the template.
+     * @return a list of ProgramStageInstance.
+     */
+    List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template );
 }

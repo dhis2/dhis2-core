@@ -86,14 +86,6 @@ public class ProgramNotificationTemplate
     private Date scheduledDate = null;
 
     // -------------------------------------------------------------------------
-    // Properties required for scheduling by program rules
-    // -------------------------------------------------------------------------
-
-    private ProgramInstance programInstance = null;
-
-    private ProgramStageInstance programStageInstance = null;
-
-    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -104,7 +96,7 @@ public class ProgramNotificationTemplate
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
         Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup,
-        TrackedEntityAttribute recipientProgramAttribute, Date scheduledDate, ProgramInstance programInstance, ProgramStageInstance programStageInstance )
+        TrackedEntityAttribute recipientProgramAttribute, Date scheduledDate )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
@@ -116,24 +108,7 @@ public class ProgramNotificationTemplate
         this.recipientUserGroup = recipientUserGroup;
         this.recipientProgramAttribute = recipientProgramAttribute;
         this.scheduledDate = scheduledDate;
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
     }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public boolean hasProgramInstance()
-    {
-        return programInstance != null;
-    }
-
-    public boolean hasProgramStageInstance()
-    {
-        return programStageInstance != null;
-    }
-
 
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -286,30 +261,6 @@ public class ProgramNotificationTemplate
         this.scheduledDate = scheduledDate;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
-
-    public void setProgramInstance( ProgramInstance programInstance )
-    {
-        this.programInstance = programInstance;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
-
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        this.programStageInstance = programStageInstance;
-    }
-
     @Override
     public String toString()
     {
@@ -322,8 +273,6 @@ public class ProgramNotificationTemplate
             .add( "messageTemplate", messageTemplate )
             .add( "subjectTemplate", subjectTemplate )
             .add( "scheduledDate", scheduledDate )
-            .add( "programInstance", programInstance )
-            .add( "programStageInstance", programStageInstance )
             .toString();
     }
 }

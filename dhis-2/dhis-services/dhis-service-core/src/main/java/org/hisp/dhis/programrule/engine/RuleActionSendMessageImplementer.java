@@ -28,10 +28,8 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
@@ -45,7 +43,6 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
-import java.util.function.BiConsumer;
 
 /**
  * Created by zubair@dhis2.org on 04.01.18.
@@ -53,12 +50,6 @@ import java.util.function.BiConsumer;
 public class RuleActionSendMessageImplementer implements RuleActionImplementer
 {
     private static final Log log = LogFactory.getLog( RuleActionSendMessageImplementer.class );
-
-    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, BiConsumer<ProgramNotificationTemplate, BaseIdentifiableObject>> OBJECT_MAPPER =
-        new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, BiConsumer<ProgramNotificationTemplate, BaseIdentifiableObject>>()
-        .put( ProgramInstance.class, ( pnt, object ) -> pnt.setProgramInstance( (ProgramInstance) object ) )
-        .put( ProgramStageInstance.class, ( pnt, object ) -> pnt.setProgramStageInstance( (ProgramStageInstance) object ) )
-        .build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -95,26 +86,26 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
             return;
         }
 
-        if ( !ruleEffect.data().isEmpty() )
-        {
-            scheduleNotification( ruleEffect.data(), programInstance, template );
-            return;
-        }
-
         String key = generateKey( template, programInstance );
 
         if ( !notificationLoggingService.isValidForSending( key ) )
         {
-            log.info( String.format( "Skipped notification for template id: %s", template.getUid() ) );
+            log.info( String.format( "Skipped rule action for template id: %s", template.getUid() ) );
             return;
+        }
+
+        if ( ruleEffect.data().isEmpty() )
+        {
+            publisher.publishEnrollment( template, programInstance, ProgramNotificationEventType.PROGRAM_RULE_ENROLLMENT );
+        }
+        else
+        {
+            scheduleNotification( ruleEffect.data(), template );
         }
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
-
         notificationLoggingService.save( entry );
-
-        publisher.publishEnrollment( template, programInstance, ProgramNotificationEventType.PROGRAM_RULE_ENROLLMENT );
     }
 
     @Override
@@ -133,30 +124,30 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
             return;
         }
 
-        // for notification scheduling
-        if ( !ruleEffect.data().isEmpty() )
-        {
-            scheduleNotification( ruleEffect.data(), programStageInstance, template );
-            return;
-        }
-
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
         if ( !notificationLoggingService.isValidForSending( key ) )
         {
-            log.info( String.format( "Skipped notification for template id: %s", template.getUid() ) );
+            log.info( String.format( "Skipped rule action for template id: %s", template.getUid() ) );
             return;
+        }
+
+        if ( ruleEffect.data().isEmpty() )
+        {
+            publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
+        }
+        else
+        {
+            scheduleNotification( ruleEffect.data(), template );
         }
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
 
         notificationLoggingService.save( entry );
-
-        publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
     }
 
-    private void scheduleNotification( String date, BaseIdentifiableObject object, ProgramNotificationTemplate template )
+    private void scheduleNotification( String date, ProgramNotificationTemplate template )
     {
         if ( !DateUtils.dateIsValid( date ) )
         {
@@ -166,13 +157,6 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer
         }
 
         template.setScheduledDate( DateUtils.parseDate( date ) );
-
-        OBJECT_MAPPER.getOrDefault( object.getClass(), ( pnt, obj ) ->
-        {
-            pnt.setProgramInstance( null );
-            pnt.setProgramStageInstance( null );
-
-        } ).accept( template, object );
 
         programNotificationTemplateStore.update( template );
     }

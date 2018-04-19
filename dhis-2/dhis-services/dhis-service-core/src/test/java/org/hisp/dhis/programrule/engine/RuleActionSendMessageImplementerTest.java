@@ -45,7 +45,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.system.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -201,34 +200,6 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         verify( publisher ).publishEvent( Matchers.any( ProgramNotificationTemplate.class ), argumentStageInstanceCaptor.capture(), argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
         assertEquals( programStageInstance, argumentStageInstanceCaptor.getValue() );
-    }
-
-    @Test
-    public void test_ImplementForScheduledNotificationsWithProgramInstance()
-    {
-        spyTemplate = null;
-
-        implementer.implement( ruleEffectWithActionSendMessageWithDate, programInstance );
-
-        assertNotNull( spyTemplate );
-        assertNotNull( spyTemplate.getScheduledDate() );
-        assertTrue( DateUtils.isToday( spyTemplate.getScheduledDate() ) );
-        assertNotNull( spyTemplate.getProgramInstance() );
-        assertEquals( programInstance, spyTemplate.getProgramInstance() );
-    }
-
-    @Test
-    public void test_ImplementForScheduledNotificationsWithProgramStageInstance()
-    {
-        spyTemplate = null;
-
-        implementer.implement( ruleEffectWithActionSendMessageWithDate, programStageInstance );
-
-        assertNotNull( spyTemplate );
-        assertNotNull( spyTemplate.getScheduledDate() );
-        assertTrue( DateUtils.isToday( spyTemplate.getScheduledDate() ) );
-        assertNotNull( spyTemplate.getProgramStageInstance() );
-        assertEquals( programStageInstance, spyTemplate.getProgramStageInstance() );
     }
 
     @Test

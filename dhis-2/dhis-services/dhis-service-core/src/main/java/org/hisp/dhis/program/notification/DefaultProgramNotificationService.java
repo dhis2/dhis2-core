@@ -72,8 +72,7 @@ public class DefaultProgramNotificationService
 
     private static final Predicate<ProgramNotificationTemplate> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
         Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getNotificationTrigger() ) &&
-        pnt.getScheduledDate() != null && DateUtils.isToday( pnt.getScheduledDate() ) &&
-        ( pnt.hasProgramInstance() || pnt.hasProgramStageInstance() );
+        pnt.getScheduledDate() != null && DateUtils.isToday( pnt.getScheduledDate() );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -137,7 +136,6 @@ public class DefaultProgramNotificationService
     public void sendScheduledNotificationsForDay( Date notificationDate )
     {
         Clock clock = new Clock( log ).startClock()
-
             .logTime( "Processing ProgramStageNotification messages" );
 
         List<ProgramNotificationTemplate> scheduledTemplates = getScheduledTemplates();
@@ -160,24 +158,27 @@ public class DefaultProgramNotificationService
     public void sendScheduledNotifications()
     {
         Clock clock = new Clock( log ).startClock()
-            .logTime( "Processing ProgramStageNotification messages" );
+            .logTime( "Processing ProgramStageNotification messages scheduled by program rules" );
 
         List<ProgramNotificationTemplate> templates = identifiableObjectManager.getAll( ProgramNotificationTemplate.class ).stream()
             .filter( IS_SCHEDULED_BY_PROGRAM_RULE ).collect( Collectors.toList() );
 
-        if( templates.isEmpty() )
-        {
-            return;
-        }
-
         int totalMessageCount = 0;
 
-        List<MessageBatch> batches = templates.stream().filter( ProgramNotificationTemplate::hasProgramInstance )
-            .map( pnt -> createProgramInstanceMessageBatch( pnt, Collections.singletonList( pnt.getProgramInstance() ) ) )
+        List<ProgramStageInstance> programStageInstances = templates.stream()
+            .flatMap( template -> programStageInstanceStore.getWithScheduledNotifications( template ).stream() )
             .collect( Collectors.toList() );
 
-        batches.addAll( templates.stream().filter( ProgramNotificationTemplate::hasProgramStageInstance )
-            .map( pnt -> createProgramStageInstanceMessageBatch( pnt, Collections.singletonList( pnt.getProgramStageInstance() ) ) )
+        List<ProgramInstance> programInstances = templates.stream()
+            .flatMap( template -> programInstanceStore.getWithScheduledNotifications( template ).stream() )
+            .collect( Collectors.toList() );
+
+        List<MessageBatch> batches = templates.stream()
+            .map( pnt -> createProgramInstanceMessageBatch( pnt, programInstances ) )
+            .collect( Collectors.toList() );
+
+        batches.addAll( templates.stream()
+            .map( pnt -> createProgramStageInstanceMessageBatch( pnt, programStageInstances ) )
             .collect( Collectors.toList() ) );
 
         batches.stream().forEach( this::sendAll );
@@ -420,9 +421,9 @@ public class DefaultProgramNotificationService
                 && template.getRecipientDataElement() != null )
         {
             List<String> recipientList = psi.getDataValues().stream()
-                    .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement().getUid() ) )
-                    .map( TrackedEntityDataValue::getValue )
-                    .collect( Collectors.toList() );
+                .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement().getUid() ) )
+                .map( TrackedEntityDataValue::getValue )
+                .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -462,9 +463,9 @@ public class DefaultProgramNotificationService
                 && template.getRecipientProgramAttribute() != null )
         {
             List<String> recipientList = pi.getEntityInstance().getTrackedEntityAttributeValues().stream()
-                    .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
-                    .map( TrackedEntityAttributeValue::getPlainValue )
-                    .collect( Collectors.toList() );
+                .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
+                .map( TrackedEntityAttributeValue::getPlainValue )
+                .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -482,15 +483,15 @@ public class DefaultProgramNotificationService
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramInstance programInstance, final NotificationTrigger trigger )
     {
         return programInstance.getProgram().getNotificationTemplates().stream()
-                .filter( t -> t.getNotificationTrigger() == trigger )
-                .collect( Collectors.toSet() );
+            .filter( t -> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
     }
 
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
     {
         return programStageInstance.getProgramStage().getNotificationTemplates().stream()
-                .filter( t -> t.getNotificationTrigger() == trigger )
-                .collect( Collectors.toSet() );
+            .filter( t -> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
     }
 
     private DhisMessage createDhisMessage( ProgramStageInstance psi, ProgramNotificationTemplate template )
