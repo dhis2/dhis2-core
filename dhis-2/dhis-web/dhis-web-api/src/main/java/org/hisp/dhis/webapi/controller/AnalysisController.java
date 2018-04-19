@@ -375,10 +375,11 @@ public class AnalysisController
 
         Date startDate = null;
         Date endDate = null;
-        if ( followupAnalysisParams.getStartDate() != null && followupAnalysisParams.getEndDate() != null )
+
+        if ( followupAnalysisParams.getFromDate() != null && followupAnalysisParams.getToDate() != null )
         {
-            startDate = new DateTime( format.parseDate( followupAnalysisParams.getStartDate() ) ).toDate();
-            endDate = new DateTime( format.parseDate( followupAnalysisParams.getEndDate() ) ).toDate();
+            startDate = new DateTime( format.parseDate( followupAnalysisParams.getFromDate() ) ).toDate();
+            endDate = new DateTime( format.parseDate( followupAnalysisParams.getToDate() ) ).toDate();
         }
 
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
