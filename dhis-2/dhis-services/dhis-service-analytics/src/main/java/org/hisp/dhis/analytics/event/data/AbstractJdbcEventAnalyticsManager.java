@@ -131,7 +131,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else if ( params.hasSinglePeriod() )
             {
                 Period period = (Period) params.getPeriods().get( 0 );
-                columns.add( ( columnNamesOnly ? "" : ( period.getIsoDate() + " as " ) ) +
+                columns.add( ( columnNamesOnly ? "" : ( statementBuilder.encode( period.getIsoDate() ) + " as " ) ) +
                     period.getPeriodType().getName() );
             }
             else if ( !params.hasPeriods() && params.hasFilterPeriods() )
@@ -139,7 +139,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 // Assuming same period type for all period filters, as the query planner splits into one query per period type
                 
                 Period period = (Period) params.getFilterPeriods().get( 0 );
-                String periodCol = ( columnNamesOnly ? "" : ( period.getIsoDate() + " as " ) ) + period.getPeriodType().getName();
+                String periodCol = ( columnNamesOnly ? "" : ( statementBuilder.encode( period.getIsoDate() )  + " as " ) ) + period.getPeriodType().getName();
                 columns.add( periodCol );
             }
             else
