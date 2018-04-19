@@ -121,6 +121,8 @@ public class AnalysisController
 
     private static final String KEY_VALIDATION_RESULT = "validationResult";
 
+    private static final String KEY_ORG_UNIT = "orgUnit";
+
     @Autowired
     private ContextUtils contextUtils;
 
@@ -200,6 +202,7 @@ public class AnalysisController
         Collections.sort( validationResults, new ValidationResultComparator() );
 
         session.setAttribute( KEY_VALIDATION_RESULT, validationResults );
+        session.setAttribute( KEY_ORG_UNIT, organisationUnit);
 
         return validationResultsListToResponse( validationResults );
     }
@@ -300,6 +303,8 @@ public class AnalysisController
                 stdDevOutlierAnalysisParams.getStandardDeviation(), from ) );
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
+        session.setAttribute( KEY_ORG_UNIT, organisationUnit );
+
 
         return deflatedValuesListToResponse( dataValues );
     }
@@ -347,6 +352,7 @@ public class AnalysisController
             .analyse( Sets.newHashSet( organisationUnit ), dataElements, periods, null, from ) );
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
+        session.setAttribute( KEY_ORG_UNIT, organisationUnit);
 
         return deflatedValuesListToResponse( dataValues );
     }
@@ -380,6 +386,7 @@ public class AnalysisController
                 DataAnalysisService.MAX_OUTLIERS + 1, startDate, endDate ) ); // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
+        session.setAttribute( KEY_ORG_UNIT, organisationUnit);
 
         return deflatedValuesListToResponse( dataValues );
     }
@@ -426,7 +433,8 @@ public class AnalysisController
     {
         @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results );
+        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ));
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils
@@ -442,7 +450,8 @@ public class AnalysisController
     {
         @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results );
+        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -457,7 +466,8 @@ public class AnalysisController
     {
         @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results );
+        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils
@@ -473,7 +483,8 @@ public class AnalysisController
     {
         @SuppressWarnings( "unchecked" )
         List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
-        Grid grid = generateValidationRulesReportGridFromResults( results );
+        Grid grid = generateValidationRulesReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils
@@ -489,7 +500,8 @@ public class AnalysisController
     {
         @SuppressWarnings( "unchecked" )
         List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
-        Grid grid = generateValidationRulesReportGridFromResults( results );
+        Grid grid = generateValidationRulesReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -504,7 +516,9 @@ public class AnalysisController
     {
         @SuppressWarnings( "unchecked" )
         List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
-        Grid grid = generateValidationRulesReportGridFromResults( results );
+        Grid grid = generateValidationRulesReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT )
+        );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils
@@ -514,7 +528,7 @@ public class AnalysisController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    private Grid generateAnalysisReportGridFromResults( List<DeflatedDataValue> results )
+    private Grid generateAnalysisReportGridFromResults( List<DeflatedDataValue> results, OrganisationUnit orgUnit )
     {
         Grid grid = new ListGrid();
         if ( results != null )
@@ -523,6 +537,11 @@ public class AnalysisController
             I18n i18n = i18nManager.getI18n();
 
             grid.setTitle( i18n.getString( "data_analysis_report" ) );
+
+            if ( orgUnit != null )
+            {
+                grid.setSubtitle( orgUnit.getName() );
+            }
 
             grid.addHeader( new GridHeader( i18n.getString( "dataelement" ), false, true ) );
             grid.addHeader( new GridHeader( i18n.getString( "source" ), false, true ) );
@@ -548,7 +567,7 @@ public class AnalysisController
         return grid;
     }
 
-    private Grid generateValidationRulesReportGridFromResults( List<ValidationResult> results )
+    private Grid generateValidationRulesReportGridFromResults( List<ValidationResult> results, OrganisationUnit orgUnit )
     {
         Grid grid = new ListGrid();
         if ( results != null )
@@ -557,6 +576,11 @@ public class AnalysisController
             I18n i18n = i18nManager.getI18n();
 
             grid.setTitle( i18n.getString( "data_quality_report" ) );
+
+            if ( orgUnit != null )
+            {
+                grid.setSubtitle( orgUnit.getName() );
+            }
 
             grid.addHeader( new GridHeader( i18n.getString( "source" ), false, true ) );
             grid.addHeader( new GridHeader( i18n.getString( "period" ), false, true ) );
