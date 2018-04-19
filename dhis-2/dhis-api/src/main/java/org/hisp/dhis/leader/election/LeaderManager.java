@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,24 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * This interface is an abstraction for the actual execution of jobs based on a job configuration.
- *
- * @author Henning Håkonsen
+ * Manages cluster leader node elections , renewals , revocations and to check
+ * whether the current instance is the leader in the cluster.
+ * 
+ * @author Ameen Mohamed
  */
-public interface JobInstance
+public interface LeaderManager
 {
-    /**
-     * This method will try to execute the actual job.
-     * It will verify a set of parameters, such as no other jobs of the same JobType is running.
-     * <p>
-     * If the JobConfiguration is disabled it will not run.
-     *
-     * @param jobConfiguration  the configuration of the job
-     * @param schedulingManager manager of scheduling
-     */
-    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager  )
-        throws Exception;
+    public void renewLeader();
+
+    public void electLeader();
+
+    public void revokeLeader();
+
+    public boolean isLeader();
+    
+    public void setSchedulingManager(SchedulingManager schedulingManager);
+
 }

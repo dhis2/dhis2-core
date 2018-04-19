@@ -1,0 +1,124 @@
+package org.hisp.dhis.leader.election;
+
+/*
+ * Copyright (c) 2004-2018, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.Calendar;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
+
+/**
+ * Takes care of the leader election implementation backed by redis.
+ * 
+ * @author Ameen Mohamed
+ */
+public class RedisBackedLeaderManager implements LeaderManager
+{
+    private static final String key = "dhis2:leader";
+
+    private static final Log log = LogFactory.getLog( RedisBackedLeaderManager.class );
+
+    private String nodeId;
+
+    private Long timeToLive;
+
+    private SchedulingManager schedulingManager;
+
+    private RedisTemplate<String, ?> redisTemplate;
+
+    public RedisBackedLeaderManager( Long timeToLive, RedisTemplate<String, ?> redisTemplate )
+    {
+        this.nodeId = UUID.randomUUID().toString();
+        log.info( "Setting up redis based leader manager on NodeId:" + this.nodeId );
+        this.timeToLive = timeToLive;
+        this.redisTemplate = redisTemplate;
+    }
+
+    @Override
+    public void renewLeader()
+    {
+        if ( isLeader() )
+        {
+            log.info( "Renewing leader with nodeId:" + this.nodeId );
+            redisTemplate.getConnectionFactory().getConnection().expire( key.getBytes(), timeToLive );
+        }
+    }
+
+    @Override
+    public void electLeader()
+    {
+        log.info( "Election attempt by nodeId:" + this.nodeId );
+        redisTemplate.getConnectionFactory().getConnection().set( key.getBytes(), nodeId.getBytes(),
+            Expiration.from( timeToLive, TimeUnit.SECONDS ), SetOption.SET_IF_ABSENT );
+        if ( isLeader() )
+        {
+            renewLeader();
+            Calendar calendar = Calendar.getInstance();
+            calendar.add( Calendar.SECOND, (int) (this.timeToLive / 2) );
+            log.info(
+                "Next leader renewal job for nodeId:" + this.nodeId + " set at " + calendar.getTime().toString() );
+            schedulingManager.scheduleJob( () -> {
+                this.renewLeader();
+            }, calendar.getTime() );
+        }
+    }
+
+    @Override
+    public void revokeLeader()
+    {
+        if ( isLeader() )
+        {
+            redisTemplate.delete( key );
+        }
+    }
+
+    @Override
+    public boolean isLeader()
+    {
+        byte[] leaderIdBytes = redisTemplate.getConnectionFactory().getConnection().get( key.getBytes() );
+        String leaderId = null;
+        if ( leaderIdBytes != null )
+        {
+            leaderId = new String( leaderIdBytes );
+        }
+        return nodeId.equals( leaderId );
+    }
+
+    @Override
+    public void setSchedulingManager( SchedulingManager schedulingManager )
+    {
+        this.schedulingManager = schedulingManager;
+    }
+
+}

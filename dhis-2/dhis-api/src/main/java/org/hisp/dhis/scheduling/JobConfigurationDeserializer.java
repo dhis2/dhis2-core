@@ -51,6 +51,7 @@ public class JobConfigurationDeserializer
     private final String CONTINUOUS_EXECUTION = "continuousExecution";
     private final String JOB_PARAMETERS = "jobParameters";
     private final String CRON_EXPRESSION = "cronExpression";
+    private final String LEAER_ONLY_JOB = "leaderOnlyJob";
 
     @Override
     public JobConfiguration deserialize( JsonParser jsonParser,
@@ -81,10 +82,14 @@ public class JobConfigurationDeserializer
         boolean enabled = !root.has( ENABLED ) || root.get( ENABLED ).asBoolean();
 
         boolean continuousExecution = root.has( CONTINUOUS_EXECUTION ) && root.get( CONTINUOUS_EXECUTION ).asBoolean();
+        
+        boolean leaderOnlyJob = root.has( LEAER_ONLY_JOB ) && root.get( LEAER_ONLY_JOB ).asBoolean();
 
         String cronExpression = root.has( CRON_EXPRESSION ) ? root.get( CRON_EXPRESSION ).textValue() : "";
 
-        return new JobConfiguration( root.get( NAME ).textValue(), jobType,
+         JobConfiguration jobConfiguration = new JobConfiguration( root.get( NAME ).textValue(), jobType,
             cronExpression, jobParameters, continuousExecution, enabled );
+         jobConfiguration.setLeaderOnlyJob( leaderOnlyJob );
+         return jobConfiguration;
     }
 }

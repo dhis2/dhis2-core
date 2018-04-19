@@ -83,6 +83,7 @@ public enum ConfigurationKey
     REDIS_PASSWORD( "redis.password", "", true ),
     REDIS_ENABLED( "redis.enabled", "false", false ),
     REDIS_USE_SSL( "redis.use.ssl", "false", false ),
+    LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
 
     private final String key;

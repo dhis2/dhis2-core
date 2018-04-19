@@ -76,4 +76,7 @@
     <property name="dataIntegrityService" ref="org.hisp.dhis.dataintegrity.DataIntegrityService" />
     <property name="notifier" ref="notifier" />
   </bean>
+
+  <bean id="leaderElectionJob" class="org.hisp.dhis.leader.election.LeaderElectionJob">
+  </bean>
 </beans>

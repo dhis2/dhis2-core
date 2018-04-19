@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.leader.election;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,25 +28,55 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
+import java.util.UUID;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * This interface is an abstraction for the actual execution of jobs based on a job configuration.
- *
- * @author Henning Håkonsen
+ * No operation leader election implementation which will be used when redis is not configured.
+ * 
+ * @author Ameen Mohamed
  */
-public interface JobInstance
+public class NoOpLeaderManager implements LeaderManager
 {
-    /**
-     * This method will try to execute the actual job.
-     * It will verify a set of parameters, such as no other jobs of the same JobType is running.
-     * <p>
-     * If the JobConfiguration is disabled it will not run.
-     *
-     * @param jobConfiguration  the configuration of the job
-     * @param schedulingManager manager of scheduling
-     */
-    void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager  )
-        throws Exception;
+
+    private static final Log log = LogFactory.getLog( NoOpLeaderManager.class );
+
+    private String nodeId;
+
+    public NoOpLeaderManager()
+    {
+        this.nodeId = UUID.randomUUID().toString();
+        log.info( "Setting up noop leader manager on NodeId:" + this.nodeId );
+
+    }
+
+    @Override
+    public void renewLeader()
+    {
+    }
+
+    @Override
+    public void electLeader()
+    {
+    }
+
+    @Override
+    public void revokeLeader()
+    {
+    }
+
+    @Override
+    public boolean isLeader()
+    {
+        return false;
+    }
+
+    @Override
+    public void setSchedulingManager( SchedulingManager schedulingManager )
+    {
+    }
+
 }

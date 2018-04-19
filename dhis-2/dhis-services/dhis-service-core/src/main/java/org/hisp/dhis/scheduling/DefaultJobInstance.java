@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
 
@@ -42,15 +43,24 @@ public class DefaultJobInstance
     implements JobInstance
 {
     private static final Log log = LogFactory.getLog( DefaultJobInstance.class );
-
+    
+    private static final String NOT_LEADER_SKIP_LOG = "Not a leader, skipping job with jobType:%s and name:%s";
+    
     public void execute( JobConfiguration jobConfiguration, SchedulingManager schedulingManager,
-        MessageService messageService )
+        MessageService messageService, LeaderManager leaderManager )
     {
         if ( !jobConfiguration.isEnabled() )
         {
             return;
         }
-
+        
+        if ( jobConfiguration.isLeaderOnlyJob() && !leaderManager.isLeader() )
+        {
+            log.debug(
+                String.format( NOT_LEADER_SKIP_LOG, jobConfiguration.getJobType(), jobConfiguration.getName() ) );
+            return;
+        }
+        
         final Clock clock = new Clock().startClock();
         try
         {
