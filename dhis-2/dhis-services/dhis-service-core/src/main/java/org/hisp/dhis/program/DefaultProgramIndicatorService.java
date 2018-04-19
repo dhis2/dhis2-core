@@ -319,8 +319,8 @@ public class DefaultProgramIndicatorService
 
         while ( matcher.find() )
         {
-            String func = trim( matcher.group( 1 ) );
-            String arguments = trim( matcher.group( 2 ) );
+            String func = trim( matcher.group( "func" ) );
+            String arguments = trim( matcher.group( "args" ) );
 
             if ( func != null && arguments != null )
             {
