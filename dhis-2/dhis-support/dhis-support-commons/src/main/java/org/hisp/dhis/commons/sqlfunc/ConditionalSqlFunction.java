@@ -50,7 +50,7 @@ public class ConditionalSqlFunction
         String trueValue = args[1];
         String falseValue = args[2];
         
-        String conditional = condition.replaceAll( "^\"|^'|\"$|'$", "" );
+        String conditional = condition.replaceAll( "^\"|^'|\"$|'$", "" ).replaceAll( "==", "=" );
         
         return "case when (" + conditional + ") then " + trueValue + " else " + falseValue + " end";
     }
