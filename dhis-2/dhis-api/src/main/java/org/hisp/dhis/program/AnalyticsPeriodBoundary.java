@@ -117,7 +117,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         
         if ( offsetPeriods != null && offsetPeriodType != null )
         {
-           returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, this.offsetPeriods );
+           returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, getOffsetPeriodsInt() );
         }
         
         return returnDate;
@@ -156,7 +156,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     @Override
     public int hashCode()
     {
-        return 31 * super.hashCode() + Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, this.offsetPeriods );
+        return 31 * super.hashCode() + Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, getOffsetPeriodsInt() );
     }
 
     @Override
@@ -180,7 +180,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         return Objects.equals( this.boundaryTarget, other.boundaryTarget )
             && Objects.equals( this.analyticsPeriodBoundaryType, other.analyticsPeriodBoundaryType )
             && Objects.equals( this.offsetPeriodType, other.offsetPeriodType )
-            && Objects.equals( this.offsetPeriods, other.offsetPeriods );
+            && Objects.equals( this.getOffsetPeriodsInt(), other.getOffsetPeriodsInt() );
     }
 
     // -------------------------------------------------------------------------
@@ -231,6 +231,11 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     public Integer getOffsetPeriods()
     {
         return offsetPeriods;
+    }
+    
+    public int getOffsetPeriodsInt()
+    {
+        return offsetPeriods == null ? 0 : offsetPeriods;
     }
 
     public void setOffsetPeriods( Integer offsetPeriods )
