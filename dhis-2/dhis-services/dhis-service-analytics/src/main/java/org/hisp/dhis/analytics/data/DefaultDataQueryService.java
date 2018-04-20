@@ -47,7 +47,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -367,49 +366,51 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
             }
 
-            Map<Integer, List<Period>> periodTypeListHashMap = new TreeMap<>( );
-            for ( IdentifiableObject object : periods )
+            if ( queryContainsRelativePeriods )
             {
-                Period period = (Period) object;
-
-                List<Period> periodList = periodTypeListHashMap.get( period.getPeriodType().getFrequencyOrder() );
-                if ( periodList == null )
+                Map<Integer, List<Period>> periodTypeListHashMap = new TreeMap<>( );
+                for ( Period period : periods )
                 {
-                    periodList = Lists.newArrayList( period );
-                }
-                else
-                {
-                    periodList.add( period );
-                }
-
-                periodTypeListHashMap.put( period.getPeriodType().getFrequencyOrder(), periodList );
-            }
-
-            List<Period> sortedPeriodList = new ArrayList<>( );
-            for ( Map.Entry<Integer, List<Period>> periodTypeListEntry : periodTypeListHashMap.entrySet() )
-            {
-                List<Period> periodList = periodTypeListEntry.getValue();
-
-                if ( queryContainsRelativePeriods )
-                {
-                    periodList.sort( new AscendingPeriodComparator() );
-                }
-
-                periodList.forEach( period -> {
-                    String name = format != null ? format.formatPeriod( period ) : null;
-                    period.setName( name );
-                    period.setShortName( name );
-
-                    if ( !calendar.isIso8601() )
+                    List<Period> periodList = periodTypeListHashMap.get( period.getPeriodType().getFrequencyOrder() );
+                    if ( periodList == null )
                     {
-                        period.setUid( getLocalPeriodIdentifier( period, calendar ) );
+                        periodList = Lists.newArrayList( period );
+                    }
+                    else
+                    {
+                        periodList.add( period );
                     }
 
-                    sortedPeriodList.add( period );
-                } );
+                    periodTypeListHashMap.put( period.getPeriodType().getFrequencyOrder(), periodList );
+                }
+
+
+                List<Period> sortedPeriodList = new ArrayList<>( );
+                for ( Map.Entry<Integer, List<Period>> periodTypeListEntry : periodTypeListHashMap.entrySet() )
+                {
+                    List<Period> periodList = periodTypeListEntry.getValue();
+
+                    periodList.sort( new AscendingPeriodComparator() );
+
+                    sortedPeriodList.addAll( periodList );
+                }
+
+                periods = sortedPeriodList;
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD, asList( sortedPeriodList ) );
+            for ( Period period : periods )
+            {
+                String name = format != null ? format.formatPeriod( period ) : null;
+                period.setName( name );
+                period.setShortName( name );
+
+                if ( !calendar.isIso8601() )
+                {
+                    period.setUid( getLocalPeriodIdentifier( period, calendar ) );
+                }
+            }
+
+            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD, asList( periods ) );
         }
 
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
