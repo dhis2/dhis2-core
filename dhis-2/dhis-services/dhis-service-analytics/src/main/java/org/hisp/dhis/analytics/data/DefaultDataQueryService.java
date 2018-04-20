@@ -28,10 +28,29 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.*;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -43,6 +62,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -54,7 +74,9 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -316,10 +338,12 @@ public class DefaultDataQueryService
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
+            Boolean queryContainsRelativePeriods = false;
             for ( String isoPeriod : items )
             {
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
+                    queryContainsRelativePeriods = true;
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
@@ -343,19 +367,49 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
             }
 
-            for ( Period period : periods )
+            TreeMap<Integer, List<Period>> periodTypeListHashMap = new TreeMap<>( );
+            for ( IdentifiableObject object : periods )
             {
-                String name = format != null ? format.formatPeriod( period ) : null;
-                period.setName( name );
-                period.setShortName( name );
+                Period period = (Period) object;
 
-                if ( !calendar.isIso8601() )
+                List<Period> periodList = periodTypeListHashMap.get( period.getPeriodType().getFrequencyOrder() );
+                if ( periodList == null )
                 {
-                    period.setUid( getLocalPeriodIdentifier( period, calendar ) );
+                    periodList = Lists.newArrayList( period );
                 }
+                else
+                {
+                    periodList.add( period );
+                }
+
+                periodTypeListHashMap.put( period.getPeriodType().getFrequencyOrder(), periodList );
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD, asList( periods ) );
+            List<Period> sortedPeriodList = new ArrayList<>( );
+            for ( Map.Entry<Integer, List<Period>> periodTypeListEntry : periodTypeListHashMap.entrySet() )
+            {
+                List<Period> periodList = periodTypeListEntry.getValue();
+
+                if ( queryContainsRelativePeriods )
+                {
+                    periodList.sort( new AscendingPeriodComparator() );
+                }
+
+                periodList.forEach( period -> {
+                    String name = format != null ? format.formatPeriod( period ) : null;
+                    period.setName( name );
+                    period.setShortName( name );
+
+                    if ( !calendar.isIso8601() )
+                    {
+                        period.setUid( getLocalPeriodIdentifier( period, calendar ) );
+                    }
+
+                    sortedPeriodList.add( period );
+                } );
+            }
+
+            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD, asList( sortedPeriodList ) );
         }
 
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
