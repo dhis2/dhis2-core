@@ -32,9 +32,9 @@ import java.util.List;
 
 public class StdDevOutlierAnalysisParams
 {
-    private String fromDate;
+    private String startDate;
 
-    private String toDate;
+    private String endDate;
 
     private List<String> dataSetIds;
 
@@ -46,34 +46,34 @@ public class StdDevOutlierAnalysisParams
     {
     }
 
-    public StdDevOutlierAnalysisParams( String fromDate, String toDate, List<String> dataSetIds,
+    public StdDevOutlierAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
         Double standardDeviation, String organisationUnitId )
     {
-        this.fromDate = fromDate;
-        this.toDate = toDate;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.dataSetIds = dataSetIds;
         this.standardDeviation = standardDeviation;
         this.organisationUnitId = organisationUnitId;
     }
 
-    public String getFromDate()
+    public String getStartDate()
     {
-        return fromDate;
+        return startDate;
     }
 
-    public void setFromDate( String fromDate )
+    public void setStartDate( String startDate )
     {
-        this.fromDate = fromDate;
+        this.startDate = startDate;
     }
 
-    public String getToDate()
+    public String getEndDate()
     {
-        return toDate;
+        return endDate;
     }
 
-    public void setToDate( String toDate )
+    public void setEndDate( String endDate )
     {
-        this.toDate = toDate;
+        this.endDate = endDate;
     }
 
     public List<String> getDataSetIds()
