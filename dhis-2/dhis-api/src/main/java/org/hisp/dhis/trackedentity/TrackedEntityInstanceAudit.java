@@ -50,7 +50,7 @@ public class TrackedEntityInstanceAudit
 
     private int id;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private String trackedEntityInstance;
 
     private String comment;
     
@@ -66,6 +66,14 @@ public class TrackedEntityInstanceAudit
     
     public TrackedEntityInstanceAudit()
     {
+    }
+    
+    public TrackedEntityInstanceAudit( String trackedEntityInstance, String accessedBy, AuditType auditType )
+    {
+        this.trackedEntityInstance = trackedEntityInstance;
+        this.accessedBy = accessedBy;
+        this.created = new Date();
+        this.auditType = auditType;
     }
     
     @Override
@@ -112,12 +120,12 @@ public class TrackedEntityInstanceAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getTrackedEntityInstance()
+    public String getTrackedEntityInstance()
     {
         return trackedEntityInstance;
     }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public void setTrackedEntityInstance( String trackedEntityInstance )
     {
         this.trackedEntityInstance = trackedEntityInstance;
     }

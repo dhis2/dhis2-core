@@ -10,11 +10,11 @@
             <generator class="native"/>
         </id>
 
-        <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+        <!-- <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
                      column="trackedentityinstanceid"
-                     foreign-key="fk_trackedentityinstanceaudit_trackedentityinstanceid"/>
-
-        <property name="comment" length="50000"/>
+                     foreign-key="fk_trackedentityinstanceaudit_trackedentityinstanceid"/>-->
+                     
+        <property name="trackedEntityInstance"/>        
 
         <property name="created" type="timestamp"/>
 
@@ -27,6 +27,8 @@
                 <param name="type">12</param>
             </type>
         </property>
+        
+        <property name="comment" length="50000"/>
 
     </class>
 </hibernate-mapping>

@@ -45,13 +45,19 @@ public class DefaultTrackedEntityInstanceAuditService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
-    @Autowired
+    @Autowired 
     private TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+    
     
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceAuditService implementation
-    // -------------------------------------------------------------------------    
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    {
+        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );        
+    }
 
     @Override
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
@@ -64,5 +70,11 @@ public class DefaultTrackedEntityInstanceAuditService
         TrackedEntityInstanceAuditQueryParams params )
     {
         return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits( params );
+    }
+
+    @Override
+    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    {
+        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );
     }
 }

@@ -28,8 +28,6 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
-
 import java.util.List;
 
 /**
@@ -37,9 +35,16 @@ import java.util.List;
  *
  */
 public interface TrackedEntityInstanceAuditStore
-    extends GenericStore<TrackedEntityInstanceAudit>
 {    
     String ID = TrackedEntityInstanceAuditStore.class.getName();
+    
+    
+    /**
+     * Adds tracked entity instance audit
+     * 
+     * @param trackedEntityInstanceAudit the audit to add
+     */
+    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
     
     /**
      * Deletes tracked entity instance audit for the given tracked entity instance
@@ -55,4 +60,12 @@ public interface TrackedEntityInstanceAuditStore
      * @return matching TrackedEntityInstanceAudits
      */
     List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
+    
+    /**
+     * Returns count of tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params
+     * @return count of TrackedEntityInstanceAudits
+     */
+    int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
 }

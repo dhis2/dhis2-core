@@ -27,15 +27,15 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 import java.util.List;
@@ -45,50 +45,85 @@ import java.util.List;
  *
  */
 public class HibernateTrackedEntityInstanceAuditStore
-    extends HibernateGenericStore<TrackedEntityInstanceAudit>
     implements TrackedEntityInstanceAuditStore
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
     
+    private SessionFactory sessionFactory;
+
+    public void setSessionFactory( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
+    }
+    
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceAuditService implementation
     // -------------------------------------------------------------------------
 
     @Override
+    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    {
+        sessionFactory.getCurrentSession().save( trackedEntityInstanceAudit );        
+    }
+    
+    @Override
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
     {
         String hql = "delete TrackedEntityInstanceAudit where trackedEntityInstance = :trackedEntityInstance";
-        getSession().createQuery( hql ).setParameter( "trackedEntityInstance", trackedEntityInstance ).executeUpdate();        
+        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "trackedEntityInstance", trackedEntityInstance ).executeUpdate();        
     }
 
     @Override
     @SuppressWarnings( "unchecked" )    
     public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params )
-    {
-        SqlHelper hlp = new SqlHelper();
-
-        String hql = "select t from TrackedEntityInstanceAudit t ";
+    {        
+        Criteria criteria = getTrackedEntityInstanceAuditCriteria( params );
+        criteria.addOrder( Order.desc( "created" ) );
         
-        if( params.hasTrackedEntityInstances() )
+        if( !params.isSkipPaging() )
         {
-            hql += hlp.whereAnd() + " t.trackedEntityInstance.uid in (" + getQuotedCommaDelimitedString( getUids( params.getTrackedEntityInstances() ) ) + ") ";
+            criteria.setFirstResult( params.getFirst() );
+            criteria.setMaxResults( params.getMax() );
         }
         
+
+        return criteria.list();
+    }
+
+    @Override
+    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    {
+        return ((Number) getTrackedEntityInstanceAuditCriteria( params )
+            .setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
+    }
+    
+    private Criteria getTrackedEntityInstanceAuditCriteria( TrackedEntityInstanceAuditQueryParams params )
+    {        
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( TrackedEntityInstanceAudit.class );
+
+        if ( params.hasTrackedEntityInstances() )
+        {
+            criteria.add( Restrictions.in( "trackedEntityInstance", params.getTrackedEntityInstances() ) );
+        }
+        
+        if( params.hasUsers() )
+        {
+            criteria.add( Restrictions.in( "accessedBy", params.getUsers() ) );
+        }
+
         if ( params.hasStartDate() )
         {
-            hql += hlp.whereAnd() + " t.created >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            criteria.add(  Restrictions.ge( "created", getMediumDateString( params.getStartDate() ) ) );
         }
 
         if ( params.hasEndDate() )
         {
-            hql += hlp.whereAnd() + " t.created <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            criteria.add(  Restrictions.le( "created", getMediumDateString( params.getEndDate() ) ) );
         }
-        
-        hql += "order by t.trackedEntityInstance, t.created";
-        
-        return getQuery( hql ).list();
-    }
 
+        return criteria;
+
+    }    
 }

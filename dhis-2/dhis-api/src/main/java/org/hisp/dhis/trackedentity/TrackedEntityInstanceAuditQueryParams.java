@@ -41,7 +41,12 @@ public class TrackedEntityInstanceAuditQueryParams
     /**
      * Tracked entity instances to fetch audits for
      */
-    private Set<TrackedEntityInstance> trackedEntityInstances = new HashSet<>();
+    private Set<String> trackedEntityInstances = new HashSet<>();
+    
+    /**
+     * Users to fetch audits for
+     */
+    private Set<String> users = new HashSet<>();
 
     /**
      * Starting date.
@@ -52,6 +57,21 @@ public class TrackedEntityInstanceAuditQueryParams
      * Ending date.
      */
     private Date endDate = null;
+    
+    /**
+     * Tracked entity instance audit count start
+     */
+    private int first;
+    
+    /**
+     * Tracked entity instance audit count end
+     */
+    private int max;    
+
+    /**
+     * Traked entity instance audit skip paging or not
+     */
+    private boolean skipPaging;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -69,6 +89,11 @@ public class TrackedEntityInstanceAuditQueryParams
     {
         return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
     }
+    
+    public boolean hasUsers()
+    {
+        return users != null && !users.isEmpty();
+    }
 
     public boolean hasStartDate()
     {
@@ -84,14 +109,24 @@ public class TrackedEntityInstanceAuditQueryParams
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public Set<TrackedEntityInstance> getTrackedEntityInstances()
+    public Set<String> getTrackedEntityInstances()
     {
         return trackedEntityInstances;
     }
 
-    public void setTrackedEntityInstances( Set<TrackedEntityInstance> trackedEntityInstances )
+    public void setTrackedEntityInstances( Set<String> trackedEntityInstances )
     {
         this.trackedEntityInstances = trackedEntityInstances;
+    }    
+
+    public Set<String> getUsers()
+    {
+        return users;
+    }
+
+    public void setUsers( Set<String> users )
+    {
+        this.users = users;
     }
 
     public Date getStartDate()
@@ -112,5 +147,35 @@ public class TrackedEntityInstanceAuditQueryParams
     public void setEndDate( Date endDate )
     {
         this.endDate = endDate;
+    }
+
+    public int getFirst()
+    {
+        return first;
+    }
+
+    public void setFirst( int first )
+    {
+        this.first = first;
+    }
+
+    public int getMax()
+    {
+        return max;
+    }
+
+    public void setMax( int max )
+    {
+        this.max = max;
+    }    
+
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public void setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
     }
 }
