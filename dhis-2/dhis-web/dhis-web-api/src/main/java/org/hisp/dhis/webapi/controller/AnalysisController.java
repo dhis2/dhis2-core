@@ -278,8 +278,8 @@ public class AnalysisController
         }
 
         Collection<Period> periods = periodService
-            .getPeriodsBetweenDates( format.parseDate( stdDevOutlierAnalysisParams.getFromDate() ),
-                format.parseDate( stdDevOutlierAnalysisParams.getToDate() ) );
+            .getPeriodsBetweenDates( format.parseDate( stdDevOutlierAnalysisParams.getStartDate() ),
+                format.parseDate( stdDevOutlierAnalysisParams.getEndDate() ) );
 
         Set<DataElement> dataElements = new HashSet<>();
 
@@ -288,11 +288,11 @@ public class AnalysisController
             dataElements.addAll( dataSetService.getDataSet( uid ).getDataElements() );
         }
 
-        Date from = new DateTime( format.parseDate( stdDevOutlierAnalysisParams.getFromDate() ) ).minusYears( 2 )
+        Date from = new DateTime( format.parseDate( stdDevOutlierAnalysisParams.getStartDate() ) ).minusYears( 2 )
             .toDate();
 
-        log.info( "From date: " + stdDevOutlierAnalysisParams.getFromDate() + ", To date: " +
-            stdDevOutlierAnalysisParams.getToDate() + ", Organisation unit: " + organisationUnit
+        log.info( "From date: " + stdDevOutlierAnalysisParams.getStartDate() + ", To date: " +
+            stdDevOutlierAnalysisParams.getEndDate() + ", Organisation unit: " + organisationUnit
             + ", Std dev: " + stdDevOutlierAnalysisParams.getStandardDeviation() );
 
         log.info( "Nr of data elements: " + dataElements.size() + " Nr of periods: " + periods.size() +
@@ -326,8 +326,8 @@ public class AnalysisController
         }
 
         Collection<Period> periods = periodService
-            .getPeriodsBetweenDates( format.parseDate( minMaxOutlierAnalysisParams.getFromDate() ),
-                format.parseDate( minMaxOutlierAnalysisParams.getToDate() ) );
+            .getPeriodsBetweenDates( format.parseDate( minMaxOutlierAnalysisParams.getStartDate() ),
+                format.parseDate( minMaxOutlierAnalysisParams.getEndDate() ) );
 
         Set<DataElement> dataElements = new HashSet<>();
 
@@ -339,11 +339,11 @@ public class AnalysisController
             }
         }
 
-        Date from = new DateTime( format.parseDate( minMaxOutlierAnalysisParams.getFromDate() ) ).minusYears( 2 )
+        Date from = new DateTime( format.parseDate( minMaxOutlierAnalysisParams.getStartDate() ) ).minusYears( 2 )
             .toDate();
 
-        log.info( "From date: " + minMaxOutlierAnalysisParams.getFromDate() + ", To date: " +
-            minMaxOutlierAnalysisParams.getToDate() + ", Organisation unit: " + organisationUnit );
+        log.info( "From date: " + minMaxOutlierAnalysisParams.getStartDate() + ", To date: " +
+            minMaxOutlierAnalysisParams.getEndDate() + ", Organisation unit: " + organisationUnit );
 
         log.info( "Nr of data elements: " + dataElements.size() + " Nr of periods: " + periods.size() +
             " for Min Max Outlier Analysis" );
@@ -376,10 +376,10 @@ public class AnalysisController
         Date startDate = null;
         Date endDate = null;
 
-        if ( followupAnalysisParams.getFromDate() != null && followupAnalysisParams.getToDate() != null )
+        if ( followupAnalysisParams.getStartDate() != null && followupAnalysisParams.getEndDate() != null )
         {
-            startDate = new DateTime( format.parseDate( followupAnalysisParams.getFromDate() ) ).toDate();
-            endDate = new DateTime( format.parseDate( followupAnalysisParams.getToDate() ) ).toDate();
+            startDate = new DateTime( format.parseDate( followupAnalysisParams.getStartDate() ) ).toDate();
+            endDate = new DateTime( format.parseDate( followupAnalysisParams.getEndDate() ) ).toDate();
         }
 
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService

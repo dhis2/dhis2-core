@@ -30,9 +30,9 @@ package org.hisp.dhis.analysis;
 
 public class FollowupAnalysisParams
 {
-    private String fromDate;
+    private String startDate;
 
-    private String toDate;
+    private String endDate;
 
     private String organisationUnitId;
 
@@ -44,30 +44,30 @@ public class FollowupAnalysisParams
 
     public FollowupAnalysisParams( String startDate, String endDate, String organisationUnitId, String dataSetId )
     {
-        this.fromDate = startDate;
-        this.toDate = endDate;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.organisationUnitId = organisationUnitId;
         this.dataSetId = dataSetId;
     }
 
-    public String getFromDate()
+    public String getStartDate()
     {
-        return fromDate;
+        return startDate;
     }
 
-    public void setFromDate( String startDate )
+    public void setStartDate( String startDate )
     {
-        this.fromDate = startDate;
+        this.startDate = startDate;
     }
 
-    public String getToDate()
+    public String getEndDate()
     {
-        return toDate;
+        return endDate;
     }
 
-    public void setToDate( String endDate )
+    public void setEndDate( String endDate )
     {
-        this.toDate = endDate;
+        this.endDate = endDate;
     }
 
     public String getOrganisationUnitId()
