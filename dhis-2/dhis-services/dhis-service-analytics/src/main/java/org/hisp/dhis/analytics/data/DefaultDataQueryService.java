@@ -367,7 +367,7 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
             }
 
-            TreeMap<Integer, List<Period>> periodTypeListHashMap = new TreeMap<>( );
+            Map<Integer, List<Period>> periodTypeListHashMap = new TreeMap<>( );
             for ( IdentifiableObject object : periods )
             {
                 Period period = (Period) object;
