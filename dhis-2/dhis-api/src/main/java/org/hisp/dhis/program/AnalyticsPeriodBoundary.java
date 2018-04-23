@@ -156,7 +156,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     @Override
     public int hashCode()
     {
-        return 31 * super.hashCode() + Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, getOffsetPeriodsInt() );
+        return 31 * Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, getOffsetPeriodsInt() );
     }
 
     @Override
@@ -167,10 +167,6 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
             return true;
         }
         if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-        if ( !super.equals( obj ) )
         {
             return false;
         }

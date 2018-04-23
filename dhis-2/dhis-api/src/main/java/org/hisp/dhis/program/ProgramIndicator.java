@@ -284,10 +284,10 @@ public class ProgramIndicator
      */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsType == AnalyticsType.EVENT && 
-            !this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
+        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
+            !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
             this.analyticsType == AnalyticsType.ENROLLMENT && 
-            !this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
+            !this.analyticsPeriodBoundaries.containsAll( defaultErollmentTypeBoundaries ) );
     }
     
     /**
