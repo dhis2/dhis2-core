@@ -41,6 +41,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.joda.time.DateTime;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -108,7 +109,8 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         
         if ( analyticsPeriodBoundaryType.isEndBoundary() )
         {
-            returnDate = new Date( reportingEndDate.getTime() );
+            DateTime reportingEndDateTime = new DateTime(reportingEndDate);
+            returnDate = reportingEndDateTime.plusDays(1).toDate();
         }
         else
         {
@@ -145,7 +147,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
-        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? "<=" : ">=" ) +
+        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? "<" : ">=" ) +
             " cast( '" + format.format( getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
     }
     
