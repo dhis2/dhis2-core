@@ -41,6 +41,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.joda.time.DateTime;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -108,7 +109,8 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         
         if ( analyticsPeriodBoundaryType.isEndBoundary() )
         {
-            returnDate = new Date( reportingEndDate.getTime() );
+            DateTime reportingEndDateTime = new DateTime(reportingEndDate);
+            returnDate = reportingEndDateTime.plusDays(1).toDate();
         }
         else
         {
@@ -117,7 +119,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         
         if ( offsetPeriods != null && offsetPeriodType != null )
         {
-           returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, this.offsetPeriods );
+           returnDate = this.offsetPeriodType.getDateWithOffset( returnDate, getOffsetPeriodsInt() );
         }
         
         return returnDate;
@@ -145,7 +147,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
-        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? "<=" : ">=" ) +
+        return column + " " + ( analyticsPeriodBoundaryType.isEndBoundary() ? "<" : ">=" ) +
             " cast( '" + format.format( getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
     }
     
@@ -156,7 +158,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     @Override
     public int hashCode()
     {
-        return 31 * super.hashCode() + Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, this.offsetPeriods );
+        return 31 * Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, getOffsetPeriodsInt() );
     }
 
     @Override
@@ -170,17 +172,13 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
         {
             return false;
         }
-        if ( !super.equals( obj ) )
-        {
-            return false;
-        }
 
         final AnalyticsPeriodBoundary other = (AnalyticsPeriodBoundary) obj;
 
         return Objects.equals( this.boundaryTarget, other.boundaryTarget )
             && Objects.equals( this.analyticsPeriodBoundaryType, other.analyticsPeriodBoundaryType )
             && Objects.equals( this.offsetPeriodType, other.offsetPeriodType )
-            && Objects.equals( this.offsetPeriods, other.offsetPeriods );
+            && Objects.equals( this.getOffsetPeriodsInt(), other.getOffsetPeriodsInt() );
     }
 
     // -------------------------------------------------------------------------
@@ -231,6 +229,11 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     public Integer getOffsetPeriods()
     {
         return offsetPeriods;
+    }
+    
+    public int getOffsetPeriodsInt()
+    {
+        return offsetPeriods == null ? 0 : offsetPeriods;
     }
 
     public void setOffsetPeriods( Integer offsetPeriods )
