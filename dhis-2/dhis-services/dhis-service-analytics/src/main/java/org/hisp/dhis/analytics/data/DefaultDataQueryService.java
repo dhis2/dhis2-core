@@ -370,7 +370,7 @@ public class DefaultDataQueryService
             }
 
             for ( Period period : periods )
-            {git st
+            {
                 String name = format != null ? format.formatPeriod( period ) : null;
                 if ( !period.getPeriodType().getName().contains( WeeklyPeriodType.NAME ) )
                 {
