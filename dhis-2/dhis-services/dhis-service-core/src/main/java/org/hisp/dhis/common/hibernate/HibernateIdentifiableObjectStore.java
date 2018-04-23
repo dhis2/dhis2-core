@@ -35,7 +35,6 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
@@ -51,6 +50,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.hibernate.JpaUtils;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -69,7 +69,6 @@ import org.springframework.util.Assert;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
@@ -575,13 +574,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        JpaQueryParameters param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addOrder( root -> builder.asc( root.get( "lastUpdated" )  ) );
 
-        predicates.addAll( getSharingPredicates( builder ) );
-
-        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.asc( root.get( "lastUpdated" ) );
-
-        return getList( builder, predicates, order, first, max );
+        return getList( builder, param );
     }
 
     @Override
@@ -589,15 +586,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        JpaQueryParameters param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root ->  builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
-        predicates.addAll( getSharingPredicates( builder ) );
-
-        predicates.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" ) );
-
-        Function<Root<T>,Expression<Long>> countExpression = root -> builder.countDistinct( root.get( "id" ) );
-
-        return count( builder, predicates, countExpression  ).intValue();
+        return count( builder, param ).intValue();
     }
 
     @Override
@@ -605,15 +599,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        JpaQueryParameters param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
-        predicates.addAll( getSharingPredicates( builder ) );
-
-        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) ) ;
-
-        Function<Root<T>,Expression<Long>> countExpression = root -> builder.countDistinct( root.get( "id" ) );
-
-        return count( builder, predicates, countExpression  ).intValue();
+        return count( builder, param ).intValue();
     }
 
     @Override
@@ -621,15 +612,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        JpaQueryParameters param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) )
+            .addOrder( root -> builder.desc( root.get( "lastUpdated" ) ) );
 
-        predicates.addAll( getSharingPredicates( builder ) );
-
-        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) ) ;
-
-        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.desc( root.get( "lastUpdated" ) );
-
-        return getList( builder, predicates, order );
+        return getList( builder, param );
     }
 
     @Override
@@ -637,15 +625,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        JpaQueryParameters param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
-        predicates.addAll( getSharingPredicates( builder ) );
-
-        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) ) ;
-
-        Function<Root<T>,Expression<Long>> countExpression = root -> builder.countDistinct( root.get( "id" ) );
-
-        return count( builder, predicates, countExpression  ).intValue();
+        return count( builder, param ).intValue();
     }
 
     @Override
@@ -653,15 +638,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        JpaQueryParameters param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
-        predicates.addAll( getSharingPredicates( builder ) );
-
-        predicates.add( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) ) ;
-
-        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.desc( root.get( "created" ) );
-
-        return getList( builder, predicates, order );
+        return getList( builder, param );
     }
 
     @Override
@@ -669,15 +651,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+        JpaQueryParameters param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.lessThanOrEqualTo( root.get( "created" ), created ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
-        predicates.addAll( getSharingPredicates( builder ) );
-
-        predicates.add( root -> builder.lessThanOrEqualTo( root.get( "created" ), created ) ) ;
-
-        Function<Root<T>, javax.persistence.criteria.Order> order = root -> builder.desc( root.get( "created" ) );
-
-        return getList( builder, predicates, order );
+        return getList( builder, param );
     }
 
     @Override
@@ -685,31 +664,38 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-
-        return (Date) getClazzCriteria().setProjection( Projections.property( "lastUpdated" ) )
-            .addOrder( Order.desc( "lastUpdated" ) )
+        JpaQueryParameters param = new JpaQueryParameters<T>()
             .setMaxResults( 1 )
-            .setCacheable( true ).uniqueResult();
+            .addOrder( root -> builder.desc( root.get( "lastUpdated"  ) ) )
+            .setCachable( true );
+
+        return getObjectProperty( builder,"lastUpdated", Date.class, param );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByDataDimension( boolean dataDimension )
     {
-        return getSharingCriteria()
-            .add( Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) )
+            .addPredicates( getSharingPredicates( builder ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByDataDimensionNoAcl( boolean dataDimension )
     {
-        return getCriteria()
-            .add( Restrictions.eq( "dataDimension", dataDimension ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getById( Collection<Integer> ids )
     {
         if ( ids == null || ids.isEmpty() )
@@ -717,11 +703,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "id", ids ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "id" ).in( ids ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByUid( Collection<String> uids )
     {
         if ( uids == null || uids.isEmpty() )
@@ -729,11 +720,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "uid", uids ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByCode( Collection<String> codes )
     {
         if ( codes == null || codes.isEmpty() )
@@ -741,11 +737,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "code", codes ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "code" ).in( codes ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getByName( Collection<String> names )
     {
         if ( names == null || names.isEmpty() )
@@ -753,11 +754,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        return getSharingCriteria().add( Restrictions.in( "name", names ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "name" ).in( names ) );
+
+        return getList( builder, jpaQueryParameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<T> getAllNoAcl()
     {
         return super.getAll();

@@ -44,7 +44,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -56,7 +55,6 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
@@ -322,6 +320,10 @@ public class HibernateGenericStore<T>
         return getTypedQuery( builder, predicateProviders, null, null, null );
     }
 
+    protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
+    {
+        return getTypedQuery( builder, parameters ).getResultList();
+    }
 
     protected final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders, List<Function<Root<T>, Order>> orderProviders, Integer firstResult, Integer maxResult )
     {
@@ -345,14 +347,56 @@ public class HibernateGenericStore<T>
 
         TypedQuery<T> typedQuery = getExecutableTypedQuery( query );
 
-        if ( ObjectUtils.allNonNull( firstResult, maxResult ) )
+        if ( firstResult!= null )
         {
             typedQuery.setFirstResult( firstResult );
+        }
+
+        if ( maxResult != null )
+        {
             typedQuery.setMaxResults( maxResult );
         }
 
         return typedQuery;
     }
+
+    protected final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, JpaQueryParameters parameters )
+    {
+        List<Function<Root<T>, Predicate>> predicateProviders = parameters.getPredicates();
+        List<Function<Root<T>, Order>> orderProviders = parameters.getOrders();
+        preProcessPredicates( builder, predicateProviders );
+
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root );
+
+        if ( !predicateProviders.isEmpty() )
+        {
+            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+            query.where( predicates.toArray( new Predicate[0] ) );
+        }
+
+        if ( !orderProviders.isEmpty() )
+        {
+            List<Order> orders = orderProviders.stream().map( o -> o.apply( root ) ).collect( Collectors.toList() );
+            query.orderBy( orders );
+        }
+
+        TypedQuery<T> typedQuery = getExecutableTypedQuery( query );
+
+        if ( parameters.hasFirstResult() )
+        {
+            typedQuery.setFirstResult( parameters.getFirstResult() );
+        }
+
+        if ( parameters.hasMaxResult() )
+        {
+            typedQuery.setMaxResults( parameters.getMaxResults() );
+        }
+
+        return typedQuery;
+    }
+
 
     protected  final Long count( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders, Function<Root<T>, Expression<Long>> countExpression )
     {
@@ -373,12 +417,25 @@ public class HibernateGenericStore<T>
         return getCurrentSession().createQuery( query ).getSingleResult();
     }
 
-    protected final <Y> Y getObjectProperty( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders, String property, Class<Y> propertyClass )
+    protected  final Long count( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
     {
-        CriteriaQuery<Y> query = builder.createQuery(  propertyClass );
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
         Root<T> root = query.from( getClazz() );
+        List<Function<Root<T>, Predicate>> predicateProviders = parameters.getPredicates();
 
-        query.select( root.get( property ) );
+        List<Function<Root<T>, Expression<Long>>> countExpressions = parameters.getCountExpressions();
+
+        if ( !countExpressions.isEmpty() )
+        {
+            if ( countExpressions.size() > 1 )
+            {
+                query.multiselect( countExpressions.stream().map( c -> c.apply( root ) ).collect( Collectors.toList()) ) ;
+            }
+            else
+            {
+                query.select( countExpressions.get( 0 ).apply( root ) );
+            }
+        }
 
         if ( predicateProviders != null && !predicateProviders.isEmpty() )
         {
@@ -386,7 +443,28 @@ public class HibernateGenericStore<T>
             query.where( predicates.toArray( new Predicate[0] ) );
         }
 
-        return getSingleResult( getCurrentSession().createQuery( query ) );
+        return getCurrentSession().createQuery( query ).getSingleResult();
+    }
+
+    protected final <Y> Y getObjectProperty( CriteriaBuilder builder, String property, Class<Y> propertyClass, JpaQueryParameters<T> parameters )
+    {
+        CriteriaQuery<Y> query = builder.createQuery(  propertyClass );
+        Root<T> root = query.from( getClazz() );
+
+        query.select( root.get( property ) );
+
+        List<Function<Root<T>, Predicate>> predicateProviders = parameters.getPredicates();
+
+        if ( !predicateProviders.isEmpty() )
+        {
+            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+            query.where( predicates.toArray( new Predicate[0] ) );
+        }
+
+        TypedQuery<Y> typedQuery = getCurrentSession().createQuery( query );
+        typedQuery.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, parameters.isCachable() );
+
+        return getSingleResult( typedQuery );
     }
 
     //------------------------------------------------------------------------------------------

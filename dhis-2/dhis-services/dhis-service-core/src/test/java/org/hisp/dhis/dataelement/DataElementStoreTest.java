@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -471,5 +472,21 @@ public class DataElementStoreTest
         assertNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID1" ) );
         assertNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID2" ) );
         assertNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID3" ) );
+    }
+
+    @Test
+    public void testGetLastUpdated()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+
+        dataElementStore.save( dataElementA );
+        Date lastUpdated = dataElementA.getLastUpdated();
+
+        dataElementA.setDescription( "test" );
+
+        dataElementStore.update( dataElementA );
+
+        assertNotNull( dataElementStore.getLastUpdated() );
+        assertNotEquals( lastUpdated, dataElementStore.getLastUpdated() );
     }
 }

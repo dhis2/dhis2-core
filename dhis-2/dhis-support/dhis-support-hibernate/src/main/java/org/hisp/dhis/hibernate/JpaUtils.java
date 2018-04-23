@@ -114,7 +114,7 @@ public class JpaUtils
         return (Path<F>) path;
     }
 
-    public <E> Predicate stringPredicate( Expression<String> path, Object attrValue, StringSearchMode searchMode, QueryParameters sp, CriteriaBuilder builder )
+    public <E> Predicate stringPredicate( Expression<String> path, Object attrValue, StringSearchMode searchMode, JpaQueryParameters sp, CriteriaBuilder builder )
     {
         if ( !sp.isCaseSensitive() )
         {

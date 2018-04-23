@@ -30,6 +30,7 @@ package org.hisp.dhis.hibernate;
  *
  */
 
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -42,38 +43,90 @@ import java.util.function.Function;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class QueryParameters implements Serializable
+public class JpaQueryParameters<T> implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
     // pagination
-    private int maxResults = -1;
-    private int first = 0;
-    private int pageSize = 0;
+    private int maxResults ;
+    private int firstResult ;
+    private int pageSize;
 
     // query properties
     private boolean caseSensitive = true;
 
     private boolean useDistinct = false;
 
+    private boolean cachable = false;
+
     // select attributes
     private List<Attribute<?,?>> attributes = new ArrayList<>();
 
-    private List<Function<Root<?>, Predicate>> predicates = new ArrayList<>();
+    private List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    private List<Function<Root<?>, Order>> orders = new ArrayList<>();
+    private List<Function<Root<T>, Order>> orders = new ArrayList<>();
 
-    protected Class<?> clazz;
+    private List<Function<Root<T>, Expression<Long>>> countExpressions = new ArrayList<>();
+
+    protected Class clazz;
 
     private StringSearchMode searchMode;
 
     private Predicate predicate;
 
+    private boolean withSharing = false;
+
     private Order order;
+
+    public JpaQueryParameters()
+    {
+        firstResult = -1;
+        maxResults = -1;
+    }
 
     // -----------------------------
     // Supporting methods
     // -----------------------------
+
+    public JpaQueryParameters<T> addPredicate( Function<Root<T>, Predicate> predicate )
+    {
+        predicates.add( predicate );
+        return this;
+    }
+
+    public JpaQueryParameters<T> addPredicates( List<Function<Root<T>, Predicate>> predicates )
+    {
+        predicates.addAll( predicates );
+        return this;
+    }
+
+    public JpaQueryParameters<T> addOrder( Function<Root<T>, Order> order )
+    {
+        orders.add( order );
+        return this;
+    }
+
+    public JpaQueryParameters<T> count( Function<Root<T>, Expression<Long>> countExpression )
+    {
+        countExpressions.add( countExpression );
+        return this;
+    }
+
+    public boolean hasPaging()
+    {
+        return firstResult > -1 && maxResults > -1 ;
+    }
+
+    public boolean hasFirstResult()
+    {
+        return firstResult > -1 ;
+    }
+
+    public boolean hasMaxResult()
+    {
+        return maxResults > -1;
+    }
+
 
     // -----------------------------
     // Getters & Setters
@@ -89,22 +142,23 @@ public class QueryParameters implements Serializable
 
     public int getMaxResults()
     {
-        return this.maxResults;
+        return maxResults >= 0 ? maxResults : 0;
     }
 
-    public void setMaxResults( int maxResults )
+    public JpaQueryParameters<T> setMaxResults( int maxResults )
     {
         this.maxResults = maxResults;
+        return this;
     }
 
-    public int getFirst()
+    public int getFirstResult()
     {
-        return this.first;
+        return firstResult;
     }
 
-    public void setFirst( int first )
+    public void setFirstResult( int firstResult )
     {
-        this.first = first;
+        this.firstResult = firstResult;
     }
 
     public int getPageSize()
@@ -177,23 +231,55 @@ public class QueryParameters implements Serializable
         this.order = order;
     }
 
-    public List<Function<Root<?>, Predicate>> getPredicates()
+    public List<Function<Root<T>, Predicate>> getPredicates()
     {
-        return this.predicates;
+        return predicates;
     }
 
-    public void setPredicates( List<Function<Root<?>, Predicate>> predicates )
+    public void setPredicates( List<Function<Root<T>, Predicate>> predicates )
     {
         this.predicates = predicates;
     }
 
-    public List<Function<Root<?>, Order>> getOrders()
+    public List<Function<Root<T>, Order>> getOrders()
     {
-        return this.orders;
+        return orders;
     }
 
-    public void setOrders( List<Function<Root<?>, Order>> orders )
+    public void setOrders( List<Function<Root<T>, Order>> orders )
     {
         this.orders = orders;
+    }
+
+    public boolean isCachable()
+    {
+        return this.cachable;
+    }
+
+    public JpaQueryParameters<T> setCachable( boolean cachable )
+    {
+        this.cachable = cachable;
+        return this;
+    }
+
+    public boolean isWithSharing()
+    {
+        return withSharing;
+    }
+
+    public JpaQueryParameters<T> setWithSharing( boolean withSharing )
+    {
+        this.withSharing = withSharing;
+        return this;
+    }
+
+    public List<Function<Root<T>, Expression<Long>>> getCountExpressions()
+    {
+        return countExpressions;
+    }
+
+    public void setCountExpressions( List<Function<Root<T>, Expression<Long>>> countExpressions )
+    {
+        this.countExpressions = countExpressions;
     }
 }
