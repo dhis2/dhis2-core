@@ -87,7 +87,6 @@ public class HibernateTrackedEntityInstanceAuditStore
             criteria.setFirstResult( params.getFirst() );
             criteria.setMaxResults( params.getMax() );
         }
-        
 
         return criteria.list();
     }
@@ -108,19 +107,24 @@ public class HibernateTrackedEntityInstanceAuditStore
             criteria.add( Restrictions.in( "trackedEntityInstance", params.getTrackedEntityInstances() ) );
         }
         
-        if( params.hasUsers() )
+        if ( params.hasUsers() )
         {
             criteria.add( Restrictions.in( "accessedBy", params.getUsers() ) );
+        }
+        
+        if ( params.hasAuditType() )
+        {
+            criteria.add( Restrictions.eq( "auditType", params.getAuditType() ) );
         }
 
         if ( params.hasStartDate() )
         {
-            criteria.add(  Restrictions.ge( "created", getMediumDateString( params.getStartDate() ) ) );
+            criteria.add(  Restrictions.ge( "created", params.getStartDate() ) );
         }
 
         if ( params.hasEndDate() )
         {
-            criteria.add(  Restrictions.le( "created", getMediumDateString( params.getEndDate() ) ) );
+            criteria.add(  Restrictions.le( "created", params.getEndDate() ) );
         }
 
         return criteria;
