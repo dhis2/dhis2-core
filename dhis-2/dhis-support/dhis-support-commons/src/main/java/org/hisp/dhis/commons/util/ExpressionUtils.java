@@ -167,7 +167,7 @@ public class ExpressionUtils
             
             return ( result instanceof Boolean );
         }
-        catch ( JexlException ex )
+        catch ( JexlException | NumberFormatException ex )
         {
             return false;
         }
@@ -189,7 +189,7 @@ public class ExpressionUtils
             
             return result != null;
         }
-        catch ( JexlException ex )
+        catch ( JexlException | NumberFormatException ex )
         {
             if ( ex.getMessage().contains( "divide error" ) )
             {
