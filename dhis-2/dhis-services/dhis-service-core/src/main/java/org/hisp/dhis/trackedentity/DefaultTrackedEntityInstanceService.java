@@ -244,6 +244,16 @@ public class DefaultTrackedEntityInstanceService
         String accessedBy = currentUserService.getCurrentUsername();
         
         Map<String, TrackedEntityType> trackedEntityTypes = new HashMap<String, TrackedEntityType>();
+        
+        if ( params.hasTrackedEntityType() )
+        {
+            trackedEntityTypes.put( params.getTrackedEntityType().getUid(), params.getTrackedEntityType() );
+        }
+        
+        if ( params.hasProgram() && params.getProgram().getTrackedEntityType() != null )
+        {
+            trackedEntityTypes.put( params.getProgram().getTrackedEntityType().getUid(), params.getProgram().getTrackedEntityType() );            
+        }
 
         Set<String> tes = new HashSet<>();
 
@@ -307,7 +317,7 @@ public class DefaultTrackedEntityInstanceService
 
             for ( String te : tes )
             {
-                TrackedEntityType entity = trackedEntityTypeService.getTrackedEntityType( te );
+                TrackedEntityType entity = trackedEntityTypes.get( te );
                 names.put( te, entity != null ? entity.getDisplayName() : null );
             }
 
