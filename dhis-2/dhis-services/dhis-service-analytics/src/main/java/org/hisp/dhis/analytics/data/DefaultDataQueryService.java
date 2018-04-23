@@ -28,7 +28,6 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -61,6 +60,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -73,9 +73,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -368,41 +366,18 @@ public class DefaultDataQueryService
 
             if ( queryContainsRelativePeriods )
             {
-                Map<Integer, List<Period>> periodTypeListHashMap = new TreeMap<>( );
-                for ( Period period : periods )
-                {
-                    List<Period> periodList = periodTypeListHashMap.get( period.getPeriodType().getFrequencyOrder() );
-                    if ( periodList == null )
-                    {
-                        periodList = Lists.newArrayList( period );
-                    }
-                    else
-                    {
-                        periodList.add( period );
-                    }
-
-                    periodTypeListHashMap.put( period.getPeriodType().getFrequencyOrder(), periodList );
-                }
-
-
-                List<Period> sortedPeriodList = new ArrayList<>( );
-                for ( Map.Entry<Integer, List<Period>> periodTypeListEntry : periodTypeListHashMap.entrySet() )
-                {
-                    List<Period> periodList = periodTypeListEntry.getValue();
-
-                    periodList.sort( new AscendingPeriodComparator() );
-
-                    sortedPeriodList.addAll( periodList );
-                }
-
-                periods = sortedPeriodList;
+                periods.sort( new AscendingPeriodComparator() );
             }
 
             for ( Period period : periods )
-            {
+            {git st
                 String name = format != null ? format.formatPeriod( period ) : null;
+                if ( !period.getPeriodType().getName().contains( WeeklyPeriodType.NAME ) )
+                {
+                    period.setShortName( name );
+                }
                 period.setName( name );
-                period.setShortName( name );
+
 
                 if ( !calendar.isIso8601() )
                 {
