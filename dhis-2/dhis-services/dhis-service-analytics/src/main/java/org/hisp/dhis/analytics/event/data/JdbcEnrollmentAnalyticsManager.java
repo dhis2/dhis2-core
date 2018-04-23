@@ -103,7 +103,7 @@ public class JdbcEnrollmentAnalyticsManager
             
             if ( params.getProgramIndicator().hasEventBoundary() )
             {
-                sql += sqlHelper.whereAnd() + "( select count * from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
+                sql += sqlHelper.whereAnd() + "( select count(*) from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
                     " where pi = enrollmenttable.pi " + 
                     ( params.getProgramIndicator().getEndEventBoundary() != null ? ( sqlHelper.whereAnd() + " " + 
                     params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + 
