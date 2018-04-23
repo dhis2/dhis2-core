@@ -144,21 +144,6 @@ public interface DataApprovalService
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns the data approval status for a given data set, period,
-     * organisation unit and attribute category combination.
-     * If attributeOptionCombo is null, the default option combo will be used.
-     * If data is approved at multiple levels, the lowest level is returned.
-     *
-     * @param workflow workflow to check for approval.
-     * @param period Period to check for approval.
-     * @param organisationUnit OrganisationUnit to check for approval.
-     * @param attributeOptionCombo CategoryOptionCombo (if any) for approval.
-     * @return the data approval status.
-     */
-    DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
-
-    /**
      * Returns the data approval status and permissions for a given data set,
      * period, organisation unit and attribute category combination.
      * If attributeOptionCombo is null, the default option combo will be used.
@@ -170,7 +155,7 @@ public interface DataApprovalService
      * @param attributeOptionCombo CategoryOptionCombo (if any) for approval.
      * @return the data approval status.
      */
-    DataApprovalStatus getDataApprovalStatusAndPermissions( DataApprovalWorkflow workflow, Period period,
+    DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**

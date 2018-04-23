@@ -60,7 +60,12 @@ public class TrackedEntityType
     /**
      * Property indicating maximum number of TEI to return after search
      */
-    private int maxTeiCountToReturn = 0;
+    private int maxTeiCountToReturn = 0;    
+    
+    /**
+     * Property indicating whether to allow (read) audit log or not
+     */
+    private boolean allowAuditLog;
     
     // -------------------------------------------------------------------------
     // Constructor
@@ -128,6 +133,18 @@ public class TrackedEntityType
     public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
     {
         this.maxTeiCountToReturn = maxTeiCountToReturn;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isAllowAuditLog()
+    {
+        return allowAuditLog;
+    }
+
+    public void setAllowAuditLog( boolean allowAuditLog )
+    {
+        this.allowAuditLog = allowAuditLog;
     }
     
     // -------------------------------------------------------------------------
