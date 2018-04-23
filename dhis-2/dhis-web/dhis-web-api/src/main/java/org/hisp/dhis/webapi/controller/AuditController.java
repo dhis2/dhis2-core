@@ -432,6 +432,7 @@ public class AuditController
     public @ResponseBody RootNode getTrackedEnityInstanceAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> tei,
         @RequestParam( required = false, defaultValue = "" ) List<String> user,
+        @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Boolean skipPaging,
@@ -451,6 +452,7 @@ public class AuditController
 
         params.setTrackedEntityInstances( new HashSet<>( tei ) );
         params.setUsers( new HashSet<>(  user ) );
+        params.setAuditType( auditType );
         params.setStartDate( startDate );
         params.setEndDate( endDate );
         params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );

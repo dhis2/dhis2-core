@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hisp.dhis.common.AuditType;
+
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  *
@@ -47,6 +49,11 @@ public class TrackedEntityInstanceAuditQueryParams
      * Users to fetch audits for
      */
     private Set<String> users = new HashSet<>();
+    
+    /**
+     * AuditType to fetch for
+     */
+    private AuditType auditType;
 
     /**
      * Starting date.
@@ -94,6 +101,11 @@ public class TrackedEntityInstanceAuditQueryParams
     {
         return users != null && !users.isEmpty();
     }
+    
+    public boolean hasAuditType()
+    {
+        return auditType != null;
+    }
 
     public boolean hasStartDate()
     {
@@ -127,6 +139,16 @@ public class TrackedEntityInstanceAuditQueryParams
     public void setUsers( Set<String> users )
     {
         this.users = users;
+    }    
+
+    public AuditType getAuditType()
+    {
+        return auditType;
+    }
+
+    public void setAuditType( AuditType auditType )
+    {
+        this.auditType = auditType;
     }
 
     public Date getStartDate()
