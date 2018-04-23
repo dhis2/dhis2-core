@@ -26,6 +26,8 @@
     <property name="minAttributesRequiredToSearch" />
 
     <property name="maxTeiCountToReturn" />
+    
+    <property name="allowAuditLog" />
 
     <list name="trackedEntityTypeAttributes" cascade="all-delete-orphan">
       <key column="trackedentitytypeid" />

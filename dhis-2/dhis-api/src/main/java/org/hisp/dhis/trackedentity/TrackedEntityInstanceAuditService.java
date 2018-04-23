@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.trackedentity;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,22 +28,45 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
  */
-public enum AuditType
+public interface TrackedEntityInstanceAuditService
 {
-    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" ), READ( "read" ), SEARCH( "search" );
+    
+    String ID = TrackedEntityInstanceAuditService.class.getName();
+    
+    /**
+     * Adds tracked entity instance audit
+     * 
+     * @param trackedEntityInstanceAudit the audit to add
+     */
+    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
+    
+    /**
+     * Deletes tracked entity instance audit for the given tracked entity instance
+     * 
+     * @param trackedEntityInstance the tracked entity instance
+     */
+    void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );    
+    
+    /**
+     * Returns tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params 
+     * @return matching TrackedEntityInstanceAudits
+     */
+    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
+    
+    /**
+     * Returns count of tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params
+     * @return count of TrackedEntityInstanceAudits
+     */
+    int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
 
-    private final String value;
-
-    AuditType( String value )
-    {
-        this.value = value;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
 }
