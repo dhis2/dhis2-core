@@ -123,7 +123,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         Matcher matcher = pattern.matcher( sms.getText() );
 
-        if ( !matcher.matches() )
+        if ( !matcher.find() )
         {
             sendFeedback(
                 StringUtils.defaultIfEmpty( smsCommand.getWrongFormatMessage(), SMSCommand.WRONG_FORMAT_MESSAGE ),

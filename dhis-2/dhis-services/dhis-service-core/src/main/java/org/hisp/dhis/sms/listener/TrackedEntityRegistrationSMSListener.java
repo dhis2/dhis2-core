@@ -146,11 +146,11 @@ public class TrackedEntityRegistrationSMSListener
                 null, null, patientAttributeValues );
         }
 
-        programInstanceService.enrollTrackedEntityInstance(
-            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
-            new Date(), date, orgUnit );
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId );
 
-        smsSender.sendMessage( null, "Tracked Entity Registered Successfully ", senderPhoneNumber );
+        programInstanceService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
+
+        smsSender.sendMessage( null, "Tracked Entity Registered Successfully with uid: " + tei.getUid(), senderPhoneNumber );
         
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
