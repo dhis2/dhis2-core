@@ -81,7 +81,8 @@ public class ProgramIndicator
     
     public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
-    public static final String SQL_FUNC_REGEXP = "d2:(.+?)\\((.*?)\\)";
+    public static final String SQL_FUNC_ARG_REGEXP = " *(([\"\\w/\\*\\+\\-%\\.\\<\\>\\= \\#\\{\\}]+)|('[^']*'))";
+    public static final String SQL_FUNC_REGEXP = "d2:(?<func>.+?)\\((?<args>" + SQL_FUNC_ARG_REGEXP + "*( *," + SQL_FUNC_ARG_REGEXP + ")* *)\\)";
     public static final String ARGS_SPLIT = ",";
     public static final String ATTRIBUTE_REGEX = KEY_ATTRIBUTE + "\\{(\\w{11})\\}";
     public static final String DATAELEMENT_REGEX = KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}";
@@ -283,10 +284,10 @@ public class ProgramIndicator
      */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsType == AnalyticsType.EVENT && 
-            !this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
+        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
+            !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
             this.analyticsType == AnalyticsType.ENROLLMENT && 
-            !this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
+            !this.analyticsPeriodBoundaries.containsAll( defaultErollmentTypeBoundaries ) );
     }
     
     /**
