@@ -28,18 +28,16 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 /**
  * @author Henning Håkonsen
@@ -50,19 +48,19 @@ public class MonitoringJobParameters
 {
     private static final long serialVersionUID = -1683853240301569669L;
 
-    @Property( required = FALSE )
+    @JsonProperty
     private int relativeStart;
 
-    @Property( required = FALSE )
+    @JsonProperty
     private int relativeEnd;
 
-    @Property( required = FALSE )
+    @JsonProperty
     private List<String> validationRuleGroups = new ArrayList<>();
 
-    @Property( required = FALSE )
+    @JsonProperty
     private boolean sendNotifications;
 
-    @Property( required = FALSE )
+    @JsonProperty
     private boolean persistResults;
 
     public MonitoringJobParameters()

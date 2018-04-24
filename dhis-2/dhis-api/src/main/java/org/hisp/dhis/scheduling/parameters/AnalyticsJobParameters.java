@@ -28,10 +28,10 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -44,13 +44,13 @@ public class AnalyticsJobParameters
 {
     private static final long serialVersionUID = 4613054056442242637L;
 
-    @Property
+    @JsonProperty
     private Integer lastYears = 0;
 
-    @Property
+    @JsonProperty
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>( );
 
-    @Property
+    @JsonProperty
     private boolean skipResourceTables = false;
 
     public AnalyticsJobParameters()
