@@ -85,6 +85,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getPeriodIdentifiers;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.reporttable.ReportTable.*;
@@ -727,7 +728,7 @@ public class DefaultEventAnalyticsService
         Calendar calendar = PeriodType.getCalendar();
         
         List<String> periodUids = calendar.isIso8601() ?
-            getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+            getPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), params.getDisplayProperty() ) :
             getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );        
 
         Map<String, List<String>> dimensionItems = new HashMap<>();
