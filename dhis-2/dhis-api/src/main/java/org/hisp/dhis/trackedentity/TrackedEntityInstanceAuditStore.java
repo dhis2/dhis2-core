@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.trackedentity;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,30 +28,44 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Function which evaluates conditional statements.
- * 
- * @author Lars Helge Overland
- */
-public class ConditionalSqlFunction
-    implements SqlFunction
-{
-    public static final String KEY = "condition";
+import java.util.List;
 
-    @Override
-    public String evaluate( String... args )
-    {
-        if ( args == null || args.length != 3 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 3 arguments: condition, true-value, false-value" );
-        }
-        
-        String condition = args[0];
-        String trueValue = args[1];
-        String falseValue = args[2];
-        
-        String conditional = condition.replaceAll( "^\"|^'|\"$|'$", "" ).replaceAll( "==", "=" );
-        
-        return "case when (" + conditional + ") then " + trueValue + " else " + falseValue + " end";
-    }
+/**
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
+ */
+public interface TrackedEntityInstanceAuditStore
+{    
+    String ID = TrackedEntityInstanceAuditStore.class.getName();
+    
+    
+    /**
+     * Adds tracked entity instance audit
+     * 
+     * @param trackedEntityInstanceAudit the audit to add
+     */
+    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
+    
+    /**
+     * Deletes tracked entity instance audit for the given tracked entity instance
+     * 
+     * @param trackedEntityInstance the tracked entity instance
+     */
+    void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );
+    
+    /**
+     * Returns tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params 
+     * @return matching TrackedEntityInstanceAudits
+     */
+    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
+    
+    /**
+     * Returns count of tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params
+     * @return count of TrackedEntityInstanceAudits
+     */
+    int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
 }
