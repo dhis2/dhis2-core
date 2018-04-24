@@ -448,7 +448,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         when( manager.getAll( ProgramNotificationTemplate.class ) )
             .thenReturn( Collections.singletonList( programNotificationTemplateForToday ) );
 
-        System.out.println( programNotificationTemplateForToday );
         programNotificationService.sendScheduledNotifications();
 
         assertEquals( 2, sentProgramMessages.size() );
