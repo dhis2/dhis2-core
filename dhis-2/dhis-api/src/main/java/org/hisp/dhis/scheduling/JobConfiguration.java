@@ -88,7 +88,7 @@ public class JobConfiguration
 
     private String userUid;
     
-    private boolean leaderOnlyJob = true;
+    private boolean leaderOnlyJob = false;
 
     public JobConfiguration()
     {
