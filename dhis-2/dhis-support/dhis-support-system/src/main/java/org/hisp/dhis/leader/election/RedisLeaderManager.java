@@ -51,17 +51,17 @@ public class RedisLeaderManager implements LeaderManager
 
     private String nodeId;
 
-    private Long timeToLive;
+    private Long timeToLiveSeconds;
 
     private SchedulingManager schedulingManager;
 
     private RedisTemplate<String, ?> redisTemplate;
 
-    public RedisLeaderManager( Long timeToLive, RedisTemplate<String, ?> redisTemplate )
+    public RedisLeaderManager( Long timeToLiveMinutes, RedisTemplate<String, ?> redisTemplate )
     {
         this.nodeId = UUID.randomUUID().toString();
         log.info( "Setting up redis based leader manager on NodeId:" + this.nodeId );
-        this.timeToLive = timeToLive;
+        this.timeToLiveSeconds = timeToLiveMinutes * 60;
         this.redisTemplate = redisTemplate;
     }
 
@@ -71,7 +71,7 @@ public class RedisLeaderManager implements LeaderManager
         if ( isLeader() )
         {
             log.debug( "Renewing leader with nodeId:" + this.nodeId );
-            redisTemplate.getConnectionFactory().getConnection().expire( key.getBytes(), timeToLive );
+            redisTemplate.getConnectionFactory().getConnection().expire( key.getBytes(), timeToLiveSeconds );
         }
     }
 
@@ -80,12 +80,12 @@ public class RedisLeaderManager implements LeaderManager
     {
         log.debug( "Election attempt by nodeId:" + this.nodeId );
         redisTemplate.getConnectionFactory().getConnection().set( key.getBytes(), nodeId.getBytes(),
-            Expiration.from( timeToLive, TimeUnit.SECONDS ), SetOption.SET_IF_ABSENT );
+            Expiration.from( timeToLiveSeconds, TimeUnit.SECONDS ), SetOption.SET_IF_ABSENT );
         if ( isLeader() )
         {
             renewLeader();
             Calendar calendar = Calendar.getInstance();
-            calendar.add( Calendar.SECOND, (int) (this.timeToLive / 2) );
+            calendar.add( Calendar.SECOND, (int) (this.timeToLiveSeconds / 2) );
             log.debug(
                 "Next leader renewal job for nodeId:" + this.nodeId + " set at " + calendar.getTime().toString() );
             schedulingManager.scheduleJob( () -> {
