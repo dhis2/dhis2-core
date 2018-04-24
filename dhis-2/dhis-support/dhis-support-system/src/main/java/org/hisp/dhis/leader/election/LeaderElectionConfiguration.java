@@ -65,7 +65,7 @@ public class LeaderElectionConfiguration
         throws NumberFormatException,
         Exception
     {
-        return new RedisBackedLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate );
+        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate );
     }
 
     @Bean

@@ -43,11 +43,11 @@ import org.springframework.data.redis.core.types.Expiration;
  * 
  * @author Ameen Mohamed
  */
-public class RedisBackedLeaderManager implements LeaderManager
+public class RedisLeaderManager implements LeaderManager
 {
     private static final String key = "dhis2:leader";
 
-    private static final Log log = LogFactory.getLog( RedisBackedLeaderManager.class );
+    private static final Log log = LogFactory.getLog( RedisLeaderManager.class );
 
     private String nodeId;
 
@@ -57,7 +57,7 @@ public class RedisBackedLeaderManager implements LeaderManager
 
     private RedisTemplate<String, ?> redisTemplate;
 
-    public RedisBackedLeaderManager( Long timeToLive, RedisTemplate<String, ?> redisTemplate )
+    public RedisLeaderManager( Long timeToLive, RedisTemplate<String, ?> redisTemplate )
     {
         this.nodeId = UUID.randomUUID().toString();
         log.info( "Setting up redis based leader manager on NodeId:" + this.nodeId );
@@ -70,7 +70,7 @@ public class RedisBackedLeaderManager implements LeaderManager
     {
         if ( isLeader() )
         {
-            log.info( "Renewing leader with nodeId:" + this.nodeId );
+            log.debug( "Renewing leader with nodeId:" + this.nodeId );
             redisTemplate.getConnectionFactory().getConnection().expire( key.getBytes(), timeToLive );
         }
     }
@@ -78,7 +78,7 @@ public class RedisBackedLeaderManager implements LeaderManager
     @Override
     public void electLeader()
     {
-        log.info( "Election attempt by nodeId:" + this.nodeId );
+        log.debug( "Election attempt by nodeId:" + this.nodeId );
         redisTemplate.getConnectionFactory().getConnection().set( key.getBytes(), nodeId.getBytes(),
             Expiration.from( timeToLive, TimeUnit.SECONDS ), SetOption.SET_IF_ABSENT );
         if ( isLeader() )
@@ -86,7 +86,7 @@ public class RedisBackedLeaderManager implements LeaderManager
             renewLeader();
             Calendar calendar = Calendar.getInstance();
             calendar.add( Calendar.SECOND, (int) (this.timeToLive / 2) );
-            log.info(
+            log.debug(
                 "Next leader renewal job for nodeId:" + this.nodeId + " set at " + calendar.getTime().toString() );
             schedulingManager.scheduleJob( () -> {
                 this.renewLeader();

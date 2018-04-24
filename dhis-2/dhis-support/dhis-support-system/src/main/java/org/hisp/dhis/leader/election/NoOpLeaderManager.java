@@ -71,7 +71,7 @@ public class NoOpLeaderManager implements LeaderManager
     @Override
     public boolean isLeader()
     {
-        return false;
+        return true;
     }
 
     @Override
