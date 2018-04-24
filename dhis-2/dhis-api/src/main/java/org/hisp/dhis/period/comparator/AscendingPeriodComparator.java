@@ -53,6 +53,6 @@ public class AscendingPeriodComparator
         int freqCompare = Integer.compare( a.getFrequencyOrder(), b.getFrequencyOrder() );
         int nameCompare = a.getName().compareTo( b.getName() );
 
-        return freqCompare == 0 ? nameCompare == 0 ?  period1.getStartDate().compareTo(period2.getStartDate() ) : nameCompare : freqCompare;
+        return freqCompare == 0 ? ( nameCompare == 0 ? period1.getStartDate().compareTo(period2.getStartDate() ) : nameCompare ) : freqCompare;
     }
 }
