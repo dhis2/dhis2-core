@@ -84,7 +84,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -116,6 +115,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
 
 /**
@@ -827,8 +827,8 @@ public class EventController
             EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
-        JacksonUtils.fromObjectToReponse( response, jobId );
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
+        webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
     private boolean fieldsContains( String match, List<String> fields )

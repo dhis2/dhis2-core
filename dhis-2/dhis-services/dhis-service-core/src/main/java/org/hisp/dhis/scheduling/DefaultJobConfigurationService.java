@@ -142,7 +142,7 @@ public class DefaultJobConfigurationService
             for ( Field field : clazz.getDeclaredFields() )
             {
                 if ( Arrays.stream( field.getAnnotations() )
-                    .anyMatch( f -> f.annotationType().getSimpleName().equals( "Property" ) ) )
+                    .anyMatch( f -> f.annotationType().getSimpleName().equals( "JsonProperty" ) ) )
                 {
                     Property property = new Property( Primitives.wrap( field.getType() ), null, null );
                     property.setName( field.getName() );
