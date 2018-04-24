@@ -31,15 +31,13 @@ package org.hisp.dhis.dataentryform.hibernate;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.ProgramStage;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author Bharath Kumar
@@ -56,10 +54,11 @@ public class HibernateDataEntryFormStore
     public DataEntryForm getDataEntryFormByName( String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        List<Function<Root<DataEntryForm>, Predicate>> predicates = new ArrayList<>();
-        predicates.add( root -> builder.equal( root.get( "name" ), name ) );
 
-        return getObject( builder, predicates );
+        JpaQueryParameters<DataEntryForm> parameters = new JpaQueryParameters<DataEntryForm>()
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
+
+        return getObject( builder, parameters );
     }
 
     @Override

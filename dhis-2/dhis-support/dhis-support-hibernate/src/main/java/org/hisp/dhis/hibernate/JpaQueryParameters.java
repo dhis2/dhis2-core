@@ -72,8 +72,6 @@ public class JpaQueryParameters<T> implements Serializable
 
     private StringSearchMode searchMode;
 
-    private Predicate predicate;
-
     private boolean withSharing = false;
 
     private Order order;
@@ -96,7 +94,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     public JpaQueryParameters<T> addPredicates( List<Function<Root<T>, Predicate>> predicates )
     {
-        predicates.addAll( predicates );
+        this.predicates.addAll( predicates );
         return this;
     }
 
@@ -156,9 +154,10 @@ public class JpaQueryParameters<T> implements Serializable
         return firstResult;
     }
 
-    public void setFirstResult( int firstResult )
+    public JpaQueryParameters<T> setFirstResult( int firstResult )
     {
         this.firstResult = firstResult;
+        return this;
     }
 
     public int getPageSize()
@@ -209,16 +208,6 @@ public class JpaQueryParameters<T> implements Serializable
     public void setSearchMode( StringSearchMode searchMode )
     {
         this.searchMode = searchMode;
-    }
-
-    public Predicate getPredicate()
-    {
-        return this.predicate;
-    }
-
-    public void setPredicate( Predicate predicate )
-    {
-        this.predicate = predicate;
     }
 
     public Order getOrder()
