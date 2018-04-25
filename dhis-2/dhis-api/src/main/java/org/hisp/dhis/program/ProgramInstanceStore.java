@@ -113,12 +113,4 @@ public interface ProgramInstanceStore
      * @return a list of ProgramInstance.
      */
     List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
-
-    /**
-     * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate.
-     *
-     * @param template         the template.
-     * @return a list of ProgramInstance.
-     */
-    List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template );
 }

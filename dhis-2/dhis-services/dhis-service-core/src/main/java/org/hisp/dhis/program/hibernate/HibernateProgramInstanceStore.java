@@ -246,24 +246,6 @@ public class HibernateProgramInstanceStore
             .setDate( "targetDate", targetDate ).list();
     }
 
-    @SuppressWarnings( "unchecked" )
-    @Override
-    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template )
-    {
-        if ( template == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        String hql =
-                "select distinct pi from ProgramInstance as pi " +
-                "inner join pi.program as p " +
-                "where :notificationTemplate in elements(p.notificationTemplates) ";
-
-        return getQuery( hql )
-            .setEntity( "notificationTemplate", template ).list();
-    }
-
     private String toDateProperty(NotificationTrigger trigger )
     {
         if ( trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )

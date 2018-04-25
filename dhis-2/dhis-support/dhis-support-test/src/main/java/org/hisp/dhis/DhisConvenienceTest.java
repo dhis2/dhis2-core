@@ -1709,7 +1709,7 @@ public abstract class DhisConvenienceTest
             recipient,
             Sets.newHashSet(),
             days,
-            null, null, null
+            null, null
         );
     }
 
@@ -1724,7 +1724,7 @@ public abstract class DhisConvenienceTest
                 recipient,
                 Sets.newHashSet(),
                 days,
-                null, null, scheduledDate
+                null, null
         );
     }
 

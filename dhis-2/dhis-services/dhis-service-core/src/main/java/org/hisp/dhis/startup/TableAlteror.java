@@ -212,7 +212,6 @@ public class TableAlteror
         executeSql( "UPDATE mapview SET eventpointradius = 0 WHERE eventpointradius IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET trackedentityattributeid = 0 WHERE trackedentityattributeid IS NULL" );
         executeSql( "UPDATE programnotificationtemplate SET dataelementid = 0 WHERE dataelementid IS NULL" );
-        executeSql( "UPDATE programnotificationtemplate SET scheduledDate = 0 WHERE scheduledDate IS NULL" );
 
         executeSql( "DELETE FROM systemsetting WHERE name = 'longitude'" );
         executeSql( "DELETE FROM systemsetting WHERE name = 'latitude'" );

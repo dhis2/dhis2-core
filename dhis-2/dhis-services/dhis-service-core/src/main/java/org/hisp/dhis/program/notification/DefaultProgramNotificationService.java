@@ -70,9 +70,9 @@ public class DefaultProgramNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramNotificationService.class );
 
-    private static final Predicate<ProgramNotificationTemplate> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
-        Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getNotificationTrigger() ) &&
-        pnt.getScheduledDate() != null && DateUtils.isToday( pnt.getScheduledDate() );
+    private static final Predicate<ProgramNotificationInstance> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
+        Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getProgramNotificationTemplate().getNotificationTrigger() ) &&
+        pnt.getScheduledAt() != null && DateUtils.isToday( pnt.getScheduledAt() );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -160,25 +160,22 @@ public class DefaultProgramNotificationService
         Clock clock = new Clock( log ).startClock()
             .logTime( "Processing ProgramStageNotification messages scheduled by program rules" );
 
-        List<ProgramNotificationTemplate> templates = identifiableObjectManager.getAll( ProgramNotificationTemplate.class ).stream()
+        List<ProgramNotificationInstance> templates = identifiableObjectManager.getAll( ProgramNotificationInstance.class ).stream()
             .filter( IS_SCHEDULED_BY_PROGRAM_RULE ).collect( Collectors.toList() );
+
+        if ( templates.isEmpty() )
+        {
+            return;
+        }
 
         int totalMessageCount = 0;
 
-        List<ProgramStageInstance> programStageInstances = templates.stream()
-            .flatMap( template -> programStageInstanceStore.getWithScheduledNotifications( template ).stream() )
+        List<MessageBatch> batches = templates.stream().filter( ProgramNotificationInstance::hasProgramInstance )
+            .map( t -> createProgramInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramInstance() ) ) )
             .collect( Collectors.toList() );
 
-        List<ProgramInstance> programInstances = templates.stream()
-            .flatMap( template -> programInstanceStore.getWithScheduledNotifications( template ).stream() )
-            .collect( Collectors.toList() );
-
-        List<MessageBatch> batches = templates.stream()
-            .map( pnt -> createProgramInstanceMessageBatch( pnt, programInstances ) )
-            .collect( Collectors.toList() );
-
-        batches.addAll( templates.stream()
-            .map( pnt -> createProgramStageInstanceMessageBatch( pnt, programStageInstances ) )
+        batches.addAll( templates.stream().filter( ProgramNotificationInstance::hasProgramStageInstance )
+            .map( t -> createProgramStageInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramStageInstance() ) ) )
             .collect( Collectors.toList() ) );
 
         batches.stream().forEach( this::sendAll );

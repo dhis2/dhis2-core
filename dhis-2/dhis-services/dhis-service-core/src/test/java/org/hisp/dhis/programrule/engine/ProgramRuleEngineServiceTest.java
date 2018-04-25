@@ -38,6 +38,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
@@ -111,13 +112,13 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
             return ruleEffects;
-        }).when( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramInstance.class ) );
+        }).when( ruleActionSendMessage ).implement( any(), any( ProgramInstance.class ) );
 
         doAnswer( invocationOnMock ->
         {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
             return ruleEffects;
-        }).when( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( ProgramStageInstance.class ) );
+        }).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
     }
 
     @Test

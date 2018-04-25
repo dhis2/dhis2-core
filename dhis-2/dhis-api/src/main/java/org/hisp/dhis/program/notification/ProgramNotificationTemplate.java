@@ -39,8 +39,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -83,8 +81,6 @@ public class ProgramNotificationTemplate
 
     private DataElement recipientDataElement = null;
 
-    private Date scheduledDate = null;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -96,7 +92,7 @@ public class ProgramNotificationTemplate
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
         Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup,
-        TrackedEntityAttribute recipientProgramAttribute, Date scheduledDate )
+        TrackedEntityAttribute recipientProgramAttribute )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
@@ -107,7 +103,6 @@ public class ProgramNotificationTemplate
         this.relativeScheduledDays = relativeScheduledDays;
         this.recipientUserGroup = recipientUserGroup;
         this.recipientProgramAttribute = recipientProgramAttribute;
-        this.scheduledDate = scheduledDate;
     }
 
     // -------------------------------------------------------------------------
@@ -249,18 +244,6 @@ public class ProgramNotificationTemplate
         this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getScheduledDate()
-    {
-        return scheduledDate;
-    }
-
-    public void setScheduledDate( Date scheduledDate )
-    {
-        this.scheduledDate = scheduledDate;
-    }
-
     @Override
     public String toString()
     {
@@ -272,7 +255,6 @@ public class ProgramNotificationTemplate
             .add( "deliveryChannels", deliveryChannels )
             .add( "messageTemplate", messageTemplate )
             .add( "subjectTemplate", subjectTemplate )
-            .add( "scheduledDate", scheduledDate )
             .toString();
     }
 }

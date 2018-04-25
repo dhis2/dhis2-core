@@ -178,7 +178,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 
         implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
+        verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
         verify( publisher ).publishEnrollment( Matchers.any( ProgramNotificationTemplate.class ), argumentInstanceCaptor.capture(), argumentEventCaptor.capture() );
@@ -194,7 +194,7 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 
         implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
-        verify( templateStore, times( 1 ) ).getByUid( anyString() );
+        verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
         verify( publisher ).publishEvent( Matchers.any( ProgramNotificationTemplate.class ), argumentStageInstanceCaptor.capture(), argumentEventCaptor.capture() );

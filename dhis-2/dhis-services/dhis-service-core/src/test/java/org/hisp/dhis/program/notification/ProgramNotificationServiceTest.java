@@ -144,6 +144,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private ProgramNotificationTemplate programNotificationTemplate;
     private ProgramNotificationTemplate programNotificationTemplateForToday;
+    private ProgramNotificationInstance programNotificationInstaceForToday;
     private ProgramNotificationTemplate programNotificationTemplateForYesterday;
 
     @Before
@@ -171,11 +172,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
             .thenReturn( Lists.newArrayList( programInstances ) );
         when( programStageInstanceStore.getWithScheduledNotifications( any(), any() ) )
-            .thenReturn( Lists.newArrayList( programStageInstances ) );
-
-        when( programInstanceStore.getWithScheduledNotifications( any() ) )
-            .thenReturn( Lists.newArrayList( programInstances ) );
-        when( programStageInstanceStore.getWithScheduledNotifications( any() ) )
             .thenReturn( Lists.newArrayList( programStageInstances ) );
 
         when( manager.getAll( ProgramNotificationTemplate.class ) )
@@ -445,12 +441,12 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         sentProgramMessages.clear();
 
-        when( manager.getAll( ProgramNotificationTemplate.class ) )
-            .thenReturn( Collections.singletonList( programNotificationTemplateForToday ) );
+        when( manager.getAll( ProgramNotificationInstance.class ) )
+            .thenReturn( Collections.singletonList( programNotificationInstaceForToday ) );
 
         programNotificationService.sendScheduledNotifications();
 
-        assertEquals( 2, sentProgramMessages.size() );
+        assertEquals( 1, sentProgramMessages.size() );
     }
 
     @Test
@@ -482,6 +478,12 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today );
         programNotificationTemplateForYesterday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, yesterday );
+
+        programNotificationInstaceForToday = new ProgramNotificationInstance();
+        programNotificationInstaceForToday.setProgramNotificationTemplate( programNotificationTemplateForToday );
+        programNotificationInstaceForToday.setName( programNotificationTemplateForToday.getName() );
+        programNotificationInstaceForToday.setAutoFields();
+        programNotificationInstaceForToday.setScheduledAt( today );
 
         root = createOrganisationUnit( 'R' );
         lvlOneLeft = createOrganisationUnit( '1' );
@@ -592,6 +594,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         // lists returned by stubs
         programStageInstances.add( programStageInstance );
         programInstances.add( programInstance );
+
+        programNotificationInstaceForToday.setProgramInstance( programInstance );
 
         notificationMessage = new NotificationMessage( SUBJECT, MESSAGE );
     }
