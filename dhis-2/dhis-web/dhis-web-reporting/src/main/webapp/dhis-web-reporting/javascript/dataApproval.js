@@ -20,7 +20,7 @@ dhis2.appr.uiState = {};
  */
 $( document ).ready( function() 
 {
-	$.getJSON( "../api/dataSets.json?fields=id,displayName,periodType,workflow,categoryCombo[id,displayName]&paging=false", function( json ) {
+	$.getJSON( "../api/dataSets.json?fields=id,displayName,workflow[id,periodType],categoryCombo[id,displayName]&paging=false", function( json ) {
 				
 		var dsHtml = "<option value=''>[ Select ]</option>";
 		
@@ -43,35 +43,17 @@ $( document ).ready( function()
 } );
 
 /**
- * Callback for changes in data set. Displays a list of period types starting
- * with the data set's period as the shortest type, and including all longer
- * types so that approvals can be made for multiple periods. If there is a
- * current period type selection, and it is still on the new list of period
- * types, keep it. Otherwise choose the period type for the data set.
+ * Callback for changes in data set. Displays the period type of the workflow
+ * associated with the data set.
  */
 dhis2.appr.dataSetSelected = function()
 {
     var ds = dhis2.appr.dataSets[$( "#dataSetId :selected" ).val()];
-    var dataSetPeriodType = dhis2.appr.dataSets[ds.id].periodType;
+    var workflowPeriodType = dhis2.appr.dataSets[ds.id].workflow.periodType;
 
-    if ( $( "#periodType" ).val() != dataSetPeriodType ) {
-        var periodTypeToSelect = $( "#periodType" ).val() || dataSetPeriodType;
-        var foundDataSetPeriodType = false;
-        var html = "<option value=''>[ " + i18n_select_period_type + " ]</option>";
-
-        $.each( dhis2.appr.metaData.periodTypes, function () {
-            if ( foundDataSetPeriodType || this == dataSetPeriodType ) {
-                var selected = ( this == periodTypeToSelect ) ? " selected" : "";
-                html += "<option value='" + this + "'" + selected + ">" + this + "</option>";
-                foundDataSetPeriodType = true;
-            } 
-            else if ( this == periodTypeToSelect ) {
-                periodTypeToSelect = dataSetPeriodType;
-            }
-        } );
-
+    if ( $( "#periodType" ).val() != workflowPeriodType ) {
+        var html = "<option value='" + workflowPeriodType + "' selected>" + workflowPeriodType + "</option>"
         $( "#periodType" ).html( html );
-        $( "#periodType" ).removeAttr( "disabled" );
         dhis2.appr.displayPeriods();
     }
     
