@@ -856,6 +856,16 @@ public abstract class AbstractEventService
         {
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
+        
+        if ( attributeOptionCombo != null && !userCredentials.isSuper() )
+        {
+            List<String> errors = trackerAccessManager.canRead( user, attributeOptionCombo );
+            
+            if ( !errors.isEmpty() )
+            {
+                throw new IllegalQueryException( errors.toString() );
+            }            
+        }
 
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
 
@@ -1382,6 +1392,11 @@ public abstract class AbstractEventService
         else
         {
             aoc = (DataElementCategoryOptionCombo) defaults.get( DataElementCategoryOptionCombo.class );
+        }
+        
+        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+        {
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo." ) );
         }
 
         if ( !dryRun )
