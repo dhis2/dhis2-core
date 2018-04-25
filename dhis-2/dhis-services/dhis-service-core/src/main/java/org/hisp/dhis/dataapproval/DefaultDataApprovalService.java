@@ -193,6 +193,15 @@ public class DefaultDataApprovalService
 
         for ( DataApproval da : dataApprovalList )
         {
+            if ( !da.getPeriod().getPeriodType().equals( da.getWorkflow().getPeriodType() ) )
+            {
+                log.info( "approveData: data may not be approved, approval period type = "
+                    + da.getPeriod().getPeriodType().getName() + ", workflow period type = "
+                    + da.getWorkflow().getPeriodType().getName() + " " + da );
+
+                throw new DataMayNotBeApprovedException();
+            }
+
             DataApprovalStatus status = statusMap.get( daKey( da ) );
 
             if ( status == null )
