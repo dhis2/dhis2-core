@@ -560,6 +560,31 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    public void testAddDataApprovalWithWrongPeriodType()
+    {
+        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        userService.addUser( currentUserService.getCurrentUser() );
+        setCurrentUserServiceDependencies( currentUserService );
+
+        Date date = new Date();
+
+        try
+        {
+            dataApprovalService.approveData( newArrayList( new DataApproval( level2, workflow12, periodW, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
+            fail( "User should not be able to insert a weekly approval for a monthly workflow." );
+        }
+        catch ( DataMayNotBeApprovedException ex )
+        {
+            // Expected error.
+        }
+
+        // Should encounter non error with the correct period type:
+        dataApprovalService.approveData( newArrayList( new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA ) ) );
+    }
+
+    @Test
     @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testAddAllAndGetDataApprovalStatus()
     {
