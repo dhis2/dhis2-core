@@ -58,7 +58,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     {
     }
 
-    public ProgramNotificationInstance(ProgramInstance programInstance, ProgramNotificationTemplate programNotificationTemplate,
+    public ProgramNotificationInstance( ProgramInstance programInstance, ProgramNotificationTemplate programNotificationTemplate,
         ProgramStageInstance programStageInstance, Date scheduledAt, Date sentAt )
     {
         this.programInstance = programInstance;

@@ -60,7 +60,7 @@ abstract class BaseRuleActionImplementer implements RuleActionImplementer
     @Autowired
     private NotificationLoggingService notificationLoggingService;
 
-    protected ExternalNotificationLogEntry createLogEntry(String key, String templateUid )
+    protected ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
     {
         ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
         entry.setLastSentAt( new Date() );
