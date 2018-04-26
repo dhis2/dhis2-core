@@ -64,7 +64,7 @@ public class SyncUtils
     private static final Log log = LogFactory.getLog( SyncUtils.class );
 
     static final String HEADER_AUTHORIZATION = "Authorization";
-    static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?importStrategy=SYNC";
+    static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
     private static final String PING_PATH = "/api/system/ping";
 
     private SyncUtils()

@@ -1,10 +1,4 @@
-package org.hisp.dhis.scheduling.parameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import java.util.List;
+package org.hisp.dhis.trackedentity;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -34,67 +28,45 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
- * @author Henning Håkonsen
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
  */
-public class SmsJobParameters
-    implements JobParameters
+public interface TrackedEntityInstanceAuditService
 {
-    private static final long serialVersionUID = -6116489359345047961L;
+    
+    String ID = TrackedEntityInstanceAuditService.class.getName();
+    
+    /**
+     * Adds tracked entity instance audit
+     * 
+     * @param trackedEntityInstanceAudit the audit to add
+     */
+    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
+    
+    /**
+     * Deletes tracked entity instance audit for the given tracked entity instance
+     * 
+     * @param trackedEntityInstance the tracked entity instance
+     */
+    void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );    
+    
+    /**
+     * Returns tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params 
+     * @return matching TrackedEntityInstanceAudits
+     */
+    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
+    
+    /**
+     * Returns count of tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params
+     * @return count of TrackedEntityInstanceAudits
+     */
+    int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
 
-    @JsonProperty
-    private String smsSubject;
-
-    @JsonProperty
-    private List<String> recipientsList;
-
-    @JsonProperty
-    private String message;
-
-    public SmsJobParameters()
-    {
-    }
-
-    public SmsJobParameters( String smsSubject, String message, List<String> recipientsList )
-    {
-        this.smsSubject = smsSubject;
-        this.recipientsList = recipientsList;
-        this.message = message;
-    }
-
-    public String getSmsSubject()
-    {
-        return smsSubject;
-    }
-
-    public void setSmsSubject( String smsSubject )
-    {
-        this.smsSubject = smsSubject;
-    }
-
-    public List<String> getRecipientsList()
-    {
-        return recipientsList;
-    }
-
-    public void setRecipientsList( List<String> recipientsList )
-    {
-        this.recipientsList = recipientsList;
-    }
-
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return null;
-    }
 }
