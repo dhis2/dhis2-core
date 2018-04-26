@@ -440,5 +440,5 @@
 
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
-  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener"/>
+  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener2FA"/>
 </beans>
