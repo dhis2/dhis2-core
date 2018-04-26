@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.dxf2.scheduling;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,45 +30,91 @@ package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.dxf2.webmessage.WebMessageResponse;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
+
+import java.util.Date;
 
 /**
  * @author Henning Håkonsen
  */
-public class MockJobParameters
-    implements JobParameters
+public class JobConfigurationWebMessageResponse
+    implements WebMessageResponse
 {
-    private static final long serialVersionUID = 3600315605964091689L;
+    private String name;
 
-    @JsonProperty
-    private String message;
+    private String id;
 
-    public MockJobParameters()
+    private Date created;
+
+    private JobType jobType;
+
+    private JobStatus jobStatus;
+
+    private JobParameters jobParameters;
+
+    private String relativeNotifierEndpoint;
+
+    public JobConfigurationWebMessageResponse( JobConfiguration jobConfiguration )
     {
-    }
-
-    public MockJobParameters( String message )
-    {
-        this.message = message;
+        this.name = jobConfiguration.getDisplayName();
+        this.id = jobConfiguration.getUid();
+        this.created = jobConfiguration.getCreated();
+        this.jobType = jobConfiguration.getJobType();
+        this.jobStatus = jobConfiguration.getJobStatus();
+        this.jobParameters = jobConfiguration.getJobParameters();
+        this.relativeNotifierEndpoint = "/api/system/tasks/" + this.jobType + "/" + this.id;
     }
 
     @JacksonXmlProperty
     @JsonProperty
-    public String getMessage()
+    public String getName()
     {
-        return message;
+        return name;
     }
 
-    public void setMessage( String message )
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getId()
     {
-        this.message = message;
+        return id;
     }
 
-    @Override
-    public ErrorReport validate()
+    @JacksonXmlProperty
+    @JsonProperty
+    public Date getCreated()
     {
-        return null;
+        return created;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public JobType getJobType()
+    {
+        return jobType;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public JobStatus getJobStatus()
+    {
+        return jobStatus;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public JobParameters getJobParameters()
+    {
+        return jobParameters;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getRelativeNotifierEndpoint()
+    {
+        return relativeNotifierEndpoint;
     }
 }
