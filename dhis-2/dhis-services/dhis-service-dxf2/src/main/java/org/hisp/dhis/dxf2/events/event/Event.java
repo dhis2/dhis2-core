@@ -98,6 +98,8 @@ public class Event
     private String completedBy;
 
     private String completedDate;
+    
+    private int optionSize;
 
     public Event()
     {
@@ -414,6 +416,18 @@ public class Event
     public void setDeleted( Boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getOptionSize()
+    {
+        return optionSize;
+    }
+
+    public void setOptionSize( int optionSize )
+    {
+        this.optionSize = optionSize;
     }
 
     @Override
