@@ -35,6 +35,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +49,6 @@ import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.*;
 
 /**
- *
  * Reschedule old jobs and execute jobs which were scheduled when the server was not running.
  *
  * @author Henning Håkonsen
@@ -67,9 +68,13 @@ public class SchedulerStart
     private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
+    private final String DEFAULT_KAFKA_TRACKER = "Kafka Tracker Consume";
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private SystemService systemService;
 
     private JobConfigurationService jobConfigurationService;
 
@@ -93,11 +98,11 @@ public class SchedulerStart
     }
 
     @Override
-    public void execute( )
+    public void execute()
         throws Exception
     {
         Date now = new Date();
-        List<String> unexecutedJobs = new ArrayList<>( );
+        List<String> unexecutedJobs = new ArrayList<>();
 
         List<JobConfiguration> jobConfigurations = jobConfigurationService.getAllJobConfigurations();
         addDefaultJobs( jobConfigurations );
@@ -112,7 +117,7 @@ public class SchedulerStart
                 jobConfigurationService.updateJobConfiguration( jobConfig );
 
                 if ( jobConfig.getLastExecutedStatus() == FAILED ||
-                    ( !jobConfig.isContinuousExecution() && oldExecutionTime.compareTo( now ) < 0 ) )
+                    (!jobConfig.isContinuousExecution() && oldExecutionTime.compareTo( now ) < 0) )
                 {
                     unexecutedJobs.add( "Job [" + jobConfig.getUid() + ", " + jobConfig.getName() + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: " + oldExecutionTime );
                 }
@@ -134,9 +139,10 @@ public class SchedulerStart
         }
     }
 
-    private void addDefaultJobs( List<JobConfiguration> jobConfigurations)
+    private void addDefaultJobs( List<JobConfiguration> jobConfigurations )
     {
         log.info( "Setting up default jobs." );
+
         if ( addDefaultJob( DEFAULT_FILE_RESOURCE_CLEANUP, jobConfigurations ) )
         {
             JobConfiguration fileResourceCleanUp = new JobConfiguration( DEFAULT_FILE_RESOURCE_CLEANUP,
@@ -148,7 +154,7 @@ public class SchedulerStart
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
-            SchedulerUpgrade.portJob( systemSettingManager, dataStatistics,"lastSuccessfulDataStatistics" );
+            SchedulerUpgrade.portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
 
             addAndScheduleJob( dataStatistics );
         }
@@ -179,6 +185,13 @@ public class SchedulerStart
             JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
                 REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
             addAndScheduleJob( removeExpiredReservedValues );
+        }
+
+        if ( addDefaultJob( DEFAULT_KAFKA_TRACKER, jobConfigurations ) )
+        {
+            JobConfiguration kafkaTracker = new JobConfiguration( DEFAULT_KAFKA_TRACKER,
+                KAFKA_TRACKER, CRON_HOURLY, null, false, true );
+            addAndScheduleJob( kafkaTracker );
         }
     }
 

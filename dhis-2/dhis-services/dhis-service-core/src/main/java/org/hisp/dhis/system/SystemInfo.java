@@ -670,4 +670,9 @@ public class SystemInfo
     {
         this.kafka = kafka;
     }
+
+    public boolean isKafka()
+    {
+        return kafka != null && kafka.isValid();
+    }
 }

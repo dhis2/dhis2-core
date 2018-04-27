@@ -74,6 +74,8 @@ public enum JobType
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
 
+    KAFKA_TRACKER( "kafkaTrackerJob", true, null, null ),
+
     // For tests
     MOCK( "mockJob", false, MockJobParameters.class, null ),
 
