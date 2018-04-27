@@ -34,29 +34,25 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement
 public class ValidationResultView
 {
-    String validationRuleId;
+    private String validationRuleId;
 
-    String validationRuleDescription;
+    private String validationRuleDescription;
 
-    String organisationUnitId;
+    private String organisationUnitId;
 
-    String organisationUnitDisplayName;
+    private String organisationUnitDisplayName;
 
-    String periodId;
+    private String periodId;
 
-    String periodDisplayName;
+    private String periodDisplayName;
 
-    String importance;
+    private String importance;
 
-    Double leftSideValue;
+    private Double leftSideValue;
 
-    String operator;
+    private String operator;
 
-    Double rightSideValue;
-
-    public ValidationResultView()
-    {
-    }
+    private Double rightSideValue;
 
     @JsonProperty
     public String getValidationRuleId()

@@ -202,7 +202,7 @@ public class AnalysisController
         Collections.sort( validationResults, new ValidationResultComparator() );
 
         session.setAttribute( KEY_VALIDATION_RESULT, validationResults );
-        session.setAttribute( KEY_ORG_UNIT, organisationUnit);
+        session.setAttribute( KEY_ORG_UNIT, organisationUnit );
 
         return validationResultsListToResponse( validationResults );
     }
@@ -214,7 +214,6 @@ public class AnalysisController
         @RequestParam String periodId, @RequestParam String organisationUnitId )
         throws WebMessageException
     {
-        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
 
         ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );
         if ( validationRule == null )
@@ -236,27 +235,11 @@ public class AnalysisController
             throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
         }
 
-        for ( DataElementOperand operand : expressionService
-            .getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
-        {
-            DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
 
-            String value = dataValue != null ? dataValue.getValue() : null;
+        processLeftSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period );
 
-            validationRuleExpressionDetails.addLeftSideDetail( operand.getName(), value );
-        }
-
-        for ( DataElementOperand operand : expressionService
-            .getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
-        {
-            DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
-
-            String value = dataValue != null ? dataValue.getValue() : null;
-
-            validationRuleExpressionDetails.addRightSideDetail( operand.getName(), value );
-        }
+        processRightSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period );
 
         return validationRuleExpressionDetails;
     }
@@ -305,7 +288,6 @@ public class AnalysisController
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
         session.setAttribute( KEY_ORG_UNIT, organisationUnit );
 
-
         return deflatedValuesListToResponse( dataValues );
     }
 
@@ -352,7 +334,7 @@ public class AnalysisController
             .analyse( Sets.newHashSet( organisationUnit ), dataElements, periods, null, from ) );
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
-        session.setAttribute( KEY_ORG_UNIT, organisationUnit);
+        session.setAttribute( KEY_ORG_UNIT, organisationUnit );
 
         return deflatedValuesListToResponse( dataValues );
     }
@@ -387,7 +369,7 @@ public class AnalysisController
                 DataAnalysisService.MAX_OUTLIERS + 1, startDate, endDate ) ); // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
-        session.setAttribute( KEY_ORG_UNIT, organisationUnit);
+        session.setAttribute( KEY_ORG_UNIT, organisationUnit );
 
         return deflatedValuesListToResponse( dataValues );
     }
@@ -435,7 +417,7 @@ public class AnalysisController
         @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
         Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-                KEY_ORG_UNIT ));
+            KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils
@@ -452,7 +434,7 @@ public class AnalysisController
         @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
         Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-                KEY_ORG_UNIT ) );
+            KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -468,7 +450,7 @@ public class AnalysisController
         @SuppressWarnings( "unchecked" )
         List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
         Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-                KEY_ORG_UNIT ) );
+            KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils
@@ -485,7 +467,7 @@ public class AnalysisController
         @SuppressWarnings( "unchecked" )
         List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-                KEY_ORG_UNIT ) );
+            KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils
@@ -502,7 +484,7 @@ public class AnalysisController
         @SuppressWarnings( "unchecked" )
         List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-                KEY_ORG_UNIT ) );
+            KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -518,7 +500,7 @@ public class AnalysisController
         @SuppressWarnings( "unchecked" )
         List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-                KEY_ORG_UNIT )
+            KEY_ORG_UNIT )
         );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
@@ -527,6 +509,36 @@ public class AnalysisController
                 false );
 
         GridUtils.toCsv( grid, response.getWriter() );
+    }
+
+    private void processLeftSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
+        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
+    {
+        for ( DataElementOperand operand : expressionService
+            .getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
+        {
+            DataValue dataValue = dataValueService
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+
+            String value = dataValue != null ? dataValue.getValue() : null;
+
+            validationRuleExpressionDetails.addLeftSideDetail( operand.getName(), value );
+        }
+    }
+
+    private void processRightSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
+        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
+    {
+        for ( DataElementOperand operand : expressionService
+            .getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
+        {
+            DataValue dataValue = dataValueService
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+
+            String value = dataValue != null ? dataValue.getValue() : null;
+
+            validationRuleExpressionDetails.addRightSideDetail( operand.getName(), value );
+        }
     }
 
     private Grid generateAnalysisReportGridFromResults( List<DeflatedDataValue> results, OrganisationUnit orgUnit )
@@ -568,7 +580,8 @@ public class AnalysisController
         return grid;
     }
 
-    private Grid generateValidationRulesReportGridFromResults( List<ValidationResult> results, OrganisationUnit orgUnit )
+    private Grid generateValidationRulesReportGridFromResults( List<ValidationResult> results,
+        OrganisationUnit orgUnit )
     {
         Grid grid = new ListGrid();
         if ( results != null )
