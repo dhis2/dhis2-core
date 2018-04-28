@@ -1495,6 +1495,11 @@ public abstract class AbstractEventService
         {
             aoc = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
         }
+        
+        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+        {
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo." ) );
+        }
 
         if ( !dryRun )
         {

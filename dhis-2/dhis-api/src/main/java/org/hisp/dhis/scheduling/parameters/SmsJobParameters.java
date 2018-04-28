@@ -1,8 +1,8 @@
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.List;
 
@@ -42,13 +42,13 @@ public class SmsJobParameters
 {
     private static final long serialVersionUID = -6116489359345047961L;
 
-    @Property
+    @JsonProperty
     private String smsSubject;
 
-    @Property
+    @JsonProperty
     private List<String> recipientsList;
 
-    @Property
+    @JsonProperty
     private String message;
 
     public SmsJobParameters()
