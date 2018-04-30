@@ -73,9 +73,6 @@ public class SchedulerStart
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private SystemService systemService;
-
     private JobConfigurationService jobConfigurationService;
 
     public void setJobConfigurationService( JobConfigurationService jobConfigurationService )

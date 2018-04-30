@@ -28,9 +28,14 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -38,6 +43,11 @@ import org.hisp.dhis.scheduling.JobType;
 public class KafkaTrackerJob
     extends AbstractJob
 {
+    private static final Log log = LogFactory.getLog( KafkaTrackerJob.class );
+
+    @Autowired
+    private SystemService systemService;
+
     @Override
     public JobType getJobType()
     {
@@ -47,6 +57,14 @@ public class KafkaTrackerJob
     @Override
     public void execute( JobConfiguration jobConfiguration ) throws Exception
     {
-        System.err.println("Kafka working");
+        SystemInfo systemInfo = systemService.getSystemInfo();
+
+        if ( !systemInfo.isKafka() )
+        {
+            log.info( "Kafka integration is not enabled, skipping scheduled kafka job." );
+            return;
+        }
+
+        System.err.println( "Kafka working" );
     }
 }
