@@ -37,15 +37,21 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.system.SystemService;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.KafkaListenerEndpoint;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.support.TopicPartitionInitialOffset;
+import org.springframework.kafka.support.converter.MessageConverter;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * These methods should be considered utility methods, don't call these for every single kafka call. Get the template or factory you need
@@ -146,15 +152,5 @@ public class DefaultKafkaManager implements KafkaManager
         return new DefaultKafkaProducerFactory<>(
             props, keySerializer, serializer
         );
-    }
-
-    @Override
-    public <K, V> ConcurrentKafkaListenerContainerFactory<K, V> getListenerContainerFactory(
-        Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group )
-    {
-        ConcurrentKafkaListenerContainerFactory<K, V> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory( getConsumerFactory( keyDeserializer, deserializer, group ) );
-
-        return factory;
     }
 }

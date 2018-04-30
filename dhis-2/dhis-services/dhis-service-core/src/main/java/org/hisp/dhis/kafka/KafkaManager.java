@@ -30,7 +30,6 @@ package org.hisp.dhis.kafka;
 
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -66,7 +65,4 @@ public interface KafkaManager
     <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
 
     <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer );
-
-    <K, V> ConcurrentKafkaListenerContainerFactory<K, V> getListenerContainerFactory(
-        Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
 }
