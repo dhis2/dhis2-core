@@ -30,6 +30,7 @@ package org.hisp.dhis.kafka;
 
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -42,13 +43,13 @@ public interface KafkaManager
 {
     boolean isEnabled();
 
-    KafkaAdmin getKafkaAdmin();
+    KafkaAdmin getAdmin();
 
     //--------------------------------------------------------------------------
     // String based kafka serializer/deserializer
     //--------------------------------------------------------------------------
 
-    KafkaTemplate<String, String> getKafkaTemplate();
+    KafkaTemplate<String, String> getTemplate();
 
     ConsumerFactory<String, String> getConsumerFactory( String group );
 
@@ -58,11 +59,14 @@ public interface KafkaManager
     // Generic implementations, requires serializer/deserializer instances
     //--------------------------------------------------------------------------
 
-    <K, V> KafkaTemplate<K, V> getKafkaTemplate( ProducerFactory<K, V> producerFactory );
+    <K, V> KafkaTemplate<K, V> getTemplate( ProducerFactory<K, V> producerFactory );
 
-    <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
+    <K, V> KafkaTemplate<K, V> getTemplate( Serializer<K> keySerializer, Serializer<V> serializer );
 
     <K, V> ConsumerFactory<K, V> getConsumerFactory( Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
 
     <K, V> ProducerFactory<K, V> getProducerFactory( Serializer<K> keySerializer, Serializer<V> serializer );
+
+    <K, V> ConcurrentKafkaListenerContainerFactory<K, V> getListenerContainerFactory(
+        Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group );
 }

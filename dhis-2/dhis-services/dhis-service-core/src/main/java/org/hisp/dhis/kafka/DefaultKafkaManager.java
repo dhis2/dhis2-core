@@ -36,6 +36,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.system.SystemService;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -69,7 +70,7 @@ public class DefaultKafkaManager implements KafkaManager
     }
 
     @Override
-    public KafkaAdmin getKafkaAdmin()
+    public KafkaAdmin getAdmin()
     {
         Kafka kafka = systemService.getSystemInfo().getKafka();
 
@@ -80,9 +81,9 @@ public class DefaultKafkaManager implements KafkaManager
     }
 
     @Override
-    public KafkaTemplate<String, String> getKafkaTemplate()
+    public KafkaTemplate<String, String> getTemplate()
     {
-        return getKafkaTemplate( new StringSerializer(), new StringSerializer() );
+        return getTemplate( new StringSerializer(), new StringSerializer() );
     }
 
     @Override
@@ -98,15 +99,15 @@ public class DefaultKafkaManager implements KafkaManager
     }
 
     @Override
-    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( ProducerFactory<K, V> producerFactory )
+    public <K, V> KafkaTemplate<K, V> getTemplate( ProducerFactory<K, V> producerFactory )
     {
         return new KafkaTemplate<>( producerFactory );
     }
 
     @Override
-    public <K, V> KafkaTemplate<K, V> getKafkaTemplate( Serializer<K> keySerializer, Serializer<V> serializer )
+    public <K, V> KafkaTemplate<K, V> getTemplate( Serializer<K> keySerializer, Serializer<V> serializer )
     {
-        return getKafkaTemplate( getProducerFactory( keySerializer, serializer ) );
+        return getTemplate( getProducerFactory( keySerializer, serializer ) );
     }
 
     /**
@@ -147,12 +148,13 @@ public class DefaultKafkaManager implements KafkaManager
         );
     }
 
-    /*
-    private ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory()
+    @Override
+    public <K, V> ConcurrentKafkaListenerContainerFactory<K, V> getListenerContainerFactory(
+        Deserializer<K> keyDeserializer, Deserializer<V> deserializer, String group )
     {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory( kafkaConsumerFactory() );
+        ConcurrentKafkaListenerContainerFactory<K, V> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory( getConsumerFactory( keyDeserializer, deserializer, group ) );
+
         return factory;
     }
-    */
 }

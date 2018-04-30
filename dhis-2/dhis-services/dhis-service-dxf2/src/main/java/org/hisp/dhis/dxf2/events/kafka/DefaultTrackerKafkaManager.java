@@ -96,9 +96,9 @@ public class DefaultTrackerKafkaManager
         this.cfTrackedEntity = kafkaManager.getConsumerFactory(
             new StringDeserializer(), new JsonDeserializer<>( KafkaTrackedEntity.class, jsonMapper ), GROUP_BULK_TRACKED_ENTITIES );
 
-        this.ktEvent = kafkaManager.getKafkaTemplate( this.pfEvent );
-        this.ktEnrollment = kafkaManager.getKafkaTemplate( this.pfEnrollment );
-        this.ktTrackedEntity = kafkaManager.getKafkaTemplate( this.pfTrackedEntity );
+        this.ktEvent = kafkaManager.getTemplate( this.pfEvent );
+        this.ktEnrollment = kafkaManager.getTemplate( this.pfEnrollment );
+        this.ktTrackedEntity = kafkaManager.getTemplate( this.pfTrackedEntity );
     }
 
     @Override

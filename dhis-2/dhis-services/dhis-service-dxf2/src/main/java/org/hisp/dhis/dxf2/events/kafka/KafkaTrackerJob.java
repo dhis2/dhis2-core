@@ -48,6 +48,9 @@ public class KafkaTrackerJob
     @Autowired
     private SystemService systemService;
 
+    @Autowired
+    private TrackerKafkaManager trackerKafkaManager;
+
     @Override
     public JobType getJobType()
     {
