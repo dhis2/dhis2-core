@@ -28,15 +28,15 @@ package org.hisp.dhis.dataelement.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -51,35 +51,48 @@ public class HibernateDataElementStore
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsByDomainType( DataElementDomain domainType )
     {
-        return getCriteria( Restrictions.eq( "domainType", domainType ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
+            .addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) );
+
+        return getList( builder, parameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsByValueType( ValueType valueType )
     {
-        return getCriteria( Restrictions.eq( "valueType", valueType ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
+            .addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) );
+
+        return getList( builder, parameters );
     }
     
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo )
     {
-        return getCriteria( Restrictions.eq( "categoryCombo", categoryCombo ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
+            .addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) );
+
+        return getList( builder, parameters );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "zeroIsSignificant", zeroIsSignificant ) );
-        criteria.add( Restrictions.in( "valueType", ValueType.NUMERIC_TYPES ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list();
+        JpaQueryParameters<DataElement> parameters = new JpaQueryParameters<DataElement>()
+            .addPredicate( root -> builder.equal( root.get( "zeroIsSignificant" ), zeroIsSignificant ) )
+            .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) );
+
+        return getList( builder, parameters );
     }
 
     @Override

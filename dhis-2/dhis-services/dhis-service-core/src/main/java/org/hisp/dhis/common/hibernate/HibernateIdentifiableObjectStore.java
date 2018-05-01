@@ -978,6 +978,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // JPA Implementations
     // ----------------------------------------------------------------------
 
+    protected JpaQueryParameters<T> getNewParameters()
+    {
+        return new JpaQueryParameters<T>();
+    }
+
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )
     {
         return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );

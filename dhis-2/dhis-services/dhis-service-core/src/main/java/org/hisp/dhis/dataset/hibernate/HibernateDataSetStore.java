@@ -29,15 +29,17 @@ package org.hisp.dhis.dataset.hibernate;
  */
 
 import com.google.common.collect.Lists;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -83,25 +85,29 @@ public class HibernateDataSetStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DataSet> getDataSetsByPeriodType( PeriodType periodType )
     {
-        periodType = periodService.reloadPeriodType( periodType );
+        PeriodType refreshedPeriodType = periodService.reloadPeriodType( periodType );
 
-        return getCriteria( Restrictions.eq( "periodType", periodType ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<DataSet> parameters = getNewParameters()
+            .addPredicate( root -> builder.equal( root.get( "periodType" ), refreshedPeriodType ) ) ;
+
+        return getList( builder, parameters );
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
         String hql = "from DataSet d where :source in elements(d.sources) and d.mobile = true";
-        
-        return getQuery( hql ).setEntity( "source", source ).list();
+
+        Query<DataSet> query = getQuery( hql );
+
+        return query.setParameter( "source", source ).list();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm )
     {
         if ( dataEntryForm == null )
@@ -111,6 +117,8 @@ public class HibernateDataSetStore
 
         final String hql = "from DataSet d where d.dataEntryForm = :dataEntryForm";
 
-        return getQuery( hql ).setEntity( "dataEntryForm", dataEntryForm ).list();
+        Query<DataSet> query = getQuery( hql );
+
+        return query.setParameter( "dataEntryForm", dataEntryForm ).list();
     }
 }

@@ -167,9 +167,9 @@ public class HibernateCompleteDataSetRegistrationStore
     public void deleteCompleteDataSetRegistrations( DataSet dataSet )
     {
         String hql = "delete from CompleteDataSetRegistration c where c.dataSet = :dataSet";
-        
+
         sessionFactory.getCurrentSession().createQuery( hql ).
-            setEntity( "dataSet", dataSet ).executeUpdate();
+            setParameter( "dataSet", dataSet ).executeUpdate();
     }
     
     @Override
@@ -178,6 +178,6 @@ public class HibernateCompleteDataSetRegistrationStore
         String hql = "delete from CompleteDataSetRegistration c where c.source = :source";
 
         sessionFactory.getCurrentSession().createQuery( hql ).
-            setEntity( "source", unit ).executeUpdate();
+            setParameter( "source", unit ).executeUpdate();
     }
 }

@@ -145,7 +145,8 @@ public class HibernateGenericStore<T>
      */
     protected final Query getQuery( String hql )
     {
-        return getSession().createQuery( hql ).setCacheable( cacheable );
+        Query<T> query = getSession().createQuery( hql );
+        return query.setCacheable( cacheable );
     }
 
     /**
@@ -211,21 +212,6 @@ public class HibernateGenericStore<T>
     // JPA Methods
     //------------------------------------------------------------------------------------------
 
-    protected  final CriteriaQuery<T> getCriteriaQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders )
-    {
-        CriteriaQuery<T> query = builder.createQuery( getClazz() );
-        Root<T> root = query.from( getClazz() );
-
-        List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
-
-        if ( !predicates.isEmpty() )
-        {
-            query.where( predicates.toArray( new Predicate[0] ) );
-        }
-
-        return query;
-    }
-
     public final TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return sessionFactory.getCurrentSession()
@@ -272,41 +258,6 @@ public class HibernateGenericStore<T>
     protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
         return getTypedQuery( builder, parameters ).getResultList();
-    }
-
-    protected final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicateProviders, List<Function<Root<T>, Order>> orderProviders, Integer firstResult, Integer maxResult )
-    {
-        preProcessPredicates( builder, predicateProviders );
-
-        CriteriaQuery<T> query = builder.createQuery( getClazz() );
-        Root<T> root = query.from( getClazz() );
-        query.select( root );
-
-        if ( predicateProviders != null && !predicateProviders.isEmpty() )
-        {
-            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
-            query.where( predicates.toArray( new Predicate[0] ) );
-        }
-
-        if ( orderProviders != null && !orderProviders.isEmpty() )
-        {
-            List<Order> orders = orderProviders.stream().map( o -> o.apply( root ) ).collect( Collectors.toList() );
-            query.orderBy( orders );
-        }
-
-        TypedQuery<T> typedQuery = getExecutableTypedQuery( query );
-
-        if ( firstResult!= null )
-        {
-            typedQuery.setFirstResult( firstResult );
-        }
-
-        if ( maxResult != null )
-        {
-            typedQuery.setMaxResults( maxResult );
-        }
-
-        return typedQuery;
     }
 
     protected final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
@@ -414,7 +365,7 @@ public class HibernateGenericStore<T>
 
         TypedQuery<Y> typedQuery = getCurrentSession().createQuery( query );
 
-        if ( parameters.getMaxResults() > 0 )
+        if ( parameters.hasMaxResult() )
         {
             typedQuery.setMaxResults( parameters.getMaxResults() );
         }

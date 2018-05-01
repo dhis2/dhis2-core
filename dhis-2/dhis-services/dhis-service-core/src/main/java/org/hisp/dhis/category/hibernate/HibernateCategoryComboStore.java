@@ -30,12 +30,13 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -46,9 +47,14 @@ public class HibernateCategoryComboStore
     implements CategoryComboStore
 {
     @Override
-    @SuppressWarnings("unchecked")
     public List<CategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType )
     {
-        return getSharingDetachedCriteria( Restrictions.or( Restrictions.eq( "dataDimensionType", dataDimensionType ), Restrictions.eq( "name", "default" ) ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<CategoryCombo> parameters = getNewParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
+            .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) );
+
+        return getList( builder, parameters );
     }
 }
