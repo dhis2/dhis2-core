@@ -115,9 +115,10 @@ public class DefaultTrackerKafkaManager
         this.cEnrollment = getCfEnrollment().createConsumer( "enrollments-" + UUID.randomUUID().toString() );
         this.cTrackedEntity = getCfTrackedEntity().createConsumer( "tracked-entities-" + UUID.randomUUID().toString() );
 
-        this.cTrackedEntity.subscribe( Collections.singleton( TOPIC_BULK_TRACKED_ENTITIES ) );
+        this.cTrackedEntity.subscribe( Collections.singletonList( TOPIC_BULK_TRACKED_ENTITIES ) );
         this.cEvent.subscribe( Collections.singleton( TOPIC_BULK_EVENTS ) );
         this.cEnrollment.subscribe( Collections.singleton( TOPIC_BULK_ENROLLMENTS ) );
+
     }
 
     @Override
@@ -225,7 +226,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeEvents()
     {
-        ConsumerRecords<String, KafkaEvent> records = cEvent.poll( 1000 );
+        ConsumerRecords<String, KafkaEvent> records = cEvent.poll( 0 );
 
         System.err.println( "Consuming events " + records.count() );
 
