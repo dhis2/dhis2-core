@@ -36,22 +36,15 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.system.SystemService;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerEndpoint;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.support.TopicPartitionInitialOffset;
-import org.springframework.kafka.support.converter.MessageConverter;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * These methods should be considered utility methods, don't call these for every single kafka call. Get the template or factory you need
@@ -130,6 +123,7 @@ public class DefaultKafkaManager implements KafkaManager
         props.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true );
         props.put( ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100" );
         props.put( ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000" );
+        props.put( ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500" );
 
         return new DefaultKafkaConsumerFactory<>(
             props, keyDeserializer, deserializer
