@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 
@@ -36,7 +38,9 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
  */
 public class KafkaTrackedEntity extends AbstractKafkaMessage<TrackedEntityInstance>
 {
-    public KafkaTrackedEntity( String user, ImportOptions importOptions, TrackedEntityInstance payload )
+    @JsonCreator
+    public KafkaTrackedEntity( @JsonProperty( "user" ) String user,
+        @JsonProperty( "importOptions" ) ImportOptions importOptions, @JsonProperty( "payload" ) TrackedEntityInstance payload )
     {
         super( user, importOptions, payload );
     }

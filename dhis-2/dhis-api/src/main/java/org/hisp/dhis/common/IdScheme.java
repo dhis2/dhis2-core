@@ -28,6 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.MoreObjects;
@@ -106,6 +108,8 @@ public class IdScheme
         this.attribute = attribute;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdentifiableProperty getIdentifiableProperty()
     {
         return identifiableProperty;
@@ -121,6 +125,8 @@ public class IdScheme
         this.identifiableProperty = identifiableProperty;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAttribute()
     {
         return attribute;

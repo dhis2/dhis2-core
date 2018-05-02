@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 
@@ -36,7 +38,9 @@ import org.hisp.dhis.dxf2.events.event.Event;
  */
 public class KafkaEvent extends AbstractKafkaMessage<Event>
 {
-    public KafkaEvent( String user, ImportOptions importOptions, Event payload )
+    @JsonCreator
+    public KafkaEvent( @JsonProperty( "user" ) String user,
+        @JsonProperty( "importOptions" ) ImportOptions importOptions, @JsonProperty( "payload" ) Event payload )
     {
         super( user, importOptions, payload );
     }

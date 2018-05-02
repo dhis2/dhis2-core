@@ -52,6 +52,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Tracker specific KafkaManager, uses JsonSerializer/JsonDeserializer to automatically serialize deserialize Jackson objects.
@@ -110,9 +111,9 @@ public class DefaultTrackerKafkaManager
         this.ktEnrollment = kafkaManager.getTemplate( this.pfEnrollment );
         this.ktTrackedEntity = kafkaManager.getTemplate( this.pfTrackedEntity );
 
-        this.cEvent = getCfEvent().createConsumer( "events" );
-        this.cEnrollment = getCfEnrollment().createConsumer( "enrollments" );
-        this.cTrackedEntity = getCfTrackedEntity().createConsumer( "tracked-entities" );
+        this.cEvent = getCfEvent().createConsumer( "events-" + UUID.randomUUID().toString() );
+        this.cEnrollment = getCfEnrollment().createConsumer( "enrollments-" + UUID.randomUUID().toString() );
+        this.cTrackedEntity = getCfTrackedEntity().createConsumer( "tracked-entities-" + UUID.randomUUID().toString() );
 
         this.cTrackedEntity.subscribe( Collections.singleton( TOPIC_BULK_TRACKED_ENTITIES ) );
         this.cEvent.subscribe( Collections.singleton( TOPIC_BULK_EVENTS ) );
@@ -224,7 +225,7 @@ public class DefaultTrackerKafkaManager
     @Override
     public void consumeEvents()
     {
-        ConsumerRecords<String, KafkaEvent> records = cEvent.poll( 0 );
+        ConsumerRecords<String, KafkaEvent> records = cEvent.poll( 1000 );
 
         System.err.println( "Consuming events " + records.count() );
 

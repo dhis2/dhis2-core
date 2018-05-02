@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.kafka;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 
@@ -36,7 +38,9 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
  */
 public class KafkaEnrollment extends AbstractKafkaMessage<Enrollment>
 {
-    public KafkaEnrollment( String user, ImportOptions importOptions, Enrollment payload )
+    @JsonCreator
+    public KafkaEnrollment( @JsonProperty( "user" ) String user,
+        @JsonProperty( "importOptions" ) ImportOptions importOptions, @JsonProperty( "payload" ) Enrollment payload )
     {
         super( user, importOptions, payload );
     }
