@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -166,6 +167,11 @@ public class DefaultTrackerKafkaManager
     {
         for ( Event event : events )
         {
+            if ( event.getEvent() == null )
+            {
+                event.setEvent( CodeGenerator.generateUid() );
+            }
+
             ktEvent.send( TOPIC_BULK_EVENTS, new KafkaEvent( user.getUid(), importOptions, event ) );
         }
     }
@@ -175,6 +181,11 @@ public class DefaultTrackerKafkaManager
     {
         for ( Enrollment enrollment : enrollments )
         {
+            if ( enrollment.getEnrollment() == null )
+            {
+                enrollment.setEnrollment( CodeGenerator.generateUid() );
+            }
+
             ktEnrollment.send( TOPIC_BULK_ENROLLMENTS, new KafkaEnrollment( user.getUid(), importOptions, enrollment ) );
         }
     }
@@ -184,6 +195,11 @@ public class DefaultTrackerKafkaManager
     {
         for ( TrackedEntityInstance trackedEntity : trackedEntities )
         {
+            if ( trackedEntity.getTrackedEntityInstance() == null )
+            {
+                trackedEntity.setTrackedEntityInstance( CodeGenerator.generateUid() );
+            }
+
             ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES, new KafkaTrackedEntity( user.getUid(), importOptions, trackedEntity ) );
         }
     }
