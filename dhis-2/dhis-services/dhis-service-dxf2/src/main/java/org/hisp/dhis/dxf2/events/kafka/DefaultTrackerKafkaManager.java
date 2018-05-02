@@ -111,6 +111,8 @@ public class DefaultTrackerKafkaManager
         this.ktEnrollment = kafkaManager.getTemplate( this.pfEnrollment );
         this.ktTrackedEntity = kafkaManager.getTemplate( this.pfTrackedEntity );
 
+        // UUID.randomUUID() is required as of now since we are starting up in at least 3 different servlet contexts, and the consumer
+        // MBean (JMX) needs a unique name to register with. Should be replaced at a later stage.
         this.cEvent = getCfEvent().createConsumer( "events-" + UUID.randomUUID().toString() );
         this.cEnrollment = getCfEnrollment().createConsumer( "enrollments-" + UUID.randomUUID().toString() );
         this.cTrackedEntity = getCfTrackedEntity().createConsumer( "tracked-entities-" + UUID.randomUUID().toString() );
