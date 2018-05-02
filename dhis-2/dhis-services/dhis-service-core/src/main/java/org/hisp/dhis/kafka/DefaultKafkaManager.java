@@ -123,7 +123,7 @@ public class DefaultKafkaManager implements KafkaManager
         props.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true );
         props.put( ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100" );
         props.put( ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000" );
-        props.put( ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500" );
+        props.put( ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100" );
 
         return new DefaultKafkaConsumerFactory<>(
             props, keyDeserializer, deserializer
