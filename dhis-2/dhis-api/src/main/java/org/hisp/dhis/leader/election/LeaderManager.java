@@ -38,14 +38,28 @@ import org.hisp.dhis.scheduling.SchedulingManager;
  */
 public interface LeaderManager
 {
-    public void renewLeader();
+    /**
+     * Extend the expiry time of leadership if this node is the current leader
+     */
+    void renewLeader();
 
-    public void electLeader();
+    /**
+     * Attempt to become the leader
+     */
+    void electLeader();
 
-    public void revokeLeader();
+    /**
+     * Check if the current instance is the leader
+     * 
+     * @return true if this instance is the leader, false otherwise
+     */
+    boolean isLeader();
 
-    public boolean isLeader();
-    
-    public void setSchedulingManager(SchedulingManager schedulingManager);
+    /**
+     * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
+     * 
+     * @param schedulingManager The instantiated scheduling manager
+     */
+    void setSchedulingManager( SchedulingManager schedulingManager );
 
 }

@@ -95,15 +95,6 @@ public class RedisLeaderManager implements LeaderManager
     }
 
     @Override
-    public void revokeLeader()
-    {
-        if ( isLeader() )
-        {
-            redisTemplate.delete( key );
-        }
-    }
-
-    @Override
     public boolean isLeader()
     {
         byte[] leaderIdBytes = redisTemplate.getConnectionFactory().getConnection().get( key.getBytes() );

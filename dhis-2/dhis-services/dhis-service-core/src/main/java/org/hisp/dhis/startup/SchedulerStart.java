@@ -169,6 +169,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration fileResourceCleanUp = new JobConfiguration( DEFAULT_FILE_RESOURCE_CLEANUP,
                 FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, false, true );
+            fileResourceCleanUp.setLeaderOnlyJob( true );
             addAndScheduleJob( fileResourceCleanUp );
         }
 
@@ -177,15 +178,15 @@ public class SchedulerStart extends AbstractStartupRoutine
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
             SchedulerUpgrade.portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
-
+            dataStatistics.setLeaderOnlyJob( true );
             addAndScheduleJob( dataStatistics );
         }
 
         if ( verifyNoJobExist( DEFAULT_VALIDATION_RESULTS_NOTIFICATION, jobConfigurations ) )
         {
-            JobConfiguration validationResultNotification = new JobConfiguration(
-                DEFAULT_VALIDATION_RESULTS_NOTIFICATION, VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false,
-                true );
+            JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
+               VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false, true );
+            validationResultNotification.setLeaderOnlyJob( true );
             addAndScheduleJob( validationResultNotification );
         }
 
@@ -193,6 +194,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration credentialsExpiryAlert = new JobConfiguration( DEFAULT_CREDENTIALS_EXPIRY_ALERT,
                 CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, false, true );
+            credentialsExpiryAlert.setLeaderOnlyJob( true );
             addAndScheduleJob( credentialsExpiryAlert );
         }
 
@@ -200,6 +202,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration dataSetNotification = new JobConfiguration( DEFAULT_DATA_SET_NOTIFICATION,
                 DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null, false, true );
+            dataSetNotification.setLeaderOnlyJob( true );
             addAndScheduleJob( dataSetNotification );
         }
 
@@ -207,6 +210,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
                 REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
+            removeExpiredReservedValues.setLeaderOnlyJob( true );
             addAndScheduleJob( removeExpiredReservedValues );
         }
 
@@ -229,12 +233,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         JobConfiguration leaderElectionJobConfiguration = jobConfigurations.stream()
             .filter( jobConfiguration -> jobConfiguration.getName().equals( DEFAULT_LEADER_ELECTION ) ).findFirst()
             .get();
-        if ( !leaderElectionJobConfiguration.getCronExpression()
-            .equals( String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) ) )
-        {
-            leaderElectionJobConfiguration
-                .setCronExpression( String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) );
-        }
+        leaderElectionJobConfiguration.setCronExpression( String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) );
 
         if ( "true".equalsIgnoreCase( redisEnabled ) )
         {

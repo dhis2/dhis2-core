@@ -44,28 +44,22 @@ public class NoOpLeaderManager implements LeaderManager
 
     private static final Log log = LogFactory.getLog( NoOpLeaderManager.class );
 
-    private String nodeId;
-
     public NoOpLeaderManager()
     {
-        this.nodeId = UUID.randomUUID().toString();
-        log.info( "Setting up noop leader manager on NodeId:" + this.nodeId );
-
+        String nodeId = UUID.randomUUID().toString();
+        log.info( "Setting up noop leader manager using dummy NodeId:" + nodeId );
     }
 
     @Override
     public void renewLeader()
     {
+        //No operation
     }
 
     @Override
     public void electLeader()
     {
-    }
-
-    @Override
-    public void revokeLeader()
-    {
+      //No operation
     }
 
     @Override
@@ -77,6 +71,7 @@ public class NoOpLeaderManager implements LeaderManager
     @Override
     public void setSchedulingManager( SchedulingManager schedulingManager )
     {
+      //No operation
     }
 
 }
