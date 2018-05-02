@@ -392,7 +392,7 @@ public class HibernateDataValueStore
 
         if ( params.isIncludeChildrenForOrganisationUnits() || params.isReturnParentForOrganisationUnits() )
         {
-            List<OrganisationUnit> orgUnitList = new ArrayList( params.getOrganisationUnits() );
+            List<OrganisationUnit> orgUnitList = new ArrayList<>( params.getOrganisationUnits() );
             List<Integer> orgUnitIdList = orgUnitList.stream().map(  OrganisationUnit::getId ).collect( Collectors.toList() );
             List<String> orgUnitPathList = orgUnitList.stream().map(  OrganisationUnit::getPath ).collect( Collectors.toList() );
 
