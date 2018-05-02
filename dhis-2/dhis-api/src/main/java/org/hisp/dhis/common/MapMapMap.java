@@ -53,7 +53,7 @@ public class MapMapMap<S, T, U, V>
     {
         MapMap<T, U, V> map = this.get( key1 );
         map = map == null ? new MapMap<>() : map;
-        map.putAll( m );
+        map.putMap( m );
         this.put( key1, map );
     }
 

@@ -33,8 +33,8 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.CategoryDimension;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
@@ -142,12 +142,12 @@ public class AnalyticalObjectObjectBundleHook
             }
 
             categoryDimension.setDimension( bundle.getPreheat().get( bundle.getPreheatIdentifier(), categoryDimension.getDimension() ) );
-            List<DataElementCategoryOption> categoryOptions = new ArrayList<>( categoryDimension.getItems() );
+            List<CategoryOption> categoryOptions = new ArrayList<>( categoryDimension.getItems() );
             categoryDimension.getItems().clear();
 
             categoryOptions.forEach( co ->
             {
-                DataElementCategoryOption categoryOption = bundle.getPreheat().get( bundle.getPreheatIdentifier(), co );
+                CategoryOption categoryOption = bundle.getPreheat().get( bundle.getPreheatIdentifier(), co );
                 if ( categoryOption != null ) categoryDimension.getItems().add( categoryOption );
             } );
 

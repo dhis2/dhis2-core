@@ -46,9 +46,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -88,43 +86,6 @@ public class SmsController
 
     @Autowired
     private UserService userService;
-
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/commands", method = RequestMethod.GET, produces = "application/json" )
-    public void getSmsCommands( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        List<SMSCommand> commands = smsCommandService.getSMSCommands();
-
-        if ( commands != null && !commands.isEmpty() )
-        {
-            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-            renderService.toJson( response.getOutputStream(), commands );
-        }
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/commands/{commandName}", method = RequestMethod.GET, produces = "application/json" )
-    public void getSmsCommandTypes( @PathVariable( "commandName" ) String commandName, @RequestParam ParserType type,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException, WebMessageException
-    {
-        SMSCommand command = smsCommandService.getSMSCommand( commandName, type );
-
-        if ( command == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "No SMS command found" ) );
-        }
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-        renderService.toJson( response.getOutputStream(), command );
-    }
 
     // -------------------------------------------------------------------------
     // POST

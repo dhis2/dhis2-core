@@ -30,7 +30,7 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.ApplicationContext;
@@ -59,8 +59,8 @@ public class Validator
     public static Collection<ValidationResult> validate( ValidationRunContext context,
         ApplicationContext applicationContext, AnalyticsService analyticsService )
     {
-        DataElementCategoryService categoryService = (DataElementCategoryService)
-            applicationContext.getBean( DataElementCategoryService.class );
+        CategoryService categoryService = (CategoryService)
+            applicationContext.getBean( CategoryService.class );
                 
         int threadPoolSize = getThreadPoolSize( context );
 
@@ -129,12 +129,12 @@ public class Validator
      * @param dataElementCategoryService
      */
     private static void reloadAttributeOptionCombos( Collection<ValidationResult> results,
-        DataElementCategoryService dataElementCategoryService )
+        CategoryService dataElementCategoryService )
     {
         for ( ValidationResult result : results )
         {
             result.setAttributeOptionCombo( dataElementCategoryService
-                .getDataElementCategoryOptionCombo( result.getAttributeOptionCombo().getId() ) );
+                .getCategoryOptionCombo( result.getAttributeOptionCombo().getId() ) );
         }
     }
 }

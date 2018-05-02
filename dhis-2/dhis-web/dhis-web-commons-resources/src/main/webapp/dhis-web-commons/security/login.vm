@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html class="loginPage">
+<html class="loginPage" dir="ltr">
     <head>
         <title>$!encoder.htmlEncode( ${applicationTitle} )</title>
         <meta name="description" content="DHIS 2">
@@ -54,8 +54,12 @@
             <form id="loginForm" action="../../dhis-web-commons-security/login.action" method="post">
                 <div>
                 	<div id="signInLabel">Sign in</div>
-                    <div><input type="text" id="j_username" name="j_username" placeholder="Username"></div>
-                    <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password"></div>
+                    <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
+                    <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password" required></div>
+                    <div>
+                        <label><input type="checkbox" name="2fa" value="2fa" id="2fa" />Login using two factor authentication</label>
+                        <input type="code" id="2fa_code" name="2fa_code" placeholder="Two factor authentication code" hidden readonly >
+                    </div>
                 </div>
                 <div id="submitDiv">
                 	<input id="submit" class="button" type="submit" value="Sign in">

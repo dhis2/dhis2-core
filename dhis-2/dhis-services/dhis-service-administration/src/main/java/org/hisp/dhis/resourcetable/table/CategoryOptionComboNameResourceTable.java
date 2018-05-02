@@ -30,8 +30,8 @@ package org.hisp.dhis.resourcetable.table;
 
 import com.google.common.collect.Lists;
 
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -45,11 +45,11 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
  * @author Lars Helge Overland
  */
 public class CategoryOptionComboNameResourceTable
-    extends ResourceTable<DataElementCategoryCombo>
+    extends ResourceTable<CategoryCombo>
 {
-    public CategoryOptionComboNameResourceTable( List<DataElementCategoryCombo> objects, String columnQuote )
+    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
     
     @Override
@@ -78,7 +78,7 @@ public class CategoryOptionComboNameResourceTable
     {
         List<Object[]> batchArgs = new ArrayList<>();
 
-        for ( DataElementCategoryCombo combo : objects )
+        for ( CategoryCombo combo : objects )
         {
             if ( !combo.isValid() )
             {
@@ -86,7 +86,7 @@ public class CategoryOptionComboNameResourceTable
                 continue;
             }
             
-            for ( DataElementCategoryOptionCombo coc : combo.getOptionCombos() )
+            for ( CategoryOptionCombo coc : combo.getOptionCombos() )
             {
                 List<Object> values = new ArrayList<>();
                 

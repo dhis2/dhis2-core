@@ -513,7 +513,7 @@ public class JdbcAnalyticsManager
             if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {
                 String alias = statementBuilder.columnQuote( dim.getDimensionName() );
-                String col = "'" + period.getDimensionItem() + "' as " + alias;
+                String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
                 
                 cols.remove( alias ); // Remove column if already present, i.e. "yearly"
                 cols.add( col );

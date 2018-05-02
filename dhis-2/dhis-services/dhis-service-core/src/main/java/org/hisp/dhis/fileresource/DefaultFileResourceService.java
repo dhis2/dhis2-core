@@ -29,9 +29,7 @@ package org.hisp.dhis.fileresource;
  */
 
 import com.google.common.io.ByteSource;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -52,8 +50,6 @@ import java.util.stream.Collectors;
 public class DefaultFileResourceService
     implements FileResourceService
 {
-    private static final Log log = LogFactory.getLog(DefaultFileResourceService.class);
-
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
     private static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
@@ -63,9 +59,9 @@ public class DefaultFileResourceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<FileResource> fileResourceStore;
+    private IdentifiableObjectStore<FileResource> fileResourceStore;
 
-    public void setFileResourceStore( GenericIdentifiableObjectStore<FileResource> fileResourceStore )
+    public void setFileResourceStore( IdentifiableObjectStore<FileResource> fileResourceStore )
     {
         this.fileResourceStore = fileResourceStore;
     }

@@ -29,7 +29,7 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -57,7 +57,7 @@ public final class ValidationAnalysisParams
 
     private ImmutableCollection<Period> periods;
 
-    private DataElementCategoryOptionCombo attributeOptionCombo;
+    private CategoryOptionCombo attributeOptionCombo;
 
     /*
         Optional properties:
@@ -108,7 +108,7 @@ public final class ValidationAnalysisParams
      *
      * @return an attribute option combo to be analysed
      */
-    public DataElementCategoryOptionCombo getAttributeOptionCombo()
+    public CategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
     }
@@ -187,7 +187,7 @@ public final class ValidationAnalysisParams
          * @param attributeOptionCombo the attributeOptionCombo to use
          * @return the updated builder object
          */
-        public Builder withAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
+        public Builder withAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
         {
             this.params.attributeOptionCombo = attributeOptionCombo;
             return this;

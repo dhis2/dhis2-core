@@ -135,18 +135,6 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public TrackedEntityAttribute getTrackedEntityAttributeByShortName( String shortName )
-    {
-        return attributeStore.getByShortName( shortName );
-    }
-
-    @Override
-    public TrackedEntityAttribute getTrackedEntityAttributeByCode( String code )
-    {
-        return attributeStore.getByShortName( code );
-    }
-
-    @Override
     public TrackedEntityAttribute getTrackedEntityAttribute( String uid )
     {
         return attributeStore.getByUid( uid );

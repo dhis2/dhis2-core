@@ -100,10 +100,11 @@ public class JacksonUtils
         return jsonMapper.readValue( object, typeRef );
     }
 
-    public static <T> void fromObjectToReponse( HttpServletResponse response, Object clazz)
+    public static void fromObjectToReponse( HttpServletResponse response, Object clazz)
     {
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
         response.setContentType( "application/json" );
+
         PrintWriter jsonResponse;
         try
         {

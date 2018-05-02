@@ -69,19 +69,28 @@ public class ResourceTableServiceTest
         
         DataElementGroup degA = createDataElementGroup( 'A' );
         DataElementGroup degB = createDataElementGroup( 'B' );
+        DataElementGroup degC = createDataElementGroup( 'C' );
+        DataElementGroup degD = createDataElementGroup( 'D' );
         
         degA.addDataElement( deA );
         degB.addDataElement( deB );
         
         idObjectManager.save( degA );
         idObjectManager.save( degB );
+        idObjectManager.save( degC );
+        idObjectManager.save( degD );
         
         DataElementGroupSet degsA = createDataElementGroupSet( 'A' );
+        DataElementGroupSet degsB = createDataElementGroupSet( 'B' );
+        degsB.setName( "Data \"Element\" Group Set \"B\"" );
         
         degsA.addDataElementGroup( degA );
         degsA.addDataElementGroup( degB );
+        degsB.addDataElementGroup( degC );
+        degsB.addDataElementGroup( degD );
         
         idObjectManager.save( degsA );
+        idObjectManager.save( degsB );
         
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
@@ -127,6 +136,6 @@ public class ResourceTableServiceTest
         resourceTableService.generateDataElementTable();
         resourceTableService.generatePeriodTable();
         resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();
+        resourceTableService.generateCategoryOptionComboTable();
     }
 }

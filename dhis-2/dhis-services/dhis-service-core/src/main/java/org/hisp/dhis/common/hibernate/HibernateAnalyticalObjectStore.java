@@ -31,7 +31,7 @@ package org.hisp.dhis.common.hibernate;
 import org.hibernate.Query;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;

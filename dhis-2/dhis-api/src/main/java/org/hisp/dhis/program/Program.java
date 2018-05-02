@@ -40,7 +40,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -52,7 +52,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.validation.ValidationCriteria;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -81,8 +80,6 @@ public class Program
     private Set<ProgramStage> programStages = new HashSet<>();
 
     private Set<ProgramSection> programSections = new HashSet<>();
-
-    private Set<ValidationCriteria> validationCriteria = new HashSet<>();
 
     private ProgramType programType;
 
@@ -125,7 +122,7 @@ public class Program
     /**
      * The CategoryCombo used for data attributes.
      */
-    private DataElementCategoryCombo categoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * Property indicating whether offline storage is enabled for this program
@@ -469,20 +466,6 @@ public class Program
         this.programType = programType;
     }
 
-    @JsonProperty( "validationCriterias" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "validationCriterias", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "validationCriteria", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ValidationCriteria> getValidationCriteria()
-    {
-        return validationCriteria;
-    }
-
-    public void setValidationCriteria( Set<ValidationCriteria> validationCriteria )
-    {
-        this.validationCriteria = validationCriteria;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getDisplayIncidentDate()
@@ -719,12 +702,12 @@ public class Program
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
         return categoryCombo;
     }
 
-    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
     }
@@ -747,7 +730,7 @@ public class Program
      */
     public boolean hasCategoryCombo()
     {
-        return categoryCombo != null && !DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
+        return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
 
     @JsonProperty

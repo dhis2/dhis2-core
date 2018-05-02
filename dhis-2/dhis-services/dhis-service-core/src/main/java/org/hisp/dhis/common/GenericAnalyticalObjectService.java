@@ -30,7 +30,7 @@ package org.hisp.dhis.common;
 
 import java.util.List;
 
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;

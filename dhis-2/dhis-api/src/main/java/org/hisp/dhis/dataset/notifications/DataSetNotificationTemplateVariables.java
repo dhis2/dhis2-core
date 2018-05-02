@@ -40,13 +40,14 @@ import java.util.stream.Collectors;
 public enum DataSetNotificationTemplateVariables
     implements TemplateVariable
 {
-    DATASET_NAME( "data_name" ),
+    DATASET_NAME( "data_set_name" ),
     DATASET_DESCRIPTION( "data_description" ),
-    COMPLETE_REG_OU( "complete_registration_ou" ),
-    COMPLETE_REG_PERIOD( "complete_registration_period" ),
-    COMPLETE_REG_USER( "complete_registration_user" ),
-    COMPLETE_REG_TIME( "complete_registration_time" ),
-    COMPLETE_REG_ATT_OPT_COMBO( "complete_registration_att_opt_combo" );
+    COMPLETE_REG_OU( "registration_ou" ),
+    COMPLETE_REG_PERIOD( "registration_period" ),
+    COMPLETE_REG_USER( "registration_user" ),
+    COMPLETE_REG_TIME( "registration_time" ),
+    COMPLETE_REG_ATT_OPT_COMBO( "att_opt_combo" ),
+    CURRENT_DATE( "current_date" );
 
     private static final Map<String, DataSetNotificationTemplateVariables> variableNameMap =
         EnumSet.allOf( DataSetNotificationTemplateVariables.class ).stream()

@@ -31,9 +31,9 @@ package org.hisp.dhis.expression;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ public class ExpressionStoreTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     private int dataElementIdA;
 
@@ -79,7 +79,7 @@ public class ExpressionStoreTest
 
     private Set<DataElement> dataElements = new HashSet<>();
 
-    private Set<DataElementCategoryOptionCombo> optionCombos;
+    private Set<CategoryOptionCombo> optionCombos;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -99,9 +99,9 @@ public class ExpressionStoreTest
         dataElementIdC = dataElementService.addDataElement( dataElementC );
         dataElementIdD = dataElementService.addDataElement( dataElementD );
 
-        DataElementCategoryCombo categoryCombo = categoryService
-            .getDataElementCategoryComboByName( DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryCombo.getOptionCombos().iterator().next();
+        CategoryCombo categoryCombo = categoryService
+            .getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+        CategoryOptionCombo categoryOptionCombo = categoryCombo.getOptionCombos().iterator().next();
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );

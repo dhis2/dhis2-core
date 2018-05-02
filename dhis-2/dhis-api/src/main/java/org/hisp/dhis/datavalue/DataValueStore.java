@@ -28,22 +28,14 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Defines the functionality for persisting DataValues.
@@ -99,7 +91,7 @@ public interface DataValueStore
      *         if no match.
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, 
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo );
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
     
     /**
      * Returns a soft deleted DataValue.
@@ -131,43 +123,26 @@ public interface DataValueStore
     
     /**
      * Returns all DataValues for a given Source, Period, collection of
-     * DataElements and DataElementCategoryOptionCombo.
+     * DataElements and CategoryOptionCombo.
      * 
      * @param source the Source of the DataValues.
      * @param period the Period of the DataValues.
      * @param dataElements the DataElements of the DataValues.
-     * @param attributeOptionCombo the DataElementCategoryCombo.
+     * @param attributeOptionCombo the CategoryCombo.
      * @return a list of all DataValues which match the given Source,
      *         Period, and any of the DataElements, or an empty collection if no
      *         values match.
      */
     List<DataValue> getDataValues( OrganisationUnit source, Period period, 
-        Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo );
-    
+        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo );
+
     /**
-     * Returns values for a collection of DataElementOperands, where each operand
-     * may include a specific CategoryOptionCombo, or may speicify a null COC if
-     * all CategoryOptionCombos are to be summed.
+     * Returns deflated data values for the given data export parameters.
      *
-     * Returns values within the periods specified, for the organisation units
-     * specified or any of the organisation units' descendants.
-     *
-     * NOTE that the collection of orgUnits should have non-overlapping
-     * descendants, in order to permit efficient database queries for this
-     * method. This can be assured by making each call to this method with
-     * only orgUnits at the same hierarchy level as each other.
-     *
-     * Returns the values mapped by organisation unit, period, attribute option
-     * combo UID, and DimensionalItemObject (containing the DataElementOperand.)
-     *
-     * @param dataElementOperands the DataElementOperands.
-     * @param periods the Periods of the DataValues.
-     * @param orgUnits the OrganisationUnit trees to include.
-     * @return the map of values
+     * @param params the data export parameters.
+     * @return a list of deflated data values.
      */
-    Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
-        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        Collection<OrganisationUnit> orgUnits );
+    List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params );
 
     /**
      * Gets the number of DataValues which have been updated between the given 
@@ -180,24 +155,4 @@ public interface DataValueStore
      * @return the number of DataValues.
      */
     int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
-
-    /**
-     * Returns a map of values for each attribute option combo found.
-     * <p>
-     * In the (unlikely) event that the same dataElement/optionCombo is found in
-     * more than one period for the same organisationUnit, date, and attribute
-     * combo, the value is returned from the period with the shortest duration.
-     *
-     * @param dataElementOperands DataElementOperands to fetch
-     * @param date date which must be present in the period
-     * @param orgUnits OrganisationUnits for which to fetch the values
-     * @param periodTypes allowable period types in which to find the data
-     * @param attributeCombo the attribute combo to check (if restricted)
-     * @return map of values by org unit ID, attribute option combo UID, and DataElementOperand
-     */
-    MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        Set<DataElementOperand> dataElementOperands, Date date,
-        List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints );
-
 }

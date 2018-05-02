@@ -30,7 +30,6 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.user.User;
 
 import java.util.List;
 
@@ -52,31 +51,6 @@ public interface GenericStore<T>
     void save( T object );
 
     /**
-     * Saves the given object instance, with clear sharing set to true.
-     *
-     * @param object the object instance.
-     * @param user   User
-     */
-    void save( T object, User user );
-
-    /**
-     * Saves the given object instance.
-     *
-     * @param object       the object instance.
-     * @param clearSharing Should we clear all sharing related properties?
-     */
-    void save( T object, boolean clearSharing );
-
-    /**
-     * Saves the given object instance.
-     *
-     * @param object       the object instance.
-     * @param user         User
-     * @param clearSharing Should we clear all sharing related properties?
-     */
-    void save( T object, User user, boolean clearSharing );
-
-    /**
      * Updates the given object instance.
      *
      * @param object the object instance.
@@ -84,27 +58,11 @@ public interface GenericStore<T>
     void update( T object );
 
     /**
-     * Updates the given object instance.
-     *
-     * @param object the object instance.
-     * @param user   User
-     */
-    void update( T object, User user );
-
-    /**
      * Removes the given object instance.
      *
      * @param object the object instance to delete.
      */
     void delete( T object );
-
-    /**
-     * Removes the given object instance.
-     *
-     * @param object the object instance to delete.
-     * @param user   User
-     */
-    void delete( T object, User user );
 
     /**
      * Retrieves the object with the given identifier. This method will first
@@ -116,21 +74,11 @@ public interface GenericStore<T>
     T get( int id );
 
     /**
-     * Retrieves the object with the given identifier. Bypasses the ACL solution.
+     * Gets the count of objects.
      *
-     * @param id the object identifier.
-     * @return the object identified by the given identifier.
+     * @return the count of objects.
      */
-    T getNoAcl( int id );
-
-    /**
-     * Retrieves the object with the given identifier, assuming it exists.
-     *
-     * @param id the object identifier.
-     * @return the object identified by the given identifier or a generated
-     * proxy.
-     */
-    T load( int id );
+    int getCount();
 
     /**
      * Retrieves a List of all objects.
@@ -139,37 +87,7 @@ public interface GenericStore<T>
      */
     List<T> getAll();
 
-    List<T> getDataReadAll();
-
-    List<T> getUserDataReadAll( User user );
-
-    List<T> getDataWriteAll();
-
-    List<T> getUserDataWriteAll( User user );
-
-    /**
-     * Retrieves a paged List of all objects.
-     *
-     * @return a List of all objects.
-     */
-    List<T> getAll( int first, int max );
-
-    List<T> getDataReadAll( int first, int max );
-
     List<T> getAllByAttributes( List<Attribute> attributes );
-
-    /**
-     * Gets the count of objects.
-     *
-     * @return the count of objects.
-     */
-    int getCount();
-
-    List<T> getAllNoAcl();
-
-    List<T> getAllNoAcl( int first, int max );
-
-    int getCountNoAcl();
 
     List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 

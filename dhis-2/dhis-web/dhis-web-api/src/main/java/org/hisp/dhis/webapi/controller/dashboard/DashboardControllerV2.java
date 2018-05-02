@@ -1,10 +1,5 @@
 package org.hisp.dhis.webapi.controller.dashboard;
 
-import java.io.IOException;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItemType;
@@ -24,11 +19,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Set;
+
 /**
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { DhisApiVersion.V29, DhisApiVersion.DEFAULT } )
+@ApiVersion( { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.DEFAULT } )
 @RequestMapping( value = DashboardSchemaDescriptor.API_ENDPOINT )
 public class DashboardControllerV2
     extends AbstractCrudController<Dashboard>

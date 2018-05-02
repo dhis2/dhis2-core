@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 
 /**

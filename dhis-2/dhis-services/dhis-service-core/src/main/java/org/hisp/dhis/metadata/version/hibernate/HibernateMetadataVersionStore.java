@@ -31,7 +31,7 @@ package org.hisp.dhis.metadata.version.hibernate;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Projections;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 
@@ -45,7 +45,7 @@ import java.util.List;
  * @author aamerm
  */
 public class HibernateMetadataVersionStore
-    extends HibernateGenericStore<MetadataVersion>
+    extends HibernateIdentifiableObjectStore<MetadataVersion>
     implements MetadataVersionStore
 {
     @Override

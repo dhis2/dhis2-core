@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
@@ -59,6 +60,7 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -72,6 +74,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -134,6 +137,9 @@ public abstract class AbstractTrackedEntityInstanceService
     @Autowired
     protected FileResourceService fileResourceService;
 
+    @Autowired
+    private I18nManager i18nManager;
+
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final CachingMap<String, TrackedEntityType> trackedEntityCache = new CachingMap<>();
@@ -144,26 +150,30 @@ public abstract class AbstractTrackedEntityInstanceService
     // READ
     // -------------------------------------------------------------------------
 
+    @Transactional
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params )
+    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams, TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService.getTrackedEntityInstances( queryParams );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService.getTrackedEntityInstances( queryParams, skipAccessValidation );
 
         List<TrackedEntityInstance> dtoTEIItems = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
         for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
         {
-            dtoTEIItems.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
+            if ( trackerAccessManager.canRead( user, daoTrackedEntityInstance ).isEmpty() )
+            {
+                dtoTEIItems.add( getTrackedEntityInstance( daoTrackedEntityInstance, params, user ) );
+            }
         }
 
         return dtoTEIItems;
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
+    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
-        return teiService.getTrackedEntityInstanceCount( params, sync );
+        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
     }
 
     @Override
@@ -252,7 +262,10 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             for ( ProgramInstance programInstance : daoTrackedEntityInstance.getProgramInstances() )
             {
-                trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( programInstance, params ) );
+                if ( trackerAccessManager.canRead( user, programInstance ).isEmpty() )
+                {
+                    trackedEntityInstance.getEnrollments().add( enrollmentService.getEnrollment( user, programInstance, params ) );
+                }
             }
         }
 
@@ -272,6 +285,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 attribute.setCode( attributeValue.getAttribute().getCode() );
                 attribute.setValue( attributeValue.getValue() );
                 attribute.setStoredBy( attributeValue.getStoredBy() );
+                attribute.setSkipSynchronization( attributeValue.getAttribute().getSkipSynchronization() );
 
                 trackedEntityInstance.getAttributes().add( attribute );
             }
@@ -355,6 +369,12 @@ public abstract class AbstractTrackedEntityInstanceService
             importOptions = new ImportOptions();
         }
 
+        if ( teiService.trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Tracked entity instance ID " + dtoEntityInstance.getTrackedEntityInstance() + " was already used. The ID is unique and cannot be used more than once" ).setReference( dtoEntityInstance.getTrackedEntityInstance() ).incrementIgnored();
+        }
+
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
 
         dtoEntityInstance.trimValuesToNull();
@@ -399,7 +419,6 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
-        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
@@ -454,41 +473,37 @@ public abstract class AbstractTrackedEntityInstanceService
         importConflicts.addAll( checkAttributes( dtoEntityInstance, importOptions ) );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
-
-        if ( daoEntityInstance == null )
-        {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance", "trackedEntityInstance " + dtoEntityInstance.getTrackedEntityInstance()
-                + " does not point to valid trackedEntityInstance" ) );
-        }
-
         List<String> errors = trackerAccessManager.canWrite( user, daoEntityInstance );
-
-        if ( !errors.isEmpty() )
-        {
-            return new ImportSummary( ImportStatus.ERROR, errors.toString() );
-        }
-
         OrganisationUnit organisationUnit = getOrganisationUnit( new IdSchemes(), dtoEntityInstance.getOrgUnit() );
 
-        if ( organisationUnit == null )
+        if ( daoEntityInstance == null || !errors.isEmpty() || organisationUnit == null || !importConflicts.isEmpty() )
         {
-            importConflicts.add( new ImportConflict( "OrganisationUnit", "orgUnit " + dtoEntityInstance.getOrgUnit()
-                + " does not point to valid organisation unit" ) );
-        }
-        else
-        {
-            daoEntityInstance.setOrganisationUnit( organisationUnit );
-        }
-
-        if ( !importConflicts.isEmpty() )
-        {
-            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
+            String errorMsg = "";
 
+            if ( daoEntityInstance == null )
+            {
+                errorMsg = "trackedEntityInstance " + dtoEntityInstance.getTrackedEntityInstance()
+                    + " does not point to valid trackedEntityInstance";
+                importConflicts.add( new ImportConflict( "TrackedEntityInstance", errorMsg ) );
+            }
+            else if ( !errors.isEmpty() )
+            {
+                importSummary.setDescription( errors.toString() );
+            }
+            else if ( organisationUnit == null )
+            {
+                errorMsg = "orgUnit " + dtoEntityInstance.getOrgUnit()
+                    + " does not point to valid organisation unit";
+                importConflicts.add( new ImportConflict( "OrganisationUnit", errorMsg ) );
+            }
+
+            importSummary.setConflicts( importConflicts );
             return importSummary;
         }
 
+        daoEntityInstance.setOrganisationUnit( organisationUnit );
         daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
         daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
         daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
@@ -506,7 +521,6 @@ public abstract class AbstractTrackedEntityInstanceService
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
-        importOptions.setStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
 
         return importSummary;
@@ -519,26 +533,63 @@ public abstract class AbstractTrackedEntityInstanceService
     @Override
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
-        org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance = teiService.getTrackedEntityInstance( uid );
+        return deleteTrackedEntityInstance( uid, null, null );
+    }
 
-        if ( entityInstance != null )
+    private ImportSummary deleteTrackedEntityInstance( String uid, TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions )
+    {
+        String descMsg = "Deletion of tracked entity instance " + uid + " was successful";
+        ImportSummary importSummary = null;
+
+        boolean existsTei = teiService.trackedEntityInstanceExists( uid );
+        boolean existsTeiIncludingDeleted = teiService.trackedEntityInstanceExistsIncludingDeleted( uid );
+
+        if ( existsTei )
         {
-            teiService.deleteTrackedEntityInstance( entityInstance );
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of tracked entity instance " + uid + " was successful" ).incrementDeleted();
+            User user = currentUserService.getCurrentUser();
+            org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( uid );
+
+            if ( dtoEntityInstance != null )
+            {
+                importSummary = new ImportSummary( uid );
+                importSummary.setEnrollments( handleEnrollments( dtoEntityInstance, daoEntityInstance, importOptions ) );
+            }
+
+            Set<ProgramInstance> notDeletedProgramInstances = daoEntityInstance.getProgramInstances().stream()
+                .filter( pi -> !pi.isDeleted() )
+                .collect( Collectors.toSet() );
+
+            if ( !notDeletedProgramInstances.isEmpty() && user != null && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+            {
+                descMsg = "The " + daoEntityInstance.getTrackedEntityType().getName() + " to be deleted has associated enrollments. Deletion requires special authority: " + i18nManager.getI18n().getString( Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
+                return new ImportSummary( ImportStatus.ERROR, descMsg ).incrementIgnored();
+            }
+
+            teiService.deleteTrackedEntityInstance( daoEntityInstance );
+        }
+
+        if ( existsTei || existsTeiIncludingDeleted )
+        {
+            if ( importSummary == null )
+            {
+                importSummary = new ImportSummary( ImportStatus.SUCCESS, descMsg );
+            }
+
+            return importSummary.incrementDeleted();
         }
 
         return new ImportSummary( ImportStatus.ERROR, "ID " + uid + " does not point to a valid tracked entity instance" ).incrementIgnored();
     }
 
     @Override
-    public ImportSummaries deleteTrackedEntityInstances( List<String> uids )
+    public ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         int counter = 0;
 
-        for ( String uid : uids )
+        for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            importSummaries.addImportSummary( deleteTrackedEntityInstance( uid ) );
+            importSummaries.addImportSummary( deleteTrackedEntityInstance( tei.getTrackedEntityInstance(), tei, importOptions ) );
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
@@ -559,13 +610,18 @@ public abstract class AbstractTrackedEntityInstanceService
     {
         List<Enrollment> create = new ArrayList<>();
         List<Enrollment> update = new ArrayList<>();
+        List<Enrollment> delete = new ArrayList<>();
 
         for ( Enrollment enrollment : dtoEntityInstance.getEnrollments() )
         {
             enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
             enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
 
-            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            if ( importOptions.getImportStrategy() == ImportStrategy.SYNC && enrollment.isDeleted() )
+            {
+                delete.add( enrollment );
+            }
+            else if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }
@@ -578,7 +634,8 @@ public abstract class AbstractTrackedEntityInstanceService
         ImportSummaries importSummaries = new ImportSummaries();
 
         importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
-        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, daoEntityInstance, false ) );
+        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, false ) );
+        importSummaries.addImportSummaries( enrollmentService.deleteEnrollments( delete, importOptions, false ) );
 
         return importSummaries;
     }

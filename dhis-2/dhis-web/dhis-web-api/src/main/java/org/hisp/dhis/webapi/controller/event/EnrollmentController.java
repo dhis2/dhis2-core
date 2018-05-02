@@ -124,7 +124,8 @@ public class EnrollmentController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted
     )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -140,12 +141,12 @@ public class EnrollmentController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        List listEnrollments;
+        List<Enrollment> listEnrollments;
 
         if ( enrollment == null )
         {
             ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
+                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -168,7 +169,8 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
-    public @ResponseBody Enrollment getEnrollment( @PathVariable String id, @RequestParam Map<String, String> parameters, Model model ) throws NotFoundException
+    public @ResponseBody
+    Enrollment getEnrollment( @PathVariable String id, @RequestParam Map<String, String> parameters, Model model ) throws NotFoundException
     {
         return getEnrollment( id );
     }
@@ -188,8 +190,11 @@ public class EnrollmentController
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         importSummaries.getImportSummaries().stream()
-            .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                !importOptions.getImportStrategy().isDelete() )
+            .filter(
+                importSummary -> !importOptions.isDryRun() &&
+                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                    !importOptions.getImportStrategy().isDelete() &&
+                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
             .forEach( importSummary -> importSummary.setHref(
                 ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
@@ -217,6 +222,15 @@ public class EnrollmentController
         ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
         importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_XML_VALUE );
+
+        importSummaries.getImportSummaries().stream()
+            .filter(
+                importSummary -> !importOptions.isDryRun() &&
+                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                    !importOptions.getImportStrategy().isDelete() &&
+                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+            .forEach( importSummary -> importSummary.setHref(
+                ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
         if ( importSummaries.getImportSummaries().size() == 1 )
         {
@@ -267,7 +281,7 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/cancelled", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void cancelEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
+    public void cancelEnrollment( @PathVariable String id ) throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
@@ -279,7 +293,7 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/completed", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void completeEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
+    public void completeEnrollment( @PathVariable String id ) throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
@@ -291,7 +305,7 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/incompleted", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void incompleteEnrollment( @PathVariable String id ) throws NotFoundException, WebMessageException
+    public void incompleteEnrollment( @PathVariable String id ) throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
@@ -306,15 +320,8 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+    public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
     {
-        if ( !programInstanceService.programInstanceExists( id ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Enrollment not found for ID " + id ) );
-        }
-
-        response.setStatus( HttpServletResponse.SC_OK );
         ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }

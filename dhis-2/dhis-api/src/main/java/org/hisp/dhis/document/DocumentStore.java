@@ -28,14 +28,14 @@ package org.hisp.dhis.document;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 public interface DocumentStore
-    extends GenericIdentifiableObjectStore<Document>
+    extends IdentifiableObjectStore<Document>
 {
     long getCountByUser( User user );
 }

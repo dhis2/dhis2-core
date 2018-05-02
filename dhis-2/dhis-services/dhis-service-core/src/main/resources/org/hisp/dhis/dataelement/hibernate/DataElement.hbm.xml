@@ -24,8 +24,6 @@
 
     <property name="style" type="jbObjectStyle" column="style" />
 
-    <property name="renderType" type="jbRenderType" column="rendertype" />
-
     <property name="valueType" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.ValueType</param>
@@ -44,7 +42,7 @@
       </type>
     </property>
 
-    <many-to-one name="dataElementCategoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+    <many-to-one name="dataElementCategoryCombo" class="org.hisp.dhis.category.CategoryCombo"
       column="categorycomboid" not-null="true" foreign-key="fk_dataelement_categorycomboid" />
 
     <property name="url" />

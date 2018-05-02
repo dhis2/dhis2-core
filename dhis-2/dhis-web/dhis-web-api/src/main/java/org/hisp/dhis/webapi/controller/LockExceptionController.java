@@ -35,11 +35,14 @@ import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
+import org.hisp.dhis.dataset.comparator.LockExceptionNameComparator;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
@@ -110,6 +113,9 @@ public class LockExceptionController
     @Autowired
     private FieldFilterService fieldFilterService;
 
+    @Autowired
+    private I18nManager i18nManager;
+
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
@@ -167,6 +173,41 @@ public class LockExceptionController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
+        I18nFormat format = this.i18nManager.getI18nFormat();
+
+        for ( LockException lockException : lockExceptions )
+        {
+            lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
+        }
+
+        rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class, new FieldFilterParams( lockExceptions, fields ) ) );
+
+        return rootNode;
+    }
+
+    @RequestMapping( value = "/combinations", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    public @ResponseBody RootNode getLockExceptionCombinations()
+        throws IOException, WebMessageException
+    {
+
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
+        I18nFormat format = this.i18nManager.getI18nFormat();
+
+        for ( LockException lockException : lockExceptions )
+        {
+            lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
+        }
+
+        Collections.sort( lockExceptions, new LockExceptionNameComparator() );
+
+        RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class, new FieldFilterParams( lockExceptions, fields ) ) );
 
         return rootNode;
@@ -240,7 +281,7 @@ public class LockExceptionController
 
     @RequestMapping( method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteLockException( @RequestParam( "ou" ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
+    public void deleteLockException( @RequestParam( name = "ou", required = false ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         User user = userService.getCurrentUser();

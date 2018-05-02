@@ -30,7 +30,7 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -38,7 +38,7 @@ import org.hisp.dhis.program.Program;
  *
  */
 public interface TrackedEntityInstanceFilterStore
-    extends GenericIdentifiableObjectStore<TrackedEntityInstanceFilter>
+    extends IdentifiableObjectStore<TrackedEntityInstanceFilter>
 {
     /**
      * Gets trackedEntityInstanceFilters

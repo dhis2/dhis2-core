@@ -46,6 +46,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,8 +66,13 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Set;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.*;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Lars Helge Overland
@@ -97,6 +103,9 @@ public class DataValueSetController
 
     @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // Get
@@ -320,7 +329,7 @@ public class DataValueSetController
                 jobId, format ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + DATAVALUE_IMPORT );
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
     /**

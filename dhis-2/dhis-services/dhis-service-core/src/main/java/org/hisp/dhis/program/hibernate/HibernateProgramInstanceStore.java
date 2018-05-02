@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Query;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -72,7 +73,7 @@ public class HibernateProgramInstanceStore
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildCountProgramInstanceHql( params );
-        
+
         Query query = getQuery( hql );
 
         return ((Number) query.iterate().next()).intValue();
@@ -88,9 +89,9 @@ public class HibernateProgramInstanceStore
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params );
-        
+
         Query query = getQuery( hql );
-        
+
         if ( params.isPaging() )
         {
             query.setFirstResult( params.getOffset() );
@@ -167,6 +168,11 @@ public class HibernateProgramInstanceStore
             hql += hlp.whereAnd() + "pi.enrollmentDate <= '" + getMediumDateString( params.getProgramEndDate() ) + "'";
         }
 
+        if ( !params.isIncludeDeleted() )
+        {
+            hql += hlp.whereAnd() + " pi.deleted is false ";
+        }
+
         return hql;
     }
 
@@ -195,9 +201,17 @@ public class HibernateProgramInstanceStore
     @Override
     public boolean exists( String uid )
     {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=? and deleted is false", Integer.class, uid );
+        return result != null && result > 0;
+    }
+
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
     }
+
 
     @SuppressWarnings( "unchecked" )
     @Override
@@ -219,11 +233,11 @@ public class HibernateProgramInstanceStore
 
         String hql =
             "select distinct pi from ProgramInstance as pi " +
-            "inner join pi.program as p " +
-            "where :notificationTemplate in elements(p.notificationTemplates) " +
-            "and pi." + dateProperty + " is not null " +
-            "and pi.status = :activeEnrollmentStatus " +
-            "and cast(:targetDate as date) = pi." + dateProperty;
+                "inner join pi.program as p " +
+                "where :notificationTemplate in elements(p.notificationTemplates) " +
+                "and pi." + dateProperty + " is not null " +
+                "and pi.status = :activeEnrollmentStatus " +
+                "and cast(:targetDate as date) = pi." + dateProperty;
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
@@ -246,8 +260,15 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
+    protected void preProcessDetachedCriteria( DetachedCriteria criteria )
+    {
+        // Filter out soft deleted values
+        criteria.add( Restrictions.eq( "deleted", false ) );
+    }
+
+    @Override
     protected ProgramInstance postProcessObject( ProgramInstance programInstance )
     {
-        return ( programInstance == null || programInstance.isDeleted() ) ? null : programInstance;
+        return (programInstance == null || programInstance.isDeleted()) ? null : programInstance;
     }
 }

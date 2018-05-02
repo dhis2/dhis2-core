@@ -38,13 +38,13 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -69,6 +69,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -114,7 +115,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -218,38 +218,38 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteDataElementCategory( DataElementCategory category )
+    public void deleteCategory( Category category )
     {
     }
 
-    public String allowDeleteDataElementCategory( DataElementCategory category )
-    {
-        return null;
-    }
-
-    public void deleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
-    {
-    }
-
-    public String allowDeleteDataElementCategoryOption( DataElementCategoryOption categoryOption )
+    public String allowDeleteCategory( Category category )
     {
         return null;
     }
 
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void deleteCategoryOption( CategoryOption categoryOption )
     {
     }
 
-    public String allowDeleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public String allowDeleteCategoryOption( CategoryOption categoryOption )
     {
         return null;
     }
 
-    public void deleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
     }
 
-    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
+    public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        return null;
+    }
+
+    public void deleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    {
+    }
+
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
     {
         return null;
     }
@@ -735,15 +735,6 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteValidationCriteria( ValidationCriteria validationCriteria )
-    {
-    }
-
-    public String allowDeleteValidationCriteria( ValidationCriteria validationCriteria )
-    {
-        return null;
-    }
-
     public void deleteConstant( Constant constant )
     {
     }
@@ -958,6 +949,16 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteSMSCommand( SMSCommand smsCommand )
+    {
+        return null;
+    }
+
+    public void deleteMessageConversation( MessageConversation messageConversation )
+    {
+
+    }
+
+    public String allowDeleteMessageConversation( MessageConversation messageConversation )
     {
         return null;
     }

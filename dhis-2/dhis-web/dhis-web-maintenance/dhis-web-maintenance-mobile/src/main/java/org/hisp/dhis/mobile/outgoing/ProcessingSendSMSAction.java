@@ -43,7 +43,6 @@ import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -68,9 +67,6 @@ public class ProcessingSendSMSAction
 
     @Autowired
     private SelectionTreeManager selectionTreeManager;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private UserGroupService userGroupService;
@@ -158,8 +154,6 @@ public class ProcessingSendSMSAction
 
             return ERROR;
         }
-
-        User currentUser = currentUserService.getCurrentUser();
 
         List<User> recipientsList = new ArrayList<>();
 

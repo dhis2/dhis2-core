@@ -34,7 +34,7 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -208,7 +208,7 @@ public class FormUtilsImpl
         for ( DataValue dataValue : values )
         {
             DataElement dataElement = dataValue.getDataElement();
-            DataElementCategoryOptionCombo optionCombo = dataValue.getCategoryOptionCombo();
+            CategoryOptionCombo optionCombo = dataValue.getCategoryOptionCombo();
 
             String key = String.format( "DE%dOC%d", dataElement.getId(), optionCombo.getId() );
             String value = dataValue.getValue();
@@ -253,7 +253,7 @@ public class FormUtilsImpl
 
         if ( !userCredentials.isSuper() )
         {
-            dataSets.retainAll( dataSetService.getUserDataSets() );
+            dataSets.retainAll( dataSetService.getAllDataWrite() );
         }
 
         return dataSets;

@@ -81,7 +81,6 @@ public class MockAnalyticsService
 
     public MockAnalyticsService()
     {
-        this.dateGridMap = dateGridMap;
     }
 
     @Override

@@ -28,11 +28,13 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -46,10 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,6 +85,8 @@ public class Interpretation
     private int likes;
 
     private Set<User> likedBy = new HashSet<>();
+    
+    private List<Mention> mentions = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -261,21 +262,6 @@ public class Interpretation
     public PeriodType getPeriodType()
     {
         return period != null ? period.getPeriodType() : null;
-    }
-
-    public void updateSharing()
-    {
-        IdentifiableObject object = getObject();
-
-        if ( object == null )
-        {
-            setPublicAccess( AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ ).build() );
-            return;
-        }
-
-        setPublicAccess( object.getPublicAccess() );
-        object.getUserAccesses().forEach( ua -> userAccesses.add( new UserAccess( ua.getUser(), ua.getAccess() ) ) );
-        object.getUserGroupAccesses().forEach( uga -> userGroupAccesses.add( new UserGroupAccess( uga.getUserGroup(), uga.getAccess() ) ) );
     }
 
     /**
@@ -482,5 +468,24 @@ public class Interpretation
     public void setLikedBy( Set<User> likedBy )
     {
         this.likedBy = likedBy;
+    }
+    
+    @JsonProperty( "mentions" )
+    @JacksonXmlElementWrapper( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "mentions", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Mention> getMentions()
+    {
+        return mentions;
+    }
+
+    public void setMentions( List<Mention> mentions )
+    {
+        this.mentions = mentions;
+    }
+    
+    @JsonIgnore
+    public void setMentionsFromUsers( Set<User> users )
+    {
+        this.mentions = MentionUtils.convertUsersToMentions( users );
     }
 }

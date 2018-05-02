@@ -61,8 +61,10 @@ public enum ConfigurationKey
     GOOGLE_SERVICE_ACCOUNT_CLIENT_ID( "google.service.account.client.id", "", false ),
     META_DATA_SYNC_RETRY( "metadata.sync.retry", "3", false ),
     META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC( "metadata.sync.retry.time.frequency.millisec", "30000", false ),
-    CLUSTER_INSTANCE_HOSTNAME( "cluster.instance0.hostname", "", false ),
-    CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001", false ),
+    CLUSTER_HOSTNAME( "cluster.hostname", "", false ),
+    CLUSTER_MEMBERS( "cluster.members", "", false ),
+    CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
+    CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
     CACHE_PROVIDER( "cache.provider", "ehcache", false ),
     CACHE_SERVERS( "cache.servers", "localhost:11211", false ),
     CACHE_TIME( "cache.time", "600", false ),
@@ -75,6 +77,12 @@ public enum ConfigurationKey
     RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
     RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
     RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true ),
+    KAFKA_BOOTSTRAP_SERVERS( "kafka.bootstrap-servers", "localhost:9092", false ),
+    REDIS_HOST( "redis.host", "localhost", false ),
+    REDIS_PORT( "redis.port", "6379", false ),
+    REDIS_PASSWORD( "redis.password", "", true ),
+    REDIS_ENABLED( "redis.enabled", "false", false ),
+    REDIS_USE_SSL( "redis.use.ssl", "false", false ),
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
 
     private final String key;

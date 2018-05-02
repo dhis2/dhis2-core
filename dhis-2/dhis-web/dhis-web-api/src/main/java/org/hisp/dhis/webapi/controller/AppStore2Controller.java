@@ -51,7 +51,7 @@ import java.util.List;
  */
 @Controller
 @RequestMapping( AppStore2Controller.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28, DhisApiVersion.V29 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
 public class AppStore2Controller
 {
     public static final String RESOURCE_PATH = "/appStore";

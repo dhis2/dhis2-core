@@ -38,8 +38,8 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -97,7 +97,9 @@ public class JdbcAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() ) );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
+        
+        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
     
     @Override
@@ -140,7 +142,6 @@ public class JdbcAnalyticsTableManager
     {
         return Lists.newArrayList(
             "yearly = '" + partition.getYear() + "'",
-            "pestartdate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
             "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
     
@@ -178,8 +179,6 @@ public class JdbcAnalyticsTableManager
     private void populateTable( AnalyticsTablePartition partition, String valueExpression,
         String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
     {
-        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
-        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
@@ -214,11 +213,10 @@ public class JdbcAnalyticsTableManager
             "inner join dataelement de on dv.dataelementid=de.dataelementid " +
             "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
             "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-                "and (pe.startdate >= degs.startdate or degs.startdate is null) and (pe.enddate <= degs.enddate or degs.enddate is null) " +
             "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
             "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
             "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
-                "and (pe.startdate >= ougs.startdate or ougs.startdate is null) and (pe.enddate <= ougs.enddate or ougs.enddate is null) " +
+                "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
             "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
             "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
@@ -229,8 +227,7 @@ public class JdbcAnalyticsTableManager
             approvalClause +
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
-            "and pe.startdate >= '" + start + "' " +
-            "and pe.startdate < '" + end + "' " +
+            "and ps.yearly = '" + partition.getYear() + "' " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -296,10 +293,10 @@ public class JdbcAnalyticsTableManager
         List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
             categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
 
-        List<DataElementCategory> disaggregationCategories =
+        List<Category> disaggregationCategories =
             categoryService.getDisaggregationDataDimensionCategoriesNoAcl();
 
-        List<DataElementCategory> attributeCategories =
+        List<Category> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
         List<OrganisationUnitLevel> levels =
@@ -325,12 +322,12 @@ public class JdbcAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ), groupSet.getCreated() ) );
         }
 
-        for ( DataElementCategory category : disaggregationCategories )
+        for ( Category category : disaggregationCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "dcs." + quote( category.getUid() ), category.getCreated() ) );
         }
 
-        for ( DataElementCategory category : attributeCategories )
+        for ( Category category : attributeCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ), category.getCreated() ) );
         }

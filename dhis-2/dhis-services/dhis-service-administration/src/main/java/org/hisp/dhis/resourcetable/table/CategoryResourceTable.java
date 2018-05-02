@@ -28,28 +28,29 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Optional;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
  */
 public class CategoryResourceTable
-    extends ResourceTable<DataElementCategory>
+    extends ResourceTable<Category>
 {
     private List<CategoryOptionGroupSet> groupSets;
     
-    public CategoryResourceTable( List<DataElementCategory> objects, List<CategoryOptionGroupSet> groupSets, String columnQuote )
+    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets )
     {
-        super( objects, columnQuote );
+        super( objects );
         this.groupSets = groupSets;
     }
 
@@ -66,16 +67,17 @@ public class CategoryResourceTable
             "categoryoptioncomboid integer not null, " +
             "categoryoptioncomboname varchar(255), ";
         
-        for ( DataElementCategory category : objects )
+        for ( Category category : objects )
         {
-            statement += columnQuote + category.getName() + columnQuote + " varchar(230), ";
-            statement += columnQuote + category.getUid() + columnQuote + " character(11), ";
+            quote( category.getName() );
+            statement += quote( category.getName() ) + " varchar(230), ";
+            statement += quote( category.getUid() ) + " character(11), ";
         }
 
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            statement += columnQuote + groupSet.getName() + columnQuote + " varchar(230), ";
-            statement += columnQuote + groupSet.getUid() + columnQuote + " character(11), ";
+            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
         }
         
         statement += "primary key (categoryoptioncomboid))";
@@ -90,7 +92,7 @@ public class CategoryResourceTable
             "insert into " + getTempTableName() + " " +
             "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
         
-        for ( DataElementCategory category : objects )
+        for ( Category category : objects )
         {
             sql += "(" +
                 "select co.name from categoryoptioncombos_categoryoptions cocco " +
@@ -98,7 +100,7 @@ public class CategoryResourceTable
                 "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cco.categoryid = " + category.getId() + " " +
-                "limit 1) as " + columnQuote + category.getName() + columnQuote + ", ";
+                "limit 1) as " + quote( category.getName() ) + ", ";
 
             sql += "(" +
                 "select co.uid from categoryoptioncombos_categoryoptions cocco " +
@@ -106,7 +108,7 @@ public class CategoryResourceTable
                 "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cco.categoryid = " + category.getId() + " " +
-                "limit 1) as " + columnQuote + category.getUid() + columnQuote + ", ";
+                "limit 1) as " + quote( category.getUid() ) + ", ";
         }
         
         for ( CategoryOptionGroupSet groupSet : groupSets )
@@ -118,7 +120,7 @@ public class CategoryResourceTable
                 "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
-                "limit 1) as " + columnQuote + groupSet.getName() + columnQuote + ", ";
+                "limit 1) as " + quote( groupSet.getName() ) + ", ";
             
             sql += "(" +
                 "select cog.uid from categoryoptioncombos_categoryoptions cocco " +
@@ -127,7 +129,7 @@ public class CategoryResourceTable
                 "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
-                "limit 1) as " + columnQuote + groupSet.getUid() + columnQuote + ", ";
+                "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }
 
         sql = TextUtils.removeLastComma( sql ) + " ";

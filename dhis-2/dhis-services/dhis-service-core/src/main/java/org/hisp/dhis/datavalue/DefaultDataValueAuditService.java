@@ -30,7 +30,7 @@ package org.hisp.dhis.datavalue;
 
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,21 +86,21 @@ public class DefaultDataValueAuditService
 
     @Override
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
     }
 
     @Override
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
     {
         return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType, first, max );
     }
 
     @Override
     public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         return dataValueAuditStore.countDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
     }

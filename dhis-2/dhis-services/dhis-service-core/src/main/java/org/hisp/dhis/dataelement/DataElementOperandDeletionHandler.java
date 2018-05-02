@@ -28,6 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -57,7 +58,7 @@ public class DataElementOperandDeletionHandler
     //TODO masking real problem, we should control operands better and check associated objects regarding deletion
     
     @Override
-    public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo optionCombo )
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "select count(*) from dataelementoperand where categoryoptioncomboid=" + optionCombo.getId();
 

@@ -30,11 +30,14 @@ package org.hisp.dhis.notification;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
 import org.hisp.dhis.system.util.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -45,7 +48,7 @@ import java.util.function.Function;
 public class DataSetNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<CompleteDataSetRegistration>
 {
-    private static final ImmutableMap<TemplateVariable, Function<CompleteDataSetRegistration, String>> VARIABLE_RESOLVERS =
+    private final ImmutableMap<TemplateVariable, Function<CompleteDataSetRegistration, String>> VARIABLE_RESOLVERS =
         new ImmutableMap.Builder<TemplateVariable, Function<CompleteDataSetRegistration, String>>()
             .put( DataSetNotificationTemplateVariables.DATASET_NAME, cdsr -> cdsr.getDataSet().getName() )
             .put( DataSetNotificationTemplateVariables.DATASET_DESCRIPTION, cdsr -> cdsr.getDataSet().getDescription() )
@@ -53,10 +56,14 @@ public class DataSetNotificationMessageRenderer
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_PERIOD, CompleteDataSetRegistration::getPeriodName )
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_USER, CompleteDataSetRegistration::getStoredBy )
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_TIME, cdsr -> DateUtils.getMediumDateString() )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_ATT_OPT_COMBO, cdsr -> cdsr.getAttributeOptionCombo().getName() )
+            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_ATT_OPT_COMBO, cdsr -> getAttributeOptionCombo( cdsr ) )
+            .put( DataSetNotificationTemplateVariables.CURRENT_DATE, cdsr -> formatDate( new Date() ) )
             .build();
 
     private static final ImmutableSet<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet.of( ExpressionType.VARIABLE );
+
+    @Autowired
+    private CategoryService dataElementCategoryService;
 
     public DataSetNotificationMessageRenderer()
     {
@@ -92,5 +99,15 @@ public class DataSetNotificationMessageRenderer
     protected Set<ExpressionType> getSupportedExpressionTypes()
     {
         return SUPPORTED_EXPRESSION_TYPES;
+    }
+
+    private String getAttributeOptionCombo( CompleteDataSetRegistration registration )
+    {
+        if ( registration.getAttributeOptionCombo() != null )
+        {
+            return registration.getAttributeOptionCombo().getName();
+        }
+
+        return dataElementCategoryService.getDefaultCategoryOptionCombo().getName();
     }
 }

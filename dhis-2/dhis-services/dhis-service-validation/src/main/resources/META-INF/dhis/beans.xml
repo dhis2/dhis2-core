@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
+
+  <!-- Validation rule -->
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleStore" class="org.hisp.dhis.validation.hibernate.HibernateValidationRuleStore">
+    <property name="clazz" value="org.hisp.dhis.validation.ValidationRule" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.validation.ValidationRuleGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleService" class="org.hisp.dhis.validation.DefaultValidationRuleService">
+    <property name="validationRuleStore" ref="org.hisp.dhis.validation.ValidationRuleStore" />
+    <property name="validationRuleGroupStore" ref="org.hisp.dhis.validation.ValidationRuleGroupStore" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleDeletionHandler" class="org.hisp.dhis.validation.ValidationRuleDeletionHandler" />
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler" class="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler" />
+  
+  <!-- Validation result -->
+
+  <bean id="org.hisp.dhis.validation.ValidationResultStore" class="org.hisp.dhis.validation.hibernate.HibernateValidationResultStore">
+    <property name="clazz" value="org.hisp.dhis.validation.ValidationResult" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationResultService" class="org.hisp.dhis.validation.DefaultValidationResultService" />
+
+  <bean id="org.hisp.dhis.validation.ValidationResultDeletionHandler" class="org.hisp.dhis.validation.ValidationResultDeletionHandler" />
+
+  <!-- Validation notification -->
+
+  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore"
+    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.validation.notification.ValidationNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
+    class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
+    <property name="validationResultService" ref="org.hisp.dhis.validation.ValidationResultService" />
+  </bean>
+
+  <bean id="validationResultNotificationJob" class="org.hisp.dhis.validation.notification.ValidationResultNotificationJob" scope="prototype" />
+
+  <!-- Data analysis -->
+
+  <bean id="org.hisp.dhis.dataanalysis.DataAnalysisStore" class="org.hisp.dhis.dataanalysis.jdbc.JdbcDataAnalysisStore">
+    <property name="statementBuilder" ref="statementBuilder" />
+    <property name="jdbcTemplate" ref="readOnlyJdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" class="org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService">
+    <property name="dataAnalysisStore" ref="org.hisp.dhis.dataanalysis.DataAnalysisStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" class="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService">
+    <property name="dataAnalysisStore" ref="org.hisp.dhis.dataanalysis.DataAnalysisStore" />
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+    <property name="batchHandlerFactory" ref="batchHandlerFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataanalysis.FollowupAnalysisService" class="org.hisp.dhis.dataanalysis.DefaultFollowupAnalysisService">
+    <property name="dataAnalysisStore" ref="org.hisp.dhis.dataanalysis.DataAnalysisStore" />
+  </bean>
+
+  <bean id="dataAnalysisServiceProvider" class="org.hisp.dhis.common.ServiceProvider">
+    <property name="services">
+      <map>
+        <entry>
+          <key>
+            <value>stddevoutlier</value>
+          </key>
+          <ref bean="org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" />
+        </entry>
+        <entry>
+          <key>
+            <value>minmaxoutlier</value>
+          </key>
+          <ref bean="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" />
+        </entry>
+      </map>
+    </property>
+  </bean>
+  
+  <!-- Min max data element -->
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementStore" class="org.hisp.dhis.minmax.hibernate.HibernateMinMaxDataElementStore">
+    <property name="clazz" value="org.hisp.dhis.minmax.MinMaxDataElement" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementService" class="org.hisp.dhis.minmax.DefaultMinMaxDataElementService">
+    <property name="minMaxDataElementStore" ref="org.hisp.dhis.minmax.MinMaxDataElementStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" class="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler">
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+  </bean>
+
+  <!-- AOP definitions -->
+
+  <aop:config>
+    <aop:aspect ref="deletionInterceptor">
+      <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationRuleService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.minmax.MinMaxDataElementService.delete*(..) )" method="intercept" />
+    </aop:aspect>
+  </aop:config>
+  
+</beans>

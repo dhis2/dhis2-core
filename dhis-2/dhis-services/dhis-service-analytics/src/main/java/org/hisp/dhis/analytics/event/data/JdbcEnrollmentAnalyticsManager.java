@@ -81,15 +81,14 @@ public class JdbcEnrollmentAnalyticsManager
     protected String getWhereClause( EventQueryParams params )
     {        
         String sql = "";
-       
+        SqlHelper sqlHelper = new SqlHelper();
+
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
         
         if ( params.hasNonDefaultBoundaries() )
         {
-            SqlHelper sqlHelper = new SqlHelper();
-            
             for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
             {
                 // Event data joined in the program indicator service, as part of translating the expression or filter for the program indicator
@@ -104,7 +103,7 @@ public class JdbcEnrollmentAnalyticsManager
             
             if ( params.getProgramIndicator().hasEventBoundary() )
             {
-                sql += sqlHelper.whereAnd() + "( select count * from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
+                sql += sqlHelper.whereAnd() + "( select count(*) from analytics_event_" + params.getProgramIndicator().getProgram().getUid() + 
                     " where pi = enrollmenttable.pi " + 
                     ( params.getProgramIndicator().getEndEventBoundary() != null ? ( sqlHelper.whereAnd() + " " + 
                     params.getProgramIndicator().getEndEventBoundary().getSqlCondition( params.getEarliestStartDate(), params.getLatestEndDate() ) + " " ) : "") + 
@@ -116,12 +115,12 @@ public class JdbcEnrollmentAnalyticsManager
         {
             if ( params.hasStartEndDate() )
             {        
-                sql += "where enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                sql += sqlHelper.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
                 sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
             }
             else // Periods
             {
-                sql += "where " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
             }
         }        
 
@@ -131,15 +130,15 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) )
         {
-            sql += "and ou in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " ou in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
-            sql += "and ou in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " ou in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
-            sql += "and (";
+            sql += sqlHelper.whereAnd() + " (";
             
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {

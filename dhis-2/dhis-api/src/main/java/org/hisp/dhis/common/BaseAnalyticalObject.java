@@ -39,6 +39,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.*;
@@ -52,7 +55,6 @@ import org.hisp.dhis.period.ConfigurablePeriod;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -159,7 +161,7 @@ public abstract class BaseAnalyticalObject
 
     protected transient List<OrganisationUnit> transientOrganisationUnits = new ArrayList<>();
 
-    protected transient List<DataElementCategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
+    protected transient List<CategoryOptionCombo> transientCategoryOptionCombos = new ArrayList<>();
 
     protected transient Date relativePeriodDate;
 
@@ -530,8 +532,6 @@ public abstract class BaseAnalyticalObject
                     periodList.add( new ConfigurablePeriod( periodEnum.toString() ) );
                 }
             }
-
-            Collections.sort( periodList, new AscendingPeriodComparator() );
 
             return new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList );
         }

@@ -28,16 +28,10 @@ package org.hisp.dhis.reporting.dataset.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.period.PeriodType.getAvailablePeriodTypes;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -48,7 +42,12 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.hisp.dhis.period.PeriodType.getAvailablePeriodTypes;
+import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 
 /**
  * @author Lars Helge Overland
@@ -81,9 +80,9 @@ public class GetDataSetReportOptionsAction
         this.organisationUnitGroupService = organisationUnitGroupService;
     }
     
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
-    public void setCategoryService( DataElementCategoryService categoryService )
+    public void setCategoryService( CategoryService categoryService )
     {
         this.categoryService = categoryService;
     }
@@ -169,16 +168,16 @@ public class GetDataSetReportOptionsAction
         return periodType;
     }
 
-    private DataElementCategoryCombo defaultCategoryCombo;
+    private CategoryCombo defaultCategoryCombo;
 
-    public DataElementCategoryCombo getDefaultCategoryCombo()
+    public CategoryCombo getDefaultCategoryCombo()
     {
         return defaultCategoryCombo;
     }
 
-    private List<DataElementCategoryCombo> categoryCombos;
+    private List<CategoryCombo> categoryCombos;
     
-    public List<DataElementCategoryCombo> getCategoryCombos()
+    public List<CategoryCombo> getCategoryCombos()
     {
         return categoryCombos;
     }
@@ -219,7 +218,7 @@ public class GetDataSetReportOptionsAction
             selectionTreeManager.setSelectedOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) ); //TODO set unit state in client instead
         }
 
-        defaultCategoryCombo = categoryService.getDefaultDataElementCategoryCombo();
+        defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
 
         dataSets = new ArrayList<>( dataSetService.getAllDataSets() );
         categoryCombos = new ArrayList<>( categoryService.getAttributeCategoryCombos() );

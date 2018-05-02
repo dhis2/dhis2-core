@@ -39,9 +39,7 @@ import java.util.regex.Pattern;
 public class TextPatternParser
 {
     private static final String METHOD_REGEX = "(?<MethodName>[A-Z_]+?)\\(.*?\\)";
-
     private static final String JOIN_REGEX = "(?<Join>[\\s]*(?<JoinValue>\\+)[\\s]*)";
-
     private static final String TEXT_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
 
     private static final Pattern EXPRESSION_REGEX = Pattern.compile(
@@ -78,9 +76,12 @@ public class TextPatternParser
 
         /*
          * We go trough all matches. Matches can be one of the following:
-         * a TEXT method ("..")
-         * any TextPatternMethod (Excluding TEXT) (method(param))
-         * a join ( + )
+         * 
+         * <ul>
+         *   <li>a TEXT method ("..")</li>
+         *   <li>any TextPatternMethod (Excluding TEXT) (method(param))</li>
+         *   <li>a join ( + )</li>
+         * </ul>
          *
          * Matches that are invalid includes methods with unknown method names
          */
@@ -115,7 +116,6 @@ public class TextPatternParser
                 // Catch all other methods
                 else
                 {
-
                     // Attempt to find a matching method name in TextPatternMethod
                     try
                     {
@@ -128,7 +128,6 @@ public class TextPatternParser
                             segments.add( new TextPatternSegment( textPatternMethod, method ) );
                             continue;
                         }
-
                     }
                     catch ( Exception e )
                     {
@@ -137,9 +136,7 @@ public class TextPatternParser
                 }
 
                 // If we are here, that means we found no matching methods, so throw an exception
-                throw new TextPatternParsingException( "Failed to parse the following method: '" + method + "'",
-                    m.start( "Method" ) );
-
+                throw new TextPatternParsingException( "Failed to parse the following method: '" + method + "'", m.start( "Method" ) );
             }
 
             // Handle Join
@@ -154,7 +151,6 @@ public class TextPatternParser
                 {
                     segment = false;
                 }
-
             }
         }
 
@@ -178,9 +174,7 @@ public class TextPatternParser
     {
         TextPatternParsingException( String message, int position )
         {
-            super(
-                "Could not parse expression: " + message + (position != -1 ? " at position " + (position + 1) : "") );
+            super( "Could not parse expression: " + message + (position != -1 ? " at position " + (position + 1) : "") );
         }
     }
-
 }

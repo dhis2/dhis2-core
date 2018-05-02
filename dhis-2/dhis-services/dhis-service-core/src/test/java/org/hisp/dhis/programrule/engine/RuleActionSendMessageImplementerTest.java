@@ -41,7 +41,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
@@ -54,12 +53,21 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.annotation.Nonnull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import javax.annotation.Nonnull;
+
 /**
  * Created by zubair@dhis2.org on 05.02.18.
  */
@@ -67,6 +75,7 @@ import static org.mockito.Mockito.*;
 public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "123abc";
+    private static final String DATA = "123abc";
 
     private static final String MANDATORY_FIELD = "fname";
 
@@ -101,8 +110,6 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
     private ProgramStageInstance programStageInstance;
 
     private ProgramRule programRuleA;
-
-    private ProgramRuleAction programRuleActionA;
 
     @Before
     public void initTest()
@@ -242,6 +249,13 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
             {
                 return NOTIFICATION_UID;
             }
+
+            @Nonnull
+            @Override
+            public String data()
+            {
+                return DATA;
+            }
         };
 
         setMandatoryFieldFalse = new RuleActionSetMandatoryField()
@@ -260,7 +274,6 @@ public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programRuleA = createProgramRule( 'R', programA );
-        programRuleActionA = createProgramRuleAction( 'T' );
 
         programA.getProgramRules().add( programRuleA );
 

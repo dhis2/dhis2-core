@@ -158,6 +158,11 @@
         <result name="error" type="redirect">login.action</result>
     </action>
 
+    <action name="getSystemAuthorities" class="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonSystemAuthorities.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
   </package>
 
   <!-- Organisation Unit Selection Tree -->

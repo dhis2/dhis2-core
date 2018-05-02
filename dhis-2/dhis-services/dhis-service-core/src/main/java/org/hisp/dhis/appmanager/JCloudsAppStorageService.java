@@ -72,7 +72,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import static org.jclouds.blobstore.options.ListContainerOptions.Builder.inDirectory;
+import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 /**
  * @author Stian Sandvold
@@ -80,7 +80,6 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.inDirec
 public class JCloudsAppStorageService
     implements AppStorageService
 {
-
     private static final Log log = LogFactory.getLog( JCloudsAppStorageService.class );
 
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
@@ -202,13 +201,12 @@ public class JCloudsAppStorageService
 
         log.info( " Starting JCloud discovery..." );
 
-        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( APPS_DIR ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
         {
-
             log.info( "Found potential app: " + resource.getName() );
 
             // Found potential app
-            Blob manifest = blobStore.getBlob( config.container, resource.getName() + "/manifest.webapp" );
+            Blob manifest = blobStore.getBlob( config.container, resource.getName() + "manifest.webapp" );
 
             if ( manifest == null )
             {
@@ -395,11 +393,10 @@ public class JCloudsAppStorageService
     @Override
     public boolean deleteApp( App app )
     {
-
         log.info( "Deleting app " + app.getName() );
 
         // Delete all files related to app
-        for ( StorageMetadata resource : blobStore.list( config.container, inDirectory( app.getFolderName() ) ) )
+        for ( StorageMetadata resource : blobStore.list( config.container, prefix( app.getFolderName() ).recursive() ) )
         {
             log.info( "Deleting app file: " + resource.getName() );
 
@@ -421,11 +418,12 @@ public class JCloudsAppStorageService
             return null;
         }
 
-        String key = app.getFolderName() + ("/" + pageName).replaceAll( "//", "/" );
+        String key = ( app.getFolderName() + ("/" + pageName) ).replaceAll( "//", "/" );
         URI uri = getSignedGetContentUri( key );
 
         if ( uri == null )
         {
+
             String filepath = configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) + "/" + key;
             filepath = filepath.replaceAll( "//", "/" );
             File res = locationManager.getFileForReading( filepath );

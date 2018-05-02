@@ -103,10 +103,20 @@ public interface UserService
      */
     void deleteUser( User user );
 
-    List<User> getUsersByUid( List<String> uids );
-
+    /**
+     * Checks if the given user represents the last user with ALL authority.
+     * 
+     * @param userCredentials the user.
+     * @return true if the given user represents the last user with ALL authority.
+     */
     boolean isLastSuperUser( UserCredentials userCredentials );
 
+    /**
+     * Checks if the given user role represents the last role with ALL authority.
+     * 
+     * @param userAuthorityGroup the user role.
+     * @return true if the given user role represents the last role with ALL authority.
+     */
     boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
 
     /**
@@ -349,20 +359,6 @@ public interface UserService
     int countDataSetUserAuthorityGroups( DataSet dataSet );
 
     /**
-     * Returns the number of UserAuthorityGroups.
-     *
-     * @return the number of UserAuthorityGroups.
-     */
-    int getUserRoleCount();
-
-    /**
-     * Returns the number of UserAuthorityGroups with the given name.
-     *
-     * @return the number of UserAuthorityGroups with the given name.
-     */
-    int getUserRoleCountByName( String name );
-
-    /**
      * Filters the given collection of user roles based on whether the current user
      * is allowed to issue it.
      *
@@ -378,4 +374,6 @@ public interface UserService
      * @return list of active users whose credentials are expiring with in few days.
      */
     List<User> getExpiringUsers();
+
+    void set2FA( User user, Boolean twoFA );
 }

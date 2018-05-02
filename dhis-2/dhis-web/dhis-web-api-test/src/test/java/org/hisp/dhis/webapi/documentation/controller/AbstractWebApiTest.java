@@ -35,13 +35,13 @@ import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -232,11 +232,11 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             return (T) createDataElementGroup( uniqueName );
         }
-        else if ( DataElementCategoryCombo.class.isAssignableFrom( clazz ) )
+        else if ( CategoryCombo.class.isAssignableFrom( clazz ) )
         {
-            return (T) createCategoryCombo( uniqueName, Arrays.copyOf( params, params.length, DataElementCategory[].class ) );
+            return (T) createCategoryCombo( uniqueName, Arrays.copyOf( params, params.length, Category[].class ) );
         }
-        else if ( DataElementCategoryOption.class.isAssignableFrom( clazz ) )
+        else if ( CategoryOption.class.isAssignableFrom( clazz ) )
         {
             return (T) createCategoryOption( uniqueName );
         }
@@ -244,9 +244,9 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             return (T) createDataElement( uniqueName );
         }
-        else if ( DataElementCategory.class.isAssignableFrom( clazz ) )
+        else if ( Category.class.isAssignableFrom( clazz ) )
         {
-            return (T) createDataElementCategory( uniqueName, Arrays.copyOf( params, params.length, DataElementCategoryOption[].class ) );
+            return (T) createCategory( uniqueName, Arrays.copyOf( params, params.length, CategoryOption[].class ) );
         }
         else if ( Program.class.isAssignableFrom( clazz ) )
         {
@@ -259,12 +259,12 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             DataElement deA = createDataElement( uniqueName );
             manager.save( deA );
 
-            DataElementCategoryCombo cc = createCategoryCombo( uniqueName );
-            DataElementCategoryOption co = createCategoryOption( uniqueName );
+            CategoryCombo cc = createCategoryCombo( uniqueName );
+            CategoryOption co = createCategoryOption( uniqueName );
             manager.save( cc );
             manager.save( co );
 
-            DataElementCategoryOptionCombo coc = createCategoryOptionCombo( cc, co );
+            CategoryOptionCombo coc = createCategoryOptionCombo( cc, co );
             manager.save( coc );
 
             return (T) new DataElementOperand( deA, coc );
@@ -273,10 +273,10 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             return (T) createDataElementGroupSet( uniqueName );
         }
-        else if ( DataElementCategoryOptionCombo.class.isAssignableFrom( clazz ) )
+        else if ( CategoryOptionCombo.class.isAssignableFrom( clazz ) )
         {
-            DataElementCategoryCombo cc = createCategoryCombo( uniqueName );
-            DataElementCategoryOption co = createCategoryOption( uniqueName );
+            CategoryCombo cc = createCategoryCombo( uniqueName );
+            CategoryOption co = createCategoryOption( uniqueName );
             manager.save( cc );
             manager.save( co );
 
@@ -284,7 +284,7 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         }
         else if ( CategoryOptionGroup.class.isAssignableFrom( clazz ) )
         {
-            DataElementCategoryOption co = createCategoryOption( uniqueName );
+            CategoryOption co = createCategoryOption( uniqueName );
             manager.save( co );
             return (T) createCategoryOptionGroup( uniqueName, co );
         }

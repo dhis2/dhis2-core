@@ -32,12 +32,12 @@ import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.comparator.DataElementCategoryComboSizeComparator;
+import org.hisp.dhis.category.comparator.CategoryComboSizeComparator;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -145,9 +145,9 @@ public class LoadFormAction
         return organisationUnits;
     }
 
-    private Map<DataElementCategoryCombo, List<DataElement>> orderedDataElements = new HashMap<>();
+    private Map<CategoryCombo, List<DataElement>> orderedDataElements = new HashMap<>();
 
-    public Map<DataElementCategoryCombo, List<DataElement>> getOrderedDataElements()
+    public Map<CategoryCombo, List<DataElement>> getOrderedDataElements()
     {
         return orderedDataElements;
     }
@@ -173,16 +173,16 @@ public class LoadFormAction
         return sections;
     }
 
-    private Map<Integer, Map<Integer, List<DataElementCategoryOption>>> orderedOptionsMap = new HashMap<>();
+    private Map<Integer, Map<Integer, List<CategoryOption>>> orderedOptionsMap = new HashMap<>();
 
-    public Map<Integer, Map<Integer, List<DataElementCategoryOption>>> getOrderedOptionsMap()
+    public Map<Integer, Map<Integer, List<CategoryOption>>> getOrderedOptionsMap()
     {
         return orderedOptionsMap;
     }
 
-    private Map<Integer, Collection<DataElementCategory>> orderedCategories = new HashMap<>();
+    private Map<Integer, Collection<Category>> orderedCategories = new HashMap<>();
 
-    public Map<Integer, Collection<DataElementCategory>> getOrderedCategories()
+    public Map<Integer, Collection<Category>> getOrderedCategories()
     {
         return orderedCategories;
     }
@@ -201,16 +201,16 @@ public class LoadFormAction
         return catColRepeat;
     }
 
-    private Map<Integer, Collection<DataElementCategoryOptionCombo>> orderedCategoryOptionCombos = new HashMap<>();
+    private Map<Integer, Collection<CategoryOptionCombo>> orderedCategoryOptionCombos = new HashMap<>();
 
-    public Map<Integer, Collection<DataElementCategoryOptionCombo>> getOrderedCategoryOptionCombos()
+    public Map<Integer, Collection<CategoryOptionCombo>> getOrderedCategoryOptionCombos()
     {
         return orderedCategoryOptionCombos;
     }
 
-    private List<DataElementCategoryCombo> orderedCategoryCombos = new ArrayList<>();
+    private List<CategoryCombo> orderedCategoryCombos = new ArrayList<>();
 
-    public List<DataElementCategoryCombo> getOrderedCategoryCombos()
+    public List<CategoryCombo> getOrderedCategoryCombos()
     {
         return orderedCategoryCombos;
     }
@@ -291,15 +291,15 @@ public class LoadFormAction
 
         Collections.sort( dataElements );
 
-        orderedDataElements = ListMap.getListMap( dataElements, de -> de.getCategoryCombo( dataSet ) );
+        orderedDataElements = ListMap.getListMap( dataElements, de -> de.getDataElementCategoryCombo( dataSet ) );
 
-        orderedCategoryCombos = getDataElementCategoryCombos( dataElements, dataSet );
+        orderedCategoryCombos = getCategoryCombos( dataElements, dataSet );
 
         User currentUser = currentUserService.getCurrentUser();
 
-        for ( DataElementCategoryCombo categoryCombo : orderedCategoryCombos )
+        for ( CategoryCombo categoryCombo : orderedCategoryCombos )
         {
-            List<DataElementCategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
+            List<CategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
 
             orderedCategoryOptionCombos.put( categoryCombo.getId(), optionCombos );
 
@@ -316,9 +316,9 @@ public class LoadFormAction
 
             orderedCategories.put( categoryCombo.getId(), categoryCombo.getCategories() );
   
-            Map<Integer, List<DataElementCategoryOption>> optionsMap = new HashMap<>();
+            Map<Integer, List<CategoryOption>> optionsMap = new HashMap<>();
 
-            for ( DataElementCategory category : categoryCombo.getCategories() )
+            for ( Category category : categoryCombo.getCategories() )
             {
                 optionsMap.put( category.getId(), category.getCategoryOptions() );
             }
@@ -335,7 +335,7 @@ public class LoadFormAction
 
             int catColSpan = optionCombos.size();
 
-            for ( DataElementCategory cat : categoryCombo.getCategories() )
+            for ( Category cat : categoryCombo.getCategories() )
             {
                 int categoryOptionSize = cat.getCategoryOptions().size();
 
@@ -375,11 +375,12 @@ public class LoadFormAction
             dataSetCopy.setRenderAsTabs( dataSet.isRenderAsTabs() );
             dataSetCopy.setRenderHorizontally( dataSet.isRenderHorizontally() );
             dataSetCopy.setDataElementDecoration( dataSet.isDataElementDecoration() );
+            dataSetCopy.setCompulsoryDataElementOperands( dataSet.getCompulsoryDataElementOperands() );
             dataSet = dataSetCopy;
 
             for ( int i = 0; i < orderedCategoryCombos.size(); i++ )
             {
-                DataElementCategoryCombo categoryCombo = orderedCategoryCombos.get( i );
+                CategoryCombo categoryCombo = orderedCategoryCombos.get( i );
                 String name = !categoryCombo.isDefault() ? categoryCombo.getName() : dataSetCopy.getName();
 
                 Section section = new Section();
@@ -442,7 +443,7 @@ public class LoadFormAction
         {
             Set<Integer> categoryCombos = new HashSet<>();
             
-            for( DataElementCategoryCombo categoryCombo : section.getCategoryCombos() )
+            for( CategoryCombo categoryCombo : section.getCategoryCombos() )
             {
                 categoryCombos.add( categoryCombo.getId() );
                 
@@ -464,23 +465,23 @@ public class LoadFormAction
         }
     }
     
-    private List<DataElementCategoryCombo> getDataElementCategoryCombos( List<DataElement> dataElements, DataSet dataSet )
+    private List<CategoryCombo> getCategoryCombos( List<DataElement> dataElements, DataSet dataSet )
     {
-        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
+        Set<CategoryCombo> categoryCombos = new HashSet<>();
 
         for ( DataElement dataElement : dataElements )
         {
-            categoryCombos.add( dataElement.getCategoryCombo( dataSet ) );
+            categoryCombos.add( dataElement.getDataElementCategoryCombo( dataSet ) );
         }
 
-        List<DataElementCategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
+        List<CategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
 
-        Collections.sort( listCategoryCombos, new DataElementCategoryComboSizeComparator() );
+        Collections.sort( listCategoryCombos, new CategoryComboSizeComparator() );
 
         return listCategoryCombos;
     }
 
-    private void addOptionAccess( User user,  Map<String, Boolean> optionAccessMap, List<DataElementCategoryOptionCombo>
+    private void addOptionAccess( User user,  Map<String, Boolean> optionAccessMap, List<CategoryOptionCombo>
         optionCombos )
     {
         optionCombos.forEach( o -> {

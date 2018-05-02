@@ -43,11 +43,7 @@ import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -254,29 +250,6 @@ DefaultMetadataVersionService
     {
         KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, versionName );
         return (keyJsonValue != null) ? keyJsonValue.getValue() : null;
-    }
-
-    @Override
-    public RootNode getMetadataVersionsAsNode( List<MetadataVersion> versions )
-    {
-        RootNode rootNode = NodeUtils.createRootNode( "metadataversions" );
-        CollectionNode collectionNode = new CollectionNode( "metadataversions", true );
-        rootNode.addChild( collectionNode );
-
-        for ( MetadataVersion version : versions )
-        {
-            ComplexNode complexNode = new ComplexNode( "" );
-            complexNode.addChild( new SimpleNode( "name", version.getName() ) );
-            complexNode.addChild( new SimpleNode( "type", version.getType() ) );
-            complexNode.addChild( new SimpleNode( "created", version.getCreated() ) );
-            complexNode.addChild( new SimpleNode( "id", version.getUid() ) );
-            complexNode.addChild( new SimpleNode( "importdate", version.getImportDate() ) );
-            complexNode.addChild( new SimpleNode( "hashCode", version.getHashCode() ) );
-
-            collectionNode.addChild( complexNode );
-        }
-
-        return rootNode;
     }
 
     @Override

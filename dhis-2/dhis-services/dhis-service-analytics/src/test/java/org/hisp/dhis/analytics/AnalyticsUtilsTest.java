@@ -33,9 +33,9 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dataset.DataSet;
@@ -71,8 +71,8 @@ public class AnalyticsUtilsTest
     {
         Program prA = createProgram( 'A' );
         
-        DataElement deA = createDataElement( 'A', new DataElementCategoryCombo() );
-        DataElement deB = createDataElement( 'B', new DataElementCategoryCombo() );
+        DataElement deA = createDataElement( 'A', new CategoryCombo() );
+        DataElement deB = createDataElement( 'B', new CategoryCombo() );
         ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
         ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         ProgramIndicator piA = createProgramIndicator( 'A', prA, null, null );
@@ -262,11 +262,11 @@ public class AnalyticsUtilsTest
     @Test
     public void testGetCocNameMap()
     {
-        DataElementCategoryCombo ccA = createCategoryCombo( 'A', new DataElementCategory[0] );
-        DataElementCategoryCombo ccB = createCategoryCombo( 'B', new DataElementCategory[0] );
+        CategoryCombo ccA = createCategoryCombo( 'A', new Category[0] );
+        CategoryCombo ccB = createCategoryCombo( 'B', new Category[0] );
         
-        DataElementCategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
-        DataElementCategoryOptionCombo cocB = createCategoryOptionCombo( 'B' );
+        CategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
+        CategoryOptionCombo cocB = createCategoryOptionCombo( 'B' );
         
         ccA.getOptionCombos().add( cocA );
         ccB.getOptionCombos().add( cocB );
@@ -294,7 +294,7 @@ public class AnalyticsUtilsTest
     public void testHandleGridForDataValueSet()
     {
         IndicatorType itA = new IndicatorType();
-        DataElementCategoryOptionCombo ocA = createCategoryOptionCombo( 'A' );
+        CategoryOptionCombo ocA = createCategoryOptionCombo( 'A' );
         ocA.setUid( "ceabcdefghA" );
 
         DataElement dxA = createDataElement( 'A' );

@@ -155,22 +155,6 @@ public class DataSetStoreTest
     }
 
     @Test
-    public void testGetDataSetByShortName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-
-        dataSetStore.save( dataSetA );
-        int idA = dataSetA.getId();
-        dataSetStore.save( dataSetB );
-        int idB = dataSetB.getId();
-
-        assertEquals( dataSetStore.getByShortName( "DataSetShortA" ).getId(), idA );
-        assertEquals( dataSetStore.getByShortName( "DataSetShortB" ).getId(), idB );
-        assertNull( dataSetStore.getByShortName( "DataSetShortC" ) );
-    }
-
-    @Test
     public void testGetAllDataSets()
     {
         DataSet dataSetA = createDataSet( 'A', periodType );

@@ -29,7 +29,7 @@ package org.hisp.dhis.indicator;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ public class IndicatorStoreTest
     private IdentifiableObjectManager idObjectManager;
 
     @Resource(name="org.hisp.dhis.indicator.IndicatorTypeStore")
-    private GenericIdentifiableObjectStore<IndicatorType> indicatorTypeStore;
+    private IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
 
     // -------------------------------------------------------------------------
     // Support methods
@@ -292,32 +292,6 @@ public class IndicatorStoreTest
         assertEq( 'A', indicatorA );
 
         Indicator indicatorC = indicatorStore.getByName( "IndicatorC" );
-        assertNull( indicatorC );
-    }
-
-    @Test
-    public void testGetIndicatorByShortName()
-    {
-        IndicatorType type = new IndicatorType( "IndicatorType", 100, false );
-
-        indicatorTypeStore.save( type );
-
-        Indicator indicatorA = createIndicator( 'A', type );
-        Indicator indicatorB = createIndicator( 'B', type );
-
-        indicatorStore.save( indicatorA );
-        int idA = indicatorA.getId();
-        indicatorStore.save( indicatorB );
-        int idB = indicatorB.getId();
-
-        assertNotNull( indicatorStore.get( idA ) );
-        assertNotNull( indicatorStore.get( idB ) );
-
-        indicatorA = indicatorStore.getByShortName( "IndicatorShortA" );
-        assertNotNull( indicatorA );
-        assertEq( 'A', indicatorA );
-
-        Indicator indicatorC = indicatorStore.getByShortName( "IndicatorShortC" );
         assertNull( indicatorC );
     }
 

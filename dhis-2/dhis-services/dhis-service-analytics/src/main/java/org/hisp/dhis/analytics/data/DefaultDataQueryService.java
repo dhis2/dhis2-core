@@ -28,10 +28,27 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -43,6 +60,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -100,64 +119,61 @@ public class DefaultDataQueryService
     //TODO introduce ExternalDataQueryParams and replace individual parameters
     
     @Override
-    public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
-        String measureCriteria, String preAggregationMeasureCriteria, Date startDate, Date endDate, boolean skipMeta, boolean skipData, boolean skipRounding,
-        boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean hideEmptyColumns, boolean showHierarchy,
-        boolean includeNumDen, boolean includeMetadataDetails, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
-        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, boolean allowAllPeriods, DhisApiVersion apiVersion, SortOrder order )
+    public DataQueryParams getFromRequest( DataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
-        inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
+        IdScheme inputIdScheme = ObjectUtils.firstNonNull( request.getInputIdScheme(), IdScheme.UID );
         
-        if ( dimensionParams != null && !dimensionParams.isEmpty() )
+        if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
-            params.addDimensions( getDimensionalObjects( dimensionParams, relativePeriodDate, userOrgUnit, format, allowAllPeriods, inputIdScheme ) );
+            params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format, 
+                request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
-        if ( filterParams != null && !filterParams.isEmpty() )
+        if ( request.getFilter() != null && !request.getFilter().isEmpty() )
         {
-            params.addFilters( getDimensionalObjects( filterParams, relativePeriodDate, userOrgUnit, format, allowAllPeriods, inputIdScheme ) );
+            params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(), request.getUserOrgUnit(), format, request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
-        if ( measureCriteria != null && !measureCriteria.isEmpty() )
+        if ( request.getMeasureCriteria() != null && !request.getMeasureCriteria().isEmpty() )
         {
-            params.withMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( measureCriteria ) );
+            params.withMeasureCriteria( getMeasureCriteriaFromParam( request.getMeasureCriteria() ) );
         }
 
-        if ( preAggregationMeasureCriteria != null && !preAggregationMeasureCriteria.isEmpty() )
+        if ( request.getPreAggregationMeasureCriteria() != null && !request.getPreAggregationMeasureCriteria().isEmpty() )
         {
-            params.withPreAggregationMeasureCriteria( DataQueryParams.getMeasureCriteriaFromParam( preAggregationMeasureCriteria) );
+            params.withPreAggregationMeasureCriteria( getMeasureCriteriaFromParam( request.getPreAggregationMeasureCriteria()) );
         }
         
-        if ( aggregationType != null )
+        if ( request.getAggregationType() != null )
         {
-            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
         return params
-            .withStartDate( startDate )
-            .withEndDate( endDate )
-            .withOrder(order)
-            .withSkipMeta( skipMeta )
-            .withSkipData( skipData )
-            .withSkipRounding( skipRounding )
-            .withCompletedOnly( completedOnly )
-            .withIgnoreLimit( ignoreLimit )
-            .withHierarchyMeta( hierarchyMeta )
-            .withHideEmptyRows( hideEmptyRows )
-            .withHideEmptyColumns( hideEmptyColumns )
-            .withShowHierarchy( showHierarchy )
-            .withIncludeNumDen( includeNumDen )
-            .withIncludeMetadataDetails( includeMetadataDetails )
-            .withDisplayProperty( displayProperty )
-            .withOutputIdScheme( outputIdScheme )
+            .withStartDate( request.getStartDate() )
+            .withEndDate( request.getEndDate() )
+            .withOrder( request.getOrder())
+            .withSkipMeta( request.isSkipMeta() )
+            .withSkipData( request.isSkipData() )
+            .withSkipRounding( request.isSkipRounding() )
+            .withCompletedOnly( request.isCompletedOnly() )
+            .withIgnoreLimit( request.isIgnoreLimit() )
+            .withHierarchyMeta( request.isHierarchyMeta() )
+            .withHideEmptyRows( request.isHideEmptyRows() )
+            .withHideEmptyColumns( request.isHideEmptyColumns() )
+            .withShowHierarchy( request.isShowHierarchy() )
+            .withIncludeNumDen( request.isIncludeNumDen() )
+            .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
+            .withDisplayProperty( request.getDisplayProperty() )
+            .withOutputIdScheme( request.getOutputIdScheme() )
             .withOutputFormat( OutputFormat.ANALYTICS )
-            .withDuplicatesOnly( duplicatesOnly )
-            .withApprovalLevel( approvalLevel )
-            .withApiVersion( apiVersion )
+            .withDuplicatesOnly( request.isDuplicatesOnly() )
+            .withApprovalLevel( request.getApprovalLevel() )
+            .withApiVersion( request.getApiVersion() )
             .build();
     }
 
@@ -283,7 +299,7 @@ public class DefaultDataQueryService
 
             for ( String uid : items )
             {
-                DataElementCategoryOptionCombo coc = idObjectManager.getObject( DataElementCategoryOptionCombo.class, inputIdScheme, uid );
+                CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, uid );
 
                 if ( coc != null )
                 {
@@ -300,7 +316,7 @@ public class DefaultDataQueryService
 
             for ( String uid : items )
             {
-                DataElementCategoryOptionCombo aoc = idObjectManager.getObject( DataElementCategoryOptionCombo.class, inputIdScheme, uid );
+                CategoryOptionCombo aoc = idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, uid );
 
                 if ( aoc != null )
                 {
@@ -319,10 +335,12 @@ public class DefaultDataQueryService
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
+            Boolean queryContainsRelativePeriods = false;
             for ( String isoPeriod : items )
             {
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
+                    queryContainsRelativePeriods = true;
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
@@ -346,11 +364,20 @@ public class DefaultDataQueryService
                 throw new IllegalQueryException( "Dimension pe is present in query without any valid dimension options" );
             }
 
+            if ( queryContainsRelativePeriods )
+            {
+                periods.sort( new AscendingPeriodComparator() );
+            }
+
             for ( Period period : periods )
             {
                 String name = format != null ? format.formatPeriod( period ) : null;
+                if ( !period.getPeriodType().getName().contains( WeeklyPeriodType.NAME ) )
+                {
+                    period.setShortName( name );
+                }
                 period.setName( name );
-                period.setShortName( name );
+
 
                 if ( !calendar.isIso8601() )
                 {

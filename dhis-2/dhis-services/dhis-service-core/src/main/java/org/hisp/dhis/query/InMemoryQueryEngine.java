@@ -29,13 +29,16 @@ package org.hisp.dhis.query;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -50,11 +53,15 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
     private final SchemaService schemaService;
+    private final AclService aclService;
+    private final CurrentUserService currentUserService;
 
     @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService )
+    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService, CurrentUserService currentUserService )
     {
         this.schemaService = schemaService;
+        this.aclService = aclService;
+        this.currentUserService = currentUserService;
     }
 
     @Override
@@ -78,6 +85,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
 
     private void validateQuery( Query query )
     {
+        if ( query.getUser() == null )
+        {
+            query.setUser( currentUserService.getCurrentUser() );
+        }
+
         if ( query.getSchema() == null )
         {
             throw new QueryException( "Invalid Query object, does not contain Schema" );
@@ -142,6 +154,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             }
 
             testResults.add( testResult );
+        }
+
+        if ( query.getRootJunctionType() == Junction.Type.OR )
+        {
+            return testResults.contains( Boolean.TRUE );
         }
 
         return !testResults.contains( Boolean.FALSE );
@@ -217,10 +234,16 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
         return false;
     }
 
+    @SuppressWarnings( "unchecked" )
     private Object getValue( Query query, Object object, String path )
     {
         String[] paths = path.split( "\\." );
         Schema currentSchema = query.getSchema();
+
+        if ( path.contains( "access" ) && query.getSchema().isIdentifiableObject() )
+        {
+            ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (T) object, query.getUser() ) );
+        }
 
         for ( int i = 0; i < paths.length; i++ )
         {
@@ -241,6 +264,21 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             }
 
             object = collect( object, property );
+
+            if ( path.contains( "access" ) && property.isIdentifiableObject() )
+            {
+                if ( property.isCollection() )
+                {
+                    for ( Object item : ((Collection<?>) object) )
+                    {
+                        ((BaseIdentifiableObject) item).setAccess( aclService.getAccess( (T) item, query.getUser() ) );
+                    }
+                }
+                else
+                {
+                    ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (T) object, query.getUser() ) );
+                }
+            }
 
             if ( i == (paths.length - 1) )
             {

@@ -28,7 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.List;
  * @author Chau Thu Tran
  */
 public interface ProgramStageStore
-    extends GenericIdentifiableObjectStore<ProgramStage>
+    extends IdentifiableObjectStore<ProgramStage>
 {
 
     /**

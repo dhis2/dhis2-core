@@ -59,6 +59,8 @@ public class UserQueryParams
     private Integer inactiveMonths;
     
     private boolean selfRegistered;
+
+    private boolean isNot2FA;
     
     private UserInvitationStatus invitationStatus;
     
@@ -296,5 +298,15 @@ public class UserQueryParams
     public void setDisabled( Boolean disabled )
     {
         this.isDisabled = disabled;
+    }
+
+    public boolean isNot2FA()
+    {
+        return isNot2FA;
+    }
+
+    public void setNot2FA( boolean not2FA )
+    {
+        isNot2FA = not2FA;
     }
 }

@@ -28,6 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.ValueType;
 
@@ -50,10 +51,10 @@ public interface DataElementStore
     /**
      * Returns all DataElements with the given category combo.
      *
-     * @param categoryCombo the DataElementCategoryCombo.
+     * @param categoryCombo the CategoryCombo.
      * @return all DataElements with the given category combo.
      */
-    List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
+    List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo );
 
     /**
      * Returns all DataElement which zeroIsSignificant property is true or false

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
@@ -45,12 +46,10 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
 public class Dashboard
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseNameableObject implements MetadataObject
 {
     public static final int MAX_ITEMS = 40;
     
-    private String description;
-
     private List<DashboardItem> items = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -157,18 +156,6 @@ public class Dashboard
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
 
     @JsonProperty( "dashboardItems" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )

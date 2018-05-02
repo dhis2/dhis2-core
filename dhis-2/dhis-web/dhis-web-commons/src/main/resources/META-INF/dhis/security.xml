@@ -21,7 +21,7 @@
     use-expressions="false" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />
     <sec:anonymous enabled="false" />
-    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />
+    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"/>
     <sec:access-denied-handler ref="oauthAccessDeniedHandler" />
     <sec:csrf disabled="true" />
   </sec:http>
@@ -29,12 +29,13 @@
   <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true" use-expressions="false"
     create-session="ifRequired" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />
-    <sec:http-basic />
+    <sec:http-basic authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource" />
     <sec:anonymous />
 
     <sec:form-login authentication-failure-url="/dhis-web-commons/security/login.action?failed=true"
       username-parameter="j_username" password-parameter="j_password"
       login-page="/dhis-web-commons/security/login.action"
+      authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"
       login-processing-url="/dhis-web-commons-security/login.action" />
     <sec:csrf disabled="true" />
   </sec:http>
@@ -100,8 +101,7 @@
   </bean>
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
-    authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
-
+    authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint" >
     <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
       authentication-failure-handler-ref="securityExceptionTranslationHandler"
       login-processing-url="/dhis-web-commons-security/openid.action"
@@ -112,6 +112,7 @@
       authentication-failure-handler-ref="securityExceptionTranslationHandler"
       login-processing-url="/dhis-web-commons-security/login.action"
       login-page="/dhis-web-commons/security/login.action"
+      authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"
       authentication-success-handler-ref="defaultAuthenticationSuccessHandler" />
 
     <sec:headers>
@@ -123,7 +124,7 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic entry-point-ref="http401LoginUrlAuthenticationEntryPoint" />
+    <sec:http-basic entry-point-ref="http401LoginUrlAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"/>
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -152,6 +153,7 @@
     <sec:intercept-url pattern="/dhis-web-event-capture/**" access="hasAnyRole('ALL,M_dhis-web-event-capture')" />
     <sec:intercept-url pattern="/dhis-web-tracker-capture/**" access="hasAnyRole('ALL,M_dhis-web-tracker-capture')" />
     <sec:intercept-url pattern="/dhis-web-cache-cleaner/**" access="hasAnyRole('ALL,M_dhis-web-cache-cleaner')" />
+    <sec:intercept-url pattern="/dhis-web-data-administration/**" access="hasAnyRole('ALL,M_dhis-web-data-administration')" />
 
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER"  />
@@ -416,8 +418,6 @@
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW</value>
         <value>F_USER_GROUPS_READ_ONLY_ADD_MEMBERS</value>
         <value>F_PROGRAM_DASHBOARD_CONFIG_ADMIN</value>
-        <value>F_LEGEND_ADD</value>
-        <value>F_LEGEND_DELETE</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_READ</value>
@@ -432,13 +432,13 @@
         <value>F_ORGANISATIONUNIT_MOVE</value>
         <value>F_PREDICTOR_RUN</value>
         <value>F_SEND_EMAIL</value>
-        <value>F_VIEW_SETTINGS</value>
+        <value>F_TEI_CASCADE_DELETE</value>
+        <value>F_ENROLLMENT_CASCADE_DELETE</value>
       </set>
     </property>
   </bean>
 
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
-  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener"/>
-
+  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener2FA"/>
 </beans>

@@ -38,10 +38,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -568,7 +568,7 @@ public class Attribute
 
         if ( dataElementAttribute ) klasses.add( DataElement.class );
         if ( dataElementGroupAttribute ) klasses.add( DataElementGroup.class );
-        if ( categoryOptionAttribute ) klasses.add( DataElementCategoryOption.class );
+        if ( categoryOptionAttribute ) klasses.add( CategoryOption.class );
         if ( categoryOptionGroupAttribute ) klasses.add( CategoryOptionGroup.class );
         if ( indicatorAttribute ) klasses.add( Indicator.class );
         if ( indicatorGroupAttribute ) klasses.add( IndicatorGroup.class );
@@ -590,7 +590,7 @@ public class Attribute
         if ( programIndicatorAttribute ) klasses.add( ProgramIndicator.class );
         if ( sqlViewAttribute ) klasses.add( SqlView.class );
         if ( sectionAttribute ) klasses.add( Section.class );
-        if ( categoryOptionComboAttribute ) klasses.add( DataElementCategoryOptionCombo.class );
+        if ( categoryOptionComboAttribute ) klasses.add( CategoryOptionCombo.class );
 
         return klasses;
     }

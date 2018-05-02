@@ -100,11 +100,14 @@ import java.util.Set;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
+ * Deprecated in favor of {@link MeController}.
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
 @RequestMapping( value = { CurrentUserController.RESOURCE_PATH, "/me" }, method = RequestMethod.GET )
 @ApiVersion( { DhisApiVersion.DEFAULT } )
+@Deprecated
 public class CurrentUserController
 {
     public static final String RESOURCE_PATH = "/currentUser";

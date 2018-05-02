@@ -41,7 +41,6 @@ import java.util.stream.IntStream;
  */
 public class TextPatternMethodUtils
 {
-
     /**
      * Returns a random String based on the format. The format (As specified in TextPatternMethod) can contain '#' digits,
      * 'X' capital letters and 'x' lower case letters.
@@ -56,7 +55,7 @@ public class TextPatternMethodUtils
 
         List<Character> uppercase = IntStream.range( 0, 26 ).mapToObj( ( n ) -> (char) (n + 'A') )
             .collect( Collectors.toList() );
-        List<Character> lowercase = IntStream.range( 0, 26 ).mapToObj( ( n ) -> (char) (n + 'A') )
+        List<Character> lowercase = IntStream.range( 0, 26 ).mapToObj( ( n ) -> (char) (n + 'a') )
             .collect( Collectors.toList() );
         List<Character> digits = IntStream.range( 0, 10 ).mapToObj( ( n ) -> (char) (n + '0') )
             .collect( Collectors.toList() );

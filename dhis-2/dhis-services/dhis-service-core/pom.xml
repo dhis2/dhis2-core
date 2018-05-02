@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.29-SNAPSHOT</version>
+    <version>2.30-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-core</artifactId>
@@ -32,6 +32,22 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-schema</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-setting</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-node</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-acl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-hibernate</artifactId>
     </dependency>
     <dependency>
@@ -53,6 +69,14 @@
 
     <!-- Other -->
 
+    <dependency>
+      <groupId>org.hisp.dhis.rules</groupId>
+      <artifactId>rule-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cronutils</groupId>
+      <artifactId>cron-utils</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-email</artifactId>
@@ -90,6 +114,10 @@
       <artifactId>spring-rabbit</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.kafka</groupId>
+      <artifactId>spring-kafka</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
     </dependency>
@@ -122,12 +150,22 @@
       <groupId>com.googlecode.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
     </dependency>
-      <dependency>
-          <groupId>org.apache.velocity</groupId>
-          <artifactId>velocity</artifactId>
-          <version>1.7</version>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+    </dependency>
 
+    <!-- Security -->
+    <dependency>
+      <groupId>org.jboss.aerogear</groupId>
+      <artifactId>aerogear-otp-java</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

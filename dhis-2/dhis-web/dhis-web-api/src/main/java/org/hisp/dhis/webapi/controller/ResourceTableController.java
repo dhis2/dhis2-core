@@ -30,13 +30,11 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
-import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -51,6 +49,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 /**
  * @author Lars Helge Overland
@@ -72,7 +72,7 @@ public class ResourceTableController
     private WebMessageService webMessageService;
 
     @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATA_MART_ADMIN')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void analytics(
         @RequestParam( required = false ) boolean skipResourceTables,
         @RequestParam( required = false ) boolean skipAggregate,
@@ -106,8 +106,8 @@ public class ResourceTableController
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
         schedulingManager.executeJob( analyticsTableJob );
-        
-        webMessageService.send( WebMessageUtils.ok( "Initiated analytics table update" ), response, request );
+
+        webMessageService.send( jobConfigurationReport( analyticsTableJob ), response, request );
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -119,7 +119,7 @@ public class ResourceTableController
 
         schedulingManager.executeJob( resourceTableJob );
 
-        JacksonUtils.fromObjectToReponse( response, resourceTableJob );
+        webMessageService.send( jobConfigurationReport( resourceTableJob ), response, request );
     }
 
     @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -131,6 +131,6 @@ public class ResourceTableController
 
         schedulingManager.executeJob( monitoringJob );
 
-        JacksonUtils.fromObjectToReponse( response, monitoringJob );
+        webMessageService.send( jobConfigurationReport( monitoringJob ), response, request );
     }
 }

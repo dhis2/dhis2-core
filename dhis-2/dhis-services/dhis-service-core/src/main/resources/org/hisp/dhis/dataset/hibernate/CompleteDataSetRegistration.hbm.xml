@@ -13,7 +13,7 @@
         foreign-key="fk_datasetcompleteregistration_periodid" />
       <key-many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid"
         foreign-key="fk_completedatasetregistration_organisationunitid" />
-      <key-many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+      <key-many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
         column="attributeoptioncomboid"
         foreign-key="fk_completedatasetregistration_attributeoptioncomboid" />
     </composite-id>

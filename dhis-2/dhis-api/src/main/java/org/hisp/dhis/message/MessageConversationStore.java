@@ -1,6 +1,6 @@
 package org.hisp.dhis.message;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
@@ -38,7 +38,7 @@ import java.util.List;
  * @author Lars Helge Overland
  */
 public interface MessageConversationStore
-    extends GenericIdentifiableObjectStore<MessageConversation>
+    extends IdentifiableObjectStore<MessageConversation>
 {
     /**
      * Returns a list of MessageConversations.

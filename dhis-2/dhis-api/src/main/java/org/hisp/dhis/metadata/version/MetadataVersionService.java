@@ -28,8 +28,6 @@ package org.hisp.dhis.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.types.RootNode;
-
 import java.util.Date;
 import java.util.List;
 
@@ -48,7 +46,7 @@ public interface MetadataVersionService
 
     /**
      * Adds the metadata version.
-     * 
+     *
      * @param version the metadata version object to add.
      * @return the identifier of the saved version object.
      */
@@ -56,15 +54,15 @@ public interface MetadataVersionService
 
     /**
      * Updates the metadata version.
-     * 
+     *
      * @param version the metadata version to update.
      */
     void updateVersion( MetadataVersion version );
 
     /**
      * Updates the name of the metadata version with the given identifier and name.
-     * 
-     * @param id the identifier.
+     *
+     * @param id   the identifier.
      * @param name the name.
      */
     void updateVersionName( int id, String name );
@@ -76,7 +74,7 @@ public interface MetadataVersionService
 
     /**
      * Gets the metadata version with the given identifier.
-     * 
+     *
      * @param id Key to lookup the value with.
      * @return Version that matched key, or null if there was no match.
      */
@@ -103,7 +101,7 @@ public interface MetadataVersionService
      * Gets all versions between two data ranges on the created date.
      *
      * @param startDate the start date.
-     * @param endDate the end date.
+     * @param endDate   the end date.
      * @return a list of metadata versions matching the date range.
      */
     List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate );
@@ -139,14 +137,6 @@ public interface MetadataVersionService
      * @return JSON data for the version snapshot
      */
     String getVersionData( String versionName );
-
-    /**
-     * Returns the versions list wrapped as RootNode
-     *
-     * @param versions
-     * @return the root node.
-     */
-    RootNode getMetadataVersionsAsNode( List<MetadataVersion> versions );
 
     /**
      * Creates an entry in the DataStore given the MetadataVersion details.

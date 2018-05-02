@@ -37,9 +37,9 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
@@ -105,7 +105,7 @@ public class DataValueController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -169,9 +169,9 @@ public class DataValueController
 
         DataElement dataElement = getAndValidateDataElement( de );
 
-        DataElementCategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
+        CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
-        DataElementCategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
 
         Period period = getAndValidatePeriod( pe );
 
@@ -386,9 +386,9 @@ public class DataValueController
 
         DataElement dataElement = getAndValidateDataElement( de );
 
-        DataElementCategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
 
-        DataElementCategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
 
         Period period = getAndValidatePeriod( pe );
 
@@ -449,9 +449,9 @@ public class DataValueController
 
         DataElement dataElement = getAndValidateDataElement( de );
 
-        DataElementCategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
 
-        DataElementCategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
 
         Period period = getAndValidatePeriod( pe );
 
@@ -513,9 +513,9 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.conflict( "DataElement must be of type file" ) );
         }
 
-        DataElementCategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
 
-        DataElementCategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = getAndValidateAttributeOptionCombo( cc, cp );
 
         Period period = getAndValidatePeriod( pe );
 
@@ -632,10 +632,10 @@ public class DataValueController
         return dataElement;
     }
 
-    private DataElementCategoryOptionCombo getAndValidateCategoryOptionCombo( String co, boolean requireCategoryOptionCombo )
+    private CategoryOptionCombo getAndValidateCategoryOptionCombo( String co, boolean requireCategoryOptionCombo )
         throws WebMessageException
     {
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDataElementCategoryOptionCombo( co );
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( co );
 
         if ( categoryOptionCombo == null )
         {
@@ -649,17 +649,17 @@ public class DataValueController
             }
             else
             {
-                categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+                categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
             }
         }
 
         return categoryOptionCombo;
     }
 
-    private DataElementCategoryOptionCombo getAndValidateAttributeOptionCombo( String cc, String cp )
+    private CategoryOptionCombo getAndValidateAttributeOptionCombo( String cc, String cp )
         throws WebMessageException
     {
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
 
         if ( attributeOptionCombo == null )
         {
@@ -737,11 +737,11 @@ public class DataValueController
         }
     }
 
-    private void validateAttributeOptionComboWithOrgUnitAndPeriod( DataElementCategoryOptionCombo attributeOptionCombo,
+    private void validateAttributeOptionComboWithOrgUnitAndPeriod( CategoryOptionCombo attributeOptionCombo,
         OrganisationUnit organisationUnit, Period period )
         throws WebMessageException
     {
-        for ( DataElementCategoryOption option : attributeOptionCombo.getCategoryOptions() )
+        for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
         {
             if ( option.getStartDate() != null && period.getEndDate().compareTo( option.getStartDate() ) < 0 )
             {
@@ -780,7 +780,7 @@ public class DataValueController
     }
 
     private void validateDataSetNotLocked( DataElement dataElement, Period period, DataSet dataSet,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
         throws WebMessageException
     {
         if ( dataSet == null ? dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null )

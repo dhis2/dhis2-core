@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
+
+
+  <bean id="org.hisp.dhis.setting.SystemSettingStore" class="org.hisp.dhis.setting.hibernate.HibernateSystemSettingStore">
+    <property name="clazz" value="org.hisp.dhis.setting.SystemSetting" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.setting.SystemSettingManager" class="org.hisp.dhis.setting.DefaultSystemSettingManager">
+    <property name="systemSettingStore" ref="org.hisp.dhis.setting.SystemSettingStore" />
+    <property name="flags">
+      <list>
+        <value>afghanistan</value>
+        <value>africare</value>
+        <value>akros</value>
+        <value>algeria</value>
+        <value>angola</value>
+        <value>armenia</value>
+        <value>bangladesh</value>
+        <value>benin</value>
+        <value>bhutan</value>
+        <value>botswana</value>
+        <value>burkina_faso</value>
+        <value>burkina_faso_coat_of_arms</value>
+        <value>burundi</value>
+        <value>cambodia</value>
+        <value>cameroon</value>
+        <value>cape_verde</value>
+        <value>chad</value>
+        <value>china</value>
+        <value>colombia</value>
+        <value>congo_brazzaville</value>
+        <value>congo_kinshasa</value>
+        <value>cordaid</value>
+        <value>demoland</value>
+        <value>denmark</value>
+        <value>ecowas</value>
+        <value>ecuador</value>
+        <value>east_africa_community</value>
+        <value>egypt</value>
+        <value>engender_health</value>
+        <value>eritrea</value>
+        <value>ethiopia</value>
+        <value>equatorial_guinea</value>
+        <value>fhi360</value>
+        <value>forut</value>
+        <value>gambia</value>
+        <value>ghana</value>
+        <value>global_fund</value>
+        <value>grenada</value>
+        <value>guinea</value>
+        <value>guinea_bissau</value>
+        <value>haiti</value>
+        <value>honduras</value>
+        <value>icap</value>
+        <value>ippf</value>
+        <value>ima</value>
+        <value>india</value>
+        <value>indonesia</value>
+        <value>irc</value>
+        <value>iran</value>
+        <value>iraq</value>
+        <value>ivory_coast</value>
+        <value>jhpiego</value>
+        <value>kenya</value>
+        <value>kiribati</value>
+        <value>kurdistan</value>
+        <value>laos</value>
+        <value>lesotho</value>
+        <value>liberia</value>
+        <value>malawi</value>
+        <value>mauritania</value>
+        <value>maldives</value>
+        <value>mongolia</value>
+        <value>mozambique</value>
+        <value>myanmar</value>
+        <value>mali</value>
+        <value>mhrp</value>
+        <value>msf</value>
+        <value>msh</value>
+        <value>msh_white</value>
+        <value>msi</value>
+        <value>namibia</value>
+        <value>nicaragua</value>
+        <value>nepal</value>
+        <value>niger</value>
+        <value>nigeria</value>
+        <value>norway</value>
+        <value>pakistan</value>
+        <value>palestine</value>
+        <value>palladium</value>
+        <value>pepfar</value>
+        <value>paraguay</value>
+        <value>pathfinder</value>
+        <value>philippines</value>
+        <value>planned_parenthood</value>
+        <value>peru</value>
+        <value>psi</value>
+        <value>puntland</value>
+        <value>rwanda</value>
+        <value>save_the_children</value>
+        <value>senegal</value>
+        <value>sierra_leone</value>
+        <value>sierra_leone_coat_of_arms</value>
+        <value>solomon_islands</value>
+        <value>somalia</value>
+        <value>somaliland</value>
+        <value>south_africa</value>
+        <value>south_africa_department_of_health</value>
+        <value>south_sudan</value>
+        <value>sri_lanka</value>
+        <value>sudan</value>
+        <value>swaziland</value>
+        <value>sweden</value>
+        <value>tajikistan</value>
+        <value>tanzania</value>
+        <value>timor_leste</value>
+        <value>republic_of_trinidad_and_tobago</value>
+        <value>togo</value>
+        <value>tonga</value>
+        <value>uganda</value>
+        <value>usaid</value>
+        <value>vietnam</value>
+        <value>vanuatu</value>
+        <value>zambia</value>
+        <value>zanzibar</value>
+        <value>zimbabwe</value>
+        <value>who</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.setting.TranslateSystemSettingManager" class="org.hisp.dhis.setting.DefaultTranslateSystemSettingManager">
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+
+</beans>

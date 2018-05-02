@@ -38,9 +38,9 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -74,7 +74,7 @@ public class DataValueSetServiceExportTest
     extends DhisSpringTest
 {
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -104,10 +104,10 @@ public class DataValueSetServiceExportTest
     private DataElement deB;
     private DataElement deC;
 
-    private DataElementCategoryCombo ccA;
+    private CategoryCombo ccA;
 
-    private DataElementCategoryOptionCombo cocA;
-    private DataElementCategoryOptionCombo cocB;
+    private CategoryOptionCombo cocA;
+    private CategoryOptionCombo cocB;
 
     private Attribute atA;
     
@@ -141,7 +141,7 @@ public class DataValueSetServiceExportTest
 
         ccA = createCategoryCombo( 'A' );
 
-        categoryService.addDataElementCategoryCombo( ccA );
+        categoryService.addCategoryCombo( ccA );
 
         cocA = createCategoryOptionCombo( 'A' );
         cocB = createCategoryOptionCombo( 'B' );
@@ -149,8 +149,8 @@ public class DataValueSetServiceExportTest
         cocA.setCategoryCombo( ccA );
         cocB.setCategoryCombo( ccA );
 
-        categoryService.addDataElementCategoryOptionCombo( cocA );
-        categoryService.addDataElementCategoryOptionCombo( cocB );
+        categoryService.addCategoryOptionCombo( cocA );
+        categoryService.addCategoryOptionCombo( cocB );
         
         atA = createAttribute( 'A' );
         atA.setDataElementAttribute( true );

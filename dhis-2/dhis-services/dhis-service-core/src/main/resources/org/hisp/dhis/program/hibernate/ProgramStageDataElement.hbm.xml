@@ -31,6 +31,8 @@
     
     <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
 
+    <property name="renderType" type="jbRenderType" column="rendertype" />
+
   </class>
 
 </hibernate-mapping>

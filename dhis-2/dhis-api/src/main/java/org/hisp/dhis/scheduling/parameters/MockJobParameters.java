@@ -42,7 +42,7 @@ public class MockJobParameters
 {
     private static final long serialVersionUID = 3600315605964091689L;
 
-    @Property
+    @JsonProperty
     private String message;
 
     public MockJobParameters()

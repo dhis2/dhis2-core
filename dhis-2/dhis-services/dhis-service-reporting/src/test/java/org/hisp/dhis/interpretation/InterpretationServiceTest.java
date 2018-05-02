@@ -34,6 +34,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.mock.MockUserService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -47,6 +48,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -58,7 +60,7 @@ public class InterpretationServiceTest
     extends DhisSpringTest
 {
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private UserGroupService userGroupService;
@@ -73,23 +75,40 @@ public class InterpretationServiceTest
     private IdentifiableObjectManager manager;
 
     private User userA;
+
     private User userB;
+    
+    private User userC;
 
     private Chart chartA;
 
     private Interpretation interpretationA;
+
     private Interpretation interpretationB;
+
     private Interpretation interpretationC;
 
+    @Override
+    protected void setUpTest() throws Exception
+    {
+        userService = _userService;
+    }
+    
     @Before
     public void beforeTest()
     {
         userA = createUser( 'A' );
         userB = createUser( 'B' );
+        userC = createUser( "C.D-E_F" );
         userService.addUser( userA );
         userService.addUser( userB );
+        userService.addUser( userC );
 
-        setDependency( interpretationService, "currentUserService", new MockCurrentUserService( userA ), CurrentUserService.class );
+        setDependency( interpretationService, "currentUserService", new MockCurrentUserService( userA ),
+            CurrentUserService.class );
+        
+        setDependency( interpretationService, "userService", new MockUserService( Arrays.asList(userA, userB, userC) ),
+            UserService.class );
 
         chartA = createChart( 'A' );
         chartService.addChart( chartA );
@@ -220,6 +239,84 @@ public class InterpretationServiceTest
     }
 
     @Test
+    public void testMentions()
+    {
+        // Testing with mentions 
+        interpretationA = new Interpretation( chartA, null, "Interpration of chart A with Mentions @" + userA.getUsername() );
+        interpretationService.saveInterpretation( interpretationA );
+
+        String uid = interpretationA.getUid();
+        assertNotNull( uid );
+        assertNotNull( interpretationA.getMentions() );
+        assertEquals( 1, interpretationA.getMentions().size() );
+        
+        interpretationA.setText( "Interpretation of chart A with Mentions @" + userA.getUsername() + " @" + userB.getUsername() );
+        interpretationService.updateInterpretation( interpretationA );
+        uid = interpretationA.getUid();
+        assertNotNull( uid );
+        assertNotNull( interpretationA.getMentions() );
+        assertEquals( 2, interpretationA.getMentions().size() );
+        
+        InterpretationComment interpretationComment = interpretationService.addInterpretationComment( uid, "This interpretation is good @" +  userA.getUsername() + " @" + userB.getUsername());
+        assertNotNull( interpretationComment.getMentions() );
+        assertEquals( 2, interpretationComment.getMentions().size() );
+        
+        interpretationA = interpretationService.getInterpretation( uid );
+        assertNotNull( interpretationA.getComments() );
+        assertEquals( 1, interpretationA.getComments().size() );
+        assertNotNull( interpretationA.getMentions() );
+        assertEquals( 2, interpretationA.getMentions().size() );
+        assertNotNull( interpretationComment.getMentions() );
+        assertEquals( 2, interpretationComment.getMentions().size() );
+        
+        InterpretationComment interpretationComment2 = interpretationService.addInterpretationComment( uid, "This interpretation is bad @" +  userA.getUsername() + " @" + userB.getUsername() + " @" + userC.getUsername());
+        assertNotNull( interpretationComment2.getMentions() );
+        assertEquals( 3, interpretationComment2.getMentions().size() );
+        
+        interpretationA = interpretationService.getInterpretation( uid );
+        assertNotNull( interpretationA.getComments() );
+        assertEquals( 2, interpretationA.getComments().size() );
+        
+        // Testing with no mention or non real mentions
+        interpretationB = new Interpretation( chartA, null, "Interpration of chart B with no mentions");
+        interpretationService.saveInterpretation( interpretationB );      
+        uid = interpretationB.getUid();
+        assertNotNull( uid );
+        assertNotNull( interpretationB.getMentions() );
+        assertEquals( 0, interpretationB.getMentions().size() );
+        
+        interpretationB.setText( "Interpration of chart B with fake mention @thisisnotauser" );
+        interpretationService.updateInterpretation( interpretationB );
+        uid = interpretationB.getUid();
+        assertNotNull( uid );
+        assertNotNull( interpretationB.getMentions() );
+        assertEquals( 0, interpretationB.getMentions().size() );
+        
+        interpretationB.setText( "Interpration of chart B with 3 mentions @" +  userA.getUsername() + " @" + userB.getUsername() + " @" + userC.getUsername() );
+        interpretationService.updateInterpretation( interpretationB );
+        uid = interpretationB.getUid();
+        assertNotNull( uid );
+        assertNotNull( interpretationB.getMentions() );
+        assertEquals( 3, interpretationB.getMentions().size() );
+        
+        InterpretationComment interpretationComment3 = interpretationService.addInterpretationComment( uid, "This interpretation has no mentions");
+        assertNotNull( interpretationComment3.getMentions() );
+        assertEquals( 0, interpretationComment3.getMentions().size() );
+
+        interpretationComment3 = interpretationService.addInterpretationComment( uid, "This interpretation has a fake mention @thisisnotauser");
+        assertNotNull( interpretationComment3.getMentions() );
+        assertEquals( 0, interpretationComment3.getMentions().size() );
+        
+        interpretationA = interpretationService.getInterpretation( uid );
+        assertNotNull( interpretationA.getComments() );
+        assertEquals( 2, interpretationA.getComments().size() );
+        assertNotNull( interpretationA.getMentions() );
+        assertEquals( 3, interpretationA.getMentions().size() );
+        assertNotNull( interpretationComment3.getMentions() );
+        assertEquals( 0, interpretationComment3.getMentions().size() );
+    }
+
+    @Test
     public void testGetNewCount()
     {
         interpretationService.saveInterpretation( interpretationA );
@@ -251,7 +348,8 @@ public class InterpretationServiceTest
         assertEquals( 0, interpretationA.getLikedBy().size() );
     }
 
-    @Test
+    @Test //TODO enable
+    @Ignore
     public void testCreateChartAndInterpretationSyncSharing() throws IOException
     {
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );

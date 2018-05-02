@@ -32,7 +32,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -129,8 +128,11 @@ class DataApprovalPermissionsEvaluator
     }
 
     /**
-     * Allocates and fills a data approval permissions object according to
+     * Evaluates approval permissions in the approval status according to
      * the context of system settings and user information.
+     * <p>
+     * Also adjusts the approval state as necessary if acceptances are not
+     * configured.
      * <p>
      * If there is a data permissions state, also takes this into account.
      * <p>
@@ -139,13 +141,14 @@ class DataApprovalPermissionsEvaluator
      *
      * @param status the data approval status (if any)
      * @param workflow the data approval workflow
-     * @return the data approval permissions for the object
      */
-    public DataApprovalPermissions getPermissions( DataApprovalStatus status, DataApprovalWorkflow workflow )
+    public void evaluatePermissions( DataApprovalStatus status, DataApprovalWorkflow workflow )
     {
         DataApprovalState s = status.getState();
 
         DataApprovalPermissions permissions = new DataApprovalPermissions();
+
+        status.setPermissions( permissions );
 
         if ( status.getOrganisationUnitUid() == null )
         {
@@ -153,7 +156,7 @@ class DataApprovalPermissionsEvaluator
 
             permissions.setMayReadData( true );
 
-            return permissions; // No approval permissions set.
+            return; // No approval permissions set.
         }
 
         DataApprovalLevel userApprovalLevel = getUserApprovalLevelWithCache( status.getOrganisationUnitUid(), workflow );
@@ -164,7 +167,7 @@ class DataApprovalPermissionsEvaluator
 
             permissions.setMayReadData( true );
 
-            return permissions; // Can't find user approval level, so no approval permissions are set.
+            return; // Can't find user approval level, so no approval permissions are set.
         }
 
         int userLevel = userApprovalLevel.getLevel();
@@ -187,7 +190,7 @@ class DataApprovalPermissionsEvaluator
             mayApprove = s.isApprovable() || approvableAtNextHigherLevel; // (If approved at one level, may approve for the next higher level.)
         }
 
-        if ( ( authorizedToApprove && userLevel == dataLevel && !s.isAccepted() ) || ( authorizedToApproveAtLowerLevels && userLevel < dataLevel ) )
+        if ( ( authorizedToApprove && userLevel == dataLevel && ( !s.isAccepted() || !acceptanceRequiredForApproval ) ) || ( authorizedToApproveAtLowerLevels && userLevel < dataLevel ) )
         {
             mayUnapprove = s.isUnapprovable();
         }
@@ -206,13 +209,24 @@ class DataApprovalPermissionsEvaluator
         boolean mayReadData = mayApprove || mayUnapprove || mayAccept || mayUnaccept ||
                 ( userLevel >= dataLevel || mayViewLowerLevelUnapprovedData );
 
+        if ( !acceptanceRequiredForApproval )
+        {
+            mayAccept = false;
+            mayUnaccept = false;
+
+            if ( s == DataApprovalState.ACCEPTED_HERE )
+            {
+                status.setState( DataApprovalState.APPROVED_HERE );
+            }
+        }
+
         permissions.setMayApprove( mayApprove );
         permissions.setMayUnapprove( mayUnapprove );
         permissions.setMayAccept( mayAccept );
         permissions.setMayUnaccept( mayUnaccept );
         permissions.setMayReadData( mayReadData );
 
-        return permissions;
+        return;
     }
 
     private DataApprovalLevel getUserApprovalLevelWithCache( String orgUnitUid, DataApprovalWorkflow workflow )

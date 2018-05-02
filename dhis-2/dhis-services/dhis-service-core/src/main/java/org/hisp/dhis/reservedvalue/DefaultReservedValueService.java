@@ -30,10 +30,10 @@ package org.hisp.dhis.reservedvalue;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.sun.javafx.binding.StringFormatter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternMethod;
 import org.hisp.dhis.textpattern.TextPatternMethodUtils;
 import org.hisp.dhis.textpattern.TextPatternSegment;
@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -70,9 +71,8 @@ public class DefaultReservedValueService
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
-    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
-        Date expires )
-        throws ReserveValueException, TextPatternService.TextPatternGenerationException
+    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
+        throws ReserveValueException, TextPatternGenerationException
     {
         long startTime = System.currentTimeMillis();
         int attemptsLeft = 10;
@@ -84,9 +84,11 @@ public class DefaultReservedValueService
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = (generatedSegment != null ? key.replaceAll( generatedSegment.getRawSegment(), "%" ) : key);
+        String valueKey = (generatedSegment != null ?
+            key.replaceAll( Pattern.quote( generatedSegment.getRawSegment() ), "%" ) :
+            key);
 
-        ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(),
+        ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(),
             key,
             valueKey,
             expires );
@@ -104,7 +106,7 @@ public class DefaultReservedValueService
             return reservedValueStore.reserveValues( reservedValue, Lists.newArrayList( key ) );
         }
 
-        List<String> usedGeneratedValues = new ArrayList();
+        List<String> usedGeneratedValues = new ArrayList<>();
 
         int numberOfValuesLeftToGenerate = numberOfReservations;
 
@@ -137,7 +139,7 @@ public class DefaultReservedValueService
                     resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
                         ImmutableMap.<String, String>builder()
                             .putAll( values )
-                            .put( generatedSegment.getRawSegment(), generatedValues.get( i ) )
+                            .put( generatedSegment.getMethod().name(), generatedValues.get( i ) )
                             .build() ) );
                 }
 
@@ -148,9 +150,9 @@ public class DefaultReservedValueService
         }
         catch ( TimeoutException ex )
         {
-            log.warn( StringFormatter.format(
+            log.warn( String.format(
                 "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
-                textPattern.getOwnerObject().name(), textPattern.getOwnerUID(), resultList.size() ).getValue() );
+                textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), resultList.size() ) );
         }
 
         return resultList;
@@ -159,13 +161,13 @@ public class DefaultReservedValueService
     @Override
     public boolean useReservedValue( TextPattern textPattern, String value )
     {
-        return reservedValueStore.useReservedValue( textPattern.getOwnerUID(), value );
+        return reservedValueStore.useReservedValue( textPattern.getOwnerUid(), value );
     }
 
     @Override
     public boolean isReserved( TextPattern textPattern, String value )
     {
-        return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUID(), value );
+        return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value );
     }
 
     // Helper methods
@@ -187,9 +189,9 @@ public class DefaultReservedValueService
         if ( segment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
         {
             generatedValues.addAll( sequentialNumberCounterStore
-                .getNextValues( textPattern.getOwnerUID(), segment.getParameter(), numberOfValues )
+                .getNextValues( textPattern.getOwnerUid(), segment.getParameter(), numberOfValues )
                 .stream()
-                .map( ( n ) -> StringFormatter.format( "%0" + segment.getParameter().length() + "d", n ).getValue() )
+                .map( ( n ) -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
                 .collect( Collectors.toList() ) );
         }
         else if ( segment.getMethod().equals( TextPatternMethod.RANDOM ) )
@@ -203,10 +205,10 @@ public class DefaultReservedValueService
         return generatedValues;
     }
 
-    private boolean hasEnoughValuesLeft( ReservedValue reservedValue, int totalValues, int valuesRequired )
+    private boolean hasEnoughValuesLeft( ReservedValue reservedValue, long totalValues, int valuesRequired )
     {
         int used = reservedValueStore.getNumberOfUsedValues( reservedValue );
 
-        return (totalValues - used) >= valuesRequired;
+        return totalValues >= valuesRequired + used;
     }
 }

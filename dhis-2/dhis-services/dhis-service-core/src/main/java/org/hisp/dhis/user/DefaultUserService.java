@@ -169,12 +169,6 @@ public class DefaultUserService
     }
 
     @Override
-    public List<User> getUsersByUid( List<String> uids )
-    {
-        return userStore.getByUid( uids );
-    }
-
-    @Override
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
         UserQueryParams params = new UserQueryParams();
@@ -440,18 +434,6 @@ public class DefaultUserService
     }
 
     @Override
-    public int getUserRoleCount()
-    {
-        return userAuthorityGroupStore.getCount();
-    }
-
-    @Override
-    public int getUserRoleCountByName( String name )
-    {
-        return userAuthorityGroupStore.getCountLikeName( name );
-    }
-
-    @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
         return userAuthorityGroupStore.countDataSetUserAuthorityGroups( dataSet );
@@ -657,5 +639,12 @@ public class DefaultUserService
         userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
 
         return userStore.getExpiringUsers( userQueryParams );
+    }
+
+    public void set2FA( User user, Boolean twoFa )
+    {
+        user.getUserCredentials().setTwoFA( twoFa );
+
+        updateUser( user );
     }
 }

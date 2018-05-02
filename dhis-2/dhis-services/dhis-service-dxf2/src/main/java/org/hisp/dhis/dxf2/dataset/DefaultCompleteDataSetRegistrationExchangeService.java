@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -43,9 +45,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -82,7 +84,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nonnull;
@@ -103,12 +104,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 {
     private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
 
-    private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen
-                                                         // from dxf2
-                                                         // DefaultDataValueSetService
+    private static final int CACHE_MISS_THRESHOLD = 500;
 
-    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME,
-        IdScheme.CODE );
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -136,7 +134,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     private SystemSettingManager systemSettingManager;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private PeriodService periodService;
@@ -152,6 +150,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private AggregateAccessManager accessManager;
+
+    @Autowired
+    private DataSetNotificationEventPublisher notificationPublisher;
+
+    @Autowired
+    private MessageService messageService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -517,15 +521,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // ---------------------------------------------------------------------
 
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
-                mdProps.orgUnit, mdProps.attrOptCombo, false );
-
+                mdProps.orgUnit, mdProps.attrOptCombo );
 
             if( !missingDataElementOperands.isEmpty() )
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
                     summary.getConflicts().add( new ImportConflict( "dataElementOperand",
-                        dataElementOperand.getDimensionItem() + " needs to be filled. It is compulsory." ) );
+                        dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory." ) );
                 }
 
                 if ( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )
@@ -613,6 +616,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                         if ( !isDryRun )
                         {
                             added = batchHandler.addObject( internalCdsr );
+
+                            if ( added )
+                            {
+                                sendNotifications( config, internalCdsr );
+                            }
                         }
 
                         if ( isDryRun || added )
@@ -663,6 +671,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
+    private void sendNotifications( ImportConfig config, CompleteDataSetRegistration registration )
+    {
+        if ( !config.skipNotifications )
+        {
+            if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
+            {
+                messageService.sendCompletenessMessage( registration );
+            }
+
+            notificationPublisher.publishEvent( registration );
+        }
+    }
+
     private void validateAttrOptCombo( MetaDataProperties mdProps, MetaDataCaches mdCaches, ImportConfig config )
         throws ImportConflictException
     {
@@ -677,11 +698,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             }
             else
             {
-                mdProps.attrOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+                mdProps.attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
             }
         }
 
-        final DataElementCategoryOptionCombo aoc = mdProps.attrOptCombo;
+        final CategoryOptionCombo aoc = mdProps.attrOptCombo;
         DateRange range = aoc.getDateRange();
 
         if ( (range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0)
@@ -723,8 +744,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         throws ImportConflictException
     {
         // TODO MdCache?
-        DataElementCategoryCombo aocCC = mdProps.attrOptCombo.getCategoryCombo();
-        DataElementCategoryCombo dsCc = mdProps.dataSet.getCategoryCombo();
+        CategoryCombo aocCC = mdProps.attrOptCombo.getCategoryCombo();
+        CategoryCombo dsCc = mdProps.dataSet.getCategoryCombo();
 
         if ( !aocCC.equals( dsCc ) )
         {
@@ -781,7 +802,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
         {
-            caches.attrOptionCombos.load( idObjManager.getAll( DataElementCategoryOptionCombo.class ),
+            caches.attrOptionCombos.load( idObjManager.getAll( CategoryOptionCombo.class ),
                 aoc -> aoc.getPropertyValue( config.aocScheme ) );
 
             log.info( "Attribute option combo cache heated after cache miss threshold reached" );
@@ -802,7 +823,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         
         if( aoc == null )
         {
-            DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
+            CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
         
@@ -829,10 +850,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         final OrganisationUnit orgUnit;
 
-        DataElementCategoryOptionCombo attrOptCombo;
+        CategoryOptionCombo attrOptCombo;
 
         MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit,
-            DataElementCategoryOptionCombo attrOptCombo )
+            CategoryOptionCombo attrOptCombo )
         {
             this.dataSet = dataSet;
             this.period = period;
@@ -884,7 +905,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
 
-        final IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallable;
+        final IdentifiableObjectCallable<CategoryOptionCombo> optionComboCallable;
 
         final IdentifiableObjectCallable<Period> periodCallable;
 
@@ -906,7 +927,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         CachingMap<String, Period> periods = new CachingMap<>();
 
-        CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
+        CachingMap<String, CategoryOptionCombo> attrOptionCombos = new CachingMap<>();
 
         CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
 
@@ -916,7 +937,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         {
             dataSets.load( manager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
             orgUnits.load( manager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.ouScheme ) );
-            attrOptionCombos.load( manager.getAll( DataElementCategoryOptionCombo.class ),
+            attrOptionCombos.load( manager.getAll( CategoryOptionCombo.class ),
                 oc -> oc.getPropertyValue( config.aocScheme ) );
         }
     }
@@ -928,9 +949,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         ImportStrategy strategy;
 
         boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits,
-            requireAttrOptionCombos;
+            requireAttrOptionCombos, skipNotifications;
 
-        DataElementCategoryOptionCombo fallbackCatOptCombo;
+        CategoryOptionCombo fallbackCatOptCombo;
 
         ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
         {
@@ -946,6 +967,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
 
+            skipNotifications = options.isSkipNotifications();
+
             skipExistingCheck = options.isSkipExistingCheck();
 
             strictPeriods = options.isStrictPeriods()
@@ -960,7 +983,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             requireAttrOptionCombos = options.isRequireAttributeOptionCombo() || (Boolean) systemSettingManager
                 .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
 
-            fallbackCatOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+            fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
         }
     }
 

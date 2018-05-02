@@ -42,7 +42,7 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
@@ -67,6 +67,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
@@ -112,6 +115,9 @@ public class AuditController
 
     @Autowired
     private DataApprovalAuditService dataApprovalAuditService;
+    
+    @Autowired
+    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
     @Autowired
     private FieldFilterService fieldFilterService;
@@ -232,8 +238,8 @@ public class AuditController
 
         List<Period> periods = getPeriods( pe );
         List<OrganisationUnit> organisationUnits = getOrganisationUnit( ou );
-        DataElementCategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( co );
-        DataElementCategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( cc );
+        CategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( co );
+        CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( cc );
 
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -420,6 +426,65 @@ public class AuditController
             new FieldFilterParams( audits, fields ) ).getChildren() );
 
         return rootNode;
+    }
+    
+    @RequestMapping( value = "trackedEntityInstance", method = RequestMethod.GET )
+    public @ResponseBody RootNode getTrackedEnityInstanceAudit(
+        @RequestParam( required = false, defaultValue = "" ) List<String> tei,
+        @RequestParam( required = false, defaultValue = "" ) List<String> user,
+        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page
+    ) throws WebMessageException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams();
+
+        params.setTrackedEntityInstances( new HashSet<>( tei ) );
+        params.setUsers( new HashSet<>(  user ) );
+        params.setAuditType( auditType );
+        params.setStartDate( startDate );
+        params.setEndDate( endDate );
+        params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
+        
+        List<TrackedEntityInstanceAudit> teiAudits;
+        Pager pager = null;
+
+        if ( !params.isSkipPaging() )
+        {                    
+            int total = trackedEntityInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
+
+            pager = new Pager( page, total, pageSize );
+            
+            params.setFirst( pager.getOffset() );
+            params.setMax( pager.getPageSize() );            
+        }
+        
+        teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+    
+        CollectionNode trackedEntityInstanceAudits = rootNode.addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
+        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
+            new FieldFilterParams( teiAudits, fields ) ).getChildren() );
+
+        return rootNode;
+        
     }
 
     //-----------------------------------------------------------------------------------------------------------------
@@ -612,24 +677,24 @@ public class AuditController
         return manager.getByUid( OrganisationUnit.class, ou );
     }
 
-    private List<DataElementCategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) throws WebMessageException
+    private List<CategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) throws WebMessageException
     {
         if ( coc == null )
         {
             return new ArrayList<>();
         }
 
-        return manager.getByUid( DataElementCategoryOptionCombo.class, coc );
+        return manager.getByUid( CategoryOptionCombo.class, coc );
     }
 
-    private DataElementCategoryOptionCombo getCategoryOptionCombo( @RequestParam String co ) throws WebMessageException
+    private CategoryOptionCombo getCategoryOptionCombo( @RequestParam String co ) throws WebMessageException
     {
         if ( co == null )
         {
             return null;
         }
 
-        DataElementCategoryOptionCombo categoryOptionCombo = manager.search( DataElementCategoryOptionCombo.class, co );
+        CategoryOptionCombo categoryOptionCombo = manager.search( CategoryOptionCombo.class, co );
 
         if ( categoryOptionCombo == null )
         {
@@ -639,14 +704,14 @@ public class AuditController
         return categoryOptionCombo;
     }
 
-    private DataElementCategoryOptionCombo getAttributeOptionCombo( @RequestParam String cc ) throws WebMessageException
+    private CategoryOptionCombo getAttributeOptionCombo( @RequestParam String cc ) throws WebMessageException
     {
         if ( cc == null )
         {
             return null;
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = manager.search( DataElementCategoryOptionCombo.class, cc );
+        CategoryOptionCombo attributeOptionCombo = manager.search( CategoryOptionCombo.class, cc );
 
         if ( attributeOptionCombo == null )
         {

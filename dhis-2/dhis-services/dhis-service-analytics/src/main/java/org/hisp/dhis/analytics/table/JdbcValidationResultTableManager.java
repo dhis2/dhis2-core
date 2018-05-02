@@ -37,7 +37,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
@@ -62,7 +62,9 @@ public class JdbcValidationResultTableManager
     @Override
     public List<AnalyticsTable> getAnalyticsTables( Date earliest )
     {
-        return Lists.newArrayList( getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() ) );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() );
+        
+        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
 
     @Override
@@ -121,17 +123,18 @@ public class JdbcValidationResultTableManager
         select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
 
         select +=
-            "cdr.created as value " +
-            "from validationresult cdr " +
-            "inner join validationrule vr on vr.validationruleid=cdr.validationruleid " +
-            "inner join _organisationunitgroupsetstructure ougs on cdr.organisationunitid=ougs.organisationunitid " +
-            "left join _orgunitstructure ous on cdr.organisationunitid=ous.organisationunitid " +
-            "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "inner join period pe on cdr.periodid=pe.periodid " +
-            "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
+            "vrs.created as value " +
+            "from validationresult vrs " +
+            "inner join period pe on vrs.periodid=pe.periodid " +
+            "inner join _periodstructure ps on vrs.periodid=ps.periodid " +
+            "inner join validationrule vr on vr.validationruleid=vrs.validationruleid " +
+            "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid " +
+                "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
+            "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where pe.startdate >= '" + start + "' " +
             "and pe.startdate < '" + end + "' " +
-            "and cdr.created is not null";
+            "and vrs.created is not null";
 
         final String sql = insert + select;
 
@@ -142,8 +145,8 @@ public class JdbcValidationResultTableManager
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
-            "from validationresult cdr " +
-            "inner join period pe on cdr.periodid=pe.periodid " +
+            "from validationresult vrs " +
+            "inner join period pe on vrs.periodid=pe.periodid " +
             "where pe.startdate is not null ";
 
         if ( earliest != null )
@@ -164,7 +167,7 @@ public class JdbcValidationResultTableManager
         List<OrganisationUnitLevel> levels =
                 organisationUnitService.getFilledOrganisationUnitLevels();
 
-        List<DataElementCategory> attributeCategories =
+        List<Category> attributeCategories =
             categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
@@ -179,7 +182,7 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
         }
 
-        for ( DataElementCategory category : attributeCategories )
+        for ( Category category : attributeCategories )
         {
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)",
                 "acs." + quote( category.getUid() ), category.getCreated() ) );

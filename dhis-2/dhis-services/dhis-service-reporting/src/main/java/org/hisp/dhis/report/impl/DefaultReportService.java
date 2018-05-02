@@ -36,7 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.Encoder;
@@ -87,9 +87,9 @@ public class DefaultReportService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<Report> reportStore;
+    private IdentifiableObjectStore<Report> reportStore;
 
-    public void setReportStore( GenericIdentifiableObjectStore<Report> reportStore )
+    public void setReportStore( IdentifiableObjectStore<Report> reportStore )
     {
         this.reportStore = reportStore;
     }

@@ -30,11 +30,11 @@ package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.render.RenderFormat;

@@ -31,10 +31,12 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -43,7 +45,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,7 +81,6 @@ public class TrackedEntityAttributeController
 
     @RequestMapping( value = "/{id}/generateAndReserve", method = RequestMethod.GET, produces = {
         ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
     List<ReservedValue> generateAndReserveValues(
@@ -90,6 +90,13 @@ public class TrackedEntityAttributeController
     )
         throws WebMessageException
     {
+        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
+
+        if ( trackedEntityAttribute == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( TrackedEntityAttribute.class, id ) );
+        }
+
         return reserve( id, numberToReserve, expiration );
     }
 
@@ -112,6 +119,13 @@ public class TrackedEntityAttributeController
     )
         throws WebMessageException
     {
+        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
+
+        if ( trackedEntityAttribute == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( TrackedEntityAttribute.class, id ) );
+        }
+
         return reserve( id, 1, expiration ).get( 0 );
     }
 
@@ -119,16 +133,21 @@ public class TrackedEntityAttributeController
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody
     Map<String, List<String>> getRequiredValues( @PathVariable String id )
-        throws Exception
+        throws WebMessageException
     {
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
+        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
 
-        if ( attribute == null )
+        if ( trackedEntityAttribute == null )
         {
-            throw new Exception( "No attribute found with id " + id );
+            throw new WebMessageException( WebMessageUtils.notFound( TrackedEntityAttribute.class, id ) );
         }
 
-        return textPatternService.getRequiredValues( attribute.getTextPattern() );
+        if ( trackedEntityAttribute.getTextPattern() == null )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Attribute does not contain pattern." ) );
+        }
+
+        return textPatternService.getRequiredValues( trackedEntityAttribute.getTextPattern() );
 
     }
 
@@ -137,6 +156,10 @@ public class TrackedEntityAttributeController
     private List<ReservedValue> reserve( String id, int numberToReserve, int daysToLive )
         throws WebMessageException
     {
+        if ( numberToReserve > 1000 || numberToReserve < 1)
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "You can only reserve between 1 and 1000 values in a single request." ) );
+        }
 
         Map<String, List<String>> params = context.getParameterValuesMap();
         TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
@@ -148,11 +171,6 @@ public class TrackedEntityAttributeController
         if ( attribute.getTextPattern() == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "This attribute has no pattern" ) );
-        }
-
-        if ( numberToReserve < 1 )
-        {
-            numberToReserve = 1;
         }
 
         Map<String, String> values = getRequiredValues( attribute, params );
@@ -172,13 +190,13 @@ public class TrackedEntityAttributeController
 
             return result;
         }
-        catch ( ReservedValueService.ReserveValueException e )
+        catch ( ReserveValueException ex )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( e.getMessage() ) );
+            throw new WebMessageException( WebMessageUtils.conflict( ex.getMessage() ) );
         }
-        catch ( TextPatternService.TextPatternGenerationException e )
+        catch ( TextPatternGenerationException ex )
         {
-            throw new WebMessageException( WebMessageUtils.error( e.getMessage() ) );
+            throw new WebMessageException( WebMessageUtils.error( ex.getMessage() ) );
         }
     }
 

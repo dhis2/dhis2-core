@@ -58,7 +58,6 @@ public class MergeServiceTest
     @Override
     public void setUpTest()
     {
-
     }
 
     @Test

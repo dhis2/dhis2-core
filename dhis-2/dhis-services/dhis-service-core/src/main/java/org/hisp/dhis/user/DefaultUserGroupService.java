@@ -29,7 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,9 +48,9 @@ public class DefaultUserGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<UserGroup> userGroupStore;
+    private IdentifiableObjectStore<UserGroup> userGroupStore;
 
-    public void setUserGroupStore( GenericIdentifiableObjectStore<UserGroup> userGroupStore )
+    public void setUserGroupStore( IdentifiableObjectStore<UserGroup> userGroupStore )
     {
         this.userGroupStore = userGroupStore;
     }

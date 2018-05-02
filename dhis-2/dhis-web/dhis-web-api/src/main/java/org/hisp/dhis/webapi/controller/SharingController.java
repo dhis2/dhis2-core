@@ -36,6 +36,9 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -353,6 +356,11 @@ public class SharingController
 
         manager.updateNoAcl( object );
 
+        if ( Program.class.isInstance( object ) )
+        {
+            syncSharingForEventProgram( (Program) object );
+        }
+
         log.info( sharingToString( object ) );
 
         webMessageService.send( WebMessageUtils.ok( "Access control set" ), response, request );
@@ -458,5 +466,20 @@ public class SharingController
         }
 
         return builder.toString();
+    }
+
+    private void syncSharingForEventProgram( Program program )
+    {
+        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
+            || program.getProgramStages().isEmpty() )
+        {
+            return;
+        }
+
+        ProgramStage programStage = program.getProgramStages().iterator().next();
+        AccessStringHelper.copySharing( program, programStage );
+
+        programStage.setUser( program.getUser() );
+        manager.update( programStage );
     }
 }

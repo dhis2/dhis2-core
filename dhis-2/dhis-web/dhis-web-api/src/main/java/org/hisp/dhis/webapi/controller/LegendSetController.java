@@ -47,21 +47,21 @@ public class LegendSetController
     extends AbstractCrudController<LegendSet>
 {
     @Override
-    @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
+    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         super.postJsonObject( request, response );
     }
 
     @Override
-    @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
+    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
     public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         super.putJsonObject( uid, request, response );
     }
 
     @Override
-    @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
+    @PreAuthorize( "hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
     public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         super.deleteObject( uid, request, response );

@@ -28,7 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,9 +44,9 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
+    private IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
 
-    public void setAttributeGroupStore( GenericIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
+    public void setAttributeGroupStore( IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
     {
         this.attributeGroupStore = attributeGroupStore;
     }

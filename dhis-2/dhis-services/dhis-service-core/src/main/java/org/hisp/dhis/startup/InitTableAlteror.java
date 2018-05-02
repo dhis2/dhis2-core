@@ -28,11 +28,11 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,12 +133,19 @@ public class InitTableAlteror
         executeSql( "UPDATE trackedentityinstance SET featuretype = 'NONE' WHERE featuretype IS NULL " );
         updateTrackedEntityAttributePatternAndTextPattern();
 
+        // 2FA fixes for 2.30
+        executeSql( "UPDATE users set twofa = false where twofa is null" );
+        executeSql( "ALTER TABLE  users alter column twofa set not null" );
+
+        // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
+        executeSql( "UPDATE trackedentityattribute SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
+        executeSql( "alter table trackedentityattribute alter column skipsynchronization set not null" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
     {
         // Create textpattern jsonb
-        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUID\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
+        executeSql( "UPDATE trackedentityattribute SET textpattern = concat('{\"ownerUid\": \"', uid, '\",\"segments\": [{\"parameter\": \"', pattern, '\",\"method\": \"RANDOM\"}],\"ownerObject\": \"TRACKEDENTITYATTRIBUTE\"}')::jsonb WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NULL" );
 
         // Update pattern to match new syntax
         executeSql( "UPDATE trackedentityattribute SET pattern = concat('RANDOM(', pattern, ')') WHERE pattern SIMILAR TO '#+' AND generated = true AND textpattern IS NOT NULL" );
@@ -170,7 +177,6 @@ public class InitTableAlteror
         executeSql( "UPDATE messageconversation SET messagetype = 'PRIVATE' WHERE messagetype IS NULL" );
 
         executeSql( "ALTER TABLE messageconversation ALTER COLUMN messagetype set not null" );
-
     }
 
     private void updateLegendSetAssociationAndDeleteOldAssociation()
@@ -178,32 +184,32 @@ public class InitTableAlteror
         // Transfer all existing references from dataelement to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO dataelementlegendsets (dataelementid, sort_order, legendsetid) SELECT dataelementid, 0, legendsetid FROM dataelement WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO datasetlegendsets (datasetid, sort_order, legendsetid) SELECT datasetid, 0, legendsetid FROM dataset WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO indicatorlegendsets (indicatorid, sort_order, legendsetid) SELECT indicatorid, 0, legendsetid FROM indicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid " );
 
         // Transfer all existing references from dataset to legendset to new many-to-many table
         // Then delete old reference
         executeSql( "INSERT INTO trackedentityattributelegendsets (trackedentityattributeid, sort_order, legendsetid) SELECT trackedentityattributeid, 0, legendsetid FROM trackedentityattribute WHERE legendsetid IS NOT NULL" );
-        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid " );
     }
 
     private void updateMessageConversationMessageCount()

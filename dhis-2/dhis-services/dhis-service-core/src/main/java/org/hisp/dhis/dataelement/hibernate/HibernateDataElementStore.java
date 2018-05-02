@@ -33,7 +33,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
 
@@ -66,7 +66,7 @@ public class HibernateDataElementStore
     
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo )
     {
         return getCriteria( Restrictions.eq( "categoryCombo", categoryCombo ) ).list();
     }
@@ -115,6 +115,6 @@ public class HibernateDataElementStore
     {
         String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
-        return getQuery( hql ).setInteger( "aggregationLevel", aggregationLevel ).list();
+        return getQuery( hql ).setParameter( "aggregationLevel", aggregationLevel ).list();
     }
 }

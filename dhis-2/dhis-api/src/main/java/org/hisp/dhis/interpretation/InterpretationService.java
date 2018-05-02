@@ -31,9 +31,11 @@ package org.hisp.dhis.interpretation;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -58,6 +60,10 @@ public interface InterpretationService
 
     InterpretationComment addInterpretationComment( String uid, String text );
 
+    void sendNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users );
+    
+    void updateSharingForMentions( Interpretation interpretation, Set<User> users );
+
     void updateCurrentUserLastChecked();
 
     long getNewInterpretationCount();
@@ -68,25 +74,26 @@ public interface InterpretationService
      * atomic increment of the like count interpretation property.
      * 
      * @param id the interpretation id.
-     * @return true if the current user had not already liked the interpretation.
+     * @return true if the current user had not already liked the
+     *         interpretation.
      */
     boolean likeInterpretation( int id );
 
     /**
-     * Removes a like from the given interpretation for the current user. This method
-     * will have a "repeatable read" transaction isolation level to ensure an
-     * atomic decrease of the like count interpretation property.
+     * Removes a like from the given interpretation for the current user. This
+     * method will have a "repeatable read" transaction isolation level to
+     * ensure an atomic decrease of the like count interpretation property.
      * 
      * @param id the interpretation id.
      * @return true if the current user had previously liked the interpretation.
      */
     boolean unlikeInterpretation( int id );
-    
+
     int countMapInterpretations( Map map );
 
     int countChartInterpretations( Chart chart );
 
     int countReportTableInterpretations( ReportTable reportTable );
-    
+
     Interpretation getInterpretationByChart( int id );
 }

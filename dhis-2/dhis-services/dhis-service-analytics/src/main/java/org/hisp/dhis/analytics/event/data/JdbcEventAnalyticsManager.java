@@ -384,7 +384,8 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += sqlHelper.whereAnd() + " " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += sqlHelper.whereAnd() + " " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
+                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -395,7 +396,8 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += sqlHelper.whereAnd() + " " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += sqlHelper.whereAnd() + " " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
+                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -462,7 +464,7 @@ public class JdbcEventAnalyticsManager
         // Partitions restriction to allow constraint exclusion
         // ---------------------------------------------------------------------
         
-        if ( !params.isSkipPartitioning() && params.hasPartitions() )
+        if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries() )
         {
             sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( "yearly" ) + " in (" + 
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
@@ -535,7 +537,7 @@ public class JdbcEventAnalyticsManager
             if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
             {
                 String alias = statementBuilder.columnQuote( dim.getDimensionName() );
-                String col = "'" + period.getDimensionItem() + "' as " + alias;
+                String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
                 
                 cols.remove( alias ); // Remove column if already present, i.e. "yearly"
                 cols.add( col );

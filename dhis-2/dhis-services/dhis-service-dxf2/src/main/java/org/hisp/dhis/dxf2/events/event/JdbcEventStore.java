@@ -27,6 +27,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -34,20 +35,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -63,11 +70,31 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LATITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LONGITUDE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
@@ -79,7 +106,7 @@ public class JdbcEventStore
 {
     private static final Log log = LogFactory.getLog( JdbcEventStore.class );
 
-    private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String> builder()
+    private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String>builder()
         .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
         .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
         .put( "orgUnitName", "ou_name" ).put( "trackedEntityInstance", "tei_uid" )
@@ -99,6 +126,12 @@ public class JdbcEventStore
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // -------------------------------------------------------------------------
@@ -108,12 +141,25 @@ public class JdbcEventStore
     @Override
     public List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+        User user = currentUserService.getCurrentUser();
+
+        boolean isSuperUser = isSuper( user );
+
+        if ( !isSuperUser )
+        {
+            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+
+            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+        }
+
         List<Event> events = new ArrayList<>();
 
-        String sql = buildSql( params, organisationUnits );
+        String sql = buildSql( params, organisationUnits, user );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
+        
         log.debug( "Event query SQL: " + sql );
 
         Event event = new Event();
@@ -126,8 +172,8 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
-
-            if ( rowSet.getString( "psi_uid" ) == null )
+            if ( rowSet.getString( "psi_uid" ) == null ||
+                (params.getCategoryOptionCombo() == null && !isSuperUser && rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null) )
             {
                 continue;
             }
@@ -138,7 +184,7 @@ public class JdbcEventStore
 
                 event.setUid( rowSet.getString( "psi_uid" ) );
 
-                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ) ,
+                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
                     idSchemes.getProgramStageInstanceIdScheme() ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
@@ -159,6 +205,11 @@ public class JdbcEventStore
                     event.setEnrollmentStatus( EnrollmentStatus
                         .fromProgramStatus( ProgramStatus.valueOf( rowSet.getString( "pi_status" ) ) ) );
                     event.setFollowup( rowSet.getBoolean( "pi_followup" ) );
+                }
+
+                if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
+                {
+                    event.setOptionSize( rowSet.getInt( "option_size" ) );
                 }
 
                 event.setAttributeOptionCombo( rowSet.getString( "coc_categoryoptioncombouid" ) );
@@ -244,13 +295,17 @@ public class JdbcEventStore
             }
         }
 
+        if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
+        {
+            return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null && splitToArray( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() ).collect( Collectors.toList() );
+        }
+
         return events;
     }
 
     @Override
     public List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-      
         String sql = buildGridSql( params, organisationUnits );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -282,9 +337,11 @@ public class JdbcEventStore
     @Override
     public List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+        User user = currentUserService.getCurrentUser();
+        
         List<EventRow> eventRows = new ArrayList<>();
 
-        String sql = buildSql( params, organisationUnits );
+        String sql = buildSql( params, organisationUnits, user );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -305,7 +362,7 @@ public class JdbcEventStore
                 continue;
             }
 
-            if (  eventRow.getUid() == null ||!eventRow.getUid().equals( rowSet.getString( "psi_uid" ) ) )
+            if ( eventRow.getUid() == null || !eventRow.getUid().equals( rowSet.getString( "psi_uid" ) ) )
             {
                 eventRow = new EventRow();
 
@@ -390,23 +447,25 @@ public class JdbcEventStore
     @Override
     public int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-        String sql = new String();
+        User user = currentUserService.getCurrentUser();
         
-        if( params.hasFilters() )
+        String sql = new String();
+
+        if ( params.hasFilters() )
         {
-        	sql = buildGridSql( params, organisationUnits );
+            sql = buildGridSql( params, organisationUnits );
         }
         else
         {
-        	sql = getEventSelectQuery( params, organisationUnits );
+            sql = getEventSelectQuery( params, organisationUnits, user );
         }
-        
-        sql = sql.replaceFirst( "select .*? from", "select count(*) from" );        
-        
+
+        sql = sql.replaceFirst( "select .*? from", "select count(*) from" );
+
         sql = sql.replaceFirst( "order .*? desc", "" );
-        
+
         sql = sql.replaceFirst( "limit \\d+ offset \\d+", "" );
-        
+
         log.debug( "Event query count SQL: " + sql );
 
         return jdbcTemplate.queryForObject( sql, Integer.class );
@@ -423,13 +482,13 @@ public class JdbcEventStore
                 return false;
             }
         }
+
         return true;
     }
 
-
     private String buildGridSql( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-    	SqlHelper hlp = new SqlHelper();
+        SqlHelper hlp = new SqlHelper();
 
         // ---------------------------------------------------------------------
         // Select clause
@@ -475,17 +534,17 @@ public class JdbcEventStore
 
         return sql;
     }
-    
+
     /**
      * Query is based on three sub queries on event, data value and comment,
      * which are joined using program stage instance id. The purpose of the
      * separate queries is to be able to page properly on events.
      */
-    private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits )
+    private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
         String sql = "select * from (";
 
-        sql += getEventSelectQuery( params, organisationUnits );
+        sql += getEventSelectQuery( params, organisationUnits, user );
 
         sql += getOrderQuery( params.getOrders() );
 
@@ -513,31 +572,42 @@ public class JdbcEventStore
         return sql;
     }
 
-    private String getEventSelectQuery( EventSearchParams params, List<OrganisationUnit> organisationUnits )
+    private String getEventSelectQuery( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
         List<Integer> orgUnitIds = getIdentifiers( organisationUnits );
 
         SqlHelper hlp = new SqlHelper();
 
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
-            + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, " 
+            + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, "
             + "psi.latitude as psi_latitude, psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
-            + "coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
-            + "deco.uid AS deco_uid, pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
-            + "p.type as p_type, ps.uid as ps_uid, ps.code as ps_code, ps.capturecoordinates as ps_capturecoordinates, "
-            + "ou.uid as ou_uid, ou.code as ou_code, ou.name as ou_name, "
-            + "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive "
-            + "from programstageinstance psi "
-            + "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid "
-            + "inner join program p on p.programid=pi.programid "
-            + "inner join programstage ps on ps.programstageid=psi.programstageid "
-            + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
-            + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
-            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
-            + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
-            + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
+            + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, ";            
+            
+        if ( ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
+        {
+            sql += "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, ";
+        }
+            
+        sql += "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
+        + "p.type as p_type, ps.uid as ps_uid, ps.code as ps_code, ps.capturecoordinates as ps_capturecoordinates, "
+        + "ou.uid as ou_uid, ou.code as ou_code, ou.name as ou_name, "
+        + "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive "
+        + "from programstageinstance psi "
+        + "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid "
+        + "inner join program p on p.programid=pi.programid "
+        + "inner join programstage ps on ps.programstageid=psi.programstageid "
+        + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
+        + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
+        + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
+        + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
+        + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
+        + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
 
+        if ( ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
+        {
+            sql += getCategoryOptionSharingForUser( user );
+        }
+        
         if ( params.getTrackedEntityInstance() != null )
         {
             sql += hlp.whereAnd() + " tei.trackedentityinstanceid=" + params.getTrackedEntityInstance().getId() + " ";
@@ -633,6 +703,12 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " psi.deleted is false ";
         }
 
+        if ( params.hasSecurityFilter() )
+        {
+            sql += hlp.whereAnd() + " (p.uid in (" + getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) + ")) ";
+            sql += hlp.whereAnd() + " (ps.uid in (" + getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) + ")) ";
+        }
+
         return sql;
     }
 
@@ -685,7 +761,7 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " ps.programstageid = " + params.getProgramStage().getId() + " ";
         }
-        
+
         if ( params.getCategoryOptionCombo() != null )
         {
             sql += hlp.whereAnd() + " psi.attributeoptioncomboid = " + params.getCategoryOptionCombo().getId() + " ";
@@ -716,7 +792,7 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " psi.lastupdated <= '"
                 + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
         }
-        
+
         if ( params.getDueDateStart() != null )
         {
             sql += hlp.whereAnd() + " psi.duedate is not null and psi.duedate >= '"
@@ -759,6 +835,35 @@ public class JdbcEventStore
 
         return sql;
     }
+
+    private String getCategoryOptionSharingForUser( User user )
+    {
+        List<Integer> userGroupIds = getIdentifiers( user.getGroups() );
+        
+        String sql = " left join ( "; 
+
+        sql += "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+            + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
+            + "left join ("
+            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
+            + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
+            + "ua.access as ua_access, ua.userid as usr_id from dataelementcategoryoption deco "
+            + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
+            + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
+            + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
+            + "left join useraccess ua on coua.useraccessid = ua.useraccessid " + " where ua.userid="
+            + user.getId();
+
+        if ( userGroupIds != null && !userGroupIds.isEmpty() )
+        {
+            sql += " or uga.usergroupid in (" + getCommaDelimitedString( userGroupIds ) + ") ";
+        }
+
+        sql += " ) as decoa on cocco.categoryoptionid = decoa.deco_id ";
+
+        return sql;
+    }
+
 
     private String getEventPagingQuery( EventSearchParams params )
     {
@@ -871,5 +976,10 @@ public class JdbcEventStore
             + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";
 
         return sql;
+    }
+
+    private boolean isSuper( User user )
+    {
+        return user == null || user.isSuper();
     }
 }

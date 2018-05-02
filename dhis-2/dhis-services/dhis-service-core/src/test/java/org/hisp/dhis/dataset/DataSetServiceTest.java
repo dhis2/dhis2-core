@@ -36,7 +36,7 @@ import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -86,7 +86,7 @@ public class DataSetServiceTest
     private OrganisationUnit unitE;
     private OrganisationUnit unitF;
 
-    private DataElementCategoryOptionCombo attributeOptionCombo;
+    private CategoryOptionCombo attributeOptionCombo;
 
     private CurrentUserService mockCurrentUserService;
 
@@ -158,7 +158,7 @@ public class DataSetServiceTest
         organisationUnitService.addOrganisationUnit( unitE );
         organisationUnitService.addOrganisationUnit( unitF );
 
-        attributeOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         mockCurrentUserService = new MockCurrentUserService( true, newHashSet( unitA ), newHashSet( unitA ), UserAuthorityGroup.AUTHORITY_ALL );
         setDependency( approvalService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
@@ -205,6 +205,7 @@ public class DataSetServiceTest
         dataApprovalService.addWorkflow( workflow );
 
         dataSet.setWorkflow( workflow );
+        dataSet.addOrganisationUnit( unit );
         dataSetService.updateDataSet( dataSet );
 
         User user = mockCurrentUserService.getCurrentUser();

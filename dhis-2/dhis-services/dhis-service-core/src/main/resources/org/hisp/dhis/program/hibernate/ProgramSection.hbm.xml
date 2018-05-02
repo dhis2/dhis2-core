@@ -23,6 +23,8 @@
 
         <property name="style" type="jbObjectStyle" column="style" />
 
+        <property name="renderType" type="jbRenderType" column="rendertype" />
+
         <many-to-one name="program" class="org.hisp.dhis.program.Program"
                      column="programid" foreign-key="fk_program_programid" />
 

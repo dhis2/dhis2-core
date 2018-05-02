@@ -28,28 +28,32 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.commons.util.CronUtils;
-import org.hisp.dhis.pushanalysis.PushAnalysis;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.META_DATA_SYNC;
+import static org.hisp.dhis.scheduling.JobType.MONITORING;
+import static org.hisp.dhis.scheduling.JobType.PROGRAM_NOTIFICATIONS;
+import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
+import static org.hisp.dhis.scheduling.JobType.SEND_SCHEDULED_MESSAGE;
 
-import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hisp.dhis.scheduling.JobType.*;
+import javax.transaction.Transactional;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.api.client.util.Sets;
 
 /**
  * Handles porting from the old scheduler to the new.
@@ -70,13 +74,6 @@ public class SchedulerUpgrade
     public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
     {
         this.jobConfigurationService = jobConfigurationService;
-    }
-
-    private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
-
-    public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> store )
-    {
-        this.pushAnalysisStore = store;
     }
 
     /**
@@ -153,33 +150,6 @@ public class SchedulerUpgrade
                     log.error( "Could not map job type '" + jobType + "' with cron '" + cron + "'" );
                 }
             } ) );
-
-            log.info("Moving existing Push Analysis jobs." );
-
-            pushAnalysisStore
-                .getAll()
-                .forEach( ( pa ) -> {
-                    String cron;
-
-                    switch ( pa.getSchedulingFrequency() )
-                    {
-                    case DAILY:
-                        cron = CronUtils.getDailyCronExpression( 0, 4 );
-                        break;
-                    case WEEKLY:
-                        cron = CronUtils.getWeeklyCronExpression( 0, 4, pa.getSchedulingDayOfFrequency() );
-                        break;
-                    case MONTHLY:
-                        cron = CronUtils.getMonthlyCronExpression( 0, 4, pa.getSchedulingDayOfFrequency() );
-                        break;
-                    default:
-                        cron = "";
-                        break;
-                    }
-
-                    jobConfigurationService.addJobConfiguration( new JobConfiguration( "PushAnalysis: " + pa.getUid(), PUSH_ANALYSIS, cron,
-                            new PushAnalysisJobParameters( pa.getUid() ), true, pa.getEnabled() ) );
-                } );
 
             ListMap<String, String> emptySystemSetting = new ListMap<>();
             emptySystemSetting.putValue( "ported", "" );

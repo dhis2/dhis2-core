@@ -117,6 +117,13 @@ public class DefaultAnalyticsTableService
         }
 
         final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( earliest );
+        
+        if ( tables.isEmpty() )
+        {
+            clock.logTime( "Table updated aborted, no table or partitions found" );
+            notifier.notify( jobId, "Table updated aborted, no table or partitions found" );
+            return;
+        }
 
         clock.logTime( "Table update start: " + tableType.getTableName() + ", earliest: " + earliest + ", parameters: " + params.toString() );
         notifier.notify( jobId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );

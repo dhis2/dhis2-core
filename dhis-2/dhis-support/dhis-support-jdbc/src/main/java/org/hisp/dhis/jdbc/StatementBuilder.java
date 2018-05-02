@@ -29,6 +29,7 @@ package org.hisp.dhis.jdbc;
  */
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -226,4 +227,40 @@ public interface StatementBuilder
      * @return the derived literal table
      */
     String literalStringTable( Collection<String> values, String table, String column );
+
+    /**
+     * Generates a derived table containing literals in two columns: integer
+     * and string.
+     *
+     * @param intValues (non-empty) Integer values for the derived table
+     * @param strValues (same size) String values for the derived table
+     * @param table the desired table name alias
+     * @param intColumn the desired integer column name
+     * @param strColumn the desired string column name
+     * @return the derived literal table
+     */
+    String literalIntStringTable( List<Integer> intValues,
+        List<String> strValues, String table, String intColumn, String strColumn );
+
+    /**
+     * Generates a derived table containing literals in two columns: integer
+     * and integer.
+     *
+     * @param int1Values (non-empty) 1st integer column values for the table
+     * @param int2Values (same size) 2nd integer column values for the table
+     * @param table the desired table name alias
+     * @param int1Column the desired 1st integer column name
+     * @param int2Column the desired 2nd integer column name
+     * @return the derived literal table
+     */
+    String literalIntIntTable( List<Integer> int1Values,
+        List<Integer> int2Values, String table, String int1Column, String int2Column );
+
+    /**
+     * Indicates whether the DBMS supports partial indexes (index statements with
+     * {@code where} clauses).
+     * 
+     * @return true if partial indexes aer supported.
+     */
+    boolean supportsPartialIndexes();
 }

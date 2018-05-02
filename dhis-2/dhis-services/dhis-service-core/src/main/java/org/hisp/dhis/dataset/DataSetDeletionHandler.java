@@ -31,8 +31,8 @@ package org.hisp.dhis.dataset;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
@@ -45,7 +45,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
@@ -60,7 +60,7 @@ public class DataSetDeletionHandler
     private DataSetService dataSetService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -155,10 +155,10 @@ public class DataSetDeletionHandler
     }
     
     @Override
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        DataElementCategoryCombo defaultCategoryCombo = categoryService
-            .getDataElementCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+        CategoryCombo defaultCategoryCombo = categoryService
+            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
 
         Collection<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
 

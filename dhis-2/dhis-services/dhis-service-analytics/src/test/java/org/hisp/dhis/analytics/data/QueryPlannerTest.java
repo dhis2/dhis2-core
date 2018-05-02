@@ -49,8 +49,8 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -110,7 +110,7 @@ public class QueryPlannerTest
     private DataSetService dataSetService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -139,7 +139,7 @@ public class QueryPlannerTest
     private ReportingRate rrC;
     private ReportingRate rrD;
 
-    private DataElementCategoryOptionCombo coc;
+    private CategoryOptionCombo coc;
 
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
@@ -203,7 +203,7 @@ public class QueryPlannerTest
         rrC = new ReportingRate( dsC );
         rrD = new ReportingRate( dsD );
 
-        coc = categoryService.getDefaultDataElementCategoryOptionCombo();
+        coc = categoryService.getDefaultCategoryOptionCombo();
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );

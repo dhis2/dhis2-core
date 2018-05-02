@@ -49,7 +49,7 @@ public interface ResourceTableService
     
     /**
      * Generates a resource table containing id and a derived name for
-     * all DataElementCategoryOptionCombos.
+     * all CategoryOptionCombos.
      */
     void generateCategoryOptionComboNames();
     
@@ -94,7 +94,7 @@ public interface ResourceTableService
      * Generates a resource table for all data elements and relevant category
      * option combinations.
      */
-    void generateDataElementCategoryOptionComboTable();
+    void generateCategoryOptionComboTable();
     
     /**
      * Generates a resource table for data approval aggregated to minimum level.

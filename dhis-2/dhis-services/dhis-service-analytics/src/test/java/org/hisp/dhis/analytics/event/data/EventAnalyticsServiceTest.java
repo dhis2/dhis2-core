@@ -54,8 +54,8 @@ import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -178,7 +178,7 @@ public class EventAnalyticsServiceTest
 
         // Read event data from CSV file
         // --------------------------------------------------------------------
-        ArrayList<String[]> eventDataLines = AnalyticsTestUtils.readInputFile( "csv/eventData.csv" );
+        List<String[]> eventDataLines = AnalyticsTestUtils.readInputFile( "csv/eventData.csv" );
         parseEventData( eventDataLines );
 
         // Generate analytics tables
@@ -233,7 +233,7 @@ public class EventAnalyticsServiceTest
     // Internal Logic
     // -------------------------------------------------------------------------
     
-    private void parseEventData( ArrayList<String[]> lines )
+    private void parseEventData( List<String[]> lines )
     {
         String storedBy = "johndoe";
 

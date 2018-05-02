@@ -28,6 +28,8 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -39,7 +41,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Iterator;
 
-import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
@@ -51,7 +53,7 @@ public class DataElementDeletionHandler
     private IdentifiableObjectManager idObjectManager;
     
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     private JdbcTemplate jdbcTemplate;
 
@@ -71,10 +73,10 @@ public class DataElementDeletionHandler
     }
 
     @Override
-    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        DataElementCategoryCombo defaultCategoryCombo = categoryService
-            .getDataElementCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+        CategoryCombo defaultCategoryCombo = categoryService
+            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
 
         for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
         {

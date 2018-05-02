@@ -39,4 +39,10 @@ public class Disjunction extends Junction
     {
         super( schema, Type.OR );
     }
+
+    @Override
+    public String toString()
+    {
+        return "OR[" + criterions + "]";
+    }
 }

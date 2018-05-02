@@ -45,12 +45,12 @@ public class HibernateDataSetNotificationTemplateStore
 {
 
     @Override
-    public List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, NotificationTrigger trigger )
+    public List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, DataSetNotificationTrigger trigger )
     {
         Criteria criteria = getCriteria();
-        criteria.createAlias( "dataSets", "dataset" );
-        criteria.add( Restrictions.eq( "dataSetNotificationTrigger", trigger ) );
-        criteria.add( Restrictions.eq( "dataset.id", dataSet.getId() ) );
+        criteria.createAlias( "dataSets", "dataSet" )
+            .add( Restrictions.eq( "dataSetNotificationTrigger", trigger ) )
+            .add( Restrictions.eq( "dataSet.id", dataSet.getId() ) );
 
         return criteria.list();
     }

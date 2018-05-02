@@ -74,12 +74,12 @@ public class DefaultTextPatternService
             .put( "REQUIRED", pattern.getSegments()
                 .stream()
                 .filter( this::isRequired )
-                .map( TextPatternSegment::getRawSegment )
+                .map( segment -> segment.getMethod().name() )
                 .collect( Collectors.toList() ) )
             .put( "OPTIONAL", pattern.getSegments()
                 .stream()
                 .filter( this::isOptional )
-                .map( TextPatternSegment::getRawSegment )
+                .map( (segment -> segment.getMethod().name()) )
                 .collect( Collectors.toList() ) )
             .build();
     }
@@ -124,14 +124,14 @@ public class DefaultTextPatternService
     {
         if ( value == null )
         {
-            throw new TextPatternGenerationException( "Missing required value '" + segment.getRawSegment() + "'" );
+            throw new TextPatternGenerationException( "Missing required value '" + segment.getMethod().name() + "'" );
         }
 
         String res = getFormattedValue( segment, value );
 
         if ( res == null || !TextPatternValidationUtils.validateSegmentValue( segment, res ) )
         {
-            throw new TextPatternGenerationException( "Value is invalid: " + segment.getRawSegment() + " -> " + value );
+            throw new TextPatternGenerationException( "Value is invalid: " + segment.getMethod().name() + " -> " + value );
         }
 
         return res;
@@ -146,7 +146,7 @@ public class DefaultTextPatternService
 
     private String getSegmentValue( TextPatternSegment segment, Map<String, String> values )
     {
-        return values.get( segment.getRawSegment() );
+        return values.get( segment.getMethod().name() );
     }
 
     private boolean isRequired( TextPatternSegment segment )

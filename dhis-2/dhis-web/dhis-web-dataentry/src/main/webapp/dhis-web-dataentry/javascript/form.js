@@ -480,7 +480,7 @@ dhis2.de.uploadLocalData = function()
             },
             error: function( xhr, textStatus, errorThrown )
             {
-            	if ( 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
+            	if ( 403 == xhr.status || 409 === xhr.status || 500 === xhr.status ) // Invalid value or locked
             	{
             		// Ignore value for now TODO needs better handling for locking
             		
@@ -584,6 +584,8 @@ dhis2.de.addEventListeners = function()
         var optionComboId = split.optionComboId;
         var name = dataElementId + "-" + optionComboId + "-val";
 
+        $( this ).unbind( 'click' );
+        
         $( this ).click( function()
         {
             if ( $(this).hasClass( "checked" ) )
@@ -1659,10 +1661,15 @@ function getAndInsertDataValues()
 
     $( '.entryfield' ).val( '' );
     $( '.entrytime' ).val( '' );
-    $( '.entryselect' ).removeAttr( 'checked' );
-    $( '.entrytrueonly' ).removeAttr( 'checked' );
-    $( '.entrytrueonly' ).removeAttr( 'onclick' );
-    $( '.entrytrueonly' ).removeAttr( 'onkeydown' );
+    $( '.entryselect' ).each( function()
+    {
+        $( this ).removeClass( 'checked' );
+        $( this ).prop( 'checked', false );
+        
+    } );
+    $( '.entrytrueonly' ).prop( 'checked', false );
+    $( '.entrytrueonly' ).prop( 'onclick', null );
+    $( '.entrytrueonly' ).prop( 'onkeydown', null );
 
     $( '.entryfield' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
     $( '.entryselect' ).css( 'background-color', dhis2.de.cst.colorWhite ).css( 'border', '1px solid ' + dhis2.de.cst.colorBorder );
@@ -1814,34 +1821,35 @@ function insertDataValues( json )
         var commentId = '#' + value.id + '-comment';
         if ( $( fieldId ).length > 0 ) // Set values
         {
-            if ( $( fieldId ).attr( 'name' ) == 'entrytrueonly' && 'true' == value.val ) 
+            var entryField = $( fieldId );
+            if ( 'true' == value.val && ( entryField.attr( 'name' ) == 'entrytrueonly' || entryField.hasClass( "entrytrueonly" ) ) )
             {
-                $( fieldId ).prop( 'checked', true );
+              $( fieldId ).prop( 'checked', true );
             }
-            else if ( $( fieldId ).attr( 'name' ) == 'entryoptionset' || $( fieldId ).hasClass( "entryoptionset" ) )
+            else if ( entryField.attr( 'name' ) == 'entryoptionset' || entryField.hasClass( "entryoptionset" ) )
             {
                 dhis2.de.setOptionNameInField( fieldId, value );
             }
-            else if ( $( fieldId ).attr( 'class' ) == 'entryselect' )
+            else if ( entryField.hasClass( 'entryselect' ) )
             {                
                 var fId = fieldId.substring(1, fieldId.length);
-
-                console.log("id "+fId);
     
                 if( value.val == 'true' )
                 {
-                  $('input[id=' + fId + ']')[0].click();
+                  $('input[id=' + fId + ']:nth(0)').prop( 'checked', true );
+                  $('input[id=' + fId + ']:nth(0)').addClass( 'checked' );
                 }
                 else if ( value.val == 'false')
                 {
-                  $('input[id=' + fId + ']')[1].click();
+                  $('input[id=' + fId + ']:nth(1)').prop( 'checked', true );
+                  $('input[id=' + fId + ']:nth(1)').addClass( 'checked' );
                 }
                 else{
-                    $('input[id=' + fId + ']')[0].prop('checked',false);
-                    $('input[id=' + fId + ']')[1].prop('checked',false);
+                    $('input[id=' + fId + ']:nth(0)').prop( 'checked', false );
+                    $('input[id=' + fId + ']:nth(1)').prop( 'checked', false );
                 }
             }
-            else if ( $( fieldId ).attr( 'class' ) == 'entryfileresource' )
+            else if ( entryField.attr( 'class' ) == 'entryfileresource' )
             {
                 var $field = $( fieldId );
 
@@ -2123,13 +2131,20 @@ function registerCompleteDataSet()
 	        type: 'post',
 	    	success: function( data, textStatus, xhr )
 	        {
-                $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
-	    		disableCompleteButton();
-	    		dhis2.de.storageManager.clearCompleteDataSet( params );
+                dhis2.de.storageManager.clearCompleteDataSet( params );
+                if( data && data.status == 'SUCCESS' )
+                {
+                    $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
+                    disableCompleteButton();                    
+                }
+                else if( data && data.status == 'ERROR' )
+                {
+                    handleDataSetCompletenessResponse( data );
+                }
 	        },
 		    error:  function( xhr, textStatus, errorThrown )
 		    {
-		    	if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
+		    	if ( 403 == xhr.status || 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
 	        	{
 	        		setHeaderMessage( xhr.responseText );
 	        	}
@@ -2142,6 +2157,24 @@ function registerCompleteDataSet()
 		    }
 	    } );
 	} );
+}
+
+function handleDataSetCompletenessResponse( data ){
+    var html = '<h3>' + i18n_dataset_completeness_errort + ' &nbsp;<img src="../images/warning_small.png"></h3>';
+                    
+    if( data && data.conflicts && data.conflicts.length > 0 )
+    {
+        html += '<table class="listTable" style="width:300px;">';
+        var alternate = false;
+        data.conflicts.forEach(function( conflict ) {
+            var style = alternate ? 'class="listAlternateRow"' : '';                            
+            html += '<tr><td ' + style + '>' + conflict.value + '</td></tr>';
+            alternate = !alternate;
+        });                        
+        html +='</table>';                        
+    }
+
+    dhis2.de.displayValidationDialog( html, 400 );
 }
 
 function undoCompleteDataSet()
@@ -2174,13 +2207,13 @@ function undoCompleteDataSet()
     	type: 'delete',
     	success: function( data, textStatus, xhr )
         {
-          $( document ).trigger( dhis2.de.event.uncompleted, dhis2.de.currentDataSetId );
-          disableUndoButton();
-          dhis2.de.storageManager.clearCompleteDataSet( params );
+            dhis2.de.storageManager.clearCompleteDataSet( params );
+            $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
+            disableUndoButton();         
         },
         error: function( xhr, textStatus, errorThrown )
         {
-        	if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
+        	if ( 403 == xhr.status || 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
         	{
         		setHeaderMessage( xhr.responseText );
         	}
@@ -2302,7 +2335,7 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
         else
         {
             var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
-        	'<p class="bold">' + i18n_all_values_for_data_element_must_be_filled + '</p>';
+        	'<p class="bold">' + i18n_missing_compulsory_dataelements + '</p>';
 		
             dhis2.de.displayValidationDialog( html, 300 );
 

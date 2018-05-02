@@ -20,7 +20,7 @@
 
     <properties name="dataapprovallevel_orgunitlevel_categoryoptiongroupset_unique_key" unique="true">
       <property name="orgUnitLevel" column="orgunitlevel" not-null="true" />
-      <many-to-one name="categoryOptionGroupSet" class="org.hisp.dhis.dataelement.CategoryOptionGroupSet"
+      <many-to-one name="categoryOptionGroupSet" class="org.hisp.dhis.category.CategoryOptionGroupSet"
         column="categoryoptiongroupsetid" foreign-key="fK_dataapprovallevel_categoryoptiongroupsetid" not-null="false" />
     </properties>
 

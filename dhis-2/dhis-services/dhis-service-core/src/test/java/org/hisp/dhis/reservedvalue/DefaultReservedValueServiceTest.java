@@ -35,7 +35,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
-import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.After;
 import org.junit.Before;
@@ -145,7 +144,7 @@ public class DefaultReservedValueServiceTest
         }
         catch ( Exception e )
         {
-            assertTrue( e instanceof ReservedValueService.ReserveValueException );
+            assertTrue( e instanceof ReserveValueException );
             assertEquals( "Could not reserve value: Not enough values left to reserve 1 values.", e.getMessage() );
         }
 
@@ -164,7 +163,7 @@ public class DefaultReservedValueServiceTest
         }
         catch ( Exception e )
         {
-            assertTrue( e instanceof ReservedValueService.ReserveValueException );
+            assertTrue( e instanceof ReserveValueException );
             assertEquals( "Could not reserve value: Not enough values left to reserve 2 values.", e.getMessage() );
         }
 
@@ -174,7 +173,7 @@ public class DefaultReservedValueServiceTest
 
     @Test
     public void testReserveReserveMultipleRandomValues()
-        throws TextPatternService.TextPatternGenerationException, ReservedValueService.ReserveValueException
+        throws Exception
     {
         reservedValueService.reserve( simpleRandomTextPattern, 3, new HashMap<>(), future );
 
@@ -231,7 +230,7 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveTooManySequentialValuesWhenNoneExists()
         throws Exception
     {
-        thrown.expect( ReservedValueService.ReserveValueException.class );
+        thrown.expect( ReserveValueException.class );
         thrown.expectMessage( "Could not reserve value: Not enough values left to reserve 101 values." );
 
         reservedValueService.reserve( simpleSequentialTextPattern, 101, new HashMap<>(), future );
@@ -244,7 +243,7 @@ public class DefaultReservedValueServiceTest
         assertEquals( 99,
             reservedValueService.reserve( simpleSequentialTextPattern, 99, new HashMap<>(), future ).size() );
 
-        thrown.expect( ReservedValueService.ReserveValueException.class );
+        thrown.expect( ReserveValueException.class );
         thrown.expectMessage( "Could not reserve value: Not enough values left to reserve 1 values." );
 
         reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
@@ -252,10 +251,10 @@ public class DefaultReservedValueServiceTest
 
     @Test
     public void testReserveReserveStringValueWithValues()
-        throws TextPatternService.TextPatternGenerationException, ReservedValueService.ReserveValueException
+        throws Exception
     {
         Map<String, String> map = new HashMap<>();
-        map.put( "ORG_UNIT_CODE(..)", "OSLO" );
+        map.put( "ORG_UNIT_CODE", "OSLO" );
 
         List<ReservedValue> result = reservedValueService.reserve( simpleStringPattern, 1, map, future );
 
@@ -291,7 +290,7 @@ public class DefaultReservedValueServiceTest
         {
             TextPattern tp = TextPatternParser.parse( pattern );
             tp.setOwnerObject( Objects.fromClass( owner.getClass() ) );
-            tp.setOwnerUID( owner.getUid() );
+            tp.setOwnerUid( owner.getUid() );
 
             return tp;
         }

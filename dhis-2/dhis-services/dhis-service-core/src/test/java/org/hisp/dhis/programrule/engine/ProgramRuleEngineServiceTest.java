@@ -44,10 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +60,7 @@ import static org.mockito.Mockito.*;
 public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "abc123";
+    private static final String DATA = "abc123";
 
     // -------------------------------------------------------------------------
     // Mocking Dependencies
@@ -95,7 +93,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         actions = new ArrayList<>();
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID ) ) );
+        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         setUpInstances();
 

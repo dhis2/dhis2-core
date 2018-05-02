@@ -44,7 +44,7 @@ public class IncomingSms
 
     private Integer id;
 
-    private SmsMessageEncoding encoding;
+    private SmsMessageEncoding encoding = SmsMessageEncoding.ENC7BIT;
 
     private Date sentDate;
 

@@ -29,8 +29,8 @@ package org.hisp.dhis.indicator;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
@@ -148,11 +148,11 @@ public class IndicatorDeletionHandler
     }
 
     @Override
-    public String allowDeleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<DataElementCategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( indicator
+            Set<CategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( indicator
                 .getNumerator() );
             optionCombos.retainAll( categoryCombo.getOptionCombos() );
 

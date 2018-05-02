@@ -32,10 +32,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.validation.ValidationCriteria;
 
 import java.util.Date;
 import java.util.List;
@@ -63,7 +61,7 @@ import java.util.Set;
  * <p>Attributes specified in the query follows on the next column indexes.
  * Example usage for retrieving TEIs with two attributes using one attribute as
  * filter:</p>
- * <p>
+ *
  * <pre>
  * <code>
  * TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -98,8 +96,6 @@ public interface TrackedEntityInstanceService
 
     String SEPARATOR = "_";
 
-    String F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS = "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS";
-
     /**
      * Returns a grid with tracked entity instance values based on the given
      * TrackedEntityInstanceQueryParams.
@@ -110,15 +106,16 @@ public interface TrackedEntityInstanceService
     Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Returns a list with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params               the TrackedEntityInstanceQueryParams.
+     * @param skipAccessValidation If true, access validation is skippes. Should be set to true only for internal
+     *                             tasks (e.g. currently used by synchronization job)
      * @return List of TEIs matching the params
      */
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.
@@ -136,7 +133,7 @@ public interface TrackedEntityInstanceService
      * @param programEnrollmentEndDate   the end date for enrollment in the given Program.
      * @param programIncidentStartDate   the start date for incident in the given Program.
      * @param programIncidentEndDate     the end date for enrollment in the given Program.
-     * @param trackedEntityType              the TrackedEntityType uid.
+     * @param trackedEntityType          the TrackedEntityType uid.
      * @param eventStatus                the event status for the given Program.
      * @param eventStartDate             the event start date for the given Program.
      * @param eventEndDate               the event end date for the given Program.
@@ -159,8 +156,8 @@ public interface TrackedEntityInstanceService
      *
      * @param params the TrackedEntityInstanceQueryParams.
      */
-    void decideAccess( TrackedEntityInstanceQueryParams params );    
-    
+    void decideAccess( TrackedEntityInstanceQueryParams params );
+
     /**
      * Validates scope of given TrackedEntityInstanceQueryParams. The params is
      * considered valid if no exception are thrown and the method returns
@@ -223,12 +220,20 @@ public interface TrackedEntityInstanceService
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
     /**
-     * Checks for the existence of a TEI by UID
+     * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
      */
     boolean trackedEntityInstanceExists( String uid );
+
+    /**
+     * Checks for the existence of a TEI by UID. Takes into account also the deleted values.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
 
     /**
      * Register a new entityInstance
@@ -241,14 +246,4 @@ public interface TrackedEntityInstanceService
      */
     int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
-
-    /**
-     * Validate tracked entity instance enrollment
-     *
-     * @param entityInstance TrackedEntityInstance object
-     * @param program        Program which person needs to enroll. If this parameter is
-     *                       null, the system check identifiers of the tracked entity instance
-     * @return ValidationCriteria object which is violated
-     */
-    ValidationCriteria validateEnrollment( TrackedEntityInstance entityInstance, Program program );
 }

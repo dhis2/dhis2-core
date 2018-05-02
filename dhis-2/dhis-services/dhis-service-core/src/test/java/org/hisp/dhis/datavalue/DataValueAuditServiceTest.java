@@ -31,8 +31,8 @@ package org.hisp.dhis.datavalue;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -62,7 +62,7 @@ public class DataValueAuditServiceTest
     private DataElementService dataElementService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private PeriodService periodService;
@@ -82,7 +82,7 @@ public class DataValueAuditServiceTest
 
     private DataElement dataElementD;
 
-    private DataElementCategoryOptionCombo optionCombo;
+    private CategoryOptionCombo optionCombo;
 
     private Period periodA;
 
@@ -150,8 +150,8 @@ public class DataValueAuditServiceTest
         organisationUnitService.addOrganisationUnit( orgUnitC );
         organisationUnitService.addOrganisationUnit( orgUnitD );
 
-        optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
-        categoryService.addDataElementCategoryOptionCombo( optionCombo );
+        optionCombo = categoryService.getDefaultCategoryOptionCombo();
+        categoryService.addCategoryOptionCombo( optionCombo );
 
         dataValueA = createDataValue( dataElementA, periodA, orgUnitA, "1", optionCombo );
         dataValueB = createDataValue( dataElementB, periodB, orgUnitB, "2", optionCombo );

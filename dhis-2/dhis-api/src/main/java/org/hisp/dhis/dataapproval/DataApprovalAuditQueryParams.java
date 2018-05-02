@@ -28,13 +28,13 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Jim Grace
@@ -59,7 +59,7 @@ public class DataApprovalAuditQueryParams
     /**
      * AttributeOptionCombos to include.
      */
-    private Set<DataElementCategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+    private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
 
     /**
      * Starting date.
@@ -159,12 +159,12 @@ public class DataApprovalAuditQueryParams
         this.organisationUnits = organisationUnits;
     }
 
-    public Set<DataElementCategoryOptionCombo> getAttributeOptionCombos()
+    public Set<CategoryOptionCombo> getAttributeOptionCombos()
     {
         return attributeOptionCombos;
     }
 
-    public void setAttributeOptionCombos( Set<DataElementCategoryOptionCombo> attributeOptionCombos )
+    public void setAttributeOptionCombos( Set<CategoryOptionCombo> attributeOptionCombos )
     {
         this.attributeOptionCombos = attributeOptionCombos;
     }

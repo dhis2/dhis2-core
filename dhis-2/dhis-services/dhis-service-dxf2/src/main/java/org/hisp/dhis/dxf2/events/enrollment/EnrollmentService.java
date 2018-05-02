@@ -70,6 +70,8 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
+    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params );
+
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
 
     ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
@@ -86,11 +88,11 @@ public interface EnrollmentService
 
     ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
+    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
 
-    ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, TrackedEntityInstance trackedEntityInstance );
+    ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user );
 
     ImportSummary updateEnrollmentForNote( Enrollment enrollment );
 
@@ -106,6 +108,6 @@ public interface EnrollmentService
 
     ImportSummary deleteEnrollment( String uid );
 
-    ImportSummaries deleteEnrollments( List<String> uids );
+    ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
 
 }

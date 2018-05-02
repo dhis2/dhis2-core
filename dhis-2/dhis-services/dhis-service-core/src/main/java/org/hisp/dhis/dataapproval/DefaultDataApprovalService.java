@@ -34,19 +34,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalNotFound;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -183,6 +183,8 @@ public class DefaultDataApprovalService
     {
         log.debug( "approveData ( " + dataApprovalList.size() + " items )" );
 
+        boolean accepted = ! (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+
         User currentUser = currentUserService.getCurrentUser();
 
         validateAttributeOptionCombos( dataApprovalList );
@@ -193,6 +195,15 @@ public class DefaultDataApprovalService
 
         for ( DataApproval da : dataApprovalList )
         {
+            if ( !da.getPeriod().getPeriodType().equals( da.getWorkflow().getPeriodType() ) )
+            {
+                log.info( "approveData: data may not be approved, approval period type = "
+                    + da.getPeriod().getPeriodType().getName() + ", workflow period type = "
+                    + da.getWorkflow().getPeriodType().getName() + " " + da );
+
+                throw new DataMayNotBeApprovedException();
+            }
+
             DataApprovalStatus status = statusMap.get( daKey( da ) );
 
             if ( status == null )
@@ -253,6 +264,8 @@ public class DefaultDataApprovalService
                 throw new DataMayNotBeApprovedException();
             }
 
+            da.setAccepted( accepted );
+
             checkedList.add ( da );
         }
 
@@ -262,7 +275,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, APPROVE );
 
-            dataApprovalStore.addDataApproval( da, currentUser );
+            dataApprovalStore.addDataApproval( da );
         }
         
         log.info( "Approvals saved: " + checkedList.size() );
@@ -312,7 +325,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, UNAPPROVE );
 
-            dataApprovalStore.deleteDataApproval( da, currentUser );
+            dataApprovalStore.deleteDataApproval( da );
         }
         
         log.info( "Approvals deleted: " + dataApprovalList.size() );
@@ -365,7 +378,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, ACCEPT );
 
-            dataApprovalStore.updateDataApproval( da, currentUser );
+            dataApprovalStore.updateDataApproval( da );
         }
         
         log.info( "Accepts saved: " + dataApprovalList.size() );
@@ -417,7 +430,7 @@ public class DefaultDataApprovalService
 
             audit( da, currentUser, UNACCEPT );
 
-            dataApprovalStore.updateDataApproval( da, currentUser );
+            dataApprovalStore.updateDataApproval( da );
         }
         
         log.info( "Accepts deleted: " + dataApprovalList.size() );
@@ -431,7 +444,7 @@ public class DefaultDataApprovalService
 
     @Override
     public boolean isApproved( DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
         if ( workflow == null )
         {
@@ -452,21 +465,27 @@ public class DefaultDataApprovalService
 
     @Override
     public DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
         log.debug( "getDataApprovalStatus( " + workflow.getName() + ", "
             + period.getPeriodType().getName() + " " + period.getName() + " " + period + ", "
             + organisationUnit.getName() + ", "
             + ( attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName() ) + " )" );
 
+        DataApprovalStatus status;
+
         List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow,
             periodService.reloadPeriod( period ), Lists.newArrayList( organisationUnit ),
             organisationUnit.getHierarchyLevel(), null,
             attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ) );
 
-        if ( statuses != null && !statuses.isEmpty() )
+        if ( statuses == null || statuses.isEmpty() )
         {
-            DataApprovalStatus status = statuses.get( 0 );
+            status = new DataApprovalStatus( DataApprovalState.UNAPPROVABLE );
+        }
+        else
+        {
+            status = statuses.get( 0 );
 
             if ( status.getApprovedLevel() != null )
             {
@@ -481,27 +500,16 @@ public class DefaultDataApprovalService
                     status.setCreator( da.getCreator() );
                 }
             }
-
-            return status;
         }
 
-        return new DataApprovalStatus( DataApprovalState.UNAPPROVABLE );
-    }
-
-    @Override
-    public DataApprovalStatus getDataApprovalStatusAndPermissions( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
-    {
-        DataApprovalStatus status = getDataApprovalStatus( workflow, period, organisationUnit, attributeOptionCombo );
-
-        status.setPermissions( makePermissionsEvaluator().getPermissions( status, workflow ) );
+        makePermissionsEvaluator().evaluatePermissions( status, workflow );
 
         return status;
     }
 
     @Override
     public List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
-        Period period, OrganisationUnit orgUnit, DataElementCategoryCombo attributeCombo )
+        Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo )
     {
         List<DataApprovalStatus> statusList = dataApprovalStore.getDataApprovalStatuses( workflow, period,
             orgUnit == null ? null : Lists.newArrayList( orgUnit ),
@@ -512,7 +520,7 @@ public class DefaultDataApprovalService
 
         for ( DataApprovalStatus status : statusList )
         {
-            status.setPermissions( permissionsEvaluator.getPermissions( status, workflow ) );
+            makePermissionsEvaluator().evaluatePermissions( status, workflow );
         }
 
         return statusList;
@@ -542,7 +550,7 @@ public class DefaultDataApprovalService
         audit.setCreated( new Date() );
         audit.setCreator( currentUser );
 
-        dataApprovalAuditStore.save( audit, currentUser );
+        dataApprovalAuditStore.save( audit );
     }
 
     /**
@@ -584,7 +592,7 @@ public class DefaultDataApprovalService
      * @param attributeOptionCombo attribute option combo to test.
      * @param workflow workflow to check against.
      */
-    private void validAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo, DataApprovalWorkflow workflow )
+    private void validAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, DataApprovalWorkflow workflow )
     {
         for ( DataSet ds : workflow.getDataSets() )
         {
@@ -626,7 +634,7 @@ public class DefaultDataApprovalService
 
             for ( DataApprovalStatus status : statuses )
             {
-                status.setPermissions( evaluator.getPermissions( status, da.getWorkflow() ) );
+                makePermissionsEvaluator().evaluatePermissions( status, da.getWorkflow() );
 
                 statusMap.put( daKey( da, status.getAttributeOptionComboUid() ), status );
             }
@@ -688,7 +696,7 @@ public class DefaultDataApprovalService
         Set<DataApprovalWorkflow> workflows = new HashSet<>();
         Set<Period> periods = new HashSet<>();
         Set<OrganisationUnit> organisationUnits = new HashSet<>();
-        Set<DataElementCategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+        Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
 
         for ( DataApproval a : approvals )
         {
@@ -704,7 +712,7 @@ public class DefaultDataApprovalService
 
         Map<String, DataApproval> foundMap = foundList.stream().collect( Collectors.toMap( a -> approvalKey( a ), a -> a ) );
 
-        List presentApprovals = new ArrayList<>();
+        List<DataApproval> presentApprovals = new ArrayList<>();
 
         for ( DataApproval a : approvals )
         {
@@ -759,9 +767,9 @@ public class DefaultDataApprovalService
     /**
      * Returns a set of CategoryOptionCombos from a list of DataApprovals.
      */
-    private Set<DataElementCategoryOptionCombo> getCategoryOptionCombos( List<DataApproval> dataApprovals )
+    private Set<CategoryOptionCombo> getCategoryOptionCombos( List<DataApproval> dataApprovals )
     {
-        Set<DataElementCategoryOptionCombo> combos = new HashSet<>();
+        Set<CategoryOptionCombo> combos = new HashSet<>();
 
         for ( DataApproval da : dataApprovals )
         {

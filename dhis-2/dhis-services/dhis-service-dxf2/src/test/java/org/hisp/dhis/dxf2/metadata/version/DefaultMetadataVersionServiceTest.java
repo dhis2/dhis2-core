@@ -40,15 +40,11 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -57,7 +53,6 @@ import static org.junit.Assert.*;
 /**
  * @author sultanm
  */
-
 public class DefaultMetadataVersionServiceTest
     extends DhisSpringTest
 {
@@ -273,50 +268,6 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldCreateAValidVersionsNodeTree() throws Exception
-    {
-        List<MetadataVersion> versions = new ArrayList<>();
-        versions.add( new MetadataVersion( "test_version1", VersionType.ATOMIC ) );
-        versions.add( new MetadataVersion( "test_version2", VersionType.BEST_EFFORT ) );
-        versions.add( new MetadataVersion( "test_version3", VersionType.BEST_EFFORT ) );
-
-        RootNode root = versionService.getMetadataVersionsAsNode( versions );
-        ComplexNode[] versionNodes = getVersionFromNodeTree( root );
-
-        for ( int i = 0; i < versionNodes.length; i++ )
-        {
-            assertEquals( versions.get( i ).getName(), ((SimpleNode) versionNodes[i].getChildren().get( 0 )).getValue() );
-            assertEquals( versions.get( i ).getType(), ((SimpleNode) versionNodes[i].getChildren().get( 1 )).getValue() );
-
-        }
-        assertEquals( versions.size(), versionNodes.length );
-    }
-
-    @Test
-    public void testShouldCreateNodesWith_Name_Type_CreatedId_ImportDate() throws Exception
-    {
-        MetadataVersion version = new MetadataVersion( "test_version1", VersionType.ATOMIC );
-        version.setUid( "myId" );
-        Date date = new Date();
-        version.setImportDate( date );
-        version.setCreated( date );
-        version.setHashCode( "2asda2d31asd3ads3dadasd" );
-        List<MetadataVersion> versions = new ArrayList<>();
-        versions.add( version );
-
-
-        RootNode root = versionService.getMetadataVersionsAsNode( versions );
-        ComplexNode[] versionNodes = getVersionFromNodeTree( root );
-
-        assertEquals( version.getName(), ((SimpleNode) versionNodes[0].getChildren().get( 0 )).getValue() );
-        assertEquals( version.getType(), ((SimpleNode) versionNodes[0].getChildren().get( 1 )).getValue() );
-        assertEquals( version.getCreated(), ((SimpleNode) versionNodes[0].getChildren().get( 2 )).getValue() );
-        assertEquals( version.getUid(), ((SimpleNode) versionNodes[0].getChildren().get( 3 )).getValue() );
-        assertEquals( version.getImportDate(), ((SimpleNode) versionNodes[0].getChildren().get( 4 )).getValue() );
-        assertEquals( version.getHashCode(), ((SimpleNode) versionNodes[0].getChildren().get( 5 )).getValue() );
-    }
-
-    @Test
     public void testShouldStoreSnapshotInMetadataStore()
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "mySnapshot" );
@@ -356,14 +307,5 @@ public class DefaultMetadataVersionServiceTest
         {
             e.printStackTrace();
         }
-    }
-
-    private ComplexNode[] getVersionFromNodeTree( RootNode root )
-    {
-        List<?> versionList = (List<?>) root.getChildren().get( 0 ).getChildren();
-        ComplexNode[] versions = new ComplexNode[versionList.size()];
-        for ( int i = 0, numberOfVersions = versionList.size(); i < numberOfVersions; i++ )
-            versions[i] = (ComplexNode) versionList.get( i );
-        return versions;
     }
 }

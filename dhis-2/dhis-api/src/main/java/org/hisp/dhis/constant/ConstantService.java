@@ -52,12 +52,6 @@ public interface ConstantService
 
     Constant getConstant( String uid );
 
-    Constant getConstantByName( String constantName );
-
-    Constant getConstantByShortName( String shortName );
-
-    Constant getConstantByCode( String code );
-
     List<Constant> getAllConstants();
 
     Map<String, Double> getConstantMap();

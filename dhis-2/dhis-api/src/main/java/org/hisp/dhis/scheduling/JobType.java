@@ -29,12 +29,17 @@ package org.hisp.dhis.scheduling;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.scheduling.parameters.*;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 
 /**
  * Enum describing the different jobs in the system.
  * Each job has a key, class, configurable status and possibly a map containing relative endpoints for possible parameters.
- *
+ * <p>
  * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch the correct job
  *
  * @author Henning Håkonsen
@@ -48,13 +53,14 @@ public enum JobType
         "skipTableTypes", "/api/analytics/tableTypes"
     ) ),
     DATA_SYNC( "dataSynchJob", true, null, null ),
+    PROGRAM_DATA_SYNC( "programDataSyncJob", true, null, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false, null, null ),
     META_DATA_SYNC( "metadataSyncJob", true, null, null ),
     SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
     PROGRAM_NOTIFICATIONS( "programNotificationsJob", true, null, null ),
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false, null, null ),
-    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", true, null, null ),
+    CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false, null, null ),
     MONITORING( "monitoringJob", true, MonitoringJobParameters.class, ImmutableMap.of(
         "relativePeriods", "/api/periodTypes/relativePeriodTypes",
         "validationRuleGroups", "/api/validationRuleGroups"
@@ -66,6 +72,7 @@ public enum JobType
         "predictors", "/api/predictors"
     ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
+    REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
 
     // For tests
     MOCK( "mockJob", false, MockJobParameters.class, null ),

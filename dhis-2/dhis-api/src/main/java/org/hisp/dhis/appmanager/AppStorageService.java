@@ -50,19 +50,22 @@ public interface AppStorageService
 
     /**
      * Returns a map of all apps found using the AppStorageService, referenced by
-     * their app names
+     * their app names.
+     * 
      * @return A map of all app names and apps found using the AppStorageService
      */
     Map<String, App> getApps();
 
     /**
-     * Returns a map of namespaces and the apps reserving them
+     * Returns a map of namespaces and the apps reserving them.
+     * 
      * @return a map of namespaces and the apps reserving them
      */
     Map<String,App> getReservedNamespaces();
 
     /**
-     * Installs an app using the AppServiceStore
+     * Installs an app using the AppServiceStore.
+     * 
      * @param file the zip file containing the app
      * @param filename The name of the file
      * @return The status of the installation
@@ -70,7 +73,8 @@ public interface AppStorageService
     AppStatus installApp( File file, String filename );
 
     /**
-     * Deletes an app from the AppStoreService
+     * Deletes an app from the AppStoreService.
+     * 
      * @param app the app to delete
      * @return true if app is deleted, false if something fails
      */
@@ -78,7 +82,8 @@ public interface AppStorageService
 
     /**
      * Looks up and returns a resource representing the page for the app requested. If
-     * the resource is not found, return null
+     * the resource is not found, return null.
+     * 
      * @param app the app to look up
      * @param pageName the name of the page to look up
      * @return The resource representing the page, or null if not found

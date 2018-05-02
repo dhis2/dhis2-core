@@ -43,6 +43,11 @@ public class AuditLogUtil
     public static final String ACTION_UPDATE_DENIED = "update denied";
     public static final String ACTION_DELETE_DENIED = "delete denied";
 
+    public static void infoWrapper( Log log, Object object, String action )
+    {
+        infoWrapper( log, UserContext.getUsername(), object, action );
+    }
+    
     public static void infoWrapper( Log log, String username, Object object, String action )
     {
         if ( log.isInfoEnabled() )

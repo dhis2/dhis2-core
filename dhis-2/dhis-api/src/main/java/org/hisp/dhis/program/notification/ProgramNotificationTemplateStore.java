@@ -28,7 +28,7 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericNameableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ import java.util.List;
  * Created by zubair@dhis2.org on 16.11.17.
  */
 public interface ProgramNotificationTemplateStore
-    extends GenericNameableObjectStore<ProgramNotificationTemplate>
+    extends IdentifiableObjectStore<ProgramNotificationTemplate>
 {
     String ID = ProgramNotificationTemplate.class.getName();
 

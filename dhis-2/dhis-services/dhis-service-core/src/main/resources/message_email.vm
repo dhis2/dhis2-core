@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html dir="ltr">
   <body>
     $!object.text <br><br>
     #if ($object.senderName)${object.senderName}<br> #end

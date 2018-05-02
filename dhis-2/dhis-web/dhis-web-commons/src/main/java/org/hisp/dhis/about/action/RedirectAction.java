@@ -89,7 +89,7 @@ public class RedirectAction
             }
         }
 
-        redirectUrl = "../dhis-web-dashboard-integration/index.action";
+        redirectUrl = "../dhis-web-dashboard/index.html";
 
         return SUCCESS;
     }

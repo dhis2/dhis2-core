@@ -28,22 +28,14 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
@@ -53,7 +45,12 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -142,10 +139,10 @@ public class EventQueryParamsTest
     @Test
     public void testGetDuplicateQueryItems()
     {        
-        QueryItem iA = new QueryItem( createDataElement( 'A', new DataElementCategoryCombo() ) );
-        QueryItem iB = new QueryItem( createDataElement( 'B', new DataElementCategoryCombo() ) );
-        QueryItem iC = new QueryItem( createDataElement( 'B', new DataElementCategoryCombo() ) );
-        QueryItem iD = new QueryItem( createDataElement( 'D', new DataElementCategoryCombo() ) );
+        QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
+        QueryItem iB = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
+        QueryItem iC = new QueryItem( createDataElement( 'B', new CategoryCombo() ) );
+        QueryItem iD = new QueryItem( createDataElement( 'D', new CategoryCombo() ) );
 
         EventQueryParams params = new EventQueryParams.Builder()
             .addItem( iA )

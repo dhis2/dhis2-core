@@ -61,7 +61,7 @@
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
     <property name="validationService" ref="org.hisp.dhis.validation.ValidationService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.GetValidationResultDetailsAction"
@@ -104,7 +104,7 @@
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.dataanalysis.ValidationRunAnalysisAction"

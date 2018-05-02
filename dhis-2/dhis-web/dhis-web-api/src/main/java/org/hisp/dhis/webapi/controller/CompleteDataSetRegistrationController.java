@@ -32,11 +32,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -55,10 +55,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -83,6 +83,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 
@@ -126,11 +128,14 @@ public class CompleteDataSetRegistrationController
     @Autowired
     private SessionFactory sessionFactory;
 
+    @Autowired
+    private WebMessageService webMessageService;
+
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
@@ -157,7 +162,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
@@ -188,7 +193,7 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -208,7 +213,7 @@ public class CompleteDataSetRegistrationController
         }
     }
 
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -264,7 +269,7 @@ public class CompleteDataSetRegistrationController
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
         }
 
-        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
 
         if ( attributeOptionCombo == null )
         {
@@ -313,7 +318,7 @@ public class CompleteDataSetRegistrationController
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        JobConfiguration jobId = new JobConfiguration( "completeDataSetRegistrationImport", JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport", COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         schedulingManager.executeJob(
             new ImportCompleteDataSetRegistrationsTask(
@@ -321,9 +326,8 @@ public class CompleteDataSetRegistrationController
                 jobId )
         );
 
-        response.setHeader(
-            "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT );
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
+        webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
     private Pair<InputStream, Path> saveTmpFile( InputStream in )
@@ -343,7 +347,7 @@ public class CompleteDataSetRegistrationController
     }
 
     private void unRegisterCompleteDataSet( Set<DataSet> dataSets, Period period,
-        Set<OrganisationUnit> orgUnits, DataElementCategoryOptionCombo attributeOptionCombo )
+        Set<OrganisationUnit> orgUnits, CategoryOptionCombo attributeOptionCombo )
     {
         List<CompleteDataSetRegistration> registrations = new ArrayList<>();
 

@@ -427,17 +427,17 @@ function ValueSaver( de, pe, co, ds, value, fieldId, resultColor )
 
     function handleError( xhr, textStatus, errorThrown )
     {
-    	if ( 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
+    	if ( 403 == xhr.status || 409 == xhr.status || 500 == xhr.status ) // Invalid value or locked
     	{
     		markValue( fieldId, dhis2.de.cst.colorRed );
-        var errorText = JSON.parse( xhr.responseText );
+            var errorText = JSON.parse( xhr.responseText );
     		setHeaderDelayMessage( errorText.message );
     	}
     	else if ( 401 == xhr.status )
 	    {
-        markValue( fieldId, resultColor );
-        dhis2.availability._isLoggedIn = false;
-        $(document).trigger("dhis2.online", [ false ]);
+            markValue( fieldId, resultColor );
+            dhis2.availability._isLoggedIn = false;
+            $(document).trigger("dhis2.online", [ false ]);
 	    }
     	else // Offline, keep local value
     	{

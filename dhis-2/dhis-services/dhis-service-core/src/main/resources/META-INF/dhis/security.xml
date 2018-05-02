@@ -21,16 +21,6 @@
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
   </bean>
 
-  <!-- Security : Authentication providers -->
-
-  <sec:authentication-manager alias="authenticationManager">
-    <sec:authentication-provider user-service-ref="userDetailsService">
-      <sec:password-encoder ref="bCryptPasswordEncoder" />
-    </sec:authentication-provider>
-    <sec:authentication-provider ref="ldapAuthenticationProvider" />
-    <sec:authentication-provider user-service-ref="clientDetailsUserService" />
-  </sec:authentication-manager>
-
   <!-- LDAP -->
 
   <bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
@@ -101,4 +91,20 @@
     <property name="clientDetailsService" ref="clientDetailsService"/>
   </bean>
 
+  <!-- 2FA -->
+
+  <bean id="twoFactorWebAuthenticationDetailsSource" class="org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource" />
+
+  <bean id="twoFactorAuthenticationProvider" class="org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider" >
+    <property name="passwordEncoder" ref="bCryptPasswordEncoder" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="userDetailsService" ref="userDetailsService" />
+    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />
+  </bean>
+
+  <!-- Security : Authentication providers -->
+
+  <sec:authentication-manager alias="authenticationManager">
+    <sec:authentication-provider ref="twoFactorAuthenticationProvider" />
+  </sec:authentication-manager>
 </beans>

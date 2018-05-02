@@ -57,6 +57,12 @@
     scope="prototype">
   </bean>
 
+  <bean id="org.hisp.dhis.reporting.reportviewer.action.GetReportParamsAction" class="org.hisp.dhis.reporting.reportviewer.action.GetReportParamsAction"
+        scope="prototype">
+    <property name="reportService" ref="org.hisp.dhis.report.ReportService" />
+    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
+  </bean>
+
   <!-- DataSet Report -->
 
   <bean id="org.hisp.dhis.reporting.dataset.action.GetDataSetReportOptionsAction" class="org.hisp.dhis.reporting.dataset.action.GetDataSetReportOptionsAction"
@@ -64,7 +70,7 @@
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
     <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
   </bean>
 
@@ -75,7 +81,7 @@
 	<property name="registrationService" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="categoryService" ref="org.hisp.dhis.category.CategoryService" />
   </bean>
   
   <!-- Data Approval -->

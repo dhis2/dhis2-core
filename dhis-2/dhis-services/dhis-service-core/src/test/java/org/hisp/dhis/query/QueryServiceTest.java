@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -97,19 +98,15 @@ public class QueryServiceTest
         identifiableObjectManager.save( dataElementC );
         identifiableObjectManager.save( dataElementF );
         identifiableObjectManager.save( dataElementD );
-    }
 
-    private boolean collectionContainsUid( Collection<? extends IdentifiableObject> collection, String uid )
-    {
-        for ( IdentifiableObject identifiableObject : collection )
-        {
-            if ( identifiableObject.getUid().equals( uid ) )
-            {
-                return true;
-            }
-        }
+        DataElementGroup dataElementGroupA = createDataElementGroup( 'A' );
+        dataElementGroupA.getMembers().addAll( Lists.newArrayList( dataElementA, dataElementB, dataElementC ) );
 
-        return false;
+        DataElementGroup dataElementGroupB = createDataElementGroup( 'B' );
+        dataElementGroupB.getMembers().addAll( Lists.newArrayList( dataElementD, dataElementE, dataElementF ) );
+
+        identifiableObjectManager.save( dataElementGroupA );
+        identifiableObjectManager.save( dataElementGroupB );
     }
 
     @Test
@@ -353,7 +350,7 @@ public class QueryServiceTest
     }
 
     @Test
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings( "rawtypes" )
     public void resultTransformerTest()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
@@ -542,5 +539,101 @@ public class QueryServiceTest
         assertTrue( collectionContainsUid( objects, "deabcdefghD" ) );
         assertTrue( collectionContainsUid( objects, "deabcdefghE" ) );
         assertTrue( collectionContainsUid( objects, "deabcdefghF" ) );
+    }
+
+    @Test
+    public void testCriteriaAndRootJunctionDE()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ), Junction.Type.AND );
+        query.add( Restrictions.eq( "id", "deabcdefghA" ) );
+        query.add( Restrictions.eq( "id", "deabcdefghB" ) );
+        query.add( Restrictions.eq( "id", "deabcdefghC" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertTrue( objects.isEmpty() );
+    }
+
+    @Test
+    public void testCriteriaOrRootJunctionDE()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "id", "deabcdefghA" ) );
+        query.add( Restrictions.eq( "id", "deabcdefghB" ) );
+        query.add( Restrictions.eq( "id", "deabcdefghC" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 3, objects.size() );
+    }
+
+    @Test
+    public void testCriteriaAndRootJunctionDEG()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.AND );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghB" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghC" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghD" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghE" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghF" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertTrue( objects.isEmpty() );
+    }
+
+    @Test
+    public void testCriteriaOrRootJunctionDEG1()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghD" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testCriteriaOrRootJunctionDEG2()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghA" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 1, objects.size() );
+    }
+
+    @Test
+    public void testMixedQSRootJunction1()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "id", "abcdefghijA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "deabcdefghD" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 2, objects.size() );
+    }
+
+    @Test
+    public void testMixedQSRootJunction2()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
+        query.add( Restrictions.eq( "id", "abcdefghijA" ) );
+        query.add( Restrictions.eq( "dataElements.id", "does-not-exist" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 1, objects.size() );
+    }
+
+    private boolean collectionContainsUid( Collection<? extends IdentifiableObject> collection, String uid )
+    {
+        for ( IdentifiableObject identifiableObject : collection )
+        {
+            if ( identifiableObject.getUid().equals( uid ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

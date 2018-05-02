@@ -29,10 +29,8 @@ package org.hisp.dhis.configuration;
  */
 
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
@@ -45,9 +43,6 @@ public class DefaultConfigurationService
     implements ConfigurationService
 {
     private GenericStore<Configuration> configurationStore;
-
-    @Autowired
-    CurrentUserService currentUserService;
 
     public void setConfigurationStore( GenericStore<Configuration> configurationStore )
     {
@@ -88,8 +83,6 @@ public class DefaultConfigurationService
     @Override
     public boolean isUserInFeedbackRecipientUserGroup( User user )
     {
-        user = ( user == null ? currentUserService.getCurrentUser() : user );
-
         UserGroup feedbackRecipients = getConfiguration().getFeedbackRecipients();
 
         return feedbackRecipients != null && feedbackRecipients.getMembers().contains( user );

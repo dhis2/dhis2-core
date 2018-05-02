@@ -115,6 +115,12 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
+    {
+        return attributeValueStore.getCountOfAssignedTEAValues( attribute );
+    }
+
+    @Override
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
         Collection<TrackedEntityInstance> instances )
     {

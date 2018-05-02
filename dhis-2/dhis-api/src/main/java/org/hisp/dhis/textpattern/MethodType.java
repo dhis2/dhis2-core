@@ -28,6 +28,9 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @author Stian Sandvold
+ */
 public interface MethodType
 {
 

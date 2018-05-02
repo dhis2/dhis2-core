@@ -36,11 +36,11 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -51,6 +51,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -72,6 +75,9 @@ public class MetadataImportController
     @Autowired
     private SchemaService schemaService;
 
+    @Autowired
+    private WebMessageService webMessageService;
+
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     public void postJsonMetadata( HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
@@ -80,9 +86,7 @@ public class MetadataImportController
 
         if ( params.hasJobId() )
         {
-            startAsync( params );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.METADATA_IMPORT );
-            response.setStatus( HttpServletResponse.SC_ACCEPTED );
+            startAsync( params, request, response );
         }
         else
         {
@@ -100,9 +104,7 @@ public class MetadataImportController
 
         if ( params.hasJobId() )
         {
-            startAsync( params );
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + JobType.METADATA_IMPORT );
-            response.setStatus( HttpServletResponse.SC_ACCEPTED );
+            startAsync( params, request, response );
         }
         else
         {
@@ -111,10 +113,13 @@ public class MetadataImportController
         }
     }
 
-    private void startAsync( MetadataImportParams params )
+    private void startAsync( MetadataImportParams params, HttpServletRequest request, HttpServletResponse response )
     {
         MetadataAsyncImporter asyncImporter = new MetadataAsyncImporter( params );
         asyncImporter.run();
+
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + METADATA_IMPORT );
+        webMessageService.send( jobConfigurationReport( params.getId() ), response, request );
     }
 
     private class MetadataAsyncImporter extends SecurityContextRunnable

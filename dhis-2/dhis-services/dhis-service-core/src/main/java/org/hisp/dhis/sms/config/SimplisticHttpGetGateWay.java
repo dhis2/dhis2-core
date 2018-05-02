@@ -31,21 +31,19 @@ package org.hisp.dhis.sms.config;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -78,7 +76,8 @@ import java.util.stream.Collectors;
 public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
-    private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
+    private static final String HTTP_POST = "POST";
+    private static final String CONTENT_TYPE = "application/x-www-form-urlencoded; charset=UTF-8";
 
     private static final ImmutableMap<Integer, GatewayResponse> SIMPLISTIC_GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<Integer, GatewayResponse>()
         .put( HttpURLConnection.HTTP_OK, GatewayResponse.RESULT_CODE_0 )
@@ -103,35 +102,42 @@ public class SimplisticHttpGetGateWay
      }
 
     @Override
-    public boolean accept( SmsGatewayConfig gatewayConfig )
+    protected SmsGatewayConfig getGatewayConfigType()
     {
-        return gatewayConfig != null && gatewayConfig instanceof GenericHttpGatewayConfig;
+        return new GenericHttpGatewayConfig();
     }
 
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
-        GenericHttpGatewayConfig genericHttpGatewayConfig = (GenericHttpGatewayConfig) config;
+        GenericHttpGatewayConfig genericHttpConfiguration = (GenericHttpGatewayConfig) config;
 
         OutboundMessageResponse status = new OutboundMessageResponse();
 
-        UriComponentsBuilder uri = buildUrl( genericHttpGatewayConfig, text, recipients );
+        UriComponentsBuilder uri = buildUrl( genericHttpConfiguration );
 
         BufferedReader reader = null;
+        OutputStreamWriter writer = null;
 
         try
         {
             URL requestURL = new URL( uri.build().encode().toUriString() );
 
-            URLConnection conn = requestURL.openConnection();
+            HttpURLConnection httpConnection = (HttpURLConnection) requestURL.openConnection();
+            httpConnection .setRequestProperty( "Content-Type", CONTENT_TYPE );
+            httpConnection.setRequestMethod( HTTP_POST );
+            httpConnection.setDoOutput( true );
 
-            conn = getRequestHeaderParameters( conn, genericHttpGatewayConfig.getParameters() );
+            httpConnection = getRequestHeaderParameters( httpConnection, genericHttpConfiguration.getParameters() );
 
-            reader = new BufferedReader( new InputStreamReader( conn.getInputStream() ) );
+            String data = getEncodedData( text, recipients, genericHttpConfiguration );
 
-            HttpURLConnection httpConnection = (HttpURLConnection) conn;
+            writer = new OutputStreamWriter( httpConnection.getOutputStream() );
 
-            reader.close();
+            writer.write( data );
+            writer.flush();
+
+            reader = new BufferedReader( new InputStreamReader( httpConnection.getInputStream() ) );
 
             Integer responseCode = httpConnection.getResponseCode();
 
@@ -148,48 +154,66 @@ public class SimplisticHttpGetGateWay
 
             status.setResponseObject( response );
             status.setDescription( response.getResponseMessage() );
-            return status;
         }
         catch ( IOException e )
         {
-            log.error( "Message failed: " + e.getMessage() );
+            DebugUtils.getStackTrace( e );
 
-            IOUtils.closeSilently( reader );
-
-            status.setResponseObject( GatewayResponse.FAILED );
-            status.setDescription( GatewayResponse.FAILED.getResponseMessage() );
-            status.setOk( false );
-
-            return status;
+            setErrorStatus( status );
         }
+        finally
+        {
+            IOUtils.closeSilently( reader );
+            IOUtils.closeSilently( writer );
+        }
+
+        return status;
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    private void setErrorStatus( OutboundMessageResponse status )
     {
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
-        uriBuilder = getUrlParameters( config.getParameters(), uriBuilder );
-        uriBuilder.queryParam( config.getMessageParameter(), text );
-        uriBuilder.queryParam( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
-
-        return uriBuilder;
+        status.setResponseObject( GatewayResponse.FAILED );
+        status.setDescription( GatewayResponse.FAILED.getResponseMessage() );
+        status.setOk( false );
     }
 
-    private UriComponentsBuilder getUrlParameters( List<GenericGatewayParameter> parameters,
-        UriComponentsBuilder uriBuilder )
+    private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config )
     {
-        parameters.stream().filter( p -> !p.isHeader() ).forEach( p -> uriBuilder.queryParam( p.getKey(), p.getValue() ) );
-
-        return uriBuilder;
+        return UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
     }
 
-    private URLConnection getRequestHeaderParameters( URLConnection urlConnection, List<GenericGatewayParameter> parameters )
+    private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
     {
-        parameters.stream().filter( GenericGatewayParameter::isHeader ).forEach(p -> urlConnection.setRequestProperty( p.getKey(), p.getValue() ) );
+        return parameters.stream().filter( p -> !p.isHeader() )
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) ) ;
+    }
+
+    private HttpURLConnection getRequestHeaderParameters( HttpURLConnection urlConnection, List<GenericGatewayParameter> parameters )
+    {
+        parameters.stream().filter( GenericGatewayParameter::isHeader ).forEach( p -> urlConnection.setRequestProperty( p.getKey(), p.getValue() ) );
 
         return urlConnection;
+    }
+
+    private String getEncodedData( String text, Set<String> recipients, GenericHttpGatewayConfig config ) throws UnsupportedEncodingException
+    {
+        Map<String, String> parameters = getUrlParameters( config.getParameters() );
+        parameters.put( config.getMessageParameter(), text );
+        parameters.put( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+
+        StringBuilder sb = new StringBuilder();
+
+        for( Map.Entry<String,String> entry : parameters.entrySet() )
+        {
+            sb.append( URLEncoder.encode( entry.getKey(), "UTF-8" ) )
+                .append( "=" )
+                .append( URLEncoder.encode( entry.getValue(), "UTF-8" ) ).append( "&" );
+        }
+
+        return sb.toString();
     }
 }

@@ -28,54 +28,8 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
-import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
-import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
-import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
-import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
-import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
-import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
-import static org.hisp.dhis.reporttable.ReportTable.IRT2D;
-import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -136,8 +90,54 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
+import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
+import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
+import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getPeriodIdentifiers;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
+import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
+import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
+import static org.hisp.dhis.reporttable.ReportTable.IRT2D;
+import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -686,7 +686,7 @@ public class DefaultAnalyticsService
                     }
                     else if ( !MathUtils.isZero( target) ) // REPORTING_RATE or REPORTING_RATE_ON_TIME
                     {
-                        value = ( actual * PERCENT ) / target;
+                        value = Math.min( ( ( actual * PERCENT ) / target ), 100d );
                     }
 
                     String reportingRate = DimensionalObjectUtils.getDimensionItem( dataRow.get( DX_INDEX ), metric );
@@ -802,7 +802,7 @@ public class DefaultAnalyticsService
             Calendar calendar = PeriodType.getCalendar();
 
             List<String> periodUids = calendar.isIso8601() ?
-                getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+                getPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), params.getDisplayProperty() ) :
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
             dimensionItems.put( PERIOD_DIM_ID, periodUids );

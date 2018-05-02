@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -63,7 +63,7 @@ public interface EventService
 
     EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp, String orgUnit,
         OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
-        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
+        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
         Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
         Set<String> filters, Set<String> dataElements, boolean includeDeleted );
 
@@ -78,6 +78,8 @@ public interface EventService
     int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
 
     Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
+
+    Events getAnonymousEventsForSync( Date lastSuccessTime, int pageSize, int page );
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -117,7 +119,7 @@ public interface EventService
 
     ImportSummary deleteEvent( String uid );
 
-    ImportSummaries deleteEvents( List<String> uids );
+    ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
 

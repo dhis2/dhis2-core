@@ -1,5 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -33,7 +35,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -76,7 +78,7 @@ public class MaintenanceController
     private MaintenanceService maintenanceService;
 
     @Autowired
-    private DataElementCategoryService categoryService;
+    private CategoryService categoryService;
 
     @Autowired
     private HibernateCacheManager cacheManager;
@@ -89,6 +91,9 @@ public class MaintenanceController
 
     @Autowired
     private ResourceTableService resourceTableService;
+
+    @Autowired
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -290,7 +295,8 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
         @RequestParam( required = false ) boolean cacheClear,
-        @RequestParam( required = false ) boolean appReload )
+        @RequestParam( required = false ) boolean appReload,
+        @RequestParam( required = false ) boolean resourceTableUpdate )
     {
         if ( analyticsTableClear )
         {
@@ -365,6 +371,11 @@ public class MaintenanceController
         if ( appReload )
         {
             appManager.reloadApps();
+        }
+        
+        if ( resourceTableUpdate )
+        {
+            analyticsTableGenerator.generateResourceTables( null );
         }
     }
 }
