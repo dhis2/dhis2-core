@@ -677,11 +677,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         SubscribableObject object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-
         object.subscribe( user );
         manager.updateNoAcl( object );
 
@@ -862,11 +857,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         SubscribableObject object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
-
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
 
         object.unsubscribe( user );
         manager.updateNoAcl( object );
