@@ -55,7 +55,7 @@ public class StreamingJsonCompleteDataSetRegistration
     // -------------------------------------------------------------------------
 
     @Override
-    public void open()
+    protected void open()
     {
         try
         {
@@ -68,7 +68,7 @@ public class StreamingJsonCompleteDataSetRegistration
     }
 
     @Override
-    public void close()
+    protected void close()
     {
         if ( generator == null )
         {

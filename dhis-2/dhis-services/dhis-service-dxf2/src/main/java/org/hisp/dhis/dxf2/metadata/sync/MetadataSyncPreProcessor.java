@@ -119,47 +119,6 @@ public class MetadataSyncPreProcessor
 
     }
 
-    public ImportSummary handleDataSetCompletenessPush( MetadataRetryContext context )
-    {
-        log.info( "Entering dataSet completeness push" );
-
-        ImportSummary importSummary = null;
-        AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
-
-        // -------------------------------------------------------------------------
-        // We are checking the Remote server availability here, as executeDataPush
-        // returns null in two cases: "Nothing to sync" and "Server unavailable
-        // -------------------------------------------------------------------------
-
-        if ( !(remoteServerAvailable.isAvailable()) )
-        {
-            String message = remoteServerAvailable.getMessage();
-            log.error( message );
-            context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
-            throw new MetadataSyncServiceException( message );
-        }
-
-        try
-        {
-            importSummary = synchronizationManager.executeDataSetCompletenessPush();
-            handleAggregateImportSummary( importSummary, context );
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Exception happened while trying to completeness push " + ex.getMessage(), ex );
-            if ( ex instanceof MetadataSyncServiceException )
-            {
-                throw (MetadataSyncServiceException)ex;
-            }
-            context.updateRetryContext( MetadataSyncTask.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
-            throw new MetadataSyncServiceException( ex.getMessage(), ex );
-        }
-
-        log.info( "Exiting dataset completeness push" );
-        return importSummary;
-
-    }
-
     public ImportSummaries handleEventDataPush( MetadataRetryContext context )
     {
         log.debug( "Entering event data push" );

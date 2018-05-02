@@ -47,14 +47,11 @@ public interface SynchronizationManager
      */
     ImportSummary executeDataPush() throws WebMessageParseException;
 
-    ImportSummary executeDataSetCompletenessPush() throws  WebMessageParseException;
-
     /**
      * Executes an event push to remote server.
      * 
      * @return an {@link ImportSummaries}.
      */
-
     ImportSummaries executeEventPush() throws WebMessageParseException;
 
     /**

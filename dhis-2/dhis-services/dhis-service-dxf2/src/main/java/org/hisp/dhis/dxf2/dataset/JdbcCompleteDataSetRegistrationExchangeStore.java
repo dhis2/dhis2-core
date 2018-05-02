@@ -47,13 +47,11 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 
 import java.io.OutputStream;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
+
 import java.util.stream.Collectors;
 
 /**
@@ -123,56 +121,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         IOUtils.closeQuietly( outputStream );
     }
 
-    @Override public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
-    {
-        String dsScheme = idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase();
-        String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
-        String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
-
-        CompleteDataSetRegistrations completeDataSetRegistrations = new StreamingJsonCompleteDataSetRegistrations( outputStream );
-
-
-        final String completenessSql =
-            "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
-                "cdr.date, cdr.storedby " +
-                "from completedatasetregistration cdr " +
-                "join dataset ds on (cdr.datasetid=ds.datasetid) " +
-                "join period pe on (cdr.periodid=pe.periodid) " +
-                "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
-                "join organisationunit ou on (cdr.sourceid=ou.organisationunitid) " +
-                "join categoryoptioncombo aoc on (cdr.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
-                "where cdr.date >= '" + DateUtils.getLongDateString( lastUpdated ) + "'";
-
-        writeCompleteness( completenessSql, completeDataSetRegistrations );
-    }
-
-    private void writeCompleteness( String sql, CompleteDataSetRegistrations completeDataSetRegistrations )
-    {
-        final Calendar calendar = PeriodType.getCalendar();
-
-        completeDataSetRegistrations.open();
-
-        jdbcTemplate.query( sql, new RowCallbackHandler()
-        {
-            @Override
-            public void processRow( ResultSet rs ) throws SQLException
-            {
-                CompleteDataSetRegistration completeDataSetRegistration = completeDataSetRegistrations.getCompleteDataSetRegistrationInstance();
-                PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "ptname" ) );
-                completeDataSetRegistration.open();
-                completeDataSetRegistration.setDataSet( rs.getString( "dsid" ) );
-                completeDataSetRegistration.setPeriod( pt.createPeriod( rs.getDate( "pestart" ), calendar ).getIsoDate() );
-                completeDataSetRegistration.setOrganisationUnit( rs.getString( "ouid" ) );
-                completeDataSetRegistration.setAttributeOptionCombo( rs.getString( "aocid" ) );
-                completeDataSetRegistration.setDate( removeTime( rs.getString( "date" ) ) );
-                completeDataSetRegistration.setStoredBy( rs.getString( "storedBy" ) );
-                completeDataSetRegistration.close();
-            }
-        } );
-        completeDataSetRegistrations.close();
-    }
-
-
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
@@ -214,13 +162,13 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
         String sql =
             "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
-                "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
-                "FROM completedatasetregistration cdsr " +
-                "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
-                "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
-                "INNER JOIN periodtype pt ON (pe.periodtypeid=pt.periodtypeid) " +
-                "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
-                "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
+            "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+            "FROM completedatasetregistration cdsr " +
+            "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
+            "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
+            "INNER JOIN periodtype pt ON (pe.periodtypeid=pt.periodtypeid) " +
+            "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
+            "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
 
         sql += createOrgUnitGroupJoin( params );
         sql += createDataSetClause( params, namedParamsBuilder );
