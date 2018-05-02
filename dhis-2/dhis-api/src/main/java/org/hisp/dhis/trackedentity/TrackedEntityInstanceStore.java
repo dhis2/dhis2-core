@@ -50,10 +50,18 @@ public interface TrackedEntityInstanceStore
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Checks for the existence of a TEI by UID.
+     * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into account.
      *
      * @param uid PSI UID to check for.
      * @return true/false depending on result.
      */
     boolean exists( String uid );
+
+    /**
+     * Checks for the existence of a TEI by UID. Takes into account also the deleted TEIs.
+     *
+     * @param uid PSI UID to check for.
+     * @return true/false depending on result.
+     */
+    boolean existsIncludingDeleted( String uid );
 }

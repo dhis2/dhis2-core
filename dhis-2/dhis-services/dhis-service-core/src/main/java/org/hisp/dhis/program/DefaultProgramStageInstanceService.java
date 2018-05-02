@@ -34,7 +34,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -79,9 +78,6 @@ public class DefaultProgramStageInstanceService
 
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
-
-    @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
 
     @Autowired
     private ProgramNotificationPublisher programNotificationPublisher;
@@ -154,6 +150,12 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    public boolean programStageInstanceExistsIncludingDeleted( String uid )
+    {
+        return programStageInstanceStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
     public long getProgramStageInstanceCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -181,8 +183,6 @@ public class DefaultProgramStageInstanceService
         if ( !skipNotifications )
         {
             programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
-
-            programRuleEngineService.evaluate( programStageInstance );
         }
 
         // ---------------------------------------------------------------------

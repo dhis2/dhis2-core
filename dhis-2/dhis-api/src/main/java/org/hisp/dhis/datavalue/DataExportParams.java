@@ -32,14 +32,18 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -51,25 +55,37 @@ import java.util.Set;
 public class DataExportParams
 {
     private Set<DataElement> dataElements = new HashSet<>();
-    
+
+    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+
     private Set<DataSet> dataSets = new HashSet<>();
     
     private Set<DataElementGroup> dataElementGroups = new HashSet<>();
 
     private Set<Period> periods = new HashSet<>();
 
+    private Set<PeriodType> periodTypes = new HashSet<>();
+
     private Date startDate;
 
     private Date endDate;
+
+    private Date includedDate;
 
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
     private boolean includeChildren;
 
+    private boolean returnParentOrgUnit;
+
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
     private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
-    
+
+    private Set<CategoryOption> coDimensionConstraints;
+
+    private Set<CategoryOptionGroup> cogDimensionConstraints;
+
     private boolean includeDeleted;
 
     private Date lastUpdated;
@@ -115,7 +131,17 @@ public class DataExportParams
         
         return ImmutableSet.copyOf( orgUnits );
     }
-    
+
+    public boolean hasDataElements()
+    {
+        return dataElements != null && !dataElements.isEmpty();
+    }
+
+    public boolean hasDataElementOperands()
+    {
+        return dataElementOperands != null && !dataElementOperands.isEmpty();
+    }
+
     public DataSet getFirstDataSet()
     {
         return dataSets != null && !dataSets.isEmpty() ? dataSets.iterator().next() : null;
@@ -130,20 +156,35 @@ public class DataExportParams
     {
         return periods != null && !periods.isEmpty();
     }
-    
+
+    public boolean hasPeriodTypes()
+    {
+        return periodTypes != null && !periodTypes.isEmpty();
+    }
+
     public boolean hasStartEndDate()
     {
         return startDate != null && endDate != null;
+    }
+
+    public boolean hasIncludedDate()
+    {
+        return includedDate != null;
     }
 
     public boolean hasOrganisationUnits()
     {
         return organisationUnits != null && !organisationUnits.isEmpty();
     }
-    
+
     public boolean isIncludeChildrenForOrganisationUnits()
     {
         return includeChildren && hasOrganisationUnits();
+    }
+
+    public boolean isReturnParentForOrganisationUnits()
+    {
+        return returnParentOrgUnit && hasOrganisationUnits();
     }
 
     public OrganisationUnit getFirstOrganisationUnit()
@@ -155,10 +196,20 @@ public class DataExportParams
     {
         return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
     }
-    
+
     public boolean hasAttributeOptionCombos()
     {
         return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
+    }
+
+    public boolean hasCoDimensionConstraints()
+    {
+        return coDimensionConstraints != null && !coDimensionConstraints.isEmpty();
+    }
+
+    public boolean hasCogDimensionConstraints()
+    {
+        return cogDimensionConstraints != null && !cogDimensionConstraints.isEmpty();
     }
 
     public boolean hasLastUpdated()
@@ -190,14 +241,25 @@ public class DataExportParams
     {
         return MoreObjects.toStringHelper( this ).
             add( "data elements", dataElements ).
+            add( "data element operands", dataElementOperands ).
             add( "data sets", dataSets ).
             add( "data element groups", dataElementGroups ).
             add( "periods", periods ).
+            add( "period types", periodTypes ).
+            add( "start date", startDate ).
+            add( "end date", endDate ).
+            add( "included date", includedDate ).
             add( "org units", organisationUnits ).
             add( "children", includeChildren ).
+            add( "return parent org unit", returnParentOrgUnit ).
             add( "org unit groups", organisationUnitGroups ).
             add( "attribute option combos", attributeOptionCombos ).
+            add( "category option dimension constraints", coDimensionConstraints ).
+            add( "category option group dimension constraints", cogDimensionConstraints ).
             add( "deleted", includeDeleted ).
+            add( "last updated", lastUpdated ).
+            add( "last updated duration", lastUpdatedDuration ).
+            add( "limit", limit ).
             add( "output id schemes", outputIdSchemes ).toString();
     }
 
@@ -213,6 +275,17 @@ public class DataExportParams
     public DataExportParams setDataElements( Set<DataElement> dataElements )
     {
         this.dataElements = dataElements;
+        return this;
+    }
+
+    public Set<DataElementOperand> getDataElementOperands()
+    {
+        return dataElementOperands;
+    }
+
+    public DataExportParams setDataElementOperands( Set<DataElementOperand> dataElementOperands )
+    {
+        this.dataElementOperands = dataElementOperands;
         return this;
     }
 
@@ -238,6 +311,17 @@ public class DataExportParams
         return this;
     }
 
+    public Set<PeriodType> getPeriodTypes()
+    {
+        return periodTypes;
+    }
+
+    public DataExportParams setPeriodTypes( Set<PeriodType> periodTypes )
+    {
+        this.periodTypes = periodTypes;
+        return this;
+    }
+
     public Set<Period> getPeriods()
     {
         return periods;
@@ -257,6 +341,17 @@ public class DataExportParams
     public DataExportParams setStartDate( Date startDate )
     {
         this.startDate = startDate;
+        return this;
+    }
+
+    public Date getIncludedDate()
+    {
+        return includedDate;
+    }
+
+    public DataExportParams setIncludedDate( Date includedDate )
+    {
+        this.includedDate = includedDate;
         return this;
     }
 
@@ -293,6 +388,17 @@ public class DataExportParams
         return this;
     }
 
+    public boolean isReturnParentOrgUnit()
+    {
+        return returnParentOrgUnit;
+    }
+
+    public DataExportParams setReturnParentOrgUnit( boolean returnParentOrgUnit )
+    {
+        this.returnParentOrgUnit = returnParentOrgUnit;
+        return this;
+    }
+
     public Set<OrganisationUnitGroup> getOrganisationUnitGroups()
     {
         return organisationUnitGroups;
@@ -312,6 +418,28 @@ public class DataExportParams
     public DataExportParams setAttributeOptionCombos( Set<CategoryOptionCombo> attributeOptionCombos )
     {
         this.attributeOptionCombos = attributeOptionCombos;
+        return this;
+    }
+
+    public Set<CategoryOption> getCoDimensionConstraints()
+    {
+        return coDimensionConstraints;
+    }
+
+    public DataExportParams setCoDimensionConstraints( Set<CategoryOption> coDimensionConstraints )
+    {
+        this.coDimensionConstraints = coDimensionConstraints;
+        return this;
+    }
+
+    public Set<CategoryOptionGroup> getCogDimensionConstraints()
+    {
+        return cogDimensionConstraints;
+    }
+
+    public DataExportParams setCogDimensionConstraints( Set<CategoryOptionGroup> cogDimensionConstraints )
+    {
+        this.cogDimensionConstraints = cogDimensionConstraints;
         return this;
     }
 

@@ -165,10 +165,12 @@ public class EventPredictionServiceTest
     private DataElement predictorOutputA;
     private DataElement predictorOutputD;
     private DataElement predictorOutputI;
+    private DataElement predictorOutputT;
 
     private Predictor predictorA;
     private Predictor predictorD;
     private Predictor predictorI;
+    private Predictor predictorT;
 
     @Override
     public void setUpTest()
@@ -176,6 +178,8 @@ public class EventPredictionServiceTest
         final String DATA_ELEMENT_A_UID = "DataElemenA";
         final String DATA_ELEMENT_D_UID = "DataElemenD";
         final String DATA_ELEMENT_I_UID = "DataElemenI";
+        final String DATA_ELEMENT_E_UID = "DataElemenE";
+        final String DATA_ELEMENT_T_UID = "DataElemenT";
         final String DATA_ELEMENT_X_UID = "DataElemenX";
         final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
         final String PROGRAM_UID = "ProgramUidA";
@@ -187,6 +191,8 @@ public class EventPredictionServiceTest
         final String EXPRESSION_A = "SUM( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )"; // A - ProgramTrackedEntityAttribute
         final String EXPRESSION_D = "SUM( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )"; // D - ProgramDataElement
         final String EXPRESSION_I = "SUM( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )"; // I - ProgramIndicators
+        final String EXPRESSION_E = "SUM( #{" + DATA_ELEMENT_E_UID + "} )"; // E - Data element
+        final String EXPRESSION_T = EXPRESSION_A + " + " + EXPRESSION_E; // T - Two things, event and data elemeent
 
         final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4"; // Program Indicator A expression
         final String EX_INDICATOR_B = "V{enrollment_count}"; // Program Indicator B expression
@@ -215,16 +221,22 @@ public class EventPredictionServiceTest
         predictorOutputA = createDataElement( 'A' );
         predictorOutputD = createDataElement( 'D' );
         predictorOutputI = createDataElement( 'I' );
+        predictorOutputT = createDataElement( 'T' );
+        DataElement dataElementE = createDataElement( 'E' );
         DataElement dataElementX = createDataElement( 'P', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
 
         predictorOutputA.setUid( DATA_ELEMENT_A_UID );
         predictorOutputD.setUid( DATA_ELEMENT_D_UID );
         predictorOutputI.setUid( DATA_ELEMENT_I_UID );
+        predictorOutputT.setUid( DATA_ELEMENT_T_UID );
+        dataElementE.setUid( DATA_ELEMENT_E_UID );
         dataElementX.setUid( DATA_ELEMENT_X_UID );
 
         dataElementService.addDataElement( predictorOutputA );
         dataElementService.addDataElement( predictorOutputD );
         dataElementService.addDataElement( predictorOutputI );
+        dataElementService.addDataElement( predictorOutputT );
+        dataElementService.addDataElement( dataElementE );
         dataElementService.addDataElement( dataElementX );
 
         TrackedEntityAttribute entityAttribute = createTrackedEntityAttribute( 'A' );
@@ -288,6 +300,7 @@ public class EventPredictionServiceTest
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );
         Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicators" );
+        Expression expressionT = new Expression( EXPRESSION_T, "Two things" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionD );
@@ -303,6 +316,9 @@ public class EventPredictionServiceTest
             periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
 
         predictorI = createPredictor( predictorOutputI, defaultCombo, "I", expressionI, null,
+            periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
+
+        predictorT = createPredictor( predictorOutputT, defaultCombo, "T", expressionT, null,
             periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
 
         predictorService.addPredictor( predictorA );
@@ -328,6 +344,10 @@ public class EventPredictionServiceTest
 
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
         setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+
+        dataValueService.addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, "100", defaultCombo, defaultCombo ) );
+        dataValueService.addDataValue( createDataValue( dataElementE, periodApr, orgUnitA, "200", defaultCombo, defaultCombo ) );
+        dataValueService.addDataValue( createDataValue( dataElementE, periodMay, orgUnitA, "300", defaultCombo, defaultCombo ) );
     }
 
     @Override
@@ -418,5 +438,10 @@ public class EventPredictionServiceTest
 
         assertEquals("8", getDataValue( predictorOutputI, periodApr ) );
         assertEquals("17", getDataValue( predictorOutputI, periodMay ) );
+
+        predictionService.predict( predictorT, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+
+        assertEquals("101", getDataValue( predictorOutputT, periodApr ) );
+        assertEquals("302", getDataValue( predictorOutputT, periodMay ) );
     }
 }

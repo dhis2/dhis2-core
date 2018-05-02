@@ -28,51 +28,38 @@ package org.hisp.dhis.datavalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.google.common.collect.Sets;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
+import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
-import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.*;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -80,8 +67,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 public class HibernateDataValueStore
     implements DataValueStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -239,7 +224,7 @@ public class HibernateDataValueStore
                 hql += "ou.path like '" + unit.getPath() + "%' or ";
             }
             
-            hql = TextUtils.removeLastOr( hql );
+            hql = removeLastOr( hql );
             
             hql += ") ";
         }
@@ -343,132 +328,147 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> getDataElementOperandValues(
-        Collection<DataElementOperand> dataElementOperands, Collection<Period> periods,
-        Collection<OrganisationUnit> orgUnits )
+    public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
-        Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> result = new Map4<>();
+        SqlHelper sqlHelper = new SqlHelper( true );
 
-        Collection<Integer> periodIdList = IdentifiableObjectUtils.getIdentifiers( periods );
+        String orgUnitId = params.isReturnParentForOrganisationUnits() ? "opath.id" : "dv.sourceid";
 
-        SetMap<DataElement, DataElementOperand> deosByDataElement = getDeosByDataElement( dataElementOperands );
+        String sql = "select dv.dataelementid, dv.periodid, " + orgUnitId +
+            ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
+            ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup" +
+            " from datavalue dv";
 
-        if ( periods.size() == 0 || dataElementOperands.size() == 0 )
+        String where = "";
+
+        if ( params.hasDataElementOperands() )
         {
-            return result;
+            List<DataElementOperand> queryDeos = getQueryDataElementOperands( params );
+            List<Integer> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() ).collect( Collectors.toList() );
+            List<Integer> cocIdList = queryDeos.stream()
+                .map( de -> de.getCategoryOptionCombo() == null ? null : de.getCategoryOptionCombo().getId() )
+                .collect( Collectors.toList() );
+
+            sql += " join " + statementBuilder.literalIntIntTable( deIdList, cocIdList, "deo", "deid", "cocid" )
+                + " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid = dv.categoryoptioncomboid)";
+        }
+        else if ( params.hasDataElements() )
+        {
+            String dataElementIdList = getCommaDelimitedString( getIdentifiers( params.getDataElements() ) );
+
+            where += sqlHelper.whereAnd() + "dv.dataelementid in (" + dataElementIdList + ")";
         }
 
-        List<String> paths = orgUnits.stream().map( OrganisationUnit::getPath ).collect( Collectors.toList() );
+        if ( params.hasPeriods() )
+        {
+            String periodIdList = getCommaDelimitedString( getIdentifiers( params.getPeriods() ) );
 
-        String pathsTable = statementBuilder.literalStringTable( paths, "p", "path" );
+            where += sqlHelper.whereAnd() + "dv.periodid in (" + periodIdList + ")";
+        }
+        else if ( params.hasPeriodTypes() || params.hasStartEndDate() || params.hasIncludedDate() )
+        {
+            sql += " join period p on p.periodid = dv.periodid";
 
-        String sql = "select dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path, " +
-            "sum( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as value " +
-            "from datavalue dv " +
-            "join organisationunit o on o.organisationunitid = dv.sourceid " +
-            "join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid " +
-            "join categoryoptioncombo aoc on aoc.categoryoptioncomboid = dv.attributeoptioncomboid " +
-            "join " + pathsTable + " on o.path like p.path || '%' " +
-            "where dv.periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
-            "and dv.value is not null " +
-            "and dv.deleted is false " +
-            "and ( ";
-
-            String snippit = "";
-
-            for ( DataElement dataElement : deosByDataElement.keySet() )
+            if ( params.hasPeriodTypes() )
             {
-                sql += snippit + "( dv.dataelementid = " + dataElement.getId()
-                    + getDisaggRestriction( deosByDataElement.get( dataElement ) )
-                    + " ) ";
+                sql += " join periodtype pt on pt.periodtypeid = p.periodtypeid";
 
-                snippit = "or ";
+                String periodTypeIdList = getCommaDelimitedString( params.getPeriodTypes().stream().map( o -> o.getId() ).collect( Collectors.toList() ) );
+
+                where += sqlHelper.whereAnd() + "pt.periodtypeid in (" + periodTypeIdList + ")";
             }
 
-            sql += ") group by dv.dataelementid, coc.uid, aoc.uid, dv.periodid, p.path";
+            if ( params.hasStartEndDate() )
+            {
+                where += sqlHelper.whereAnd() + "p.startdate >= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "'"
+                    + " and p.enddate <= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "'";
+            }
+            else if ( params.hasIncludedDate() )
+            {
+                where += sqlHelper.whereAnd() + "p.startdate <= '" + DateUtils.getMediumDateString( params.getIncludedDate() ) + "'"
+                    + " and p.enddate >= '" + DateUtils.getMediumDateString( params.getIncludedDate() ) + "'";
+            }
+        }
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        if ( params.isIncludeChildrenForOrganisationUnits() || params.isReturnParentForOrganisationUnits() )
+        {
+            List<OrganisationUnit> orgUnitList = new ArrayList( params.getOrganisationUnits() );
+            List<Integer> orgUnitIdList = orgUnitList.stream().map(  OrganisationUnit::getId ).collect( Collectors.toList() );
+            List<String> orgUnitPathList = orgUnitList.stream().map(  OrganisationUnit::getPath ).collect( Collectors.toList() );
 
-        Map<Integer, DataElement> dataElementsById = IdentifiableObjectUtils.getIdentifierMap( deosByDataElement.keySet() );
-        Map<Integer, Period> periodsById = IdentifiableObjectUtils.getIdentifierMap( periods );
-        Map<String, OrganisationUnit> orgUnitsByPath = orgUnits.stream().collect( Collectors.toMap( o -> o.getPath(), o -> o ) );
+            sql += " join organisationunit ou on ou.organisationunitid = dv.sourceid"
+                + " join " + statementBuilder.literalIntStringTable( orgUnitIdList, orgUnitPathList, "opath", "id", "path" )
+                + " on ou.path like " + statementBuilder.concatenate( "opath.path", "'%'");
+        }
+        else if ( params.hasOrganisationUnits() )
+        {
+            String orgUnitIdList = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
+
+            where += sqlHelper.whereAnd() + "dv.sourceid in (" + orgUnitIdList + ")";
+        }
+
+        if ( params.hasAttributeOptionCombos() )
+        {
+            String aocIdList = getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) );
+
+            where += sqlHelper.whereAnd() + "dv.attributeoptioncomboid in (" + aocIdList + ")";
+        }
+
+        if ( params.hasCogDimensionConstraints() || params.hasCoDimensionConstraints() )
+        {
+            sql += " join categoryoptioncombos_categoryoptions cc on dv.attributeoptioncomboid = cc.categoryoptioncomboid";
+
+            if ( params.hasCoDimensionConstraints() )
+            {
+                String coDimConstraintsList = getCommaDelimitedString( getIdentifiers( params.getCoDimensionConstraints() ) );
+
+                where += sqlHelper.whereAnd() + "cc.categoryoptionid in (" + coDimConstraintsList + ") ";
+            }
+
+            if ( params.hasCogDimensionConstraints() )
+            {
+                String cogDimConstraintsList = getCommaDelimitedString( getIdentifiers( params.getCogDimensionConstraints() ) );
+
+                sql += " join categoryoptiongroupmembers cogm on cc.categoryoptionid = cogm.categoryoptionid";
+
+                where += sqlHelper.whereAnd() + "cogm.categoryoptiongroupid in (" + cogDimConstraintsList + ")";
+            }
+        }
+
+        if ( params.hasLastUpdated() )
+        {
+            where += sqlHelper.whereAnd() + "dv.lastupdated >= " + DateUtils.getMediumDateString( params.getLastUpdated() );
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            where += sqlHelper.whereAnd() + "dv.deleted is false";
+        }
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql + where );
+
+        List<DeflatedDataValue> result = new ArrayList<>();
 
         while ( rowSet.next() )
         {
             Integer dataElementId = rowSet.getInt( 1 );
-            String categoryOptionComboUid = rowSet.getString( 2 );
-            String attributeOptionComboUid = rowSet.getString( 3 );
-            Integer periodId = rowSet.getInt( 4 );
-            String path = rowSet.getString( 5 );
-            Double value = rowSet.getDouble( 6 );
+            Integer periodId = rowSet.getInt( 2 );
+            Integer organisationUnitId = rowSet.getInt( 3 );
+            Integer categoryOptionComboId = rowSet.getInt( 4 );
+            Integer attributeOptionComboId = rowSet.getInt( 5 );
+            String value = rowSet.getString( 6 );
+            String storedBy = rowSet.getString( 7 );
+            Date created = rowSet.getDate( 8 );
+            Date lastUpdated = rowSet.getDate( 9 );
+            String comment = rowSet.getString( 10 );
+            boolean followup = rowSet.getBoolean( 11 );
 
-            DataElement dataElement = dataElementsById.get ( dataElementId );
-            Period period = periodsById.get( periodId );
-            OrganisationUnit orgUnit = orgUnitsByPath.get( path );
-
-            Set<DataElementOperand> deos = deosByDataElement.get( dataElement );
-
-            for ( DataElementOperand deo : deos )
-            {
-                if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionComboUid ) )
-                {
-                    double existingValue = ObjectUtils.firstNonNull( result.getValue(orgUnit, period, attributeOptionComboUid, deo ), 0.0 );
-
-                    result.putEntry( orgUnit, period, attributeOptionComboUid, deo, value + existingValue );
-                }
-            }
+            result.add( new DeflatedDataValue( dataElementId, periodId,
+                organisationUnitId, categoryOptionComboId, attributeOptionComboId,
+                value, storedBy, created, lastUpdated, comment, followup ) );
         }
 
         return result;
-    }
-
-    /**
-     * Groups a collection of DataElementOperands into sets according to the
-     * DataElement each one contains, and returns a map from each DataElement
-     * to the set of DataElementOperands containing it.
-     *
-     * @param deos the collection of DataElementOperands.
-     * @return the map from DataElement to its DataElementOperands.
-     */
-    private SetMap<DataElement, DataElementOperand> getDeosByDataElement( Collection<DataElementOperand> deos )
-    {
-        SetMap<DataElement, DataElementOperand> deosByDataElement = new SetMap<>();
-
-        for ( DataElementOperand deo : deos )
-        {
-            deosByDataElement.putValue( deo.getDataElement(), deo );
-        }
-
-        return deosByDataElement;
-    }
-
-    /**
-     * Examines a set of DataElementOperands, and returns a SQL condition
-     * restricting the CategoryOptionCombo to a list of specific combos
-     * if only specific combos are required, or returns no restriction
-     * if all CategoryOptionCombos are to be fetched.
-     *
-     * @param deos the collection of DataElementOperands.
-     * @return the SQL restriction.
-     */
-    private String getDisaggRestriction( Set<DataElementOperand> deos )
-    {
-        String restiction = " and coc.uid in ( ";
-        String snippit = "";
-
-        for ( DataElementOperand deo : deos )
-        {
-            if ( deo.getCategoryOptionCombo() == null )
-            {
-                return "";
-            }
-
-            restiction += snippit + "'" + deo.getCategoryOptionCombo().getUid() + "'";
-
-            snippit = ", ";
-        }
-
-        return restiction + " )";
     }
 
     @Override
@@ -503,118 +503,42 @@ public class HibernateDataValueStore
         return rs != null ? rs.intValue() : 0;
     }
 
-    @Override
-    public MapMapMap<Integer, String, DimensionalItemObject, Double> getDataValueMapByAttributeCombo(
-        Set<DataElementOperand> dataElementOperands, Date date,
-        List<OrganisationUnit> orgUnits, Collection<PeriodType> periodTypes, CategoryOptionCombo attributeCombo,
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<CategoryOption> coDimensionConstraints )
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets a list of DataElementOperands to use for SQL query.
+     *
+     * If there are data elements to query, these are combined with the
+     * data element operands (DEOs) into one list.
+     *
+     * If, in the resulting set of DEOs, there are DEOs for the same data
+     * element both with and without non-null category option combos (COCs),
+     * then the DEOs with non-null COCs are removed for that data element.
+     * This is because the DEO with the null COC will already match all COCs
+     * for that data element. We do not want to match them again, or the
+     * same data value rows will be duplicated.
+     *
+     * @param params the data export parameters
+     * @return data element operands to use for query
+     */
+    private List<DataElementOperand> getQueryDataElementOperands(  DataExportParams params )
     {
-        SetMap<DataElement, DataElementOperand> deosByDataElement = getDeosByDataElement( dataElementOperands );
+        Set<DataElementOperand> deos = params.getDataElementOperands();
 
-        MapMapMap<Integer, String, DimensionalItemObject, Double> map = new MapMapMap<>();
-
-        if ( dataElementOperands.isEmpty() || periodTypes.isEmpty()
-            || ( cogDimensionConstraints != null && cogDimensionConstraints.isEmpty() )
-            || ( coDimensionConstraints != null && coDimensionConstraints.isEmpty() ) )
+        if ( params.hasDataElements() )
         {
-            return map;
+            deos = Sets.union( deos, params.getDataElements().stream()
+                .map( de -> new DataElementOperand( de ) ).collect( Collectors.toSet() ) );
         }
 
-        String joinCo = coDimensionConstraints == null && cogDimensionConstraints == null ? StringUtils.EMPTY :
-            "join categoryoptioncombos_categoryoptions c_c on dv.attributeoptioncomboid = c_c.categoryoptioncomboid ";
+        Set<Integer> wildDataElementIds = deos.stream()
+            .filter( deo -> deo.getCategoryOptionCombo() == null )
+            .map( deo -> deo.getDataElement().getId() ).collect( Collectors.toSet() );
 
-        String joinCog = cogDimensionConstraints == null ? StringUtils.EMPTY :
-            "join categoryoptiongroupmembers cogm on c_c.categoryoptionid = cogm.categoryoptionid ";
-
-        String whereCo = coDimensionConstraints == null ? StringUtils.EMPTY :
-            "and c_c.categoryoptionid in (" + TextUtils.getCommaDelimitedString( getIdentifiers( coDimensionConstraints ) ) + ") ";
-
-        String whereCog = cogDimensionConstraints == null ? StringUtils.EMPTY :
-            "and cogm.categoryoptiongroupid in (" + TextUtils.getCommaDelimitedString( getIdentifiers( cogDimensionConstraints ) ) + ") ";
-
-        String whereCombo = attributeCombo == null ? StringUtils.EMPTY :
-            "and dv.attributeoptioncomboid = " + attributeCombo.getId() + " ";
-
-        String sql = "select dv.sourceid, dv.dataelementid, coc.uid, aoc.uid, dv.value, p.startdate, p.enddate " +
-            "from datavalue dv " +
-            "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-            "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
-            "inner join period p on p.periodid = dv.periodid " + joinCo + joinCog +
-            "where dv.dataelementid in (" + TextUtils.getCommaDelimitedString(getIdentifiers( deosByDataElement.keySet() ) ) + ") " +
-            "and dv.sourceid in (" + TextUtils.getCommaDelimitedString(getIdentifiers( orgUnits ) ) + ") " +
-            "and p.startdate <= '" + DateUtils.getMediumDateString( date ) + "' " +
-            "and p.enddate >= '" + DateUtils.getMediumDateString( date ) + "' " +
-            "and p.periodtypeid in (" + TextUtils.getCommaDelimitedString( getIds( periodTypes ) ) + ") " +
-            "and dv.deleted is false " +
-            whereCo + whereCog + whereCombo;
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        MapMapMap<Integer, String, DataElementOperand, Long> checkForDuplicates = new MapMapMap<>();
-
-        int rowCount = 0;
-
-        Map<Integer, DataElement> dataElementsById = IdentifiableObjectUtils.getIdentifierMap( deosByDataElement.keySet() );
-
-        while ( rowSet.next() )
-        {
-            rowCount++;
-            int orgUnitId = rowSet.getInt( 1 );
-            int dataElementId = rowSet.getInt( 2 );
-            String categoryOptionCombo = rowSet.getString( 3 );
-            String attributeOptionCombo = rowSet.getString( 4 );
-            Double value = MathUtils.parseDouble( rowSet.getString( 5 ) );
-            Date periodStartDate = rowSet.getDate( 6 );
-            Date periodEndDate = rowSet.getDate( 7 );
-            long periodInterval = periodEndDate.getTime() - periodStartDate.getTime();
-            DataElement dataElement = dataElementsById.get( dataElementId );
-
-            if ( value != null )
-            {
-                Set<DataElementOperand> deos = deosByDataElement.get( dataElement );
-
-                for ( DataElementOperand deo : deos )
-                {
-                    if ( deo.getCategoryOptionCombo() == null || deo.getCategoryOptionCombo().getUid().equals( categoryOptionCombo ) )
-                    {
-                        double existingValue = ObjectUtils.firstNonNull( map.getValue(orgUnitId, attributeOptionCombo, deo), 0.0 );
-
-                        Long existingPeriodInterval = checkForDuplicates.getValue( orgUnitId, attributeOptionCombo, deo );
-
-                        if ( existingPeriodInterval != null )
-                        {
-                            if ( existingPeriodInterval < periodInterval )
-                            {
-                                continue; // Do not overwrite the previous value if for a shorter interval
-                            }
-                            else if ( existingPeriodInterval > periodInterval )
-                            {
-                                existingValue = 0.0; // Overwrite previous value if for a longer interval
-                            }
-                        }
-
-                        map.putEntry( orgUnitId, attributeOptionCombo, deo, value + existingValue);
-
-                        checkForDuplicates.putEntry( orgUnitId, attributeOptionCombo, deo, periodInterval );
-                    }
-                }
-            }
-        }
-
-        log.trace( "getDataValueMapByAttributeCombo: " + rowCount + " rows into " + map.size() + " map entries from \"" + sql + "\"" );
-
-        return map;
-    }
-    
-    private Set<Integer> getIds( Collection<PeriodType> periodTypes )
-    {
-        Set<Integer> ids = new HashSet<>();
-        
-        for ( PeriodType pt : periodTypes )
-        {
-            ids.add( pt.getId() );
-        }
-        
-        return ids;
+        return deos.stream()
+            .filter( deo -> deo.getCategoryOptionCombo() == null || !wildDataElementIds.contains( deo.getDataElement().getId() ) )
+            .collect( Collectors.toList() );
     }
 }

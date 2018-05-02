@@ -30,14 +30,20 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
@@ -98,6 +104,8 @@ public class DataValidationTask
     private OrganisationUnit orgUnit;       // Current organisation unit.
     private int orgUnitId;                  // Current organisation unit id.
     private ValidationRuleExtended ruleX;   // Current rule extended.
+
+    private Map<Integer, String> attributeOptionComboMap = new HashMap<>();
 
     // Data for current period and all rules being evaluated:
     private MapMapMap<Integer, String, DimensionalItemObject, Double> dataMap;
@@ -227,7 +235,7 @@ public class DataValidationTask
         {
             validationResults.add( new ValidationResult(
                 ruleX.getRule(), period, orgUnit,
-                categoryService.getCategoryOptionCombo( optionCombo ),
+                getAttributeOptionCombo( optionCombo ),
                 roundSignificant( zeroIfNull( leftSide ) ),
                 roundSignificant( zeroIfNull( rightSide ) ),
                 periodService.getDayInPeriod( period, new Date() ) ) );
@@ -338,6 +346,54 @@ public class DataValidationTask
         }
     }
 
+    private Period getPeriod( int id )
+    {
+        Period p = context.getPeriodIdMap().get( id );
+
+        if ( p == null )
+        {
+            p = periodService.getPeriod( id );
+
+            context.getPeriodIdMap().put( id, p );
+        }
+
+        return p;
+    }
+
+    private CategoryOptionCombo getAttributeOptionCombo( int id )
+    {
+        CategoryOptionCombo aoc = context.getAocIdMap().get( id );
+
+        if ( aoc == null )
+        {
+            aoc = categoryService.getCategoryOptionCombo( id );
+
+            addToAocCache( aoc );
+        }
+
+        return aoc;
+    }
+
+    private CategoryOptionCombo getAttributeOptionCombo( String uid )
+    {
+        CategoryOptionCombo aoc = context.getAocUidMap().get( uid );
+
+        if ( aoc == null )
+        {
+            aoc = categoryService.getCategoryOptionCombo( uid );
+
+            addToAocCache( aoc );
+        }
+
+        return aoc;
+    }
+
+    private void addToAocCache( CategoryOptionCombo aoc )
+    {
+        context.getAocIdMap().put( aoc.getId(), aoc );
+        context.getAocUidMap().put( aoc.getUid(), aoc );
+    }
+
     /**
      * Evaluates an expression, returning a map of values by attribute option
      * combo.
@@ -395,11 +451,79 @@ public class DataValidationTask
      */
     private void getDataMap()
     {
-        dataMap = dataValueService.getDataValueMapByAttributeCombo(
-            periodTypeX.getDataItems(), period.getStartDate(), orgUnits,
-            periodTypeX.getAllowedPeriodTypes(),
-            context.getAttributeCombo(), context.getCogDimensionConstraints(),
-            context.getCoDimensionConstraints() );
+        DataExportParams params = new DataExportParams();
+        params.setDataElements( periodTypeX.getDataElements() );
+        params.setDataElementOperands( periodTypeX.getDataElementOperands() );
+        params.setIncludedDate( period.getStartDate() );
+        params.setOrganisationUnits( new HashSet<>( orgUnits ) );
+        params.setPeriodTypes( periodTypeX.getAllowedPeriodTypes() );
+        params.setCoDimensionConstraints( context.getCoDimensionConstraints() );
+        params.setCogDimensionConstraints( context.getCogDimensionConstraints() );
+
+        if ( context.getAttributeCombo() != null )
+        {
+            params.setAttributeOptionCombos( Sets.newHashSet( context.getAttributeCombo() ) );
+        }
+
+        List<DeflatedDataValue> dataValues = dataValueService.getDeflatedDataValues( params );
+
+        dataMap = new MapMapMap<>();
+
+        MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates = new MapMapMap<>();
+
+        for ( DeflatedDataValue dv : dataValues )
+        {
+            DataElement dataElement = periodTypeX.getDataElementIdMap().get( dv.getDataElementId() );
+            String deoIdKey = periodTypeX.getDeoIds( dv.getDataElementId(), dv.getCategoryOptionComboId() );
+            DataElementOperand dataElementOperand = periodTypeX.getDataElementOperandIdMap().get( deoIdKey );
+            Period p = getPeriod( dv.getPeriodId() );
+            int orgUnitId = dv.getSourceId();
+            String attributeOptionComboUid = getAttributeOptionCombo( dv.getAttributeOptionComboId() ).getUid();
+            String valueString = dv.getValue();
+            Double value;
+
+            try {
+                value = Double.parseDouble( valueString );
+            } catch ( NumberFormatException e ) {
+                continue;
+            }
+
+            if ( dataElement != null )
+            {
+                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElement, value, p, checkForDuplicates );
+            }
+
+            if ( dataElementOperand != null )
+            {
+                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElementOperand, value, p, checkForDuplicates );
+            }
+        }
+    }
+
+    private void addValueToDataMap( int orgUnitId, String aocUid, DimensionalItemObject dimItemObject,
+        Double value, Period p, MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates )
+    {
+        double existingValue = ObjectUtils.firstNonNull( dataMap.getValue( orgUnitId, aocUid, dimItemObject ), 0.0 );
+
+        long periodInterval = p.getEndDate().getTime() - p.getStartDate().getTime();
+
+        Long existingPeriodInterval = checkForDuplicates.getValue( orgUnitId, aocUid, dimItemObject );
+
+        if ( existingPeriodInterval != null )
+        {
+            if ( existingPeriodInterval < periodInterval )
+            {
+                return; // Do not overwrite the previous value if for a shorter interval
+            }
+            else if ( existingPeriodInterval > periodInterval )
+            {
+                existingValue = 0.0; // Overwrite previous value if for a longer interval
+            }
+        }
+
+        dataMap.putEntry( orgUnitId, aocUid, dimItemObject, value + existingValue);
+
+        checkForDuplicates.putEntry( orgUnitId, aocUid, dimItemObject, periodInterval );
     }
 
     /**

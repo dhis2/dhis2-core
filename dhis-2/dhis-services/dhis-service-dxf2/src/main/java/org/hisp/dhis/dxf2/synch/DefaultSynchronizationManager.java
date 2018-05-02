@@ -31,8 +31,6 @@ package org.hisp.dhis.dxf2.synch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.configuration.Configuration;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
 import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
@@ -47,8 +45,9 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
+import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -59,12 +58,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -76,8 +71,6 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.Date;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-
 /**
  * @author Lars Helge Overland
  */
@@ -86,8 +79,6 @@ public class DefaultSynchronizationManager
 {
     private static final Log log = LogFactory.getLog( DefaultSynchronizationManager.class );
 
-    private static final String PING_PATH = "/api/system/ping";
-
     private static final String HEADER_AUTHORIZATION = "Authorization";
 
     @Autowired
@@ -95,9 +86,6 @@ public class DefaultSynchronizationManager
 
     @Autowired
     private DataValueService dataValueService;
-
-    @Autowired
-    private ConfigurationService configurationService;
 
     @Autowired
     private MetadataImportService importService;
@@ -127,72 +115,7 @@ public class DefaultSynchronizationManager
     @Override
     public AvailabilityStatus isRemoteServerAvailable()
     {
-        Configuration config = configurationService.getConfiguration();
-
-        if ( !isRemoteServerConfigured( config ) )
-        {
-            return new AvailabilityStatus( false, "Remote server is not configured", HttpStatus.BAD_GATEWAY );
-        }
-
-        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + PING_PATH;
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-
-        log.debug( String.format( "Remote server ping URL: %s, username: %s", url, username ) );
-
-        HttpEntity<String> request = getBasicAuthRequestEntity( username, password );
-
-        ResponseEntity<String> response = null;
-        HttpStatus sc = null;
-        String st = null;
-        AvailabilityStatus status = null;
-
-        try
-        {
-            response = restTemplate.exchange( url, HttpMethod.GET, request, String.class );
-            sc = response.getStatusCode();
-        }
-        catch ( HttpClientErrorException ex )
-        {
-            sc = ex.getStatusCode();
-            st = ex.getStatusText();
-        }
-        catch ( HttpServerErrorException ex )
-        {
-            sc = ex.getStatusCode();
-            st = ex.getStatusText();
-        }
-        catch ( ResourceAccessException ex )
-        {
-            return new AvailabilityStatus( false, "Network is unreachable", HttpStatus.BAD_GATEWAY );
-        }
-
-        log.debug( "Response status code: " + sc );
-
-        if ( HttpStatus.FOUND.equals( sc ) )
-        {
-            status = new AvailabilityStatus( false, "No authentication was provided", sc );
-        }
-        else if ( HttpStatus.UNAUTHORIZED.equals( sc ) )
-        {
-            status = new AvailabilityStatus( false, "Authentication failed", sc );
-        }
-        else if ( HttpStatus.INTERNAL_SERVER_ERROR.equals( sc ) )
-        {
-            status = new AvailabilityStatus( false, "Remote server experienced an internal error", sc );
-        }
-        else if ( HttpStatus.OK.equals( sc ) )
-        {
-            status = new AvailabilityStatus( true, "Authentication was successful", sc );
-        }
-        else
-        {
-            status = new AvailabilityStatus( false, "Server is not available: " + st, sc );
-        }
-
-        log.info( "Status: " + status );
-
-        return status;
+        return SyncUtils.isRemoteServerAvailable( systemSettingManager, restTemplate );
     }
 
     @Override
@@ -260,7 +183,6 @@ public class DefaultSynchronizationManager
             summary = restTemplate
                 .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
         }
-
         catch ( HttpClientErrorException ex )
         {
             String responseBody = ex.getResponseBodyAsString();
@@ -474,40 +396,5 @@ public class DefaultSynchronizationManager
     private void setLastEventSynchSuccess( Date time )
     {
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC, time );
-    }
-
-    /**
-     * Indicates whether a remote server has been properly configured.
-     */
-    private boolean isRemoteServerConfigured( Configuration config )
-    {
-        String url = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL );
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-
-        if ( isEmpty( url ) )
-        {
-            log.info( "Remote server URL not set" );
-            return false;
-        }
-
-        if ( isEmpty( username ) || isEmpty( password ) )
-        {
-            log.info( "Remote server username or password not set" );
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Creates an HTTP entity for requests with appropriate header for basic
-     * authentication.
-     */
-    private <T> HttpEntity<T> getBasicAuthRequestEntity( String username, String password )
-    {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( username, password ) );
-        return new HttpEntity<>( headers );
     }
 }

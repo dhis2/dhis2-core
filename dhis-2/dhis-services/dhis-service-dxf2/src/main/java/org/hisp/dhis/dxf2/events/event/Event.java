@@ -98,6 +98,8 @@ public class Event
     private String completedBy;
 
     private String completedDate;
+    
+    private int optionSize;
 
     public Event()
     {
@@ -415,8 +417,16 @@ public class Event
     {
         this.deleted = deleted;
     }
+    
+    public int getOptionSize() {
+		return optionSize;
+	}
 
-    @Override
+	public void setOptionSize(int optionSize) {
+		this.optionSize = optionSize;
+	}
+
+	@Override
     public boolean equals( Object o )
     {
         if ( this == o ) return true;

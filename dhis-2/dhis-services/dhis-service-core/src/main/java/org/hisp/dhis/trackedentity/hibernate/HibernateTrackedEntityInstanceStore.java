@@ -49,7 +49,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -254,7 +259,7 @@ public class HibernateTrackedEntityInstanceStore
                 "ou.uid as " + ORG_UNIT_ID + ", " +
                 "ou.name as " + ORG_UNIT_NAME + ", " +
                 "te.uid as " + TRACKED_ENTITY_ID + ", " +
-                ( params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "" ) +
+                (params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "") +
                 "tei.inactive as " + INACTIVE_ID + ", ";
 
         for ( QueryItem item : params.getAttributes() )
@@ -293,7 +298,7 @@ public class HibernateTrackedEntityInstanceStore
         // Query
         // ---------------------------------------------------------------------
 
-        log.info( "Query: "+ sql );
+        log.info( "Query: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -437,8 +442,7 @@ public class HibernateTrackedEntityInstanceStore
                 sql += "left join programstageinstance psi " + "on pi.programinstanceid = psi.programinstanceid and psi.deleted is false ";
             }
 
-            sql += "where pi.trackedentityinstanceid = tei.trackedentityinstanceid " + "and pi.programid = "
-                + params.getProgram().getId() + " ";
+            sql += "where pi.trackedentityinstanceid = tei.trackedentityinstanceid " + "and pi.programid = " + params.getProgram().getId() + " ";
 
             if ( params.hasProgramStatus() )
             {
@@ -618,6 +622,13 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
+        return result != null && result > 0;
+    }
+
+    @Override
     protected void preProcessDetachedCriteria( DetachedCriteria criteria )
     {
         // Filter out soft deleted values
@@ -627,6 +638,6 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
     {
-        return ( trackedEntityInstance == null || trackedEntityInstance.isDeleted() ) ? null : trackedEntityInstance;
+        return (trackedEntityInstance == null || trackedEntityInstance.isDeleted()) ? null : trackedEntityInstance;
     }
 }

@@ -32,6 +32,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
@@ -40,6 +41,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -203,7 +205,7 @@ public final class WebMessageUtils
     public static WebMessage importSummaries( ImportSummaries importSummaries )
     {
         WebMessage webMessage = new WebMessage();
-        
+
         if ( importSummaries.isStatus( ImportStatus.ERROR ) )
         {
             webMessage.setMessage( "An error occurred, please check import summary." );
@@ -212,7 +214,7 @@ public final class WebMessageUtils
         }
         else if ( importSummaries.isStatus( ImportStatus.WARNING ) )
         {
-            webMessage.setMessage( "One more conflicts encountered, please check import summary." );
+            webMessage.setMessage( "One or more conflicts encountered, please check import summary." );
             webMessage.setStatus( Status.WARNING );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
@@ -298,6 +300,14 @@ public final class WebMessageUtils
             webMessage.setStatus( Status.WARNING );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
+
+        return webMessage;
+    }
+
+    public static WebMessage jobConfigurationReport( JobConfiguration jobConfiguration )
+    {
+        WebMessage webMessage = WebMessageUtils.ok( "Initiated " + jobConfiguration.getName() );
+        webMessage.setResponse( new JobConfigurationWebMessageResponse( jobConfiguration ) );
 
         return webMessage;
     }

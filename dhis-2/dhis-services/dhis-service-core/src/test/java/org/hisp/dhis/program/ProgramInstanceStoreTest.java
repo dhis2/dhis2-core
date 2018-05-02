@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -222,9 +223,9 @@ public class ProgramInstanceStoreTest
     public void testGetWithScheduledNotifications()
     {
         ProgramNotificationTemplate
-            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE ),
-            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE ),
-            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE );
+            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
 
         programNotificationStore.save( a1 );
         programNotificationStore.save( a2 );

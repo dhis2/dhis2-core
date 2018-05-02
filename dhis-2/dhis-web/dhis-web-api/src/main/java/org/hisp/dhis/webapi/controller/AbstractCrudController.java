@@ -1158,7 +1158,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep, User user )
     {
         boolean generateLinks = hasHref( fields );
-        boolean generateAccess = hasAccess( fields );
 
         if ( generateLinks )
         {

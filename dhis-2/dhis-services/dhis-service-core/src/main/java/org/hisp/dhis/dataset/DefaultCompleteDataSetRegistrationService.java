@@ -1,24 +1,5 @@
 package org.hisp.dhis.dataset;
 
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -46,6 +27,29 @@ import java.util.List;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import com.google.common.collect.Sets;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -86,7 +90,7 @@ public class DefaultCompleteDataSetRegistrationService
     private CurrentUserService currentUserService;
 
     @Autowired
-    private PeriodService periodService;
+    private MessageService messageService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService
@@ -101,6 +105,11 @@ public class DefaultCompleteDataSetRegistrationService
         }
 
         completeDataSetRegistrationStore.saveCompleteDataSetRegistration( registration );
+
+        if ( registration.getDataSet().isNotifyCompletingUser() )
+        {
+            messageService.sendCompletenessMessage( registration );
+        }
         
         notificationEventPublisher.publishEvent( registration );
     }
@@ -154,71 +163,52 @@ public class DefaultCompleteDataSetRegistrationService
 
     @Override
     public List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit )
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
         List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
 
         if ( !dataSet.getCompulsoryDataElementOperands().isEmpty() )
         {
-            Period reloadedPeriod = periodService.reloadPeriod( period );
+            DataExportParams params = new DataExportParams();
+            params.setDataElementOperands( dataSet.getCompulsoryDataElementOperands() );
+            params.setPeriods( Sets.newHashSet( period ) );
+            params.setAttributeOptionCombos( Sets.newHashSet( attributeOptionCombo ) );
+            params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
-            List<Period> periods = new ArrayList<>();
-            periods.add( reloadedPeriod );
+            List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
 
-            List<OrganisationUnit> organisationUnits = new ArrayList<>();
+            MapMapMap<Integer, Integer, Integer, Boolean> dataPresent = new MapMapMap<>();
 
-            if ( multiOrgUnit )
+            for ( DeflatedDataValue dv : deflatedDataValues )
             {
-                organisationUnits.addAll( organisationUnit.getChildren() );
+                dataPresent.putEntry( dv.getSourceId(), dv.getDataElementId(), dv.getCategoryOptionComboId(), true );
             }
-            else
+
+            User currentUser = currentUserService.getCurrentUser();
+
+            for ( DataElementOperand deo : dataSet.getCompulsoryDataElementOperands() )
             {
-                organisationUnits.add( organisationUnit );
-            }
+                List<String> errors = accessManager.canWrite( currentUser, deo );
 
-            Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> dataValues = new Map4<>();
-
-            dataValues = dataValueService.getDataElementOperandValues( dataSet.getCompulsoryDataElementOperands(),
-                periods, organisationUnits );
-
-            if ( dataValues.isEmpty() )
-            {
-                missingDataElementOperands.addAll( dataSet.getCompulsoryDataElementOperands() );
-            }
-            else
-            {
-                User currentUser = currentUserService.getCurrentUser();
-
-                for ( DataElementOperand dataElementOperand : dataSet.getCompulsoryDataElementOperands() )
+                if ( !errors.isEmpty() )
                 {
-                    List<String> errors = accessManager.canWrite( currentUser, dataElementOperand );
+                    continue;
+                }
 
-                    if ( !errors.isEmpty() )
+                MapMap<Integer, Integer, Boolean> ouDataPresent = dataPresent.get( organisationUnit.getId() );
+
+                if ( ouDataPresent != null )
+                {
+                    Map<Integer, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
+
+                    if ( deDataPresent != null && ( deo.getCategoryOptionCombo() == null || deDataPresent.get( deo.getCategoryOptionCombo().getId() ) != null ) )
                     {
                         continue;
                     }
-
-                    if ( multiOrgUnit )
-                    {
-                        for ( OrganisationUnit child : organisationUnit.getChildren() )
-                        {
-                            if ( dataValues.getValue( child, period, attributeOptionCombo.getUid(),
-                                dataElementOperand ) == null )
-                            {
-                                missingDataElementOperands.add( dataElementOperand );
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if ( dataValues.getValue( organisationUnit, period, attributeOptionCombo.getUid(), dataElementOperand ) == null )
-                        {
-                            missingDataElementOperands.add( dataElementOperand );
-                        }
-                    }
                 }
-            }
 
+                missingDataElementOperands.add( deo );
+            }
         }
 
         return missingDataElementOperands;

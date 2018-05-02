@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
@@ -42,7 +43,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -84,7 +84,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.JacksonUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -116,6 +115,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
 
 /**
@@ -239,14 +239,12 @@ public class EventController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
-
-        if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+        
+        if ( attributeOptionCombo == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
-        }
+        }        
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
@@ -304,16 +302,9 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.addAll( Preset.ALL.getFields() );
-        }
-
-        boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
-
-        if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
-        }
+        }        
+        
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
@@ -391,14 +382,7 @@ public class EventController
         IdSchemes idSchemes, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
     {
 
-        boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
-
-        if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
-        }
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -531,7 +515,7 @@ public class EventController
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
         {
             // -----------------------------------------------------------------
-            // The FileResource exists and is tied to DataValue, however the 
+            // The FileResource exists and is tied to DataValue, however the
             // underlying file content still not stored to external file store
             // -----------------------------------------------------------------
 
@@ -614,8 +598,11 @@ public class EventController
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
-                .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() )
+                .filter(
+                    importSummary -> !importOptions.isDryRun() &&
+                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                        !importOptions.getImportStrategy().isDelete() &&
+                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
                 .forEach( importSummary -> importSummary.setHref(
                     ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
@@ -657,8 +644,11 @@ public class EventController
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
-                .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                    !importOptions.getImportStrategy().isDelete() )
+                .filter(
+                    importSummary -> !importOptions.isDryRun() &&
+                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                        !importOptions.getImportStrategy().isDelete() &&
+                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
                 .forEach( importSummary -> importSummary.setHref(
                     ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
 
@@ -729,36 +719,29 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromXml( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
-        importSummary.setImportOptions( importOptions );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        updateEvent( updatedEvent, false, importOptions, request, response );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException, WebMessageException
+        @PathVariable( "uid" ) String uid, ImportOptions importOptions ) throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
+        updateEvent( updatedEvent, false, importOptions, request, response );
+    }
+
+    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    {
+        ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions );
         importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
@@ -767,24 +750,19 @@ public class EventController
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid ) throws IOException, WebMessageException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
         DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
+            WebMessage webMsg = WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid );
+            webMessageService.send( webMsg, response, request );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        ImportSummary importSummary = eventService.updateEvent( updatedEvent, true );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        updateEvent( updatedEvent, true, null, request, response );
     }
 
     @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
@@ -810,24 +788,10 @@ public class EventController
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid ) throws WebMessageException
+        @PathVariable( "uid" ) String uid )
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
-        }
-
-        response.setStatus( HttpServletResponse.SC_OK );
-
-        try
-        {
-            ImportSummary importSummary = eventService.deleteEvent( uid );
-            webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
-        }
-        catch ( Exception ex )
-        {
-            webMessageService.send( WebMessageUtils.conflict( "Unable to delete event " + uid, ex.getMessage() ), response, request );
-        }
+        ImportSummary importSummary = eventService.deleteEvent( uid );
+        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
     // -------------------------------------------------------------------------
@@ -848,8 +812,8 @@ public class EventController
             EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
-        JacksonUtils.fromObjectToReponse( response, jobId );
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
+        webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
     private boolean fieldsContains( String match, List<String> fields )

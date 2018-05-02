@@ -14,7 +14,6 @@
   <name>DHIS Web Modules Maintenance</name>
   
   <modules>
-    <module>dhis-web-maintenance-user</module>
     <module>dhis-web-maintenance-mobile</module>
   </modules>
   <properties>

@@ -97,6 +97,8 @@ public class TrackedEntityAttribute
 
     private Boolean programScope = false;
 
+    private Boolean skipSynchronization = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -377,7 +379,7 @@ public class TrackedEntityAttribute
     {
         this.optionSet = optionSet;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getConfidential()
@@ -424,10 +426,22 @@ public class TrackedEntityAttribute
     {
         this.formName = formName;
     }
-    
+
     public Boolean isSystemWideUnique()
     {
         return isUnique() && !getProgramScope() && !getOrgunitScope();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
+
+    public void setSkipSynchronization( Boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
     }
 
 }

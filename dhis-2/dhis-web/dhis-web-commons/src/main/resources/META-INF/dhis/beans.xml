@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="
-		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
 
-  <!-- Web Portal -->
+	<!-- Web Portal -->
+  
+   <context:component-scan base-package="org.hisp.dhis.configuration" />
+ 
 
   <bean id="org.hisp.dhis.webportal.module.ModuleManager" class="org.hisp.dhis.webportal.module.DefaultModuleManager">
     <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />
@@ -290,6 +294,11 @@
   </bean>
 
   <!-- Common actions -->
+
+  <bean id="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction" class="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction"
+        scope="prototype">
+    <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
+  </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetUserAction" class="org.hisp.dhis.commons.action.GetUserAction" scope="prototype">
     <property name="userService" ref="org.hisp.dhis.user.UserService" />

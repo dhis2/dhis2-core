@@ -42,6 +42,8 @@
 
   <bean class="org.hisp.dhis.amqp.RabbitMQAmqpService" />
 
+  <bean class="org.hisp.dhis.kafka.DefaultKafkaManager" />
+
   <!-- Store definitions -->
 
   <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
@@ -119,7 +121,7 @@
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 
-  <bean id="org.hisp.dhis.datavalue.DataAccessManager" class="org.hisp.dhis.datavalue.DefaultAggregateAccessManager"/>
+  <bean id="org.hisp.dhis.datavalue.DataAccessManager" class="org.hisp.dhis.datavalue.DefaultAggregateAccessManager" />
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore">
     <property name="clazz" value="org.hisp.dhis.dataapproval.DataApproval" />
@@ -537,7 +539,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramSectionStore"
-        class="org.hisp.dhis.program.hibernate.HibernateProgramSectionStore">
+    class="org.hisp.dhis.program.hibernate.HibernateProgramSectionStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramSection" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
@@ -576,14 +578,14 @@
     class="org.hisp.dhis.hibernate.HibernateGenericStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramExpression" />
     <property name="sessionFactory" ref="sessionFactory" />
-  </bean>  
-  
+  </bean>
+
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" class="org.hisp.dhis.trackedentityfilter.hibernate.HibernateTrackedEntityInstanceFilterStore">
     <property name="clazz" value="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstance" />
@@ -627,6 +629,14 @@
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
+    
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService"
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceAuditService" />
+    
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore"
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">    
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
 
   <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
@@ -666,7 +676,7 @@
 
   <bean id="org.hisp.dhis.programrule.engine.RuleActionImplementer" class="org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" />
 
-  
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityTypeStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityTypeStore">
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityType" />
@@ -954,7 +964,7 @@
     <property name="taskExecutor" ref="taskScheduler" />
   </bean>
 
-  <bean id="org.hisp.dhis.user.CurrentUserService" class="org.hisp.dhis.user.DefaultCurrentUserService"/>
+  <bean id="org.hisp.dhis.user.CurrentUserService" class="org.hisp.dhis.user.DefaultCurrentUserService" />
 
   <bean id="jobConfigurationService" class="org.hisp.dhis.scheduling.DefaultJobConfigurationService">
     <property name="jobConfigurationStore" ref="org.hisp.dhis.scheduling.JobConfigurationStore" />
@@ -1057,7 +1067,7 @@
   <bean id="org.hisp.dhis.color.ColorService" class="org.hisp.dhis.color.DefaultColorService">
     <property name="colorSetStore" ref="org.hisp.dhis.color.ColorSetStore" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.analytics.AnalyticsTableHookService" class="org.hisp.dhis.analytics.DefaultAnalyticsTableHookService" />
 
   <!-- SMS Services -->
@@ -1222,10 +1232,10 @@
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService" />
-    
+
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
-  </bean>  
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService" />
@@ -1270,7 +1280,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore"
-        class="org.hisp.dhis.program.notification.DefaultProgramNotificationTemplateStore">
+    class="org.hisp.dhis.program.notification.DefaultProgramNotificationTemplateStore">
     <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
@@ -1346,7 +1356,7 @@
 
   <bean id="org.hisp.dhis.i18n.I18nManager" class="org.hisp.dhis.i18n.ui.DefaultI18nManager">
     <property name="resourceBundleManager" ref="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" />
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager"/>
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
   </bean>
 
   <bean id="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" class="org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager">
@@ -1357,7 +1367,7 @@
   <!-- Scheduled jobs -->
 
   <bean id="programNotificationsJob"
-        class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
+    class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
   <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob">
     <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
@@ -1521,7 +1531,7 @@
     <property name="runlevel" value="13" />
     <property name="skipInTests" value="true" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.startup.SettingUpgrader" class="org.hisp.dhis.startup.SettingUpgrader">
     <property name="name" value="SettingUpgrader" />
     <property name="runlevel" value="14" />
@@ -1729,12 +1739,12 @@
   </bean>
 
   <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
-        class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" >
+    class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler">
     <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
   </bean>
 
   <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
-        class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" >
+    class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler">
     <constructor-arg ref="org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" />
   </bean>
 

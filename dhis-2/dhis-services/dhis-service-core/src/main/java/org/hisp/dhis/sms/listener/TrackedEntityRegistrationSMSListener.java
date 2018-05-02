@@ -30,10 +30,7 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.*;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -41,7 +38,6 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
@@ -58,6 +54,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
 {
+    private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -73,48 +71,21 @@ public class TrackedEntityRegistrationSMSListener
 
     @Autowired
     private ProgramInstanceService programInstanceService;
-    
-    @Autowired
-    private IncomingSmsService incomingSmsService;
-    
-    @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
 
     // -------------------------------------------------------------------------
     // IncomingSmsListener implementation
     // -------------------------------------------------------------------------
 
-    @Transactional
     @Override
-    public boolean accept( IncomingSms sms )
-    {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.TRACKED_ENTITY_REGISTRATION_PARSER ) != null;
-    }
-
-    @Transactional
-    @Override
-    public void receive( IncomingSms sms )
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
         String message = sms.getText();
-        SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
-
-        Map<String, String> parsedMessage = parseMessageInput( sms, smsCommand );
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         Program program = smsCommand.getProgram();
-
-        if ( orgUnits == null || orgUnits.size() == 0 )
-        {
-            sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), senderPhoneNumber, WARNING );
-
-            throw new SMSParserException( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ) );
-        }
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
 
@@ -153,29 +124,20 @@ public class TrackedEntityRegistrationSMSListener
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId ), smsCommand.getProgram(),
             new Date(), date, orgUnit );
 
-        sendFeedback( "Tracked Entity Registered Successfully", senderPhoneNumber, INFO );
-        
-        sms.setStatus( SmsMessageStatus.PROCESSED );
-        sms.setParsed( true );
-        incomingSmsService.update( sms );
+        sendFeedback( StringUtils.defaultIfBlank( smsCommand.getSuccessMessage(), SUCCESS_MESSAGE ), senderPhoneNumber, INFO );
+
+        update( sms,  SmsMessageStatus.PROCESSED, true );
     }
 
     @Override
-    protected String getDefaultPattern()
+    protected SMSCommand getSMSCommand( IncomingSms sms )
     {
-        // Not supported for TeiListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for TeiListener
-        return StringUtils.EMPTY;
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
+            ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
     }
 
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
-        SMSCode code, TrackedEntityInstance trackedEntityInstance )
+          SMSCode code, TrackedEntityInstance trackedEntityInstance )
     {
         String value = parsedMessage.get( code.getCode() );
         TrackedEntityAttribute trackedEntityAttribute = code.getTrackedEntityAttribute();
