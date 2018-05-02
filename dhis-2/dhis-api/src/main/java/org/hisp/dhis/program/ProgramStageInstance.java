@@ -28,6 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
@@ -83,6 +84,8 @@ public class ProgramStageInstance
     private String completedBy;
 
     private Date completedDate;
+
+    private Geometry geometry;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -301,5 +304,15 @@ public class ProgramStageInstance
     public void setDeleted( boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
     }
 }
