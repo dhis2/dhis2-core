@@ -651,11 +651,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-
         object.setAsFavorite( user );
         manager.updateNoAcl( object );
 
@@ -841,11 +836,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
-
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
 
         object.removeAsFavorite( user );
         manager.updateNoAcl( object );
