@@ -156,9 +156,10 @@ public class JdbcEventStore
 
         List<Event> events = new ArrayList<>();
 
-        String sql = buildSql( params, organisationUnits );
+        String sql = buildSql( params, organisationUnits, user );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        
         log.debug( "Event query SQL: " + sql );
 
         Event event = new Event();
@@ -305,7 +306,6 @@ public class JdbcEventStore
     @Override
     public List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
-
         String sql = buildGridSql( params, organisationUnits );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -337,9 +337,11 @@ public class JdbcEventStore
     @Override
     public List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+        User user = currentUserService.getCurrentUser();
+        
         List<EventRow> eventRows = new ArrayList<>();
 
-        String sql = buildSql( params, organisationUnits );
+        String sql = buildSql( params, organisationUnits, user );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -445,6 +447,8 @@ public class JdbcEventStore
     @Override
     public int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+        User user = currentUserService.getCurrentUser();
+        
         String sql = new String();
 
         if ( params.hasFilters() )
@@ -453,7 +457,7 @@ public class JdbcEventStore
         }
         else
         {
-            sql = getEventSelectQuery( params, organisationUnits );
+            sql = getEventSelectQuery( params, organisationUnits, user );
         }
 
         sql = sql.replaceFirst( "select .*? from", "select count(*) from" );
@@ -536,26 +540,17 @@ public class JdbcEventStore
      * which are joined using program stage instance id. The purpose of the
      * separate queries is to be able to page properly on events.
      */
-    private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits )
+    private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
-        User user = currentUserService.getCurrentUser();
-
         String sql = "select * from (";
 
-        sql += getEventSelectQuery( params, organisationUnits );
+        sql += getEventSelectQuery( params, organisationUnits, user );
 
         sql += getOrderQuery( params.getOrders() );
 
         sql += getEventPagingQuery( params );
 
         sql += ") as event left join (";
-
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
-        {
-            sql += getCategoryOptionSharingForUser( user );
-
-            sql += "left join (";
-        }
 
         if ( params.isIncludeAttributes() )
         {
@@ -577,7 +572,7 @@ public class JdbcEventStore
         return sql;
     }
 
-    private String getEventSelectQuery( EventSearchParams params, List<OrganisationUnit> organisationUnits )
+    private String getEventSelectQuery( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
         List<Integer> orgUnitIds = getIdentifiers( organisationUnits );
 
@@ -586,22 +581,33 @@ public class JdbcEventStore
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, psi.longitude as psi_longitude, "
             + "psi.latitude as psi_latitude, psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
-            + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, "
-            + "deco.uid AS deco_uid, pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
-            + "p.type as p_type, ps.uid as ps_uid, ps.code as ps_code, ps.capturecoordinates as ps_capturecoordinates, "
-            + "ou.uid as ou_uid, ou.code as ou_code, ou.name as ou_name, "
-            + "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive "
-            + "from programstageinstance psi "
-            + "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid "
-            + "inner join program p on p.programid=pi.programid "
-            + "inner join programstage ps on ps.programstageid=psi.programstageid "
-            + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
-            + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
-            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
-            + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
-            + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
+            + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, ";            
+            
+        if ( ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
+        {
+            sql += "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, ";
+        }
+            
+        sql += "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, p.uid as p_uid, p.code as p_code, "
+        + "p.type as p_type, ps.uid as ps_uid, ps.code as ps_code, ps.capturecoordinates as ps_capturecoordinates, "
+        + "ou.uid as ou_uid, ou.code as ou_code, ou.name as ou_name, "
+        + "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive "
+        + "from programstageinstance psi "
+        + "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid "
+        + "inner join program p on p.programid=pi.programid "
+        + "inner join programstage ps on ps.programstageid=psi.programstageid "
+        + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
+        + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
+        + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
+        + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
+        + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
+        + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
 
+        if ( ( params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
+        {
+            sql += getCategoryOptionSharingForUser( user );
+        }
+        
         if ( params.getTrackedEntityInstance() != null )
         {
             sql += hlp.whereAnd() + " tei.trackedentityinstanceid=" + params.getTrackedEntityInstance().getId() + " ";
@@ -833,9 +839,11 @@ public class JdbcEventStore
     private String getCategoryOptionSharingForUser( User user )
     {
         List<Integer> userGroupIds = getIdentifiers( user.getGroups() );
+        
+        String sql = " left join ( "; 
 
-        String sql = "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
-            + "as cocount on event.coc_categoryoptioncomboid = cocount.categoryoptioncomboid "
+        sql += "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+            + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
             + "left join ("
             + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
             + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
@@ -851,7 +859,7 @@ public class JdbcEventStore
             sql += " or uga.usergroupid in (" + getCommaDelimitedString( userGroupIds ) + ") ";
         }
 
-        sql += " ) as decoa on event.cocco_categoryoptionid = decoa.deco_id ";
+        sql += " ) as decoa on cocco.categoryoptionid = decoa.deco_id ";
 
         return sql;
     }
