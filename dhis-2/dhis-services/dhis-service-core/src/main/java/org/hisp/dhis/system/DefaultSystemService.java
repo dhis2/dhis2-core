@@ -151,6 +151,20 @@ public class DefaultSystemService
 
         setSystemMetadataVersionInfo( info );
 
+        // ---------------------------------------------------------------------
+        // Kafka
+        // ---------------------------------------------------------------------
+
+        Kafka kafka = new Kafka(
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) )
+        );
+
+        if ( kafka.isValid() )
+        {
+            info.setKafka( kafka );
+        }
+
         return info;
     }
 
@@ -254,20 +268,6 @@ public class DefaultSystemService
         if ( rabbitMQ.isValid() )
         {
             info.setRabbitMQ( rabbitMQ );
-        }
-
-        // ---------------------------------------------------------------------
-        // Kafka
-        // ---------------------------------------------------------------------
-
-        Kafka kafka = new Kafka(
-            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
-            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) )
-        );
-
-        if ( kafka.isValid() )
-        {
-            info.setKafka( kafka );
         }
 
         // ---------------------------------------------------------------------

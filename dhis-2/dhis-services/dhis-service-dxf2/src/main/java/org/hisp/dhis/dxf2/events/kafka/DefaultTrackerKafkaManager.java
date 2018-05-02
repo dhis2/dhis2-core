@@ -29,6 +29,9 @@ package org.hisp.dhis.dxf2.events.kafka;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.common.CodeGenerator;
@@ -47,6 +50,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -71,6 +75,10 @@ public class DefaultTrackerKafkaManager
     private KafkaTemplate<String, KafkaEnrollment> ktEnrollment;
     private KafkaTemplate<String, KafkaTrackedEntity> ktTrackedEntity;
 
+    private Consumer<String, KafkaEvent> cEvent;
+    private Consumer<String, KafkaEnrollment> cEnrollment;
+    private Consumer<String, KafkaTrackedEntity> cTrackedEntity;
+
     public DefaultTrackerKafkaManager( KafkaManager kafkaManager )
     {
         this.kafkaManager = kafkaManager;
@@ -92,6 +100,7 @@ public class DefaultTrackerKafkaManager
 
         this.cfEvent = kafkaManager.getConsumerFactory(
             new StringDeserializer(), new JsonDeserializer<>( KafkaEvent.class, jsonMapper ), GROUP_BULK_EVENTS );
+
         this.cfEnrollment = kafkaManager.getConsumerFactory(
             new StringDeserializer(), new JsonDeserializer<>( KafkaEnrollment.class, jsonMapper ), GROUP_BULK_ENROLLMENTS );
         this.cfTrackedEntity = kafkaManager.getConsumerFactory(
@@ -100,6 +109,14 @@ public class DefaultTrackerKafkaManager
         this.ktEvent = kafkaManager.getTemplate( this.pfEvent );
         this.ktEnrollment = kafkaManager.getTemplate( this.pfEnrollment );
         this.ktTrackedEntity = kafkaManager.getTemplate( this.pfTrackedEntity );
+
+        this.cEvent = getCfEvent().createConsumer( "events" );
+        this.cEnrollment = getCfEnrollment().createConsumer( "enrollments" );
+        this.cTrackedEntity = getCfTrackedEntity().createConsumer( "tracked-entities" );
+
+        this.cTrackedEntity.subscribe( Collections.singleton( TOPIC_BULK_TRACKED_ENTITIES ) );
+        this.cEvent.subscribe( Collections.singleton( TOPIC_BULK_EVENTS ) );
+        this.cEnrollment.subscribe( Collections.singleton( TOPIC_BULK_ENROLLMENTS ) );
     }
 
     @Override
@@ -201,6 +218,19 @@ public class DefaultTrackerKafkaManager
             }
 
             ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES, new KafkaTrackedEntity( user.getUid(), importOptions, trackedEntity ) );
+        }
+    }
+
+    @Override
+    public void consumeEvents()
+    {
+        ConsumerRecords<String, KafkaEvent> records = cEvent.poll( 0 );
+
+        System.err.println( "Consuming events " + records.count() );
+
+        for ( ConsumerRecord<String, KafkaEvent> record : records )
+        {
+            System.err.println( record.value().getUser() );
         }
     }
 }

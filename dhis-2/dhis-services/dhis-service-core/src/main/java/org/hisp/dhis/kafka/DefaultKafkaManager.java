@@ -120,6 +120,7 @@ public class DefaultKafkaManager implements KafkaManager
         Map<String, Object> props = new HashMap<>();
         props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
         props.put( ConsumerConfig.GROUP_ID_CONFIG, group );
+        props.put( ConsumerConfig.CLIENT_ID_CONFIG, "dhis2" );
         props.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true );
         props.put( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest" );
         props.put( ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100" );
@@ -139,10 +140,10 @@ public class DefaultKafkaManager implements KafkaManager
         Map<String, Object> props = new HashMap<>();
         props.put( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
         props.put( ProducerConfig.RETRIES_CONFIG, kafka.getRetries() );
-        props.put( ProducerConfig.BATCH_SIZE_CONFIG, 16384 );
-        props.put( ProducerConfig.LINGER_MS_CONFIG, 10 );
-        props.put( ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432 );
-        props.put( ProducerConfig.ACKS_CONFIG, 1 );
+        props.put( ProducerConfig.BATCH_SIZE_CONFIG, "16384" );
+        props.put( ProducerConfig.LINGER_MS_CONFIG, "10" );
+        props.put( ProducerConfig.BUFFER_MEMORY_CONFIG, "33554432" );
+        props.put( ProducerConfig.ACKS_CONFIG, "1" );
 
         return new DefaultKafkaProducerFactory<>(
             props, keySerializer, serializer
