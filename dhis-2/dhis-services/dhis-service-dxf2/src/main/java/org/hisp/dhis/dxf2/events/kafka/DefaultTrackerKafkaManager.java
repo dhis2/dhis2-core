@@ -120,7 +120,6 @@ public class DefaultTrackerKafkaManager
         this.cTrackedEntity.subscribe( Collections.singletonList( TOPIC_BULK_TRACKED_ENTITIES ) );
         this.cEvent.subscribe( Collections.singleton( TOPIC_BULK_EVENTS ) );
         this.cEnrollment.subscribe( Collections.singleton( TOPIC_BULK_ENROLLMENTS ) );
-
     }
 
     @Override
