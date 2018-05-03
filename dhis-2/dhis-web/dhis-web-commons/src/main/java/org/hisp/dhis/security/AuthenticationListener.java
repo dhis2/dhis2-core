@@ -65,12 +65,13 @@ public class AuthenticationListener
     {
         Authentication auth = event.getAuthentication();
 
-        TwoFactorWebAuthenticationDetails authDetails =
-            (TwoFactorWebAuthenticationDetails) auth.getDetails();
+        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        {
+            TwoFactorWebAuthenticationDetails authDetails =
+                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
 
-        log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
-
-        securityService.registerFailedLogin( authDetails.getIp() );
+            log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
+        }
     }
 
     @EventListener
@@ -78,15 +79,12 @@ public class AuthenticationListener
     {
         Authentication auth = event.getAuthentication();
 
-        if (  TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
         {
             TwoFactorWebAuthenticationDetails authDetails =
-                (TwoFactorWebAuthenticationDetails) auth.getDetails();
-
+                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
 
             log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
-
-            securityService.registerSuccessfulLogin( authDetails.getIp() );
         }
 
         final String username = event.getAuthentication().getName();
@@ -101,10 +99,6 @@ public class AuthenticationListener
             userService.updateUserCredentials( credentials );
         }
 
-        if ( credentials != null )
-        {
-            securityService.registerSuccessfulLogin( username );
-        }
-
+        securityService.registerSuccessfulLogin( username );
     }
 }
