@@ -50,8 +50,11 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -228,12 +231,56 @@ public class DefaultTrackerKafkaManager
     public void consumeEvents()
     {
         ConsumerRecords<String, KafkaEvent> records = cEvent.poll( 0 );
-
-        System.err.println( "Consuming events " + records.count() );
+        Map<String, List<KafkaEvent>> events = new HashMap<>();
 
         for ( ConsumerRecord<String, KafkaEvent> record : records )
         {
-            System.err.println( record.value().getUser() );
+            if ( !events.containsKey( record.value().getUser() ) )
+            {
+                events.put( record.value().getUser(), new ArrayList<>() );
+            }
+
+            events.get( record.value().getUser() ).add( record.value() );
         }
+
+        // start event import thread
+    }
+
+    @Override
+    public void consumeEnrollments()
+    {
+        ConsumerRecords<String, KafkaEnrollment> records = cEnrollment.poll( 0 );
+        Map<String, List<KafkaEnrollment>> events = new HashMap<>();
+
+        for ( ConsumerRecord<String, KafkaEnrollment> record : records )
+        {
+            if ( !events.containsKey( record.value().getUser() ) )
+            {
+                events.put( record.value().getUser(), new ArrayList<>() );
+            }
+
+            events.get( record.value().getUser() ).add( record.value() );
+        }
+
+        // start enrollment import thread
+    }
+
+    @Override
+    public void consumeTrackedEntities()
+    {
+        ConsumerRecords<String, KafkaTrackedEntity> records = cTrackedEntity.poll( 0 );
+        Map<String, List<KafkaTrackedEntity>> events = new HashMap<>();
+
+        for ( ConsumerRecord<String, KafkaTrackedEntity> record : records )
+        {
+            if ( !events.containsKey( record.value().getUser() ) )
+            {
+                events.put( record.value().getUser(), new ArrayList<>() );
+            }
+
+            events.get( record.value().getUser() ).add( record.value() );
+        }
+
+        // start tracked entity import thread
     }
 }

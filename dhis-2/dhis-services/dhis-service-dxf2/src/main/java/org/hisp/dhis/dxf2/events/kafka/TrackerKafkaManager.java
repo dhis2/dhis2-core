@@ -79,4 +79,8 @@ public interface TrackerKafkaManager
     void dispatchTrackedEntity( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities );
 
     void consumeEvents();
+
+    void consumeEnrollments();
+
+    void consumeTrackedEntities();
 }
