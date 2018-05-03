@@ -487,6 +487,20 @@ public class DataApprovalServiceCategoryOptionGroupTest
         dataSetA.setWorkflow( workflowAll );
         dataSetB.setWorkflow( workflowAgency );
 
+        dataSetA.addOrganisationUnit( global );
+        dataSetA.addOrganisationUnit( americas );
+        dataSetA.addOrganisationUnit( asia );
+        dataSetA.addOrganisationUnit( brazil );
+        dataSetA.addOrganisationUnit( china );
+        dataSetA.addOrganisationUnit( india );
+
+        dataSetB.addOrganisationUnit( global );
+        dataSetB.addOrganisationUnit( americas );
+        dataSetB.addOrganisationUnit( asia );
+        dataSetB.addOrganisationUnit( brazil );
+        dataSetB.addOrganisationUnit( china );
+        dataSetB.addOrganisationUnit( india );
+
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
 

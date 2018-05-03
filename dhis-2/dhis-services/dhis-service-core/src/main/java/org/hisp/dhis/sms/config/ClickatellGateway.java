@@ -61,18 +61,18 @@ public class ClickatellGateway
     // Implementation
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean accept( SmsGatewayConfig gatewayConfig )
-    {
-        return gatewayConfig != null && gatewayConfig instanceof ClickatellGatewayConfig;
-    }
-
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
         return batch.getMessages()
             .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
+    }
+
+    @Override
+    protected SmsGatewayConfig getGatewayType()
+    {
+        return new ClickatellGatewayConfig();
     }
 
     @Override

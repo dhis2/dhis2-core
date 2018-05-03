@@ -103,18 +103,16 @@ public class TrackedEntityRegistrationSMSListener
 
         Map<String, String> parsedMessage = parseMessageInput( sms, smsCommand );
 
+        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( parsedMessage, smsCommand, sms ) )
+        {
+            return;
+        }
+
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
         Program program = smsCommand.getProgram();
-
-        if ( orgUnits == null || orgUnits.size() == 0 )
-        {
-            sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ), senderPhoneNumber, WARNING );
-
-            throw new SMSParserException( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ) );
-        }
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
 
@@ -158,20 +156,6 @@ public class TrackedEntityRegistrationSMSListener
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
         incomingSmsService.update( sms );
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for TeiListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for TeiListener
-        return StringUtils.EMPTY;
     }
 
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,

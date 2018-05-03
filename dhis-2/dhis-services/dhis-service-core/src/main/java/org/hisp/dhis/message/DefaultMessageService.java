@@ -254,6 +254,12 @@ public class DefaultMessageService
 
         User sender = currentUserService.getCurrentUser();
 
+        // data set completed through sms
+        if( sender == null )
+        {
+            return 0;
+        }
+
         Set<User> recipients = new HashSet<>();
 
         if ( userGroup != null )

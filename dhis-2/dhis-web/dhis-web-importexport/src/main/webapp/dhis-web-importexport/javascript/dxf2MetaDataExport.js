@@ -82,10 +82,11 @@ function exportMetaData() {
     $( '#mapViews' ).removeAttr( 'checked' );
   }
 
-  var url = "../api/27/metadata";
+  var url = "../api/metadata";
   var format = $( "#format" ).val();
   var compression = $( "#compression" ).val();
   var sharing = $( "#sharing" ).val() === "true";
+  var defaults = $( "#defaults" ).val() === "true";
 
   url += "." + format;
 
@@ -106,6 +107,11 @@ function exportMetaData() {
 
   if ( !sharing ) {
     url += "&fields=:owner,!user,!publicAccess,!userGroupAccesses";
+  }
+
+  if ( !defaults )
+  {
+    url += "&defaults=EXCLUDE";
   }
 
   log( "url" + url );

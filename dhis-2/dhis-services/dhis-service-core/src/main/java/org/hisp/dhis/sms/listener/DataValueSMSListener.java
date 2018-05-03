@@ -114,25 +114,17 @@ public class DataValueSMSListener
         SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
             ParserType.KEY_VALUE_PARSER );
 
-        Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
+        Map<String, String> parsedMessage = parseMessageInput( sms, smsCommand );
+
+        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( parsedMessage, smsCommand, sms ) )
+        {
+            return;
+        }
 
         Date date = SmsUtils.lookForDate( message );
         String senderPhoneNumber = StringUtils.replace( sms.getOriginator(), "+", "" );
-        Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
-        if ( orgUnits == null || orgUnits.size() == 0 )
-        {
-            if ( StringUtils.isEmpty( smsCommand.getNoUserMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.NO_USER_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getNoUserMessage() );
-            }
-        }
-
-        OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
+        OrganisationUnit orgUnit = getOrganisationUnits( sms ).iterator().next();
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
 
@@ -183,20 +175,6 @@ public class DataValueSMSListener
         sms.setStatus( SmsMessageStatus.PROCESSED );
         sms.setParsed( true );
         incomingSmsService.update( sms );
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for DataValueListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for DataValueListener
-        return StringUtils.EMPTY;
     }
 
     private Period getPeriod( SMSCommand command, Date date )

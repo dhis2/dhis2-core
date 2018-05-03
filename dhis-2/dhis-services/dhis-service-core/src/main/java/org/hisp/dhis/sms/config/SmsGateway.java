@@ -52,7 +52,7 @@ import org.springframework.web.client.RestTemplate;
  */
 public abstract class SmsGateway
 {
-    private static final Log log = LogFactory.getLog( ClickatellGateway.class );
+    private static final Log log = LogFactory.getLog( SmsGateway.class );
 
     private static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
             HttpStatus.ACCEPTED, HttpStatus.CREATED );
@@ -75,7 +75,12 @@ public abstract class SmsGateway
 
     protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
-    protected abstract boolean accept( SmsGatewayConfig gatewayConfig );
+    public boolean accept( SmsGatewayConfig gatewayConfig )
+    {
+        return gatewayConfig != null && gatewayConfig.getClass().isInstance( getGatewayType() );
+    }
+
+    protected abstract SmsGatewayConfig getGatewayType();
 
     protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 

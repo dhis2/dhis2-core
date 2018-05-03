@@ -91,7 +91,8 @@ public class QueryPlan
         {
             persistedQuery.setUser( user );
         }
-        else if ( nonPersistedQuery != null )
+
+        if ( nonPersistedQuery != null )
         {
             nonPersistedQuery.setUser( user );
         }

@@ -166,7 +166,7 @@ public class DataApprovalController
         DataElementCategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
 
         DataApprovalStatus status = dataApprovalService
-            .getDataApprovalStatusAndPermissions( workflow, period, organisationUnit, optionCombo );
+            .getDataApprovalStatus( workflow, period, organisationUnit, optionCombo );
 
         DataApprovalPermissions permissions = status.getPermissions();
         permissions.setState( status.getState().toString() );
@@ -253,7 +253,7 @@ public class DataApprovalController
     {
         DataElementCategoryOptionCombo optionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
-        DataApprovalStatus status = dataApprovalService.getDataApprovalStatusAndPermissions( dataSet.getWorkflow(), period,
+        DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( dataSet.getWorkflow(), period,
             organisationUnit, optionCombo );
 
         Date createdDate = status.getCreated();

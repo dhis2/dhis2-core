@@ -89,16 +89,16 @@ public class BulkSmsGateway
     }
 
     @Override
-    public boolean accept( SmsGatewayConfig gatewayConfig )
+    protected SmsGatewayConfig getGatewayType()
     {
-        return gatewayConfig != null && gatewayConfig instanceof BulkSmsGatewayConfig;
+        return new BulkSmsGatewayConfig();
     }
 
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         UriComponentsBuilder uriBuilder = createUri( (BulkSmsGatewayConfig) config, recipients, SubmissionType.SINGLE );
-        uriBuilder.queryParam( "message", text );
+        uriBuilder.queryParam( "message", stringToHex( text ) );
 
         return send( uriBuilder );
     }
@@ -160,8 +160,9 @@ public class BulkSmsGateway
         }
 
         uriBuilder.queryParam( "username", bulkSmsConfiguration.getUsername() )
-            .queryParam( "password", bulkSmsConfiguration.getPassword() ).queryParam( "allow_concat_text_sms", true )
-            .queryParam( "concat_text_sms_max_parts", 4 ).queryParam( "stop_dup_id", stopDuplicationID );
+            .queryParam( "password", bulkSmsConfiguration.getPassword() )
+            .queryParam( "stop_dup_id", stopDuplicationID )
+            .queryParam( "dca", "16bit" );
 
         return uriBuilder;
     }
@@ -193,5 +194,23 @@ public class BulkSmsGateway
     private String getRecipients( Set<String> recipients )
     {
         return StringUtils.join( recipients, "," );
+    }
+
+    private String stringToHex( String text )
+    {
+        char[] chars = text.toCharArray();
+        String next;
+        StringBuffer output = new StringBuffer();
+        for (int i = 0; i < chars.length; i++ )
+        {
+            next = Integer.toHexString( (int)chars[i] );
+            // Unfortunately, toHexString doesn't pad with zeroes, so we have to.
+            for (int j = 0; j < ( 4-next.length() ); j++)
+            {
+                output.append( "0" );
+            }
+            output.append( next );
+        }
+        return output.toString();
     }
 }

@@ -60,6 +60,7 @@ import static org.mockito.Mockito.*;
 public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "abc123";
+    private static final String DATA = "abc123";
 
     // -------------------------------------------------------------------------
     // Mocking Dependencies
@@ -92,7 +93,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         actions = new ArrayList<>();
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID ) ) );
+        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         setUpInstances();
 
