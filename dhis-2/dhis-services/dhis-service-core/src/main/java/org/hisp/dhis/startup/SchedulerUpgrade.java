@@ -28,32 +28,26 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
-import static org.hisp.dhis.scheduling.JobType.DATA_SYNC;
-import static org.hisp.dhis.scheduling.JobType.META_DATA_SYNC;
-import static org.hisp.dhis.scheduling.JobType.MONITORING;
-import static org.hisp.dhis.scheduling.JobType.PROGRAM_NOTIFICATIONS;
-import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
-import static org.hisp.dhis.scheduling.JobType.SEND_SCHEDULED_MESSAGE;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.transaction.Transactional;
-
+import com.google.api.client.util.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.api.client.util.Sets;
+import javax.transaction.Transactional;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hisp.dhis.scheduling.JobType.*;
 
 /**
  * Handles porting from the old scheduler to the new.
@@ -68,6 +62,9 @@ public class SchedulerUpgrade
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private PushAnalysisService pushAnalysisService;
 
     private JobConfigurationService jobConfigurationService;
 
@@ -150,6 +147,35 @@ public class SchedulerUpgrade
                     log.error( "Could not map job type '" + jobType + "' with cron '" + cron + "'" );
                 }
             } ) );
+
+            pushAnalysisService
+                .getAll()
+                .forEach( ( pa ) -> {
+                    String cron = "";
+
+                    switch ( pa.getSchedulingFrequency() )
+                    {
+                    case DAILY:
+                        cron = "0 0 4 */1 * *";
+                        break;
+                    case WEEKLY:
+                        cron = "0 0 4 * * " + ( pa.getSchedulingDayOfFrequency() % 7 );
+                        break;
+                    case MONTHLY:
+                        cron = "0 0 4 " + pa.getSchedulingDayOfFrequency() + " */1 *";
+                        break;
+                    default:
+                        break;
+                    }
+
+                    if( !cron.isEmpty() )
+                    {
+                        jobConfigurationService.addJobConfiguration(
+                            new JobConfiguration( "PushAnalysis: " + pa.getUid(), PUSH_ANALYSIS, cron,
+                                new PushAnalysisJobParameters( pa.getUid() ), true, pa.getEnabled() ) );
+                    }
+                } );
+
 
             ListMap<String, String> emptySystemSetting = new ListMap<>();
             emptySystemSetting.putValue( "ported", "" );
