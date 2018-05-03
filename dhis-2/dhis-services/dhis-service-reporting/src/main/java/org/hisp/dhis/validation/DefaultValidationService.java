@@ -362,17 +362,20 @@ public class DefaultValidationService
             {
                 DimensionalItemObject item = dimensionItemMap.get( itemId );
 
-                if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
+                if ( item != null )
                 {
-                    periodTypeX.getDataItems().add( (DataElementOperand) item );
-                }
-                else if ( hasAttributeOptions( item ) )
-                {
-                    periodTypeX.getEventItems().add( item );
-                }
-                else
-                {
-                    periodTypeX.getEventItemsWithoutAttributeOptions().add( item );
+                    if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() )
+                    {
+                        periodTypeX.getDataItems().add( (DataElementOperand) item );
+                    }
+                    else if ( hasAttributeOptions( item ) )
+                    {
+                        periodTypeX.getEventItems().add( item );
+                    }
+                    else
+                    {
+                        periodTypeX.getEventItemsWithoutAttributeOptions().add( item );
+                    }
                 }
             }
         }
