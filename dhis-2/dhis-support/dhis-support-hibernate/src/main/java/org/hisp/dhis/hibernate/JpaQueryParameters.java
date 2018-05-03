@@ -175,9 +175,10 @@ public class JpaQueryParameters<T> implements Serializable
         return this.caseSensitive;
     }
 
-    public void setCaseSensitive( boolean caseSensitive )
+    public JpaQueryParameters<T> setCaseSensitive( boolean caseSensitive )
     {
         this.caseSensitive = caseSensitive;
+        return this;
     }
 
     public boolean isUseDistinct()

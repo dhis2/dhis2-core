@@ -51,7 +51,7 @@ public class HibernateCategoryOptionStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryOption> parameters = getNewParameters()
+        JpaQueryParameters<CategoryOption> parameters = newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.equal( root.join( "categories" ).get( "id" ), category.getId() ) );
 

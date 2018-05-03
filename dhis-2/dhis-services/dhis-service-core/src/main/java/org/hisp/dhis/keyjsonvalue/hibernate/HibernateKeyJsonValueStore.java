@@ -28,12 +28,12 @@ package org.hisp.dhis.keyjsonvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 
@@ -45,25 +45,22 @@ public class HibernateKeyJsonValueStore
     implements KeyJsonValueStore
 {
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<String> getNamespaces()
     {
         String hql = "select distinct namespace from KeyJsonValue";
         
-        return getQuery( hql ).list();
+        return getQuery( hql, String.class ).list();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<String> getKeysInNamespace( String namespace )
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
 
-        return getQuery( hql ).setParameter( "namespace", namespace ).list();
+        return getQuery( hql, String.class ).setParameter( "namespace", namespace ).list();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
@@ -73,7 +70,7 @@ public class HibernateKeyJsonValueStore
             hql += " and lastupdated >= :lastUpdated ";
         }
         
-        Query query = getQuery( hql ).setParameter( "namespace", namespace );
+        Query<String> query = getQuery( hql, String.class ).setParameter( "namespace", namespace );
         
         if ( lastUpdated != null )
         {
@@ -84,17 +81,20 @@ public class HibernateKeyJsonValueStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<KeyJsonValue> getKeyJsonValueByNamespace( String namespace )
     {
-        return getCriteria( Restrictions.eq( "namespace", namespace ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
     }
 
     @Override
     public KeyJsonValue getKeyJsonValue( String namespace, String key )
     {
-        return (KeyJsonValue) getCriteria(
-            Restrictions.eq( "namespace", namespace ),
-            Restrictions.eq( "key", key ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) )
+            .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
     }
 }

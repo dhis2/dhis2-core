@@ -121,7 +121,6 @@ public class HibernateProgramStageInstanceStore
         return result != null && result > 0;
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {
@@ -147,10 +146,10 @@ public class HibernateProgramStageInstanceStore
                 "and cast(:targetDate as date) = psi.dueDate " +
                 "and psi.deleted is false";
 
-        return getQuery( hql )
-            .setEntity( "notificationTemplate", template )
-            .setString( "skippedEventStatus", EventStatus.SKIPPED.name() )
-            .setDate( "targetDate", targetDate ).list();
+        return getQuery( hql, ProgramStageInstance.class )
+            .setParameter( "notificationTemplate", template )
+            .setParameter( "skippedEventStatus", EventStatus.SKIPPED )
+            .setParameter( "targetDate", targetDate ).list();
     }
 
     @Override

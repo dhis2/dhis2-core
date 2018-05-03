@@ -51,7 +51,7 @@ public class HibernateCategoryOptionGroupSetStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryOptionGroupSet> parameters = getNewParameters()
+        JpaQueryParameters<CategoryOptionGroupSet> parameters = newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
 

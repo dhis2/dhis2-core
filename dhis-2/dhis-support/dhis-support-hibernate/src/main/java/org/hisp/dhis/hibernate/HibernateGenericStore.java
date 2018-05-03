@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -143,9 +144,21 @@ public class HibernateGenericStore<T>
      * @param hql the hql query.
      * @return a Query instance.
      */
-    protected final Query getQuery( String hql )
+    protected final Query<T> getQuery( String hql )
     {
         Query<T> query = getSession().createQuery( hql );
+        return query.setCacheable( cacheable );
+    }
+
+    /**
+     * Creates a Query.
+     *
+     * @param hql the hql query.
+     * @return a Query instance.
+     */
+    protected final <Y> Query<Y> getQuery( String hql, Class<Y> returnClazz )
+    {
+        Query<Y> query = getSession().createQuery( hql );
         return query.setCacheable( cacheable );
     }
 
@@ -212,6 +225,12 @@ public class HibernateGenericStore<T>
     // JPA Methods
     //------------------------------------------------------------------------------------------
 
+    /**
+     * Get executable Typed Query from Criteria Query.
+     * Apply cache if needed.
+     * @param criteriaQuery
+     * @return  executable TypedQuery
+     */
     public final TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return sessionFactory.getCurrentSession()
@@ -219,10 +238,20 @@ public class HibernateGenericStore<T>
             .setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
     }
 
+    /**
+     * Method for adding additional Predicates into where clause
+     * @param builder
+     * @param predicates
+     */
     protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicates )
     {
     }
 
+    /**
+     * Get single result from executable typedQuery
+     * @param Executable TypedQuery
+     * @return single object
+     */
    protected <T> T getSingleResult( TypedQuery<T> typedQuery )
     {
         List<T> list = typedQuery.getResultList();
@@ -240,14 +269,9 @@ public class HibernateGenericStore<T>
      * @param criteriaQuery
      * @return list result
      */
-    protected List<T> getResultList( CriteriaQuery<T> criteriaQuery )
+    protected List<T> getList( CriteriaQuery<T> criteriaQuery )
     {
         return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList();
-    }
-
-    protected final TypedQuery getTypedQuery( String jpaQuery )
-    {
-        return getSession().createQuery( jpaQuery ).setCacheable( cacheable );
     }
 
     protected final List<T> getList( TypedQuery<T> typedQuery )
@@ -260,6 +284,12 @@ public class HibernateGenericStore<T>
         return getTypedQuery( builder, parameters ).getResultList();
     }
 
+    /**
+     * Get executable TypedQuery from JpaQueryParameter.
+     * @param builder
+     * @param parameters
+     * @return executable TypedQuery
+     */
     protected final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
         List<Function<Root<T>, Predicate>> predicateProviders = parameters.getPredicates();
@@ -373,6 +403,17 @@ public class HibernateGenericStore<T>
         typedQuery.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, parameters.isCachable() );
 
         return getSingleResult( typedQuery );
+    }
+
+    /**
+     * Retrieves an object based on the given Jpa Predicates.
+     *
+     * @param parameters
+     * @return an object of the implementation Class type.
+     */
+    protected T getSingleResult( CriteriaBuilder builder,  JpaQueryParameters<T> parameters )
+    {
+        return getSingleResult( getTypedQuery( builder, parameters ) );
     }
 
     //------------------------------------------------------------------------------------------
@@ -532,5 +573,10 @@ public class HibernateGenericStore<T>
     public Session getCurrentSession()
     {
         return sessionFactory.getCurrentSession();
+    }
+
+    protected JpaQueryParameters<T> newJpaParameters()
+    {
+        return new JpaQueryParameters<T>();
     }
 }

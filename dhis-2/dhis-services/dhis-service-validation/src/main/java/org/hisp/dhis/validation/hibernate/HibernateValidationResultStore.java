@@ -32,11 +32,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -77,7 +77,6 @@ public class HibernateValidationResultStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ValidationResult> getAllUnreportedValidationResults()
     {
         return getQuery( "from ValidationResult vr where vr.notificationSent = false"
@@ -87,15 +86,14 @@ public class HibernateValidationResultStore
     @Override
     public ValidationResult getById( int id )
     {
-        return (ValidationResult) getQuery( "from ValidationResult vr where vr.id = :id"
-            + getRestrictions( "and") ).setInteger( "id", id ).uniqueResult();
+        return getSingleResult( getQuery( "from ValidationResult vr where vr.id = :id"
+            + getRestrictions( "and") ).setParameter( "id", id ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ValidationResult> query( ValidationResultQuery validationResultQuery )
     {
-        Query hibernateQuery = getQuery( "from ValidationResult vr" + getRestrictions( "where" ) );
+        Query<ValidationResult> hibernateQuery = getQuery( "from ValidationResult vr" + getRestrictions( "where" ) );
 
         if ( !validationResultQuery.isSkipPaging() )
         {
@@ -104,15 +102,17 @@ public class HibernateValidationResultStore
             hibernateQuery.setMaxResults( pager.getPageSize() );
         }
 
-        return hibernateQuery.list();
+        return hibernateQuery.getResultList();
     }
 
     @Override
     public int count( ValidationResultQuery validationResultQuery )
     {
-        Query hibernateQuery = getQuery( "from ValidationResult vr" + getRestrictions( "where" ) );
+        Query<Long> hibernateQuery = getQuery(  "select count(*) from ValidationResult vr" + getRestrictions( "where" ), Long.class );
 
-        return hibernateQuery.list().size();
+        Long result = hibernateQuery.getSingleResult();
+
+        return result != null ? result.intValue() : 0;
     }
 
     @Override
@@ -126,7 +126,7 @@ public class HibernateValidationResultStore
 
         String orgUnitFilter = orgUnit == null ? "" : "vr.organisationUnit.path like :orgUnitPath and ";
 
-        Query query = getQuery( "from ValidationResult vr where " + orgUnitFilter + "vr.validationRule in :validationRules and vr.period in :periods " );
+        Query<ValidationResult> query = getQuery( "from ValidationResult vr where " + orgUnitFilter + "vr.validationRule in :validationRules and vr.period in :periods " );
 
         if ( orgUnit != null )
         {

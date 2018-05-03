@@ -28,16 +28,16 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -56,10 +56,9 @@ public class HibernateProgramMessageStore
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
     {
-        Query query = getHqlQuery( params );
+        Query<ProgramMessage> query = getHqlQuery( params );
 
         if ( params.hasPaging() )
         {
@@ -71,14 +70,16 @@ public class HibernateProgramMessageStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramMessage> getAllOutboundMessages()
     {
-        Criteria criteria = getSession().createCriteria( ProgramMessage.class );
-        criteria.add( Restrictions.and( Restrictions.eq( "messageStatus", "OUTBOUND" ),
-            Restrictions.eq( "messageCatagory", "OUTGOING" ) ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list();
+        JpaQueryParameters<ProgramMessage> parameters = newJpaParameters()
+            .addPredicate( root -> builder.and(
+                    builder.equal( root.get( "messageStatus" ), "OUTBOUND" ),
+                    builder.equal( root.get( "messageCatagory" ), "OUTGOING" ) ) );
+
+        return getList( builder, parameters );
     }
 
     @Override
@@ -93,7 +94,7 @@ public class HibernateProgramMessageStore
     // Supportive Methods
     // -------------------------------------------------------------------------
 
-    private Query getHqlQuery( ProgramMessageQueryParams params )
+    private Query<ProgramMessage> getHqlQuery( ProgramMessageQueryParams params )
     {
         SqlHelper helper = new SqlHelper( true );
 
@@ -117,7 +118,7 @@ public class HibernateProgramMessageStore
         hql += params.getBeforeDate() != null
             ? helper.whereAnd() + "pm.processeddate < :processeddate" : ""; 
 
-        Query query = sessionFactory.getCurrentSession().createQuery( hql );
+        Query<ProgramMessage> query = getQuery( hql );
         
         if ( params.hasProgramInstance() )
         {

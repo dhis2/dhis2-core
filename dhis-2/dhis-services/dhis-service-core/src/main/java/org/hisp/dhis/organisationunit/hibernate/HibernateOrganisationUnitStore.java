@@ -95,7 +95,7 @@ public class HibernateOrganisationUnitStore
             "where o.path like :path " +
             "and :object in elements(o." + collectionName + ")";
         
-        return (Long) getQuery( hql )
+        return getQuery( hql, Long.class )
             .setParameter( "path", parent.getPath() + "%" )
             .setParameter( "object", member )
             .uniqueResult();
@@ -272,7 +272,7 @@ public class HibernateOrganisationUnitStore
     {
         String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
-        Integer maxLength = (Integer) getQuery( hql ).uniqueResult();
+        Integer maxLength =  getQuery( hql, Integer.class ).uniqueResult();
 
         return maxLength != null ? maxLength.intValue() : 0;
     }

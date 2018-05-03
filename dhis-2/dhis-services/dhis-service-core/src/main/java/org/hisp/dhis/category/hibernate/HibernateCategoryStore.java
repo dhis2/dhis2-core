@@ -51,7 +51,7 @@ public class HibernateCategoryStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<Category> parameters = getNewParameters()
+        JpaQueryParameters<Category> parameters = newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) );
 
@@ -63,7 +63,7 @@ public class HibernateCategoryStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<Category> parameters = getNewParameters()
+        JpaQueryParameters<Category> parameters = newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
@@ -76,7 +76,7 @@ public class HibernateCategoryStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<Category> parameters = getNewParameters()
+        JpaQueryParameters<Category> parameters = newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) );
 

@@ -327,17 +327,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
     }
 
-    /**
-     * Retrieves an object based on the given Jpa Predicates.
-     *
-     * @param parameters
-     * @return an object of the implementation Class type.
-     */
-    protected T getObject( CriteriaBuilder builder,  JpaQueryParameters<T> parameters )
-    {
-        return getSingleResult( getTypedQuery( builder, parameters ) );
-    }
-
     @Override
     public final T get( int id )
     {
@@ -386,7 +375,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.equal( root.get( "uid" ), uid )  );
 
-        return getObject( builder, param );
+        return getSingleResult( builder, param );
     }
 
     @Override
@@ -402,7 +391,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicate( root -> builder.equal( root.get( "uid" ), uid )  );
 
-        return getObject( builder, param );
+        return getSingleResult( builder, param );
     }
 
     @Override
@@ -451,7 +440,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.equal( root.get( "code" ), code )  );
 
-        return getObject( builder, param );
+        return getSingleResult( builder, param );
     }
 
 
@@ -469,7 +458,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate(  root -> builder.equal( root.join( ( "attributeValues" ), JoinType.INNER ).get( "value" ) , value ) );
 
-        return getObject( builder, param );
+        return getSingleResult( builder, param );
     }
 
     @Override
@@ -977,11 +966,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // ----------------------------------------------------------------------
     // JPA Implementations
     // ----------------------------------------------------------------------
-
-    protected JpaQueryParameters<T> getNewParameters()
-    {
-        return new JpaQueryParameters<T>();
-    }
 
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )
     {

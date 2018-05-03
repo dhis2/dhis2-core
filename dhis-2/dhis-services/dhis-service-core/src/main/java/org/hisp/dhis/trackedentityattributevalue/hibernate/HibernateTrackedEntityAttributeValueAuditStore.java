@@ -28,12 +28,11 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -41,6 +40,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,35 +77,65 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
-        Criteria criteria = getTrackedEntityAttributeValueAuditCriteria( trackedEntityAttributes, trackedEntityInstances, auditType );
-        criteria.addOrder( Order.desc( "created" ) );
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
 
-        return criteria.list();
+        CriteriaQuery<TrackedEntityAttributeValueAudit>  query = builder.createQuery( TrackedEntityAttributeValueAudit.class );
+
+        Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
+
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, trackedEntityAttributes, trackedEntityInstances, auditType );
+
+        query.where( predicates.toArray( new Predicate[0] ) )
+            .orderBy( builder.desc( root.get( "created" ) ) );
+
+        return sessionFactory.getCurrentSession()
+                            .createQuery( query )
+                            .getResultList();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType, int first, int max )
     {
-        Criteria criteria = getTrackedEntityAttributeValueAuditCriteria( trackedEntityAttributes, trackedEntityInstances, auditType );
-        criteria.addOrder( Order.desc( "created" ) );
-        criteria.setFirstResult( first );
-        criteria.setMaxResults( max );
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
 
-        return criteria.list();
+        CriteriaQuery<TrackedEntityAttributeValueAudit>  query = builder.createQuery( TrackedEntityAttributeValueAudit.class );
+
+        Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
+
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, trackedEntityAttributes, trackedEntityInstances, auditType );
+
+        query.where( predicates.toArray( new Predicate[0] ) )
+            .orderBy( builder.desc( root.get( "created" ) ) );
+
+        return sessionFactory.getCurrentSession()
+                .createQuery( query )
+                .setFirstResult( first )
+                .setMaxResults( max ).getResultList();
     }
 
     @Override
     public int countTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
-        return ((Number) getTrackedEntityAttributeValueAuditCriteria( trackedEntityAttributes, trackedEntityInstances, auditType )
-            .setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+
+        CriteriaQuery<Long>  query = builder.createQuery( Long.class );
+
+        Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
+
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, trackedEntityAttributes, trackedEntityInstances, auditType );
+
+        query.select( builder.countDistinct( root.get( "id" ) ) )
+             .where( predicates.toArray( new Predicate[0] ) )
+             .orderBy( builder.desc( root.get( "created" ) ) );
+
+        return ( sessionFactory.getCurrentSession()
+                                .createQuery( query )
+                                .uniqueResult() ).intValue();
     }
 
     @Override
@@ -112,26 +147,25 @@ public class HibernateTrackedEntityAttributeValueAuditStore
         query.executeUpdate();
     }
     
-    private Criteria getTrackedEntityAttributeValueAuditCriteria( List<TrackedEntityAttribute> trackedEntityAttributes, List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
+    private List<Predicate> getTrackedEntityAttributeValueAuditCriteria( CriteriaBuilder builder, Root<TrackedEntityAttributeValueAudit> root, List<TrackedEntityAttribute> trackedEntityAttributes, List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
-        Session session = sessionFactory.getCurrentSession();
-        Criteria criteria = session.createCriteria( TrackedEntityAttributeValueAudit.class );
+        List<Predicate> predicates = new ArrayList<>();
 
         if ( !trackedEntityAttributes.isEmpty() )
         {
-            criteria.add( Restrictions.in( "attribute", trackedEntityAttributes ) );
+            predicates.add( root.get( "attribute" ).in( trackedEntityAttributes ) );
         }
 
         if ( !trackedEntityInstances.isEmpty() )
         {
-            criteria.add( Restrictions.in( "entityInstance", trackedEntityInstances ) );
+            predicates.add(  root.get( "entityInstance" ).in( trackedEntityInstances ) );
         }
 
         if ( auditType != null )
         {
-            criteria.add( Restrictions.eq( "auditType", auditType ) );
+            predicates.add(  builder.equal( root.get( "auditType" ), auditType ) );
         }
 
-        return criteria;
+        return predicates;
     }
 }

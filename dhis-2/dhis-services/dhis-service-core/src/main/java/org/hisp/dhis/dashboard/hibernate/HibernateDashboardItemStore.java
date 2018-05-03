@@ -51,7 +51,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countMapDashboardItems( Map map )
     {
-        Query query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.map=:map" );
+        Query query = getQuery( "select count(distinct c) from DashboardItem c where c.map=:map" );
         query.setParameter( "map", map );
 
         return ((Long) query.getSingleResult()).intValue();
@@ -60,7 +60,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countChartDashboardItems( Chart chart )
     {
-        Query query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
+        Query query = getQuery( "select count(distinct c) from DashboardItem c where c.chart=:chart" );
         query.setParameter( "chart", chart );
 
         return ((Long) query.getSingleResult()).intValue();
@@ -69,7 +69,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countEventChartDashboardItems( EventChart eventChart )
     {
-        Query query = getTypedQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
+        Query query = getQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
 
         query.setParameter( "eventChart", eventChart );
 
@@ -79,7 +79,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countReportTableDashboardItems( ReportTable reportTable )
     {
-        Query query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
+        Query query = getQuery( "select count(distinct c) from DashboardItem c where c.reportTable=:reportTable" );
         query.setParameter( "reportTable", reportTable );
 
         return ((Long) query.getSingleResult()).intValue();
@@ -88,7 +88,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countReportDashboardItems( Report report )
     {
-        Query query = getTypedQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
+        Query query = getQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
         query.setParameter( "report", report );
 
         return ((Long) query.getSingleResult()).intValue();
@@ -97,7 +97,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countDocumentDashboardItems( Document document )
     {
-        Query query = getTypedQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
+        Query query = getQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
         query.setParameter( "document", document );
 
         return ((Long) query.getSingleResult()).intValue();
@@ -106,7 +106,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countUserDashboardItems( User user )
     {
-        Query query = getTypedQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
+        Query query = getQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
         query.setParameter( "user", user );
 
         return ((Long) query.getSingleResult()).intValue();
@@ -115,7 +115,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem )
     {
-        Query query = getTypedQuery( "from Dashboard d where :item in elements(d.items)" );
+        Query query = getQuery( "from Dashboard d where :item in elements(d.items)" );
         query.setParameter( "item", dashboardItem );
 
         return (Dashboard) query.getSingleResult();

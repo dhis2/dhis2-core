@@ -64,6 +64,7 @@ public class JpaUtils
         return order;
     }
 
+
     public static Predicate andPredicate( CriteriaBuilder buidler, Predicate... predicates )
     {
         List<Predicate> predicateList = Lists.newArrayList( predicates );
@@ -114,15 +115,15 @@ public class JpaUtils
         return (Path<F>) path;
     }
 
-    public <E> Predicate stringPredicate( Expression<String> path, Object attrValue, StringSearchMode searchMode, JpaQueryParameters sp, CriteriaBuilder builder )
+    public static Predicate stringPredicate( CriteriaBuilder builder, Expression<String> path, Object attrValue, StringSearchMode searchMode, boolean caseSesnitive )
     {
-        if ( !sp.isCaseSensitive() )
+        if ( !caseSesnitive )
         {
             path = builder.lower( path );
-            attrValue = ((String) attrValue).toLowerCase( LocaleContextHolder.getLocale() );
+            attrValue = ( ( String ) attrValue).toLowerCase( LocaleContextHolder.getLocale() );
         }
 
-        switch ( searchMode != null ? searchMode : sp.getSearchMode() )
+        switch ( searchMode )
         {
             case EQUALS:
                 return builder.equal( path, attrValue );

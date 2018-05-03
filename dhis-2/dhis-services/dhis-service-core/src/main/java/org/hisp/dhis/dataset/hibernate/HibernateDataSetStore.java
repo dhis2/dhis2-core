@@ -91,7 +91,7 @@ public class HibernateDataSetStore
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataSet> parameters = getNewParameters()
+        JpaQueryParameters<DataSet> parameters = newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "periodType" ), refreshedPeriodType ) ) ;
 
         return getList( builder, parameters );

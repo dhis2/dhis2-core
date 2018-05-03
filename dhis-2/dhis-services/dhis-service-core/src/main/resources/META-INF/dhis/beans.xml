@@ -701,6 +701,7 @@
     class="org.hisp.dhis.sms.command.hibernate.HibernateSMSCommandStore">
     <property name="clazz" value="org.hisp.dhis.sms.command.SMSCommand" />
     <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.color.ColorSetStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">

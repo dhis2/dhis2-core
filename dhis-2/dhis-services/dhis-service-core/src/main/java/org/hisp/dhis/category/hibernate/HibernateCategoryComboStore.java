@@ -51,7 +51,7 @@ public class HibernateCategoryComboStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryCombo> parameters = getNewParameters()
+        JpaQueryParameters<CategoryCombo> parameters = newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) );
 

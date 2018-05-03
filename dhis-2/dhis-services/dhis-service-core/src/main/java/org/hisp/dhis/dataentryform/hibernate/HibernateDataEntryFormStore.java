@@ -58,7 +58,7 @@ public class HibernateDataEntryFormStore
         JpaQueryParameters<DataEntryForm> parameters = new JpaQueryParameters<DataEntryForm>()
             .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
 
-        return getObject( builder, parameters );
+        return getSingleResult( builder, parameters );
     }
 
     @Override
@@ -76,6 +76,6 @@ public class HibernateDataEntryFormStore
             )
         );
 
-        return getResultList( query );
+        return getList( query );
     }
 }

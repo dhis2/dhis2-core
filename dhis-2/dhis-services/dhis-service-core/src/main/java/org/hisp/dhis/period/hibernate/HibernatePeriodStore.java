@@ -28,9 +28,6 @@ package org.hisp.dhis.period.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
@@ -40,6 +37,11 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Implements the PeriodStore interface.
@@ -99,12 +101,11 @@ public class HibernatePeriodStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate )
     {
         String hql = "from Period p where ( p.startDate >= :startDate and p.endDate <= :endDate ) or ( p.startDate <= :startDate and p.endDate >= :endDate )";
         
-        return getQuery( hql ).setDate( "startDate", startDate ).setDate( "endDate", endDate ).list();
+        return getQuery( hql ).setParameter( "startDate", startDate ).setParameter( "endDate", endDate ).list();
     }
     
     @Override
@@ -206,26 +207,29 @@ public class HibernatePeriodStore
     {
         Session session = sessionFactory.getCurrentSession();
 
-        return (PeriodType) session.get( PeriodType.class, id );
+        return session.get( PeriodType.class, id );
     }
 
     @Override
     public PeriodType getPeriodType( Class<? extends PeriodType> periodType )
     {
-        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        Criteria criteria = session.createCriteria( periodType );
+        CriteriaQuery<PeriodType> query = builder.createQuery( PeriodType.class );
+        query.select( query.from( periodType ) );
 
-        return (PeriodType) criteria.setCacheable( true ).uniqueResult();
+        return getSession().createQuery( query ).setCacheable( true ).uniqueResult();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<PeriodType> getAllPeriodTypes()
     {
-        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return session.createCriteria( PeriodType.class ).setCacheable( true ).list();
+        CriteriaQuery<PeriodType> query = builder.createQuery( PeriodType.class );
+        query.select( query.from( PeriodType.class ) );
+
+        return getSession().createQuery( query ).setCacheable( true ).getResultList();
     }
 
     @Override

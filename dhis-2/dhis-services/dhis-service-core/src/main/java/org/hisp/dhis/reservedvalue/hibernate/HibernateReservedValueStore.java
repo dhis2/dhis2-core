@@ -104,20 +104,20 @@ public class HibernateReservedValueStore
     @Override
     public int getNumberOfUsedValues( ReservedValue reservedValue )
     {
-        Long count = (long) getQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key" )
+        Long count = getQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key", Long.class )
             .setParameter( "uid", reservedValue.getOwnerUid() )
             .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
         if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
-            count += (long) getQuery(
+            count +=  getQuery(
                 "SELECT count(*) " +
                     "FROM TrackedEntityAttributeValue " +
                     "WHERE attribute = " +
                     "( FROM TrackedEntityAttribute " +
                     "WHERE uid = :uid ) " +
-                    "AND value LIKE :value " )
+                    "AND value LIKE :value ", Long.class )
                 .setParameter( "uid", reservedValue.getOwnerUid() )
                 .setParameter( "value", reservedValue.getValue() )
                 .getSingleResult();

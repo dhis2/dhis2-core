@@ -245,7 +245,7 @@ public class HibernateUserStore
             }
             else
             {
-                query.setEntity( "organisationUnit", params.getOrganisationUnit() );
+                query.setParameter( "organisationUnit", params.getOrganisationUnit() );
             }
         }
         
@@ -265,7 +265,7 @@ public class HibernateUserStore
     @Override
     public int getUserCount()
     {
-        return ((Long) getQuery( "select count(*) from User" ).
-            uniqueResult()).intValue();
+        return ( getQuery( "select count(*) from User", Long.class ).
+            uniqueResult() ).intValue();
     }
 }
