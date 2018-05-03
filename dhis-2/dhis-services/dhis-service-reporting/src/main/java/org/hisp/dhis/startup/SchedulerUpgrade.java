@@ -95,27 +95,27 @@ public class SchedulerUpgrade
         {
             log.info( "Porting old jobs" );
             JobConfiguration resourceTable = new JobConfiguration( "Resource table", RESOURCE_TABLE, null, null, false, true );
-            portJob( systemSettingManager, resourceTable, "keyLastSuccessfulResourceTablesUpdate" );
+            SchedulerStart.portJob( systemSettingManager, resourceTable, "keyLastSuccessfulResourceTablesUpdate" );
 
             JobConfiguration analytics = new JobConfiguration( "Analytics", ANALYTICS_TABLE, null,
                 new AnalyticsJobParameters( null, Sets.newHashSet(), false ), false, true );
-            portJob( systemSettingManager, analytics, "keyLastSuccessfulAnalyticsTablesUpdate" );
+            SchedulerStart.portJob( systemSettingManager, analytics, "keyLastSuccessfulAnalyticsTablesUpdate" );
 
             JobConfiguration monitoring = new JobConfiguration( "Monitoring", MONITORING, null, null, false, true );
-            portJob( systemSettingManager, monitoring, "keyLastSuccessfulMonitoring" );
+            SchedulerStart.portJob( systemSettingManager, monitoring, "keyLastSuccessfulMonitoring" );
 
             JobConfiguration dataSync = new JobConfiguration( "Data synchronization", DATA_SYNC, null, null, false, true );
-            portJob( systemSettingManager, dataSync, "keyLastSuccessfulDataSynch" );
+            SchedulerStart.portJob( systemSettingManager, dataSync, "keyLastSuccessfulDataSynch" );
 
             JobConfiguration metadataSync = new JobConfiguration( "Metadata sync", META_DATA_SYNC, null, null, false, true );
-            portJob( systemSettingManager, metadataSync, "keyLastMetaDataSyncSuccess" );
+            SchedulerStart.portJob( systemSettingManager, metadataSync, "keyLastMetaDataSyncSuccess" );
 
             JobConfiguration sendScheduledMessage = new JobConfiguration( "Send scheduled messages",
                 SEND_SCHEDULED_MESSAGE, null, null, false, true );
 
             JobConfiguration scheduledProgramNotifications = new JobConfiguration( "Scheduled program notifications",
                 PROGRAM_NOTIFICATIONS, null, null, false, true );
-            portJob( systemSettingManager, scheduledProgramNotifications, "keyLastSuccessfulScheduledProgramNotifications" );
+            SchedulerStart.portJob( systemSettingManager, scheduledProgramNotifications, "keyLastSuccessfulScheduledProgramNotifications" );
 
             HashMap<String, JobConfiguration> standardJobs = new HashMap<String, JobConfiguration>()
             {{
@@ -176,23 +176,11 @@ public class SchedulerUpgrade
                     }
                 } );
 
-
             ListMap<String, String> emptySystemSetting = new ListMap<>();
             emptySystemSetting.putValue( "ported", "" );
 
             log.info( "Porting to new scheduler finished. Setting system settings key 'keySchedTasks' to 'ported'." );
             systemSettingManager.saveSystemSetting( "keySchedTasks", emptySystemSetting );
-        }
-    }
-
-    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, String systemKey )
-    {
-        Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
-
-        if ( lastSuccessfulRun != null )
-        {
-            jobConfiguration.setLastExecuted( lastSuccessfulRun );
-            jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
         }
     }
 }
