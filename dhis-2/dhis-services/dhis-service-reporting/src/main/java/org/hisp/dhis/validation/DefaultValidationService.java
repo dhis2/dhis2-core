@@ -391,13 +391,13 @@ public class DefaultValidationService
      * Checks to see if a dimensional item object has values
      * stored in the database by attribute option combo.
      *
-     * @param o dimensional item object
+     * @param object dimensional item object
      * @return true if values are stored by attribuete option combo.
      */
-    private boolean hasAttributeOptions( DimensionalItemObject o )
+    private boolean hasAttributeOptions( DimensionalItemObject object )
     {
-        return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
-            || ( (ProgramIndicator)o ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
+        return object.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
+            || ( (ProgramIndicator)object ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
     }
 
     /**
