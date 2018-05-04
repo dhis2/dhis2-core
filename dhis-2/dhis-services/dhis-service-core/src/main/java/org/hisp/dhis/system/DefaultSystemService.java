@@ -121,7 +121,7 @@ public class DefaultSystemService
     @Override
     public SystemInfo getSystemInfo()
     {
-        SystemInfo info = systemInfo.instance();
+        SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
 
         if ( info == null )
         {
