@@ -33,10 +33,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.SystemInfo;
-import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -151,7 +150,7 @@ public class SchedulerStart
         {
             JobConfiguration dataStatistics = new JobConfiguration( DEFAULT_DATA_STATISTICS, DATA_STATISTICS,
                 CRON_DAILY_2AM, null, false, true );
-            SchedulerUpgrade.portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
+            portJob( systemSettingManager, dataStatistics, "lastSuccessfulDataStatistics" );
 
             addAndScheduleJob( dataStatistics );
         }
@@ -201,5 +200,17 @@ public class SchedulerStart
     {
         jobConfigurationService.addJobConfiguration( jobConfiguration );
         schedulingManager.scheduleJob( jobConfiguration );
+    }
+
+
+    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, String systemKey )
+    {
+        Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
+
+        if ( lastSuccessfulRun != null )
+        {
+            jobConfiguration.setLastExecuted( lastSuccessfulRun );
+            jobConfiguration.setLastExecutedStatus( JobStatus.COMPLETED );
+        }
     }
 }
