@@ -35,6 +35,7 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -64,7 +65,9 @@ public class DefaultKafkaManager implements KafkaManager
     @Override
     public boolean isEnabled()
     {
-        Kafka kafka = systemService.getSystemInfo().getKafka();
+        SystemInfo systemInfo = systemService.getSystemInfo();
+        Kafka kafka = systemInfo != null ? systemInfo.getKafka() : null;
+
         return kafka != null && kafka.isValid();
     }
 
