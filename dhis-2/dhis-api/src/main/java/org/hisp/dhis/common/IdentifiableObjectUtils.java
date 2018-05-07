@@ -139,7 +139,7 @@ public class IdentifiableObjectUtils
         }
 
         return map;
-    }
+    }git
 
     /**
      * Returns a list of calendar specific period identifiers for the given collection of
