@@ -97,7 +97,7 @@ public class IdentifiableObjectUtils
      */
     public static <T extends IdentifiableObject> List<String> getUids( Collection<T> objects )
     {
-        return objects != null ? objects.stream().map( o -> o.getUid() ).collect( Collectors.toList() ) : null;
+        return objects != null ? objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() ) : null;
     }
 
     /**
@@ -108,7 +108,7 @@ public class IdentifiableObjectUtils
      */
     public static <T extends IdentifiableObject> List<String> getCodes( Collection<T> objects )
     {
-        return objects != null ? objects.stream().map( o -> o.getCode() ).collect( Collectors.toList() ) : null;
+        return objects != null ? objects.stream().map( IdentifiableObject::getCode ).collect( Collectors.toList() ) : null;
     }
 
     /**
@@ -119,7 +119,7 @@ public class IdentifiableObjectUtils
      */
     public static <T extends IdentifiableObject> List<Integer> getIdentifiers( Collection<T> objects )
     {
-        return objects != null ? objects.stream().map( o -> o.getId() ).collect( Collectors.toList() ) : null;
+        return objects != null ? objects.stream().map( IdentifiableObject::getId ).collect( Collectors.toList() ) : null;
     }
 
     /**
@@ -234,7 +234,7 @@ public class IdentifiableObjectUtils
             T object = iterator.next();
             String name = ignoreCase ? object.getDisplayName().toLowerCase() : object.getDisplayName();
 
-            if ( name.indexOf( key ) != -1 )
+            if ( name.contains( key ) )
             {
                 objects.add( object );
             }
@@ -286,7 +286,7 @@ public class IdentifiableObjectUtils
             }
         }
 
-        return latest != null && objects != null ? objects.size() + SEPARATOR + LONG_DATE_FORMAT.print( new DateTime( latest ) ) : null;
+        return latest != null ? objects.size() + SEPARATOR + LONG_DATE_FORMAT.print( new DateTime( latest ) ) : null;
     }
 
     /**
