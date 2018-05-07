@@ -55,7 +55,6 @@ import org.hisp.dhis.period.ConfigurablePeriod;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -548,8 +547,6 @@ public abstract class BaseAnalyticalObject
                     periodList.add( new ConfigurablePeriod( periodEnum.toString() ) );
                 }
             }
-
-            Collections.sort( periodList, new AscendingPeriodComparator() );
 
             return new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList );
         }
