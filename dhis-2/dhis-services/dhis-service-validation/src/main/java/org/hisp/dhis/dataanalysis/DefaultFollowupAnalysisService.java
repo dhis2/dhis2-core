@@ -35,6 +35,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,7 +49,7 @@ public class DefaultFollowupAnalysisService
     // -------------------------------------------------------------------------
 
     private DataAnalysisStore dataAnalysisStore;
-    
+
     public void setDataAnalysisStore( DataAnalysisStore dataAnalysisStore )
     {
         this.dataAnalysisStore = dataAnalysisStore;
@@ -62,9 +63,10 @@ public class DefaultFollowupAnalysisService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId,
+        int limit )
     {
-        if( organisationUnit == null || limit < 1 )
+        if ( organisationUnit == null || limit < 1 )
         {
             return new ArrayList<>();
         }
@@ -72,5 +74,20 @@ public class DefaultFollowupAnalysisService
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
         return dataAnalysisStore.getFollowupDataValues( organisationUnit, dataSet, limit );
+    }
+
+    @Override
+    public List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit,
+        String dataSetId, int limit, Date startDate, Date endDate )
+    {
+        if ( organisationUnit == null || limit < 1 )
+        {
+            return new ArrayList<>();
+        }
+
+        DataSet dataSet = dataSetService.getDataSet( dataSetId );
+
+        return dataAnalysisStore
+            .getFollowupDataValuesBetweenInterval( organisationUnit, dataSet, limit, startDate, endDate );
     }
 }
