@@ -37,6 +37,7 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.user.User;
 
 /**
  * The idScheme is a general setting which will apply to all objects. The idSchemes
@@ -49,6 +50,8 @@ public class ImportOptions
 {
     private static final ImportOptions DEFAULT_OPTIONS = new ImportOptions()
         .setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
+
+    private User user;
 
     private IdSchemes idSchemes = new IdSchemes();
 
@@ -106,6 +109,7 @@ public class ImportOptions
     {
         ImportOptions options = new ImportOptions();
 
+        options.user = this.user;
         options.idSchemes = this.idSchemes;
         options.dryRun = this.dryRun;
         options.preheatCache = this.preheatCache;
@@ -165,6 +169,18 @@ public class ImportOptions
     //--------------------------------------------------------------------------
     // Get methods
     //--------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getUser()
+    {
+        return user;
+    }
+
+    public void setUser( User user )
+    {
+        this.user = user;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
