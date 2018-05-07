@@ -28,6 +28,12 @@ package org.hisp.dhis.i18n;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.joda.time.DateTime;
+
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
@@ -35,11 +41,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ResourceBundle;
-
-import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
 
 /**
  * @author Pham Thi Thuy
@@ -222,9 +223,10 @@ public class I18nFormat
 
         String typeName = period.getPeriodType().getName();
 
-        if ( typeName.equals( WeeklyPeriodType.NAME ) ) // Use ISO dates due to potential week confusion
+        if ( typeName.contains( WeeklyPeriodType.NAME ) ) // Use ISO dates due to potential week confusion
         {
-            return period.getIsoDate();
+            DateTime dateTime = new DateTime( period.getStartDate() );
+            return "W" + dateTime.weekOfWeekyear().getAsText() + " " + (typeName.equals( WeeklyPeriodType.NAME ) ? dateTime.year().getAsText() : dateTime.dayOfWeek().getAsShortText() + " " + dateTime.year().getAsText());
         }
 
         String keyStartDate = "format." + typeName + ".startDate";
