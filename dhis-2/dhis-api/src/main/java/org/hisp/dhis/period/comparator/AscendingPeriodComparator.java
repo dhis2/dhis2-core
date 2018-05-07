@@ -28,9 +28,10 @@ package org.hisp.dhis.period.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Comparator;
-
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+
+import java.util.Comparator;
 
 /**
  * Sorts periods ascending based on the start date, then the end date.
@@ -45,31 +46,12 @@ public class AscendingPeriodComparator
     @Override
     public int compare( Period period1, Period period2 )
     {
-        if ( period1.getStartDate() == null )
-        {
-            return -1;
-        }
-        
-        if ( period2.getStartDate() == null )
-        {
-            return 1;
-        }
-        
-        if ( period1.getStartDate().compareTo( period2.getStartDate() ) != 0 )
-        {
-            return period1.getStartDate().compareTo( period2.getStartDate() );
-        }
-        
-        if ( period1.getEndDate() == null )
-        {
-            return -1;
-        }
-        
-        if ( period2.getEndDate() == null )
-        {
-            return 1;
-        }
-        
-        return period1.getEndDate().compareTo( period2.getEndDate() );
+        PeriodType a = period1.getPeriodType();
+        PeriodType b = period2.getPeriodType();
+
+        int freqCompare = Integer.compare( a.getFrequencyOrder(), b.getFrequencyOrder() );
+        int nameCompare = a.getName().compareTo( b.getName() );
+
+        return freqCompare == 0 ? ( nameCompare == 0 ? period1.getStartDate().compareTo(period2.getStartDate() ) : nameCompare ) : freqCompare;
     }
 }
