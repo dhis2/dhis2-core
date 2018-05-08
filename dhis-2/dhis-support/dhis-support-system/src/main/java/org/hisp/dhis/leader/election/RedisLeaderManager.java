@@ -33,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.Calendar;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -48,6 +50,9 @@ public class RedisLeaderManager implements LeaderManager
     private static final String key = "dhis2:leader";
 
     private static final Log log = LogFactory.getLog( RedisLeaderManager.class );
+    
+    private static final String CLUSTER_LEADER_RENEWAL = "Cluster leader renewal";
+
 
     private String nodeId;
 
@@ -86,11 +91,11 @@ public class RedisLeaderManager implements LeaderManager
             renewLeader();
             Calendar calendar = Calendar.getInstance();
             calendar.add( Calendar.SECOND, (int) (this.timeToLiveSeconds / 2) );
-            log.debug(
-                "Next leader renewal job for nodeId:" + this.nodeId + " set at " + calendar.getTime().toString() );
-            schedulingManager.scheduleJob( () -> {
-                this.renewLeader();
-            }, calendar.getTime() );
+            log.debug( "Next leader renewal job nodeId:" + this.nodeId + " set at " + calendar.getTime().toString() );
+            JobConfiguration leaderRenewalJobConfiguration = new JobConfiguration( CLUSTER_LEADER_RENEWAL,
+                JobType.LEADER_RENEWAL, null, null, false, true, true );
+            leaderRenewalJobConfiguration.setLeaderOnlyJob( true );
+            schedulingManager.scheduleJobWithStartTime( leaderRenewalJobConfiguration, calendar.getTime() );
         }
     }
 

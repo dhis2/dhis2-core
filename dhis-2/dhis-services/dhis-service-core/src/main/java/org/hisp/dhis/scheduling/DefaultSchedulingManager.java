@@ -219,9 +219,31 @@ public class DefaultSchedulingManager
     }
 
     @Override
-    public void scheduleJob( Runnable job, Date startTime )
+    public void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime )
     {
-       jobScheduler.schedule( job, startTime );
+        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
+        {
+            JobInstance jobInstance = new DefaultJobInstance();
+
+            if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
+            {
+                ScheduledFuture<?> future = jobScheduler
+                    .schedule( () -> {
+                        try
+                        {
+                            jobInstance.execute( jobConfiguration, this, messageService, leaderManager );
+                        }
+                        catch ( Exception e )
+                        {
+                            log.error( DebugUtils.getStackTrace( e ) );
+                        }
+                    }, startTime  );
+
+                futures.put( jobConfiguration.getUid(), future );
+
+                log.info( "Scheduled job: " + jobConfiguration );
+            }
+        }
     }
     
     @Override

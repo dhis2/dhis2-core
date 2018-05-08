@@ -115,11 +115,12 @@ public interface SchedulingManager
     void executeJob( Runnable job );
     
     /**
-     * Schedule an ad hoc job without validation
-     * @param job The job to be scheduled
+     * Schedule a job with a start time.
+     * 
+     * @param jobConfiguration The jobConfiguration with job details to be scheduled
      * @param startTime The time at which the job should start
      */
-    void scheduleJob( Runnable job , Date startTime);
+    void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
 
     /**
      * Execute the given job immediately and return a ListenableFuture.
