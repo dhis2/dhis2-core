@@ -143,6 +143,7 @@
     <sec:intercept-url pattern="/dhis-web-pivot/**" access="hasAnyRole('ALL,M_dhis-web-pivot')" />
     <sec:intercept-url pattern="/dhis-web-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-visualizer')" />
     <sec:intercept-url pattern="/dhis-web-mapping/**" access="hasAnyRole('ALL,M_dhis-web-mapping')" />
+    <sec:intercept-url pattern="/dhis-web-maps/**" access="hasAnyRole('ALL,M_dhis-web-mapping')" />
     <sec:intercept-url pattern="/dhis-web-event-reports/**" access="hasAnyRole('ALL,M_dhis-web-event-reports')" />
     <sec:intercept-url pattern="/dhis-web-event-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-event-visualizer')" />
     <sec:intercept-url pattern="/dhis-web-settings/**" access="hasAnyRole('ALL,M_dhis-web-settings')" />
