@@ -15,13 +15,13 @@
   <bean id="oauthAccessDeniedHandler" class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
 
   <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint"
-    authentication-manager-ref="oAuth2AuthenticationManager" stateless="false"/>
+    authentication-manager-ref="oAuth2AuthenticationManager" stateless="false" />
 
   <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="authenticationManager" disable-url-rewriting="true"
     use-expressions="false" access-decision-manager-ref="accessDecisionManager">
     <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" method="POST" />
     <sec:anonymous enabled="false" />
-    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"/>
+    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource" />
     <sec:access-denied-handler ref="oauthAccessDeniedHandler" />
     <sec:csrf disabled="true" />
   </sec:http>
@@ -101,7 +101,7 @@
   </bean>
 
   <sec:http access-decision-manager-ref="accessDecisionManager" realm="DHIS2" disable-url-rewriting="true" use-expressions="true"
-    authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint" >
+    authentication-manager-ref="authenticationManager" entry-point-ref="http401LoginUrlAuthenticationEntryPoint">
     <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
       authentication-failure-handler-ref="securityExceptionTranslationHandler"
       login-processing-url="/dhis-web-commons-security/openid.action"
@@ -124,7 +124,7 @@
 
     <sec:csrf disabled="true" />
 
-    <sec:http-basic entry-point-ref="http401LoginUrlAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource"/>
+    <sec:http-basic entry-point-ref="http401LoginUrlAuthenticationEntryPoint" authentication-details-source-ref="twoFactorWebAuthenticationDetailsSource" />
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
@@ -144,6 +144,7 @@
     <sec:intercept-url pattern="/dhis-web-pivot/**" access="hasAnyRole('ALL,M_dhis-web-pivot')" />
     <sec:intercept-url pattern="/dhis-web-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-visualizer')" />
     <sec:intercept-url pattern="/dhis-web-mapping/**" access="hasAnyRole('ALL,M_dhis-web-mapping')" />
+    <sec:intercept-url pattern="/dhis-web-maps/**" access="hasAnyRole('ALL,M_dhis-web-mapping')" />
     <sec:intercept-url pattern="/dhis-web-event-reports/**" access="hasAnyRole('ALL,M_dhis-web-event-reports')" />
     <sec:intercept-url pattern="/dhis-web-event-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-event-visualizer')" />
     <sec:intercept-url pattern="/dhis-web-settings/**" access="hasAnyRole('ALL,M_dhis-web-settings')" />
@@ -156,7 +157,7 @@
     <sec:intercept-url pattern="/dhis-web-data-administration/**" access="hasAnyRole('ALL,M_dhis-web-data-administration')" />
 
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
-    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER"  />
+    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
@@ -440,5 +441,5 @@
 
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
-  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener2FA"/>
+  <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener2FA" />
 </beans>
