@@ -135,7 +135,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.18.1</version>
+            <version>2.21.0</version>
             <configuration>
               <systemProperties>
                 <property>
@@ -157,7 +157,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.18.1</version>
+            <version>2.21.0</version>
             <configuration>
               <systemProperties>
                 <property>
@@ -179,7 +179,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.18.1</version>
+            <version>2.21.0</version>
             <configuration>
               <skipTests>true</skipTests>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>

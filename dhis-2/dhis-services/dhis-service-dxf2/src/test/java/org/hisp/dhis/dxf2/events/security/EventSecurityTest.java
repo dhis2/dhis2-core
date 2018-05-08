@@ -260,8 +260,7 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        User user = createUser( "user1" );
-
+        User user = createUser( "user2" );
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
