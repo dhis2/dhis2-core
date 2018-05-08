@@ -1112,4 +1112,14 @@ public abstract class AbstractEnrollmentService
             programInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
     }
+
+    private ImportOptions updateImportOptions( ImportOptions importOptions )
+    {
+        if ( importOptions.getUser() == null )
+        {
+            importOptions.setUser( currentUserService.getCurrentUser() );
+        }
+
+        return importOptions;
+    }
 }

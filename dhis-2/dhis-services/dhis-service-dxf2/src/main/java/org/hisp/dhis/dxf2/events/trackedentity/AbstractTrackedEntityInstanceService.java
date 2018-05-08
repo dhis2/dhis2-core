@@ -956,5 +956,14 @@ public abstract class AbstractTrackedEntityInstanceService
         FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
         return fileResource != null && fileResource.isAssigned() && !oldFileValues.contains( attribute.getValue() );
     }
-}
 
+    private ImportOptions updateImportOptions( ImportOptions importOptions )
+    {
+        if ( importOptions.getUser() == null )
+        {
+            importOptions.setUser( currentUserService.getCurrentUser() );
+        }
+
+        return importOptions;
+    }
+}
