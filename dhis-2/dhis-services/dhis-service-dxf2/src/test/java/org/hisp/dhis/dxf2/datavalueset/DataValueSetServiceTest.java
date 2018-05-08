@@ -94,7 +94,7 @@ public class DataValueSetServiceTest
     extends DhisSpringTest
 {
     private String ATTRIBUTE_UID = "uh6H2ff562G";
-    
+
     @Autowired
     private DataElementService dataElementService;
 
@@ -1141,7 +1141,7 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
     }
 
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

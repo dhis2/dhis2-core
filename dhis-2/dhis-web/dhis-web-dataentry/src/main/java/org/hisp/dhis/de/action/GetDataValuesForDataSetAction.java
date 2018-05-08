@@ -213,6 +213,10 @@ public class GetDataValuesForDataSetAction
         return storedBy;
     }
 
+    private String lastUpdatedBy;
+
+    public String getLastUpdatedBy() { return lastUpdatedBy; }
+
     private Map<String, FileResource> dataValueFileResourceMap = new HashMap<>();
 
     public Map<String, FileResource> getDataValueFileResourceMap()
@@ -298,17 +302,16 @@ public class GetDataValuesForDataSetAction
 
             if ( registration != null )
             {
-                complete = true;
+                complete = registration.getCompleted();
                 date = registration.getDate();
                 storedBy = registration.getStoredBy();
+                lastUpdatedBy = registration.getLastUpdatedBy().getUsername();
             }
 
             locked = dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null );
         }
         else
         {
-            complete = true;
-
             // -----------------------------------------------------------------
             // If multi-org and one of the children is locked, lock all
             // -----------------------------------------------------------------
@@ -327,9 +330,9 @@ public class GetDataValuesForDataSetAction
                     CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration(
                         dataSet, period, ou, attributeOptionCombo );
 
-                    if ( complete && registration == null )
-                    {
-                        complete = false;
+                    if(registration != null) {
+                        complete = registration.getCompleted();
+                        lastUpdatedBy = registration.getLastUpdatedBy().getUsername();
                     }
                 }
             }

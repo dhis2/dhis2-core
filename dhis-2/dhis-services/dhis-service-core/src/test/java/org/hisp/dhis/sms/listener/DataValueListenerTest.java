@@ -385,7 +385,8 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         fetchedDataValue = createDataValue( dataElement, period, organisationUnitA, FETCHED_DATA_VALUE, categoryOptionCombo );
 
-        fetchedCompleteDataSetRegistration = new CompleteDataSetRegistration( dataSet, period, organisationUnitA, categoryOptionCombo, new Date(), STORED_BY );
+        fetchedCompleteDataSetRegistration = new CompleteDataSetRegistration( dataSet, period, organisationUnitA,
+                categoryOptionCombo, new Date(), STORED_BY, user, new Date(), true );
 
         smsCode = new SMSCode();
         smsCode.setCode( "de" );

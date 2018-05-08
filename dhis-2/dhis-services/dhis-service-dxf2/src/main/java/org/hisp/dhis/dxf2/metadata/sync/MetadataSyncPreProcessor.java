@@ -90,13 +90,7 @@ public class MetadataSyncPreProcessor
         // returns null in two cases: "Nothing to sync" and "Server unavailable
         // -------------------------------------------------------------------------
 
-        if ( !(remoteServerAvailable.isAvailable()) )
-        {
-            String message = remoteServerAvailable.getMessage();
-            log.error( message );
-            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
-            throw new MetadataSyncServiceException( message );
-        }
+        processWhenRemoteServerIsUnavailable(context, remoteServerAvailable);
 
         try
         {
@@ -117,6 +111,16 @@ public class MetadataSyncPreProcessor
         log.debug( "Exiting data push" );
         return importSummary;
 
+    }
+
+    private void processWhenRemoteServerIsUnavailable(MetadataRetryContext context, AvailabilityStatus remoteServerAvailable) {
+        if ( !(remoteServerAvailable.isAvailable()) )
+        {
+            String message = remoteServerAvailable.getMessage();
+            log.error( message );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, remoteServerAvailable.getMessage(), null, null );
+            throw new MetadataSyncServiceException( message );
+        }
     }
 
     public ImportSummaries handleEventDataPush( MetadataRetryContext context )
@@ -315,5 +319,38 @@ public class MetadataSyncPreProcessor
         }
         
         return null;
+    }
+
+    public ImportSummary handleDataSetCompletenessPush(MetadataRetryContext context) {
+        log.info( "Entering dataSet completeness push" );
+
+        ImportSummary importSummary = null;
+        AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+
+        // -------------------------------------------------------------------------
+        // We are checking the Remote server availability here, as executeDataPush
+        // returns null in two cases: "Nothing to sync" and "Server unavailable
+        // -------------------------------------------------------------------------
+
+        processWhenRemoteServerIsUnavailable(context, remoteServerAvailable);
+
+        try
+        {
+            importSummary = synchronizationManager.executeDataSetCompletenessPush();
+            handleAggregateImportSummary( importSummary, context );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Exception happened while trying to completeness push " + ex.getMessage(), ex );
+            if ( ex instanceof MetadataSyncServiceException )
+            {
+                throw (MetadataSyncServiceException)ex;
+            }
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, ex.getMessage(), null, null );
+            throw new MetadataSyncServiceException( ex.getMessage(), ex );
+        }
+
+        log.info( "Exiting dataset completeness push" );
+        return importSummary;
     }
 }

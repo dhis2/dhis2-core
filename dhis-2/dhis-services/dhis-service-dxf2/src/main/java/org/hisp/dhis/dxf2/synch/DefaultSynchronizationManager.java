@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
 import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
@@ -108,6 +109,9 @@ public class DefaultSynchronizationManager
     @Autowired
     private RenderService renderService;
 
+    @Autowired
+    private CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
+
     // -------------------------------------------------------------------------
     // SynchronizatonManager implementation
     // -------------------------------------------------------------------------
@@ -116,6 +120,76 @@ public class DefaultSynchronizationManager
     public AvailabilityStatus isRemoteServerAvailable()
     {
         return SyncUtils.isRemoteServerAvailable( systemSettingManager, restTemplate );
+    }
+
+    @Override
+    public ImportSummary executeDataSetCompletenessPush() throws WebMessageParseException {
+        AvailabilityStatus availability = isRemoteServerAvailable();
+
+        if ( !availability.isAvailable() )
+        {
+            log.info( "Aborting synch, server not available" );
+            return null;
+        }
+
+        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + "/api/completeDataSetRegistrations";
+        String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+
+        SystemInstance instance = new SystemInstance( url, username, password );
+
+        return executeDataSetCompletenessPush( instance );
+    }
+
+    private ImportSummary executeDataSetCompletenessPush(SystemInstance instance)  throws WebMessageParseException {
+        final Date startTime = new Date();
+        final Date lastSuccessTime = getLastDataSynchSuccessFallback();
+        final RequestCallback requestCallback = request ->
+        {
+            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
+            request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+
+            completeDataSetRegistrationExchangeService.writeCompleteDataSetRegistrationsJson( lastSuccessTime, request.getBody(), new IdSchemes());
+        };
+
+        ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
+        ImportSummary summary = null;
+        try
+        {
+            summary = restTemplate
+                    .execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );
+        }
+
+        catch ( HttpClientErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            summary = WebMessageParseUtils.fromWebMessageResponse( responseBody, ImportSummary.class );
+        }
+        catch ( HttpServerErrorException ex )
+        {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error( "Internal error happened during completeness push: " + responseBody, ex );
+            throw ex;
+        }
+        catch ( ResourceAccessException ex )
+        {
+            log.error( "Exception during completeess data push: " + ex.getMessage(), ex );
+            throw ex;
+        }
+
+        log.info( "Synch summary: " + summary );
+
+        if ( summary != null && ImportStatus.SUCCESS.equals( summary.getStatus() ) )
+        {
+            setLastDataSynchSuccess( startTime );
+            log.info( "completeness Synch successful, setting last success time: " + startTime );
+        }
+        else
+        {
+            log.warn( "completness Sync failed: " + summary );
+        }
+
+        return summary;
     }
 
     @Override
@@ -204,8 +278,7 @@ public class DefaultSynchronizationManager
 
         if ( summary != null && ImportStatus.SUCCESS.equals( summary.getStatus() ) )
         {
-            setLastDataSynchSuccess( startTime );
-            log.info( "Synch successful, setting last success time: " + startTime );
+            log.info( "Synch successful");
         }
         else
         {

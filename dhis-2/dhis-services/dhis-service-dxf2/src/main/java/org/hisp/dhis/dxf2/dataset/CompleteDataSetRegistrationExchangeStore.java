@@ -28,7 +28,10 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdSchemes;
+
 import java.io.OutputStream;
+import java.util.Date;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -50,4 +53,6 @@ public interface CompleteDataSetRegistrationExchangeStore
      * @param outputStream the stream to write the JSON result to.
      */
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
+
+    void writeCompleteDataSetRegistrationsJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 }

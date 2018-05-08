@@ -126,7 +126,8 @@ public class MetadataSyncJob
         }
         catch ( Exception e )
         {
-            log.error( "Exception occurred while executing metadata sync task." + e.getMessage(), e );
+            String customMessage = "Exception occurred while executing metadata sync task." + e.getMessage();
+            log.error( customMessage, e );
         }
     }
 
@@ -148,6 +149,8 @@ public class MetadataSyncJob
         metadataSyncPreProcessor.setUp( context );
 
         metadataSyncPreProcessor.handleAggregateDataPush( context );
+
+        metadataSyncPreProcessor.handleDataSetCompletenessPush( context );
 
         metadataSyncPreProcessor.handleEventDataPush( context );
 
