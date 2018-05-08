@@ -176,7 +176,7 @@ public class RegistrationSingleEventServiceTest
     public void testSaveWithEnrollmentShouldNotFail()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -189,7 +189,7 @@ public class RegistrationSingleEventServiceTest
     public void testSavingMultipleEventsShouldOnlyUpdate()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
