@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.analysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,65 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Date;
-import java.util.List;
-
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FollowupAnalysisService
+public class FollowupAnalysisParams
 {
-    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit );
+    private String startDate;
 
-    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, String dataSetId,
-        int limit, Date startDate, Date endDate );
+    private String endDate;
+
+    private String organisationUnitId;
+
+    private String dataSetId;
+
+    public FollowupAnalysisParams()
+    {
+    }
+
+    public FollowupAnalysisParams( String startDate, String endDate, String organisationUnitId, String dataSetId )
+    {
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.organisationUnitId = organisationUnitId;
+        this.dataSetId = dataSetId;
+    }
+
+    public String getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( String startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( String endDate )
+    {
+        this.endDate = endDate;
+    }
+
+    public String getOrganisationUnitId()
+    {
+        return organisationUnitId;
+    }
+
+    public void setOrganisationUnitId( String organisationUnitId )
+    {
+        this.organisationUnitId = organisationUnitId;
+    }
+
+    public String getDataSetId()
+    {
+        return dataSetId;
+    }
+
+    public void setDataSetId( String dataSetId )
+    {
+        this.dataSetId = dataSetId;
+    }
 }

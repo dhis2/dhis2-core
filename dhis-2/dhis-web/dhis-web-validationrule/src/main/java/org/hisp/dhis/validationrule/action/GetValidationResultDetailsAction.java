@@ -28,9 +28,7 @@ package org.hisp.dhis.validationrule.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -42,7 +40,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 
-import com.opensymphony.xwork2.Action;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -52,7 +51,7 @@ public class GetValidationResultDetailsAction
     implements Action
 {
     private static final String NULL_REPLACEMENT = "-";
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -127,7 +126,7 @@ public class GetValidationResultDetailsAction
     {
         return validationRule;
     }
-    
+
     private Map<String, String> leftSideMap = new HashMap<>();
 
     public Map<String, String> getLeftSideMap()
@@ -156,21 +155,25 @@ public class GetValidationResultDetailsAction
 
         OrganisationUnit source = organisationUnitService.getOrganisationUnit( sourceId );
 
-        for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
+        for ( DataElementOperand operand : expressionService
+            .getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
         {
-            DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, source, operand.getCategoryOptionCombo() );
-            
+            DataValue dataValue = dataValueService
+                .getDataValue( operand.getDataElement(), period, source, operand.getCategoryOptionCombo() );
+
             String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
-            
+
             leftSideMap.put( operand.getName(), value );
         }
 
-        for ( DataElementOperand operand : expressionService.getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
+        for ( DataElementOperand operand : expressionService
+            .getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
         {
-            DataValue dataValue = dataValueService.getDataValue( operand.getDataElement(), period, source, operand.getCategoryOptionCombo() );
+            DataValue dataValue = dataValueService
+                .getDataValue( operand.getDataElement(), period, source, operand.getCategoryOptionCombo() );
 
             String value = dataValue != null ? dataValue.getValue() : NULL_REPLACEMENT;
-            
+
             rightSideMap.put( operand.getName(), value );
         }
 

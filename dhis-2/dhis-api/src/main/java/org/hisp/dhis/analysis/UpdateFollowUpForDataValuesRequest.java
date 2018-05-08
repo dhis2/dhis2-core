@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.analysis;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,19 +28,28 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Date;
 import java.util.List;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FollowupAnalysisService
+public class UpdateFollowUpForDataValuesRequest
 {
-    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit );
+    private List<FollowupParams> followups;
 
-    List<DeflatedDataValue> getFollowupDataValuesBetweenInterval( OrganisationUnit organisationUnit, String dataSetId,
-        int limit, Date startDate, Date endDate );
+    public UpdateFollowUpForDataValuesRequest()
+    {
+    }
+
+    public UpdateFollowUpForDataValuesRequest( List<FollowupParams> followups )
+    {
+        this.followups = followups;
+    }
+
+    public List<FollowupParams> getFollowups()
+    {
+        return followups;
+    }
+
+    public void setFollowups( List<FollowupParams> followups )
+    {
+        this.followups = followups;
+    }
 }
