@@ -42,6 +42,8 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -141,7 +143,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
             enrollments.add( fromJson );
         }
 
-        return addEnrollmentList( enrollments, importOptions );
+        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -161,12 +163,13 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
             enrollments.add( fromXml );
         }
 
-        return addEnrollmentList( enrollments, importOptions );
+        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
 
     private ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
         List<Enrollment> create = new ArrayList<>();
         List<Enrollment> update = new ArrayList<>();
@@ -247,7 +250,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         Enrollment enrollment = fromJson( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
 
-        return updateEnrollment( enrollment, importOptions );
+        return updateEnrollment( enrollment, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -265,6 +268,6 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         Enrollment enrollment = fromXml( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
 
-        return updateEnrollment( enrollment, importOptions );
+        return updateEnrollment( enrollment, updateImportOptions( importOptions ) );
     }
 }

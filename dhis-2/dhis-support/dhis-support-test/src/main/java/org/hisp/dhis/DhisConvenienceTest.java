@@ -47,10 +47,18 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
@@ -75,15 +83,31 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UniqunessType;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
@@ -93,7 +117,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -106,6 +135,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
@@ -118,9 +148,20 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -1176,20 +1217,20 @@ public abstract class DhisConvenienceTest
 
         return legendSet;
     }
-    
+
     public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
     {
         ColorSet colorSet = new ColorSet();
         colorSet.setAutoFields();
         colorSet.setName( "ColorSet" + uniqueCharacter );
-        
+
         for ( String colorCode : hexColorCodes )
         {
             Color color = new Color( colorCode );
             color.setAutoFields();
             colorSet.getColors().add( color );
         }
-        
+
         return colorSet;
     }
 
@@ -1459,7 +1500,7 @@ public abstract class DhisConvenienceTest
     {
         return createProgramIndicator( uniqueCharacter, AnalyticsType.EVENT, program, expression, filter );
     }
-    
+
     public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType, Program program, String expression, String filter )
     {
         ProgramIndicator indicator = new ProgramIndicator();
@@ -1472,7 +1513,7 @@ public abstract class DhisConvenienceTest
         indicator.setExpression( expression );
         indicator.setAnalyticsType( analyticsType );
         indicator.setFilter( filter );
-        
+
         List<AnalyticsPeriodBoundary> boundaries = new ArrayList<AnalyticsPeriodBoundary>();
         if ( analyticsType == AnalyticsType.EVENT )
         {
@@ -1497,7 +1538,7 @@ public abstract class DhisConvenienceTest
 
         return section;
     }
-    
+
     public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilter = new TrackedEntityInstanceFilter();
@@ -1699,7 +1740,7 @@ public abstract class DhisConvenienceTest
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
-            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient )
+        String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient )
     {
         return new ProgramNotificationTemplate(
             name,
@@ -2103,7 +2144,10 @@ public abstract class DhisConvenienceTest
             user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
 
         return user;
     }
@@ -2117,11 +2161,19 @@ public abstract class DhisConvenienceTest
             user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
     }
 
     protected void clearSecurityContext()
     {
+        if ( SecurityContextHolder.getContext() != null )
+        {
+            SecurityContextHolder.getContext().setAuthentication( null );
+        }
+
         SecurityContextHolder.clearContext();
     }
 
