@@ -156,7 +156,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             enrollment.getEnrollmentDate(), RuleEnrollment.Status.valueOf( enrollment.getStatus().toString() ), enrollment.getOrganisationUnit() != null ? enrollment.getOrganisationUnit().getUid() : "",
             enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
             .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(), attr.getValue() ) )
-            .collect( Collectors.toList() ),enrollment.getProgram().getName() );
+            .collect( Collectors.toList() ), enrollment.getProgram().getName() );
     }
 
     @Override
