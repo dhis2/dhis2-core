@@ -309,7 +309,7 @@ public class DefaultTrackerKafkaManager
                 log.info( "Importing " + enrollments.size() + " enrollments for user " + user.getUsername() );
             } );
 
-        cEvent.commitSync();
+        cEnrollment.commitSync();
     }
 
     @Override
@@ -337,6 +337,6 @@ public class DefaultTrackerKafkaManager
                 log.info( "Importing " + trackedEntityInstances.size() + " tracked entities for user " + user.getUsername() );
             } );
 
-        cEvent.commitSync();
+        cTrackedEntity.commitSync();
     }
 }
