@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.kafka;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 
@@ -38,15 +39,29 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
  */
 public abstract class AbstractKafkaMessage<T>
 {
+    private String id;
     private final String user;
     private final ImportOptions importOptions;
     private final T payload;
 
     public AbstractKafkaMessage( String user, ImportOptions importOptions, T payload )
     {
+        this.id = CodeGenerator.generateUid();
         this.user = user;
         this.importOptions = importOptions;
         this.payload = payload;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
     }
 
     @JsonProperty
