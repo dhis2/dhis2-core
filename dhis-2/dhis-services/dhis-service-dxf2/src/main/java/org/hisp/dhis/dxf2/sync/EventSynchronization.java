@@ -81,6 +81,8 @@ public class EventSynchronization
 
         final Date startTime = new Date();
         final Date lastSuccess = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC );
+        log.info( "Anonymous events data synchronization was last successfully done on: " + lastSuccess );
+
         final int objectsToSync = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccess );
 
         if ( objectsToSync == 0 )
@@ -94,10 +96,11 @@ public class EventSynchronization
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
         final int eventSyncPageSize = (int) systemSettingManager.getSystemSetting( SettingKey.EVENT_SYNC_PAGE_SIZE );
-        final int pages = (int) Math.ceil( objectsToSync / eventSyncPageSize );
+        final int pages = (objectsToSync / eventSyncPageSize) + ((objectsToSync % eventSyncPageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
         final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.EVENTS_ENDPOINT.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
 
         log.info( "Remote server URL for Events POST sync: " + syncUrl );
+        log.info( "Events sync job has " + pages + " pages to sync. With page size: " + eventSyncPageSize );
 
         boolean syncResult = true;
 
