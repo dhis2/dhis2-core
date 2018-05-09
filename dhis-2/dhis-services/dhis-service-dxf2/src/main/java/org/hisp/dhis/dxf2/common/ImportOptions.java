@@ -167,8 +167,6 @@ public class ImportOptions
     // Get methods
     //--------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {
         return user;
