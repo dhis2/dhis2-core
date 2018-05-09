@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -56,12 +55,13 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Tracker specific KafkaManager, uses JsonSerializer/JsonDeserializer to automatically serialize deserialize Jackson objects.
@@ -216,7 +216,7 @@ public class DefaultTrackerKafkaManager
             }
 
             ktEvent.send( TOPIC_BULK_EVENTS,
-                new KafkaEvent( user.getUid(), importOptions, event ).setJobId( jobId ) );
+                new KafkaEvent( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, event ) );
         }
     }
 
@@ -234,7 +234,7 @@ public class DefaultTrackerKafkaManager
             }
 
             ktEnrollment.send( TOPIC_BULK_ENROLLMENTS,
-                new KafkaEnrollment( user.getUid(), importOptions, enrollment ).setJobId( jobId ) );
+                new KafkaEnrollment( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, enrollment ) );
         }
     }
 
@@ -252,97 +252,91 @@ public class DefaultTrackerKafkaManager
             }
 
             ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES,
-                new KafkaTrackedEntity( user.getUid(), importOptions, trackedEntity ).setJobId( jobId ) );
+                new KafkaTrackedEntity( CodeGenerator.generateUid(), jobId, user.getUid(), importOptions, trackedEntity ) );
         }
     }
 
     @Override
     public void consumeEvents()
     {
-        ConsumerRecords<String, KafkaEvent> records = cEvent.poll( 0 );
-        Map<String, List<KafkaEvent>> events = new HashMap<>();
+        ConsumerRecords<String, KafkaEvent> consumerRecords = cEvent.poll( 1000 );
 
-        for ( ConsumerRecord<String, KafkaEvent> record : records )
-        {
-            if ( !events.containsKey( record.value().getUser() ) )
-            {
-                events.put( record.value().getUser(), new ArrayList<>() );
-            }
+        StreamSupport.stream( consumerRecords.spliterator(), false )
+            .collect( groupingBy( record -> record.value().getJobId() ) )
+            .forEach( ( key, records ) -> {
+                KafkaEvent kafkaEvent = records.get( 0 ).value();
+                User user = userService.getUser( kafkaEvent.getUser() );
 
-            events.get( record.value().getUser() ).add( record.value() );
-        }
+                if ( user == null )
+                {
+                    log.warn( "User with ID " + kafkaEvent.getUser() + " not found." );
+                    return;
+                }
 
-        // start event import thread
-        events.forEach( ( userUid, kafkaEvents ) -> {
-            User user = userService.getUser( userUid );
+                ImportOptions importOptions = kafkaEvent.getImportOptions().setUser( user );
 
-            if ( user == null )
-            {
-                log.warn( "User with ID " + userUid + " not found." );
-                return;
-            }
+                List<Event> events = records.stream().map( x -> x.value().getPayload() )
+                    .collect( Collectors.toList() );
 
-            log.info( "Importing " + kafkaEvents.size() + " events for user " + user.getUsername() );
-        } );
+                log.info( "Importing " + events.size() + " events for user " + user.getUsername() );
+            } );
+
+        cEvent.commitSync();
     }
 
     @Override
     public void consumeEnrollments()
     {
-        ConsumerRecords<String, KafkaEnrollment> records = cEnrollment.poll( 0 );
-        Map<String, List<KafkaEnrollment>> enrollments = new HashMap<>();
+        ConsumerRecords<String, KafkaEnrollment> consumerRecords = cEnrollment.poll( 1000 );
 
-        for ( ConsumerRecord<String, KafkaEnrollment> record : records )
-        {
-            if ( !enrollments.containsKey( record.value().getUser() ) )
-            {
-                enrollments.put( record.value().getUser(), new ArrayList<>() );
-            }
+        StreamSupport.stream( consumerRecords.spliterator(), false )
+            .collect( groupingBy( record -> record.value().getJobId() ) )
+            .forEach( ( key, records ) -> {
+                KafkaEnrollment kafkaEnrollment = records.get( 0 ).value();
+                User user = userService.getUser( kafkaEnrollment.getUser() );
 
-            enrollments.get( record.value().getUser() ).add( record.value() );
-        }
+                if ( user == null )
+                {
+                    log.warn( "User with ID " + kafkaEnrollment.getUser() + " not found." );
+                    return;
+                }
 
-        // start enrollment import thread
-        enrollments.forEach( ( userUid, kafkaEnrollments ) -> {
-            User user = userService.getUser( userUid );
+                ImportOptions importOptions = kafkaEnrollment.getImportOptions().setUser( user );
 
-            if ( user == null )
-            {
-                log.warn( "User with ID " + userUid + " not found." );
-                return;
-            }
+                List<Enrollment> enrollments = records.stream().map( x -> x.value().getPayload() )
+                    .collect( Collectors.toList() );
 
-            log.info( "Importing " + kafkaEnrollments.size() + " enrollments for user " + user.getUsername() );
-        } );
+                log.info( "Importing " + enrollments.size() + " enrollments for user " + user.getUsername() );
+            } );
+
+        cEvent.commitSync();
     }
 
     @Override
     public void consumeTrackedEntities()
     {
-        ConsumerRecords<String, KafkaTrackedEntity> records = cTrackedEntity.poll( 0 );
-        Map<String, List<KafkaTrackedEntity>> trackedEntities = new HashMap<>();
+        ConsumerRecords<String, KafkaTrackedEntity> consumerRecords = cTrackedEntity.poll( 1000 );
 
-        for ( ConsumerRecord<String, KafkaTrackedEntity> record : records )
-        {
-            if ( !trackedEntities.containsKey( record.value().getUser() ) )
-            {
-                trackedEntities.put( record.value().getUser(), new ArrayList<>() );
-            }
+        StreamSupport.stream( consumerRecords.spliterator(), false )
+            .collect( groupingBy( record -> record.value().getJobId() ) )
+            .forEach( ( key, records ) -> {
+                KafkaTrackedEntity kafkaTrackedEntity = records.get( 0 ).value();
+                User user = userService.getUser( kafkaTrackedEntity.getUser() );
 
-            trackedEntities.get( record.value().getUser() ).add( record.value() );
-        }
+                if ( user == null )
+                {
+                    log.warn( "User with ID " + kafkaTrackedEntity.getUser() + " not found." );
+                    return;
+                }
 
-        // start tracked entity import thread
-        trackedEntities.forEach( ( userUid, kafkaTrackedEntities ) -> {
-            User user = userService.getUser( userUid );
+                ImportOptions importOptions = kafkaTrackedEntity.getImportOptions().setUser( user );
 
-            if ( user == null )
-            {
-                log.warn( "User with ID " + userUid + " not found." );
-                return;
-            }
+                List<TrackedEntityInstance> trackedEntityInstances = records.stream().map( x -> x.value().getPayload() )
+                    .collect( Collectors.toList() );
 
-            log.info( "Importing " + kafkaTrackedEntities.size() + " tracked entities for user " + user.getUsername() );
-        } );
+                log.info( "Importing " + trackedEntityInstances.size() + " tracked entities for user " + user.getUsername() );
+            } );
+
+        cEvent.commitSync();
     }
 }

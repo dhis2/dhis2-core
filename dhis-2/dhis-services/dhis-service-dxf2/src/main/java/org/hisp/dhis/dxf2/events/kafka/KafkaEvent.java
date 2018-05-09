@@ -39,9 +39,13 @@ import org.hisp.dhis.dxf2.events.event.Event;
 public class KafkaEvent extends AbstractKafkaMessage<Event>
 {
     @JsonCreator
-    public KafkaEvent( @JsonProperty( "user" ) String user,
-        @JsonProperty( "importOptions" ) ImportOptions importOptions, @JsonProperty( "payload" ) Event payload )
+    public KafkaEvent(
+        @JsonProperty( "id" ) String id,
+        @JsonProperty( "jobId" ) String jobId,
+        @JsonProperty( "user" ) String user,
+        @JsonProperty( "importOptions" ) ImportOptions importOptions,
+        @JsonProperty( "payload" ) Event payload )
     {
-        super( user, importOptions, payload );
+        super( id, jobId, user, importOptions, payload );
     }
 }

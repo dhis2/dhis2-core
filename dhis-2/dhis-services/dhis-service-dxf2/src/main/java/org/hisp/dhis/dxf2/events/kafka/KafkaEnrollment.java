@@ -39,9 +39,13 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 public class KafkaEnrollment extends AbstractKafkaMessage<Enrollment>
 {
     @JsonCreator
-    public KafkaEnrollment( @JsonProperty( "user" ) String user,
-        @JsonProperty( "importOptions" ) ImportOptions importOptions, @JsonProperty( "payload" ) Enrollment payload )
+    public KafkaEnrollment(
+        @JsonProperty( "id" ) String id,
+        @JsonProperty( "jobId" ) String jobId,
+        @JsonProperty( "user" ) String user,
+        @JsonProperty( "importOptions" ) ImportOptions importOptions,
+        @JsonProperty( "payload" ) Enrollment payload )
     {
-        super( user, importOptions, payload );
+        super( id, jobId, user, importOptions, payload );
     }
 }

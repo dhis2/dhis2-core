@@ -39,9 +39,13 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 public class KafkaTrackedEntity extends AbstractKafkaMessage<TrackedEntityInstance>
 {
     @JsonCreator
-    public KafkaTrackedEntity( @JsonProperty( "user" ) String user,
-        @JsonProperty( "importOptions" ) ImportOptions importOptions, @JsonProperty( "payload" ) TrackedEntityInstance payload )
+    public KafkaTrackedEntity(
+        @JsonProperty( "id" ) String id,
+        @JsonProperty( "jobId" ) String jobId,
+        @JsonProperty( "user" ) String user,
+        @JsonProperty( "importOptions" ) ImportOptions importOptions,
+        @JsonProperty( "payload" ) TrackedEntityInstance payload )
     {
-        super( user, importOptions, payload );
+        super( id, jobId, user, importOptions, payload );
     }
 }

@@ -128,7 +128,7 @@ public class DefaultKafkaManager implements KafkaManager
         props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers() );
         props.put( ConsumerConfig.GROUP_ID_CONFIG, group );
         props.put( ConsumerConfig.CLIENT_ID_CONFIG, "dhis2" );
-        props.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true );
+        props.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false );
         props.put( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest" );
         props.put( ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100" );
         props.put( ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000" );

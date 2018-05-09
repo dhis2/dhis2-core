@@ -174,9 +174,10 @@ public class ImportOptions
         return user;
     }
 
-    public void setUser( User user )
+    public ImportOptions setUser( User user )
     {
         this.user = user;
+        return this;
     }
 
     @JsonProperty

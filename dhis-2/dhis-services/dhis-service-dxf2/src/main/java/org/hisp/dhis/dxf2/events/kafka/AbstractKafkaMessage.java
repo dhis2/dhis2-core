@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.kafka;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 
@@ -39,16 +38,16 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
  */
 public abstract class AbstractKafkaMessage<T>
 {
-    private String id;
-    private String jobId;
+    private final String id;
+    private final String jobId;
     private final String user;
     private final ImportOptions importOptions;
     private final T payload;
 
-    public AbstractKafkaMessage( String user, ImportOptions importOptions, T payload )
+    public AbstractKafkaMessage( String id, String jobId, String user, ImportOptions importOptions, T payload )
     {
-        this.id = CodeGenerator.generateUid();
-        this.jobId = CodeGenerator.generateUid();
+        this.id = id;
+        this.jobId = jobId;
         this.user = user;
         this.importOptions = importOptions;
         this.payload = payload;
@@ -61,25 +60,11 @@ public abstract class AbstractKafkaMessage<T>
         return id;
     }
 
-    @SuppressWarnings( "unchecked" )
-    public <E extends AbstractKafkaMessage> E setId( String id )
-    {
-        this.id = id;
-        return (E) this;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getJobId()
     {
         return jobId;
-    }
-
-    @SuppressWarnings( "unchecked" )
-    public <E extends AbstractKafkaMessage> E setJobId( String jobId )
-    {
-        this.jobId = jobId;
-        return (E) this;
     }
 
     @JsonProperty
