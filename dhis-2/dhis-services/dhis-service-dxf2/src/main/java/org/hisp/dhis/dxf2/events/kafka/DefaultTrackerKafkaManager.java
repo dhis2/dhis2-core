@@ -205,6 +205,9 @@ public class DefaultTrackerKafkaManager
     @Override
     public void dispatchEvents( User user, ImportOptions importOptions, List<Event> events )
     {
+        // generate a common job id for this entire job (useful for grouping when consuming topics)
+        String jobId = CodeGenerator.generateUid();
+
         for ( Event event : events )
         {
             if ( event.getEvent() == null )
@@ -212,13 +215,17 @@ public class DefaultTrackerKafkaManager
                 event.setEvent( CodeGenerator.generateUid() );
             }
 
-            ktEvent.send( TOPIC_BULK_EVENTS, new KafkaEvent( user.getUid(), importOptions, event ) );
+            ktEvent.send( TOPIC_BULK_EVENTS,
+                new KafkaEvent( user.getUid(), importOptions, event ).setJobId( jobId ) );
         }
     }
 
     @Override
     public void dispatchEnrollments( User user, ImportOptions importOptions, List<Enrollment> enrollments )
     {
+        // generate a common job id for this entire job (useful for grouping when consuming topics)
+        String jobId = CodeGenerator.generateUid();
+
         for ( Enrollment enrollment : enrollments )
         {
             if ( enrollment.getEnrollment() == null )
@@ -226,13 +233,17 @@ public class DefaultTrackerKafkaManager
                 enrollment.setEnrollment( CodeGenerator.generateUid() );
             }
 
-            ktEnrollment.send( TOPIC_BULK_ENROLLMENTS, new KafkaEnrollment( user.getUid(), importOptions, enrollment ) );
+            ktEnrollment.send( TOPIC_BULK_ENROLLMENTS,
+                new KafkaEnrollment( user.getUid(), importOptions, enrollment ).setJobId( jobId ) );
         }
     }
 
     @Override
     public void dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
     {
+        // generate a common job id for this entire job (useful for grouping when consuming topics)
+        String jobId = CodeGenerator.generateUid();
+
         for ( TrackedEntityInstance trackedEntity : trackedEntities )
         {
             if ( trackedEntity.getTrackedEntityInstance() == null )
@@ -240,7 +251,8 @@ public class DefaultTrackerKafkaManager
                 trackedEntity.setTrackedEntityInstance( CodeGenerator.generateUid() );
             }
 
-            ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES, new KafkaTrackedEntity( user.getUid(), importOptions, trackedEntity ) );
+            ktTrackedEntity.send( TOPIC_BULK_TRACKED_ENTITIES,
+                new KafkaTrackedEntity( user.getUid(), importOptions, trackedEntity ).setJobId( jobId ) );
         }
     }
 
