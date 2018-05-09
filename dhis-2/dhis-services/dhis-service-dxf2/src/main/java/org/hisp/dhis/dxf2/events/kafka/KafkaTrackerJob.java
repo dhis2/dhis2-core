@@ -69,6 +69,8 @@ public class KafkaTrackerJob
         }
 
         System.err.println( "Kafka working" );
+        trackerKafkaManager.consumeTrackedEntities();
+        trackerKafkaManager.consumeEnrollments();
         trackerKafkaManager.consumeEvents();
     }
 }

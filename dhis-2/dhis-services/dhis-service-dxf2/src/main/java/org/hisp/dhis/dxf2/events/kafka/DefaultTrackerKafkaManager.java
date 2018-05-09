@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.events.kafka;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -37,11 +39,15 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.kafka.KafkaManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -65,7 +71,13 @@ import java.util.UUID;
 public class DefaultTrackerKafkaManager
     implements TrackerKafkaManager
 {
+    private static final Log log = LogFactory.getLog( DefaultTrackerKafkaManager.class );
+
+    private final EventService eventService;
+    private final EnrollmentService enrollmentService;
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
     private final KafkaManager kafkaManager;
+    private final UserService userService;
 
     private ConsumerFactory<String, KafkaEvent> cfEvent;
     private ConsumerFactory<String, KafkaEnrollment> cfEnrollment;
@@ -83,9 +95,14 @@ public class DefaultTrackerKafkaManager
     private Consumer<String, KafkaEnrollment> cEnrollment;
     private Consumer<String, KafkaTrackedEntity> cTrackedEntity;
 
-    public DefaultTrackerKafkaManager( KafkaManager kafkaManager )
+    public DefaultTrackerKafkaManager( EventService eventService, EnrollmentService enrollmentService,
+        TrackedEntityInstanceService trackedEntityInstanceService, KafkaManager kafkaManager, UserService userService )
     {
+        this.eventService = eventService;
+        this.enrollmentService = enrollmentService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.kafkaManager = kafkaManager;
+        this.userService = userService;
     }
 
     @EventListener
@@ -214,7 +231,7 @@ public class DefaultTrackerKafkaManager
     }
 
     @Override
-    public void dispatchTrackedEntity( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
+    public void dispatchTrackedEntities( User user, ImportOptions importOptions, List<TrackedEntityInstance> trackedEntities )
     {
         for ( TrackedEntityInstance trackedEntity : trackedEntities )
         {
@@ -244,43 +261,76 @@ public class DefaultTrackerKafkaManager
         }
 
         // start event import thread
+        events.forEach( ( userUid, kafkaEvents ) -> {
+            User user = userService.getUser( userUid );
+
+            if ( user == null )
+            {
+                log.warn( "User with ID " + userUid + " not found." );
+                return;
+            }
+
+            log.info( "Importing " + kafkaEvents.size() + " events for user " + user.getUsername() );
+        } );
     }
 
     @Override
     public void consumeEnrollments()
     {
         ConsumerRecords<String, KafkaEnrollment> records = cEnrollment.poll( 0 );
-        Map<String, List<KafkaEnrollment>> events = new HashMap<>();
+        Map<String, List<KafkaEnrollment>> enrollments = new HashMap<>();
 
         for ( ConsumerRecord<String, KafkaEnrollment> record : records )
         {
-            if ( !events.containsKey( record.value().getUser() ) )
+            if ( !enrollments.containsKey( record.value().getUser() ) )
             {
-                events.put( record.value().getUser(), new ArrayList<>() );
+                enrollments.put( record.value().getUser(), new ArrayList<>() );
             }
 
-            events.get( record.value().getUser() ).add( record.value() );
+            enrollments.get( record.value().getUser() ).add( record.value() );
         }
 
         // start enrollment import thread
+        enrollments.forEach( ( userUid, kafkaEnrollments ) -> {
+            User user = userService.getUser( userUid );
+
+            if ( user == null )
+            {
+                log.warn( "User with ID " + userUid + " not found." );
+                return;
+            }
+
+            log.info( "Importing " + kafkaEnrollments.size() + " enrollments for user " + user.getUsername() );
+        } );
     }
 
     @Override
     public void consumeTrackedEntities()
     {
         ConsumerRecords<String, KafkaTrackedEntity> records = cTrackedEntity.poll( 0 );
-        Map<String, List<KafkaTrackedEntity>> events = new HashMap<>();
+        Map<String, List<KafkaTrackedEntity>> trackedEntities = new HashMap<>();
 
         for ( ConsumerRecord<String, KafkaTrackedEntity> record : records )
         {
-            if ( !events.containsKey( record.value().getUser() ) )
+            if ( !trackedEntities.containsKey( record.value().getUser() ) )
             {
-                events.put( record.value().getUser(), new ArrayList<>() );
+                trackedEntities.put( record.value().getUser(), new ArrayList<>() );
             }
 
-            events.get( record.value().getUser() ).add( record.value() );
+            trackedEntities.get( record.value().getUser() ).add( record.value() );
         }
 
         // start tracked entity import thread
+        trackedEntities.forEach( ( userUid, kafkaTrackedEntities ) -> {
+            User user = userService.getUser( userUid );
+
+            if ( user == null )
+            {
+                log.warn( "User with ID " + userUid + " not found." );
+                return;
+            }
+
+            log.info( "Importing " + kafkaTrackedEntities.size() + " tracked entities for user " + user.getUsername() );
+        } );
     }
 }

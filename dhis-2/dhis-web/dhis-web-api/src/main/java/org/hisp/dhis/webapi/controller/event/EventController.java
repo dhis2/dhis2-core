@@ -244,11 +244,11 @@ public class EventController
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
-        
+
         if ( attributeOptionCombo == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
-        }        
+        }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
@@ -306,8 +306,8 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.addAll( Preset.ALL.getFields() );
-        }        
-        
+        }
+
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
@@ -808,7 +808,7 @@ public class EventController
     {
         if ( !trackerKafkaManager.isEnabled() )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration not enabled." ) );
+            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration is not enabled." ) );
         }
 
         importOptions.setImportStrategy( strategy );
@@ -924,5 +924,4 @@ public class EventController
     {
         return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
-
 }

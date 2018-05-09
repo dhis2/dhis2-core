@@ -52,6 +52,8 @@ public interface EnrollmentService
     // READ
     // -------------------------------------------------------------------------
 
+    List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException;
+
     Enrollment getEnrollment( String id );
 
     Enrollment getEnrollment( ProgramInstance programInstance );
@@ -107,5 +109,4 @@ public interface EnrollmentService
     ImportSummary deleteEnrollment( String uid );
 
     ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
-
 }

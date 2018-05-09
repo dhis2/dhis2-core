@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -47,6 +48,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.dxf2.events.kafka.TrackerKafkaManager;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -99,6 +101,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -142,6 +145,9 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private TrackerAccessManager trackerAccessManager;
+
+    @Autowired
+    private TrackerKafkaManager trackerKafkaManager;
 
     // -------------------------------------------------------------------------
     // READ
@@ -732,6 +738,26 @@ public class TrackedEntityInstanceController
     }
 
     // -------------------------------------------------------------------------
+    // QUEUED IMPORT
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/queue", method = RequestMethod.POST, consumes = "application/json" )
+    public void postQueuedJsonEvents( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
+    {
+        if ( !trackerKafkaManager.isEnabled() )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Kafka integration not enabled." ) );
+        }
+
+        importOptions.setImportStrategy( strategy );
+        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstancesJson( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ) );
+        trackerKafkaManager.dispatchTrackedEntities( currentUserService.getCurrentUser(), importOptions, trackedEntityInstances );
+    }
+
+    // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
 
@@ -754,6 +780,26 @@ public class TrackedEntityInstanceController
         return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/" + importSummary.getReference();
     }
 
+    private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
+    {
+
+        String idScheme = getParamValue( params, "idScheme" );
+
+        if ( idScheme != null )
+        {
+            idSchemes.setIdScheme( idScheme );
+        }
+
+        String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
+
+        if ( programStageInstanceIdScheme != null )
+        {
+            idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
+        }
+
+        return idSchemes;
+    }
+
     private List<String> getOrderParams( String order )
     {
         if ( order != null && !StringUtils.isEmpty( order ) )
@@ -763,5 +809,10 @@ public class TrackedEntityInstanceController
         }
 
         return null;
+    }
+
+    private String getParamValue( Map<String, List<String>> params, String key )
+    {
+        return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 }
