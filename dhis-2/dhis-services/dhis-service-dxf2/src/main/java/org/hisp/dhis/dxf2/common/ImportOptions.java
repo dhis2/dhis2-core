@@ -50,8 +50,6 @@ public class ImportOptions
 {
     private User user;
 
-    private User user;
-
     private IdSchemes idSchemes = new IdSchemes();
 
     private boolean dryRun;
