@@ -48,8 +48,7 @@ import org.hisp.dhis.user.User;
  */
 public class ImportOptions
 {
-    private static final ImportOptions DEFAULT_OPTIONS = new ImportOptions()
-        .setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
+    private User user;
 
     private User user;
 
@@ -135,7 +134,7 @@ public class ImportOptions
 
     public static ImportOptions getDefaultImportOptions()
     {
-        return DEFAULT_OPTIONS;
+        return new ImportOptions().setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
     }
 
     /**
