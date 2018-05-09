@@ -50,6 +50,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.hibernate.JpaUtils;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -64,6 +65,7 @@ import org.hisp.dhis.user.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
@@ -651,12 +653,21 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
-            .setMaxResults( 1 )
-            .addOrder( root -> builder.desc( root.get( "lastUpdated"  ) ) )
-            .setCachable( true );
+        CriteriaQuery<Date> query = builder.createQuery(  Date.class );
 
-        return getObjectProperty( builder,"lastUpdated", Date.class, param );
+        Root<T> root = query.from( getClazz() );
+
+        query.select( root.get( "lastUpdated" ) );
+
+        query.orderBy( builder.desc( root.get( "lastUpdated" ) ) );
+
+        TypedQuery<Date> typedQuery = getCurrentSession().createQuery( query );
+
+        typedQuery.setMaxResults( 1 );
+
+        typedQuery.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, true );
+
+        return getSingleResult( typedQuery );
     }
 
     @Override

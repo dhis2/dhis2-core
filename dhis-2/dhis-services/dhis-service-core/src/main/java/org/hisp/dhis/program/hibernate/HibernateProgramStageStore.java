@@ -29,13 +29,13 @@ package org.hisp.dhis.program.hibernate;
  */
 
 import com.google.common.collect.Lists;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -52,9 +52,11 @@ public class HibernateProgramStageStore
     @Override
     public ProgramStage getByNameAndProgram( String name, Program program )
     {
-        return (ProgramStage) getCriteria( 
-            Restrictions.eq( "name", name ), 
-            Restrictions.eq( "program", program ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
 
     @Override

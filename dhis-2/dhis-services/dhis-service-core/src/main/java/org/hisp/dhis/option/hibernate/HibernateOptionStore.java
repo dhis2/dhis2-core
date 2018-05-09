@@ -46,7 +46,6 @@ public class HibernateOptionStore
     // Implementation methods
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<Option> getOptions( int optionSetId, String key, Integer max )
     {
@@ -61,7 +60,7 @@ public class HibernateOptionStore
 
         hql += "order by index(option)";
         
-        Query query = getQuery( hql );
+        Query<Option> query = getQuery( hql );
         query.setParameter( "optionSetId", optionSetId );
         
         if ( max != null )

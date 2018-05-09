@@ -28,7 +28,6 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -47,7 +46,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -58,7 +56,6 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -368,6 +365,10 @@ public class HibernateGenericStore<T>
                 query.select( countExpressions.get( 0 ).apply( root ) );
             }
         }
+        else
+        {
+            query.select( builder.count( query.from( getClazz() ) ) );
+        }
 
         if ( !predicateProviders.isEmpty() )
         {
@@ -376,33 +377,6 @@ public class HibernateGenericStore<T>
         }
 
         return getCurrentSession().createQuery( query ).getSingleResult();
-    }
-
-    protected final <Y> Y getObjectProperty( CriteriaBuilder builder, String property, Class<Y> propertyClass, JpaQueryParameters<T> parameters )
-    {
-        CriteriaQuery<Y> query = builder.createQuery(  propertyClass );
-        Root<T> root = query.from( getClazz() );
-
-        query.select( root.get( property ) );
-
-        List<Function<Root<T>, Predicate>> predicateProviders = parameters.getPredicates();
-
-        if ( !predicateProviders.isEmpty() )
-        {
-            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
-            query.where( predicates.toArray( new Predicate[0] ) );
-        }
-
-        TypedQuery<Y> typedQuery = getCurrentSession().createQuery( query );
-
-        if ( parameters.hasMaxResult() )
-        {
-            typedQuery.setMaxResults( parameters.getMaxResults() );
-        }
-
-        typedQuery.setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, parameters.isCachable() );
-
-        return getSingleResult( typedQuery );
     }
 
     /**

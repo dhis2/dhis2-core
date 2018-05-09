@@ -90,7 +90,7 @@ public class HibernateDataValueAuditStore
         String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
         
         sessionFactory.getCurrentSession().createQuery( hql ).
-            setEntity( "unit", organisationUnit ).executeUpdate();
+            setParameter( "unit", organisationUnit ).executeUpdate();
     }
 
     @Override
@@ -99,7 +99,7 @@ public class HibernateDataValueAuditStore
         String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
         sessionFactory.getCurrentSession().createQuery( hql )
-            .setEntity( "dataElement", dataElement ).executeUpdate();
+            .setParameter( "dataElement", dataElement ).executeUpdate();
     }
 
     @Override

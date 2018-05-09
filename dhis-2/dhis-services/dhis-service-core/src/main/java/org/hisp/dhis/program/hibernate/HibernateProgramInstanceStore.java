@@ -47,6 +47,7 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -177,25 +178,32 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( Program program )
     {
-        return getCriteria( Restrictions.eq( "program", program ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( Program program, ProgramStatus status )
     {
-        return getCriteria( Restrictions.eq( "program", program ), Restrictions.eq( "status", status ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
-        return getCriteria( Restrictions.eq( "entityInstance", entityInstance ), Restrictions.eq( "program", program ),
-            Restrictions.eq( "status", status ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
+            .addPredicate( root -> builder.equal( root.get( "program" ), program) )
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
     }
 
     @Override
@@ -213,7 +221,6 @@ public class HibernateProgramInstanceStore
     }
 
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {

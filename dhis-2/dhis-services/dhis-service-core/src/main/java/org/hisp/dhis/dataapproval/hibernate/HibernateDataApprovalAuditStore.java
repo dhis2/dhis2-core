@@ -77,7 +77,6 @@ public class HibernateDataApprovalAuditStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();

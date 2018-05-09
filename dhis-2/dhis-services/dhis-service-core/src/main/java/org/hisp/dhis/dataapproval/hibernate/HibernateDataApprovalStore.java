@@ -73,6 +73,8 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 /**
  * @author Jim Grace
  */
@@ -163,7 +165,7 @@ public class HibernateDataApprovalStore
         String hql = "delete from DataApproval d where d.organisationUnit = :unit";
         
         getSession().createQuery( hql ).
-            setEntity( "unit", organisationUnit ).executeUpdate();
+            setParameter( "unit", organisationUnit ).executeUpdate();
     }
 
     @Override
@@ -179,31 +181,30 @@ public class HibernateDataApprovalStore
     {
         Period storedPeriod = periodService.reloadPeriod( period );
 
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "dataApprovalLevel", dataApprovalLevel ) );
-        criteria.add( Restrictions.eq( "workflow", workflow ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.eq( "organisationUnit", organisationUnit ) );
-        criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (DataApproval) criteria.uniqueResult();
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataApprovalLevel" ), dataApprovalLevel ) )
+            .addPredicate( root -> builder.equal( root.get( "workflow" ), workflow ) )
+            .addPredicate( root -> builder.equal( root.get( "period" ), storedPeriod ) )
+            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
+            .addPredicate( root -> builder.equal( root.get( "attributeOptionCombo" ), attributeOptionCombo ) ) );
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
         Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<CategoryOptionCombo> attributeOptionCombos )
     {
         List<Period> storedPeriods = periods.stream().map(p -> periodService.reloadPeriod( p ) ).collect( Collectors.toList() );
 
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.in( "dataApprovalLevel", dataApprovalLevels ) );
-        criteria.add( Restrictions.in( "workflow", workflows ) );
-        criteria.add( Restrictions.in( "period", storedPeriods ) );
-        criteria.add( Restrictions.in( "organisationUnit", organisationUnits ) );
-        criteria.add( Restrictions.in( "attributeOptionCombo", attributeOptionCombos ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list();
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> root.get( "dataApprovalLevel" ).in( dataApprovalLevels ) )
+            .addPredicate( root -> root.get( "workflow" ).in( workflows ) )
+            .addPredicate( root -> root.get( "period" ).in( storedPeriods ) )
+            .addPredicate( root -> root.get( "organisationUnit" ).in( organisationUnits ) )
+            .addPredicate( root -> root.get( "attributeOptionCombo" ).in( attributeOptionCombos ) ) );
     }
 
     @Override
