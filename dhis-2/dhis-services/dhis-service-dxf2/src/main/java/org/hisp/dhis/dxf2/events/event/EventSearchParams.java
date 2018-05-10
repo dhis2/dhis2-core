@@ -135,7 +135,7 @@ public class EventSearchParams
     /**
      * DataElements to be included in the response. Can be used to filter response.
      */
-    private List<QueryItem> dataElements = new ArrayList<>();
+    private Set<QueryItem> dataElements = new HashSet<>();
 
     private boolean includeDeleted;
 
@@ -503,12 +503,12 @@ public class EventSearchParams
         return this.includeDeleted;
     }
 
-    public List<QueryItem> getDataElements()
+    public Set<QueryItem> getDataElements()
     {
         return dataElements;
     }
 
-    public void setDataElements( List<QueryItem> dataElements )
+    public void setDataElements( Set<QueryItem> dataElements )
     {
         this.dataElements = dataElements;
     }
