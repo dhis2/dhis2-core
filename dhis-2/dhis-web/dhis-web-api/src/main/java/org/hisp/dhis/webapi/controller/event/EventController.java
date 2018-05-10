@@ -84,6 +84,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -199,7 +200,7 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    public @ResponseBody Grid getEventsGrid(
+    public @ResponseBody Grid queryEventsJson(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
         @RequestParam( required = false ) ProgramStatus programStatus,
@@ -240,11 +241,11 @@ public class EventController
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
-        
+
         if ( attributeOptionCombo == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
-        }        
+        }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
@@ -260,6 +261,200 @@ public class EventController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
 
         return eventService.getEventsGrid( params );
+
+    }
+
+    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_XML )
+    public void queryEventsXml(
+        @RequestParam( required = false ) String program,
+        @RequestParam( required = false ) String programStage,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Boolean followUp,
+        @RequestParam( required = false ) String trackedEntityInstance,
+        @RequestParam( required = false ) String orgUnit,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) Date lastUpdatedStartDate,
+        @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) EventStatus status,
+        @RequestParam( required = false ) String attributeCc,
+        @RequestParam( required = false ) String attributeCos,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean totalPages,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) String order,
+        @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+        @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
+        throws Exception
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+
+        if ( attributeOptionCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            dataElement, includeDeleted );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
+        Grid grid = eventService.getEventsGrid( params );
+        GridUtils.toXml( grid, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_EXCEL )
+    public void queryEventsXls(
+        @RequestParam( required = false ) String program,
+        @RequestParam( required = false ) String programStage,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Boolean followUp,
+        @RequestParam( required = false ) String trackedEntityInstance,
+        @RequestParam( required = false ) String orgUnit,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) Date lastUpdatedStartDate,
+        @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) EventStatus status,
+        @RequestParam( required = false ) String attributeCc,
+        @RequestParam( required = false ) String attributeCos,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean totalPages,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) String order,
+        @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+        @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
+        throws Exception
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+
+        if ( attributeOptionCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            dataElement, includeDeleted );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
+        Grid grid = eventService.getEventsGrid( params );
+        GridUtils.toXls( grid, response.getOutputStream() );
+
+    }
+
+    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_CSV )
+    public void queryEventsCsv(
+        @RequestParam( required = false ) String program,
+        @RequestParam( required = false ) String programStage,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Boolean followUp,
+        @RequestParam( required = false ) String trackedEntityInstance,
+        @RequestParam( required = false ) String orgUnit,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) Date lastUpdatedStartDate,
+        @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) EventStatus status,
+        @RequestParam( required = false ) String attributeCc,
+        @RequestParam( required = false ) String attributeCos,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean totalPages,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) String order,
+        @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
+        @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
+        throws Exception
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, false );
+
+        if ( attributeOptionCombo == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            dataElement, includeDeleted );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
+        Grid grid = eventService.getEventsGrid( params );
+        GridUtils.toCsv( grid, response.getWriter() );
 
     }
 
