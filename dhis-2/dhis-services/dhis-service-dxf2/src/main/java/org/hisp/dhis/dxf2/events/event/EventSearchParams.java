@@ -122,6 +122,8 @@ public class EventSearchParams
     private List<String> gridOrders;
 
     private boolean includeAttributes;
+    
+    private boolean includeAllDataElements;
 
     private Set<String> events = new HashSet<>();
 
@@ -429,6 +431,16 @@ public class EventSearchParams
     public void setIncludeAttributes( boolean includeAttributes )
     {
         this.includeAttributes = includeAttributes;
+    }
+
+    public boolean isIncludeAllDataElements()
+    {
+        return includeAllDataElements;
+    }
+
+    public void setIncludeAllDataElements( boolean includeAllDataElements )
+    {
+        this.includeAllDataElements = includeAllDataElements;
     }
 
     public List<Order> getOrders()

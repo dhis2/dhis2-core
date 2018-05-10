@@ -230,6 +230,7 @@ public class EventController
         @RequestParam( required = false ) String event,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -256,7 +257,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
-            dataElement, includeDeleted );
+            dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
 
@@ -295,6 +296,7 @@ public class EventController
         @RequestParam( required = false ) String event,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
@@ -321,7 +323,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
-            dataElement, includeDeleted );
+            dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -359,6 +361,7 @@ public class EventController
         @RequestParam( required = false ) String event,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
@@ -385,7 +388,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
-            dataElement, includeDeleted );
+            dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -424,6 +427,7 @@ public class EventController
         @RequestParam( required = false ) String event,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeAllDataElements,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
@@ -450,7 +454,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
-            dataElement, includeDeleted );
+            dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -509,7 +513,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null,
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null, false,
             includeDeleted );
 
         Events events = eventService.getEvents( params );
@@ -585,7 +589,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null,
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null, false,
             includeDeleted );
 
         Events events = eventService.getEvents( params );
@@ -634,7 +638,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null, null, null, eventStatus, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null,
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null, false,
             includeDeleted );
 
         return eventRowService.getEventRows( params );
