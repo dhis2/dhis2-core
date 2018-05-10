@@ -114,6 +114,6 @@ public class HibernateUserSettingStore
         
         String hql = "delete from UserSetting us where us.user = :user";
 
-        session.createQuery( hql ).setEntity( "user", user ).executeUpdate();
+        session.createQuery( hql ).setParameter( "user", user ).executeUpdate();
     }
 }

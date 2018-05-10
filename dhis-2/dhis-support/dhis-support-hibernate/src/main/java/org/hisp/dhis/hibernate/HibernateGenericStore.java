@@ -230,7 +230,7 @@ public class HibernateGenericStore<T>
      */
     public final TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
-        return sessionFactory.getCurrentSession()
+        return getSession()
             .createQuery( criteriaQuery )
             .setHint( JpaUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
     }
@@ -268,7 +268,7 @@ public class HibernateGenericStore<T>
      */
     protected List<T> getList( CriteriaQuery<T> criteriaQuery )
     {
-        return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getResultList();
+        return getSession().createQuery( criteriaQuery ).getResultList();
     }
 
     protected final List<T> getList( TypedQuery<T> typedQuery )
@@ -341,7 +341,7 @@ public class HibernateGenericStore<T>
             query.where( predicates.toArray( new Predicate[0] ) );
         }
 
-        return getCurrentSession().createQuery( query ).getSingleResult();
+        return getSession().createQuery( query ).getSingleResult();
     }
 
     protected  final Long count( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
@@ -376,7 +376,7 @@ public class HibernateGenericStore<T>
             query.where( predicates.toArray( new Predicate[0] ) );
         }
 
-        return getCurrentSession().createQuery( query ).getSingleResult();
+        return getSession().createQuery( query ).getSingleResult();
     }
 
     /**
@@ -510,7 +510,7 @@ public class HibernateGenericStore<T>
         query.select( root.get( "attributeValues" ) );
         query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
 
-        return sessionFactory.getCurrentSession().createQuery( query ).list();
+        return getSession().createQuery( query ).list();
     }
 
     @Override
@@ -527,7 +527,7 @@ public class HibernateGenericStore<T>
                 builder.equal( joinAttributeValue.get( "attribute" ), attribute ),
                 builder.equal( joinAttributeValue.get( "value" ), value ) ) );
 
-        return sessionFactory.getCurrentSession().createQuery( query ).list();
+        return getSession().createQuery( query ).list();
     }
 
     @Override
@@ -544,13 +544,8 @@ public class HibernateGenericStore<T>
         return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ));
     }
 
-    public Session getCurrentSession()
-    {
-        return sessionFactory.getCurrentSession();
-    }
-
     protected JpaQueryParameters<T> newJpaParameters()
     {
-        return new JpaQueryParameters<T>();
+        return new JpaQueryParameters<>();
     }
 }

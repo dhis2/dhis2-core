@@ -478,15 +478,18 @@ public class DataElementStoreTest
     public void testGetLastUpdated()
     {
         DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
 
         dataElementStore.save( dataElementA );
-        Date lastUpdated = dataElementA.getLastUpdated();
+        dataElementStore.save( dataElementB );
+        Date lastUpdated = dataElementStore.getLastUpdated();
 
-        dataElementA.setDescription( "test" );
-
+        dataElementA.setDescription( "testA" );
         dataElementStore.update( dataElementA );
 
-        assertNotNull( dataElementStore.getLastUpdated() );
+        dataElementB.setDescription( "testB" );
+        dataElementStore.update( dataElementB );
+
         assertNotEquals( lastUpdated, dataElementStore.getLastUpdated() );
     }
 }

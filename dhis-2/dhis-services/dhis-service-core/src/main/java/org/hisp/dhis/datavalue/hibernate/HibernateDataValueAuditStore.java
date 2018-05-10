@@ -33,38 +33,34 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public class HibernateDataValueAuditStore
+public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValueAudit>
     implements DataValueAuditStore
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private SessionFactory sessionFactory;
-
-    public void setSessionFactory( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
 
     private PeriodStore periodStore;
 
@@ -80,8 +76,7 @@ public class HibernateDataValueAuditStore
     @Override
     public void addDataValueAudit( DataValueAudit dataValueAudit )
     {
-        Session session = sessionFactory.getCurrentSession();
-        session.save( dataValueAudit );
+        getSession().save( dataValueAudit );
     }
 
     @Override
@@ -89,7 +84,7 @@ public class HibernateDataValueAuditStore
     {
         String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
         
-        sessionFactory.getCurrentSession().createQuery( hql ).
+        getSession().createQuery( hql ).
             setParameter( "unit", organisationUnit ).executeUpdate();
     }
 
@@ -98,53 +93,58 @@ public class HibernateDataValueAuditStore
     {
         String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
-        sessionFactory.getCurrentSession().createQuery( hql )
+        getSession().createQuery( hql )
             .setParameter( "dataElement", dataElement ).executeUpdate();
     }
 
     @Override
     public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
     {
-        return getDataValueAudits( Lists.newArrayList( dataValue.getDataElement() ), Lists.newArrayList( dataValue.getPeriod() ),
-            Lists.newArrayList( dataValue.getSource() ), dataValue.getCategoryOptionCombo(), dataValue.getAttributeOptionCombo(), null );
+        return getDataValueAudits( Lists.newArrayList( dataValue.getDataElement() ),
+            Lists.newArrayList( dataValue.getPeriod() ),
+            Lists.newArrayList( dataValue.getSource() ),
+            dataValue.getCategoryOptionCombo(),
+            dataValue.getAttributeOptionCombo(), null );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
-        Criteria criteria = getDataValueAuditCriteria( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
-        criteria.addOrder( Order.desc( "created" ) );
+        CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        return criteria.list();
+        return getList( builder, newJpaParameters()
+            .addPredicates( getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
     {
-        Criteria criteria = getDataValueAuditCriteria( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
-        criteria.addOrder( Order.desc( "created" ) );
-        criteria.setFirstResult( first );
-        criteria.setMaxResults( max );
+        CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        return criteria.list();
+        return getList( builder, newJpaParameters()
+            .addPredicates( getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) )
+            .setFirstResult( first )
+            .setMaxResults( max ) );
     }
 
     @Override
     public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
-        return ((Number) getDataValueAuditCriteria( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType )
-            .setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
+        CriteriaBuilder builder = getSession().getCriteriaBuilder();
+
+        return count( builder, newJpaParameters()
+            .addPredicates( getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) )).intValue();
     }
 
-    private Criteria getDataValueAuditCriteria( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits, 
+    private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates( CriteriaBuilder builder, List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
-        Session session = sessionFactory.getCurrentSession();
         List<Period> storedPeriods = new ArrayList<>();
 
         if ( !periods.isEmpty() )
@@ -160,38 +160,39 @@ public class HibernateDataValueAuditStore
             }
         }
 
-        Criteria criteria = session.createCriteria( DataValueAudit.class );
+        List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
+
 
         if ( !dataElements.isEmpty() )
         {
-            criteria.add( Restrictions.in( "dataElement", dataElements ) );
+            predicates.add( root -> root.get( "dataElement" ).in( dataElements ) );
         }
 
         if ( !storedPeriods.isEmpty() )
         {
-            criteria.add( Restrictions.in( "period", storedPeriods ) );
+            predicates.add( root -> root.get( "period" ).in( storedPeriods ) );
         }
 
         if ( !organisationUnits.isEmpty() )
         {
-            criteria.add( Restrictions.in( "organisationUnit", organisationUnits ) );
+            predicates.add( root -> root.get( "organisationUnit" ).in( organisationUnits ) );
         }
 
         if ( categoryOptionCombo != null )
         {
-            criteria.add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) );
+            predicates.add( root -> builder.equal( root.get( "categoryOptionCombo" ), categoryOptionCombo ) );
         }
 
         if ( attributeOptionCombo != null )
         {
-            criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
+            predicates.add( root -> builder.equal( root.get( "attributeOptionCombo" ), attributeOptionCombo ) );
         }
 
         if ( auditType != null )
         {
-            criteria.add( Restrictions.eq( "auditType", auditType ) );
+            predicates.add( root -> builder.equal( root.get( "auditType" ), auditType ) );
         }
 
-        return criteria;
+        return predicates;
     }
 }

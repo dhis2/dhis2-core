@@ -39,23 +39,24 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class HibernateCompleteDataSetRegistrationStore
+public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericStore<CompleteDataSetRegistration>
     implements CompleteDataSetRegistrationStore
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SessionFactory sessionFactory;
-    
     public void setSessionFactory( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
@@ -77,7 +78,7 @@ public class HibernateCompleteDataSetRegistrationStore
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
         
-        sessionFactory.getCurrentSession().save( registration );
+        getSession().save( registration );
     }
 
     @Override
@@ -85,7 +86,7 @@ public class HibernateCompleteDataSetRegistrationStore
     {
         registration.setPeriod( periodStore.reloadForceAddPeriod( registration.getPeriod() ) );
         
-        sessionFactory.getCurrentSession().update( registration );
+        getSession().update( registration );
     }
 
     @Override
@@ -99,51 +100,41 @@ public class HibernateCompleteDataSetRegistrationStore
             return null;
         }
 
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( CompleteDataSetRegistration.class );
-        
-        criteria.add( Restrictions.eq( "dataSet", dataSet ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
-        
-        return (CompleteDataSetRegistration) criteria.uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root, new CompleteDataSetRegistration( dataSet, storedPeriod, source, attributeOptionCombo ) ) ) );
     }
 
     @Override
     public void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
-        sessionFactory.getCurrentSession().delete( registration );
+        getSession().delete( registration );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
-        return sessionFactory.getCurrentSession().createCriteria( CompleteDataSetRegistration.class ).list();
+        return getList( getCriteriaBuilder(), newJpaParameters() );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations( 
+    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
         Collection<DataSet> dataSets, Collection<OrganisationUnit> sources, Collection<Period> periods )
     {
         for ( Period period : periods )
         {
             period = periodStore.reloadPeriod( period );
-        }        
-        
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( CompleteDataSetRegistration.class );
-        
-        criteria.add( Restrictions.in( "dataSet", dataSets ) );
-        criteria.add( Restrictions.in( "source", sources ) );
-        criteria.add( Restrictions.in( "period", periods ) );
-        
-        return criteria.list();
+        }
+
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .addPredicate( root -> root.get( "dataSet" ).in( dataSets ) )
+            .addPredicate( root -> root.get( "source" ).in( sources ) )
+            .addPredicate( root -> root.get( "period" ).in( periods ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations( 
+    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
         DataSet dataSet, Collection<OrganisationUnit> sources, Period period, Date deadline )
     {
         Period storedPeriod = periodStore.reloadPeriod( period );
@@ -153,14 +144,13 @@ public class HibernateCompleteDataSetRegistrationStore
             return null;
         }
 
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( CompleteDataSetRegistration.class );
-        
-        criteria.add( Restrictions.eq( "dataSet", dataSet ) );
-        criteria.add( Restrictions.in( "source", sources ) );
-        criteria.add( Restrictions.eq( "period", period ) );
-        criteria.add( Restrictions.le( "date", deadline ) );
-        
-        return criteria.list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) )
+            .addPredicate( root -> root.get( "source" ).in( sources ) )
+            .addPredicate( root -> builder.equal( root.get( "period" ), period ) )
+            .addPredicate( root -> builder.lessThanOrEqualTo( root.get( "date" ), deadline ) ) );
     }
 
     @Override
@@ -168,7 +158,7 @@ public class HibernateCompleteDataSetRegistrationStore
     {
         String hql = "delete from CompleteDataSetRegistration c where c.dataSet = :dataSet";
 
-        sessionFactory.getCurrentSession().createQuery( hql ).
+        getSession().createQuery( hql ).
             setParameter( "dataSet", dataSet ).executeUpdate();
     }
     
@@ -177,7 +167,7 @@ public class HibernateCompleteDataSetRegistrationStore
     {
         String hql = "delete from CompleteDataSetRegistration c where c.source = :source";
 
-        sessionFactory.getCurrentSession().createQuery( hql ).
+        getSession().createQuery( hql ).
             setParameter( "source", unit ).executeUpdate();
     }
 }

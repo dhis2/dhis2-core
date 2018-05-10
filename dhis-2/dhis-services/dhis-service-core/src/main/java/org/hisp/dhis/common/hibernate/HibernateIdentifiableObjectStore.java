@@ -661,7 +661,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         query.orderBy( builder.desc( root.get( "lastUpdated" ) ) );
 
-        TypedQuery<Date> typedQuery = getCurrentSession().createQuery( query );
+        TypedQuery<Date> typedQuery = getSession().createQuery( query );
 
         typedQuery.setMaxResults( 1 );
 

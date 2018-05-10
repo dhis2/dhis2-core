@@ -115,6 +115,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.datavalue.DataValueStore" class="org.hisp.dhis.datavalue.hibernate.HibernateDataValueStore">
+    <property name="clazz" value="org.hisp.dhis.datavalue.DataValue" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
@@ -201,6 +202,7 @@
 
   <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore"
     class="org.hisp.dhis.dataset.hibernate.HibernateCompleteDataSetRegistrationStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.CompleteDataSetRegistration" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
@@ -308,6 +310,7 @@
   <bean id="org.hisp.dhis.datavalue.DataValueAuditStore" class="org.hisp.dhis.datavalue.hibernate.HibernateDataValueAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+    <property name="clazz" value="org.hisp.dhis.datavalue.DataValueAudit" />
   </bean>
 
   <bean id="org.hisp.dhis.user.UserStore" class="org.hisp.dhis.user.hibernate.HibernateUserStore">
