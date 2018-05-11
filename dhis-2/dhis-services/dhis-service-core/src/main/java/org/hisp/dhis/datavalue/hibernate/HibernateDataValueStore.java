@@ -64,6 +64,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -71,6 +73,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
@@ -264,7 +267,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         }
         else if ( params.hasStartEndDate() )
         {
-            query.setParameter( "startDate", params.getStartDate() ).setDate( "endDate", params.getEndDate() );
+            query.setParameter( "startDate", params.getStartDate() ).setParameter( "endDate", params.getEndDate() );
         }
 
         if ( !params.isIncludeChildrenForOrganisationUnits() && !organisationUnits.isEmpty() )
@@ -458,29 +461,28 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             throw new IllegalArgumentException( "Start date or end date must be specified" );
         }
-        
-        Criteria criteria = getSession()
-            .createCriteria( DataValue.class )
-            .setProjection( Projections.rowCount() );
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        List<Function<Root<DataValue>, Predicate>> predicateList = new ArrayList<>();
 
         if ( !includeDeleted )
         {
-            criteria.add( Restrictions.eq( "deleted", false ) );
+            predicateList.add( root -> builder.equal( root.get( "deleted" ), false ) );
         }
         
         if ( startDate != null )
         {
-            criteria.add( Restrictions.ge( "lastUpdated", startDate ) );
+            predicateList.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), startDate ) );
         }
         
         if ( endDate != null )
         {
-            criteria.add( Restrictions.le( "lastUpdated", endDate ) );
+            predicateList.add( root -> builder.lessThanOrEqualTo( root.get( "lastUpdated" ), endDate ) );
         }
         
-        Number rs = (Number) criteria.uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
+        return count( builder, newJpaParameters()
+            .addPredicates( predicateList )).intValue();
     }
 
     @Override

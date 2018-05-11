@@ -28,6 +28,7 @@ package org.hisp.dhis.minmax.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
@@ -55,7 +56,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.Attribute;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -99,7 +102,6 @@ public class HibernateMinMaxDataElementStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
             .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
-
     }
 
     @Override
@@ -115,13 +117,13 @@ public class HibernateMinMaxDataElementStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
             .addPredicate( root -> root.get( "dataElement" ).in( dataElements ) ) );
-
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public List<MinMaxDataElement> query(  MinMaxDataElementQueryParams query )
     {
+        System.out.println( "query = " + query );
         Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
         criteria = parseFilter( criteria, query.getFilters() );
 
@@ -174,20 +176,23 @@ public class HibernateMinMaxDataElementStore
         String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) " +
             "and m.source in (select ou from OrganisationUnit ou where path like :path)";
         
-        getQuery( hql ).
-            setParameterList( "dataElements", dataElements ).
-            setParameter( "path", parent.getPath() + "%" ).executeUpdate();
+        getQuery( hql )
+            .setParameterList( "dataElements", dataElements )
+            .setParameter( "path", parent.getPath() + "%" )
+            .executeUpdate();
     }
 
     private Criteria parseFilter( Criteria criteria, List<String> filters )
     {
         Conjunction conjunction = Restrictions.conjunction();
         Schema schema = schemaService.getDynamicSchema( MinMaxDataElement.class );
+        System.out.println( "filters = " + filters );
 
         if ( !filters.isEmpty() )
         {
             for ( String filter : filters )
             {
+                System.out.println( "filter = " + filter );
                 String[] split = filter.split( ":" );
 
                 if ( split.length != 3 )
@@ -196,6 +201,8 @@ public class HibernateMinMaxDataElementStore
                 }
 
                 QueryPath queryPath = queryPlanner.getQueryPath( schema,  split[0] );
+
+                System.out.println( "queryPath = " + queryPath );
 
                 Property property = queryParser.getProperty( schema, split[0] );
 
@@ -220,11 +227,20 @@ public class HibernateMinMaxDataElementStore
         return criteria;
     }
 
-    private Criterion getRestriction( Property property,  String path, String operator, String value )
+    private Criterion getRestriction( CriteriaBuilder builder, Root root, Property property,  QueryPath path, String operator, String value )
     {
+        String[] paths = path.getPath().split( "." );
+        List<String> listPath = Lists.newArrayList ( paths ).stream().map( s -> root.getModel().getA);
+
         switch ( operator )
         {
-            case "in" : return Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+            case "in" : {
+                if ( path.haveAlias() )
+                {
+
+                }
+                return  Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+            }
             case "eq" : return Restrictions.eq( path, QueryUtils.parseValue( property.getKlass(), value ) );
             default: throw new QueryParserException( "Query operator is not supported : " + operator );
         }

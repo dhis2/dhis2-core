@@ -30,6 +30,7 @@ package org.hisp.dhis.hibernate;
  *
  */
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -47,6 +48,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.PluralAttribute;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Function;
 
@@ -80,6 +82,27 @@ public class JpaUtils
         }
 
         return buidler.and( Iterables.toArray( predicateList, Predicate.class ) );
+    }
+
+    public List<Attribute<?, ?>> toAttributes(String path, Class<?> from) {
+        try {
+            List<Attribute<?, ?>> attributes = newArrayList();
+            Class<?> current = from;
+            for (String pathItem : Splitter.on(".").split(path)) {
+                Class<?> metamodelClass = getCachedClass(current);
+                Field field = metamodelClass.getField(pathItem);
+                Attribute<?, ?> attribute = (Attribute<?, ?>) field.get(null);
+                attributes.add(attribute);
+                if (attribute instanceof PluralAttribute) {
+                    current = ((PluralAttribute<?, ?, ?>) attribute).getElementType().getJavaType();
+                } else {
+                    current = attribute.getJavaType();
+                }
+            }
+            return attributes;
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     public static <E, F> Path<F> getPath( Root<E> root, List<Attribute<?, ?>> attributes )

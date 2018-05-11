@@ -28,6 +28,7 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -118,5 +119,59 @@ public class MinMaxDataElementStoreTest
         minMaxDataElementStore.delete( minMaxDataElement1 );
 
         assertNull( minMaxDataElementStore.get( mmdeid1 ) );
+    }
+
+    @Test
+    public void testQuery()
+    {
+        OrganisationUnit source1 = createOrganisationUnit( 'A' );
+        OrganisationUnit source2 = createOrganisationUnit( 'B' );
+
+        organisationUnitService.addOrganisationUnit( source1 );
+        organisationUnitService.addOrganisationUnit( source2 );
+
+        DataElement dataElement1 = createDataElement( 'A' );
+        DataElement dataElement2 = createDataElement( 'B' );
+        DataElement dataElement3 = createDataElement( 'C' );
+        DataElement dataElement4 = createDataElement( 'D' );
+
+        dataElementService.addDataElement( dataElement1 );
+        dataElementService.addDataElement( dataElement2 );
+        dataElementService.addDataElement( dataElement3 );
+        dataElementService.addDataElement( dataElement4 );
+
+        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100, false );
+
+        minMaxDataElementStore.save( minMaxDataElement1 );
+        int mmdeid1 = minMaxDataElement1.getId();
+        minMaxDataElementStore.save( minMaxDataElement2 );
+        minMaxDataElementStore.save( minMaxDataElement3 );
+        minMaxDataElementStore.save( minMaxDataElement4 );
+
+        System.out.println( "minMaxDataElementStore = " + minMaxDataElementStore.getAll() );
+
+        MinMaxDataElementQueryParams params = new MinMaxDataElementQueryParams();
+        List<String> filters = Lists.newArrayList( "dataElement.id:eq:" + dataElement1.getUid() );
+
+        params.setFilters( filters );
+
+        List<MinMaxDataElement> result = minMaxDataElementStore.query( params );
+
+        assertNotEquals( 0, result.size() );
+
+        params = new MinMaxDataElementQueryParams();
+        List<String> filters1 = Lists.newArrayList( "min:eq:0"  );
+
+        params.setFilters( filters1 );
+
+        result = minMaxDataElementStore.query( params );
+
+        assertNotEquals( 0, result.size() );
+
     }
 }
