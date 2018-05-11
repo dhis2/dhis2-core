@@ -107,7 +107,7 @@ public interface EventService
 
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions );
 
-    ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession );
+    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession );
 
     void updateEventForNote( Event event );
 

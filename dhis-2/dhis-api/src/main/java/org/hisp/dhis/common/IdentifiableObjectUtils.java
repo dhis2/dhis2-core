@@ -142,21 +142,6 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a list of period identifiers with the correct display propperty
-     *
-     * @param periods the list of periods.
-     * @return a list of period identifiers.
-     */
-    public static <T extends IdentifiableObject> List<String> getPeriodIdentifiers( Collection<T> periods,
-        DisplayProperty displayProperty )
-    {
-        return periods.stream().map( object -> {
-            Period period = (Period) object;
-            return period.getDisplayProperty( displayProperty );
-        } ).collect( Collectors.toList() );
-    }
-
-    /**
      * Returns a list of calendar specific period identifiers for the given collection of
      * periods and calendar.
      *
