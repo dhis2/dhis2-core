@@ -138,6 +138,9 @@
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
+    <sec:intercept-url request-matcher-ref="analyticPluginResources"
+      access="hasAnyRole('ALL,M_dhis-web-pivot,M_dhis-web-visualizer,M_dhis-web-maps' +
+      'M_dhis-web-event-reports,M_dhis-web-event-visualizer,M_dhis-web-dashboard')" />
 
     <!-- Apps -->
 
@@ -162,6 +165,11 @@
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
   </sec:http>
+
+  <bean id="analyticPluginResources" class="org.springframework.security.web.util.matcher.RegexRequestMatcher">
+        <constructor-arg name="pattern" value=".*(dhis-web-visualizer\/chart.js|dhis-web-maps\/map.js|dhis-web-event-reports\/eventreport.js|dhis-web-event-visualizer\/eventchart.js|dhis-web-pivot\/reporttable.js)"/>
+        <constructor-arg name="httpMethod" value="GET"/>
+  </bean>
 
   <bean id="securityExceptionTranslationHandler"
     class="org.hisp.dhis.security.CustomExceptionMappingAuthenticationFailureHandler">
