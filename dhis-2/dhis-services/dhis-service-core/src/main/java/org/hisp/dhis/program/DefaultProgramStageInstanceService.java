@@ -166,15 +166,22 @@ public class DefaultProgramStageInstanceService
 
     @Override
     public void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications,
-        I18nFormat format )
+        I18nFormat format, Date completedDate  )
     {
         Calendar today = Calendar.getInstance();
         PeriodType.clearTimeOfDay( today );
         Date date = today.getTime();
 
         programStageInstance.setStatus( EventStatus.COMPLETED );
-        programStageInstance.setCompletedDate( date );
-
+        
+        if(completedDate == null)
+        {
+            programStageInstance.setCompletedDate( date );
+        }
+        else
+        {
+            programStageInstance.setCompletedDate( completedDate );
+        }
         if ( StringUtils.isEmpty( programStageInstance.getCompletedBy() ) )
         {
             programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );

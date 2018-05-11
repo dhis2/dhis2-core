@@ -1047,20 +1047,20 @@ public abstract class AbstractEventService
         }
         else if ( programStageInstance.getStatus() != event.getStatus() && event.getStatus() == EventStatus.COMPLETED )
         {
-            programStageInstance.setStatus( EventStatus.COMPLETED );
             programStageInstance.setCompletedBy( completedBy );
-            programStageInstance.setCompletedDate( executionDate );
 
-            if ( programStageInstance.isCompleted() )
+            Date completedDate = null;
+            if ( event.getCompletedDate() != null )
             {
-                programStageInstanceService.completeProgramStageInstance( programStageInstance,
-                    importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
 
-                if ( !importOptions.isSkipNotifications() )
-                {
-                    programRuleEngineService.evaluate( programStageInstance );
-                }
+            programStageInstanceService.completeProgramStageInstance( programStageInstance,
+                importOptions.isSkipNotifications(), i18nManager.getI18nFormat(), completedDate );
 
+            if ( !importOptions.isSkipNotifications() )
+            {
+                programRuleEngineService.evaluate( programStageInstance );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1664,12 +1664,15 @@ public abstract class AbstractEventService
 
         if ( programStageInstance.isCompleted() )
         {
-            programStageInstance.setStatus( EventStatus.COMPLETED );
-            programStageInstance.setCompletedDate( new Date() );
+            Date completedDate = null;
+            if ( event.getCompletedDate() != null )
+            {
+                completedDate = DateUtils.parseDate( event.getCompletedDate() );
+            }
             programStageInstance.setCompletedBy( completedBy );
 
             programStageInstanceService.completeProgramStageInstance( programStageInstance,
-                importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+                importOptions.isSkipNotifications(), i18nManager.getI18nFormat(), completedDate );
         }
     }
 
