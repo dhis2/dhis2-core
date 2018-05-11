@@ -218,7 +218,7 @@ public class RegistrationMultiEventsServiceTest
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -254,7 +254,7 @@ public class RegistrationMultiEventsServiceTest
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, currentUserService.getCurrentUser(), null );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),

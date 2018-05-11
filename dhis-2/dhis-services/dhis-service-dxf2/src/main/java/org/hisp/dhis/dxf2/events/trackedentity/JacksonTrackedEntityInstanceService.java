@@ -141,7 +141,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
             trackedEntityInstances.add( fromXml );
         }
 
-        return addTrackedEntityInstanceList( trackedEntityInstances, importOptions );
+        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -161,12 +161,13 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
             trackedEntityInstances.add( fromJson );
         }
 
-        return addTrackedEntityInstanceList( trackedEntityInstances, importOptions );
+        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
     }
 
     private ImportSummaries addTrackedEntityInstanceList( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
         List<TrackedEntityInstance> create = new ArrayList<>();
         List<TrackedEntityInstance> update = new ArrayList<>();
@@ -247,7 +248,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -256,6 +257,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ) );
     }
 }
