@@ -28,12 +28,9 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,16 +44,16 @@ public class IdScheme
     public static final IdScheme CODE = new IdScheme( IdentifiableProperty.CODE );
     public static final IdScheme NAME = new IdScheme( IdentifiableProperty.NAME );
 
-    public static final ImmutableMap<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP = 
+    public static final ImmutableMap<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP =
         ImmutableMap.<IdentifiableProperty, IdScheme>builder().
-        put( IdentifiableProperty.ID, IdScheme.ID ).
-        put( IdentifiableProperty.UID, IdScheme.UID ).
-        put( IdentifiableProperty.UUID, IdScheme.UUID ).
-        put( IdentifiableProperty.CODE, IdScheme.CODE ).
-        put( IdentifiableProperty.NAME, IdScheme.NAME ).build();
-    
+            put( IdentifiableProperty.ID, IdScheme.ID ).
+            put( IdentifiableProperty.UID, IdScheme.UID ).
+            put( IdentifiableProperty.UUID, IdScheme.UUID ).
+            put( IdentifiableProperty.CODE, IdScheme.CODE ).
+            put( IdentifiableProperty.NAME, IdScheme.NAME ).build();
+
     public static final String ATTR_ID_SCHEME_PREFIX = "ATTRIBUTE:";
-    
+
     private IdentifiableProperty identifiableProperty;
 
     private String attribute;
@@ -92,8 +89,8 @@ public class IdScheme
         {
             return IdScheme.NULL;
         }
-        
-        return IDPROPERTY_IDSCHEME_MAP.containsKey( property ) ? 
+
+        return IDPROPERTY_IDSCHEME_MAP.containsKey( property ) ?
             IDPROPERTY_IDSCHEME_MAP.get( property ) : new IdScheme( property );
     }
 
@@ -108,8 +105,6 @@ public class IdScheme
         this.attribute = attribute;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdentifiableProperty getIdentifiableProperty()
     {
         return identifiableProperty;
@@ -125,8 +120,6 @@ public class IdScheme
         this.identifiableProperty = identifiableProperty;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAttribute()
     {
         return attribute;
@@ -159,11 +152,11 @@ public class IdScheme
 
     /**
      * Returns a canonical String name representation of this id scheme.
-     * 
+     *
      * @return a canonical String name representation of this id scheme.
      */
     public String name()
-    {      
+    {
         if ( IdentifiableProperty.ATTRIBUTE == identifiableProperty && attribute != null )
         {
             return ATTR_ID_SCHEME_PREFIX + attribute;
