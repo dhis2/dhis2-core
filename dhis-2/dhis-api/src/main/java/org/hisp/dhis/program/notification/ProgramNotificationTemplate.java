@@ -45,6 +45,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -86,7 +87,8 @@ public class ProgramNotificationTemplate
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
         NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
-        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup, TrackedEntityAttribute recipientProgramAttribute )
+        Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup,
+        TrackedEntityAttribute recipientProgramAttribute )
     {
         this.name = name;
         this.subjectTemplate = subjectTemplate;
