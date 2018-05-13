@@ -28,11 +28,6 @@ package org.hisp.dhis.minmax.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,20 +40,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
-import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.lsmp.djep.xjep.function.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.Attribute;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -120,30 +112,32 @@ public class HibernateMinMaxDataElementStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MinMaxDataElement> query(  MinMaxDataElementQueryParams query )
     {
-        System.out.println( "query = " + query );
-        Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
-        criteria = parseFilter( criteria, query.getFilters() );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<MinMaxDataElement> parameters = newJpaParameters();
+        parameters.addPredicate( root -> parseFilter( builder, root, query.getFilters() ) );
 
         if ( !query.isSkipPaging() )
         {
             Pager pager = query.getPager();
-            criteria.setFirstResult( pager.getOffset() );
-            criteria.setMaxResults( pager.getPageSize() );
+            parameters.setFirstResult( pager.getOffset() );
+            parameters.setMaxResults( pager.getPageSize() );
         }
 
-        return criteria.list();
+        return getList( builder, parameters );
     }
 
     @Override
     public int countMinMaxDataElements( MinMaxDataElementQueryParams query )
     {
-        Criteria criteria = getSession().createCriteria( MinMaxDataElement.class );
-        criteria = parseFilter( criteria, query.getFilters() );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list().size();
+        return count( builder, newJpaParameters()
+            .addPredicate( root -> parseFilter( builder, root, query.getFilters() ) )
+            .count( root -> builder.countDistinct( root ) ) )
+            .intValue();
     }
     
     @Override
@@ -182,17 +176,16 @@ public class HibernateMinMaxDataElementStore
             .executeUpdate();
     }
 
-    private Criteria parseFilter( Criteria criteria, List<String> filters )
+    private Predicate parseFilter( CriteriaBuilder builder, Root root, List<String> filters )
     {
-        Conjunction conjunction = Restrictions.conjunction();
+        Predicate conjunction = builder.conjunction();
+
         Schema schema = schemaService.getDynamicSchema( MinMaxDataElement.class );
-        System.out.println( "filters = " + filters );
 
         if ( !filters.isEmpty() )
         {
             for ( String filter : filters )
             {
-                System.out.println( "filter = " + filter );
                 String[] split = filter.split( ":" );
 
                 if ( split.length != 3 )
@@ -200,48 +193,31 @@ public class HibernateMinMaxDataElementStore
                     throw new QueryParserException( "Invalid filter: " + filter );
                 }
 
-                QueryPath queryPath = queryPlanner.getQueryPath( schema,  split[0] );
-
-                System.out.println( "queryPath = " + queryPath );
+                Path queryPath = queryPlanner.getQueryPath( root, schema,  split[0] );
 
                 Property property = queryParser.getProperty( schema, split[0] );
 
-                Criterion restriction = getRestriction( property, queryPath.getPath(), split[1], split[2] );
+                Predicate predicate = getPredicate( builder, property, queryPath, split[1], split[2] );
 
-                if ( restriction != null )
+                if ( predicate != null )
                 {
-                    conjunction.add( restriction );
-
-                    if ( queryPath.haveAlias() )
-                    {
-                        for ( String alias : queryPath.getAlias() )
-                        {
-                            criteria.createAlias( alias, alias );
-                        }
-                    }
+                    conjunction.getExpressions().add( predicate );
                 }
             }
         }
-        criteria.add( conjunction );
 
-        return criteria;
+        return conjunction;
     }
 
-    private Criterion getRestriction( CriteriaBuilder builder, Root root, Property property,  QueryPath path, String operator, String value )
+    private Predicate getPredicate( CriteriaBuilder builder, Property property,  Path path, String operator, String value )
     {
-        String[] paths = path.getPath().split( "." );
-        List<String> listPath = Lists.newArrayList ( paths ).stream().map( s -> root.getModel().getA);
-
         switch ( operator )
         {
-            case "in" : {
-                if ( path.haveAlias() )
-                {
+            case "in" :
+                    return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+            case "eq" :
+                    return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
 
-                }
-                return  Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
-            }
-            case "eq" : return Restrictions.eq( path, QueryUtils.parseValue( property.getKlass(), value ) );
             default: throw new QueryParserException( "Query operator is not supported : " + operator );
         }
     }

@@ -102,7 +102,8 @@ public class HibernateProgramStageInstanceStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return count( builder, newJpaParameters()
-            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), time ) ) );
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), time ) )
+            .count( root -> builder.countDistinct( root ) ) );
     }
 
     @Override

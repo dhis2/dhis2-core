@@ -148,30 +148,41 @@ public class MinMaxDataElementStoreTest
         MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100, false );
 
         minMaxDataElementStore.save( minMaxDataElement1 );
-        int mmdeid1 = minMaxDataElement1.getId();
         minMaxDataElementStore.save( minMaxDataElement2 );
         minMaxDataElementStore.save( minMaxDataElement3 );
         minMaxDataElementStore.save( minMaxDataElement4 );
 
-        System.out.println( "minMaxDataElementStore = " + minMaxDataElementStore.getAll() );
-
         MinMaxDataElementQueryParams params = new MinMaxDataElementQueryParams();
-        List<String> filters = Lists.newArrayList( "dataElement.id:eq:" + dataElement1.getUid() );
+        List<String> filters = Lists.newArrayList();
+        filters.add( "dataElement.id:eq:" + dataElement1.getUid() );
 
         params.setFilters( filters );
 
         List<MinMaxDataElement> result = minMaxDataElementStore.query( params );
 
-        assertNotEquals( 0, result.size() );
+        assertNotNull( result );
+        assertEquals( 1, result.size() );
 
         params = new MinMaxDataElementQueryParams();
-        List<String> filters1 = Lists.newArrayList( "min:eq:0"  );
+        filters.clear();;
+        filters.add( "min:eq:0"  );
 
-        params.setFilters( filters1 );
+        params.setFilters( filters );
 
         result = minMaxDataElementStore.query( params );
 
-        assertNotEquals( 0, result.size() );
+        assertNotNull( result );
+        assertEquals( 4, result.size() );
+
+        filters.clear();
+        filters.add( "dataElement.id:in:[" + dataElement1.getUid() + "," + dataElement2.getUid() + "]" );
+
+        params.setFilters( filters );
+
+        result = minMaxDataElementStore.query( params );
+
+        assertNotNull( result );
+        assertEquals( 2, result.size() );
 
     }
 }

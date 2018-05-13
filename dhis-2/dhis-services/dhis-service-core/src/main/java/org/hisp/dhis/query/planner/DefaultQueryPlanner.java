@@ -38,6 +38,8 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -143,6 +145,53 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+    }
+
+    public Path getQueryPath( Root root, Schema schema, String path )
+    {
+        Schema curSchema = schema;
+        Property curProperty = null;
+        String[] pathComponents = path.split( "\\." );
+
+        Path currentPath = root;
+
+        if ( pathComponents.length == 0 )
+        {
+            return null;
+        }
+
+        for ( int idx = 0; idx < pathComponents.length; idx++ )
+        {
+            String name = pathComponents[idx];
+            curProperty = curSchema.getProperty( name );
+
+            if ( curProperty == null )
+            {
+                throw new RuntimeException( "Invalid path property: " + name );
+            }
+
+            if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
+            {
+                return root.join( curProperty.getFieldName() );
+            }
+
+            if ( curProperty.isCollection() )
+            {
+                currentPath = root.join( curProperty.getFieldName() );
+                curSchema = schemaService.getDynamicSchema( curProperty.getItemKlass() );
+            }
+            else if ( !curProperty.isSimple() )
+            {
+                curSchema = schemaService.getDynamicSchema( curProperty.getKlass() );
+                currentPath = root.join( curProperty.getFieldName() );
+            }
+            else
+            {
+                return currentPath.get( curProperty.getFieldName() );
+            }
+        }
+
+        return currentPath;
     }
 
     /**
