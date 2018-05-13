@@ -28,11 +28,11 @@ package org.hisp.dhis.attribute.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +44,6 @@ public class HibernateAttributeStore
     implements AttributeStore
 {
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Attribute> getAttributes( Class<?> klass )
     {
         if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
@@ -52,11 +51,13 @@ public class HibernateAttributeStore
             return new ArrayList<>();
         }
 
-        return new ArrayList<>( getCriteria( Restrictions.eq( CLASS_ATTRIBUTE_MAP.get( klass ), true ) ).list() );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Attribute> getMandatoryAttributes( Class<?> klass )
     {
         if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
@@ -64,14 +65,14 @@ public class HibernateAttributeStore
             return new ArrayList<>();
         }
 
-        return new ArrayList<>( getCriteria(
-            Restrictions.eq( "mandatory", true ),
-            Restrictions.eq( CLASS_ATTRIBUTE_MAP.get( klass ), true )
-        ).list() );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
+            .addPredicate( root -> builder.equal( root.get( "mandatory" ), true ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Attribute> getUniqueAttributes( Class<?> klass )
     {
         if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
@@ -79,9 +80,10 @@ public class HibernateAttributeStore
             return new ArrayList<>();
         }
 
-        return new ArrayList<>( getCriteria(
-            Restrictions.eq( "unique", true ),
-            Restrictions.eq( CLASS_ATTRIBUTE_MAP.get( klass ), true )
-        ).list() );
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
+            .addPredicate( root -> builder.equal( root.get( "unique" ), true ) ) );
     }
 }

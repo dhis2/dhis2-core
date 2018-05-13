@@ -37,9 +37,13 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.SingularAttribute;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -55,6 +59,7 @@ public class JpaUtils
 
         return order;
     }
+
 
     public static Predicate andPredicate( CriteriaBuilder buidler, Predicate... predicates )
     {
@@ -95,6 +100,62 @@ public class JpaUtils
                 return builder.like( path, (String) attrValue ); // assume user provide the wild cards
             default:
                 throw new IllegalStateException( "expecting a search mode!" );
+        }
+    }
+
+    public static <T> Path getIdAttribute( Root<T> root, String attributeName ) throws NoSuchFieldException
+    {
+        EntityType entity = root.getModel();
+
+        Set<SingularAttribute<? super T, ?>> attributes = entity.getIdClassAttributes();
+
+        SingularAttribute<? super T, ?> attr = attributes.stream().filter( a -> a.getName().equals( attributeName ) ).findFirst().orElse( null );
+
+        return attr != null ? root.get( attr ) : null;
+    }
+
+    public enum StringSearchMode
+    {
+        // Match exactly
+        EQUALS( "eq" ),
+
+        // Like search with '%' prefix and suffix
+        ANYWHERE( "any" ),
+
+        // Like search and add a '%' prefix before searching.
+        STARTING_LIKE( "sl" ),
+
+        // User provides the wildcard.
+        LIKE( "li" ),
+
+        ILIKE( "ili" ),
+
+        // LIKE search and add a '%' suffix before searching.
+        ENDING_LIKE( "el" );
+
+        private final String code;
+
+        StringSearchMode( String code )
+        {
+            this.code = code;
+        }
+
+        public String getCode()
+        {
+            return code;
+        }
+
+        public static final StringSearchMode convert( String code )
+        {
+            for ( StringSearchMode searchMode : StringSearchMode.values() )
+            {
+                if ( searchMode.getCode().equals( code ) )
+                {
+                    return searchMode;
+                }
+            }
+
+            return EQUALS;
         }
     }
 }

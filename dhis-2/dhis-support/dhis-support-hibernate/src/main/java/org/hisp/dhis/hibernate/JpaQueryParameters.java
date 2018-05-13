@@ -70,7 +70,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     protected Class clazz;
 
-    private StringSearchMode searchMode;
+    private JpaUtils.StringSearchMode searchMode;
 
     private boolean withSharing = false;
 
@@ -186,9 +186,10 @@ public class JpaQueryParameters<T> implements Serializable
         return this.useDistinct;
     }
 
-    public void setUseDistinct( boolean useDistinct )
+    public JpaQueryParameters<T> setUseDistinct( boolean useDistinct )
     {
         this.useDistinct = useDistinct;
+        return this;
     }
 
     public List<Attribute<?, ?>> getAttributes()
@@ -201,12 +202,12 @@ public class JpaQueryParameters<T> implements Serializable
         this.attributes = attributes;
     }
 
-    public StringSearchMode getSearchMode()
+    public JpaUtils.StringSearchMode getSearchMode()
     {
         return this.searchMode;
     }
 
-    public void setSearchMode( StringSearchMode searchMode )
+    public void setSearchMode( JpaUtils.StringSearchMode searchMode )
     {
         this.searchMode = searchMode;
     }

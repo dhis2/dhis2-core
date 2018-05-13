@@ -28,8 +28,8 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.query.Query;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -61,7 +61,7 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int deleteByTrackedEntityInstance( TrackedEntityInstance entityInstance )
     {
-        Query query = getQuery( "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
+        Query<TrackedEntityAttributeValue> query = getQuery( "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
         query.setParameter( "entityInstance", entityInstance );
         return query.executeUpdate();
     }
@@ -124,7 +124,7 @@ public class HibernateTrackedEntityAttributeValueStore
     {
         return getCriteria(
             Restrictions.and( Restrictions.eq( "entityInstance", entityInstance ),
-            Restrictions.eq( "attribute.program", program ) ) )
+                Restrictions.eq( "attribute.program", program ) ) )
             .list();
     }
 
