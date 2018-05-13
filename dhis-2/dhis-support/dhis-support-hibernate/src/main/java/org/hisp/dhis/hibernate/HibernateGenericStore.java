@@ -166,6 +166,7 @@ public class HibernateGenericStore<T>
      *
      * @return a Criteria instance.
      */
+    @Deprecated
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
@@ -188,6 +189,7 @@ public class HibernateGenericStore<T>
         return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
     }
 
+    @Deprecated
     protected Criteria getClazzCriteria()
     {
         return getSession().createCriteria( getClazz() );
@@ -205,6 +207,7 @@ public class HibernateGenericStore<T>
      * @param expressions the Criterions for the Criteria.
      * @return a Criteria instance.
      */
+    @Deprecated
     protected final Criteria getCriteria( Criterion... expressions )
     {
         Criteria criteria = getCriteria();
@@ -367,7 +370,14 @@ public class HibernateGenericStore<T>
         }
         else
         {
-            query.select( builder.count( query.from( getClazz() ) ) );
+            if ( parameters.isUseDistinct() )
+            {
+                query.select( builder.countDistinct( root ) );
+            }
+            else
+            {
+                query.select( builder.count( root ) );
+            }
         }
 
         if ( !predicateProviders.isEmpty() )

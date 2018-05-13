@@ -1106,6 +1106,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return predicates;
     }
 
+    // ----------------------------------------------------------------------
+    // JPA Implementations
+    // ----------------------------------------------------------------------
+
     /**
      * Creates a sharing Criteria for the implementation Class type restricted by the
      * given Criterions.
