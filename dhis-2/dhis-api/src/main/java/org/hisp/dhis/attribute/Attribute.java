@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -43,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
@@ -62,6 +64,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,6 +130,14 @@ public class Attribute
 
     private boolean categoryOptionComboAttribute;
 
+    private boolean categoryOptionGroupSetAttribute;
+
+    private boolean dataElementGroupSetAttribute;
+
+    private boolean validationRuleAttribute;
+
+    private boolean validationRuleGroupAttribute;
+
     private boolean mandatory;
 
     private boolean unique;
@@ -151,7 +163,8 @@ public class Attribute
         return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute, indicatorAttribute, indicatorGroupAttribute,
             dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute, organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
             programAttribute, programStageAttribute, trackedEntityTypeAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
-            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute );
+            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute,
+            categoryOptionGroupAttribute, dataElementGroupSetAttribute, validationRuleAttribute, validationRuleGroupAttribute );
     }
 
     @Override
@@ -196,6 +209,10 @@ public class Attribute
             && Objects.equals( this.sqlViewAttribute, other.sqlViewAttribute )
             && Objects.equals( this.sectionAttribute, other.sectionAttribute )
             && Objects.equals( this.categoryOptionComboAttribute, other.categoryOptionComboAttribute )
+            && Objects.equals( this.categoryOptionGroupSetAttribute, other.categoryOptionGroupSetAttribute )
+            && Objects.equals( this.dataElementGroupSetAttribute, other.dataElementGroupSetAttribute )
+            && Objects.equals( this.validationRuleAttribute, other.validationRuleAttribute )
+            && Objects.equals( this.validationRuleGroupAttribute, other.validationRuleGroupAttribute )
 
             && Objects.equals( this.mandatory, other.mandatory )
             && Objects.equals( this.unique, other.unique )
@@ -552,6 +569,54 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCategoryOptionGroupSetAttribute()
+    {
+        return this.categoryOptionGroupSetAttribute;
+    }
+
+    public void setCategoryOptionGroupSetAttribute( boolean categoryOptionGroupSetAttribute )
+    {
+        this.categoryOptionGroupSetAttribute = categoryOptionGroupSetAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataElementGroupSetAttribute()
+    {
+        return this.dataElementGroupSetAttribute;
+    }
+
+    public void setDataElementGroupSetAttribute( boolean dataElementGroupSetAttribute )
+    {
+        this.dataElementGroupSetAttribute = dataElementGroupSetAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isValidationRuleAttribute()
+    {
+        return this.validationRuleAttribute;
+    }
+
+    public void setValidationRuleAttribute( boolean validationRuleAttribute )
+    {
+        this.validationRuleAttribute = validationRuleAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isValidationRuleGroupAttribute()
+    {
+        return this.validationRuleGroupAttribute;
+    }
+
+    public void setValidationRuleGroupAttribute( boolean validationRuleGroupAttribute )
+    {
+        this.validationRuleGroupAttribute = validationRuleGroupAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Integer getSortOrder()
     {
         return sortOrder;
@@ -591,6 +656,10 @@ public class Attribute
         if ( sqlViewAttribute ) klasses.add( SqlView.class );
         if ( sectionAttribute ) klasses.add( Section.class );
         if ( categoryOptionComboAttribute ) klasses.add( CategoryOptionCombo.class );
+        if ( categoryOptionGroupSetAttribute ) klasses.add( CategoryOptionGroupSet.class );
+        if ( dataElementGroupSetAttribute ) klasses.add( DataElementGroupSet.class );
+        if ( validationRuleAttribute ) klasses.add( ValidationRule.class );
+        if ( validationRuleGroupAttribute ) klasses.add( ValidationRuleGroup.class );
 
         return klasses;
     }
@@ -623,6 +692,10 @@ public class Attribute
             .add( "sqlViewAttribute", sqlViewAttribute )
             .add( "sectionAttribute", sectionAttribute )
             .add( "categoryOptionComboAttribute", categoryOptionComboAttribute )
+            .add( "categoryOptionGroupSetAttribute", categoryOptionGroupSetAttribute )
+            .add( "dataElementGroupSetAttribute", dataElementGroupSetAttribute )
+            .add( "validationRuleAttribute", validationRuleAttribute )
+            .add( "validationRuleGroupAttribute", validationRuleGroupAttribute )
             .add( "mandatory", mandatory )
             .toString();
     }

@@ -534,26 +534,45 @@ public abstract class AbstractEventService
         {
             throw new IllegalQueryException( "Program stage can not be null." );
         }
+        
+        if ( params.getProgramStage().getProgramStageDataElements() == null )
+        {
+            throw new IllegalQueryException( "Program stage should have data element(s)." );
+        }
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
-        // If no data element is specified, use those configured for
-        // display in report
+        // If includeAllDataElements is set to true, return all data elements. 
+        // If no data element is specified, use those configured for display 
+        // in report
         // ---------------------------------------------------------------------
-        if ( params.getDataElements().isEmpty() && params.getProgramStage() != null
-            && params.getProgramStage().getProgramStageDataElements() != null )
+        if ( params.isIncludeAllDataElements() )
         {
             for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
             {
-                if ( pde.getDisplayInReports() )
+                QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
+                    pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
+                    pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
+                params.getDataElements().add( qi );
+            }
+        }
+        else
+        {
+            if ( params.getDataElements().isEmpty() )
+            {
+                for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
                 {
-                    QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
-                        pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
-                        pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
-                    params.getDataElements().add( qi );
+                    if ( pde.getDisplayInReports() )
+                    {
+                        QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
+                            pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
+                            pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
+                        params.getDataElements().add( qi );
+                    }
                 }
             }
+            
         }
 
         // ---------------------------------------------------------------------
@@ -807,7 +826,7 @@ public abstract class AbstractEventService
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
-        Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
+        Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted )
     {
         User user = currentUserService.getCurrentUser();
         UserCredentials userCredentials = user.getUserCredentials();
@@ -924,6 +943,7 @@ public abstract class AbstractEventService
         params.setTotalPages( totalPages );
         params.setSkipPaging( skipPaging );
         params.setIncludeAttributes( includeAttributes );
+        params.setIncludeAllDataElements( includeAllDataElements );
         params.setOrders( orders );
         params.setGridOrders( gridOrders );
         params.setEvents( events );
