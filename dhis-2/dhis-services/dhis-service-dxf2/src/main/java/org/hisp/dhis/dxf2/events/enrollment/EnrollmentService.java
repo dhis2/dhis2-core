@@ -74,6 +74,8 @@ public interface EnrollmentService
 
     Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params );
 
+    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
+
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
 
     // -------------------------------------------------------------------------

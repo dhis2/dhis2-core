@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.kafka.KafkaManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.user.User;
@@ -55,6 +56,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -68,6 +70,7 @@ import static java.util.stream.Collectors.groupingBy;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Transactional
 public class DefaultTrackerKafkaManager
     implements TrackerKafkaManager
 {
@@ -105,6 +108,7 @@ public class DefaultTrackerKafkaManager
         this.userService = userService;
     }
 
+    @Override
     @EventListener
     public void init( ContextRefreshedEvent event )
     {
@@ -279,6 +283,8 @@ public class DefaultTrackerKafkaManager
                     .collect( Collectors.toList() );
 
                 log.info( "Importing " + events.size() + " events for user " + user.getUsername() );
+                ImportSummaries importSummaries = eventService.addEvents( events, importOptions, true );
+                System.err.println( importSummaries );
             } );
 
         cEvent.commitSync();
@@ -307,6 +313,8 @@ public class DefaultTrackerKafkaManager
                     .collect( Collectors.toList() );
 
                 log.info( "Importing " + enrollments.size() + " enrollments for user " + user.getUsername() );
+                ImportSummaries importSummaries = enrollmentService.addEnrollments( enrollments, importOptions, false );
+                System.err.println( importSummaries );
             } );
 
         cEnrollment.commitSync();
@@ -335,6 +343,8 @@ public class DefaultTrackerKafkaManager
                     .collect( Collectors.toList() );
 
                 log.info( "Importing " + trackedEntityInstances.size() + " tracked entities for user " + user.getUsername() );
+                ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( trackedEntityInstances, importOptions );
+                System.err.println( importSummaries );
             } );
 
         cTrackedEntity.commitSync();
