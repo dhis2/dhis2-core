@@ -83,6 +83,14 @@
 
     <property name="categoryOptionComboAttribute" not-null="false" />
 
+    <property name="categoryOptionGroupSetAttribute" not-null="false" />
+
+    <property name="dataElementGroupSetAttribute" not-null="false" />
+
+    <property name="validationRuleAttribute" not-null="false" />
+
+    <property name="validationRuleGroupAttribute" not-null="false" />
+
     <property name="sortOrder" />
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
