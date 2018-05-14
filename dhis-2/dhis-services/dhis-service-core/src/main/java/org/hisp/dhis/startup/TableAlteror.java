@@ -852,6 +852,10 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET sectionattribute=false WHERE sectionattribute IS NULL" );
         executeSql( "UPDATE attribute SET categoryoptioncomboattribute=false WHERE categoryoptioncomboattribute IS NULL" );
         executeSql( "UPDATE attribute SET trackedentitytypeattribute=false WHERE trackedentitytypeattribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryOptionGroupSetAttribute=false WHERE categoryOptionGroupSetAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET dataElementGroupSetAttribute=false WHERE dataElementGroupSetAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET validationRuleAttribute=false WHERE validationRuleAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET validationRuleGroupAttribute=false WHERE validationRuleGroupAttribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
