@@ -629,12 +629,12 @@
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
-    
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService"
     class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceAuditService" />
-    
+
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore"
-    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">    
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 

@@ -48,8 +48,7 @@ import org.hisp.dhis.kafka.KafkaManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -72,7 +71,7 @@ import static java.util.stream.Collectors.groupingBy;
  */
 @Transactional
 public class DefaultTrackerKafkaManager
-    implements TrackerKafkaManager
+    implements TrackerKafkaManager, InitializingBean
 {
     private static final Log log = LogFactory.getLog( DefaultTrackerKafkaManager.class );
 
@@ -109,8 +108,7 @@ public class DefaultTrackerKafkaManager
     }
 
     @Override
-    @EventListener
-    public void init( ContextRefreshedEvent event )
+    public void afterPropertiesSet() throws Exception
     {
         if ( !kafkaManager.isEnabled() )
         {

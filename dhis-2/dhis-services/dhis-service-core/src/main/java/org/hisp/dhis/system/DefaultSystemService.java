@@ -50,9 +50,8 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
@@ -67,7 +66,7 @@ import java.util.Properties;
  * @author Lars Helge Overland
  */
 public class DefaultSystemService
-    implements SystemService
+    implements SystemService, InitializingBean
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
 
@@ -97,8 +96,8 @@ public class DefaultSystemService
      */
     private SystemInfo systemInfo = null;
 
-    @EventListener
-    public void initFixedInfo( ContextRefreshedEvent event )
+    @Override
+    public void afterPropertiesSet() throws Exception
     {
         systemInfo = getFixedSystemInfo();
 

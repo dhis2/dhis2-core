@@ -33,8 +33,6 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -53,8 +51,6 @@ public interface TrackerKafkaManager
     String GROUP_BULK_EVENTS = "bulk-events-1";
     String GROUP_BULK_ENROLLMENTS = "bulk-enrollments-1";
     String GROUP_BULK_TRACKED_ENTITIES = "bulk-tracked-entities-1";
-
-    @EventListener void init( ContextRefreshedEvent event );
 
     boolean isEnabled();
 
