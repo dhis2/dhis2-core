@@ -848,9 +848,10 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET constantattribute=false WHERE constantattribute IS NULL" );
         executeSql( "UPDATE attribute SET legendsetattribute=false WHERE legendsetattribute IS NULL" );
         executeSql( "UPDATE attribute SET programindicatorattribute=false WHERE programindicatorattribute IS NULL" );
-        executeSql( "UPDATE attribute SET sqlViewAttribute=false WHERE sqlViewAttribute IS NULL" );
-        executeSql( "UPDATE attribute SET sectionAttribute=false WHERE sectionAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET sqlviewattribute=false WHERE sqlViewattribute IS NULL" );
+        executeSql( "UPDATE attribute SET sectionattribute=false WHERE sectionattribute IS NULL" );
         executeSql( "UPDATE attribute SET categoryoptioncomboattribute=false WHERE categoryoptioncomboattribute IS NULL" );
+        executeSql( "UPDATE attribute SET trackedentitytypeattribute=false WHERE trackedentitytypeattribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
