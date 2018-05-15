@@ -31,6 +31,7 @@ package org.hisp.dhis.period.hibernate;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.Period;
@@ -68,36 +69,36 @@ public class HibernatePeriodStore
     @Override
     public Period getPeriod( Date startDate, Date endDate, PeriodType periodType )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "startDate", startDate ) );
-        criteria.add( Restrictions.eq( "endDate", endDate ) );
-        criteria.add( Restrictions.eq( "periodType", reloadPeriodType( periodType ) ) );
+        String query = "from Period p where p.startDate =:startDate and p.endDate =:endDate and p.periodType.id =:periodType";
 
-        return (Period) criteria.uniqueResult();
+        Query<Period> typedQuery = getQuery( query )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate )
+            .setParameter( "periodType", periodType.getId() );
+        return getSingleResult( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Period> getPeriodsBetweenDates( Date startDate, Date endDate )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.ge( "startDate", startDate ) );
-        criteria.add( Restrictions.le( "endDate", endDate ) );
-        criteria.setCacheable( true );
+        String query = "from Period p where p.startDate >=:startDate and p.endDate <=:endDate";
 
-        return criteria.list();
+        Query<Period> typedQuery = getQuery( query )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate );
+        return getList( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "periodType", reloadPeriodType( periodType ) ) );
-        criteria.add( Restrictions.ge( "startDate", startDate ) );
-        criteria.add( Restrictions.le( "endDate", endDate ) );
+        String query = "from Period p where p.startDate >=:startDate and p.endDate <=:endDate and p.periodType.id =:periodType";
 
-        return criteria.list();
+        Query<Period> typedQuery = getQuery( query )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate )
+            .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
+        return getList( typedQuery );
     }
 
     @Override
@@ -109,15 +110,15 @@ public class HibernatePeriodStore
     }
     
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate )
     {
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "periodType", reloadPeriodType( periodType ) ) );
-        criteria.add( Restrictions.ge( "endDate", startDate ) );
-        criteria.add( Restrictions.le( "startDate", endDate ) );
+        String query = "from Period p where p.startDate <=:startDate and p.endDate >=:endDate and p.periodType.id =:periodType";
 
-        return criteria.list();
+        Query<Period> typedQuery = getQuery( query )
+            .setParameter( "startDate", startDate )
+            .setParameter( "endDate", endDate )
+            .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
+        return getList( typedQuery );
     }
 
     @Override

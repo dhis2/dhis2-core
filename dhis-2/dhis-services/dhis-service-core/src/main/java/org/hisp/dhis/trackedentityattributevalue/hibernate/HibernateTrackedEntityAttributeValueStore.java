@@ -28,7 +28,7 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
@@ -69,27 +69,36 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public TrackedEntityAttributeValue get( TrackedEntityInstance entityInstance, TrackedEntityAttribute attribute )
     {
-        return (TrackedEntityAttributeValue) getCriteria(
-            Restrictions.eq( "entityInstance", entityInstance ),
-            Restrictions.eq( "attribute", attribute ) ).uniqueResult();
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and attribute =:attribute";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
+            .setParameter( "entityInstance", entityInstance )
+            .setParameter( "attribute", attribute );
+
+        return getSingleResult( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> get( TrackedEntityInstance entityInstance )
     {
-        return getCriteria( Restrictions.eq( "entityInstance", entityInstance ) ).list();
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstance", entityInstance );
+
+        return getList( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute )
     {
-        return getCriteria( Restrictions.eq( "attribute", attribute ) ).list();
+        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "attribute", attribute );
+
+        return getList( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> get( Collection<TrackedEntityInstance> entityInstances )
     {
         if ( entityInstances == null || entityInstances.isEmpty() )
@@ -97,35 +106,47 @@ public class HibernateTrackedEntityAttributeValueStore
             return new ArrayList<>();
         }
 
-        return getCriteria( Restrictions.in( "entityInstance", entityInstances ) ).list();
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance  in :entityInstances";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances", entityInstances );
+
+        return getList( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText )
     {
-        return getCriteria(
-            Restrictions.eq( "attribute", attribute ),
-            Restrictions.ilike( "plainValue", "%" + searchText + "%" ) ).list();
+        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :searchText";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
+            .setParameter( "attribute", attribute )
+            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText  ) + "%");
+
+        return getList( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, String value )
     {
-        return getCriteria(
-            Restrictions.eq( "attribute", attribute ),
-            Restrictions.ilike( "plainValue", value ) ).list();
+        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :value";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
+            .setParameter( "attribute", attribute )
+            .setParameter( "value", StringUtils.lowerCase( value ) );
+
+        return getList( typedQuery );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttributeValue> get( TrackedEntityInstance entityInstance, Program program )
     {
-        return getCriteria(
-            Restrictions.and( Restrictions.eq( "entityInstance", entityInstance ),
-                Restrictions.eq( "attribute.program", program ) ) )
-            .list();
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and v.attribute.program =:program";
+
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query );
+        typedQuery.setParameter( "entityInstance", entityInstance );
+        typedQuery.setParameter( "program", program );
+
+        return getList( typedQuery );
     }
 
     @Override
