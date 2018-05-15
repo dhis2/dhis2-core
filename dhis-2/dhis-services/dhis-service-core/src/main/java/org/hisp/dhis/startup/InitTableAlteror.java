@@ -150,6 +150,16 @@ public class InitTableAlteror
         executeSql( "UPDATE programstageinstance SET lastsynchronized = to_timestamp(0) WHERE lastsynchronized IS NULL" );  //Do not remove this line if some cleanup will ever happen
         executeSql( "alter table programstageinstance alter column lastsynchronized set not null" );
         executeSql( "alter table programstageinstance alter column lastsynchronized set default to_timestamp(0)" );
+
+        updateAndRemoveOldProgramStageInstanceCoordinates();
+    }
+
+    private void updateAndRemoveOldProgramStageInstanceCoordinates()
+    {
+        executeSql( "UPDATE programstageinstance " +
+            "SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) " +
+            "WHERE longitude IS NOT NULL " +
+            "AND latitude IS NOT NULL" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
