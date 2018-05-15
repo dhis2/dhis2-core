@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Created by zubair@dhis2.org on 04.01.18.
  */
-public class RuleActionSendMessageImplementer extends BaseRuleActionImplementer
+public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer
 {
     // -------------------------------------------------------------------------
     // Dependencies

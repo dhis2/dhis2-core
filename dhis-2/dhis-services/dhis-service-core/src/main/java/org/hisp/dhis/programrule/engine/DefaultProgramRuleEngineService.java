@@ -36,6 +36,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,8 +60,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     @Autowired
     private List<RuleActionImplementer> ruleActionImplementers;
 
+    @Autowired
+    private ProgramRuleService programRuleService;
+
     @Override
-    public List<RuleEffect> evaluate(ProgramInstance programInstance )
+    public List<RuleEffect> evaluate( ProgramInstance programInstance )
     {
         if ( !containsImplementableActions( programInstance ) )
         {
@@ -95,7 +99,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     @Override
-    public List<RuleEffect> evaluate(ProgramStageInstance programStageInstance )
+    public List<RuleEffect> evaluate( ProgramStageInstance programStageInstance )
     {
         if ( !containsImplementableActions( programStageInstance.getProgramInstance() ) )
         {
@@ -136,9 +140,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
             return false;
         }
 
-        Program program = programInstance.getProgram();
-
-        Set<ProgramRule> programRules = program.getProgramRules();
+        List<ProgramRule> programRules = programRuleService.getProgramRule( programInstance.getProgram() );
 
         List<ProgramRuleAction> programRuleActions = programRules.stream().map( ProgramRule::getProgramRuleActions )
             .flatMap( Collection::stream )

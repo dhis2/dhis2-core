@@ -28,6 +28,8 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -46,8 +48,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 /**
  * @Author Zubair Asghar.
  */
-public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplementer
+public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
+    private static final Log log = LogFactory.getLog( RuleActionScheduleMessageImplementer.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -120,20 +124,9 @@ public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplemen
         programNotificationInstanceStore.save( notificationInstance );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
+        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
         notificationLoggingService.save( entry );
 
-    }
-
-    private ProgramNotificationInstance createNotificationInstance( ProgramNotificationTemplate template, String date )
-    {
-        ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
-        notificationInstance.setAutoFields();
-        notificationInstance.setName( template.getName() );
-        notificationInstance.setScheduledAt(  DateUtils.parseDate( date ) );
-        notificationInstance.setProgramNotificationTemplate( template );
-
-        return notificationInstance;
     }
 
     private boolean isDateValid( String date )
@@ -146,6 +139,7 @@ public class RuleActionScheduleMessageImplementer extends BaseRuleActionImplemen
             }
         }
 
+        log.error( "Date provided in expression is not valid.");
         return false;
     }
 }

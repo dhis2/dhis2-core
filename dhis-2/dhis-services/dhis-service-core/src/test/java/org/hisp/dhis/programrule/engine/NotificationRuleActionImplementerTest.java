@@ -69,7 +69,7 @@ import javax.annotation.Nonnull;
  * Created by zubair@dhis2.org on 05.02.18.
  */
 @RunWith( MockitoJUnitRunner.class )
-public class RuleActionSendMessageImplementerTest extends DhisConvenienceTest
+public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "123abc";
 

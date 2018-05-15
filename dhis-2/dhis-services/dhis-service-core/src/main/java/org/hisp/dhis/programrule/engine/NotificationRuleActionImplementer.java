@@ -33,12 +33,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -46,9 +48,9 @@ import java.util.Date;
 /**
  * @Author Zubair Asghar.
  */
-abstract class BaseRuleActionImplementer implements RuleActionImplementer
+abstract class NotificationRuleActionImplementer implements RuleActionImplementer
 {
-    private static final Log log = LogFactory.getLog( BaseRuleActionImplementer.class );
+    private static final Log log = LogFactory.getLog( NotificationRuleActionImplementer.class );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -94,6 +96,17 @@ abstract class BaseRuleActionImplementer implements RuleActionImplementer
         return template.getUid() + programInstance.getUid();
     }
 
+    protected ProgramNotificationInstance createNotificationInstance( ProgramNotificationTemplate template, String date )
+    {
+        ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
+        notificationInstance.setAutoFields();
+        notificationInstance.setName( template.getName() );
+        notificationInstance.setScheduledAt(  DateUtils.parseDate( date ) );
+        notificationInstance.setProgramNotificationTemplate( template );
+
+        return notificationInstance;
+    }
+
     protected boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( ruleEffect == null )
@@ -106,12 +119,14 @@ abstract class BaseRuleActionImplementer implements RuleActionImplementer
         if ( template == null )
         {
             log.info( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
+
             return false;
         }
 
         if ( !notificationLoggingService.isValidForSending( generateKey( template, programInstance ) ) )
         {
             log.info( String.format( "Skipped rule action for template id: %s", template.getUid() ) );
+
             return false;
         }
 

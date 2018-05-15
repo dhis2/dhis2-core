@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
@@ -73,6 +74,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @Mock
     private RuleActionSendMessageImplementer ruleActionSendMessage;
 
+    @Mock
+    private ProgramRuleService programRuleService;
+
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;
 
@@ -84,6 +88,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     private ProgramStageInstance programStageInstance;
 
     private ProgramRule programRuleA;
+
+    private List<ProgramRule> programRules = new ArrayList<>();
 
     private ProgramRuleAction programRuleActionA;
 
@@ -119,6 +125,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
             return ruleEffects;
         }).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
+
+        when( programRuleService.getProgramRule( any( Program.class ) ) ).thenReturn( programRules );
     }
 
     @Test
@@ -228,6 +236,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         programStageInstance = new ProgramStageInstance();
         programStageInstance.setProgramStage( programStageA );
         programStageInstance.setProgramInstance( programInstance );
+
+        programRules.add( programRuleA );
     }
 
     private void setProgramRuleActionType_SendMessage()
