@@ -36,6 +36,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
+import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -259,6 +261,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
+    @Autowired
+    private NotificationLoggingService notificationLoggingService;
+
     @Override
     public void setUpTest()
     {
@@ -317,6 +322,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     {
         setUpScheduleMessage();
 
+        String key = "PNT-1-SCH" + "UID-P3";
+
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P3" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
@@ -332,6 +339,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         assertEquals( "PNT-1-SCH", ruleActionSendMessage.notification() );
 
         assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
+
+        ExternalNotificationLogEntry logEntry = notificationLoggingService.getByKey( key );
+
+        assertNotNull( logEntry );
     }
 
     @Test
