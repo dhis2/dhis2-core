@@ -1200,7 +1200,7 @@
     <lettuce.version>3.5.0.Final</lettuce.version>
     <spring-data-redis.version>1.7.11.RELEASE</spring-data-redis.version>
     <struts.version>2.3.34</struts.version>
-    <hibernate.version>5.2.11.Final</hibernate.version>
+    <hibernate.version>5.2.17.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
     <jclouds.version>2.0.3</jclouds.version>
     <!-- Keep in sync with Hibernate -->
