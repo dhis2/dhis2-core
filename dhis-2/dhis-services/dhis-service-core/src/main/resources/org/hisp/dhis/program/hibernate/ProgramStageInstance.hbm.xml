@@ -51,10 +51,6 @@
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
-    <property name="longitude" />
-
-    <property name="latitude" />
-
     <property name="completedBy" />
 
     <property name="completedDate" />

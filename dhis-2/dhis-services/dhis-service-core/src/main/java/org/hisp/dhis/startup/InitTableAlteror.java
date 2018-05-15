@@ -140,6 +140,19 @@ public class InitTableAlteror
         // Update trackedentityattribute set skipsynchronization = false where skipsynchronization = null
         executeSql( "UPDATE trackedentityattribute SET skipsynchronization = false WHERE skipsynchronization IS NULL" );
         executeSql( "alter table trackedentityattribute alter column skipsynchronization set not null" );
+
+        updateAndRemoveOldProgramStageInstanceCoordinates();
+    }
+
+    private void updateAndRemoveOldProgramStageInstanceCoordinates()
+    {
+        executeSql( "UPDATE programstageinstance " +
+            "SET geometry = ST_GeomFromText('POINT(' || longitude || ' ' || latitude || ')', 4326) " +
+            "WHERE longitude IS NOT NULL " +
+            "AND latitude IS NOT NULL" );
+
+        executeSql( "ALTER TABLE programstageinstance DROP COLUMN longitude" );
+        executeSql( "ALTER TABLE programstageinstance DROP COLUMN latitude" );
     }
 
     private void updateTrackedEntityAttributePatternAndTextPattern()
