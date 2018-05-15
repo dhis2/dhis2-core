@@ -262,17 +262,17 @@ public abstract class AbstractEventService
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-        User user = currentUserService.getCurrentUser();
+        importOptions = updateImportOptions( importOptions );
 
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
-            prepareCaches( user, _events );
+            prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
             {
-                importSummaries.addImportSummary( addEvent( event, user, importOptions ) );
+                importSummaries.addImportSummary( addEvent( event, importOptions ) );
             }
 
             if ( clearSession && events.size() >= FLUSH_FREQUENCY )
@@ -288,6 +288,7 @@ public abstract class AbstractEventService
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
         notifier.clear( jobId ).notify( jobId, "Importing events" );
+        importOptions = updateImportOptions( importOptions );
 
         try
         {
@@ -311,15 +312,7 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary addEvent( Event event, ImportOptions importOptions )
     {
-        return addEvent( event, currentUserService.getCurrentUser(), importOptions );
-    }
-
-    private ImportSummary addEvent( Event event, User user, ImportOptions importOptions )
-    {
-        if ( importOptions == null )
-        {
-            importOptions = new ImportOptions();
-        }
+        importOptions = updateImportOptions( importOptions );
 
         if ( programStageInstanceService.programStageInstanceExistsIncludingDeleted( event.getEvent() ) )
         {
@@ -424,7 +417,7 @@ public abstract class AbstractEventService
                 // Create PI if it doesn't exist (should only be one)
 
                 String storedBy = event.getStoredBy() != null && event.getStoredBy().length() < 31 ? event.getStoredBy()
-                    : user.getUsername();
+                    : importOptions.getUser().getUsername();
 
                 ProgramInstance pi = new ProgramInstance();
                 pi.setEnrollmentDate( new Date() );
@@ -485,7 +478,7 @@ public abstract class AbstractEventService
 
         validateExpiryDays( event, program, null );
 
-        List<String> errors = trackerAccessManager.canWrite( user,
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ) );
 
         if ( !errors.isEmpty() )
@@ -493,7 +486,7 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
-        return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, user, importOptions );
+        return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, importOptions );
     }
 
     // -------------------------------------------------------------------------
@@ -541,26 +534,45 @@ public abstract class AbstractEventService
         {
             throw new IllegalQueryException( "Program stage can not be null." );
         }
+        
+        if ( params.getProgramStage().getProgramStageDataElements() == null )
+        {
+            throw new IllegalQueryException( "Program stage should have data element(s)." );
+        }
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         // ---------------------------------------------------------------------
-        // If no data element is specified, use those configured for
-        // display in report
+        // If includeAllDataElements is set to true, return all data elements. 
+        // If no data element is specified, use those configured for display 
+        // in report
         // ---------------------------------------------------------------------
-        if ( params.getDataElements().isEmpty() && params.getProgramStage() != null
-            && params.getProgramStage().getProgramStageDataElements() != null )
+        if ( params.isIncludeAllDataElements() )
         {
             for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
             {
-                if ( pde.getDisplayInReports() )
+                QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
+                    pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
+                    pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
+                params.getDataElements().add( qi );
+            }
+        }
+        else
+        {
+            if ( params.getDataElements().isEmpty() )
+            {
+                for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
                 {
-                    QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
-                        pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
-                        pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
-                    params.getDataElements().add( qi );
+                    if ( pde.getDisplayInReports() )
+                    {
+                        QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
+                            pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
+                            pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
+                        params.getDataElements().add( qi );
+                    }
                 }
             }
+            
         }
 
         // ---------------------------------------------------------------------
@@ -815,7 +827,7 @@ public abstract class AbstractEventService
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
-        Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeDeleted )
+        Set<String> events, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted )
     {
         User user = currentUserService.getCurrentUser();
         UserCredentials userCredentials = user.getUserCredentials();
@@ -861,7 +873,7 @@ public abstract class AbstractEventService
         {
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
-        
+
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
 
         if ( StringUtils.isNotEmpty( trackedEntityInstance ) && tei == null )
@@ -932,6 +944,7 @@ public abstract class AbstractEventService
         params.setTotalPages( totalPages );
         params.setSkipPaging( skipPaging );
         params.setIncludeAttributes( includeAttributes );
+        params.setIncludeAllDataElements( includeAllDataElements );
         params.setOrders( orders );
         params.setGridOrders( gridOrders );
         params.setEvents( events );
@@ -945,20 +958,20 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession )
+    public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
-        User user = currentUserService.getCurrentUser();
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
-            prepareCaches( user, _events );
+            prepareCaches( importOptions.getUser(), _events );
 
             for ( Event event : _events )
             {
-                importSummaries.addImportSummary( updateEvent( event, user, singleValue, null ) );
+                importSummaries.addImportSummary( updateEvent( event, singleValue, importOptions ) );
             }
 
             if ( clearSession && events.size() >= FLUSH_FREQUENCY )
@@ -979,15 +992,7 @@ public abstract class AbstractEventService
     @Override
     public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions )
     {
-        return updateEvent( event, currentUserService.getCurrentUser(), singleValue, importOptions );
-    }
-
-    private ImportSummary updateEvent( Event event, User user, boolean singleValue, ImportOptions importOptions )
-    {
-        if ( importOptions == null )
-        {
-            importOptions = new ImportOptions();
-        }
+        importOptions = updateImportOptions( importOptions );
 
         if ( event == null || StringUtils.isEmpty( event.getEvent() ) )
         {
@@ -998,7 +1003,7 @@ public abstract class AbstractEventService
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getEvent() );
 
-        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance );
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance );
 
         if ( programStageInstance == null )
         {
@@ -1036,10 +1041,10 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, null, user );
+        String storedBy = getStoredBy( event, null, importOptions.getUser() );
         programStageInstance.setStoredBy( storedBy );
 
-        String completedBy = getCompletedBy( event, null, user );
+        String completedBy = getCompletedBy( event, null, importOptions.getUser() );
 
         if ( event.getStatus() != programStageInstance.getStatus()
             && programStageInstance.getStatus() == EventStatus.COMPLETED )
@@ -1136,7 +1141,7 @@ public abstract class AbstractEventService
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
-        updateTrackedEntityInstance( programStageInstance, user );
+        updateTrackedEntityInstance( programStageInstance, importOptions.getUser() );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
 
@@ -1147,7 +1152,7 @@ public abstract class AbstractEventService
         Map<String, DataElement> newDataElements = new HashMap<>();
 
         ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap,
-            newDataElements, user, importSummary, importOptions );
+            newDataElements, importSummary, importOptions );
         if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
             return validationResult;
@@ -1371,7 +1376,7 @@ public abstract class AbstractEventService
     }
 
     private ImportSummary validateDataValues( Event event, ProgramStageInstance programStageInstance,
-        Map<String, TrackedEntityDataValue> dataElementToValueMap, Map<String, DataElement> newDataElements, User user,
+        Map<String, TrackedEntityDataValue> dataElementToValueMap, Map<String, DataElement> newDataElements,
         ImportSummary importSummary, ImportOptions importOptions )
     {
         // Loop through values. If only one validation problem occurs -> FAIL
@@ -1403,7 +1408,7 @@ public abstract class AbstractEventService
 
             // To keep it simple the fail fast approach is chosen: 1 error is
             // enough. Return back an error.
-            if ( !validateDataValue( programStageInstance, user, dataElement, dataValue.getValue(), importSummary ) )
+            if ( !validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary ) )
             {
                 return importSummary;
             }
@@ -1442,7 +1447,7 @@ public abstract class AbstractEventService
     }
 
     private ImportSummary saveEvent( Program program, ProgramInstance programInstance, ProgramStage programStage,
-        ProgramStageInstance programStageInstance, OrganisationUnit organisationUnit, Event event, User user,
+        ProgramStageInstance programStageInstance, OrganisationUnit organisationUnit, Event event,
         ImportOptions importOptions )
     {
         Assert.notNull( program, "Program cannot be null" );
@@ -1450,11 +1455,7 @@ public abstract class AbstractEventService
         Assert.notNull( programStage, "Program stage cannot be null" );
 
         ImportSummary importSummary = new ImportSummary( event.getEvent() );
-
-        if ( importOptions == null )
-        {
-            importOptions = new ImportOptions();
-        }
+        importOptions = updateImportOptions( importOptions );
 
         boolean existingEvent = programStageInstance != null;
         boolean dryRun = importOptions.isDryRun();
@@ -1473,8 +1474,8 @@ public abstract class AbstractEventService
             dueDate = DateUtils.parseDate( event.getDueDate() );
         }
 
-        String storedBy = getStoredBy( event, importSummary, user );
-        String completedBy = getCompletedBy( event, importSummary, user );
+        String storedBy = getStoredBy( event, importSummary, importOptions.getUser() );
+        String completedBy = getCompletedBy( event, importSummary, importOptions.getUser() );
 
         CategoryOptionCombo aoc = null;
 
@@ -1498,6 +1499,11 @@ public abstract class AbstractEventService
             aoc = (CategoryOptionCombo) defaults.get( CategoryOptionCombo.class );
         }
 
+        if ( aoc != null && aoc.isDefault() && program.getCategoryCombo() != null && !program.getCategoryCombo().isDefault() )
+        {
+            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo", "Default attribute option combo is not allowed since program has not default category combo." ) );
+        }
+
         if ( !dryRun )
         {
             if ( programStageInstance == null )
@@ -1513,7 +1519,7 @@ public abstract class AbstractEventService
                     programStageInstance, aoc, importOptions );
             }
 
-            updateTrackedEntityInstance( programStageInstance, user );
+            updateTrackedEntityInstance( programStageInstance, importOptions.getUser() );
             saveTrackedEntityComment( programStageInstance, event, storedBy );
 
             importSummary.setReference( programStageInstance.getUid() );
@@ -1543,7 +1549,7 @@ public abstract class AbstractEventService
 
             if ( dataElement != null )
             {
-                if ( validateDataValue( programStageInstance, user, dataElement, dataValue.getValue(), importSummary ) )
+                if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary ) )
                 {
                     String dataValueStoredBy = dataValue.getStoredBy() != null ? dataValue.getStoredBy() : storedBy;
 
@@ -1622,6 +1628,7 @@ public abstract class AbstractEventService
         CategoryOptionCombo aoc, ImportOptions importOptions )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
+
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( IdScheme.UID ) )
         {
             programStageInstance
@@ -2070,5 +2077,20 @@ public abstract class AbstractEventService
         }
 
         return attrOptCombo;
+    }
+
+    protected ImportOptions updateImportOptions( ImportOptions importOptions )
+    {
+        if ( importOptions == null )
+        {
+            importOptions = new ImportOptions();
+        }
+
+        if ( importOptions.getUser() == null )
+        {
+            importOptions.setUser( currentUserService.getCurrentUser() );
+        }
+
+        return importOptions;
     }
 }

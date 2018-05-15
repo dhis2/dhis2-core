@@ -65,7 +65,7 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EventSecurityTests
+public class EventSecurityTest
     extends DhisSpringTest
 {
     @Autowired
@@ -242,7 +242,7 @@ public class EventSecurityTests
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions() );
 
-        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
 
     /**
@@ -261,7 +261,6 @@ public class EventSecurityTests
         manager.update( programStageA );
 
         User user = createUser( "user1" );
-
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), organisationUnitA.getUid() );
@@ -489,7 +488,7 @@ public class EventSecurityTests
      * orgUnit = Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testAddEventSimpleUserFullAccess10()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );

@@ -63,7 +63,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EnrollmentSecurityTests
+public class EnrollmentSecurityTest
     extends DhisSpringTest
 {
     @Autowired
@@ -171,7 +171,7 @@ public class EnrollmentSecurityTests
      * orgUnit = Accessible
      * status = SUCCESS
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadWrite()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -200,7 +200,7 @@ public class EnrollmentSecurityTests
      * orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadWriteNoOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -228,7 +228,7 @@ public class EnrollmentSecurityTests
      * orgUnit = Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -257,7 +257,7 @@ public class EnrollmentSecurityTests
      * orgUnit = Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserNoDataAccessOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -286,7 +286,7 @@ public class EnrollmentSecurityTests
      * orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserNoDataAccessNoOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
