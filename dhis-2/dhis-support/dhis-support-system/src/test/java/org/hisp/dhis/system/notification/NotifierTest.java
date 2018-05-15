@@ -54,57 +54,79 @@ public class NotifierTest
 
     private User user = createUser( 'A' );
     
-    private JobConfiguration id1 = new JobConfiguration( null, DATAVALUE_IMPORT, user.getUid(), true );
-    private JobConfiguration id2 = new JobConfiguration( null, ANALYTICS_TABLE, user.getUid(), true );
-    private JobConfiguration id3 = new JobConfiguration( null, METADATA_IMPORT, user.getUid(), true );
+    private JobConfiguration dataValueImportJobConfig = new JobConfiguration( null, DATAVALUE_IMPORT, user.getUid(), true );
+    private JobConfiguration analyticsTableJobConfig = new JobConfiguration( null, ANALYTICS_TABLE, user.getUid(), true );
+    private JobConfiguration metadataImportJobConfig = new JobConfiguration( null, METADATA_IMPORT, user.getUid(), true );
+    private JobConfiguration dataValueImportSecondJobConfig = new JobConfiguration( null, DATAVALUE_IMPORT, user.getUid(), true );
     
     @Test
     public void testNotifiy()
     {
-        notifier.notify( id1, "Import started" );
-        notifier.notify( id1, "Import working" );
-        notifier.notify( id1, "Import done" );
-        notifier.notify( id2, "Process started" );
-        notifier.notify( id2, "Process done" );
+        notifier.notify( dataValueImportJobConfig, "Import started" );
+        notifier.notify( dataValueImportJobConfig, "Import working" );
+        notifier.notify( dataValueImportJobConfig, "Import done" );
+        notifier.notify( analyticsTableJobConfig, "Process started" );
+        notifier.notify( analyticsTableJobConfig, "Process done" );
         
         Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> notifications = notifier.getNotifications( );
         
         assertNotNull( notifications );
-        assertEquals( 3, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
-        assertEquals( 2, notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
-        assertEquals( 0, notifier.getNotificationsByJobId( id3.getJobType(), id3.getUid() ).size() );
+        assertEquals( 3, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() ).size() );
+        assertEquals( 2, notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
+        assertEquals( 0, notifier.getNotificationsByJobId( metadataImportJobConfig.getJobType(), metadataImportJobConfig.getUid() ).size() );
     }
 
     @Test
     public void testClearNotifications()
     {
-        notifier.clear( id1 );
+        notifier.clear( dataValueImportJobConfig );
         
-        notifier.notify( id1, "Import started" );
-        notifier.notify( id1, "Import working" );
-        notifier.notify( id1, "Import done" );
-        notifier.notify( id2, "Process started" );
-        notifier.notify( id2, "Process done" );
+        notifier.notify( dataValueImportJobConfig, "Import started" );
+        notifier.notify( dataValueImportJobConfig, "Import working" );
+        notifier.notify( dataValueImportJobConfig, "Import done" );
+        notifier.notify( analyticsTableJobConfig, "Process started" );
+        notifier.notify( analyticsTableJobConfig, "Process done" );
         
-        assertEquals( 3, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
-        assertEquals( 2, notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
+        assertEquals( 3, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() ).size() );
+        assertEquals( 2, notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
         
-        notifier.clear( id1 );
+        notifier.clear( dataValueImportJobConfig );
 
-        assertEquals( 0, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
-        assertEquals( 2,  notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
+        assertEquals( 0, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() ).size() );
+        assertEquals( 2,  notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
 
-        notifier.clear( id2 );
+        notifier.clear( analyticsTableJobConfig );
 
-        assertEquals( 0, notifier.getNotificationsByJobId( id1.getJobType(), id1.getUid() ).size() );
-        assertEquals( 0, notifier.getNotificationsByJobId( id2.getJobType(), id2.getUid() ).size() );
+        assertEquals( 0, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() ).size() );
+        assertEquals( 0, notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
+    }
+    
+    @Test
+    public void testTaskSummaryById()
+    {
+        notifier.addJobSummary( dataValueImportJobConfig, new String("something"), String.class );
+        
+        assertNotNull( notifier.getJobSummaryByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() ) );
+    }
+    
+    @Test
+    public void testTaskSummariesByJobType()
+    {
+        notifier.addJobSummary( dataValueImportJobConfig,"somethingid1", String.class );
+        notifier.addJobSummary( analyticsTableJobConfig, "somethingid2", String.class );
+        notifier.addJobSummary( metadataImportJobConfig, "somethingid3", String.class );
+        notifier.addJobSummary( dataValueImportSecondJobConfig,"somethingid4", String.class );
+         
+        Map<String, Object> jobSummariesForType = (Map<String, Object>) notifier.getJobSummariesForJobType( DATAVALUE_IMPORT );
+        assertNotNull(jobSummariesForType);
+        assertEquals( jobSummariesForType.size(), 2 );
     }
     
     @Test
     public void testTaskSummary()
     {
-        notifier.addJobSummary( id1, new Object() );
+        notifier.addJobSummary( dataValueImportJobConfig, new String("something"), String.class );
         
-        assertNotNull( notifier.getJobSummaryByJobId( id1.getJobType(), id1.getUid() ) );
+        assertNotNull( notifier.getJobSummaryByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() ) );
     }
 }

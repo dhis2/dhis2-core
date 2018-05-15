@@ -90,7 +90,7 @@ public class DataIntegrityJob
             notifier.notify(
                 jobConfiguration, NotificationLevel.INFO,
                 "Data integrity checks completed in " + timer.toString() + ".", true )
-                .addJobSummary( jobConfiguration, report );
+                .addJobSummary( jobConfiguration, report, FlattenedDataIntegrityReport.class );
         }
     }
 

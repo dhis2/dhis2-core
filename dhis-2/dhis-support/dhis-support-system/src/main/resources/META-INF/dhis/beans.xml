@@ -31,8 +31,6 @@
 
   <bean id="org.hisp.dhis.system.velocity.VelocityManager" class="org.hisp.dhis.system.velocity.VelocityManager" />
 
-  <bean id="notifier" class="org.hisp.dhis.system.notification.InMemoryNotifier" />
-
   <bean id="logInitializer" class="org.hisp.dhis.system.log.Log4JLogConfigInitializer" init-method="initConfig" />
   
 </beans>
