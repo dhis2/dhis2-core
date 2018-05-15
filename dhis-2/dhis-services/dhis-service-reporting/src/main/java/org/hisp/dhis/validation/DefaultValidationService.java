@@ -354,34 +354,37 @@ public class DefaultValidationService
 
         // 3. Save the dimensional objects in the extended period types.
 
-        for ( Map.Entry<PeriodTypeExtended, Set<String>> e : periodItemIds.entrySet() )
+        for ( Map.Entry<PeriodTypeExtended, Set<String>> entry : periodItemIds.entrySet() )
         {
-            PeriodTypeExtended periodTypeX = e.getKey();
+            PeriodTypeExtended periodTypeX = entry.getKey();
 
-            for ( String itemId : e.getValue() )
+            for ( String itemId : entry.getValue() )
             {
                 DimensionalItemObject item = dimensionItemMap.get( itemId );
 
-                if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND )
+                if ( item != null )
                 {
-                    DataElementOperand deo = (DataElementOperand) item;
-
-                    if ( deo.getCategoryOptionCombo() != null )
+                    if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() )
                     {
-                        periodTypeX.addDataElementOperand( deo );
+                        DataElementOperand deo = (DataElementOperand) item;
+    
+                        if ( deo.getCategoryOptionCombo() != null )
+                        {
+                            periodTypeX.addDataElementOperand( deo );
+                        }
+                        else
+                        {
+                            periodTypeX.addDataElement( deo.getDataElement() );
+                        }
+                    }
+                    else if ( hasAttributeOptions( item ) )
+                    {
+                        periodTypeX.getEventItems().add( item );
                     }
                     else
                     {
-                        periodTypeX.addDataElement( deo.getDataElement() );
+                        periodTypeX.getEventItemsWithoutAttributeOptions().add( item );
                     }
-                }
-                else if ( hasAttributeOptions( item ) )
-                {
-                    periodTypeX.getEventItems().add( item );
-                }
-                else
-                {
-                    periodTypeX.getEventItemsWithoutAttributeOptions().add( item );
                 }
             }
         }
@@ -391,13 +394,13 @@ public class DefaultValidationService
      * Checks to see if a dimensional item object has values
      * stored in the database by attribute option combo.
      *
-     * @param o dimensional item object
+     * @param object dimensional item object
      * @return true if values are stored by attribuete option combo.
      */
-    private boolean hasAttributeOptions( DimensionalItemObject o )
+    private boolean hasAttributeOptions( DimensionalItemObject object )
     {
-        return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
-            || ( (ProgramIndicator)o ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
+        return object.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
+            || ( (ProgramIndicator)object ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
     }
 
     /**
@@ -435,11 +438,11 @@ public class DefaultValidationService
 
         Map<String, DimensionalItemObject> dimObjects = new HashMap<>();
 
-        for ( Map.Entry<Class<? extends DimensionalItemObject>, Set<String>> e : expressionIdMap.entrySet() )
+        for ( Map.Entry<Class<? extends DimensionalItemObject>, Set<String>> entry : expressionIdMap.entrySet() )
         {
-            for ( String id : e.getValue() )
+            for ( String id : entry.getValue() )
             {
-                if ( e.getKey() == DataElementOperand.class )
+                if ( entry.getKey() == DataElementOperand.class )
                 {
                     DataElementOperand deo = new DataElementOperand(
                         (DataElement) idMap.getValue( DataElement.class, getIdPart( id, 0 ) ),
@@ -452,7 +455,7 @@ public class DefaultValidationService
                         dimObjects.put( id, deo );
                     }
                 }
-                else if ( e.getKey() == ProgramDataElementDimensionItem.class )
+                else if ( entry.getKey() == ProgramDataElementDimensionItem.class )
                 {
                     ProgramDataElementDimensionItem pde = new ProgramDataElementDimensionItem(
                         (Program) idMap.getValue( Program.class, getIdPart( id, 0 ) ),
@@ -463,7 +466,7 @@ public class DefaultValidationService
                         dimObjects.put( id, pde );
                     }
                 }
-                else if ( e.getKey() == ProgramTrackedEntityAttributeDimensionItem.class )
+                else if ( entry.getKey() == ProgramTrackedEntityAttributeDimensionItem.class )
                 {
                     ProgramTrackedEntityAttributeDimensionItem pa = new ProgramTrackedEntityAttributeDimensionItem(
                         (Program) idMap.getValue( Program.class, getIdPart( id, 0 ) ),
@@ -474,7 +477,7 @@ public class DefaultValidationService
                         dimObjects.put( id, pa );
                     }
                 }
-                else if ( e.getKey() == ProgramIndicator.class )
+                else if ( entry.getKey() == ProgramIndicator.class )
                 {
                     ProgramIndicator pi = (ProgramIndicator) idMap.getValue( ProgramIndicator.class, id );
 
