@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.mock.MockUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -47,6 +48,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -60,7 +62,7 @@ public class CompleteDataSetRegistrationServiceTest
     extends DhisSpringTest
 {
     @Autowired
-    private UserService _userService;
+    private UserService userService;
 
     @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
@@ -82,7 +84,7 @@ public class CompleteDataSetRegistrationServiceTest
 
     @Autowired
     private CategoryService categoryService;
-  
+
     private CompleteDataSetRegistration registrationA;
     private CompleteDataSetRegistration registrationB;
     private CompleteDataSetRegistration registrationC;
@@ -122,7 +124,8 @@ public class CompleteDataSetRegistrationServiceTest
         sourceB = createOrganisationUnit( 'B' );
         sourceC = createOrganisationUnit( 'C' );
 
-        user= createUser( 'A' );
+        user = createUser( 'A' );
+        userService.addUser(user);
 
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
