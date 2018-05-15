@@ -38,6 +38,8 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
@@ -52,7 +54,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "map", namespace = DxfNamespaces.DXF_2_0 )
 public class Map
-    extends BaseNameableObject implements InterpretableObject, MetadataObject
+    extends BaseNameableObject implements InterpretableObject, SubscribableObject, MetadataObject
 {
     private Double longitude;
 
@@ -67,6 +69,8 @@ public class Map
     private List<MapView> mapViews = new ArrayList<>();
 
     private Set<Interpretation> interpretations = new HashSet<>();
+
+    protected Set<String> subscribers = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -176,5 +180,51 @@ public class Map
     public void setInterpretations( Set<Interpretation> interpretations )
     {
         this.interpretations = interpretations;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "subscribers", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "subscriber", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getSubscribers()
+    {
+        return subscribers;
+    }
+
+    public void setSubscribers( Set<String> subscribers )
+    {
+        this.subscribers = subscribers;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSubscribed()
+    {
+        User user = UserContext.getUser();
+
+        return user != null && subscribers != null ? subscribers.contains( user.getUid() ) : false;
+    }
+
+    @Override
+    public boolean subscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.add( user.getUid() );
+    }
+
+    @Override
+    public boolean unsubscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.remove( user.getUid() );
     }
 }

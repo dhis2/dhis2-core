@@ -128,7 +128,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getPeriodIdentifiers;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
@@ -802,7 +802,7 @@ public class DefaultAnalyticsService
             Calendar calendar = PeriodType.getCalendar();
 
             List<String> periodUids = calendar.isIso8601() ?
-                getPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), params.getDisplayProperty() ) :
+                getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
             dimensionItems.put( PERIOD_DIM_ID, periodUids );
